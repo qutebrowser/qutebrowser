@@ -36,7 +36,7 @@ def _base_args(config):
 
 
 @pytest.fixture
-def temp_basedir_env(tmpdir):
+def temp_basedir_env(tmpdir, short_tmpdir):
     """Return a dict of environment variables that fakes --temp-basedir.
 
     We can't run --basedir or --temp-basedir for some tests, so we mess with
@@ -44,7 +44,7 @@ def temp_basedir_env(tmpdir):
     """
     data_dir = tmpdir / 'data'
     config_dir = tmpdir / 'config'
-    runtime_dir = tmpdir / 'runtime'
+    runtime_dir = short_tmpdir / 'rt'
     cache_dir = tmpdir / 'cache'
 
     runtime_dir.ensure(dir=True)
