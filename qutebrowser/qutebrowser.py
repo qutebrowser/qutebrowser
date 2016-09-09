@@ -114,7 +114,7 @@ def get_argparser():
                        "show any error windows (used for tests/smoke.py).")
     debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt.",
                        nargs=2)
-    debug.add_argument('--qt-flag', help="Pass a argument to Qt as flag.",
+    debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
                        nargs=1)
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
