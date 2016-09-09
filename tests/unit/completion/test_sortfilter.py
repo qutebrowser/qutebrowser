@@ -64,6 +64,8 @@ def _extract_model_data(model):
     ('foo', 'barfoobar', True),
     ('foo bar', 'barfoobar', True),
     ('foo   bar', 'barfoobar', True),
+    ('foo bar', 'barfoobazbar', True),
+    ('foo   bar', 'barfoobazbar', True),
     ('foo', 'barFOObar', True),
     ('Foo', 'barfOObar', True),
     ('ab', 'aonebtwo', False),

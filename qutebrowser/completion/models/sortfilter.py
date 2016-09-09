@@ -68,8 +68,9 @@ class CompletionFilterModel(QSortFilterProxyModel):
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
             self.pattern = val
+            val = re.sub(r' +', r' ', val)  # See #1919
             val = re.escape(val)
-            val = re.sub(r'\ +', r'.*', val)
+            val = val.replace(r'\ ', '.*')
             self.pattern_re = re.compile(val, re.IGNORECASE)
             self.invalidate()
             sortcol = 0
