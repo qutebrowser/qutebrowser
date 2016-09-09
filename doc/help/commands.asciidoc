@@ -974,9 +974,7 @@ How many steps to zoom out.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
-|<<prompt-no,prompt-no>>|Answer no to a yes/no prompt.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
-|<<prompt-yes,prompt-yes>>|Answer yes to a yes/no prompt.
 |<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
@@ -1227,10 +1225,6 @@ Accept the current prompt.
 * +'value'+: If given, uses this value instead of the entered one. For boolean prompts, "yes"/"no" are accepted as value.
 
 
-[[prompt-no]]
-=== prompt-no
-Answer no to a yes/no prompt.
-
 [[prompt-open-download]]
 === prompt-open-download
 Syntax: +:prompt-open-download ['cmdline']+
@@ -1247,10 +1241,6 @@ If no specific command is given, this will use the system's default application 
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-
-[[prompt-yes]]
-=== prompt-yes
-Answer yes to a yes/no prompt.
 
 [[repeat-command]]
 === repeat-command

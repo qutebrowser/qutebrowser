@@ -112,7 +112,8 @@ Changed
 - `content -> javascript-can-open-windows` got renamed to
   `javascript-can-open-windows-automatically`.
 - `:prompt-accept` now optionally accepts a value which overrides the one
-  entered in the input box.
+  entered in the input box. `yes` and `no` can be used as values for yes/no
+  questions.
 
 Deprecated
 ~~~~~~~~~~
@@ -121,6 +122,8 @@ Deprecated
   `{primary}` can be used instead.
 - The `:paste-primary` command got deprecated as `:insert-text {primary}` can
   be used instead.
+- The `:prompt-yes` and `:prompt-no` commands got deprecated as
+  `:prompt-accept yes` and `:prompt-accept no` can be used instead.
 
 Removed
 ~~~~~~~

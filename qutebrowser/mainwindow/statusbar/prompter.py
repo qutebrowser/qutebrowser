@@ -304,7 +304,8 @@ class Prompter(QObject):
             raise ValueError("Invalid question mode!")
 
     @cmdutils.register(instance='prompter', hide=True, scope='window',
-                       modes=[usertypes.KeyMode.yesno])
+                       modes=[usertypes.KeyMode.yesno],
+                       deprecated='Use :prompt-accept yes instead!')
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
         if self._question.mode != usertypes.PromptMode.yesno:
@@ -316,7 +317,8 @@ class Prompter(QObject):
         self._question.done()
 
     @cmdutils.register(instance='prompter', hide=True, scope='window',
-                       modes=[usertypes.KeyMode.yesno])
+                       modes=[usertypes.KeyMode.yesno],
+                       deprecated='Use :prompt-accept no instead!')
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
         if self._question.mode != usertypes.PromptMode.yesno:

@@ -126,14 +126,14 @@ Feature: quickmarks and bookmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/11.txt eleven
         And I run :quickmark-add http://localhost:(port)/data/numbers/11_2.txt eleven
         And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
-        And I run :prompt-no
+        And I run :prompt-accept no
         Then the quickmark file should contain "eleven http://localhost:*/data/numbers/11.txt"
 
     Scenario: Saving a duplicate quickmark (with override)
         When I run :quickmark-add http://localhost:(port)/data/numbers/12.txt twelve
         And I run :quickmark-add http://localhost:(port)/data/numbers/12_2.txt twelve
         And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
-        And I run :prompt-yes
+        And I run :prompt-accept yes
         Then the quickmark file should contain "twelve http://localhost:*/data/numbers/12_2.txt"
 
     Scenario: Adding a quickmark with an empty name

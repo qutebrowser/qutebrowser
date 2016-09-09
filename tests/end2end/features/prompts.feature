@@ -23,14 +23,14 @@ Feature: Prompts
         When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
-        And I run :prompt-yes
+        And I run :prompt-accept yes
         Then the javascript message "confirm reply: true" should be logged
 
     Scenario: Javascript confirm - no
         When I open data/prompt/jsconfirm.html
         And I run :click-element id button
         And I wait for a prompt
-        And I run :prompt-no
+        And I run :prompt-accept no
         Then the javascript message "confirm reply: false" should be logged
 
     Scenario: Javascript confirm - aborted
@@ -101,7 +101,7 @@ Feature: Prompts
         And I set network -> ssl-strict to ask
         And I load an SSL page
         And I wait for a prompt
-        And I run :prompt-yes
+        And I run :prompt-accept yes
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
@@ -110,7 +110,7 @@ Feature: Prompts
         And I set network -> ssl-strict to ask
         And I load an SSL page
         And I wait for a prompt
-        And I run :prompt-no
+        And I run :prompt-accept no
         Then "Error while loading *: SSL handshake failed" should be logged
         And the page should contain the plaintext "Unable to load page"
 
@@ -135,7 +135,7 @@ Feature: Prompts
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :prompt-yes
+        And I run :prompt-accept yes
         Then the javascript message "geolocation permission denied" should not be logged
 
     Scenario: geolocation with ask -> false
@@ -143,7 +143,7 @@ Feature: Prompts
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :prompt-no
+        And I run :prompt-accept no
         Then the javascript message "geolocation permission denied" should be logged
 
     Scenario: geolocation with ask -> abort
@@ -173,7 +173,7 @@ Feature: Prompts
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :prompt-no
+        And I run :prompt-accept no
         Then the javascript message "notification permission denied" should be logged
 
     Scenario: notifications with ask -> true
@@ -181,7 +181,7 @@ Feature: Prompts
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
-        And I run :prompt-yes
+        And I run :prompt-accept yes
         Then the javascript message "notification permission granted" should be logged
 
     # This actually gives us a denied rather than an aborted

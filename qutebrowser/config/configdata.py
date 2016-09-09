@@ -1455,8 +1455,8 @@ KEY_SECTION_DESC = {
         "bind special keys.\n"
         "Useful hidden commands to map in this section:\n\n"
         " * `prompt-accept`: Confirm the entered value.\n"
-        " * `prompt-yes`: Answer yes to a yes/no question.\n"
-        " * `prompt-no`: Answer no to a yes/no question."),
+        " * `prompt-accept yes`: Answer yes to a yes/no question.\n"
+        " * `prompt-accept no`: Answer no to a yes/no question."),
     'caret': (
         ""),
 }
@@ -1631,8 +1631,8 @@ KEY_DATA = collections.OrderedDict([
 
     ('prompt', collections.OrderedDict([
         ('prompt-accept', RETURN_KEYS),
-        ('prompt-yes', ['y']),
-        ('prompt-no', ['n']),
+        ('prompt-accept yes', ['y']),
+        ('prompt-accept no', ['n']),
         ('prompt-open-download', ['<Ctrl-X>']),
     ])),
 
@@ -1741,4 +1741,7 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^set-cmd-text -s :search -r$'), r'set-cmd-text ?'),
     (re.compile(r'^set-cmd-text -s :$'), r'set-cmd-text :'),
     (re.compile(r'^set-cmd-text -s :set keybind$'), r'set-cmd-text -s :bind'),
+
+    (re.compile(r'^prompt-yes$'), r'prompt-accept yes'),
+    (re.compile(r'^prompt-no$'), r'prompt-accept no'),
 ]
