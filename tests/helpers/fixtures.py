@@ -27,6 +27,7 @@ See https://pytest.org/latest/fixture.html
 
 import sys
 import collections
+import tempfile
 import itertools
 import textwrap
 import unittest.mock
@@ -34,6 +35,7 @@ import types
 import os
 
 import pytest
+import py.path  # pylint: disable=no-name-in-module
 
 import helpers.stubs as stubsmod
 from qutebrowser.config import config
@@ -470,3 +472,10 @@ def redirect_xdg_data(data_tmpdir, monkeypatch):
     we need to set the environment variable to redirect data access.
     """
     monkeypatch.setenv('XDG_DATA_HOME', str(data_tmpdir))
+
+
+@pytest.fixture()
+def short_tmpdir():
+    """A short temporary directory for a XDG_RUNTIME_DIR."""
+    with tempfile.TemporaryDirectory() as tdir:
+        yield py.path.local(tdir)  # pylint: disable=no-member
