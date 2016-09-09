@@ -112,9 +112,6 @@ def get_argparser():
                        "temporary basedir.")
     debug.add_argument('--no-err-windows', action='store_true', help="Don't "
                        "show any error windows (used for tests/smoke.py).")
-    # For the Qt args, we use store_const with const=True rather than
-    # store_true because we want the default to be None, to make
-    # utils.qt:get_args easier.
     debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt.",
                        nargs=2)
     debug.add_argument('--qt-flag', help="Pass a argument to Qt as flag.",

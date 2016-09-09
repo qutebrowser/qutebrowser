@@ -108,8 +108,7 @@ class TestGetQtArgs:
         # No Qt arguments
         (['--debug'], [sys.argv[0]]),
         # Qt flag
-        (['--debug', '--qt-flag', '--nocolor', 'reverse'],
-        [sys.argv[0], '-reverse']),
+        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '-reverse']),
         # Qt argument with value
         (['--qt-arg', 'stylesheet', 'foo'],
         [sys.argv[0], '-stylesheet', 'foo']),
