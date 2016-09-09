@@ -304,3 +304,11 @@ Feature: Downloading things from a website.
         And I run :prompt-accept (tmpdir)/subdir
         And I open data/downloads/download2.bin
         Then the download prompt should be shown with "{downloaddir}/download2.bin"
+
+    ## Other
+
+    Scenario: Download without a content-size
+        When I set storage -> prompt-download-directory to false
+        When I run :download http://localhost:(port)/custom/content-size
+        And I wait until the download is finished
+        Then the downloaded file content-size should exist
