@@ -587,8 +587,8 @@ class DownloadItem(QObject):
                 " your home directory.",
             )
             # fall back to $HOME as download_dir
-            self._filename = create_full_filename(
-                self.basename, os.path.expanduser(os.path.join('~', filename)))
+            self._filename = create_full_filename(self.basename,
+                                                  os.path.expanduser('~'))
 
         self.basename = os.path.basename(self._filename)
         last_used_directory = os.path.dirname(self._filename)
