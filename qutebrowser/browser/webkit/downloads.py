@@ -981,8 +981,8 @@ class DownloadManager(QAbstractListModel):
                                   target.cmdline))
             download.autoclose = True
             download.set_fileobj(fobj)
-        else:
-            log.downloads.error("Unknown download target: {}".format(target))
+        else:  # pragma: no cover
+            raise ValueError("Unknown download target: {}".format(target))
 
     def _open_download(self, download, cmdline):
         """Open the given download but only if it was successful.
