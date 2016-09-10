@@ -72,6 +72,9 @@ class WebView(QWebView):
 
         page = webpage.BrowserPage(self.win_id, self._tab_id, tab.data,
                                    parent=self)
+        page.setVisibilityState(
+            QWebPage.VisibilityStateVisible if self.isVisible()
+            else QWebPage.VisibilityStateHidden)
         self.setPage(page)
 
         mode_manager = objreg.get('mode-manager', scope='window',
@@ -240,3 +243,27 @@ class WebView(QWebView):
         self.shutting_down.connect(menu.close)
         modeman.instance(self.win_id).entered.connect(menu.close)
         menu.exec_(e.globalPos())
+
+    def showEvent(self, e):
+        """Extend showEvent to set the page visibility state to visible.
+
+        Args:
+            e: The QShowEvent.
+
+        Return:
+            The superclass event return value.
+        """
+        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
+        super().showEvent(e)
+
+    def hideEvent(self, e):
+        """Extend hideEvent to set the page visibility state to hidden.
+
+        Args:
+            e: The QHideEvent.
+
+        Return:
+            The superclass event return value.
+        """
+        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
+        super().hideEvent(e)
