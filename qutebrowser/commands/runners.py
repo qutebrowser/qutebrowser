@@ -66,10 +66,15 @@ def replace_variables(win_id, arglist):
     def repl_cb(matchobj):
         """Return replacement for given match."""
         var = matchobj.group("var")
+        escaped = matchobj.group("escaped")
+        if escaped is not None:
+            return "{" + escaped + "}"
         if var not in values:
             values[var] = variables[var]()
         return values[var]
-    repl_pattern = re.compile("{(?P<var>" + "|".join(variables.keys()) + ")}")
+    repl_pattern = re.compile(
+        r"{({(?P<escaped>" + "|".join(variables.keys()) + r")})}|" +
+        r"(?={){(?P<var>" + "|".join(variables.keys()) + r")}(?<=})")
 
     try:
         for arg in arglist:

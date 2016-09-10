@@ -615,6 +615,46 @@ Feature: Various utility commands.
         And I run :message-info {clipboard}bar{url}
         Then the message "foobarhttp://localhost:*/hello.txt" should be shown
 
+    Scenario: escaping {{url}} variable
+        When I open data/hello.txt
+        And I run :message-info foo{{url}}bar
+        Then the message "foo{url}bar" should be shown
+
+    Scenario: escaping with multiple curly brackets
+        When I open data/hello.txt
+        And I run :message-info foo{{{url}}}bar
+        Then the message "foo{{url}}bar" should be shown
+
+    Scenario: escaping multiple variables
+        When I open data/hello.txt
+        And I run :message-info foo{{url}}bar{{clipboard}}
+        Then the message "foo{url}bar{clipboard}" should be shown
+
+    Scenario: both escaped and unescaped variables
+        When I open data/hello.txt
+        And I run :message-info foo{{url}}bar{url}
+        Then the message "foo{url}barhttp://localhost:*/hello.txt" should be shown
+
+    Scenario: escaping not a variable
+        When I open data/hello.txt
+        And I run :message-info foo{{hello}}bar
+        Then the message "foo{{hello}}bar" should be shown
+
+    Scenario: escaping variable with unmatched brackets
+        When I open data/hello.txt
+        And I run :message-info foo{url}}bar
+        Then the message "foohttp://localhost:*/hello.txt}bar" should be shown
+
+    Scenario: escaping variable with unmatched brackets 2
+        When I open data/hello.txt
+        And I run :message-info foo{{url}bar
+        Then the message "foo{http://localhost:*/hello.txtbar" should be shown
+
+    Scenario: escaping variable with mutiple unmatched brackets
+        When I open data/hello.txt
+        And I run :message-info foo{{url}bar{{url}}abc{url}}
+        Then the message "foo{http://localhost:*/hello.txtbar{url}abchttp://localhost:*/hello.txt}" should be shown
+
     @xfail_norun
     Scenario: {url} in clipboard should not be expanded
         When I open data/hello.txt
