@@ -83,7 +83,7 @@ class DownloadView(QListView):
         self.setFlow(QListView.LeftToRight)
         self.setSpacing(1)
         self._menu = None
-        model = objreg.get('download-manager', scope='window', window=win_id)
+        model = objreg.get('download-model', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
         model.rowsRemoved.connect(functools.partial(update_geometry, self))
         model.dataChanged.connect(functools.partial(update_geometry, self))

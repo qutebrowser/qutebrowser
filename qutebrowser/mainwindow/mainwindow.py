@@ -206,6 +206,9 @@ class MainWindow(QWidget):
         download_manager = downloads.DownloadManager(self.win_id, self)
         objreg.register('download-manager', download_manager, scope='window',
                         window=self.win_id)
+        download_model = downloads.DownloadModel(download_manager)
+        objreg.register('download-model', download_model, scope='window',
+                        window=self.win_id)
 
     def _init_completion(self):
         self._completion = completionwidget.CompletionView(self.win_id, self)
@@ -507,9 +510,9 @@ class MainWindow(QWidget):
             return
         confirm_quit = config.get('ui', 'confirm-quit')
         tab_count = self.tabbed_browser.count()
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self.win_id)
-        download_count = download_manager.running_downloads()
+        download_model = objreg.get('download-model', scope='window',
+                                    window=self.win_id)
+        download_count = download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in confirm_quit and tab_count > 1:

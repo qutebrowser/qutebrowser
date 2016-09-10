@@ -25,4 +25,5 @@ def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache):
     """Simple check for download model internals."""
     config_stub.data = {'general': {'private-browsing': False}}
     manager = downloads.DownloadManager(win_id=0)
-    qtmodeltester.check(manager)
+    model = downloads.DownloadModel(manager)
+    qtmodeltester.check(model)
