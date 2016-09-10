@@ -69,7 +69,7 @@ def wait_for_download_finished_name(quteproc, name):
 
 @bdd.when(bdd.parsers.parse('I wait for the download prompt for "{path}"'))
 def wait_for_download_prompt(tmpdir, quteproc, path):
-    full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
+    full_path = path.replace('(tmpdir)', str(tmpdir)).replace('/', os.sep)
     quteproc.wait_for(message=PROMPT_MSG.format(full_path))
 
 
@@ -101,7 +101,7 @@ def download_size(filename, size, tmpdir):
 @bdd.then(bdd.parsers.parse('The download prompt should be shown with '
                             '"{path}"'))
 def download_prompt(tmpdir, quteproc, path):
-    full_path = path.replace('{downloaddir}', str(tmpdir)).replace('/', os.sep)
+    full_path = path.replace('(tmpdir)', str(tmpdir)).replace('/', os.sep)
     quteproc.wait_for(message=PROMPT_MSG.format(full_path))
     quteproc.send_cmd(':leave-mode')
 

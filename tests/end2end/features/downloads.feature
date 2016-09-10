@@ -349,7 +349,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to path
         And I open data/downloads/download.bin
-        Then the download prompt should be shown with "{downloaddir}/"
+        Then the download prompt should be shown with "(tmpdir)/"
 
     Scenario: completion -> download-path-suggestion = filename
         When I set storage -> prompt-download-directory to true
@@ -361,7 +361,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
         And I open data/downloads/download.bin
-        Then the download prompt should be shown with "{downloaddir}/download.bin"
+        Then the download prompt should be shown with "(tmpdir)/download.bin"
 
     ## storage -> remember-download-directory
 
@@ -371,21 +371,19 @@ Feature: Downloading things from a website.
         And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin
         And I wait for the download prompt for "*/download.bin"
-        # (tmpdir) equals {downloaddir}
         And I run :prompt-accept (tmpdir)/subdir
         And I open data/downloads/download2.bin
-        Then the download prompt should be shown with "{downloaddir}/subdir/download2.bin"
+        Then the download prompt should be shown with "(tmpdir)/subdir/download2.bin"
 
     Scenario: Not remembering the last download directory
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
         And I set storage -> remember-download-directory to false
         And I open data/downloads/download.bin
-        And I wait for the download prompt for "{downloaddir}/download.bin"
-        # (tmpdir) equals {downloaddir}
+        And I wait for the download prompt for "(tmpdir)/download.bin"
         And I run :prompt-accept (tmpdir)/subdir
         And I open data/downloads/download2.bin
-        Then the download prompt should be shown with "{downloaddir}/download2.bin"
+        Then the download prompt should be shown with "(tmpdir)/download2.bin"
 
     # Overwriting files
 
