@@ -1138,8 +1138,18 @@ class DownloadModel(QAbstractListModel):
         downloader.begin_remove_rows.connect(self.beginRemoveRows)
         downloader.end_remove_rows.connect(self.endRemoveRows)
 
+    def _all_downloads(self):
+        """Combine downloads from both downloaders."""
+        return self._downloader.downloads[:]
+
     def __len__(self):
         return len(self._all_downloads())
+
+    def __iter__(self):
+        return iter(self._all_downloads())
+
+    def __getitem__(self, idx):
+        return self._all_downloads()[idx]
 
     @pyqtSlot(int, int)
     def _on_data_changed(self, start, end):
@@ -1158,10 +1168,6 @@ class DownloadModel(QAbstractListModel):
             end_index = self.index(end, 0)
             qtutils.ensure_valid(end_index)
         self.dataChanged.emit(start_index, end_index)
-
-    def _all_downloads(self):
-        """Combine downloads from both downloaders."""
-        return self._downloader.downloads[:]
 
     def _raise_no_download(self, count):
         """Raise an exception that the download doesn't exist.
@@ -1194,7 +1200,7 @@ class DownloadModel(QAbstractListModel):
                 self._raise_no_download(count)
             if download.done:
                 if not count:
-                    count = len(self._all_downloads())
+                    count = len(self)
                 raise cmdexc.CommandError("Download {} is already done!"
                                         .format(count))
             download.cancel()
@@ -1208,7 +1214,7 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to delete.
         """
         try:
-            download = self._all_downloads()[count - 1]
+            download = self[count - 1]
         except IndexError:
             self._raise_no_download(count)
         if not download.successful:
@@ -1235,7 +1241,7 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to open.
         """
         try:
-            download = self._all_downloads()[count - 1]
+            download = self[count - 1]
         except IndexError:
             self._raise_no_download(count)
         if not download.successful:
@@ -1254,15 +1260,14 @@ class DownloadModel(QAbstractListModel):
         """
         if count:
             try:
-                download = self._all_downloads()[count - 1]
+                download = self[count - 1]
             except IndexError:
                 self._raise_no_download(count)
             if download.successful or not download.done:
                 raise cmdexc.CommandError("Download {} did not fail!".format(
                     count))
         else:
-            to_retry = [d for d in self._all_downloads()
-                        if d.done and not d.successful]
+            to_retry = [d for d in self if d.done and not d.successful]
             if not to_retry:
                 raise cmdexc.CommandError("No failed downloads!")
             else:
@@ -1271,12 +1276,12 @@ class DownloadModel(QAbstractListModel):
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
-        return any(download.done for download in self._all_downloads())
+        return any(download.done for download in self)
 
     @cmdutils.register(instance='download-model', scope='window')
     def download_clear(self):
         """Remove all finished downloads from the list."""
-        finished_items = [d for d in self._all_downloads() if d.done]
+        finished_items = [d for d in self if d.done]
         self.remove_items(finished_items)
 
     @cmdutils.register(instance='download-model', scope='window')
@@ -1292,7 +1297,7 @@ class DownloadModel(QAbstractListModel):
             self.download_clear()
         else:
             try:
-                download = self._all_downloads()[count - 1]
+                download = self[count - 1]
             except IndexError:
                 self._raise_no_download(count)
             if not download.done:
@@ -1308,8 +1313,7 @@ class DownloadModel(QAbstractListModel):
         Return:
             The number of unfinished downloads.
         """
-        return sum(1 for download in self._all_downloads()
-                   if not download.done)
+        return sum(1 for download in self if not download.done)
 
     def last_index(self):
         """Get the last index in the model.
@@ -1336,7 +1340,7 @@ class DownloadModel(QAbstractListModel):
         if index.parent().isValid() or index.column() != 0:
             return None
 
-        item = self._downloader.downloads[index.row()]
+        item = self[index.row()]
         if role == Qt.DisplayRole:
             data = str(item)
         elif role == Qt.ForegroundRole:
