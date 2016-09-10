@@ -135,8 +135,7 @@ class DownloadView(QListView):
                 actions.append(("Open", item.open_file))
             else:
                 actions.append(("Retry", item.retry))
-            actions.append(("Remove",
-                            functools.partial(model.remove_item, item)))
+            actions.append(("Remove", item.remove))
         else:
             actions.append(("Cancel", item.cancel))
         if model.can_clear():

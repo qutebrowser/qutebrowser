@@ -294,6 +294,8 @@ class DownloadItem(QObject):
             arg 1: The old QNetworkReply.
         do_retry: Emitted when a download is retried.
             arg 0: The new DownloadItem
+        remove_requested: Emitted when the removal of this download was
+                          requested.
     """
 
     MAX_REDIRECTS = 10
@@ -303,6 +305,7 @@ class DownloadItem(QObject):
     cancelled = pyqtSignal()
     redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
     do_retry = pyqtSignal(object)  # DownloadItem
+    remove_requested = pyqtSignal()
 
     def __init__(self, reply, win_id, parent=None):
         """Constructor.
@@ -503,6 +506,11 @@ class DownloadItem(QObject):
         self.done = True
         self.finished.emit()
         self.data_changed.emit()
+
+    @pyqtSlot()
+    def remove(self):
+        """Remove the download from the model."""
+        self.remove_requested.emit()
 
     def delete(self):
         """Delete the downloaded file."""
@@ -915,16 +923,16 @@ class DownloadManager(QObject):
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
         download = DownloadItem(reply, self._win_id, self)
-        download.cancelled.connect(
-            functools.partial(self.remove_item, download))
+        download.cancelled.connect(download.remove)
+        download.remove_requested.connect(functools.partial(
+            self._remove_item, download))
 
         delay = config.get('ui', 'remove-finished-downloads')
         if delay > -1:
             download.finished.connect(
-                functools.partial(self.remove_item_delayed, download, delay))
+                lambda: QTimer.singleShot(delay, download.remove))
         elif auto_remove:
-            download.finished.connect(
-                functools.partial(self.remove_item, download))
+            download.finished.connect(download.remove)
 
         download.data_changed.connect(
             functools.partial(self.on_data_changed, download))
@@ -1061,7 +1069,8 @@ class DownloadManager(QObject):
                 nam.adopt_download(download)
         return nam.adopted_downloads
 
-    def remove_item(self, download):
+    @pyqtSlot(DownloadItem)
+    def _remove_item(self, download):
         """Remove a given download."""
         if sip.isdeleted(self):
             # https://github.com/The-Compiler/qutebrowser/issues/1242
@@ -1079,41 +1088,6 @@ class DownloadManager(QObject):
         if not self.downloads:
             self._update_timer.stop()
         log.downloads.debug("Removed download {}".format(download))
-
-    def remove_item_delayed(self, download, delay):
-        """Remove a given download after a short delay."""
-        QTimer.singleShot(delay, functools.partial(self.remove_item, download))
-
-    def remove_items(self, downloads):
-        """Remove an iterable of downloads."""
-        # On the first pass, we only generate the indices so we get the
-        # first/last one for the begin_remove_rows signal
-        indices = []
-        # We need to iterate over downloads twice, which won't work if it's a
-        # generator.
-        downloads = list(downloads)
-        for download in downloads:
-            try:
-                indices.append(self.downloads.index(download))
-            except ValueError:
-                # already removed
-                pass
-        if not indices:
-            return
-        indices.sort()
-        self.begin_remove_rows.emit(QModelIndex(), indices[0], indices[-1])
-        for download in downloads:
-            try:
-                self.downloads.remove(download)
-            except ValueError:
-                # already removed
-                pass
-            else:
-                download.deleteLater()
-                log.downloads.debug("Removed download {}".format(download))
-        self.end_remove_rows.emit()
-        if not self.downloads:
-            self._update_timer.stop()
 
     def update_indexes(self):
         """Update indexes of all DownloadItems."""
@@ -1222,7 +1196,7 @@ class DownloadModel(QAbstractListModel):
                 count = len(self)
             raise cmdexc.CommandError("Download {} is not done!".format(count))
         download.delete()
-        self.remove_item(download)
+        download.remove()
         log.downloads.debug("deleted download {}".format(download))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
@@ -1281,8 +1255,9 @@ class DownloadModel(QAbstractListModel):
     @cmdutils.register(instance='download-model', scope='window')
     def download_clear(self):
         """Remove all finished downloads from the list."""
-        finished_items = [d for d in self if d.done]
-        self.remove_items(finished_items)
+        for download in self:
+            if download.done:
+                download.remove()
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1305,7 +1280,7 @@ class DownloadModel(QAbstractListModel):
                     count = len(self)
                 raise cmdexc.CommandError("Download {} is not done!"
                                           .format(count))
-            self.remove_item(download)
+            download.remove()
 
     def running_downloads(self):
         """Return the amount of still running downloads.
