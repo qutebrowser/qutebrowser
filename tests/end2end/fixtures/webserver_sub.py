@@ -87,7 +87,6 @@ def redirect_later_continue():
 @app.route('/custom/content-size')
 def content_size():
     """Send two bytes of data without a content-size."""
-
     def generate_bytes():
         yield b'*'
         time.sleep(0.2)
@@ -103,7 +102,6 @@ def content_size():
 @app.route('/custom/twenty-mb')
 def twenty_mb():
     """Send 20MB of data."""
-
     def generate_bytes():
         yield b'*' * 20 * 1024 * 1024
 

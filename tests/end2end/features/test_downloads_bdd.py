@@ -42,7 +42,7 @@ def temporary_download_dir(quteproc, tmpdir):
     quteproc.set_setting('storage', 'download-directory', str(tmpdir))
     (tmpdir / 'subdir').ensure(dir=True)
     try:
-        os.mkfifo(str(tmpdir /  'fifo'))
+        os.mkfifo(str(tmpdir / 'fifo'))
     except AttributeError:
         pass
     unwritable = tmpdir / 'unwritable'
@@ -108,13 +108,15 @@ def download_prompt(tmpdir, quteproc, path):
 
 @bdd.when("I open the download")
 def download_open(quteproc):
-    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(shlex.quote(sys.executable))
+    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
+        shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {}'.format(cmd))
 
 
 @bdd.when("I open the download with a placeholder")
-def download_open(quteproc):
-    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(shlex.quote(sys.executable))
+def download_open_placeholder(quteproc):
+    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
+        shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {} {{}}'.format(cmd))
 
 

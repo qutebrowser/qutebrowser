@@ -18,8 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from PyQt5.QtCore import QUrl
-
 from qutebrowser.browser.webkit import downloads
 
 

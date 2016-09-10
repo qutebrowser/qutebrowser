@@ -31,7 +31,7 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
-                          Qt, QVariant, QAbstractListModel, QModelIndex, QUrl)
+                          Qt, QAbstractListModel, QModelIndex, QUrl)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
@@ -384,7 +384,8 @@ class DownloadItem(QObject):
         q.text = msg
         q.mode = usertypes.PromptMode.yesno
         q.answered_yes.connect(self._create_fileobj)
-        q.answered_no.connect(functools.partial(self.cancel, remove_data=False))
+        q.answered_no.connect(functools.partial(self.cancel,
+                                                remove_data=False))
         q.cancelled.connect(functools.partial(self.cancel, remove_data=False))
         self.cancelled.connect(q.abort)
         self.error.connect(q.abort)
