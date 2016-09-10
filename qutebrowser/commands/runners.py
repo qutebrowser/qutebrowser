@@ -73,8 +73,8 @@ def replace_variables(win_id, arglist):
             values[var] = variables[var]()
         return values[var]
     repl_pattern = re.compile(
-        r"{({(?P<escaped>" + "|".join(variables.keys()) + r")})}|" +
-        r"(?={){(?P<var>" + "|".join(variables.keys()) + r")}(?<=})")
+        r"{{(?P<escaped>" + "|".join(variables.keys()) + r")}}|" +
+        r"{(?P<var>" + "|".join(variables.keys()) + r")}")
 
     try:
         for arg in arglist:
