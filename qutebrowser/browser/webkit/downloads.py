@@ -880,22 +880,20 @@ class DownloadManager(QObject):
                                   suggested_filename=suggested_fn,
                                   **kwargs)
 
-    def fetch_request(self, request, *, page=None, **kwargs):
+    def fetch_request(self, request, *, qnam=None, **kwargs):
         """Download a QNetworkRequest to disk.
 
         Args:
             request: The QNetworkRequest to download.
-            page: The QWebPage to use.
+            qnam: The QNetworkAccessManager to use.
             **kwargs: passed to fetch().
 
         Return:
             The created DownloadItem.
         """
-        if page is None:
-            nam = self._networkmanager
-        else:
-            nam = page.networkAccessManager()
-        reply = nam.get(request)
+        if qnam is None:
+            qnam = self._networkmanager
+        reply = qnam.get(request)
         return self.fetch(reply, **kwargs)
 
     @pyqtSlot('QNetworkReply')

@@ -268,7 +268,7 @@ class BrowserPage(QWebPage):
         req = QNetworkRequest(request)
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        download_manager.get_request(req, page=self)
+        download_manager.get_request(req, qnam=self.networkAccessManager())
 
     @pyqtSlot('QNetworkReply*')
     def on_unsupported_content(self, reply):
