@@ -147,7 +147,8 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
                 'your ~/.config/user-dirs.dirs. The download is saved in your '
                 'home directory.')
     line.expected = True
-    quteproc_new.wait_for(category='downloads', message='Download finished')
+    quteproc_new.wait_for(category='downloads',
+                          message='Download download.bin finished')
 
     assert (home / 'download.bin').exists()
 
