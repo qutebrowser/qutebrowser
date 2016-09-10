@@ -3,6 +3,7 @@ Feature: Downloading things from a website.
     Background:
         Given I set up a temporary download dir
         And I clean old downloads
+        And I set ui -> remove-finished-downloads to -1
 
     ## starting downloads
 
