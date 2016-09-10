@@ -41,6 +41,13 @@ def temporary_download_dir(quteproc, tmpdir):
     quteproc.set_setting('storage', 'remember-download-directory', 'false')
     quteproc.set_setting('storage', 'download-directory', str(tmpdir))
     (tmpdir / 'subdir').ensure(dir=True)
+    try:
+        os.mkfifo(str(tmpdir /  'fifo'))
+    except AttributeError:
+        pass
+    unwritable = tmpdir / 'unwritable'
+    unwritable.ensure(dir=True)
+    unwritable.chmod(0)
 
 
 @bdd.given("I clean old downloads")
@@ -84,6 +91,13 @@ def download_should_exist(filename, tmpdir):
     assert path.check()
 
 
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should contain "
+                            "{size} bytes"))
+def download_size(filename, size, tmpdir):
+    path = tmpdir / filename
+    assert path.size() == int(size)
+
+
 @bdd.then(bdd.parsers.parse('The download prompt should be shown with '
                             '"{path}"'))
 def download_prompt(tmpdir, quteproc, path):
@@ -108,3 +122,13 @@ def download_open(quteproc):
 def download_open_with_prompt(quteproc):
     cmd = '{} -c pass'.format(shlex.quote(sys.executable))
     quteproc.send_cmd(':prompt-open-download {}'.format(cmd))
+
+
+@bdd.when(bdd.parsers.parse("I delete the downloaded file {filename}"))
+def delete_file(tmpdir, filename):
+    (tmpdir / filename).remove()
+
+
+@bdd.then("the FIFO should still be a FIFO")
+def fifo_should_be_fifo(tmpdir):
+    assert tmpdir.exists() and not os.path.isfile(str(tmpdir / 'fifo'))

@@ -111,14 +111,43 @@ Feature: Downloading things from a website.
             does-not-exist
             does-not-exist
 
-    Scenario: Retrying with no failed downloads
-        When I open data/downloads/download.bin
+    Scenario: Retrying with count
+        When I run :download http://localhost:(port)/data/downloads/download.bin
+        And I run :download http://localhost:(port)/does-not-exist
+        And I wait for the error "Download error: * - server replied: NOT FOUND"
+        And I run :download-retry with count 2
+        And I wait for the error "Download error: * - server replied: NOT FOUND"
+        Then the requests should be:
+            data/downloads/download.bin
+            does-not-exist
+            does-not-exist
+
+    Scenario: Retrying with two failed downloads
+        When I run :download http://localhost:(port)/does-not-exist
+        And I run :download http://localhost:(port)/does-not-exist-2
+        And I wait for the error "Download error: * - server replied: NOT FOUND"
+        And I wait for the error "Download error: * - server replied: NOT FOUND"
+        And I run :download-retry
+        And I wait for the error "Download error: * - server replied: NOT FOUND"
+        Then the requests should be:
+            does-not-exist
+            does-not-exist-2
+            does-not-exist
+
+    Scenario: Retrying a download which does not exist
+        When I run :download-retry with count 42
+        Then the error "There's no download 42!" should be shown
+
+    Scenario: Retrying a download which did not fail
+        When I run :download http://localhost:(port)/data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download-retry with count 1
+        Then the error "Download 1 did not fail!" should be shown
+
+    Scenario: Retrying a download with no failed ones
+        When I run :download http://localhost:(port)/data/downloads/download.bin
         And I wait until the download is finished
         And I run :download-retry
-        Then the error "No failed downloads!" should be shown
-
-    Scenario: Retrying with no downloads
-        When I run :download-retry
         Then the error "No failed downloads!" should be shown
 
     ## Wrong invocations
@@ -161,6 +190,10 @@ Feature: Downloading things from a website.
         And I run :download-cancel
         Then "cancelled" should be logged
 
+    Scenario: Cancelling with no download and no ID
+        When I run :download-cancel
+        Then the error "There's no download!" should be shown
+
     Scenario: Cancelling a download which does not exist
         When I run :download-cancel with count 42
         Then the error "There's no download 42!" should be shown
@@ -191,6 +224,44 @@ Feature: Downloading things from a website.
         And I wait for "fetch: PyQt5.QtCore.QUrl('http://localhost:*/drip?numbytes=128&duration=2') -> drip" in the log
         And I run :download-cancel
         Then no crash should happen
+
+    ## :download-remove / :download-clear
+
+    Scenario: Removing a download
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download-remove
+        Then "Removed download *" should be logged
+
+    Scenario: Removing a download which does not exist
+        When I run :download-remove with count 42
+        Then the error "There's no download 42!" should be shown
+
+    Scenario: Removing a download which is not done yet
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-remove
+        Then the error "Download 1 is not done!" should be shown
+
+    Scenario: Removing a download which is not done yet (with count)
+        When I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I run :download-remove with count 1
+        Then the error "Download 1 is not done!" should be shown
+
+    Scenario: Removing all downloads via :download-remove
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I open data/downloads/download2.bin
+        And I wait until the download is finished
+        And I run :download-remove --all
+        Then "Removed download *" should be logged
+
+    Scenario: Removing all downloads via :download-clear
+        When I open data/downloads/download.bin
+        And I wait until the download is finished
+        And I open data/downloads/download2.bin
+        And I wait until the download is finished
+        And I run :download-clear
+        Then "Removed download *" should be logged
 
     ## :download-delete
 
@@ -316,6 +387,62 @@ Feature: Downloading things from a website.
         And I open data/downloads/download2.bin
         Then the download prompt should be shown with "{downloaddir}/download2.bin"
 
+    # Overwriting files
+
+    Scenario: Not overwriting an existing file
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download http://localhost:(port)/data/downloads/download2.bin --dest download.bin
+        And I wait for "Entering mode KeyMode.yesno *" in the log
+        And I run :prompt-accept no
+        Then the downloaded file download.bin should contain 1 bytes
+
+    Scenario: Overwriting an existing file
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/data/downloads/download.bin
+        And I wait until the download is finished
+        And I run :download http://localhost:(port)/data/downloads/download2.bin --dest download.bin
+        And I wait for "Entering mode KeyMode.yesno *" in the log
+        And I run :prompt-accept yes
+        And I wait until the download is finished
+        Then the downloaded file download.bin should contain 2 bytes
+
+    @linux
+    Scenario: Not overwriting a special file
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/data/downloads/download.bin --dest fifo
+        And I wait for "Entering mode KeyMode.yesno *" in the log
+        And I run :prompt-accept no
+        Then the FIFO should still be a FIFO
+
+    ## Redirects
+
+    Scenario: Downloading with infinite redirect
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/redirect/12 --dest redirection
+        Then the error "Download error: Maximum redirection count reached!" should be shown
+        And "Deleted */redirection" should be logged
+        And the downloaded file redirection should not exist
+
+    Scenario: Downloading with redirect to itself
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/custom/redirect-self
+        And I wait until the download is finished
+        Then the downloaded file redirect-self should exist
+
+    Scenario: Downloading with absolute redirect
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/absolute-redirect/1
+        And I wait until the download is finished
+        Then the downloaded file 1 should exist
+
+    Scenario: Downloading with relative redirect
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/relative-redirect/1
+        And I wait until the download is finished
+        Then the downloaded file 1 should exist
+
     ## Other
 
     Scenario: Download without a content-size
@@ -323,3 +450,39 @@ Feature: Downloading things from a website.
         When I run :download http://localhost:(port)/custom/content-size
         And I wait until the download is finished
         Then the downloaded file content-size should exist
+
+    @posix
+    Scenario: Downloading to unwritable destination
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/unwritable
+        Then the error "Download error: Permission denied" should be shown
+
+    Scenario: Downloading 20MB file
+        When I set storage -> prompt-download-directory to false
+        And I run :download http://localhost:(port)/custom/twenty-mb
+        And I wait until the download is finished
+        Then the downloaded file twenty-mb should contain 20971520 bytes
+
+    Scenario: Downloading 20MB file with late prompt confirmation
+        When I set storage -> prompt-download-directory to true
+        And I run :download http://localhost:(port)/custom/twenty-mb
+        And I wait 1s
+        And I run :prompt-accept
+        And I wait until the download is finished
+        Then the downloaded file twenty-mb should contain 20971520 bytes
+
+    Scenario: Downloading invalid URL
+        When I set storage -> prompt-download-directory to false
+        And I set general -> auto-search to false
+        And I run :download foo!
+        Then the error "Invalid URL" should be shown
+
+    Scenario: Downloading via pdfjs
+        Given pdfjs is available
+        When I set storage -> prompt-download-directory to false
+        And I set content -> enable-pdfjs to true
+        And I open data/misc/test.pdf
+        And I wait for the javascript message "PDF * [*] (PDF.js: *)"
+        And I run :click-element id download
+        And I wait until the download is finished
+        Then the downloaded file test.pdf should exist
