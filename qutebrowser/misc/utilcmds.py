@@ -28,16 +28,16 @@ try:
 except ImportError:
     hunter = None
 
+import sip
+from PyQt5.QtCore import QUrl
+# so it's available for :debug-pyeval
+from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
+
 from qutebrowser.browser.webkit.network import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
-
-import sip
-from PyQt5.QtCore import QUrl
-# so it's available for :debug-pyeval
-from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
