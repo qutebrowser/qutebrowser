@@ -222,7 +222,10 @@ def test_update_completion(txt, expected, status_command_stub, completer_obj,
     (":set fonts hints 'Comic Sans'|", '12px Hack',
      ":set fonts hints '12px Hack'|"),
     (":set fonts hints 'Comic| Sans'", '12px Hack',
-     ":set fonts hints '12px Hack'|")
+     ":set fonts hints '12px Hack'|"),
+    # open has maxsplit=0, so treat the last two tokens as one and don't quote
+    (':open foo bar|', 'baz', ':open baz|'),
+    (':open foo| bar', 'baz', ':open baz|'),
 ])
 def test_on_selection_changed(before, newtxt, after, completer_obj,
                               config_stub, status_command_stub,
