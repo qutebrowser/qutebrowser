@@ -156,6 +156,7 @@ Fixed
 - The tabbar now displays correctly with the Adwaita Qt theme
 - The default `sk` keybinding now sets the commandline to `:bind` correctly
 - Fixed hang when using multiple spaces in a row with the URL completion
+- Fixed crash when closing a window without focusing it
 
 v0.8.3 (unreleased)
 -------------------
