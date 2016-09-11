@@ -216,7 +216,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
         # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
         for _ in range(count):
             press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
+            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
+                                    0, 0, 0)
             self._tab.send_event(press_evt)
             self._tab.send_event(release_evt)
 
