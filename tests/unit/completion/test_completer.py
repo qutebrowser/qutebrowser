@@ -261,6 +261,7 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
         after_txt += ' '
     check(True, 1, after_txt, after_pos)
 
+
 def test_quickcomplete_flicker(status_command_stub, completer_obj,
                                completion_widget_stub, config_stub):
     """Validate fix for #1519: bookmark-load background highlighting quirk.
@@ -271,7 +272,8 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     one completion available, it keeps the completionmenu open.
 
     This test validates that the completion model is not re-set after we
-    quick-complete an entry after maxsplit."""
+    quick-complete an entry after maxsplit.
+    """
     model = unittest.mock.Mock()
     model.data = unittest.mock.Mock(return_value='http://example.com')
     indexes = [unittest.mock.Mock()]

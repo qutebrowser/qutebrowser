@@ -276,7 +276,7 @@ class Completer(QObject):
                        including a trailing space and we shouldn't continue
                        completing the current item.
         """
-        text = self._cmd.prefix() + ' '.join([*before, newtext])
+        text = self._cmd.prefix() + ' '.join(before + [newtext])
         pos = len(text) + (1 if immediate else 0)
         if after:
             text += ' ' + ' '.join(after)
