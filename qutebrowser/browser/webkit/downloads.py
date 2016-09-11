@@ -48,9 +48,10 @@ ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
                            is_int=True)
 
 
-RetryInfo = collections.namedtuple('RetryInfo', ['request', 'manager'])
+_RetryInfo = collections.namedtuple('_RetryInfo', ['request', 'manager'])
 
-DownloadPath = collections.namedtuple('DownloadPath', ['filename', 'question'])
+_DownloadPath = collections.namedtuple('_DownloadPath', ['filename',
+                                                         'question'])
 
 # Remember the last used directory
 last_used_directory = None
@@ -58,7 +59,7 @@ last_used_directory = None
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
-REFRESH_INTERVAL = 500
+_REFRESH_INTERVAL = 500
 
 
 def download_dir():
@@ -74,7 +75,7 @@ def download_dir():
         return directory
 
 
-def path_suggestion(filename):
+def _path_suggestion(filename):
     """Get the suggested file path.
 
     Args:
@@ -143,7 +144,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
                                                'prompt-download-directory')
 
     if not prompt_download_directory:
-        return DownloadPath(filename=download_dir(), question=None)
+        return _DownloadPath(filename=download_dir(), question=None)
 
     encoding = sys.getfilesystemencoding()
     suggested_filename = utils.force_encoding(suggested_filename, encoding)
@@ -152,12 +153,12 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
     q.text = "Save file to:"
     q.mode = usertypes.PromptMode.text
     q.completed.connect(q.deleteLater)
-    q.default = path_suggestion(suggested_filename)
+    q.default = _path_suggestion(suggested_filename)
 
     message_bridge = objreg.get('message-bridge', scope='window',
                                 window=win_id)
     q.ask = lambda: message_bridge.ask(q, blocking=False)
-    return DownloadPath(filename=None, question=q)
+    return _DownloadPath(filename=None, question=q)
 
 
 class DownloadItemStats(QObject):
@@ -185,20 +186,20 @@ class DownloadItemStats(QObject):
         self.done = 0
         self.speed = 0
         self._last_done = 0
-        samples = int(self.SPEED_AVG_WINDOW * (1000 / REFRESH_INTERVAL))
+        samples = int(self.SPEED_AVG_WINDOW * (1000 / _REFRESH_INTERVAL))
         self._speed_avg = collections.deque(maxlen=samples)
 
     def update_speed(self):
         """Recalculate the current download speed.
 
-        The caller needs to guarantee this is called all REFRESH_INTERVAL ms.
+        The caller needs to guarantee this is called all _REFRESH_INTERVAL ms.
         """
         if self.done is None:
             # this can happen for very fast downloads, e.g. when actually
             # opening a file
             return
         delta = self.done - self._last_done
-        self.speed = delta * 1000 / REFRESH_INTERVAL
+        self.speed = delta * 1000 / _REFRESH_INTERVAL
         self._speed_avg.append(self.speed)
         self._last_done = self.done
 
@@ -260,7 +261,7 @@ class DownloadItem(QObject):
     readyRead will write to the real file object.
 
     Class attributes:
-        MAX_REDIRECTS: The maximum redirection count.
+        _MAX_REDIRECTS: The maximum redirection count.
 
     Attributes:
         done: Whether the download is finished.
@@ -272,7 +273,7 @@ class DownloadItem(QObject):
                    done.
         fileobj: The file object to download the file to.
         reply: The QNetworkReply associated with this download.
-        retry_info: A RetryInfo instance.
+        retry_info: A _RetryInfo instance.
         raw_headers: The headers sent by the server.
         _filename: The filename of the download.
         _redirects: How many time we were redirected already.
@@ -298,7 +299,7 @@ class DownloadItem(QObject):
                           requested.
     """
 
-    MAX_REDIRECTS = 10
+    _MAX_REDIRECTS = 10
     data_changed = pyqtSignal()
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -746,7 +747,7 @@ class DownloadItem(QObject):
         if new_url == request.url():
             return False
 
-        if self._redirects > self.MAX_REDIRECTS:
+        if self._redirects > self._MAX_REDIRECTS:
             self._die("Maximum redirection count reached!")
             self.delete()
             return True  # so on_reply_finished aborts
@@ -801,7 +802,7 @@ class DownloadManager(QObject):
             win_id, None, self)
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self.update_gui)
-        self._update_timer.setInterval(REFRESH_INTERVAL)
+        self._update_timer.setInterval(_REFRESH_INTERVAL)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
