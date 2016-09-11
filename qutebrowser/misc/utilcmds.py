@@ -34,6 +34,7 @@ from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style
 from qutebrowser.misc import consolewidget
 
+import sip
 from PyQt5.QtCore import QUrl
 # so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
@@ -283,5 +284,10 @@ def debug_log_filter(filters: str):
 def window_only(current_win_id):
     """Close all windows except for the current one."""
     for win_id, window in objreg.window_registry.items():
+
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(window):
+            continue
+
         if win_id != current_win_id:
             window.close()
