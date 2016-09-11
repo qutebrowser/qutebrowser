@@ -1341,7 +1341,7 @@ class DownloadModel(QAbstractListModel):
         The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable.
         """
         if not index.isValid():
-            return 0
+            return Qt.ItemFlags()
         return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
 
     def rowCount(self, parent=QModelIndex()):
