@@ -43,6 +43,8 @@ Added
 - New `:debug-log-level` command to change the console loglevel on-the-fly.
 - New `general -> yank-ignored-url-parameters` option to configure which URL
   parameters (like `utm_source` etc.) to strip off when yanking an URL.
+- Support for the
+  https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API[HTML5 page visibility API]
 
 Changed
 ~~~~~~~
