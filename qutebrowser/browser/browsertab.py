@@ -595,18 +595,20 @@ class AbstractTab(QWidget):
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
-    def send_event(self, evt, *, postpone=False):
+    def send_event(self, evt):
         """Send the given event to the underlying widget.
 
-        Args:
-            postpone: Postpone the event to be handled later instead of
-                      immediately. Using this might cause crashes in Qt.
+        The event will be sent via QApplication.postEvent.
+        Note that a posted event may not be re-used in any way!
         """
+        # This only gives us some mild protection against re-using events, but
+        # it's certainly better than a segfault.
+        if getattr(evt, 'posted', False):
+            raise AssertionError("Can't re-use an event which was already "
+                                 "posted!")
         recipient = self._event_target()
-        if postpone:
-            QApplication.postEvent(recipient, evt)
-        else:
-            QApplication.sendEvent(recipient, evt)
+        evt.posted = True
+        QApplication.postEvent(recipient, evt)
 
     @pyqtSlot(QUrl)
     def _on_link_clicked(self, url):

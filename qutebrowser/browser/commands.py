@@ -1974,8 +1974,8 @@ class CommandDispatcher:
                 window = QApplication.focusWindow()
                 if window is None:
                     raise cmdexc.CommandError("No focused window!")
-                QApplication.sendEvent(window, press_event)
-                QApplication.sendEvent(window, release_event)
+                QApplication.postEvent(window, press_event)
+                QApplication.postEvent(window, release_event)
             else:
                 try:
                     tab = objreg.get('tab', scope='tab', tab='current')

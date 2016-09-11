@@ -409,14 +409,15 @@ class WebKitScroller(browsertab.AbstractScroller):
 
     def _key_press(self, key, count=1, getter_name=None, direction=None):
         frame = self._widget.page().mainFrame()
-        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         getter = None if getter_name is None else getattr(frame, getter_name)
 
         # FIXME:qtwebengine needed?
         # self._widget.setFocus()
 
         for _ in range(count):
+            press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
+            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
+                                    0, 0, 0)
             # Abort scrolling if the minimum/maximum was reached.
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):

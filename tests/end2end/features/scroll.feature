@@ -84,7 +84,6 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    # causes segfault with postEvent instead of sendEvent
     Scenario: Scrolling down with count 10
         When I run :scroll down with count 10
         Then no crash should happen
