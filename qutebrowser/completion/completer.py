@@ -101,14 +101,9 @@ class Completer(QObject):
         Return:
             A completion model.
         """
-        if '--' in before_cursor:
+        if '--' in before_cursor or under_cursor.startswith('-'):
+            # cursor on a flag or after an explicit split (--)
             return None
-        try:
-            if under_cursor.startswith('-'):
-                # cursor on a flag
-                return None
-        except IndexError:
-            pass
         log.completion.debug("Before removing flags: {}".format(before_cursor))
         before_cursor = [x for x in before_cursor if not x.startswith('-')]
         log.completion.debug("After removing flags: {}".format(before_cursor))
