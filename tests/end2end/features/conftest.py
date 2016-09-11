@@ -19,6 +19,7 @@
 
 """Steps for bdd-like tests."""
 
+import os
 import re
 import sys
 import time
@@ -222,6 +223,7 @@ def run_command(quteproc, httpbin, tmpdir, command):
     command = command.replace('(port)', str(httpbin.port))
     command = command.replace('(testdata)', utils.abs_datapath())
     command = command.replace('(tmpdir)', str(tmpdir))
+    command = command.replace('(dirsep)', os.sep)
 
     quteproc.send_cmd(command, count=count, invalid=invalid)
 

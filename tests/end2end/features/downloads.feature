@@ -371,7 +371,7 @@ Feature: Downloading things from a website.
         And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin
         And I wait for the download prompt for "*/download.bin"
-        And I run :prompt-accept (tmpdir)/subdir
+        And I run :prompt-accept (tmpdir)(dirsep)subdir
         And I open data/downloads/download2.bin
         Then the download prompt should be shown with "(tmpdir)/subdir/download2.bin"
 
@@ -381,7 +381,7 @@ Feature: Downloading things from a website.
         And I set storage -> remember-download-directory to false
         And I open data/downloads/download.bin
         And I wait for the download prompt for "(tmpdir)/download.bin"
-        And I run :prompt-accept (tmpdir)/subdir
+        And I run :prompt-accept (tmpdir)(dirsep)subdir
         And I open data/downloads/download2.bin
         Then the download prompt should be shown with "(tmpdir)/download2.bin"
 
@@ -420,7 +420,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to false
         And I run :download http://localhost:(port)/redirect/12 --dest redirection
         Then the error "Download error: Maximum redirection count reached!" should be shown
-        And "Deleted */redirection" should be logged
+        And "Deleted *redirection" should be logged
         And the downloaded file redirection should not exist
 
     Scenario: Downloading with redirect to itself
