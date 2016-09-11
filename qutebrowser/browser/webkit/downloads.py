@@ -324,7 +324,7 @@ class DownloadItem(QObject):
         self._buffer = io.BytesIO()
         self._read_timer = usertypes.Timer(self, name='download-read-timer')
         self._read_timer.setInterval(500)
-        self._read_timer.timeout.connect(self.on_read_timer_timeout)
+        self._read_timer.timeout.connect(self._on_read_timer_timeout)
         self._redirects = 0
         self.error_msg = None
         self.basename = '???'
@@ -449,10 +449,10 @@ class DownloadItem(QObject):
         self._reply = reply
         reply.setReadBufferSize(16 * 1024 * 1024)  # 16 MB
         reply.downloadProgress.connect(self.stats.on_download_progress)
-        reply.finished.connect(self.on_reply_finished)
-        reply.error.connect(self.on_reply_error)
-        reply.readyRead.connect(self.on_ready_read)
-        reply.metaDataChanged.connect(self.on_meta_data_changed)
+        reply.finished.connect(self._on_reply_finished)
+        reply.error.connect(self._on_reply_error)
+        reply.readyRead.connect(self._on_ready_read)
+        reply.metaDataChanged.connect(self._on_meta_data_changed)
         self.retry_info = _RetryInfo(request=reply.request(),
                                      manager=reply.manager())
         if not self.fileobj:
@@ -496,7 +496,7 @@ class DownloadItem(QObject):
         self._read_timer.stop()
         self.cancelled.emit()
         if self._reply is not None:
-            self._reply.finished.disconnect(self.on_reply_finished)
+            self._reply.finished.disconnect(self._on_reply_finished)
             self._reply.abort()
             self._reply.deleteLater()
             self._reply = None
@@ -645,16 +645,16 @@ class DownloadItem(QObject):
             if self._reply.isFinished():
                 # Downloading to the buffer in RAM has already finished so we
                 # write out the data and clean up now.
-                self.on_reply_finished()
+                self._on_reply_finished()
             else:
                 # Since the buffer already might be full, on_ready_read might
                 # not be called at all anymore, so we force it here to flush
                 # the buffer and continue receiving new data.
-                self.on_ready_read()
+                self._on_ready_read()
         except OSError as e:
             self._die(e.strerror)
 
-    def finish_download(self):
+    def _finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
         log.downloads.debug("Finishing download...")
         if self._reply.isOpen():
@@ -671,7 +671,7 @@ class DownloadItem(QObject):
         self.data_changed.emit()
 
     @pyqtSlot()
-    def on_reply_finished(self):
+    def _on_reply_finished(self):
         """Clean up when the download was finished.
 
         Note when this gets called, only the QNetworkReply has finished. This
@@ -689,10 +689,10 @@ class DownloadItem(QObject):
         if self.fileobj is not None:
             # We can do a "delayed" write immediately to empty the buffer and
             # clean up.
-            self.finish_download()
+            self._finish_download()
 
     @pyqtSlot()
-    def on_ready_read(self):
+    def _on_ready_read(self):
         """Read available data and save file when ready to read."""
         if self.fileobj is None or self._reply is None:
             # No filename has been set yet (so we don't empty the buffer) or we
@@ -707,7 +707,7 @@ class DownloadItem(QObject):
             self._die(e.strerror)
 
     @pyqtSlot('QNetworkReply::NetworkError')
-    def on_reply_error(self, code):
+    def _on_reply_error(self, code):
         """Handle QNetworkReply errors."""
         if code == QNetworkReply.OperationCanceledError:
             return
@@ -715,7 +715,7 @@ class DownloadItem(QObject):
             self._die(self._reply.errorString())
 
     @pyqtSlot()
-    def on_read_timer_timeout(self):
+    def _on_read_timer_timeout(self):
         """Read some bytes from the QNetworkReply periodically."""
         if not self._reply.isOpen():
             raise OSError("Reply is closed!")
@@ -724,7 +724,7 @@ class DownloadItem(QObject):
             self._buffer.write(data)
 
     @pyqtSlot()
-    def on_meta_data_changed(self):
+    def _on_meta_data_changed(self):
         """Update the download's metadata."""
         if self._reply is None:
             return
@@ -756,7 +756,7 @@ class DownloadItem(QObject):
         self._redirects += 1
         request.setUrl(new_url)
         reply = self._reply
-        reply.finished.disconnect(self.on_reply_finished)
+        reply.finished.disconnect(self._on_reply_finished)
         self._read_timer.stop()
         self._reply = None
         if self.fileobj is not None:
@@ -808,7 +808,7 @@ class DownloadManager(QObject):
         self._networkmanager = networkmanager.NetworkManager(
             win_id, None, self)
         self._update_timer = usertypes.Timer(self, 'download-update')
-        self._update_timer.timeout.connect(self.update_gui)
+        self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)
 
     def __repr__(self):
@@ -823,7 +823,7 @@ class DownloadManager(QObject):
         self.questions.append(q)
 
     @pyqtSlot()
-    def update_gui(self):
+    def _update_gui(self):
         """Periodical GUI update of all items."""
         assert self.downloads
         for dl in self.downloads:
@@ -853,7 +853,7 @@ class DownloadManager(QObject):
         Args:
             request: The QNetworkRequest to download.
             target: Where to save the download as usertypes.DownloadTarget.
-            **kwargs: Passed to fetch_request.
+            **kwargs: Passed to _fetch_request.
 
         Return:
             The created DownloadItem.
@@ -885,12 +885,12 @@ class DownloadManager(QObject):
         if suggested_fn is None:
             suggested_fn = 'qutebrowser-download'
 
-        return self.fetch_request(request,
-                                  target=target,
-                                  suggested_filename=suggested_fn,
-                                  **kwargs)
+        return self._fetch_request(request,
+                                   target=target,
+                                   suggested_filename=suggested_fn,
+                                   **kwargs)
 
-    def fetch_request(self, request, *, qnam=None, **kwargs):
+    def _fetch_request(self, request, *, qnam=None, **kwargs):
         """Download a QNetworkRequest to disk.
 
         Args:
@@ -943,10 +943,10 @@ class DownloadManager(QObject):
             download.finished.connect(download.remove)
 
         download.data_changed.connect(
-            functools.partial(self.on_data_changed, download))
-        download.error.connect(self.on_error)
+            functools.partial(self._on_data_changed, download))
+        download.error.connect(self._on_error)
         download.redirected.connect(
-            functools.partial(self.on_redirect, download))
+            functools.partial(self._on_redirect, download))
         download.basename = suggested_filename
         idx = len(self.downloads)
         download.index = idx + 1  # "Human readable" index
@@ -1029,7 +1029,7 @@ class DownloadManager(QObject):
         download.open_file(cmdline)
 
     @pyqtSlot(QNetworkRequest, QNetworkReply)
-    def on_redirect(self, download, request, reply):
+    def _on_redirect(self, download, request, reply):
         """Handle an HTTP redirect of a download.
 
         Args:
@@ -1043,7 +1043,7 @@ class DownloadManager(QObject):
         download.init_reply(new_reply)
 
     @pyqtSlot(DownloadItem)
-    def on_data_changed(self, download):
+    def _on_data_changed(self, download):
         """Emit data_changed signal when download data changed."""
         try:
             idx = self.downloads.index(download)
@@ -1053,7 +1053,7 @@ class DownloadManager(QObject):
         self.data_changed.emit(idx, idx)
 
     @pyqtSlot(str)
-    def on_error(self, msg):
+    def _on_error(self, msg):
         """Display error message on download errors."""
         message.error(self._win_id, "Download error: {}".format(msg))
 
@@ -1087,12 +1087,12 @@ class DownloadManager(QObject):
         del self.downloads[idx]
         self.end_remove_rows.emit()
         download.deleteLater()
-        self.update_indexes()
+        self._update_indexes()
         if not self.downloads:
             self._update_timer.stop()
         log.downloads.debug("Removed download {}".format(download))
 
-    def update_indexes(self):
+    def _update_indexes(self):
         """Update indexes of all DownloadItems."""
         first_idx = None
         for i, d in enumerate(self.downloads, 1):
