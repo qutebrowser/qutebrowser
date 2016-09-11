@@ -46,7 +46,6 @@ class Completer(QObject):
         self._win_id = win_id
         self._cmd = cmd
         self._ignore_change = False
-        self._empty_item_idx = None
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -150,7 +149,18 @@ class Completer(QObject):
             return s
 
     def _partition(self):
-        parts = [x for x in self._split(keep=True) if x]
+        """Divide the commandline text into chunks around the cursor position.
+
+        Return:
+            ([parts_before_cursor], 'part_under_cursor', [parts_after_cursor])
+        """
+        text = self._cmd.text()[len(self._cmd.prefix()):]
+        if not text or not text.strip():
+            # Only ":", empty part under the cursor with nothing before/after
+            return [], '', []
+        runner = runners.CommandRunner(self._win_id)
+        result = runner.parse(text, fallback=True, keep=True)
+        parts = [x for x in result.cmdline if x]
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         log.completion.debug('partitioning {} around position {}'.format(parts,
                                                                          pos))
@@ -165,10 +175,8 @@ class Completer(QObject):
                 # strip trailing whitepsace included as a separate token
                 postfix = [x.strip() for x in parts[i+1:] if not x.isspace()]
                 log.completion.debug(
-                    'partitioned: {} {} {}'.format(prefix, center, postfix))
+                    "partitioned: {} '{}' {}".format(prefix, center, postfix))
                 return prefix, center, postfix
-        log.completion.debug('empty partition result')
-        return [], '', []
 
     @pyqtSlot(QItemSelection)
     def on_selection_changed(self, selected):
@@ -187,21 +195,22 @@ class Completer(QObject):
         data = model.data(indexes[0])
         if data is None:
             return
-        parts = self._split()
+        before, center, after = self._partition()
+        log.completion.debug("Changing {} to '{}'".format(center, data))
         try:
-            needs_quoting = cmdutils.cmd_dict[parts[0]].maxsplit is None
-        except KeyError:
+            needs_quoting = cmdutils.cmd_dict[before[0]].maxsplit is None
+        except (KeyError, IndexError):
             needs_quoting = True
         if needs_quoting:
             data = self._quote(data)
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
-            self._change_completed_part(data, immediate=True)
+            self._change_completed_part(data, before, after, immediate=True)
         else:
             log.completion.debug("Will ignore next completion update.")
             self._ignore_change = True
-            self._change_completed_part(data)
+            self._change_completed_part(data, before, after)
 
     @pyqtSlot()
     def schedule_completion_update(self):
@@ -252,43 +261,17 @@ class Completer(QObject):
 
         completion.set_model(model, pattern)
 
-    def _split(self, keep=False):
-        """Get the text split up in parts.
-
-        Args:
-            keep: Whether to keep special chars and whitespace.
-            aliases: Whether to resolve aliases.
-        """
-        text = self._cmd.text()[len(self._cmd.prefix()):]
-        if not text:
-            # When only ":" is entered, we already have one imaginary part,
-            # which just is empty at the moment.
-            return ['']
-        if not text.strip():
-            # Text is only whitespace so we treat this as a single element with
-            # the whitespace.
-            return [text]
-        runner = runners.CommandRunner(self._win_id)
-        result = runner.parse(text, fallback=True, keep=keep)
-        parts = result.cmdline
-        if self._empty_item_idx is not None:
-            log.completion.debug("Empty element queued at {}, "
-                                 "inserting.".format(self._empty_item_idx))
-            parts.insert(self._empty_item_idx, '')
-        #log.completion.debug("Splitting '{}' -> {}".format(text, parts))
-        return parts
-
-    def _change_completed_part(self, newtext, immediate=False):
+    def _change_completed_part(self, newtext, before, after, immediate=False):
         """Change the part we're currently completing in the commandline.
 
         Args:
-            text: The text to set (string).
+            text: The text to set (string) for the token under the cursor.
+            before: Commandline tokens before the token under the cursor.
+            after: Commandline tokens after the token under the cursor.
             immediate: True if the text should be completed immediately
                        including a trailing space and we shouldn't continue
                        completing the current item.
         """
-        before, center, after = self._partition()
-        log.completion.debug("changing {} to '{}'".format(center, newtext))
         text = self._cmd.prefix() + ' '.join([*before, newtext])
         pos = len(text) + (1 if immediate else 0)
         if after:
