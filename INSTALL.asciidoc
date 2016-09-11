@@ -331,6 +331,12 @@ https://docs.python.org/3/library/venv.html[virtual environment]:
 $ tox -e mkvenv
 ----
 
+On Windows, run tox with the 'mkvenv-win' option, however make sure that ONLY Python3 is in your PATH before running tox.
+
+----
+$ tox -e mkvenv-win
+----
+
 This installs all needed Python dependencies in a `.venv` subfolder. The
 system-wide Qt5/PyQt5 installations are symlinked into the virtual environment.
 

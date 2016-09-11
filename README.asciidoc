@@ -173,8 +173,8 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Peter Vilim
 * Clayton Craft
+* Peter Vilim
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
