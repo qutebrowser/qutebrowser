@@ -51,6 +51,7 @@ available:
 * A http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
 image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
+* A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
 * link:FAQ.asciidoc[Frequently asked questions]
 * link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
 * link:INSTALL.asciidoc[INSTALL]
@@ -255,6 +256,7 @@ Contributors, sorted by the number of commits in descending order:
 * Gregor Pohl
 * Eivind Uggedal
 * Dietrich Daroch
+* Derek Sivers
 * Daniel Lu
 * Arseniy Seroka
 * Andy Balaam
