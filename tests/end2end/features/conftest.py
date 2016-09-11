@@ -36,7 +36,7 @@ from qutebrowser.browser import pdfjs
 from helpers import utils
 
 
-def get_echo_exe_path():
+def _get_echo_exe_path():
     """Return the path to an echo-like command, depending on the system.
 
     Return:
@@ -236,7 +236,7 @@ def run_command(quteproc, httpbin, tmpdir, command):
     command = command.replace('(testdata)', utils.abs_datapath())
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
-    command = command.replace('(echo-exe)', get_echo_exe_path())
+    command = command.replace('(echo-exe)', _get_echo_exe_path())
 
     quteproc.send_cmd(command, count=count, invalid=invalid)
 
