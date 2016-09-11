@@ -73,9 +73,12 @@ class WebView(QWebView):
         page = webpage.BrowserPage(self.win_id, self._tab_id, tab.data,
                                    parent=self)
 
-        page.setVisibilityState(
-            QWebPage.VisibilityStateVisible if self.isVisible()
-            else QWebPage.VisibilityStateHidden)
+        try:
+            page.setVisibilityState(
+                QWebPage.VisibilityStateVisible if self.isVisible()
+                else QWebPage.VisibilityStateHidden)
+        except AttributeError:
+            pass
 
         self.setPage(page)
 
@@ -255,7 +258,10 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
+        try:
+            self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
+        except AttributeError:
+            pass
 
         super().showEvent(e)
 
@@ -268,6 +274,9 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
+        try:
+            self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
+        except AttributeError:
+            pass
 
         super().hideEvent(e)
