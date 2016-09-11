@@ -1,7 +1,7 @@
 Feature: :spawn
 
     Scenario: Running :spawn
-        When I run :spawn -v echo "Hello"
+        When I run :spawn -v (echo-exe) "Hello"
         Then the message "Command exited successfully." should be shown
 
     Scenario: Running :spawn with command that does not exist
@@ -19,23 +19,32 @@ Feature: :spawn
         Then the error "Error while splitting command: No closing quotation" should be shown
 
     Scenario: Running :spawn with url variable
-        When I run :spawn echo {url}
-        Then "Executing echo with args ['about:blank'], userscript=False" should be logged
+        When I run :spawn (echo-exe) {url}
+        Then "Executing * with args ['about:blank'], userscript=False" should be logged
 
     Scenario: Running :spawn with url variable in fully encoded format
         When I open data/title with spaces.html
-        And I run :spawn echo {url}
-        Then "Executing echo with args ['http://localhost:(port)/data/title%20with%20spaces.html'], userscript=False" should be logged
+        And I run :spawn (echo-exe) {url}
+        Then "Executing * with args ['http://localhost:(port)/data/title%20with%20spaces.html'], userscript=False" should be logged
 
     Scenario: Running :spawn with url variable in pretty decoded format
         When I open data/title with spaces.html
-        And I run :spawn echo {url:pretty}
-        Then "Executing echo with args ['http://localhost:(port)/data/title with spaces.html'], userscript=False" should be logged
+        And I run :spawn (echo-exe) {url:pretty}
+        Then "Executing * with args ['http://localhost:(port)/data/title with spaces.html'], userscript=False" should be logged
 
     @posix
     Scenario: Running :spawn with userscript
         When I open about:blank
         And I run :spawn -u (testdata)/userscripts/open_current_url
+        And I wait until about:blank is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - about:blank (active)
+
+    @windows
+    Scenario: Running :spawn with userscript on Windows
+        When I open about:blank
+        And I run :spawn -u (testdata)/userscripts/open_current_url.bat
         And I wait until about:blank is loaded
         Then the following tabs should be open:
             - about:blank
