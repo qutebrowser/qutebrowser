@@ -174,7 +174,6 @@ def _set_cmd_prompt(cmd, txt):
     (':open -t |', usertypes.Completion.url),
     (':open --tab |', usertypes.Completion.url),
     (':open | -t', usertypes.Completion.url),
-    (':--foo --bar |', None),
     (':tab-detach |', None),
     (':bind --mode=caret <c-x> |', usertypes.Completion.command),
     pytest.mark.xfail(reason='issue #74')((':bind --mode caret <c-x> |',

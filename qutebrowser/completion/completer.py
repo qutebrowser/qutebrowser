@@ -36,7 +36,6 @@ class Completer(QObject):
         _ignore_change: Whether to ignore the next completion update.
         _win_id: The window ID this completer is in.
         _timer: The timer used to trigger the completion update.
-        _cursor_part: The cursor part index for the next completion update.
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
@@ -52,11 +51,9 @@ class Completer(QObject):
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
         self._timer.timeout.connect(self._update_completion)
-        self._cursor_part = None
         self._last_cursor_pos = None
         self._last_text = None
         self._cmd.update_completion.connect(self.schedule_completion_update)
-        self._cmd.textChanged.connect(self._on_text_edited)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -66,23 +63,22 @@ class Completer(QObject):
         completion = self.parent()
         return completion.model()
 
-    def _get_completion_model(self, completion, parts, cursor_part):
+    def _get_completion_model(self, completion, pos_args):
         """Get a completion model based on an enum member.
 
         Args:
             completion: A usertypes.Completion member.
-            parts: The parts currently in the commandline.
-            cursor_part: The part the cursor is in.
+            pos_args: The positional args entered before the cursor.
 
         Return:
             A completion model or None.
         """
         if completion == usertypes.Completion.option:
-            section = parts[cursor_part - 1]
+            section = pos_args[0]
             model = instances.get(completion).get(section)
         elif completion == usertypes.Completion.value:
-            section = parts[cursor_part - 2]
-            option = parts[cursor_part - 1]
+            section = pos_args[0]
+            option = pos_args[1]
             try:
                 model = instances.get(completion)[section][option]
             except KeyError:
@@ -96,72 +92,46 @@ class Completer(QObject):
         else:
             return sortfilter.CompletionFilterModel(source=model, parent=self)
 
-    def _filter_cmdline_parts(self, parts, cursor_part):
-        """Filter a list of commandline parts to exclude flags.
-
-        Args:
-            parts: A list of parts.
-            cursor_part: The index of the part the cursor is over.
-
-        Return:
-            A (parts, cursor_part) tuple with the modified values.
-        """
-        if parts == ['']:
-            # Empty commandline, i.e. only :.
-            return [''], 0
-        filtered_parts = []
-        for i, part in enumerate(parts):
-            if part == '--':
-                break
-            elif part.startswith('-'):
-                if cursor_part >= i:
-                    cursor_part -= 1
-            else:
-                filtered_parts.append(part)
-        return filtered_parts, cursor_part
-
-    def _get_new_completion(self, parts, cursor_part):
+    def _get_new_completion(self, before_cursor, under_cursor):
         """Get a new completion.
 
         Args:
-            parts: The command chunks to get a completion for.
-            cursor_part: The part the cursor is over currently.
+            before_cursor: The command chunks before the cursor.
+            under_cursor: The command chunk under the cursor.
 
         Return:
             A completion model.
         """
+        if '--' in before_cursor:
+            return None
         try:
-            if parts[cursor_part].startswith('-'):
+            if under_cursor.startswith('-'):
                 # cursor on a flag
-                return
+                return None
         except IndexError:
             pass
-        log.completion.debug("Before filtering flags: parts {}, cursor_part "
-                             "{}".format(parts, cursor_part))
-        parts, cursor_part = self._filter_cmdline_parts(parts, cursor_part)
-        log.completion.debug("After filtering flags: parts {}, cursor_part "
-                             "{}".format(parts, cursor_part))
-        if not parts:
-            return None
-        if cursor_part == 0:
+        log.completion.debug("Before removing flags: {}".format(before_cursor))
+        before_cursor = [x for x in before_cursor if not x.startswith('-')]
+        log.completion.debug("After removing flags: {}".format(before_cursor))
+        if len(before_cursor) == 0:
             # '|' or 'set|'
             model = instances.get(usertypes.Completion.command)
             return sortfilter.CompletionFilterModel(source=model, parent=self)
-        # delegate completion to command
         try:
-            cmd = cmdutils.cmd_dict[parts[0]]
+            cmd = cmdutils.cmd_dict[before_cursor[0]]
         except KeyError:
-            # entering an unknown command
+            log.completion.debug("No completion for unknown command: {}"
+                                 .format(before_cursor[0]))
             return None
+        argpos = len(before_cursor) - 1
         try:
-            idx = cursor_part - 1
-            completion = cmd.get_pos_arg_info(idx).completion
+            completion = cmd.get_pos_arg_info(argpos).completion
         except IndexError:
-            # user provided more positional arguments than the command takes
+            log.completion.debug("No completion in position {}".format(argpos))
             return None
         if completion is None:
             return None
-        model = self._get_completion_model(completion, parts, cursor_part)
+        model = self._get_completion_model(completion, before_cursor[1:])
         return model
 
     def _quote(self, s):
@@ -253,12 +223,10 @@ class Completer(QObject):
     @pyqtSlot()
     def _update_completion(self):
         """Check if completions are available and activate them."""
-        self._update_cursor_part()
-        parts = self._split()
+        before_cursor, pattern, after_cursor = self._partition()
 
-        log.completion.debug(
-            "Updating completion - prefix {}, parts {}, cursor_part {}".format(
-                self._cmd.prefix(), parts, self._cursor_part))
+        log.completion.debug("Updating completion: {} {} {}".format(
+            before_cursor, pattern, after_cursor))
 
         if self._ignore_change:
             log.completion.debug("Ignoring completion update because "
@@ -276,19 +244,11 @@ class Completer(QObject):
             completion.set_model(None)
             return
 
-        model = self._get_new_completion(parts, self._cursor_part)
+        model = self._get_new_completion(before_cursor, pattern)
 
-        try:
-            pattern = parts[self._cursor_part].strip()
-        except IndexError:
-            pattern = ''
-
-        if model is None:
-            log.completion.debug("No completion model for {}.".format(parts))
-        else:
-            log.completion.debug(
-                "New completion for {}: {}, with pattern '{}'".format(
-                    parts, model.srcmodel.__class__.__name__, pattern))
+        log.completion.debug("Setting completion model to {} with pattern '{}'"
+            .format(model.srcmodel.__class__.__name__ if model else 'None',
+                    pattern))
 
         completion.set_model(model, pattern)
 
@@ -318,55 +278,6 @@ class Completer(QObject):
         #log.completion.debug("Splitting '{}' -> {}".format(text, parts))
         return parts
 
-    @pyqtSlot()
-    def _update_cursor_part(self):
-        """Get the part index of the commandline where the cursor is over."""
-        cursor_pos = self._cmd.cursorPosition()
-        snippet = slice(cursor_pos - 1, cursor_pos + 1)
-        spaces = self._cmd.text()[snippet] == '  '
-        cursor_pos -= len(self._cmd.prefix())
-        parts = self._split(keep=True)
-        log.completion.vdebug(
-            "text: {}, parts: {}, cursor_pos after removing prefix '{}': "
-            "{}".format(self._cmd.text(), parts, self._cmd.prefix(),
-                        cursor_pos))
-        skip = 0
-        for i, part in enumerate(parts):
-            log.completion.vdebug("Checking part {}: {!r}".format(i, parts[i]))
-            if not part:
-                skip += 1
-                continue
-            if cursor_pos <= len(part):
-                # foo| bar
-                self._cursor_part = i - skip
-                if spaces:
-                    self._empty_item_idx = i - skip
-                else:
-                    self._empty_item_idx = None
-                log.completion.vdebug("cursor_pos {} <= len(part) {}, "
-                                      "setting cursor_part {} - {} (skip), "
-                                      "empty_item_idx {}".format(
-                                          cursor_pos, len(part), i, skip,
-                                          self._empty_item_idx))
-                break
-            cursor_pos -= len(part)
-            log.completion.vdebug(
-                "Removing len({!r}) -> {} from cursor_pos -> {}".format(
-                    part, len(part), cursor_pos))
-        else:
-            if i == 0:
-                # Initial `:` press without any text.
-                self._cursor_part = 0
-            else:
-                self._cursor_part = i - skip
-            if spaces:
-                self._empty_item_idx = i - skip
-            else:
-                self._empty_item_idx = None
-        log.completion.debug("cursor_part {}, spaces {}".format(
-            self._cursor_part, spaces))
-        return
-
     def _change_completed_part(self, newtext, immediate=False):
         """Change the part we're currently completing in the commandline.
 
@@ -390,11 +301,3 @@ class Completer(QObject):
         self._cmd.setCursorPosition(pos)
         self._cmd.setFocus()
         self._cmd.show_cmd.emit()
-
-    @pyqtSlot()
-    def _on_text_edited(self):
-        """Reset _empty_item_idx if text was edited."""
-        self._empty_item_idx = None
-        # We also want to update the cursor part and emit _update_completion
-        # here, but that's already done for us by cursorPositionChanged
-        # anyways, so we don't need to do it twice.
