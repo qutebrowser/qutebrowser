@@ -766,6 +766,7 @@ class DownloadItem(QObject):
         return True
 
     def uses_nam(self, nam):
+        """Check if this download uses the given QNetworkAccessManager."""
         running_nam = self._reply is not None and self._reply.manager() is nam
         # user could request retry after tab is closed.
         retry_nam = (self.done and (not self.successful) and
