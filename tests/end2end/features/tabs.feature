@@ -525,6 +525,7 @@ Feature: Tab management
     Scenario: Cloning a tab with history and title
         When I open data/title.html
         And I run :tab-clone
+        And I wait until data/title.html is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -542,6 +543,7 @@ Feature: Tab management
         When I open data/hello.txt
         And I run :zoom 120
         And I run :tab-clone
+        And I wait until data/hello.txt is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -558,6 +560,7 @@ Feature: Tab management
     Scenario: Cloning to background tab
         When I open data/hello2.txt
         And I run :tab-clone -b
+        And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
             - data/hello2.txt (active)
             - data/hello2.txt
@@ -565,6 +568,7 @@ Feature: Tab management
     Scenario: Cloning to new window
         When I open data/title.html
         And I run :tab-clone -w
+        And I wait until data/title.html is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -584,6 +588,7 @@ Feature: Tab management
         When I open data/title.html
         And I set tabs -> tabs-are-windows to true
         And I run :tab-clone
+        And I wait until data/title.html is loaded
         Then the session should look like:
             windows:
             - tabs:
