@@ -73,10 +73,9 @@ class WebView(QWebView):
         page = webpage.BrowserPage(self.win_id, self._tab_id, tab.data,
                                    parent=self)
 
-        if qtutils.version_check('5.2'):
-            page.setVisibilityState(
-                page.VisibilityStateVisible if self.isVisible()
-                else page.VisibilityStateHidden)
+        page.setVisibilityState(
+            QWebPage.VisibilityStateVisible if self.isVisible()
+            else QWebPage.VisibilityStateHidden)
 
         self.setPage(page)
 
@@ -256,9 +255,7 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        if qtutils.version_check('5.2'):
-            page = self.page()
-            page.setVisibilityState(page.VisibilityStateVisible)
+        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
 
         super().showEvent(e)
 
@@ -271,8 +268,6 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        if qtutils.version_check('5.2'):
-            page = self.page()
-            page.setVisibilityState(page.VisibilityStateHidden)
+        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
 
         super().hideEvent(e)
