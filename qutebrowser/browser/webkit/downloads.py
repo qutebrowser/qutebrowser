@@ -784,9 +784,11 @@ class DownloadManager(QObject):
                       The arguments are int indices to the downloads.
     """
 
-    begin_remove_rows = pyqtSignal(QModelIndex, int, int)  # parent, first, last
+    # parent, first, last
+    begin_remove_rows = pyqtSignal(QModelIndex, int, int)
     end_remove_rows = pyqtSignal()
-    begin_insert_rows = pyqtSignal(QModelIndex, int, int)  # parent, first, last
+    # parent, first, last
+    begin_insert_rows = pyqtSignal(QModelIndex, int, int)
     end_insert_rows = pyqtSignal()
     data_changed = pyqtSignal(int, int)  # begin, end
 
@@ -1099,6 +1101,8 @@ class DownloadManager(QObject):
 
 
 class DownloadModel(QAbstractListModel):
+
+    """A list model showing downloads."""
 
     def __init__(self, downloader, parent=None):
         super().__init__(parent)

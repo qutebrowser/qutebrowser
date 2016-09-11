@@ -497,7 +497,7 @@ class MainWindow(QWidget):
             if self is last_visible:
                 objreg.delete('last-visible-main-window')
         except KeyError:
-           pass
+            pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
