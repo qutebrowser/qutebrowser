@@ -198,15 +198,19 @@ class Completer(QObject):
         before, center, after = self._partition()
         log.completion.debug("Changing {} to '{}'".format(center, data))
         try:
-            needs_quoting = cmdutils.cmd_dict[before[0]].maxsplit is None
+            maxsplit = cmdutils.cmd_dict[before[0]].maxsplit
         except (KeyError, IndexError):
-            needs_quoting = True
-        if needs_quoting:
+            maxsplit = None
+        if maxsplit is None:
             data = self._quote(data)
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
             self._change_completed_part(data, before, after, immediate=True)
+            if maxsplit is not None and maxsplit < len(before):
+                # If we are quick-completing the part after maxsplit, don't
+                # keep offering completions (see issue #1519)
+                self._ignore_change = True
         else:
             log.completion.debug("Will ignore next completion update.")
             self._ignore_change = True

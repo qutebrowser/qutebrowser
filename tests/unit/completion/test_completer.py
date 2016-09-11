@@ -122,16 +122,12 @@ def cmdutils_patch(monkeypatch, stubs):
         """docstring."""
         pass
 
-    cmds = {
-        'set': set_command,
-        'help': show_help,
-        'open': openurl,
-        'bind': bind,
-        'tab-detach': tab_detach,
-    }
     cmd_utils = stubs.FakeCmdUtils({
-        name: command.Command(name=name, handler=fn)
-        for name, fn in cmds.items()
+        'set': command.Command(name='set', handler=set_command),
+        'help': command.Command(name='help', handler=show_help),
+        'open': command.Command(name='open', handler=openurl, maxsplit=0),
+        'bind': command.Command(name='bind', handler=bind),
+        'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
     })
     monkeypatch.setattr('qutebrowser.completion.completer.cmdutils', cmd_utils)
 
@@ -264,3 +260,29 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
     if after_pos > len(after_txt):
         after_txt += ' '
     check(True, 1, after_txt, after_pos)
+
+def test_quickcomplete_flicker(status_command_stub, completer_obj,
+                               completion_widget_stub, config_stub):
+    """Validate fix for #1519: bookmark-load background highlighting quirk.
+
+    For commands like bookmark-load and open with maxsplit=0, a commandline
+    that looks like ':open someurl |' is considered to be completing the first
+    arg with pattern 'someurl ' (note trailing whitespace). As this matches the
+    one completion available, it keeps the completionmenu open.
+
+    This test validates that the completion model is not re-set after we
+    quick-complete an entry after maxsplit."""
+    model = unittest.mock.Mock()
+    model.data = unittest.mock.Mock(return_value='http://example.com')
+    indexes = [unittest.mock.Mock()]
+    selection = unittest.mock.Mock()
+    selection.indexes = unittest.mock.Mock(return_value=indexes)
+    completion_widget_stub.model.return_value = model
+
+    config_stub.data['completion']['quick-complete'] = True
+    model.count = unittest.mock.Mock(return_value=1)
+    _set_cmd_prompt(status_command_stub, ':open |')
+    completer_obj.on_selection_changed(selection)
+
+    completer_obj.schedule_completion_update()
+    assert not completion_widget_stub.set_model.called
