@@ -66,6 +66,10 @@ def main():
 
     profiler = cProfile.Profile()
     profiler.runcall(qutebrowser.qutebrowser.main)
+
+    # If we have an exception after here, we don't want the qutebrowser
+    # exception hook to take over.
+    sys.excepthook = sys.__excepthook__
     profiler.dump_stats(profilefile)
 
     if args.profile_tool == 'none':
