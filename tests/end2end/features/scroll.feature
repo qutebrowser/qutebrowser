@@ -286,7 +286,6 @@ Feature: Scrolling
 
     Scenario: :scroll-page with --bottom-navigate and zoom
         When I run :zoom 200
-        And I wait until the scroll position changed
         And I run :scroll-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1

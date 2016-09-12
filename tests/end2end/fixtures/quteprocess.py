@@ -325,7 +325,7 @@ class QuteProc(testprocess.Process):
                 # Qt < 5.7
                 pytest.skip("QWebEnginePage.scrollPositionChanged missing")
         if x is None and y is None:
-            point = '*'
+            point = 'PyQt5.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':
             point = 'PyQt5.QtCore.QPoint()'
         else:
