@@ -1928,6 +1928,9 @@ class CommandDispatcher:
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
         """
+        if world is None:
+            world = usertypes.JsWorld.jseval
+
         if quiet:
             jseval_cb = None
         else:
@@ -1949,10 +1952,7 @@ class CommandDispatcher:
                     message.info(self._win_id, out)
 
         widget = self._current_widget()
-        if world is None:
-            widget.run_js_async(js_code, callback=jseval_cb)
-        else:
-            widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        widget.run_js_async(js_code, callback=jseval_cb, world=world)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):

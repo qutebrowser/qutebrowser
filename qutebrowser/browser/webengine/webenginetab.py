@@ -53,6 +53,7 @@ _JS_WORLD_MAP = {
     usertypes.JsWorld.main: QWebEngineScript.MainWorld,
     usertypes.JsWorld.application: QWebEngineScript.ApplicationWorld,
     usertypes.JsWorld.user: QWebEngineScript.UserWorld,
+    usertypes.JsWorld.jseval: QWebEngineScript.UserWorld + 1,
 }
 
 
@@ -497,7 +498,7 @@ class WebEngineTab(browsertab.AbstractTab):
             else:
                 self._widget.page().runJavaScript(code, world_id, callback)
         except TypeError:
-            if world is not None:
+            if world is not None and world != usertypes.JsWorld.jseval:
                 log.webview.warning("Ignoring world ID on Qt < 5.7")
             # Qt < 5.7
             if callback is None:
