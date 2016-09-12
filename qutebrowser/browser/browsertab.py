@@ -756,8 +756,8 @@ class AbstractTab(QWidget):
         Args:
             code: The javascript code to run.
             callback: The callback to call with the result, or None.
-            world: An int world ID to run the JS in the main world or in another
-                   isolated world.
+            world: A world ID (int or usertypes.JsWorld member) to run the JS
+                   in the main world or in another isolated world.
         """
         raise NotImplementedError
 
