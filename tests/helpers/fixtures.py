@@ -468,8 +468,8 @@ def redirect_webengine_data(data_tmpdir, monkeypatch):
     """Set XDG_DATA_HOME and HOME to a temp location.
 
     While data_tmpdir covers most cases by redirecting standarddir.data(), this
-    is not enough for places QtWebEngine references the data dir internally. For
-    these, we need to set the environment variable to redirect data access.
+    is not enough for places QtWebEngine references the data dir internally.
+    For these, we need to set the environment variable to redirect data access.
 
     We also set HOME as in some places, the home directory is used directly...
     """
