@@ -143,54 +143,55 @@ def _set_cmd_prompt(cmd, txt):
     cmd.setCursorPosition(txt.index('|'))
 
 
-@pytest.mark.parametrize('txt, expected', [
-    (':nope|', usertypes.Completion.command),
-    (':nope |', None),
-    (':set |', usertypes.Completion.section),
-    (':set gen|', usertypes.Completion.section),
-    (':set general |', usertypes.Completion.option),
-    (':set what |', None),
-    (':set general ignore-case |', usertypes.Completion.value),
-    (':set general huh |', None),
-    (':help |', usertypes.Completion.helptopic),
-    (':help     |', usertypes.Completion.helptopic),
-    (':open |', usertypes.Completion.url),
-    (':bind |', None),
-    (':bind <c-x> |', usertypes.Completion.command),
-    (':bind <c-x> foo|', usertypes.Completion.command),
-    (':bind <c-x>| foo', None),
-    (':set| general ', usertypes.Completion.command),
-    (':|set general ', usertypes.Completion.command),
-    (':set gene|ral ignore-case', usertypes.Completion.section),
-    (':|', usertypes.Completion.command),
-    (':   |', usertypes.Completion.command),
-    ('/|', None),
-    (':open -t|', None),
-    (':open --tab|', None),
-    (':open -t |', usertypes.Completion.url),
-    (':open --tab |', usertypes.Completion.url),
-    (':open | -t', usertypes.Completion.url),
-    (':tab-detach |', None),
-    (':bind --mode=caret <c-x> |', usertypes.Completion.command),
+@pytest.mark.parametrize('txt, kind, pattern', [
+    (':nope|', usertypes.Completion.command, 'nope'),
+    (':nope |', None, ''),
+    (':set |', usertypes.Completion.section, ''),
+    (':set gen|', usertypes.Completion.section, 'gen'),
+    (':set general |', usertypes.Completion.option, ''),
+    (':set what |', None, ''),
+    (':set general ignore-case |', usertypes.Completion.value, ''),
+    (':set general huh |', None, ''),
+    (':help |', usertypes.Completion.helptopic, ''),
+    (':help     |', usertypes.Completion.helptopic, ''),
+    (':open |', usertypes.Completion.url, ''),
+    (':bind |', None, ''),
+    (':bind <c-x> |', usertypes.Completion.command, ''),
+    (':bind <c-x> foo|', usertypes.Completion.command, 'foo'),
+    (':bind <c-x>| foo', None, '<c-x>'),
+    (':set| general ', usertypes.Completion.command, 'set'),
+    (':|set general ', usertypes.Completion.command, 'set'),
+    (':set gene|ral ignore-case', usertypes.Completion.section, 'general'),
+    (':|', usertypes.Completion.command, ''),
+    (':   |', usertypes.Completion.command, ''),
+    ('/|', None, ''),
+    (':open -t|', None, ''),
+    (':open --tab|', None, ''),
+    (':open -t |', usertypes.Completion.url, ''),
+    (':open --tab |', usertypes.Completion.url, ''),
+    (':open | -t', usertypes.Completion.url, ''),
+    (':tab-detach |', None, ''),
+    (':bind --mode=caret <c-x> |', usertypes.Completion.command, ''),
     pytest.mark.xfail(reason='issue #74')((':bind --mode caret <c-x> |',
-                                           usertypes.Completion.command)),
-    (':set -t -p |', usertypes.Completion.section),
-    (':open -- |', None),
-    (':gibberish nonesense |', None),
+                                           usertypes.Completion.command, '')),
+    (':set -t -p |', usertypes.Completion.section, ''),
+    (':open -- |', None, ''),
+    (':gibberish nonesense |', None, ''),
 ])
-def test_update_completion(txt, expected, status_command_stub, completer_obj,
-                           completion_widget_stub):
+def test_update_completion(txt, kind, pattern, status_command_stub,
+                           completer_obj, completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
     assert completion_widget_stub.set_model.call_count == 1
-    arg = completion_widget_stub.set_model.call_args[0][0]
+    args = completion_widget_stub.set_model.call_args[0]
     # the outer model is just for sorting; srcmodel is the completion model
-    if expected is None:
-        assert arg == expected
+    if kind is None:
+        assert args[0] is None
     else:
-        assert arg.srcmodel.kind == expected
+        assert args[0].srcmodel.kind == kind
+        assert args[1] == pattern
 
 
 @pytest.mark.parametrize('before, newtxt, after', [
