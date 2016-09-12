@@ -176,6 +176,7 @@ def _set_cmd_prompt(cmd, txt):
                                            usertypes.Completion.command)),
     (':set -t -p |', usertypes.Completion.section),
     (':open -- |', None),
+    (':gibberish nonesense |', None),
 ])
 def test_update_completion(txt, expected, status_command_stub, completer_obj,
                            completion_widget_stub):
