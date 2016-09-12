@@ -747,11 +747,17 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def run_js_async(self, code, callback=None):
+    def run_js_async(self, code, callback=None, *, world=None):
         """Run javascript async.
 
         The given callback will be called with the result when running JS is
         complete.
+
+        Args:
+            code: The javascript code to run.
+            callback: The callback to call with the result, or None.
+            world: An int world ID to run the JS in the main world or in another
+                   isolated world.
         """
         raise NotImplementedError
 

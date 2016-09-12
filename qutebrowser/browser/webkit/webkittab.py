@@ -621,7 +621,9 @@ class WebKitTab(browsertab.AbstractTab):
         else:
             callback(frame.toHtml())
 
-    def run_js_async(self, code, callback=None):
+    def run_js_async(self, code, callback=None, *, world=None):
+        if world is not None:
+            log.webview.warning("Ignoring world ID {}".format(world))
         result = self._widget.page().mainFrame().evaluateJavaScript(code)
         if callback is not None:
             callback(result)

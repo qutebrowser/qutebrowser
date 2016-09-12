@@ -475,14 +475,24 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             self._widget.page().toHtml(callback)
 
-    def run_js_async(self, code, callback=None):
-        world = QWebEngineScript.ApplicationWorld
+    def run_js_async(self, code, callback=None, *, world=None):
+        if world is None:
+            world_id = QWebEngineScript.ApplicationWorld
+        else:
+            # We need to make this sure here, as otherwise we get an unexpected
+            # TypeError later...
+            if not isinstance(world, int):
+                raise TypeError("Expected int as world id, got {!r}".format(
+                    world))
+            world_id = world
         try:
             if callback is None:
-                self._widget.page().runJavaScript(code, world)
+                self._widget.page().runJavaScript(code, world_id)
             else:
-                self._widget.page().runJavaScript(code, world, callback)
+                self._widget.page().runJavaScript(code, world_id, callback)
         except TypeError:
+            if world is not None:
+                log.webview.warning("Ignoring world ID on Qt < 5.7")
             # Qt < 5.7
             if callback is None:
                 self._widget.page().runJavaScript(code)
