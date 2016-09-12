@@ -240,7 +240,9 @@ class QuteProc(testprocess.Process):
                 raise
 
         log_line.use_color = self.request.config.getoption('--color') != 'no'
-        self._log(log_line)
+        verbose = self.request.config.getoption('--verbose')
+        if log_line.loglevel > logging.VDEBUG or verbose:
+            self._log(log_line)
         self._process_line(log_line)
         return log_line
 
