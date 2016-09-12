@@ -1376,7 +1376,11 @@ class TempDownloadManager(QObject):
     def cleanup(self):
         """Clean up any temporary files."""
         if self._tmpdir is not None:
-            self._tmpdir.cleanup()
+            try:
+                self._tmpdir.cleanup()
+            except OSError:
+                log.misc.exception("Failed to clean up temporary download "
+                                   "directory")
             self._tmpdir = None
 
     def _get_tmpdir(self):
