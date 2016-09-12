@@ -239,6 +239,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
                 # This can happen when the callback would get called after
                 # shutting down a tab
                 return
+            log.webview.vdebug(jsret)
             assert isinstance(jsret, dict), jsret
             self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
 
