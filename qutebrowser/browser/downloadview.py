@@ -113,7 +113,7 @@ class DownloadView(QListView):
         item = self.model().data(index, downloads.ModelRole.item)
         if item.done and item.successful:
             item.open_file()
-            self.model().remove_item(item)
+            item.remove()
 
     def _get_menu_actions(self, item):
         """Get the available context menu actions for a given DownloadItem.
