@@ -323,16 +323,6 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then "Opening *download.bin* with [*python*]" should be logged
 
-    Scenario: Opening a download with a handler which deletes the tmpdir
-        When I set storage -> prompt-download-directory to true
-        And I open data/downloads/download.bin
-        And I directly open the download with a handler deleting the tmpdir
-        And I wait until the download is finished
-        And I run :quit
-        Then "Opening *download.bin* with [*python*]" should be logged
-        And "Failed to clean up temporary download directory" should be logged
-        And qutebrowser should quit
-
     # https://github.com/The-Compiler/qutebrowser/issues/1728
 
     Scenario: Cancelling a download that should be opened

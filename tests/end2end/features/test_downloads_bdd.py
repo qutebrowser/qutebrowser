@@ -126,14 +126,6 @@ def download_open_with_prompt(quteproc):
     quteproc.send_cmd(':prompt-open-download {}'.format(cmd))
 
 
-@bdd.when("I directly open the download with a handler deleting the tmpdir")
-def download_open_with_prompt_deleting(quteproc):
-    cmd = ('{} -c "import sys, shutil, os.path; '
-           'shutil.rmtree(os.path.dirname(sys.argv[1]))"'.format(
-               shlex.quote(sys.executable)))
-    quteproc.send_cmd(':prompt-open-download {}'.format(cmd))
-
-
 @bdd.when(bdd.parsers.parse("I delete the downloaded file {filename}"))
 def delete_file(tmpdir, filename):
     (tmpdir / filename).remove()
