@@ -300,9 +300,11 @@ class QuteProc(testprocess.Process):
         Return:
             The LogLine.
         """
-        return self.wait_for(category='js',
+        line = self.wait_for(category='js',
                              function='javaScriptConsoleMessage',
                              message='[*] {}'.format(message))
+        line.expected = True
+        return line
 
     def wait_scroll_pos_changed(self, x=None, y=None):
         """Wait until a "Scroll position changed" message was found.
