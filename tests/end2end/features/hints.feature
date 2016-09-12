@@ -9,7 +9,6 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
-    @qtwebengine_flaky
     Scenario: Following a link after scrolling down
         When I open data/scroll/simple.html
         And I run :hint links normal
