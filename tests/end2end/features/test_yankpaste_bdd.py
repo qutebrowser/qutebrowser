@@ -32,6 +32,10 @@ def init_fake_clipboard(quteproc):
 
 
 @bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
-def set_text_field(quteproc, value):
-    quteproc.send_cmd(":jseval set_text('{}')".format(value))
+def set_text_field(request, quteproc, value):
+    if request.config.webengine:
+        cmd = ":jseval --world=0 set_text('{}')".format(value)
+    else:
+        cmd = ":jseval set_text('{}')".format(value)
+    quteproc.send_cmd(cmd)
     quteproc.wait_for_js('textarea set to: ' + value)
