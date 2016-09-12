@@ -44,6 +44,7 @@ class FakeConfig:
     ARGS = {
         '--qute-delay': 0,
         '--color': True,
+        '--verbose': False,
     }
 
     def getoption(self, name):
