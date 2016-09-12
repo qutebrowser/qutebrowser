@@ -230,15 +230,17 @@ Feature: Yanking and pasting.
     #### :insert-text
 
     Scenario: Inserting text into an empty text field
-        When I open data/paste_primary.html
+        When I set general -> log-javascript-console to info
+        And I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "Hello world"
+        Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into a text field at specific position
-        When I open data/paste_primary.html
+        When I set general -> log-javascript-console to info
+        And I open data/paste_primary.html
         And I set the text field to "one two three four"
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
@@ -248,20 +250,22 @@ Feature: Yanking and pasting.
         And I press the key "<Right>"
         And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "onHello worlde two three four"
+        Then the javascript message "textarea contents: onHello worlde two three four" should be logged
 
     @qtwebengine_osx_xfail
     Scenario: Inserting text into a text field with undo
-        When I open data/paste_primary.html
+        When I set general -> log-javascript-console to info
+        And I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         # Paste and undo
         And I run :insert-text This text should be undone
+        And I wait for the javascript message "textarea contents: This text should be undone"
         And I press the key "<Ctrl+z>"
         # Paste final text
         And I run :insert-text This text should stay
         # Compare
-        Then the text field should contain "This text should stay"
+        Then the javascript message "textarea contents: This text should stay" should be logged
 
     Scenario: Inserting text without a focused field
         When I open data/paste_primary.html
