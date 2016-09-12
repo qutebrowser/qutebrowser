@@ -25,7 +25,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import objreg
 
-pytestmark = pytest.mark.usefixtures('redirect_xdg_data')
+pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 
 try:
     from PyQt5.QtWebKitWidgets import QWebView

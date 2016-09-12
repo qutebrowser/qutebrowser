@@ -464,14 +464,17 @@ def data_tmpdir(monkeypatch, tmpdir):
 
 
 @pytest.fixture
-def redirect_xdg_data(data_tmpdir, monkeypatch):
-    """Set XDG_DATA_HOME to a temp location.
+def redirect_webengine_data(data_tmpdir, monkeypatch):
+    """Set XDG_DATA_HOME and HOME to a temp location.
 
     While data_tmpdir covers most cases by redirecting standarddir.data(), this
-    is not enough for places Qt references the data dir internally. For these,
-    we need to set the environment variable to redirect data access.
+    is not enough for places QtWebEngine references the data dir internally. For
+    these, we need to set the environment variable to redirect data access.
+
+    We also set HOME as in some places, the home directory is used directly...
     """
     monkeypatch.setenv('XDG_DATA_HOME', str(data_tmpdir))
+    monkeypatch.setenv('HOME', str(data_tmpdir))
 
 
 @pytest.fixture()
