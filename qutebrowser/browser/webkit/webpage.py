@@ -319,6 +319,13 @@ class BrowserPage(QWebPage):
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
+        if not isinstance(frame, QWebFrame):  # pragma: no cover
+            # This makes no sense whatsoever, but someone reported this being
+            # called with a QBuffer...
+            log.misc.error("on_feature_permission_requested got called with "
+                           "{!r}!".format(frame))
+            return
+
         options = {
             QWebPage.Notifications: ('content', 'notifications'),
             QWebPage.Geolocation: ('content', 'geolocation'),
