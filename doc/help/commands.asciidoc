@@ -447,7 +447,7 @@ Evaluate a JavaScript string.
 
 ==== optional arguments
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
-* +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, which JS world/context to run the snippet in.
+* +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 
 
 ==== note

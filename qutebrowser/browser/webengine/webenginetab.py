@@ -48,6 +48,14 @@ def init():
     req_interceptor.install(QWebEngineProfile.defaultProfile())
 
 
+# Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
+_JS_WORLD_MAP = {
+    usertypes.JsWorld.main: QWebEngineScript.MainWorld,
+    usertypes.JsWorld.application: QWebEngineScript.ApplicationWorld,
+    usertypes.JsWorld.user: QWebEngineScript.UserWorld,
+}
+
+
 class WebEnginePrinting(browsertab.AbstractPrinting):
 
     """QtWebEngine implementations related to printing."""
@@ -478,13 +486,11 @@ class WebEngineTab(browsertab.AbstractTab):
     def run_js_async(self, code, callback=None, *, world=None):
         if world is None:
             world_id = QWebEngineScript.ApplicationWorld
-        else:
-            # We need to make this sure here, as otherwise we get an unexpected
-            # TypeError later...
-            if not isinstance(world, int):
-                raise TypeError("Expected int as world id, got {!r}".format(
-                    world))
+        elif isinstance(world, int):
             world_id = world
+        else:
+            world_id = _JS_WORLD_MAP[world]
+
         try:
             if callback is None:
                 self._widget.page().runJavaScript(code, world_id)

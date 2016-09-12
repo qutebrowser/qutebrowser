@@ -261,6 +261,10 @@ arg2backend = {
 }
 
 
+# JS world for QtWebEngine
+JsWorld = enum('JsWorld', ['main', 'application', 'user'])
+
+
 # Where a download should be saved
 class DownloadTarget:
 

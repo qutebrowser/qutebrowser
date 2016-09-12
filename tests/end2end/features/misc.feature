@@ -109,6 +109,13 @@ Feature: Various utility commands.
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
 
+    @qtwebkit_skip
+    Scenario: :jseval using the main world as name
+        When I set general -> log-javascript-console to info
+        And I open data/misc/jseval.html
+        And I run :jseval --world main do_log()
+        Then the javascript message "Hello from the page!" should be logged
+
     # :debug-webaction
 
     Scenario: :debug-webaction with valid value

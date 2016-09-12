@@ -1918,14 +1918,15 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code, quiet=False, *, world: int=None):
+    def jseval(self, js_code, quiet=False, *,
+               world: typing.Union[usertypes.JsWorld, int]=None):
         """Evaluate a JavaScript string.
 
         Args:
             js_code: The string to evaluate.
             quiet: Don't show resulting JS object.
-            world: Ignored on QtWebKit. On QtWebEngine, a world ID to run the
-                   snippet in.
+            world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
+                   run the snippet in.
         """
         if quiet:
             jseval_cb = None
