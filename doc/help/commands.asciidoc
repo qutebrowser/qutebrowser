@@ -438,7 +438,7 @@ Note: Due a bug in Qt, the inspector will show incorrect request headers in the 
 
 [[jseval]]
 === jseval
-Syntax: +:jseval [*--quiet*] 'js-code'+
+Syntax: +:jseval [*--quiet*] [*--world* 'world'] 'js-code'+
 
 Evaluate a JavaScript string.
 
@@ -447,6 +447,8 @@ Evaluate a JavaScript string.
 
 ==== optional arguments
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
+* +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, which JS world/context to run the snippet in.
+
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

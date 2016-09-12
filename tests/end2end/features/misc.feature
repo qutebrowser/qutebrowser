@@ -87,6 +87,28 @@ Feature: Various utility commands.
         When I run :jseval Array(5002).join("x")
         Then the message "x* [...trimmed...]" should be shown
 
+    @qtwebengine_skip
+    Scenario: :jseval with --world on QtWebKit
+        When I set general -> log-javascript-console to info
+        And I run :jseval --world=1 console.log("Hello from JS!");
+        And I wait for the javascript message "Hello from JS!"
+        Then "Ignoring world ID 1" should be logged
+
+    @qtwebkit_skip
+    Scenario: :jseval uses separate world without --world
+        When I set general -> log-javascript-console to info
+        And I open data/misc/jseval.html
+        And I run :jseval do_log()
+        Then the javascript message "Hello from the page!" should not be logged
+        And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
+
+    @qtwebkit_skip
+    Scenario: :jseval using the main world
+        When I set general -> log-javascript-console to info
+        And I open data/misc/jseval.html
+        And I run :jseval --world 0 do_log()
+        Then the javascript message "Hello from the page!" should be logged
+
     # :debug-webaction
 
     Scenario: :debug-webaction with valid value

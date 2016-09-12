@@ -1918,12 +1918,14 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code, quiet=False):
+    def jseval(self, js_code, quiet=False, *, world: int=None):
         """Evaluate a JavaScript string.
 
         Args:
             js_code: The string to evaluate.
             quiet: Don't show resulting JS object.
+            world: Ignored on QtWebKit. On QtWebEngine, a world ID to run the
+                   snippet in.
         """
         if quiet:
             jseval_cb = None
@@ -1945,7 +1947,11 @@ class CommandDispatcher:
                         out = out[:5000] + ' [...trimmed...]'
                     message.info(self._win_id, out)
 
-        self._current_widget().run_js_async(js_code, callback=jseval_cb)
+        widget = self._current_widget()
+        if world is None:
+            widget.run_js_async(js_code, callback=jseval_cb)
+        else:
+            widget.run_js_async(js_code, callback=jseval_cb, world=world)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):
