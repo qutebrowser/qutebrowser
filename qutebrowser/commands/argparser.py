@@ -24,7 +24,7 @@ import argparse
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils, objreg
+from qutebrowser.utils import utils, objreg, log
 
 
 SUPPRESS = argparse.SUPPRESS
@@ -155,9 +155,10 @@ def multitype_conv(param, types, value, *, str_choices=None):
         types.append(str)
 
     for typ in types:
+        log.commands.debug("Trying to parse {!r} as {}".format(value, typ))
         try:
             return type_conv(param, typ, value, str_choices=str_choices)
-        except cmdexc.ArgumentTypeError:
-            pass
+        except cmdexc.ArgumentTypeError as e:
+            log.commands.debug("Got {} for {}".format(e, typ))
     raise cmdexc.ArgumentTypeError('{}: Invalid value {}'.format(
         param.name, value))
