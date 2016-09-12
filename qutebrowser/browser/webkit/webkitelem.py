@@ -157,8 +157,9 @@ class WebKitElement(webelem.AbstractWebElement):
         # FIXME:qtwebengine maybe we can reuse this?
         rects = self._elem.evaluateJavaScript("this.getClientRects()")
         if rects is None:  # pragma: no cover
-            # Depending on unknown circumstances, this might not work with JS
-            # disabled in QWebSettings:
+            # On e.g. Void Linux with musl libc, the stack size is too small
+            # for jsc, and running JS will fail. If that happens, fall back to
+            # the Python implementation.
             # https://github.com/The-Compiler/qutebrowser/issues/1641
             return None
 
