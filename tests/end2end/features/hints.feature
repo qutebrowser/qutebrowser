@@ -235,12 +235,13 @@ Feature: Using hints
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
+    # https://github.com/The-Compiler/qutebrowser/issues/576
+    @qtwebengine_flaky
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
         And I set hints -> mode to number
         And I hint with args "all tab-bg --rapid"
         And I press the key "t"
-        And I wait for "hints: *" in the log
         And I run :follow-hint 0
         And I run :follow-hint 1
         Then data/numbers/2.txt should be loaded
