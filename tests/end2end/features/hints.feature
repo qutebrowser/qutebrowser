@@ -214,13 +214,12 @@ Feature: Using hints
         Then the error "Not enough words in the dictionary." should be shown
         And data/numbers/5.txt should be loaded
 
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
-    @qtwebengine_flaky
     Scenario: Dictionary file does not exist
         When I open data/hints/html/simple.html
         And I set hints -> dictionary to no_words
         And I set hints -> mode to word
         And I run :hint
+        And I wait for "hints: *" in the log
         And I press the key "a"
         Then the error "Word hints requires reading the file at *" should be shown
         And data/hello.txt should be loaded
@@ -236,13 +235,12 @@ Feature: Using hints
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/576
-    @qtwebengine_flaky
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
         And I set hints -> mode to number
         And I hint with args "all tab-bg --rapid"
         And I press the key "t"
+        And I wait for "hints: *" in the log
         And I run :follow-hint 0
         And I run :follow-hint 1
         Then data/numbers/2.txt should be loaded
