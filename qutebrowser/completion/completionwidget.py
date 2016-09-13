@@ -30,7 +30,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QItemSelectionModel,
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import utils, usertypes, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -141,13 +141,47 @@ class CompletionView(QTreeView):
 
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
+        columns = len(self._column_widths)
         width = self.size().width()
-        pixel_widths = [(width * perc // 100) for perc in self._column_widths]
         if self.verticalScrollBar().isVisible():
-            pixel_widths[-1] -= self.style().pixelMetric(
-                QStyle.PM_ScrollBarExtent) + 5
+            width -= self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
+        log.completion.debug("available width = {}".format(width))
+
+        widths_max = [width * perc / 100 for perc in self._column_widths]
+        widths_hints = [self.sizeHintForColumn(i) for i in range(columns)]
+        pixel_widths = [0] * columns
+        log.completion.debug("widths_hints = {}".format(widths_hints))
+        log.completion.debug("widths_max = {}".format(widths_max))
+
+        # enumerate all columns, starting with narrow ones
+        remaining_indexes = set(range(columns))
+        partial_width = width
+        diffs = [widths_hints[i] - widths_max[i] for i in range(columns)]
+        for _, i in sorted(zip(diffs, range(columns))):
+            w = widths_hints[i]
+            remaining_indexes.remove(i)
+            if w <= widths_max[i]:
+                # let other columns reclaim the freed space
+                for k in remaining_indexes:
+                    if partial_width > widths_max[i]:
+                        widths_max[k] += widths_max[k] / (partial_width - widths_max[i]) * (widths_max[i] - w)
+            else:
+                w = widths_max[i]
+            pixel_widths[i] = w
+            partial_width -= w
+
+        # distribute remaining free space among all columns according to the
+        # prescribed percentage
+        available_width = width - sum(pixel_widths)
+        if available_width > 5:
+            for i, perc in enumerate(self._column_widths):
+                pixel_widths[i] += available_width * perc / 100
+
+        log.completion.debug("pixel_widths = {}".format(pixel_widths))
+        log.completion.debug("occupied width = {}".format(sum(pixel_widths)))
+
         for i, w in enumerate(pixel_widths):
-            self.setColumnWidth(i, w)
+            self.setColumnWidth(i, int(w))
 
     def _next_idx(self, upwards):
         """Get the previous/next QModelIndex displayed in the view.
