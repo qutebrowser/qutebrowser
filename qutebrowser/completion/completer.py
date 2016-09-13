@@ -252,6 +252,7 @@ class Completer(QObject):
             completion.set_model(None)
             return
 
+        pattern = pattern.strip("'\"")
         model = self._get_new_completion(before_cursor, pattern)
 
         log.completion.debug("Setting completion model to {} with pattern '{}'"

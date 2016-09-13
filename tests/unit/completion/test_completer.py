@@ -82,7 +82,7 @@ def instances(monkeypatch):
     }
     instances[usertypes.Completion.value] = {
         'general': {
-            'ignore-case': FakeCompletionModel(usertypes.Completion.value),
+            'editor': FakeCompletionModel(usertypes.Completion.value),
         }
     }
     monkeypatch.setattr('qutebrowser.completion.completer.instances',
@@ -150,7 +150,10 @@ def _set_cmd_prompt(cmd, txt):
     (':set gen|', usertypes.Completion.section, 'gen'),
     (':set general |', usertypes.Completion.option, ''),
     (':set what |', None, ''),
-    (':set general ignore-case |', usertypes.Completion.value, ''),
+    (':set general editor |', usertypes.Completion.value, ''),
+    (':set general editor gv|', usertypes.Completion.value, 'gv'),
+    (':set general editor "gvim -f"|', usertypes.Completion.value, 'gvim -f'),
+    (':set general editor "gvim |', usertypes.Completion.value, 'gvim'),
     (':set general huh |', None, ''),
     (':help |', usertypes.Completion.helptopic, ''),
     (':help     |', usertypes.Completion.helptopic, ''),
