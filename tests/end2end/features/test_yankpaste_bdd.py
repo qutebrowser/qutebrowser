@@ -21,6 +21,8 @@ import pytest
 
 import pytest_bdd as bdd
 
+from PyQt5.QtCore import PYQT_VERSION
+
 
 bdd.scenarios('yankpaste.feature')
 
@@ -33,7 +35,7 @@ def init_fake_clipboard(quteproc):
 
 @bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
 def set_text_field(request, quteproc, value):
-    if request.config.webengine:
+    if request.config.webengine and PYQT_VERSION >= 0x50700:
         cmd = ":jseval --world=0 set_text('{}')".format(value)
     else:
         cmd = ":jseval set_text('{}')".format(value)
