@@ -97,6 +97,7 @@ class add_handler:  # pylint: disable=invalid-name
             return self._function(*args, **kwargs)
 
     def wrong_backend_handler(self, url):
+        """Show an error page about using the invalid backend."""
         html = jinja.render('error.html',
                             title="Error while opening qute:url",
                             url=url.toDisplayString(),

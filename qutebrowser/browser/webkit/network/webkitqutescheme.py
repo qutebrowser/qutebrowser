@@ -54,7 +54,7 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             return networkreply.ErrorNetworkReply(
                 request, errorstr, QNetworkReply.ContentNotFoundError,
                 self.parent())
-        except qutescheme.QuteSchemeOSError:
+        except qutescheme.QuteSchemeOSError as e:
             return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())

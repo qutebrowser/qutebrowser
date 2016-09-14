@@ -29,12 +29,14 @@ from qutebrowser.utils import log
 
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
+    """Handle qute:* requests on QtWebEngine."""
+
     def install(self, profile):
         """Install the handler for qute: URLs on the given profile."""
         profile.installUrlSchemeHandler(b'qute', self)
 
     def requestStarted(self, job):
-        """This method is called when a request for the scheme is started.
+        """Handle a request for a qute: scheme.
 
         This method must be reimplemented by all custom URL scheme handlers. The
         request is asynchronous and does not need to be handled right away.
