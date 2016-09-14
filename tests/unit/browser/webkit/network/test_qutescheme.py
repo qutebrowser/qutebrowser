@@ -23,13 +23,13 @@ import logging
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qutebrowser.browser import pdfjs
-from qutebrowser.browser.webkit.network import qutescheme
+from qutebrowser.browser import pdfjs, qutescheme
+from qutebrowser.browser.webkit.network import webkitqutescheme
 
 
 @pytest.fixture
 def handler():
-    return qutescheme.QuteSchemeHandler(win_id=0)
+    return webkitqutescheme.QuteSchemeHandler()
 
 
 class TestPDFJSHandler:
@@ -45,18 +45,21 @@ class TestPDFJSHandler:
         monkeypatch.setattr('qutebrowser.browser.pdfjs.get_pdfjs_res',
                             get_pdfjs_res)
 
-    def test_existing_resource(self, handler):
-        """Test with a resource that exists."""
-        req = QNetworkRequest(QUrl('qute://pdfjs/existing/file'))
-        reply = handler.createRequest(None, req, None)
-        assert reply.readAll() == b'foobar'
+    @pytest.fixture(autouse=True)
+    def patch_args(self, fake_args):
+        fake_args.backend = 'webkit'
 
-    def test_nonexisting_resource(self, handler, caplog):
+    def test_existing_resource(self):
+        """Test with a resource that exists."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/existing/file'))
+        assert data == b'foobar'
+
+    def test_nonexisting_resource(self, caplog):
         """Test with a resource that does not exist."""
-        req = QNetworkRequest(QUrl('qute://pdfjs/no/file'))
         with caplog.at_level(logging.WARNING, 'misc'):
-            reply = handler.createRequest(None, req, None)
-        assert reply.error() == QNetworkReply.ContentNotFoundError
+            with pytest.raises(qutescheme.QuteSchemeError):
+                qutescheme.data_for_url(QUrl('qute://pdfjs/no/file'))
         assert len(caplog.records) == 1
         assert (caplog.records[0].message ==
                 'pdfjs resource requested but not found: /no/file')
