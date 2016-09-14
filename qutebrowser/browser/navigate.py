@@ -116,11 +116,11 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         word = 'prev' if prev else 'forward'
 
         if elem is None:
-            message.error(win_id, "No {} links found!".format(word))
+            message.error("No {} links found!".format(word))
             return
         url = elem.resolve_url(baseurl)
         if url is None:
-            message.error(win_id, "No {} links found!".format(word))
+            message.error("No {} links found!".format(word))
             return
         qtutils.ensure_valid(url)
 

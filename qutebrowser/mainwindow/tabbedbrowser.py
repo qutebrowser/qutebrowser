@@ -276,7 +276,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We display a warnings for URLs which are not empty but invalid -
             # but we don't return here because we want the tab to close either
             # way.
-            urlutils.invalid_url_error(self._win_id, tab.url(), "saving tab")
+            urlutils.invalid_url_error(tab.url(), "saving tab")
         tab.shutdown()
         self.removeTab(idx)
         tab.deleteLater()
@@ -650,7 +650,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         except qtutils.QtValueError:
             # show an error only if the mark is not automatically set
             if key != "'":
-                message.error(self._win_id, "Failed to set mark: url invalid")
+                message.error("Failed to set mark: url invalid")
             return
         point = self.currentWidget().scroller.pos_px()
 
@@ -687,9 +687,9 @@ class TabbedBrowser(tabwidget.TabWidget):
                 self.openurl(url, newtab=False)
                 self.cur_load_finished.connect(callback)
             else:
-                message.error(self._win_id, "Mark {} is not set".format(key))
+                message.error("Mark {} is not set".format(key))
         elif urlkey is None:
-            message.error(self._win_id, "Current URL is invalid!")
+            message.error("Current URL is invalid!")
         elif urlkey in self._local_marks and key in self._local_marks[urlkey]:
             point = self._local_marks[urlkey][key]
 
@@ -700,4 +700,4 @@ class TabbedBrowser(tabwidget.TabWidget):
 
             tab.scroller.to_point(point)
         else:
-            message.error(self._win_id, "Mark {} is not set".format(key))
+            message.error("Mark {} is not set".format(key))

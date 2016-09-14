@@ -77,13 +77,13 @@ class JSBridge(QObject):
         # https://github.com/The-Compiler/qutebrowser/issues/727
         if ((sectname, optname) == ('content', 'allow-javascript') and
                 value == 'false'):
-            message.error('current', "Refusing to disable javascript via "
-                          "qute:settings as it needs javascript support.")
+            message.error("Refusing to disable javascript via qute:settings "
+                          "as it needs javascript support.")
             return
         try:
             objreg.get('config').set('conf', sectname, optname, value)
         except (configexc.Error, configparser.Error) as e:
-            message.error('current', e)
+            message.error(e)
 
 
 @qutescheme.add_handler('settings', backend=usertypes.Backend.QtWebKit)

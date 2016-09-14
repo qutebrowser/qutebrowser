@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
-from qutebrowser.mainwindow import tabbedbrowser
+from qutebrowser.mainwindow import tabbedbrowser, messageview
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
@@ -177,6 +177,7 @@ class MainWindow(QWidget):
                                                     partial_match=True)
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
+        self._messageview = messageview.MessageView(parent=self)
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
@@ -195,8 +196,7 @@ class MainWindow(QWidget):
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
-        QTimer.singleShot(0, self._connect_resize_completion)
-        QTimer.singleShot(0, self._connect_resize_keyhint)
+        QTimer.singleShot(0, self._connect_resize_signals)
         objreg.get('config').changed.connect(self.on_config_changed)
 
         objreg.get("app").new_window.emit(self)
@@ -303,15 +303,14 @@ class MainWindow(QWidget):
             log.init.warning("Error while loading geometry.")
             self._set_default_geometry()
 
-    def _connect_resize_completion(self):
-        """Connect the resize_completion signal and resize it once."""
+    def _connect_resize_signals(self):
+        """Connect the resize signal and resize everything once."""
         self._completion.resize_completion.connect(self.resize_completion)
-        self.resize_completion()
-
-    def _connect_resize_keyhint(self):
-        """Connect the reposition_keyhint signal and resize it once."""
         self._keyhint.reposition_keyhint.connect(self.reposition_keyhint)
+        self._messageview.reposition.connect(self._reposition_messageview)
+        self.resize_completion()
         self.reposition_keyhint()
+        self._reposition_messageview()
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
@@ -360,9 +359,9 @@ class MainWindow(QWidget):
             key_config.changed.connect(obj.on_keyconfig_changed)
 
         # messages
-        message_bridge.s_error.connect(status.disp_error)
-        message_bridge.s_warning.connect(status.disp_warning)
-        message_bridge.s_info.connect(status.disp_temp_text)
+        message.global_bridge.show_message.connect(
+            self._messageview.show_message)
+
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
         message_bridge.s_set_cmd_text.connect(cmd.set_cmd_text)
@@ -391,6 +390,23 @@ class MainWindow(QWidget):
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
 
+    def _get_overlay_position(self, height):
+        """Get the position for a full-width overlay with the given height."""
+        status_position = config.get('ui', 'status-position')
+        if status_position == 'bottom':
+            top = self.height() - self.status.height() - height
+            top = qtutils.check_overflow(top, 'int', fatal=False)
+            topleft = QPoint(0, top)
+            bottomright = self.status.geometry().topRight()
+        elif status_position == 'top':
+            topleft = self.status.geometry().bottomLeft()
+            bottom = self.status.height() + height
+            bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
+            bottomright = QPoint(self.width(), bottom)
+        else:
+            raise ValueError("Invalid position {}!".format(status_position))
+        return QRect(topleft, bottomright)
+
     @pyqtSlot()
     def resize_completion(self):
         """Adjust completion according to config."""
@@ -414,20 +430,7 @@ class MainWindow(QWidget):
                 height = contents_height
         else:
             contents_height = -1
-        status_position = config.get('ui', 'status-position')
-        if status_position == 'bottom':
-            top = self.height() - self.status.height() - height
-            top = qtutils.check_overflow(top, 'int', fatal=False)
-            topleft = QPoint(0, top)
-            bottomright = self.status.geometry().topRight()
-        elif status_position == 'top':
-            topleft = self.status.geometry().bottomLeft()
-            bottom = self.status.height() + height
-            bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(self.width(), bottom)
-        else:
-            raise ValueError("Invalid position {}!".format(status_position))
-        rect = QRect(topleft, bottomright)
+        rect = self._get_overlay_position(height)
         log.misc.debug('completion rect: {}'.format(rect))
         if rect.isValid():
             self._completion.setGeometry(rect)
@@ -449,6 +452,17 @@ class MainWindow(QWidget):
         log.misc.debug('keyhint rect: {}'.format(rect))
         if rect.isValid():
             self._keyhint.setGeometry(rect)
+
+    @pyqtSlot()
+    def _reposition_messageview(self):
+        """Position the message view correctly."""
+        if not self._messageview.isVisible():
+            return
+        height = self._messageview.message_height()
+        rect = self._get_overlay_position(height)
+        log.misc.debug('messageview rect: {}'.format(rect))
+        if rect.isValid():
+            self._messageview.setGeometry(rect)
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()

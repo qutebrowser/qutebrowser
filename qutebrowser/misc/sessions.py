@@ -429,14 +429,12 @@ class SessionManager(QObject):
                     win.close()
 
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
-    @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
-    def session_save(self, win_id, name: str=default, current=False,
-                     quiet=False, force=False):
+    def session_save(self, name: str=default, current=False, quiet=False,
+                     force=False):
         """Save a session.
 
         Args:
-            win_id: The current window ID.
             name: The name of the session. If not given, the session configured
                   in general -> session-default-name is saved.
             current: Save the current session instead of the default.
@@ -460,8 +458,7 @@ class SessionManager(QObject):
                                       .format(e))
         else:
             if not quiet:
-                message.info(win_id, "Saved session {}.".format(name),
-                             immediately=True)
+                message.info("Saved session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)

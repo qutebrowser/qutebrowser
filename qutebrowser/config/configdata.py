@@ -1069,22 +1069,6 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
 
-            ('statusbar.fg.error',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
-             "Foreground color of the statusbar if there was an error."),
-
-            ('statusbar.bg.error',
-             SettingValue(typ.QssColor(), 'red'),
-             "Background color of the statusbar if there was an error."),
-
-            ('statusbar.fg.warning',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
-             "Foreground color of the statusbar if there is a warning."),
-
-            ('statusbar.bg.warning',
-             SettingValue(typ.QssColor(), 'darkorange'),
-             "Background color of the statusbar if there is a warning."),
-
             ('statusbar.fg.prompt',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar if there is a prompt."),
@@ -1280,6 +1264,42 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'rgba(0, 0, 0, 80%)'),
              "Background color of the keyhint widget."),
 
+            ('messages.fg.error',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color of an error message."),
+
+            ('messages.bg.error',
+             SettingValue(typ.QssColor(), 'red'),
+             "Background color of an error message."),
+
+            ('messages.border.error',
+             SettingValue(typ.QssColor(), '#bb0000'),
+             "Border color of an error message."),
+
+            ('messages.fg.warning',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color a warning message."),
+
+            ('messages.bg.warning',
+             SettingValue(typ.QssColor(), 'darkorange'),
+             "Background color of a warning message."),
+
+            ('messages.border.warning',
+             SettingValue(typ.QssColor(), '#d47300'),
+             "Border color of an error message."),
+
+            ('messages.fg.info',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color an info message."),
+
+            ('messages.bg.info',
+             SettingValue(typ.QssColor(), 'black'),
+             "Background color of an info message."),
+
+            ('messages.border.info',
+             SettingValue(typ.QssColor(), '#333333'),
+             "Border color of an info message."),
+
             readonly=readonly
         )),
 
@@ -1368,6 +1388,18 @@ def data(readonly=False):
             ('keyhint',
              SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used in the keyhint widget."),
+
+            ('messages.error',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used for error messages."),
+
+            ('messages.warning',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used for warning messages."),
+
+            ('messages.info',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             "Font used for info messages."),
 
             readonly=readonly
         )),

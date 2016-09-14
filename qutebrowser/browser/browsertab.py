@@ -620,7 +620,7 @@ class AbstractTab(QWidget):
 
         if not url.isValid():
             msg = urlutils.get_errstring(url, "Invalid link clicked")
-            message.error(self.win_id, msg)
+            message.error(msg)
             self.data.open_target = usertypes.ClickTarget.normal
             return False
 

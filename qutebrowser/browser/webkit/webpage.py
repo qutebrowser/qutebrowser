@@ -249,8 +249,8 @@ class BrowserPage(QWebPage):
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
         if not qtutils.check_print_compat():
-            message.error(self._win_id, "Printing on Qt < 5.3.0 on Windows is "
-                          "broken, please upgrade!", immediately=True)
+            message.error("Printing on Qt < 5.3.0 on Windows is broken, "
+                          "please upgrade!")
             return
         printdiag = QPrintDialog()
         printdiag.setAttribute(Qt.WA_DeleteOnClose)

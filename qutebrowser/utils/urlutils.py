@@ -321,11 +321,10 @@ def qurl_from_user_input(urlstr):
         return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
-def invalid_url_error(win_id, url, action):
+def invalid_url_error(url, action):
     """Display an error message for a URL.
 
     Args:
-        win_id: The window ID to show the error message in.
         action: The action which was interrupted by the error.
     """
     if url.isValid():
@@ -333,7 +332,7 @@ def invalid_url_error(win_id, url, action):
             url.toDisplayString()))
     errstring = get_errstring(
         url, "Trying to {} with invalid URL".format(action))
-    message.error(win_id, errstring)
+    message.error(errstring)
 
 
 def raise_cmdexc_if_invalid(url):

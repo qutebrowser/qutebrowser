@@ -43,8 +43,7 @@ class CommandKeyParser(BaseKeyParser):
         try:
             self._commandrunner.run(cmdstr, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(self._win_id, e, immediately=True,
-                          stack=traceback.format_exc())
+            message.error(str(e), stack=traceback.format_exc())
 
 
 class PassthroughKeyParser(CommandKeyParser):

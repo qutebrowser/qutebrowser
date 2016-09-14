@@ -180,8 +180,7 @@ def _process_args(args):
         try:
             config_obj.set('temp', sect, opt, val)
         except (configexc.Error, configparser.Error) as e:
-            message.error('current', "set: {} - {}".format(
-                e.__class__.__name__, e))
+            message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     if not args.override_restore:
         _load_session(args.session)
@@ -216,10 +215,9 @@ def _load_session(name):
     try:
         session_manager.load(name)
     except sessions.SessionNotFoundError:
-        message.error('current', "Session {} not found!".format(name))
+        message.error("Session {} not found!".format(name))
     except sessions.SessionError as e:
-        message.error('current', "Failed to load session {}: {}".format(
-            name, e))
+        message.error("Failed to load session {}: {}".format(name, e))
     try:
         del state_config['general']['session']
     except KeyError:
@@ -271,8 +269,8 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
             except urlutils.InvalidUrlError as e:
-                message.error('current', "Error in startup argument '{}': "
-                              "{}".format(cmd, e))
+                message.error("Error in startup argument '{}': {}".format(
+                    cmd, e))
             else:
                 background = open_target in ['tab-bg', 'tab-bg-silent']
                 tabbed_browser.tabopen(url, background=background,
@@ -301,8 +299,7 @@ def _open_startpage(win_id=None):
                 try:
                     url = urlutils.fuzzy_url(urlstr, do_search=False)
                 except urlutils.InvalidUrlError as e:
-                    message.error('current', "Error when opening startpage: "
-                                  "{}".format(e))
+                    message.error("Error when opening startpage: {}".format(e))
                     tabbed_browser.tabopen(QUrl('about:blank'))
                 else:
                     tabbed_browser.tabopen(url)
@@ -370,6 +367,9 @@ def _init_modules(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     # pylint: disable=too-many-statements
+    log.init.debug("Initializing messages...")
+    message.init()
+
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)

@@ -568,7 +568,7 @@ class DownloadItem(QObject):
             args.append(filename)
         log.downloads.debug("Opening {} with {}"
                             .format(filename, [cmd] + args))
-        proc = guiprocess.GUIProcess(self._win_id, what='download')
+        proc = guiprocess.GUIProcess(what='download')
         proc.start_detached(cmd, args)
 
     def set_filename(self, filename):
@@ -599,7 +599,6 @@ class DownloadItem(QObject):
         # may be set for XDG_DOWNLOAD_DIR
         if self._filename is None:
             message.error(
-                self._win_id,
                 "XDG_DOWNLOAD_DIR points to a relative path - please check"
                 " your ~/.config/user-dirs.dirs. The download is saved in"
                 " your home directory.",
@@ -843,7 +842,7 @@ class DownloadManager(QObject):
             The created DownloadItem.
         """
         if not url.isValid():
-            urlutils.invalid_url_error(self._win_id, url, "start download")
+            urlutils.invalid_url_error(url, "start download")
             return
         req = QNetworkRequest(url)
         return self.get_request(req, **kwargs)
@@ -1005,7 +1004,7 @@ class DownloadManager(QObject):
                 fobj = tmp_manager.get_tmpfile(suggested_filename)
             except OSError as exc:
                 msg = "Download error: {}".format(exc)
-                message.error(self._win_id, msg)
+                message.error(msg)
                 download.cancel()
                 return
             download.finished.connect(
@@ -1056,7 +1055,7 @@ class DownloadManager(QObject):
     @pyqtSlot(str)
     def _on_error(self, msg):
         """Display error message on download errors."""
-        message.error(self._win_id, "Download error: {}".format(msg))
+        message.error("Download error: {}".format(msg))
 
     def has_downloads_with_nam(self, nam):
         """Check if the DownloadManager has any downloads with the given QNAM.

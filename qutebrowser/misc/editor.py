@@ -38,17 +38,15 @@ class ExternalEditor(QObject):
         _file: The file handle as tempfile.NamedTemporaryFile. Note that this
                handle will be closed after the initial file has been created.
         _proc: The GUIProcess of the editor.
-        _win_id: The window ID the ExternalEditor is associated with.
     """
 
     editing_finished = pyqtSignal(str)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self._text = None
         self._file = None
         self._proc = None
-        self._win_id = win_id
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
@@ -61,8 +59,7 @@ class ExternalEditor(QObject):
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
-            message.error(self._win_id,
-                          "Failed to delete tempfile... ({})".format(e))
+            message.error("Failed to delete tempfile... ({})".format(e))
 
     @pyqtSlot(int, QProcess.ExitStatus)
     def on_proc_closed(self, exitcode, exitstatus):
@@ -85,8 +82,7 @@ class ExternalEditor(QObject):
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.
-                message.error(self._win_id, "Failed to read back edited file: "
-                                            "{}".format(e))
+                message.error("Failed to read back edited file: {}".format(e))
                 return
             log.procs.debug("Read back: {}".format(text))
             self.editing_finished.emit(text)
@@ -119,11 +115,9 @@ class ExternalEditor(QObject):
                     fobj.write(text)
                 self._file = fobj
         except OSError as e:
-            message.error(self._win_id, "Failed to create initial file: "
-                                        "{}".format(e))
+            message.error("Failed to create initial file: {}".format(e))
             return
-        self._proc = guiprocess.GUIProcess(self._win_id, what='editor',
-                                           parent=self)
+        self._proc = guiprocess.GUIProcess(what='editor', parent=self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)
         editor = config.get('general', 'editor')

@@ -87,36 +87,33 @@ def repeat(times: int, command, win_id):
 
 
 @cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-def message_error(win_id, text):
+def message_error(text):
     """Show an error message in the statusbar.
 
     Args:
         text: The text to show.
     """
-    message.error(win_id, text)
+    message.error(text)
 
 
 @cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-def message_info(win_id, text):
+def message_info(text):
     """Show an info message in the statusbar.
 
     Args:
         text: The text to show.
     """
-    message.info(win_id, text)
+    message.info(text)
 
 
 @cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-def message_warning(win_id, text):
+def message_warning(text):
     """Show a warning message in the statusbar.
 
     Args:
         text: The text to show.
     """
-    message.warning(win_id, text)
+    message.warning(text)
 
 
 @cmdutils.register(debug=True)

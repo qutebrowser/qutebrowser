@@ -83,12 +83,7 @@ class LogLine(testprocess.Line):
         if self.function is None and self.line == 0:
             self.line = None
         self.traceback = line.get('traceback')
-
-        self.full_message = line['message']
-        msg_match = re.match(r'^(\[(?P<prefix>\d+s ago)\] )?(?P<message>.*)',
-                             self.full_message, re.DOTALL)
-        self.prefix = msg_match.group('prefix')
-        self.message = msg_match.group('message')
+        self.message = line['message']
 
         self.expected = is_ignored_qt_message(self.message)
         self.use_color = False

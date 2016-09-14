@@ -245,8 +245,8 @@ def qute_help(url):
     else:
         urlpath = urlpath.lstrip('/')
     if not docutils.docs_up_to_date(urlpath):
-        message.error('current', "Your documentation is outdated! Please "
-                      "re-run scripts/asciidoc2html.py.")
+        message.error("Your documentation is outdated! Please re-run "
+                      "scripts/asciidoc2html.py.")
     path = 'html/doc/{}'.format(urlpath)
     if urlpath.endswith('.png'):
         return 'image/png', utils.read_file(path, binary=True)

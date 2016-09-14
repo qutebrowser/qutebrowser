@@ -212,13 +212,6 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         }
     ),
     (
-        # With [2s ago] marker
-        '{"created": 0, "msecs": 0, "levelname": "DEBUG", "name": "foo", '
-        '"module": "foo", "funcName": "foo", "lineno": 0, "levelno": 10, '
-        '"message": "[2s ago] test"}',
-        {'prefix': '2s ago', 'message': 'test'}
-    ),
-    (
         # ResourceWarning
         '{"created": 0, "msecs": 0, "levelname": "WARNING", '
         '"name": "py.warnings", "module": "app", "funcName": "qt_mainloop", '
@@ -228,8 +221,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         {'category': 'py.warnings'}
     ),
 ], ids=['normal', 'vdebug', 'unknown module', 'expected message',
-        'weird Qt location', 'QXcbXSettings', '2s ago marker',
-        'resourcewarning'])
+        'weird Qt location', 'QXcbXSettings', 'resourcewarning'])
 def test_log_line_parse(data, attrs):
     line = quteprocess.LogLine(data)
     for name, expected in attrs.items():

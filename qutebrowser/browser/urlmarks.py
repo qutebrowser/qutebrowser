@@ -155,7 +155,7 @@ class QuickmarkManager(UrlMarkManager):
         try:
             key, url = line.rsplit(maxsplit=1)
         except ValueError:
-            message.error('current', "Invalid quickmark '{}'".format(line))
+            message.error("Invalid quickmark '{}'".format(line))
         else:
             self.marks[key] = url
 
@@ -167,7 +167,7 @@ class QuickmarkManager(UrlMarkManager):
             url: The quickmark url as a QUrl.
         """
         if not url.isValid():
-            urlutils.invalid_url_error(win_id, url, "save quickmark")
+            urlutils.invalid_url_error(url, "save quickmark")
             return
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         message.ask_async(
@@ -190,10 +190,10 @@ class QuickmarkManager(UrlMarkManager):
         # We don't raise cmdexc.CommandError here as this can be called async
         # via prompt_save.
         if not name:
-            message.error(win_id, "Can't set mark with empty name!")
+            message.error("Can't set mark with empty name!")
             return
         if not url:
-            message.error(win_id, "Can't set mark with empty URL!")
+            message.error("Can't set mark with empty URL!")
             return
 
         def set_mark():

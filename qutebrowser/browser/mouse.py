@@ -125,7 +125,7 @@ class MouseEventFilter(QObject):
             if factor < 0:
                 return False
             perc = int(100 * factor)
-            message.info(self._tab.win_id, "Zoom level: {}%".format(perc))
+            message.info("Zoom level: {}%".format(perc))
             self._tab.zoom.set_factor(factor)
 
         return False
@@ -191,15 +191,13 @@ class MouseEventFilter(QObject):
             if self._tab.history.can_go_back():
                 self._tab.history.back()
             else:
-                message.error(self._tab.win_id, "At beginning of history.",
-                              immediately=True)
+                message.error("At beginning of history.")
         elif e.button() in [Qt.XButton2, Qt.RightButton]:
             # Forward button on mice which have it, or rocker gesture
             if self._tab.history.can_go_forward():
                 self._tab.history.forward()
             else:
-                message.error(self._tab.win_id, "At end of history.",
-                              immediately=True)
+                message.error("At end of history.")
 
     def _mousepress_opentarget(self, e):
         """Set the open target when something was clicked.

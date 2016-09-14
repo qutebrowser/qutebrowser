@@ -816,8 +816,7 @@ class ConfigManager(QObject):
         if print_:
             with self._handle_config_error():
                 val = self.get(section_, option, transformed=False)
-            message.info(win_id, "{} {} = {}".format(
-                section_, option, val), immediately=True)
+            message.info("{} {} = {}".format(section_, option, val))
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.

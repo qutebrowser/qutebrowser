@@ -50,7 +50,6 @@ class GUIProcess(QObject):
         verbose: Whether to show more messages.
         _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
-        _win_id: The window ID this process is used in.
         _what: What kind of thing is spawned (process/editor/userscript/...).
                Used in messages.
 
@@ -62,10 +61,9 @@ class GUIProcess(QObject):
     finished = pyqtSignal(int, QProcess.ExitStatus)
     started = pyqtSignal()
 
-    def __init__(self, win_id, what, *, verbose=False, additional_env=None,
+    def __init__(self, what, *, verbose=False, additional_env=None,
                  parent=None):
         super().__init__(parent)
-        self._win_id = win_id
         self._what = what
         self.verbose = verbose
         self._started = False
@@ -90,8 +88,7 @@ class GUIProcess(QObject):
     def on_error(self, error):
         """Show a message if there was an error while spawning."""
         msg = ERROR_STRINGS[error]
-        message.error(self._win_id, "Error while spawning {}: {}".format(
-                      self._what, msg), immediately=True)
+        message.error("Error while spawning {}: {}".format(self._what, msg))
 
     @pyqtSlot(int, QProcess.ExitStatus)
     def on_finished(self, code, status):
@@ -100,18 +97,16 @@ class GUIProcess(QObject):
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
         if status == QProcess.CrashExit:
-            message.error(self._win_id,
-                          "{} crashed!".format(self._what.capitalize()),
-                          immediately=True)
+            message.error("{} crashed!".format(self._what.capitalize()))
         elif status == QProcess.NormalExit and code == 0:
             if self.verbose:
-                message.info(self._win_id, "{} exited successfully.".format(
+                message.info("{} exited successfully.".format(
                     self._what.capitalize()))
         else:
             assert status == QProcess.NormalExit
             # We call this 'status' here as it makes more sense to the user -
             # it's actually 'code'.
-            message.error(self._win_id, "{} exited with status {}.".format(
+            message.error("{} exited with status {}.".format(
                 self._what.capitalize(), code))
 
             stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
@@ -137,7 +132,7 @@ class GUIProcess(QObject):
         fake_cmdline = ' '.join(shlex.quote(e) for e in [cmd] + list(args))
         log.procs.debug("Executing: {}".format(fake_cmdline))
         if self.verbose:
-            message.info(self._win_id, 'Executing: ' + fake_cmdline)
+            message.info('Executing: ' + fake_cmdline)
 
     def start(self, cmd, args, mode=None):
         """Convenience wrapper around QProcess::start."""
@@ -158,8 +153,8 @@ class GUIProcess(QObject):
             log.procs.debug("Process started.")
             self._started = True
         else:
-            message.error(self._win_id, "Error while spawning {}: {}.".format(
-                          self._what, self._proc.error()), immediately=True)
+            message.error("Error while spawning {}: {}.".format(self._what,
+                                                                self._proc.error()))
 
     def exit_status(self):
         return self._proc.exitStatus()

@@ -431,11 +431,11 @@ def test_invalid_url_error(urlutils_message_mock, url, valid, has_err_string):
     assert qurl.isValid() == valid
     if valid:
         with pytest.raises(ValueError):
-            urlutils.invalid_url_error(0, qurl, '')
+            urlutils.invalid_url_error(qurl, '')
         assert not urlutils_message_mock.messages
     else:
         assert bool(qurl.errorString()) == has_err_string
-        urlutils.invalid_url_error(0, qurl, 'frozzle')
+        urlutils.invalid_url_error(qurl, 'frozzle')
 
         msg = urlutils_message_mock.getmsg(urlutils_message_mock.Level.error)
         if has_err_string:

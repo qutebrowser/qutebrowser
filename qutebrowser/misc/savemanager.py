@@ -180,17 +180,14 @@ class SaveManager(QObject):
             try:
                 saveable.save(silent=True)
             except OSError as e:
-                message.error('current', "Failed to auto-save {}: "
-                              "{}".format(key, e))
+                message.error("Failed to auto-save {}: {}".format(key, e))
 
     @cmdutils.register(instance='save-manager', name='save',
                        star_args_optional=True)
-    @cmdutils.argument('win_id', win_id=True)
-    def save_command(self, win_id, *what):
+    def save_command(self, *what):
         """Save configs and state.
 
         Args:
-            win_id: The window this command is executed in.
             *what: What to save (`config`/`key-config`/`cookies`/...).
                    If not given, everything is saved.
         """
@@ -201,12 +198,10 @@ class SaveManager(QObject):
             explicit = False
         for key in what:
             if key not in self.saveables:
-                message.error(win_id, "{} is nothing which can be "
-                              "saved".format(key))
+                message.error("{} is nothing which can be saved".format(key))
             else:
                 try:
                     self.save(key, explicit=explicit, force=True)
                 except OSError as e:
-                    message.error(win_id, "Could not save {}: "
-                                  "{}".format(key, e))
+                    message.error("Could not save {}: {}".format(key, e))
         log.save.debug(":save saved {}".format(', '.join(what)))

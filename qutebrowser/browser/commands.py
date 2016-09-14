@@ -303,7 +303,7 @@ class CommandDispatcher:
             except urlutils.InvalidUrlError as e:
                 # We don't use cmdexc.CommandError here as this can be
                 # called async from edit_url
-                message.error(self._win_id, str(e))
+                message.error(str(e))
                 return None
 
     def _parse_url_input(self, url):
@@ -719,7 +719,7 @@ class CommandDispatcher:
             caret = self._current_widget().caret
             s = caret.selection()
             if not caret.has_selection() or not s:
-                message.info(self._win_id, "Nothing to yank")
+                message.info("Nothing to yank")
                 return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
@@ -732,10 +732,9 @@ class CommandDispatcher:
 
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
-            message.info(self._win_id, "Yanked {} to {}: {}".format(
-                         what, target, s))
+            message.info("Yanked {} to {}: {}".format(what, target, s))
         else:
-            message.info(self._win_id, "{} {} yanked to {}".format(
+            message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
             if not keep:
                 modeman.maybe_leave(self._win_id, KeyMode.caret,
@@ -754,7 +753,7 @@ class CommandDispatcher:
             perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info(self._win_id, "Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -769,7 +768,7 @@ class CommandDispatcher:
             perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info(self._win_id, "Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -793,7 +792,7 @@ class CommandDispatcher:
             tab.zoom.set_factor(float(level) / 100)
         except ValueError:
             raise cmdexc.CommandError("Can't zoom {}%!".format(level))
-        message.info(self._win_id, "Zoom level: {}%".format(level))
+        message.info("Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, left=False, right=False):
@@ -1073,8 +1072,7 @@ class CommandDispatcher:
             self._run_userscript(cmd, *args, verbose=verbose)
         else:
             cmd = os.path.expanduser(cmd)
-            proc = guiprocess.GUIProcess(self._win_id, what='command',
-                                         verbose=verbose,
+            proc = guiprocess.GUIProcess(what='command', verbose=verbose,
                                          parent=self._tabbed_browser)
             if detach:
                 proc.start_detached(cmd, args)
@@ -1211,8 +1209,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError(str(e))
         else:
             msg = "Bookmarked {}!" if was_added else "Removed bookmark {}!"
-            message.info(self._win_id,
-                         msg.format(url.toDisplayString()))
+            message.info(msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1304,9 +1301,8 @@ class CommandDispatcher:
             mhtml_: Download the current page and all assets as mhtml file.
         """
         if dest_old is not None:
-            message.warning(self._win_id,
-                            ":download [url] [dest] is deprecated - use"
-                            " download --dest [dest] [url]")
+            message.warning(":download [url] [dest] is deprecated - use "
+                            ":download --dest [dest] [url]")
             if dest is not None:
                 raise cmdexc.CommandError("Can't give two destinations for the"
                                           " download.")
@@ -1379,7 +1375,7 @@ class CommandDispatcher:
             try:
                 current_url = self._current_url()
             except cmdexc.CommandError as e:
-                message.error(self._win_id, str(e))
+                message.error(str(e))
                 return
             new_tab = self._tabbed_browser.tabopen(explicit=True)
             new_tab.set_html(highlighted, current_url)
@@ -1404,10 +1400,9 @@ class CommandDispatcher:
                 with open(dest, 'w', encoding='utf-8') as f:
                     f.write(data)
             except OSError as e:
-                message.error(self._win_id,
-                              'Could not write page: {}'.format(e))
+                message.error('Could not write page: {}'.format(e))
             else:
-                message.info(self._win_id, "Dumped page to {}.".format(dest))
+                message.info("Dumped page to {}.".format(dest))
 
         tab.dump_async(callback, plain=plain)
 
@@ -1477,14 +1472,14 @@ class CommandDispatcher:
     def _open_editor_cb(self, elem):
         """Open editor after the focus elem was found in open_editor."""
         if elem is None:
-            message.error(self._win_id, "No element focused!")
+            message.error("No element focused!")
             return
         if not elem.is_editable(strict=True):
-            message.error(self._win_id, "Focused element is not editable!")
+            message.error("Focused element is not editable!")
             return
 
         text = elem.text(use_js=True)
-        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
         ed.edit(text)
@@ -1539,12 +1534,12 @@ class CommandDispatcher:
 
         def _insert_text_cb(elem):
             if elem is None:
-                message.error(self._win_id, "No element focused!")
+                message.error("No element focused!")
                 return
             try:
                 elem.insert_text(text)
             except webelem.Error as e:
-                message.error(self._win_id, str(e))
+                message.error(str(e))
                 return
 
         tab.elements.find_focused(_insert_text_cb)
@@ -1571,22 +1566,21 @@ class CommandDispatcher:
         def single_cb(elem):
             """Click a single element."""
             if elem is None:
-                message.error(self._win_id, "No element found!")
+                message.error("No element found!")
                 return
             try:
                 elem.click(target)
             except webelem.Error as e:
-                message.error(self._win_id, str(e))
+                message.error(str(e))
                 return
 
         # def multiple_cb(elems):
         #     """Click multiple elements (with only one expected)."""
         #     if not elems:
-        #         message.error(self._win_id, "No element found!")
+        #         message.error("No element found!")
         #         return
         #     elif len(elems) != 1:
-        #         message.error(self._win_id, "{} elements found!".format(
-        #             len(elems)))
+        #         message.error("{} elements found!".format(len(elems)))
         #         return
         #     elems[0].click(target)
 
@@ -1616,14 +1610,11 @@ class CommandDispatcher:
         if found:
             # Check if the scroll position got smaller and show info.
             if not going_up and tab.scroller.pos_px().y() < old_scroll_pos.y():
-                message.info(self._win_id, "Search hit BOTTOM, continuing "
-                             "at TOP", immediately=True)
+                message.info("Search hit BOTTOM, continuing at TOP")
             elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
-                message.info(self._win_id, "Search hit TOP, continuing at "
-                             "BOTTOM", immediately=True)
+                message.info("Search hit TOP, continuing at BOTTOM")
         else:
-            message.warning(self._win_id, "Text '{}' not found on "
-                            "page!".format(text), immediately=True)
+            message.warning("Text '{}' not found on page!".format(text))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1941,7 +1932,7 @@ class CommandDispatcher:
                     # BrowserPage.javaScriptConsoleMessage(), but
                     # distinguishing between :jseval errors and errors from the
                     # webpage is not trivial...
-                    message.info(self._win_id, 'No output or error')
+                    message.info('No output or error')
                 else:
                     # The output can be a string, number, dict, array, etc. But
                     # *don't* output too much data, as this will make
@@ -1949,7 +1940,7 @@ class CommandDispatcher:
                     out = str(out)
                     if len(out) > 5000:
                         out = out[:5000] + ' [...trimmed...]'
-                    message.info(self._win_id, out)
+                    message.info(out)
 
         widget = self._current_widget()
         widget.run_js_async(js_code, callback=jseval_cb, world=world)
@@ -2016,7 +2007,7 @@ class CommandDispatcher:
 
         old_url = self._current_url().toString()
 
-        ed = editor.ExternalEditor(self._win_id, self._tabbed_browser)
+        ed = editor.ExternalEditor(self._tabbed_browser)
 
         # Passthrough for openurl args (e.g. -t, -b, -w)
         ed.editing_finished.connect(functools.partial(

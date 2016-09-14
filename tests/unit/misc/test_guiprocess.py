@@ -37,7 +37,7 @@ def guiprocess_message_mock(message_mock):
 @pytest.fixture()
 def proc(qtbot):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
-    p = guiprocess.GUIProcess(0, 'testprocess')
+    p = guiprocess.GUIProcess('testprocess')
     yield p
     if p._proc.state() == QProcess.Running:
         with qtbot.waitSignal(p.finished, timeout=10000,
@@ -50,7 +50,7 @@ def proc(qtbot):
 @pytest.fixture()
 def fake_proc(monkeypatch, stubs):
     """A fixture providing a GUIProcess with a mocked QProcess."""
-    p = guiprocess.GUIProcess(0, 'testprocess')
+    p = guiprocess.GUIProcess('testprocess')
     monkeypatch.setattr(p, '_proc', stubs.fake_qprocess())
     return p
 
@@ -86,7 +86,7 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
 def test_start_env(monkeypatch, qtbot, py_proc):
     monkeypatch.setenv('QUTEBROWSER_TEST_1', '1')
     env = {'QUTEBROWSER_TEST_2': '2'}
-    proc = guiprocess.GUIProcess(0, 'testprocess', additional_env=env)
+    proc = guiprocess.GUIProcess('testprocess', additional_env=env)
 
     argv = py_proc("""
         import os

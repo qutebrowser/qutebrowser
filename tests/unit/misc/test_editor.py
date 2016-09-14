@@ -43,7 +43,7 @@ def patch_things(config_stub, message_mock, monkeypatch, stubs):
 
 @pytest.fixture
 def editor():
-    ed = editormod.ExternalEditor(0)
+    ed = editormod.ExternalEditor()
     ed.editing_finished = mock.Mock()
     yield ed
     ed._cleanup()

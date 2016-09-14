@@ -152,9 +152,8 @@ class KeyConfigParser(QObject):
 
     @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
                        no_replace_variables=True)
-    @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('command', completion=usertypes.Completion.bind)
-    def bind(self, key, win_id, command=None, *, mode='normal', force=False):
+    def bind(self, key, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 
         Args:
@@ -172,11 +171,10 @@ class KeyConfigParser(QObject):
         if command is None:
             cmd = self.get_bindings_for(mode).get(key, None)
             if cmd is None:
-                message.info(win_id, "{} is unbound in {} mode".format(
-                    key, mode))
+                message.info("{} is unbound in {} mode".format(key, mode))
             else:
-                message.info(win_id, "{} is bound to '{}' in {} mode".format(
-                    key, cmd, mode))
+                message.info("{} is bound to '{}' in {} mode".format(key, cmd,
+                                                                     mode))
             return
 
         mode = self._normalize_sectname(mode)

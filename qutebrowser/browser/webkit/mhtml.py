@@ -447,11 +447,10 @@ class _Downloader:
             with open(self.dest, 'wb') as file_output:
                 self.writer.write_to(file_output)
         except OSError as error:
-            message.error(self._win_id,
-                          "Could not save file: {}".format(error))
+            message.error("Could not save file: {}".format(error))
             return
         log.downloads.debug("File successfully written.")
-        message.info(self._win_id, "Page saved as {}".format(self.dest))
+        message.info("Page saved as {}".format(self.dest))
 
     def _collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
@@ -528,8 +527,7 @@ def start_download_checked(dest, tab):
     # saving the file anyway.
     if not os.path.isdir(os.path.dirname(path)):
         folder = os.path.dirname(path)
-        message.error(tab.win_id,
-                      "Directory {} does not exist.".format(folder))
+        message.error("Directory {} does not exist.".format(folder))
         return
 
     if not os.path.isfile(path):

@@ -174,8 +174,8 @@ class Command:
                 "backend.".format(self.name, self.backend.name))
 
         if self.deprecated:
-            message.warning(win_id, '{} is deprecated - {}'.format(
-                self.name, self.deprecated))
+            message.warning('{} is deprecated - {}'.format(self.name,
+                                                           self.deprecated))
 
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
@@ -507,7 +507,7 @@ class Command:
         try:
             self.namespace = self.parser.parse_args(args)
         except argparser.ArgumentParserError as e:
-            message.error(win_id, '{}: {}'.format(self.name, e),
+            message.error('{}: {}'.format(self.name, e),
                           stack=traceback.format_exc())
             return
         except argparser.ArgumentParserExit as e:

@@ -299,8 +299,7 @@ class NetworkManager(QNetworkAccessManager):
             for err in errors:
                 # FIXME we might want to use warn here (non-fatal error)
                 # https://github.com/The-Compiler/qutebrowser/issues/114
-                message.error(self._win_id, 'SSL error: {}'.format(
-                    err.errorString()))
+                message.error('SSL error: {}'.format(err.errorString()))
             reply.ignoreSslErrors()
             self._accepted_ssl_errors[host_tpl] += errors
 
