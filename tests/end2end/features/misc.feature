@@ -255,7 +255,6 @@ Feature: Various utility commands.
 
     # :help
 
-    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help without topic
         When I run :tab-only
         And I run :help
@@ -267,7 +266,6 @@ Feature: Various utility commands.
         When I run :help foo
         Then the error "Invalid help topic foo!" should be shown
 
-    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help with command
         When the documentation is up to date
         And I run :tab-only
@@ -280,7 +278,6 @@ Feature: Various utility commands.
         When I run :help :foo
         Then the error "Invalid command foo!" should be shown
 
-    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help with setting
         When the documentation is up to date
         And I run :tab-only
@@ -301,7 +298,6 @@ Feature: Various utility commands.
         When I run :help general->bar
         Then the error "Invalid option bar!" should be shown
 
-    @qtwebengine_todo: :help is not implemented yet
     Scenario: :help with -t
         When I open about:blank
         And I run :tab-only
@@ -388,13 +384,11 @@ Feature: Various utility commands.
         Then the PDF hello.pdf should exist in the tmpdir
 
     # :pyeval
-    @qtwebengine_todo: qute:pyeval is not implemented yet
     Scenario: Running :pyeval
         When I run :debug-pyeval 1+1
         And I wait until qute:pyeval is loaded
         Then the page should contain the plaintext "2"
 
-    @qtwebengine_todo: qute:pyeval is not implemented yet
     Scenario: Causing exception in :pyeval
         When I run :debug-pyeval 1/0
         And I wait until qute:pyeval is loaded
@@ -447,7 +441,6 @@ Feature: Various utility commands.
 
     ## :messages
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Showing error messages
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
@@ -460,7 +453,6 @@ Feature: Various utility commands.
         And the page should not contain the plaintext "the-warning-message"
         And the page should not contain the plaintext "the-info-message"
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Showing messages of type 'warning' or greater
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
@@ -473,7 +465,6 @@ Feature: Various utility commands.
         And the page should contain the plaintext "the-warning-message"
         And the page should not contain the plaintext "the-info-message"
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Showing messages of type 'info' or greater
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
@@ -491,24 +482,20 @@ Feature: Various utility commands.
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using qute:log directly
         When I open qute:log
         Then no crash should happen
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using qute:plainlog directly
         When I open qute:plainlog
         Then no crash should happen
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using :messages without messages
         Given I have a fresh instance
         When I run :messages
         Then qute://log?level=error should be loaded
         And the page should contain the plaintext "No messages to show."
 
-    @qtwebengine_todo: qute:log is not implemented yet
     Scenario: Using :debug-log-capacity
         When I run :debug-log-capacity 100
         And I run :message-info oldstuff
