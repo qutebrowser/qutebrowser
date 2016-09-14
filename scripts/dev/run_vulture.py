@@ -33,7 +33,9 @@ import qutebrowser.app  # pylint: disable=unused-import
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import utils
 from qutebrowser.browser.webkit import rfc6266
-from qutebrowser.browser.webkit.network import qutescheme
+# To run the decorators from there
+from qutebrowser.browser.webkit.network import webkitqutescheme
+from qutebrowser.browser import qutescheme
 
 
 def whitelist_generator():

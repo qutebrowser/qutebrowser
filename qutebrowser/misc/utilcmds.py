@@ -33,7 +33,7 @@ from PyQt5.QtCore import QUrl
 # so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
-from qutebrowser.browser.webkit.network import qutescheme
+from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style

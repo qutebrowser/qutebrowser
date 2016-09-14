@@ -32,7 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils, debug)
 from qutebrowser.browser import shared
-from qutebrowser.browser.webkit.network import qutescheme, networkreply
+from qutebrowser.browser.webkit.network import webkitqutescheme, networkreply
 from qutebrowser.browser.webkit.network import filescheme
 
 
@@ -164,7 +164,7 @@ class NetworkManager(QNetworkAccessManager):
         self._tab_id = tab_id
         self._requests = []
         self._scheme_handlers = {
-            'qute': qutescheme.QuteSchemeHandler(win_id),
+            'qute': webkitqutescheme.QuteSchemeHandler(win_id),
             'file': filescheme.FileSchemeHandler(win_id),
         }
         self._set_cookiejar(private=config.get('general', 'private-browsing'))

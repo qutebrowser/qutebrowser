@@ -34,18 +34,32 @@ from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
 
 from qutebrowser.browser import browsertab, mouse
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           interceptor)
+                                           interceptor, webenginequtescheme)
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                objreg)
 
 
+_qute_scheme_handler = None
+
+
 def init():
     """Initialize QtWebEngine-specific modules."""
+    # For some reason we need to keep a reference, otherwise the scheme handler
+    # won't work...
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
+    global _qute_scheme_handler
+    app = QApplication.instance()
+    profile = QWebEngineProfile.defaultProfile()
+
+    log.init.debug("Initializing qute:* handler...")
+    _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
+    _qute_scheme_handler.install(profile)
+
     log.init.debug("Initializing request interceptor...")
     host_blocker = objreg.get('host-blocker')
     req_interceptor = interceptor.RequestInterceptor(
-        host_blocker, parent=QApplication.instance())
-    req_interceptor.install(QWebEngineProfile.defaultProfile())
+        host_blocker, parent=app)
+    req_interceptor.install(profile)
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.

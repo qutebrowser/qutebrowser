@@ -47,7 +47,7 @@ from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import urlmarks, adblock, history, browsertab
 from qutebrowser.browser.webkit import cookies, cache, downloads
-from qutebrowser.browser.webkit.network import (qutescheme, proxy,
+from qutebrowser.browser.webkit.network import (webkitqutescheme, proxy,
                                                 networkmanager)
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import readline, ipc, savemanager, sessions, crashsignal
@@ -400,7 +400,7 @@ def _init_modules(args, crash_handler):
     sessions.init(qApp)
 
     log.init.debug("Initializing js-bridge...")
-    js_bridge = qutescheme.JSBridge(qApp)
+    js_bridge = webkitqutescheme.JSBridge(qApp)
     objreg.register('js-bridge', js_bridge)
 
     log.init.debug("Initializing websettings...")
