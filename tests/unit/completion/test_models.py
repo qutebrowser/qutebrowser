@@ -42,21 +42,19 @@ def _check_completions(model, expected):
                 ...
             }
     """
-    actual = {}
+    assert model.rowCount() == len(expected)
     for i in range(0, model.rowCount()):
-        category = model.item(i)
-        entries = []
-        for j in range(0, category.rowCount()):
-            name = category.child(j, 0)
-            desc = category.child(j, 1)
-            misc = category.child(j, 2)
-            entries.append((name.text(), desc.text(), misc.text()))
-        actual[category.text()] = entries
-    for cat_name, expected_entries in expected.items():
-        assert cat_name in actual
-        actual_items = actual[cat_name]
-        for expected_item in expected_entries:
-            assert expected_item in actual_items
+        actual_cat = model.item(i)
+        catname = actual_cat.text()
+        assert catname in expected
+        expected_cat = expected[catname]
+        assert actual_cat.rowCount() == len(expected_cat)
+        for j in range(0, actual_cat.rowCount()):
+            name = actual_cat.child(j, 0)
+            desc = actual_cat.child(j, 1)
+            misc = actual_cat.child(j, 2)
+            actual_item = (name.text(), desc.text(), misc.text())
+            assert actual_item in expected_cat
 
 
 def _patch_cmdutils(monkeypatch, stubs, symbol):
@@ -471,6 +469,7 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
             ('stop', 'stop qutebrowser', 's'),
             ('drop', 'drop all user data', ''),
             ('hide', '', ''),
+            ('roll', 'never gonna give you up', 'rr'),
             ('rock', "Alias for 'roll'", 'ro'),
         ]
     })
