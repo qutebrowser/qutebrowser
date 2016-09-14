@@ -34,7 +34,7 @@ class TestPDFJSHandler:
     @pytest.fixture(autouse=True)
     def fake_pdfjs(self, monkeypatch):
         def get_pdfjs_res(path):
-            if path == '/existing/file':
+            if path == '/existing/file.html':
                 return b'foobar'
             raise pdfjs.PDFJSNotFound(path)
 
@@ -48,14 +48,14 @@ class TestPDFJSHandler:
     def test_existing_resource(self):
         """Test with a resource that exists."""
         _mimetype, data = qutescheme.data_for_url(
-            QUrl('qute://pdfjs/existing/file'))
+            QUrl('qute://pdfjs/existing/file.html'))
         assert data == b'foobar'
 
     def test_nonexisting_resource(self, caplog):
         """Test with a resource that does not exist."""
         with caplog.at_level(logging.WARNING, 'misc'):
             with pytest.raises(qutescheme.QuteSchemeError):
-                qutescheme.data_for_url(QUrl('qute://pdfjs/no/file'))
+                qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
         assert len(caplog.records) == 1
         assert (caplog.records[0].message ==
-                'pdfjs resource requested but not found: /no/file')
+                'pdfjs resource requested but not found: /no/file.html')
