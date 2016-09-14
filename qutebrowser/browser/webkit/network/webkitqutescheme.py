@@ -19,6 +19,7 @@
 
 """QtWebKit specific qute:* handlers and glue code."""
 
+import mimetypes
 import functools
 import configparser
 
@@ -91,14 +92,14 @@ def qute_settings(_url):
     config_getter = functools.partial(objreg.get('config').get, raw=True)
     html = jinja.render('settings.html', title='settings', config=configdata,
                         confget=config_getter)
-    return html.encode('UTF-8', errors='xmlcharrefreplace')
+    return 'text/html', html
 
 
 @qutescheme.add_handler('pdfjs', backend=usertypes.Backend.QtWebKit)
 def qute_pdfjs(url):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
     try:
-        return pdfjs.get_pdfjs_res(url.path())
+        data = pdfjs.get_pdfjs_res(url.path())
     except pdfjs.PDFJSNotFound as e:
         # Logging as the error might get lost otherwise since we're not showing
         # the error page if a single asset is missing. This way we don't lose
@@ -108,3 +109,7 @@ def qute_pdfjs(url):
         raise qutescheme.QuteSchemeError("Can't find pdfjs resource "
                                          "'{}'".format(e.path),
                                          QNetworkReply.ContentNotFoundError)
+    else:
+        mimetype, _encoding = mimetypes.guess_type(url.fileName())
+        assert mimetype is not None, url
+        return mimetype, data

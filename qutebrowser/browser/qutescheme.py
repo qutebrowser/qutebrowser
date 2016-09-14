@@ -24,7 +24,6 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
-import mimetypes
 import urllib.parse
 
 import qutebrowser
@@ -104,7 +103,7 @@ class add_handler:  # pylint: disable=invalid-name
                             error='{} is not available with this '
                                   'backend'.format(url.toDisplayString()),
                             icon='')
-        return html.encode('UTF-8', errors='xmlcharrefreplace')
+        return 'text/html', html
 
 
 def data_for_url(url):
@@ -129,15 +128,18 @@ def data_for_url(url):
         except KeyError:
             raise NoHandlerFound(url)
     try:
-        data = handler(url)
+        mimetype, data = handler(url)
     except OSError as e:
         # FIXME:qtwebengine how to handle this?
         raise QuteSchemeOSError(e)
     except QuteSchemeError as e:
         raise
-    mimetype, _encoding = mimetypes.guess_type(url.fileName())
-    if mimetype is None:
-        mimetype = 'text/html'
+
+    assert mimetype is not None, url
+    if mimetype == 'text/html' and isinstance(data, str):
+        # We let handlers return HTML as text
+        data = data.encode('utf-8', errors='xmlcharrefreplace')
+
     return mimetype, data
 
 
@@ -153,29 +155,29 @@ def qute_bookmarks(_url):
                         title='Bookmarks',
                         bookmarks=bookmarks,
                         quickmarks=quickmarks)
-    return html.encode('UTF-8', errors='xmlcharrefreplace')
+    return 'text/html', html
 
 
 @add_handler('pyeval')
 def qute_pyeval(_url):
-    """Handler for qute:pyeval. Return HTML content as bytes."""
+    """Handler for qute:pyeval."""
     html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
-    return html.encode('UTF-8', errors='xmlcharrefreplace')
+    return 'text/html', html
 
 
 @add_handler('version')
 @add_handler('verizon')
 def qute_version(_url):
-    """Handler for qute:version. Return HTML content as bytes."""
+    """Handler for qute:version."""
     html = jinja.render('version.html', title='Version info',
                         version=version.version(),
                         copyright=qutebrowser.__copyright__)
-    return html.encode('UTF-8', errors='xmlcharrefreplace')
+    return 'text/html', html
 
 
 @add_handler('plainlog')
 def qute_plainlog(url):
-    """Handler for qute:plainlog. Return HTML content as bytes.
+    """Handler for qute:plainlog.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
@@ -190,12 +192,12 @@ def qute_plainlog(url):
             level = 'vdebug'
         text = log.ram_handler.dump_log(html=False, level=level)
     html = jinja.render('pre.html', title='log', content=text)
-    return html.encode('UTF-8', errors='xmlcharrefreplace')
+    return 'text/html', html
 
 
 @add_handler('log')
 def qute_log(url):
-    """Handler for qute:log. Return HTML content as bytes.
+    """Handler for qute:log.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
@@ -211,18 +213,18 @@ def qute_log(url):
         html_log = log.ram_handler.dump_log(html=True, level=level)
 
     html = jinja.render('log.html', title='log', content=html_log)
-    return html.encode('UTF-8', errors='xmlcharrefreplace')
+    return 'text/html', html
 
 
 @add_handler('gpl')
 def qute_gpl(_url):
-    """Handler for qute:gpl. Return HTML content as bytes."""
-    return utils.read_file('html/COPYING.html').encode('ASCII')
+    """Handler for qute:gpl. Return HTML content as string."""
+    return 'text/html', utils.read_file('html/COPYING.html')
 
 
 @add_handler('help')
 def qute_help(url):
-    """Handler for qute:help. Return HTML content as bytes."""
+    """Handler for qute:help."""
     try:
         utils.read_file('html/doc/index.html')
     except OSError:
@@ -236,7 +238,7 @@ def qute_help(url):
                   "If you're running a released version this is a bug, please "
                   "use :report to report it.",
             icon='')
-        return html.encode('UTF-8', errors='xmlcharrefreplace')
+        return 'text/html', html
     urlpath = url.path()
     if not urlpath or urlpath == '/':
         urlpath = 'index.html'
@@ -247,7 +249,7 @@ def qute_help(url):
                       "re-run scripts/asciidoc2html.py.")
     path = 'html/doc/{}'.format(urlpath)
     if urlpath.endswith('.png'):
-        return utils.read_file(path, binary=True)
+        return 'image/png', utils.read_file(path, binary=True)
     else:
         data = utils.read_file(path)
-        return data.encode('UTF-8', errors='xmlcharrefreplace')
+        return 'text/html', data
