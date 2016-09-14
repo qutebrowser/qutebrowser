@@ -84,7 +84,7 @@ def _wrapper(win_id, method_name, text, *args, **kwargs):
         win = QApplication.instance().activeWindow()
         window_focused = (win is not None and
                           win in objreg.window_registry.values() and
-                          win.win_id == win_id)
+                          (win.win_id == win_id) or win_id == 'current')
         if (config.get('ui', 'message-unfocused') or
                 method_name not in ['error', 'warning', 'info'] or
                 window_focused):
