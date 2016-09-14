@@ -76,7 +76,7 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
             return networkreply.ErrorNetworkReply(
                 request, str(e), QNetworkReply.ContentNotFoundError,
                 self.parent())
-        except QuteSchemeError as e:
+        except qutescheme.QuteSchemeError as e:
             return networkreply.ErrorNetworkReply(request, e.errorstring,
                                                   e.error, self.parent())
 
@@ -123,5 +123,6 @@ def qute_pdfjs(url):
         # information, as the failed pdfjs requests are still in the log.
         log.misc.warning(
             "pdfjs resource requested but not found: {}".format(e.path))
-        raise QuteSchemeError("Can't find pdfjs resource '{}'".format(e.path),
-                              QNetworkReply.ContentNotFoundError)
+        raise qutescheme.QuteSchemeError("Can't find pdfjs resource "
+                                         "'{}'".format(e.path),
+                                         QNetworkReply.ContentNotFoundError)

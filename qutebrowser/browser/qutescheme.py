@@ -56,6 +56,24 @@ def add_handler(name):
     """Add a handler to the qute: scheme."""
     def namedecorator(function):
         _HANDLERS[name] = function
+class QuteSchemeError(Exception):
+
+    """Exception to signal that a handler should return an ErrorReply.
+
+    Attributes correspond to the arguments in
+    networkreply.ErrorNetworkReply.
+
+    Attributes:
+        errorstring: Error string to print.
+        error: Numerical error value.
+    """
+
+    def __init__(self, errorstring, error):
+        self.errorstring = errorstring
+        self.error = error
+        super().__init__(errorstring)
+
+
         return function
     return namedecorator
 
