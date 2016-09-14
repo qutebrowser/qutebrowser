@@ -21,15 +21,11 @@ import pytest
 import logging
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.browser import pdfjs, qutescheme
+# pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
-
-
-@pytest.fixture
-def handler():
-    return webkitqutescheme.QuteSchemeHandler()
+# pylint: enable=unused-import
 
 
 class TestPDFJSHandler:
