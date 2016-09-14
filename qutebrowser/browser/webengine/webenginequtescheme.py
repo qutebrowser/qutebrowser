@@ -56,7 +56,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             # FIXME:qtwebengine how do we show a better error here?
             log.misc.exception("OSError while handling qute:* URL")
             job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except QuteSchemeError as e:
+        except qutescheme.QuteSchemeError as e:
             # FIXME:qtwebengine how do we show a better error here?
             log.misc.exception("Error while handling qute:* URL")
             job.fail(QWebEngineUrlRequestJob.RequestFailed)

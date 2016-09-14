@@ -52,10 +52,6 @@ class QuteSchemeOSError(Exception):
     pass
 
 
-def add_handler(name):
-    """Add a handler to the qute: scheme."""
-    def namedecorator(function):
-        _HANDLERS[name] = function
 class QuteSchemeError(Exception):
 
     """Exception to signal that a handler should return an ErrorReply.
@@ -74,8 +70,40 @@ class QuteSchemeError(Exception):
         super().__init__(errorstring)
 
 
+class add_handler:  # pylint: disable=invalid-name
+
+    """Decorator to register a qute:* URL handler.
+
+    Attributes:
+        _name: The 'foo' part of qute:foo
+        backend: Limit which backends the handler can run with.
+    """
+
+    def __init__(self, name, backend=None):
+        self._name = name
+        self._backend = backend
+        self._function = None
+
+    def __call__(self, function):
+        self._function = function
+        _HANDLERS[self._name] = self.wrapper
         return function
-    return namedecorator
+
+    def wrapper(self, *args, **kwargs):
+        used_backend = usertypes.arg2backend[objreg.get('args').backend]
+        if self._backend is not None and used_backend != self._backend:
+            return self.wrong_backend_handler(*args, **kwargs)
+        else:
+            return self._function(*args, **kwargs)
+
+    def wrong_backend_handler(self, url):
+        html = jinja.render('error.html',
+                            title="Error while opening qute:url",
+                            url=url.toDisplayString(),
+                            error='{} is not available with this '
+                                  'backend'.format(url.toDisplayString()),
+                            icon='')
+        return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
 def data_for_url(url):

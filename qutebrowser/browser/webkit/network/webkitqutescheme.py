@@ -27,26 +27,8 @@ from PyQt5.QtNetwork import QNetworkReply
 
 from qutebrowser.browser import pdfjs, qutescheme
 from qutebrowser.browser.webkit.network import schemehandler, networkreply
-from qutebrowser.utils import jinja, log, message, objreg
+from qutebrowser.utils import jinja, log, message, objreg, usertypes
 from qutebrowser.config import configexc, configdata
-
-
-class QuteSchemeError(Exception):
-
-    """Exception to signal that a handler should return an ErrorReply.
-
-    Attributes correspond to the arguments in
-    networkreply.ErrorNetworkReply.
-
-    Attributes:
-        errorstring: Error string to print.
-        error: Numerical error value.
-    """
-
-    def __init__(self, errorstring, error):
-        self.errorstring = errorstring
-        self.error = error
-        super().__init__(errorstring)
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
@@ -103,7 +85,7 @@ class JSBridge(QObject):
             message.error('current', e)
 
 
-@qutescheme.add_handler('settings')
+@qutescheme.add_handler('settings', backend=usertypes.Backend.QtWebKit)
 def qute_settings(_url):
     """Handler for qute:settings. View/change qute configuration."""
     config_getter = functools.partial(objreg.get('config').get, raw=True)
@@ -112,7 +94,7 @@ def qute_settings(_url):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-@qutescheme.add_handler('pdfjs')
+@qutescheme.add_handler('pdfjs', backend=usertypes.Backend.QtWebKit)
 def qute_pdfjs(url):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
     try:
