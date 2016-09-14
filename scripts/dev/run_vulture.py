@@ -34,7 +34,9 @@ from qutebrowser.commands import cmdutils
 from qutebrowser.utils import utils
 from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
+# pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
+# pylint: enable=unused-import
 from qutebrowser.browser import qutescheme
 
 
@@ -73,9 +75,9 @@ def whitelist_generator():
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
     yield 'PyQt5.QtWidgets.QStyleOptionViewItem.backgroundColor'
 
-    # qute:... handlers
-    for func in qutescheme.HANDLERS.values():
-        yield 'qutebrowser.browser.webkit.network.qutescheme.' + func.__name__
+    ## qute:... handlers
+    for name in qutescheme._HANDLERS:  # pylint: disable=protected-access
+        yield 'qutebrowser.browser.qutescheme.qute_' + name
 
     # Other false-positives
     yield ('qutebrowser.completion.models.sortfilter.CompletionFilterModel().'
