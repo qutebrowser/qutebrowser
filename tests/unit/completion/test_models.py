@@ -94,6 +94,10 @@ def _patch_configdata(monkeypatch, stubs, symbol):
                 value.SettingValue(stubs.FakeConfigType(('on', 'off')),
                                    default='off'),
                 'Whether to respond to voice commands'))),
+        ('searchengines', sections.ValueList(
+            stubs.FakeConfigType(), stubs.FakeConfigType(),
+            ('DEFAULT', 'https://duckduckgo.com/?q={}'),
+        )),
     ])
     monkeypatch.setattr(symbol, data)
 
@@ -103,6 +107,7 @@ def _patch_config_section_desc(monkeypatch, stubs, symbol):
     section_desc = {
         'general': 'General/miscellaneous options.',
         'ui': 'General options related to the user interface.',
+        'searchengines': 'Definitions of search engines ...',
     }
     monkeypatch.setattr(symbol, section_desc)
 
@@ -223,6 +228,7 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
             ('ui->gesture', 'Waggle your hands to control qutebrowser', ''),
             ('ui->mind', 'Enable mind-control ui (experimental)', ''),
             ('ui->voice', 'Whether to respond to voice commands', ''),
+            ('searchengines->DEFAULT', '', ''),
         ]
     })
 
@@ -399,6 +405,7 @@ def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
         "Sections": [
             ('general', 'General/miscellaneous options.', ''),
             ('ui', 'General options related to the user interface.', ''),
+            ('searchengines', 'Definitions of search engines ...', ''),
         ]
     })
 
@@ -420,6 +427,24 @@ def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
             ('mind', 'Enable mind-control ui (experimental)', 'on'),
             ('voice', 'Whether to respond to voice commands', 'sometimes'),
         ]
+    })
+
+
+def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
+                                             config_stub):
+    module = 'qutebrowser.completion.models.configmodel'
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    config_stub.data = {
+        'searchengines': {
+            'DEFAULT': 'https://duckduckgo.com/?q={}'
+        }
+    }
+    model = configmodel.SettingOptionCompletionModel('searchengines')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'searchengines': [('DEFAULT', '', 'https://duckduckgo.com/?q={}')]
     })
 
 
