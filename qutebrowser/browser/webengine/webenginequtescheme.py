@@ -20,8 +20,10 @@
 """QtWebEngine specific qute:* handlers and glue code."""
 
 from PyQt5.QtCore import QBuffer, QIODevice
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log
@@ -38,8 +40,8 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
     def requestStarted(self, job):
         """Handle a request for a qute: scheme.
 
-        This method must be reimplemented by all custom URL scheme handlers. The
-        request is asynchronous and does not need to be handled right away.
+        This method must be reimplemented by all custom URL scheme handlers.
+        The request is asynchronous and does not need to be handled right away.
 
         Args:
             job: QWebEngineUrlRequestJob
@@ -58,7 +60,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             # FIXME:qtwebengine how do we show a better error here?
             log.misc.exception("OSError while handling qute:* URL")
             job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.QuteSchemeError as e:
+        except qutescheme.QuteSchemeError:
             # FIXME:qtwebengine how do we show a better error here?
             log.misc.exception("Error while handling qute:* URL")
             job.fail(QWebEngineUrlRequestJob.RequestFailed)
