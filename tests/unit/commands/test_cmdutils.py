@@ -324,7 +324,7 @@ class TestRegister:
         # https://github.com/The-Compiler/qutebrowser/issues/1871
         @cmdutils.register()
         @cmdutils.argument('arg', choices=['foo', 'bar'])
-        def fun(*, arg):
+        def fun(*, arg='foo'):
             """Blah."""
             pass
 
@@ -348,6 +348,32 @@ class TestRegister:
         assert cmd.get_pos_arg_info(1) == command.ArgInfo(choices=('x', 'y'))
         with pytest.raises(IndexError):
             cmd.get_pos_arg_info(2)
+
+    def test_keyword_only_without_default(self):
+        # https://github.com/The-Compiler/qutebrowser/issues/1872
+        def fun(*, target):
+            """Blah."""
+            pass
+
+        with pytest.raises(TypeError) as excinfo:
+            fun = cmdutils.register()(fun)
+
+        expected = ("fun: handler has keyword only argument 'target' without "
+                    "default!")
+        assert str(excinfo.value) == expected
+
+    def test_typed_keyword_only_without_default(self):
+        # https://github.com/The-Compiler/qutebrowser/issues/1872
+        def fun(*, target: int):
+            """Blah."""
+            pass
+
+        with pytest.raises(TypeError) as excinfo:
+            fun = cmdutils.register()(fun)
+
+        expected = ("fun: handler has keyword only argument 'target' without "
+                    "default!")
+        assert str(excinfo.value) == expected
 
 
 class TestArgument:
