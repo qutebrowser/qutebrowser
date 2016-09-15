@@ -79,7 +79,6 @@ class MessageMock:
 @pytest.fixture
 def message_mock():
     """Fixture to get a MessageMock."""
-    message.init()
     mmock = MessageMock()
     mmock.patch()
     yield mmock

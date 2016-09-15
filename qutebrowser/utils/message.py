@@ -30,14 +30,6 @@ from PyQt5.QtWidgets import QApplication
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
-global_bridge = None
-
-
-def init():
-    global global_bridge
-    global_bridge = GlobalMessageBridge()
-
-
 def _log_stack(typ, stack):
     """Log the given message stacktrace.
 
@@ -236,3 +228,6 @@ class MessageBridge(QObject):
             log_stack: ignored
         """
         self.s_question.emit(question, blocking)
+
+
+global_bridge = GlobalMessageBridge()
