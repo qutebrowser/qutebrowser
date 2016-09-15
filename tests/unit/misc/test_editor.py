@@ -21,12 +21,14 @@
 
 import os
 import os.path
+import logging
 from unittest import mock
 
 from PyQt5.QtCore import QProcess
 import pytest
 
 from qutebrowser.misc import editor as editormod
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)
@@ -41,11 +43,12 @@ def patch_things(config_stub, monkeypatch, stubs):
 
 
 @pytest.fixture
-def editor():
+def editor(caplog):
     ed = editormod.ExternalEditor()
     ed.editing_finished = mock.Mock()
     yield ed
-    ed._cleanup()
+    with caplog.at_level(logging.ERROR):
+        ed._cleanup()
 
 
 class TestArg:
@@ -121,24 +124,29 @@ class TestFileHandling:
         os.remove(filename)
 
     @pytest.mark.posix
-    def test_unreadable(self, message_mock, editor):
+    def test_unreadable(self, message_mock, editor, caplog):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
         filename = editor._file.name
         assert os.path.exists(filename)
         os.chmod(filename, 0o077)
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with caplog.at_level(logging.ERROR):
+            editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
     @pytest.mark.posix
-    def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir):
+    def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir,
+                        caplog):
         """Test file handling when the initial file is not writable."""
         tmpdir.chmod(0)
         monkeypatch.setattr('qutebrowser.misc.editor.tempfile.tempdir',
                             str(tmpdir))
-        editor.edit("")
+
+        with caplog.at_level(logging.ERROR):
+            editor.edit("")
+
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to create initial file: ")
         assert editor._proc is None

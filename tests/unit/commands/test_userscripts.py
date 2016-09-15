@@ -64,7 +64,7 @@ def runner(request):
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
     else:
-        return request.param(0)
+        return request.param()
 
 
 def test_command(qtbot, py_proc, runner):
@@ -143,7 +143,7 @@ def test_source(qtbot, py_proc, runner):
     assert not os.path.exists(parsed['html_file'])
 
 
-def test_command_with_error(qtbot, py_proc, runner):
+def test_command_with_error(qtbot, py_proc, runner, caplog):
     cmd, args = py_proc(r"""
         import sys, os, json
 
@@ -154,17 +154,18 @@ def test_command_with_error(qtbot, py_proc, runner):
         sys.exit(1)
     """)
 
-    with qtbot.waitSignal(runner.finished, timeout=10000):
-        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-            runner.prepare_run(cmd, *args)
-            runner.store_text('Hello World')
-            runner.store_html('')
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(runner.finished, timeout=10000):
+            with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+                runner.prepare_run(cmd, *args)
+                runner.store_text('Hello World')
+                runner.store_html('')
 
     data = json.loads(blocker.args[0])
     assert not os.path.exists(data)
 
 
-def test_killed_command(qtbot, tmpdir, py_proc, runner):
+def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
     data_file = tmpdir / 'data'
     watcher = QFileSystemWatcher()
     watcher.addPath(str(tmpdir))
@@ -201,8 +202,9 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner):
 
     data = json.load(data_file)
 
-    with qtbot.waitSignal(runner.finished):
-        os.kill(int(data['pid']), signal.SIGTERM)
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(runner.finished):
+            os.kill(int(data['pid']), signal.SIGTERM)
 
     assert not os.path.exists(data['text_file'])
 

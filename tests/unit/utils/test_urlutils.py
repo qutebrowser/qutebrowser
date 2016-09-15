@@ -21,6 +21,7 @@
 
 import os.path
 import collections
+import logging
 
 from PyQt5.QtCore import QUrl
 import pytest
@@ -218,13 +219,15 @@ class TestFuzzyUrl:
         (True, qtutils.QtValueError),
         (False, urlutils.InvalidUrlError),
     ])
-    def test_invalid_url(self, do_search, exception, is_url_mock, monkeypatch):
+    def test_invalid_url(self, do_search, exception, is_url_mock, monkeypatch,
+                         caplog):
         """Test with an invalid URL."""
         is_url_mock.return_value = True
         monkeypatch.setattr('qutebrowser.utils.urlutils.qurl_from_user_input',
                             lambda url: QUrl())
         with pytest.raises(exception):
-            urlutils.fuzzy_url('foo', do_search=do_search)
+            with caplog.at_level(logging.ERROR):
+                urlutils.fuzzy_url('foo', do_search=do_search)
 
     @pytest.mark.parametrize('url', ['', ' '])
     def test_empty(self, url):
@@ -412,7 +415,7 @@ def test_qurl_from_user_input(user_input, output):
     ('', False, False),
     ('://', False, True),
 ])
-def test_invalid_url_error(message_mock, url, valid, has_err_string):
+def test_invalid_url_error(message_mock, caplog, url, valid, has_err_string):
     """Test invalid_url_error().
 
     Args:
@@ -428,7 +431,8 @@ def test_invalid_url_error(message_mock, url, valid, has_err_string):
         assert not message_mock.messages
     else:
         assert bool(qurl.errorString()) == has_err_string
-        urlutils.invalid_url_error(qurl, 'frozzle')
+        with caplog.at_level(logging.ERROR):
+            urlutils.invalid_url_error(qurl, 'frozzle')
 
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         if has_err_string:

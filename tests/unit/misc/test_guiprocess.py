@@ -26,19 +26,21 @@ import pytest
 from PyQt5.QtCore import QProcess, QIODevice
 
 from qutebrowser.misc import guiprocess
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture()
-def proc(qtbot):
+def proc(qtbot, caplog):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
     p = guiprocess.GUIProcess('testprocess')
     yield p
     if p._proc.state() == QProcess.Running:
-        with qtbot.waitSignal(p.finished, timeout=10000,
-                              raising=False) as blocker:
-            p._proc.terminate()
-        if not blocker.signal_triggered:
-            p._proc.kill()
+        with caplog.at_level(logging.ERROR):
+            with qtbot.waitSignal(p.finished, timeout=10000,
+                                  raising=False) as blocker:
+                p._proc.terminate()
+            if not blocker.signal_triggered:
+                p._proc.kill()
 
 
 @pytest.fixture()
@@ -121,12 +123,13 @@ def test_start_detached(fake_proc):
     fake_proc._proc.startDetached.assert_called_with(*list(argv) + [None])
 
 
-def test_start_detached_error(fake_proc, message_mock):
+def test_start_detached_error(fake_proc, message_mock, caplog):
     """Test starting a detached process with ok=False."""
     argv = ['foo', 'bar']
     fake_proc._proc.startDetached.return_value = (False, 0)
     fake_proc._proc.error.return_value = "Error message"
-    fake_proc.start_detached(*argv)
+    with caplog.at_level(logging.ERROR):
+        fake_proc.start_detached(*argv)
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text == "Error while spawning testprocess: Error message."
 
@@ -183,9 +186,10 @@ def test_error(qtbot, proc, caplog, message_mock):
     assert msg.text == expected_msg
 
 
-def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc):
-    with qtbot.waitSignal(proc.finished, timeout=10000):
-        proc.start(*py_proc('import sys; sys.exit(1)'))
+def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(proc.finished, timeout=10000):
+                proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text == "Testprocess exited with status 1."

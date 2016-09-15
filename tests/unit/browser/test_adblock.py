@@ -21,6 +21,7 @@
 import os
 import zipfile
 import shutil
+import logging
 
 import pytest
 
@@ -238,7 +239,7 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
     host_blocker = adblock.HostBlocker()
 
     with pytest.raises(cmdexc.CommandError) as excinfo:
-        host_blocker.adblock_update(0)
+        host_blocker.adblock_update()
     assert str(excinfo.value) == "No data storage is configured!"
 
     host_blocker.read_hosts()
@@ -250,7 +251,7 @@ def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
 
 
 def test_disabled_blocking_update(basedir, config_stub, download_stub,
-                                  data_tmpdir, tmpdir, win_registry):
+                                  data_tmpdir, tmpdir, win_registry, caplog):
     """Ensure no URL is blocked when host blocking is disabled."""
     config_stub.data = {
         'content': {
@@ -259,10 +260,11 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
         }
     }
     host_blocker = adblock.HostBlocker()
-    host_blocker.adblock_update(0)
+    host_blocker.adblock_update()
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
-        current_download.finished.emit()
+        with caplog.at_level(logging.ERROR):
+            current_download.finished.emit()
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
@@ -278,14 +280,14 @@ def test_no_blocklist_update(config_stub, download_stub,
         }
     }
     host_blocker = adblock.HostBlocker()
-    host_blocker.adblock_update(0)
+    host_blocker.adblock_update()
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
 
 
 def test_successful_update(config_stub, basedir, download_stub,
-                           data_tmpdir, tmpdir, win_registry):
+                           data_tmpdir, tmpdir, win_registry, caplog):
     """Ensure hosts from host-block-lists are blocked after an update."""
     config_stub.data = {
         'content': {
@@ -295,17 +297,18 @@ def test_successful_update(config_stub, basedir, download_stub,
         }
     }
     host_blocker = adblock.HostBlocker()
-    host_blocker.adblock_update(0)
+    host_blocker.adblock_update()
     # Simulate download is finished
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
-        current_download.finished.emit()
+        with caplog.at_level(logging.ERROR):
+            current_download.finished.emit()
     host_blocker.read_hosts()
     assert_urls(host_blocker, whitelisted=[])
 
 
 def test_failed_dl_update(config_stub, basedir, download_stub,
-                          data_tmpdir, tmpdir, win_registry):
+                          data_tmpdir, tmpdir, win_registry, caplog):
     """One blocklist fails to download.
 
     Ensure hosts from this list are not blocked.
@@ -323,13 +326,14 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
         }
     }
     host_blocker = adblock.HostBlocker()
-    host_blocker.adblock_update(0)
+    host_blocker.adblock_update()
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
         # if current download is the file we want to fail, make it fail
         if current_download.name == dl_fail_blocklist.path():
             current_download.successful = False
-        current_download.finished.emit()
+        with caplog.at_level(logging.ERROR):
+            current_download.finished.emit()
     host_blocker.read_hosts()
     assert_urls(host_blocker, whitelisted=[])
 
