@@ -69,6 +69,8 @@ class Message(QLabel):
 
 class MessageView(QWidget):
 
+    """Widget which stacks error/warning/info messages."""
+
     reposition = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -87,13 +89,16 @@ class MessageView(QWidget):
 
     @config.change_filter('ui', 'message-timeout')
     def _set_clear_timer_interval(self):
+        """Configure self._clear_timer according to the config."""
         self._clear_timer.setInterval(config.get('ui', 'message-timeout'))
 
     def message_height(self):
+        """Get the total height of all messages."""
         return sum(label.sizeHint().height() for label in self._messages)
 
     @pyqtSlot()
     def _clear_messages(self):
+        """Hide and delete all messages."""
         for widget in self._messages:
             self._vbox.removeWidget(widget)
             widget.hide()
@@ -105,6 +110,7 @@ class MessageView(QWidget):
 
     @pyqtSlot(usertypes.MessageLevel, str)
     def show_message(self, level, text):
+        """Show the given message with the given MessageLevel."""
         if text == self._last_text:
             return
 

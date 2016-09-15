@@ -21,7 +21,6 @@
 
 import sys
 import enum
-import datetime
 import os.path
 import io
 import logging

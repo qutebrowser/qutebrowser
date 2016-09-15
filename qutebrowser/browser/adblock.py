@@ -259,8 +259,8 @@ class HostBlocker:
                 self._blocked_hosts.add(host)
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
-            message.error("adblock: {} read errors for {}".format(error_count,
-                                                                  byte_io.name))
+            message.error("adblock: {} read errors for {}".format(
+                error_count, byte_io.name))
 
     def on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""

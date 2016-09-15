@@ -189,7 +189,7 @@ def test_error(qtbot, proc, caplog, message_mock):
 def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
     with caplog.at_level(logging.ERROR):
         with qtbot.waitSignal(proc.finished, timeout=10000):
-                proc.start(*py_proc('import sys; sys.exit(1)'))
+            proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text == "Testprocess exited with status 1."

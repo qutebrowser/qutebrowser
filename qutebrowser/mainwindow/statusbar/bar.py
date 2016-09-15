@@ -19,10 +19,7 @@
 
 """The main statusbar widget."""
 
-import collections
-
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, pyqtProperty, Qt, QTime, QSize,
-                          QTimer)
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.config import config, style
