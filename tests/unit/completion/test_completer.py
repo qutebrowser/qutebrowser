@@ -82,7 +82,7 @@ def instances(monkeypatch):
     }
     instances[usertypes.Completion.value] = {
         'general': {
-            'ignore-case': FakeCompletionModel(usertypes.Completion.value),
+            'editor': FakeCompletionModel(usertypes.Completion.value),
         }
     }
     monkeypatch.setattr('qutebrowser.completion.completer.instances',
@@ -122,16 +122,12 @@ def cmdutils_patch(monkeypatch, stubs):
         """docstring."""
         pass
 
-    cmds = {
-        'set': set_command,
-        'help': show_help,
-        'open': openurl,
-        'bind': bind,
-        'tab-detach': tab_detach,
-    }
     cmd_utils = stubs.FakeCmdUtils({
-        name: command.Command(name=name, handler=fn)
-        for name, fn in cmds.items()
+        'set': command.Command(name='set', handler=set_command),
+        'help': command.Command(name='help', handler=show_help),
+        'open': command.Command(name='open', handler=openurl, maxsplit=0),
+        'bind': command.Command(name='bind', handler=bind),
+        'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
     })
     monkeypatch.setattr('qutebrowser.completion.completer.cmdutils', cmd_utils)
 
@@ -147,96 +143,146 @@ def _set_cmd_prompt(cmd, txt):
     cmd.setCursorPosition(txt.index('|'))
 
 
-def _validate_cmd_prompt(cmd, txt):
-    """Interpret fake command prompt text using | as the cursor placeholder.
-
-    Args:
-        cmd: The command prompt object.
-        txt: The prompt text, using | as a placeholder for the cursor position.
-    """
-    assert cmd.cursorPosition() == txt.index('|')
-    assert cmd.text() == txt.replace('|', '')
-
-
-@pytest.mark.parametrize('txt, expected', [
-    (':nope|', usertypes.Completion.command),
-    (':nope |', None),
-    (':set |', usertypes.Completion.section),
-    (':set gen|', usertypes.Completion.section),
-    (':set general |', usertypes.Completion.option),
-    (':set what |', None),
-    (':set general ignore-case |', usertypes.Completion.value),
-    (':set general huh |', None),
-    (':help |', usertypes.Completion.helptopic),
-    (':help     |', usertypes.Completion.helptopic),
-    (':open |', usertypes.Completion.url),
-    (':bind |', None),
-    (':bind <c-x> |', usertypes.Completion.command),
-    (':bind <c-x> foo|', usertypes.Completion.command),
-    (':bind <c-x>| foo', None),
-    (':set| general ', usertypes.Completion.command),
-    (':|set general ', usertypes.Completion.command),
-    (':set gene|ral ignore-case', usertypes.Completion.section),
-    (':|', usertypes.Completion.command),
-    (':   |', usertypes.Completion.command),
-    ('/|', None),
-    (':open -t|', None),
-    (':open --tab|', None),
-    (':open -t |', usertypes.Completion.url),
-    (':open --tab |', usertypes.Completion.url),
-    (':open | -t', usertypes.Completion.url),
-    (':--foo --bar |', None),
-    (':tab-detach |', None),
-    (':bind --mode=caret <c-x> |', usertypes.Completion.command),
+@pytest.mark.parametrize('txt, kind, pattern', [
+    (':nope|', usertypes.Completion.command, 'nope'),
+    (':nope |', None, ''),
+    (':set |', usertypes.Completion.section, ''),
+    (':set gen|', usertypes.Completion.section, 'gen'),
+    (':set general |', usertypes.Completion.option, ''),
+    (':set what |', None, ''),
+    (':set general editor |', usertypes.Completion.value, ''),
+    (':set general editor gv|', usertypes.Completion.value, 'gv'),
+    (':set general editor "gvim -f"|', usertypes.Completion.value, 'gvim -f'),
+    (':set general editor "gvim |', usertypes.Completion.value, 'gvim'),
+    (':set general huh |', None, ''),
+    (':help |', usertypes.Completion.helptopic, ''),
+    (':help     |', usertypes.Completion.helptopic, ''),
+    (':open |', usertypes.Completion.url, ''),
+    (':bind |', None, ''),
+    (':bind <c-x> |', usertypes.Completion.command, ''),
+    (':bind <c-x> foo|', usertypes.Completion.command, 'foo'),
+    (':bind <c-x>| foo', None, '<c-x>'),
+    (':set| general ', usertypes.Completion.command, 'set'),
+    (':|set general ', usertypes.Completion.command, 'set'),
+    (':set gene|ral ignore-case', usertypes.Completion.section, 'general'),
+    (':|', usertypes.Completion.command, ''),
+    (':   |', usertypes.Completion.command, ''),
+    ('/|', None, ''),
+    (':open -t|', None, ''),
+    (':open --tab|', None, ''),
+    (':open -t |', usertypes.Completion.url, ''),
+    (':open --tab |', usertypes.Completion.url, ''),
+    (':open | -t', usertypes.Completion.url, ''),
+    (':tab-detach |', None, ''),
+    (':bind --mode=caret <c-x> |', usertypes.Completion.command, ''),
     pytest.mark.xfail(reason='issue #74')((':bind --mode caret <c-x> |',
-                                           usertypes.Completion.command)),
-    (':set -t -p |', usertypes.Completion.section),
-    (':open -- |', None),
+                                           usertypes.Completion.command, '')),
+    (':set -t -p |', usertypes.Completion.section, ''),
+    (':open -- |', None, ''),
+    (':gibberish nonesense |', None, ''),
 ])
-def test_update_completion(txt, expected, status_command_stub, completer_obj,
-                           completion_widget_stub):
+def test_update_completion(txt, kind, pattern, status_command_stub,
+                           completer_obj, completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
     assert completion_widget_stub.set_model.call_count == 1
-    arg = completion_widget_stub.set_model.call_args[0][0]
+    args = completion_widget_stub.set_model.call_args[0]
     # the outer model is just for sorting; srcmodel is the completion model
-    if expected is None:
-        assert arg == expected
+    if kind is None:
+        assert args[0] is None
     else:
-        assert arg.srcmodel.kind == expected
+        assert args[0].srcmodel.kind == kind
+        assert args[1] == pattern
 
 
-@pytest.mark.parametrize('before, newtxt, quick_complete, count, after', [
-    (':foo |', 'bar', False, 1, ':foo bar|'),
-    (':foo |', 'bar', True, 2, ':foo bar|'),
-    (':foo |', 'bar', True, 1, ':foo bar |'),
-    (':foo | bar', 'baz', False, 1, ':foo baz| bar'),
-    (':foo |', 'bar baz', True, 1, ":foo 'bar baz' |"),
-    (':foo |', '', True, 1, ":foo '' |"),
-    (':foo |', None, True, 1, ":foo |"),
+@pytest.mark.parametrize('before, newtxt, after', [
+    (':|', 'set', ':set|'),
+    (':| ', 'set', ':set|'),
+    (': |', 'set', ':set|'),
+    (':|set', 'set', ':set|'),
+    (':|set ', 'set', ':set|'),
+    (':|se', 'set', ':set|'),
+    (':|se ', 'set', ':set|'),
+    (':s|e', 'set', ':set|'),
+    (':se|', 'set', ':set|'),
+    (':|se fonts', 'set', ':set| fonts'),
+    (':set |', 'fonts', ':set fonts|'),
+    (':set  |', 'fonts', ':set fonts|'),
+    (':set --temp |', 'fonts', ':set --temp fonts|'),
+    (':set |fo', 'fonts', ':set fonts|'),
+    (':set f|o', 'fonts', ':set fonts|'),
+    (':set fo|', 'fonts', ':set fonts|'),
+    (':set fonts |', 'hints', ':set fonts hints|'),
+    (':set fonts |nt', 'hints', ':set fonts hints|'),
+    (':set fonts n|t', 'hints', ':set fonts hints|'),
+    (':set fonts nt|', 'hints', ':set fonts hints|'),
+    (':set | hints', 'fonts', ':set fonts| hints'),
+    (':set  |  hints', 'fonts', ':set fonts| hints'),
+    (':set |fo hints', 'fonts', ':set fonts| hints'),
+    (':set f|o hints', 'fonts', ':set fonts| hints'),
+    (':set fo| hints', 'fonts', ':set fonts| hints'),
+    (':set fonts hints |', 'Comic Sans', ":set fonts hints 'Comic Sans'|"),
+    (":set fonts hints 'Comic Sans'|", '12px Hack',
+     ":set fonts hints '12px Hack'|"),
+    (":set fonts hints 'Comic| Sans'", '12px Hack',
+     ":set fonts hints '12px Hack'|"),
+    # open has maxsplit=0, so treat the last two tokens as one and don't quote
+    (':open foo bar|', 'baz', ':open baz|'),
+    (':open foo| bar', 'baz', ':open baz|'),
 ])
-def test_on_selection_changed(before, newtxt, count, quick_complete, after,
-                           completer_obj, status_command_stub,
-                           completion_widget_stub, config_stub):
+def test_on_selection_changed(before, newtxt, after, completer_obj,
+                              config_stub, status_command_stub,
+                              completion_widget_stub):
     """Test that on_selection_changed modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
     If quick-complete is True and there is only 1 completion (count == 1),
     then we expect a space to be appended after the current word.
     """
-    config_stub.data['completion']['quick-complete'] = quick_complete
     model = unittest.mock.Mock()
-    model.data = unittest.mock.Mock(return_value=newtxt)
-    model.count = unittest.mock.Mock(return_value=count)
-    indexes = [unittest.mock.Mock()]
-    selection = unittest.mock.Mock()
-    selection.indexes = unittest.mock.Mock(return_value=indexes)
     completion_widget_stub.model.return_value = model
-    _set_cmd_prompt(status_command_stub, before)
-    # schedule_completion_update is needed to pick up the cursor position
+
+    def check(quick_complete, count, expected_txt, expected_pos):
+        config_stub.data['completion']['quick-complete'] = quick_complete
+        model.count = lambda: count
+        _set_cmd_prompt(status_command_stub, before)
+        completer_obj.on_selection_changed(newtxt)
+        assert status_command_stub.text() == expected_txt
+        assert status_command_stub.cursorPosition() == expected_pos
+
+    after_pos = after.index('|')
+    after_txt = after.replace('|', '')
+    check(False, 1, after_txt, after_pos)
+    check(True, 2, after_txt, after_pos)
+
+    # quick-completing a single item should move the cursor ahead by 1 and add
+    # a trailing space if at the end of the cmd string
+    after_pos += 1
+    if after_pos > len(after_txt):
+        after_txt += ' '
+    check(True, 1, after_txt, after_pos)
+
+
+def test_quickcomplete_flicker(status_command_stub, completer_obj,
+                               completion_widget_stub, config_stub):
+    """Validate fix for #1519: bookmark-load background highlighting quirk.
+
+    For commands like bookmark-load and open with maxsplit=0, a commandline
+    that looks like ':open someurl |' is considered to be completing the first
+    arg with pattern 'someurl ' (note trailing whitespace). As this matches the
+    one completion available, it keeps the completionmenu open.
+
+    This test validates that the completion model is not re-set after we
+    quick-complete an entry after maxsplit.
+    """
+    model = unittest.mock.Mock()
+    model.count = unittest.mock.Mock(return_value=1)
+    completion_widget_stub.model.return_value = model
+    config_stub.data['completion']['quick-complete'] = True
+
+    _set_cmd_prompt(status_command_stub, ':open |')
+    completer_obj.on_selection_changed('http://example.com')
     completer_obj.schedule_completion_update()
-    completer_obj.on_selection_changed(selection)
-    model.data.assert_called_with(indexes[0])
-    _validate_cmd_prompt(status_command_stub, after)
+    assert not completion_widget_stub.set_model.called
