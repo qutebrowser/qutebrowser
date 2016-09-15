@@ -22,19 +22,12 @@
 
 """Message singleton so we don't have to define unneeded signals."""
 
-import datetime
-import collections
 import traceback
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import usertypes, log, objreg, utils
-
-
-_QUEUED = []
-QueuedMsg = collections.namedtuple(
-    'QueuedMsg', ['time', 'win_id', 'method_name', 'text', 'args', 'kwargs'])
 
 
 global_bridge = None
@@ -60,84 +53,6 @@ def _log_stack(typ, stack):
         pass
     stack_text = '\n'.join(line.rstrip() for line in stack)
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
-
-
-def _wrapper(win_id, method_name, text, *args, **kwargs):
-    """A wrapper which executes the action if possible, and queues it if not.
-
-    It tries to get the message bridge for the given window, and if it's
-    unavailable, it queues it.
-
-    Args:
-        win_id: The window ID to execute the action in,.
-        method_name: The name of the MessageBridge method to call.
-        text: The text do display.
-        *args/**kwargs: Arguments to pass to the method.
-    """
-    kwargs['log_stack'] = False
-    msg = QueuedMsg(time=datetime.datetime.now(), win_id=win_id,
-                    method_name=method_name, text=text, args=args,
-                    kwargs=kwargs)
-    try:
-        bridge = _get_bridge(win_id)
-    except objreg.RegistryUnavailableError:
-        if win_id == 'current':
-            log.message.debug("Queueing {} for current window".format(
-                method_name))
-            _QUEUED.append(msg)
-        else:
-            raise
-    else:
-        from qutebrowser.config import config
-        win = QApplication.instance().activeWindow()
-        window_focused = (win is not None and
-                          win in objreg.window_registry.values() and
-                          (win.win_id == win_id) or win_id == 'current')
-        if (config.get('ui', 'message-unfocused') or
-                method_name not in ['error', 'warning', 'info'] or
-                window_focused):
-            getattr(bridge, method_name)(text, *args, **kwargs)
-        else:
-            log.message.debug("Queueing {} for window {}".format(
-                method_name, win_id))
-            _QUEUED.append(msg)
-
-
-def _get_bridge(win_id):
-    """Get the correct MessageBridge instance for a window."""
-    try:
-        int(win_id)
-    except ValueError:
-        if win_id == 'current':
-            pass
-        else:
-            raise ValueError("Invalid window id {} - needs to be 'current' or "
-                             "a valid integer!".format(win_id))
-    return objreg.get('message-bridge', scope='window', window=win_id)
-
-
-def on_focus_changed():
-    """Show queued messages when a new window has been focused.
-
-    Gets called when a new window has been focused.
-    """
-    while _QUEUED:
-        msg = _QUEUED.pop()
-        delta = datetime.datetime.now() - msg.time
-        log.message.debug("Handling queued {} for window {}, delta {}".format(
-            msg.method_name, msg.win_id, delta))
-        try:
-            bridge = _get_bridge(msg.win_id)
-        except objreg.RegistryUnavailableError:
-            # Non-mainwindow window focused.
-            _QUEUED.append(msg)
-            return
-        if delta.total_seconds() < 1:
-            text = msg.text
-        else:
-            text = '[{} ago] {}'.format(utils.format_timedelta(delta),
-                                        msg.text)
-        getattr(bridge, msg.method_name)(text, *msg.args, **msg.kwargs)
 
 
 def error(message, *, stack=None):
@@ -167,11 +82,6 @@ def info(message):
     global_bridge.show_message.emit(usertypes.MessageLevel.info, message)
 
 
-def set_cmd_text(win_id, txt):
-    """Convenience function to Set the statusbar command line to a text."""
-    _wrapper(win_id, 'set_cmd_text', txt)
-
-
 def ask(win_id, message, mode, default=None):
     """Ask a modular question in the statusbar (blocking).
 
@@ -188,23 +98,10 @@ def ask(win_id, message, mode, default=None):
     q.text = message
     q.mode = mode
     q.default = default
-    _get_bridge(win_id).ask(q, blocking=True)
+    bridge = objreg.get('message-bridge', scope='window', window=win_id)
+    bridge.ask(q, blocking=True)
     q.deleteLater()
     return q.answer
-
-
-def alert(win_id, message):
-    """Display an alert which needs to be confirmed.
-
-    Args:
-        win_id: The ID of the window which is calling this function.
-        message: The message to show.
-    """
-    q = usertypes.Question()
-    q.text = message
-    q.mode = usertypes.PromptMode.alert
-    _wrapper(win_id, 'ask', q, blocking=True)
-    q.deleteLater()
 
 
 def ask_async(win_id, message, mode, handler, default=None):
@@ -225,7 +122,8 @@ def ask_async(win_id, message, mode, handler, default=None):
     q.default = default
     q.answered.connect(handler)
     q.completed.connect(q.deleteLater)
-    _wrapper(win_id, 'ask', q, blocking=False)
+    bridge = objreg.get('message-bridge', scope='window', window=win_id)
+    bridge.ask(q, blocking=False)
 
 
 def confirm_async(win_id, message, yes_action, no_action=None, default=None):
@@ -246,7 +144,8 @@ def confirm_async(win_id, message, yes_action, no_action=None, default=None):
     if no_action is not None:
         q.answered_no.connect(no_action)
     q.completed.connect(q.deleteLater)
-    _wrapper(win_id, 'ask', q, blocking=False)
+    bridge = objreg.get('message-bridge', scope='window', window=win_id)
+    bridge.ask(q, blocking=False)
 
 
 class GlobalMessageBridge(QObject):

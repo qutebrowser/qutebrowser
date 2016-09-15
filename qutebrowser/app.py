@@ -148,7 +148,6 @@ def init(args, crash_handler):
     config_obj = objreg.get('config')
     config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
     qApp.focusChanged.connect(on_focus_changed)
-    qApp.focusChanged.connect(message.on_focus_changed)
 
     QDesktopServices.setUrlHandler('http', open_desktopservices_url)
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)

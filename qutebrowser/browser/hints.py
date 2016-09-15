@@ -264,7 +264,10 @@ class HintActions:
         text = ' '.join(args)
         if text[0] not in modeparsers.STARTCHARS:
             raise HintingError("Invalid command text '{}'.".format(text))
-        message.set_cmd_text(self._win_id, text)
+
+        bridge = objreg.get('message-bridge', scope='window',
+                            window=self._win_id)
+        bridge.set_cmd_text(text)
 
     def download(self, elem, context):
         """Download a hint URL.
