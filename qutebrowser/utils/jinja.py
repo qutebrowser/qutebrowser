@@ -64,7 +64,7 @@ def _guess_autoescape(template_name):
     return ext in ['html', 'htm', 'xml']
 
 
-def resource_url(path, qutescheme):
+def resource_url(path, qutescheme=False):
     """Load images from a relative path (to qutebrowser).
 
     Arguments:
