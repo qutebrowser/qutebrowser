@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 import pytest
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils, urlutils, qtutils
+from qutebrowser.utils import utils, urlutils, qtutils, usertypes
 
 
 class FakeDNS:
@@ -104,13 +104,6 @@ def urlutils_config_stub(config_stub, monkeypatch):
     }
     monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
     return config_stub
-
-
-@pytest.fixture
-def urlutils_message_mock(message_mock):
-    """Customized message_mock for the urlutils module."""
-    message_mock.patch('qutebrowser.utils.urlutils.message')
-    return message_mock
 
 
 class TestFuzzyUrl:
@@ -419,7 +412,7 @@ def test_qurl_from_user_input(user_input, output):
     ('', False, False),
     ('://', False, True),
 ])
-def test_invalid_url_error(urlutils_message_mock, url, valid, has_err_string):
+def test_invalid_url_error(message_mock, url, valid, has_err_string):
     """Test invalid_url_error().
 
     Args:
@@ -432,12 +425,12 @@ def test_invalid_url_error(urlutils_message_mock, url, valid, has_err_string):
     if valid:
         with pytest.raises(ValueError):
             urlutils.invalid_url_error(qurl, '')
-        assert not urlutils_message_mock.messages
+        assert not message_mock.messages
     else:
         assert bool(qurl.errorString()) == has_err_string
         urlutils.invalid_url_error(qurl, 'frozzle')
 
-        msg = urlutils_message_mock.getmsg(urlutils_message_mock.Level.error)
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
         if has_err_string:
             expected_text = ("Trying to frozzle with invalid URL - " +
                              qurl.errorString())

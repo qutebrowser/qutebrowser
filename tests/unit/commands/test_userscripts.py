@@ -29,12 +29,6 @@ from PyQt5.QtCore import QFileSystemWatcher
 from qutebrowser.commands import userscripts
 
 
-@pytest.fixture(autouse=True)
-def guiprocess_message_mock(message_mock):
-    message_mock.patch('qutebrowser.misc.guiprocess.message')
-    return message_mock
-
-
 @pytest.mark.posix
 class TestQtFIFOReader:
 

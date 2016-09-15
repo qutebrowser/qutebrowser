@@ -30,8 +30,7 @@ from qutebrowser.misc import editor as editormod
 
 
 @pytest.fixture(autouse=True)
-def patch_things(config_stub, message_mock, monkeypatch, stubs):
-    message_mock.patch('qutebrowser.misc.editor.message')
+def patch_things(config_stub, monkeypatch, stubs):
     monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
                         stubs.fake_qprocess())
     config_stub.data = {
@@ -130,7 +129,7 @@ class TestFileHandling:
         os.chmod(filename, 0o077)
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
-        msg = message_mock.getmsg(message_mock.Level.error)
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
     @pytest.mark.posix
@@ -140,7 +139,7 @@ class TestFileHandling:
         monkeypatch.setattr('qutebrowser.misc.editor.tempfile.tempdir',
                             str(tmpdir))
         editor.edit("")
-        msg = message_mock.getmsg(message_mock.Level.error)
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to create initial file: ")
         assert editor._proc is None
 
