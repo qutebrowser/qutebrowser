@@ -102,7 +102,7 @@ def dirbrowser_html(path):
         html = jinja.render('error.html',
                             title="Error while reading directory",
                             url='file:///{}'.format(path), error=str(e),
-                            icon='')
+                            icon='', qutescheme=False)
         return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     files = get_file_list(path, all_files, os.path.isfile)

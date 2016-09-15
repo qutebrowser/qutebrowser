@@ -39,8 +39,10 @@ def patch_read_file(monkeypatch):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
             return """Hello {{var}}"""
-        elif path == os.path.join('html', 'test2.html'):
-            return """{{ resource_url('utils/testfile') }}"""
+        elif path == os.path.join('html', 'resource_url.html'):
+            return """{{ resource_url('utils/testfile', False) }}"""
+        elif path == os.path.join('html', 'resource_url_qute.html'):
+            return """{{ resource_url('utils/testfile', True) }}"""
         elif path == os.path.join('html', 'undef.html'):
             return """{{ does_not_exist() }}"""
         elif path == os.path.join('html', 'undef_error.html'):
@@ -59,7 +61,7 @@ def test_simple_template():
 
 def test_resource_url():
     """Test resource_url() which can be used from templates."""
-    data = jinja.render('test2.html')
+    data = jinja.render('resource_url.html')
     print(data)
     url = QUrl(data)
     assert url.isValid()
@@ -73,6 +75,14 @@ def test_resource_url():
 
     with open(path, 'r', encoding='utf-8') as f:
         assert f.read().splitlines()[0] == "Hello World!"
+
+
+def test_resource_url_qutescheme():
+    """Test resource_url() which can be used from templates."""
+    data = jinja.render('resource_url_qute.html')
+    print(data)
+    url = QUrl(data)
+    assert url == QUrl('qute://resource/utils/testfile')
 
 
 def test_not_found():
