@@ -247,9 +247,10 @@ class Command:
                 if self._inspect_special_param(param):
                     continue
                 if (param.kind == inspect.Parameter.KEYWORD_ONLY and
-                      param.default is inspect.Parameter.empty):
+                        param.default is inspect.Parameter.empty):
                     raise TypeError("{}: handler has keyword only argument "
-                                    "without default!".format(self.name))
+                                    "{!r} without default!".format(self.name,
+                                                                   param.name))
                 typ = self._get_type(param)
                 is_bool = typ is bool
                 kwargs = self._param_to_argparse_kwargs(param, is_bool)
