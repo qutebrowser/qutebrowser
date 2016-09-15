@@ -107,7 +107,7 @@ class Completer(QObject):
         log.completion.debug("Before removing flags: {}".format(before_cursor))
         before_cursor = [x for x in before_cursor if not x.startswith('-')]
         log.completion.debug("After removing flags: {}".format(before_cursor))
-        if len(before_cursor) == 0:
+        if not before_cursor:
             # '|' or 'set|'
             model = instances.get(usertypes.Completion.command)
             return sortfilter.CompletionFilterModel(source=model, parent=self)
