@@ -324,7 +324,7 @@ class TestRegister:
         # https://github.com/The-Compiler/qutebrowser/issues/1871
         @cmdutils.register()
         @cmdutils.argument('arg', choices=['foo', 'bar'])
-        def fun(*, arg):
+        def fun(*, arg='foo'):
             """Blah."""
             pass
 
