@@ -83,7 +83,7 @@ class JSBridge(QObject):
         try:
             objreg.get('config').set('conf', sectname, optname, value)
         except (configexc.Error, configparser.Error) as e:
-            message.error(e)
+            message.error(str(e))
 
 
 @qutescheme.add_handler('settings', backend=usertypes.Backend.QtWebKit)

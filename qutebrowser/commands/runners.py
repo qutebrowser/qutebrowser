@@ -320,7 +320,7 @@ class CommandRunner(QObject):
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(e, stack=traceback.format_exc())
+            message.error(str(e), stack=traceback.format_exc())
 
     @pyqtSlot(str, int)
     def run_safely_init(self, text, count=None):
@@ -332,4 +332,4 @@ class CommandRunner(QObject):
         try:
             self.run(text, count)
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(e, stack=traceback.format_exc())
+            message.error(str(e), stack=traceback.format_exc())
