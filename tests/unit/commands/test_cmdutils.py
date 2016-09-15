@@ -362,7 +362,6 @@ class TestRegister:
                     "default!")
         assert str(excinfo.value) == expected
 
-
     def test_typed_keyword_only_without_default(self):
         # https://github.com/The-Compiler/qutebrowser/issues/1872
         def fun(*, target: int):
