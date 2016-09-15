@@ -118,6 +118,20 @@ Changed
   questions.
 - The new `--qt-arg` and `--qt-flag` arguments can be used to pass
   arguments/flags to Qt's commandline.
+- Error/warning/info messages are now shown stacked above the statusbar.
+  This also added various new settings:
+    * `colors -> messages.fg.error` (renamed from `statusbar.fg.error`)
+    * `colors -> messages.bg.error` (renamed from `statusbar.bg.error`)
+    * `colors -> messages.border.error`
+    * `colors -> messages.fg.warning` (renamed from `statusbar.fg.warning`)
+    * `colors -> messages.bg.warning` (renamed from `statusbar.bg.warning`)
+    * `colors -> messages.border.warning`
+    * `colors -> messages.fg.info`
+    * `colors -> messages.bg.info`
+    * `colors -> messages.border.info`
+    * `fonts -> messages.error`
+    * `fonts -> messages.warning`
+    * `fonts -> messages.info`
 
 Deprecated
 ~~~~~~~~~~
