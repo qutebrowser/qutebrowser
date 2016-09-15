@@ -23,7 +23,6 @@ import logging
 import collections
 
 import pytest
-from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.utils import usertypes, message
 
@@ -43,7 +42,6 @@ class MessageMock:
     def __init__(self):
         self.messages = []
 
-    @pyqtSlot(usertypes.MessageLevel, str)
     def _record_message(self, level, text):
         log_levels = {
             usertypes.MessageLevel.error: logging.ERROR,
