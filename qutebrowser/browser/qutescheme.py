@@ -259,6 +259,7 @@ def qute_help(url):
 
 @add_handler('resource')
 def qute_resource(url):
+    """Serve resources via a qute://resource/... URL."""
     data = utils.read_file(url.path(), binary=True)
     mimetype, _encoding = mimetypes.guess_type(url.fileName())
     assert mimetype is not None, url
