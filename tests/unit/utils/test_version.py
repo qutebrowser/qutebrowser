@@ -614,18 +614,17 @@ class FakeQSslSocket:
         return self._version
 
 
-@pytest.mark.parametrize(['git_commit', 'harfbuzz', 'frozen', 'style',
+@pytest.mark.parametrize(['git_commit', 'frozen', 'style',
                           'equal_qt', 'with_webkit'], [
-    (True, True, False, True, True, True),  # normal
-    (False, True, False, True, True, True),  # no git commit
-    (True, False, False, True, True, True),  # HARFBUZZ unset
-    (True, True, True, True, True, True),  # frozen
-    (True, True, True, False, True, True),  # no style
-    (True, True, False, True, False, True),  # different Qt
-    (True, True, False, True, True, False),  # no webkit
+    (True, False, True, True, True),  # normal
+    (False, False, True, True, True),  # no git commit
+    (True, True, True, True, True),  # frozen
+    (True, True, False, True, True),  # no style
+    (True, False, True, False, True),  # different Qt
+    (True, False, True, True, False),  # no webkit
 ])
-def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
-                        with_webkit, stubs, monkeypatch):
+def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
+                        stubs, monkeypatch):
     """Test version.version()."""
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
@@ -652,13 +651,6 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
-    monkeypatch.setenv('DESKTOP_SESSION', 'DESKTOP')
-
-    if harfbuzz:
-        monkeypatch.setenv('QT_HARFBUZZ', 'HARFBUZZ')
-    else:
-        monkeypatch.delenv('QT_HARFBUZZ', raising=False)
-
     if frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
     else:
@@ -675,11 +667,9 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
         Webkit: {webkit}
-        Harfbuzz: {harfbuzz}
         SSL: SSL VERSION
         {style}
         Platform: PLATFORM, ARCHITECTURE
-        Desktop: DESKTOP
         Frozen: {frozen}
         Imported from {import_path}
         OS INFO 1
@@ -691,7 +681,6 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         'style': '\nStyle: STYLE' if style else '',
         'qt': ('QT VERSION' if equal_qt else
                'QT RUNTIME VERSION (compiled QT VERSION)'),
-        'harfbuzz': 'HARFBUZZ' if harfbuzz else 'system',
         'frozen': str(frozen),
         'import_path': import_path,
         'webkit': 'WEBKIT VERSION' if with_webkit else 'no'

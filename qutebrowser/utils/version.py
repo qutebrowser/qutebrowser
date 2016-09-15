@@ -237,7 +237,6 @@ def version():
         lines.append('Webkit: {}'.format(qWebKitVersion()))
 
     lines += [
-        'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
         'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
         '',
     ]
@@ -252,7 +251,6 @@ def version():
     lines += [
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
-        'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
     ]
