@@ -387,6 +387,10 @@ class ConfigManager(QObject):
         ('ui', 'show-keyhints'): 'keyhint-blacklist',
         ('content', 'javascript-can-open-windows'):
             'javascript-can-open-windows-automatically',
+        ('colors', 'statusbar.fg.error'): 'messages.fg.error',
+        ('colors', 'statusbar.bg.error'): 'messages.bg.error',
+        ('colors', 'statusbar.fg.warning'): 'messages.fg.warning',
+        ('colors', 'statusbar.bg.warning'): 'messages.bg.warning',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
