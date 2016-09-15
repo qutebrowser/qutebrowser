@@ -68,17 +68,20 @@ def error(message, *, stack=None):
     else:
         typ = 'error (from exception)'
     _log_stack(typ, stack)
+    log.message.error(message)
     global_bridge.show_message.emit(usertypes.MessageLevel.error, message)
 
 
 def warning(message):
     """Convenience function to display a warning message in the statusbar."""
     _log_stack('warning', traceback.format_stack())
+    log.message.warning(message)
     global_bridge.show_message.emit(usertypes.MessageLevel.warning, message)
 
 
 def info(message):
     """Convenience function to display an info message in the statusbar."""
+    log.message.info(message)
     global_bridge.show_message.emit(usertypes.MessageLevel.info, message)
 
 
