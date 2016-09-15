@@ -212,7 +212,7 @@ def _has_explicit_scheme(url):
     # symbols, we treat this as not a URI anyways.
     return (url.isValid() and url.scheme() and
             (url.host() or url.path()) and
-            not url.path().startswith(' ') and
+            ' ' not in url.path() and
             not url.path().startswith(':'))
 
 
