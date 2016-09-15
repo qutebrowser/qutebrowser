@@ -499,7 +499,7 @@ Feature: Various utility commands.
     Scenario: Using :debug-log-capacity
         When I run :debug-log-capacity 100
         And I run :message-info oldstuff
-        And I run :repeat 10 :message-info otherstuff
+        And I run :repeat 20 :message-info otherstuff
         And I run :message-info newstuff
         And I open qute:log
         Then the page should contain the plaintext "newstuff"
