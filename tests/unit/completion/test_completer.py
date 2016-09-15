@@ -242,18 +242,13 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
     then we expect a space to be appended after the current word.
     """
     model = unittest.mock.Mock()
-    model.data = unittest.mock.Mock(return_value=newtxt)
-    indexes = [unittest.mock.Mock()]
-    selection = unittest.mock.Mock()
-    selection.indexes = unittest.mock.Mock(return_value=indexes)
     completion_widget_stub.model.return_value = model
 
     def check(quick_complete, count, expected_txt, expected_pos):
         config_stub.data['completion']['quick-complete'] = quick_complete
-        model.count = unittest.mock.Mock(return_value=count)
+        model.count = lambda: count
         _set_cmd_prompt(status_command_stub, before)
-        completer_obj.on_selection_changed(selection)
-        model.data.assert_called_with(indexes[0])
+        completer_obj.on_selection_changed(newtxt)
         assert status_command_stub.text() == expected_txt
         assert status_command_stub.cursorPosition() == expected_pos
 
@@ -283,16 +278,11 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     quick-complete an entry after maxsplit.
     """
     model = unittest.mock.Mock()
-    model.data = unittest.mock.Mock(return_value='http://example.com')
-    indexes = [unittest.mock.Mock()]
-    selection = unittest.mock.Mock()
-    selection.indexes = unittest.mock.Mock(return_value=indexes)
-    completion_widget_stub.model.return_value = model
-
-    config_stub.data['completion']['quick-complete'] = True
     model.count = unittest.mock.Mock(return_value=1)
-    _set_cmd_prompt(status_command_stub, ':open |')
-    completer_obj.on_selection_changed(selection)
+    completion_widget_stub.model.return_value = model
+    config_stub.data['completion']['quick-complete'] = True
 
+    _set_cmd_prompt(status_command_stub, ':open |')
+    completer_obj.on_selection_changed('http://example.com')
     completer_obj.schedule_completion_update()
     assert not completion_widget_stub.set_model.called

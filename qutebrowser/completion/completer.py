@@ -173,35 +173,30 @@ class Completer(QObject):
                     "partitioned: {} '{}' {}".format(prefix, center, postfix))
                 return prefix, center, postfix
 
-    @pyqtSlot(QItemSelection)
-    def on_selection_changed(self, selected):
+    @pyqtSlot(str)
+    def on_selection_changed(self, text):
         """Change the completed part if a new item was selected.
 
         Called from the views selectionChanged method.
 
         Args:
-            selected: New selection.
-            _deselected: Previous selection.
+            text: Newly selected text.
         """
-        indexes = selected.indexes()
-        if not indexes:
-            return
-        model = self._model()
-        data = model.data(indexes[0])
-        if data is None:
+        if text is None:
             return
         before, center, after = self._partition()
-        log.completion.debug("Changing {} to '{}'".format(center, data))
+        log.completion.debug("Changing {} to '{}'".format(center, text))
         try:
             maxsplit = cmdutils.cmd_dict[before[0]].maxsplit
         except (KeyError, IndexError):
             maxsplit = None
         if maxsplit is None:
-            data = self._quote(data)
+            text = self._quote(text)
+        model = self._model()
         if model.count() == 1 and config.get('completion', 'quick-complete'):
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
-            self._change_completed_part(data, before, after, immediate=True)
+            self._change_completed_part(text, before, after, immediate=True)
             if maxsplit is not None and maxsplit < len(before):
                 # If we are quick-completing the part after maxsplit, don't
                 # keep offering completions (see issue #1519)
@@ -209,7 +204,7 @@ class Completer(QObject):
         else:
             log.completion.debug("Will ignore next completion update.")
             self._ignore_change = True
-            self._change_completed_part(data, before, after)
+            self._change_completed_part(text, before, after)
 
     @pyqtSlot()
     def schedule_completion_update(self):
