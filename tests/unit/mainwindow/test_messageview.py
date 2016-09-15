@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import sip
 import pytest
 
 from qutebrowser.mainwindow import messageview
@@ -65,7 +64,6 @@ def test_message_hiding(qtbot, view):
     """Messages should be hidden after the timer times out."""
     with qtbot.waitSignal(view._clear_timer.timeout):
         view.show_message(usertypes.MessageLevel.info, 'test')
-        message = view._messages[0]
     assert not view._messages
 
 
