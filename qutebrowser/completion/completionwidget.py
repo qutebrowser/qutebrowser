@@ -104,7 +104,7 @@ class CompletionView(QTreeView):
     """
 
     resize_completion = pyqtSignal()
-    selection_changed = pyqtSignal(QItemSelection)
+    selection_changed = pyqtSignal(str)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -310,7 +310,11 @@ class CompletionView(QTreeView):
         if not self._active:
             return
         super().selectionChanged(selected, deselected)
-        self.selection_changed.emit(selected)
+        indexes = selected.indexes()
+        if not indexes:
+            return
+        data = self.model().data(indexes[0])
+        self.selection_changed.emit(data)
 
     def resizeEvent(self, e):
         """Extend resizeEvent to adjust column size."""

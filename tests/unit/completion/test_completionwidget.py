@@ -96,64 +96,56 @@ def test_maybe_resize_completion(completionview, config_stub, qtbot):
         completionview.maybe_resize_completion()
 
 
-@pytest.mark.parametrize('which, tree, count, expected', [
-    ('next', [['Aa']], 1, 'Aa'),
-    ('prev', [['Aa']], 1, 'Aa'),
-    ('next', [['Aa'], ['Ba']], 1, 'Aa'),
-    ('prev', [['Aa'], ['Ba']], 1, 'Ba'),
-    ('next', [['Aa'], ['Ba']], 2, 'Ba'),
-    ('prev', [['Aa'], ['Ba']], 2, 'Aa'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ac'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ba'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 6, 'Ca'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 7, 'Aa'),
-    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 1, 'Ca'),
-    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Bb'),
-    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ac'),
-    ('next', [[], ['Ba', 'Bb']], 1, 'Ba'),
-    ('prev', [[], ['Ba', 'Bb']], 1, 'Bb'),
-    ('next', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('prev', [[], [], ['Ca', 'Cb']], 1, 'Cb'),
-    ('next', [['Aa'], []], 1, 'Aa'),
-    ('prev', [['Aa'], []], 1, 'Aa'),
-    ('next', [['Aa'], [], []], 1, 'Aa'),
-    ('prev', [['Aa'], [], []], 1, 'Aa'),
-    ('next', [['Aa'], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('prev', [['Aa'], [], ['Ca', 'Cb']], 1, 'Cb'),
-    ('next', [[]], 1, None),
-    ('prev', [[]], 1, None),
-    ('next-category', [['Aa']], 1, 'Aa'),
-    ('prev-category', [['Aa']], 1, 'Aa'),
-    ('next-category', [['Aa'], ['Ba']], 1, 'Aa'),
-    ('prev-category', [['Aa'], ['Ba']], 1, 'Ba'),
-    ('next-category', [['Aa'], ['Ba']], 2, 'Ba'),
-    ('prev-category', [['Aa'], ['Ba']], 2, 'Aa'),
-    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Ba'),
-    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Ba'),
-    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ca'),
-    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Aa'),
-    ('next-category', [[], ['Ba', 'Bb']], 1, 'Ba'),
-    ('prev-category', [[], ['Ba', 'Bb']], 1, 'Ba'),
-    ('next-category', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('prev-category', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('next-category', [[], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('prev-category', [[], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('next-category', [['Aa'], [], []], 1, 'Aa'),
-    ('prev-category', [['Aa'], [], []], 1, 'Aa'),
-    ('next-category', [['Aa'], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('prev-category', [['Aa'], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('next-category', [[]], 1, None),
-    ('prev-category', [[]], 1, None),
+@pytest.mark.parametrize('which, tree, expected', [
+    ('next', [['Aa']], ['Aa', None, None]),
+    ('prev', [['Aa']], ['Aa', None, None]),
+    ('next', [['Aa'], ['Ba']], ['Aa', 'Ba', 'Aa']),
+    ('prev', [['Aa'], ['Ba']], ['Ba', 'Aa', 'Ba']),
+    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+        ['Aa', 'Ab', 'Ac', 'Ba', 'Bb', 'Ca', 'Aa']),
+    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+        ['Ca', 'Bb', 'Ba', 'Ac', 'Ab', 'Aa', 'Ca']),
+    ('next', [[], ['Ba', 'Bb']], ['Ba', 'Bb', 'Ba']),
+    ('prev', [[], ['Ba', 'Bb']], ['Bb', 'Ba', 'Bb']),
+    ('next', [[], [], ['Ca', 'Cb']], ['Ca', 'Cb', 'Ca']),
+    ('prev', [[], [], ['Ca', 'Cb']], ['Cb', 'Ca', 'Cb']),
+    ('next', [['Aa'], []], ['Aa', None]),
+    ('prev', [['Aa'], []], ['Aa', None]),
+    ('next', [['Aa'], [], []], ['Aa', None]),
+    ('prev', [['Aa'], [], []], ['Aa', None]),
+    ('next', [['Aa'], [], ['Ca', 'Cb']], ['Aa', 'Ca', 'Cb', 'Aa']),
+    ('prev', [['Aa'], [], ['Ca', 'Cb']], ['Cb', 'Ca', 'Aa', 'Cb']),
+    ('next', [[]], [None, None]),
+    ('prev', [[]], [None, None]),
+    ('next-category', [['Aa']], ['Aa', None, None]),
+    ('prev-category', [['Aa']], ['Aa', None, None]),
+    ('next-category', [['Aa'], ['Ba']], ['Aa', 'Ba', 'Aa']),
+    ('prev-category', [['Aa'], ['Ba']], ['Ba', 'Aa', 'Ba']),
+    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+        ['Aa', 'Ba', 'Ca', 'Aa']),
+    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+        ['Ca', 'Ba', 'Aa', 'Ca']),
+    ('next-category', [[], ['Ba', 'Bb']], ['Ba', None, None]),
+    ('prev-category', [[], ['Ba', 'Bb']], ['Ba', None, None]),
+    ('next-category', [[], [], ['Ca', 'Cb']], ['Ca', None, None]),
+    ('prev-category', [[], [], ['Ca', 'Cb']], ['Ca', None, None]),
+    ('next-category', [['Aa'], [], []], ['Aa', None, None]),
+    ('prev-category', [['Aa'], [], []], ['Aa', None, None]),
+    ('next-category', [['Aa'], [], ['Ca', 'Cb']], ['Aa', 'Ca', 'Aa']),
+    ('prev-category', [['Aa'], [], ['Ca', 'Cb']], ['Ca', 'Aa', 'Ca']),
+    ('next-category', [[]], [None, None]),
+    ('prev-category', [[]], [None, None]),
 ])
-def test_completion_item_focus(which, tree, count, expected, completionview,
-                               qtbot):
+def test_completion_item_focus(which, tree, expected, completionview, qtbot):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
+        which: the direction in which to move the selection.
         tree: Each list represents a completion category, with each string
               being an item under that category.
-        count: Number of times to go forward (or back if negative).
-        expected: item data that should be selected after going back/forward.
+        expected: expected argument from on_selection_changed for each
+                  successive movement. None implies no signal should be
+                  emitted.
     """
     model = base.BaseCompletionModel()
     for catdata in tree:
@@ -164,15 +156,14 @@ def test_completion_item_focus(which, tree, count, expected, completionview,
     filtermodel = sortfilter.CompletionFilterModel(model,
                                                    parent=completionview)
     completionview.set_model(filtermodel)
-    if expected is None:
-        for _ in range(count):
-            completionview.completion_item_focus(which)
-    else:
-        with qtbot.waitSignal(completionview.selection_changed):
-            for _ in range(count):
+    for entry in expected:
+        if entry is None:
+            with qtbot.assertNotEmitted(completionview.selection_changed):
                 completionview.completion_item_focus(which)
-    idx = completionview.selectionModel().currentIndex()
-    assert filtermodel.data(idx) == expected
+        else:
+            with qtbot.waitSignal(completionview.selection_changed) as sig:
+                completionview.completion_item_focus(which)
+                assert sig.args == [entry]
 
 
 @pytest.mark.parametrize('which', ['next', 'prev', 'next-category',
