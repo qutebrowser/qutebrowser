@@ -955,10 +955,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
-    @cmdutils.argument('count', count=True)
-    @cmdutils.argument('zero_count', zero_count=True)
-    def tab_focus(self, index: typing.Union[str, int]=None, count=None,
-        zero_count=None):
+    @cmdutils.argument('count', count=True, zero_count=True)
+    def tab_focus(self, index: typing.Union[str, int]=None, count=None):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -970,11 +968,12 @@ class CommandDispatcher:
                    Negative indices count from the end, such that -1 is the
                    last tab.
             count: The tab index to focus, starting with 1.
+            zero_count: The tab index to focus, with 0. The special value
+                   0 value focuses the last focused tab.
         """
         if index == 'last':
             self._tab_focus_last()
             return
-        index = zero_count if zero_count is not None else index
         index = count if count is not None else index
         if index is None:
             self.tab_next()

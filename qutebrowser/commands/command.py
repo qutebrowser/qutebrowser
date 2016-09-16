@@ -33,8 +33,8 @@ class ArgInfo:
 
     """Information about an argument."""
 
-    def __init__(self, win_id=False, count=False, flag=None, hide=False,
-                 zero_count=False, metavar=None, completion=None, choices=None):
+    def __init__(self, win_id=False, count=False, hide=False, metavar=None,
+                 zero_count=False, flag=None, completion=None, choices=None):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
         self.win_id = win_id
@@ -58,7 +58,8 @@ class ArgInfo:
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self.win_id, count=self.count,
-                              flag=self.flag, hide=self.hide, zero_count=self.zero_count,
+                              flag=self.flag, hide=self.hide,
+                              zero_count=self.zero_count,
                               metavar=self.metavar, completion=self.completion,
                               choices=self.choices, constructor=True)
 
