@@ -33,26 +33,27 @@ Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
                       is_int=True)
 
 
-class BaseCompletionModel(QStandardItemModel):
+class CompletionModel(QStandardItemModel):
 
     """A simple QStandardItemModel adopted for completions.
 
     Used for showing completions later in the CompletionView. Supports setting
     marks and adding new categories/items easily.
 
-    Class Attributes:
-        COLUMN_WIDTHS: The width percentages of the columns used in the
-                        completion view.
-        DUMB_SORT: the dumb sorting used by the model
+    Attributes:
+        column_widths: The width percentages of the columns used in the
+                       completion view.
+        dumb_sort: the dumb sorting used by the model
     """
 
-    COLUMN_WIDTHS = (30, 70, 0)
-    DUMB_SORT = None
-
-    def __init__(self, parent=None):
+    def __init__(self, dumb_sort=None, column_widths=(30, 70, 0),
+                 columns_to_filter=None, delete_cur_item=None, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
-        self.columns_to_filter = [0]
+        self.columns_to_filter = columns_to_filter or [0]
+        self.dumb_sort = dumb_sort
+        self.column_widths = column_widths
+        self.delete_cur_item = delete_cur_item
 
     def new_category(self, name, sort=None):
         """Add a new category to the model.
@@ -102,10 +103,6 @@ class BaseCompletionModel(QStandardItemModel):
         if userdata is not None:
             nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
-
-    def delete_cur_item(self, completion):
-        """Delete the selected item."""
-        raise NotImplementedError
 
     def flags(self, index):
         """Return the item flags for index.

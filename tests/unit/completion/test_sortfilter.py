@@ -33,7 +33,7 @@ def _create_model(data):
           tuple in the sub-list represents an item, and each value in the
           tuple represents the item data for that column
     """
-    model = base.BaseCompletionModel()
+    model = base.CompletionModel()
     for catdata in data:
         cat = model.new_category('')
         for itemdata in catdata:
@@ -74,7 +74,7 @@ def _extract_model_data(model):
     ('4', 'blah', False),
 ])
 def test_filter_accepts_row(pattern, data, expected):
-    source_model = base.BaseCompletionModel()
+    source_model = base.CompletionModel()
     cat = source_model.new_category('test')
     source_model.new_item(cat, data)
 
@@ -119,8 +119,8 @@ def test_first_last_item(tree, first, last):
 
 def test_set_source_model():
     """Ensure setSourceModel sets source_model and clears the pattern."""
-    model1 = base.BaseCompletionModel()
-    model2 = base.BaseCompletionModel()
+    model1 = base.CompletionModel()
+    model2 = base.CompletionModel()
     filter_model = sortfilter.CompletionFilterModel(model1)
     filter_model.set_pattern('foo')
     # sourceModel() is cached as srcmodel, so make sure both match
@@ -202,7 +202,7 @@ def test_count(tree, expected):
 def test_set_pattern(pattern, dumb_sort, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
     model = _create_model(before)
-    model.DUMB_SORT = dumb_sort
+    model.dumb_sort = dumb_sort
     model.columns_to_filter = filter_cols
     filter_model = sortfilter.CompletionFilterModel(model)
     filter_model.set_pattern(pattern)

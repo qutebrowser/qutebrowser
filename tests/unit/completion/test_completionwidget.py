@@ -71,7 +71,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
 
 def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
-    model = base.BaseCompletionModel()
+    model = base.CompletionModel()
     filtermodel = sortfilter.CompletionFilterModel(model)
     for i in range(3):
         model.appendRow(QStandardItem(str(i)))
@@ -82,7 +82,7 @@ def test_set_model(completionview):
 
 
 def test_set_pattern(completionview):
-    model = sortfilter.CompletionFilterModel(base.BaseCompletionModel())
+    model = sortfilter.CompletionFilterModel(base.CompletionModel())
     model.set_pattern = unittest.mock.Mock()
     completionview.set_model(model, 'foo')
     model.set_pattern.assert_called_with('foo')
@@ -148,7 +148,7 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
                   successive movement. None implies no signal should be
                   emitted.
     """
-    model = base.BaseCompletionModel()
+    model = base.CompletionModel()
     for catdata in tree:
         cat = QStandardItem()
         model.appendRow(cat)
@@ -176,7 +176,7 @@ def test_completion_item_focus_no_model(which, completionview, qtbot):
     """
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
-    model = base.BaseCompletionModel()
+    model = base.CompletionModel()
     filtermodel = sortfilter.CompletionFilterModel(model,
                                                    parent=completionview)
     completionview.set_model(filtermodel)
@@ -200,7 +200,7 @@ def test_completion_show(show, rows, quick_complete, completionview,
     config_stub.data['completion']['show'] = show
     config_stub.data['completion']['quick-complete'] = quick_complete
 
-    model = base.BaseCompletionModel()
+    model = base.CompletionModel()
     for name in rows:
         cat = QStandardItem()
         model.appendRow(cat)

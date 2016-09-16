@@ -50,7 +50,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self.pattern = ''
         self.pattern_re = None
 
-        dumb_sort = self.srcmodel.DUMB_SORT
+        dumb_sort = self.srcmodel.dumb_sort
         if dumb_sort is None:
             # pylint: disable=invalid-name
             self.lessThan = self.intelligentLessThan

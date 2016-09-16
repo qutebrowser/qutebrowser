@@ -34,11 +34,11 @@ class FakeCompletionModel(QStandardItemModel):
 
     """Stub for a completion model."""
 
-    DUMB_SORT = None
-
-    def __init__(self, kind, parent=None):
+    def __init__(self, kind, *pos_args, parent=None):
         super().__init__(parent)
         self.kind = kind
+        self.pos_args = [*pos_args]
+        self.dumb_sort = None
 
 
 class CompletionWidgetStub(QObject):
@@ -74,17 +74,8 @@ def instances(monkeypatch):
     """Mock the instances module so get returns a fake completion model."""
     # populate a model for each completion type, with a nested structure for
     # option and value completion
-    instances = {kind: FakeCompletionModel(kind)
-                 for kind in usertypes.Completion}
-    instances[usertypes.Completion.option] = {
-        'general': FakeCompletionModel(usertypes.Completion.option),
-    }
-    instances[usertypes.Completion.value] = {
-        'general': {
-            'editor': FakeCompletionModel(usertypes.Completion.value),
-        }
-    }
-    monkeypatch.setattr(completer, 'instances', instances)
+    get = lambda kind: lambda *args: FakeCompletionModel(kind, *args)
+    monkeypatch.setattr(completer, 'instances', get)
 
 
 @pytest.fixture(autouse=True)
@@ -140,47 +131,52 @@ def _set_cmd_prompt(cmd, txt):
     cmd.setCursorPosition(txt.index('|'))
 
 
-@pytest.mark.parametrize('txt, kind, pattern', [
-    (':nope|', usertypes.Completion.command, 'nope'),
-    (':nope |', None, ''),
-    (':set |', usertypes.Completion.section, ''),
-    (':set gen|', usertypes.Completion.section, 'gen'),
-    (':set general |', usertypes.Completion.option, ''),
-    (':set what |', None, ''),
-    (':set general editor |', usertypes.Completion.value, ''),
-    (':set general editor gv|', usertypes.Completion.value, 'gv'),
-    (':set general editor "gvim -f"|', usertypes.Completion.value, 'gvim -f'),
-    (':set general editor "gvim |', usertypes.Completion.value, 'gvim'),
-    (':set general huh |', None, ''),
-    (':help |', usertypes.Completion.helptopic, ''),
-    (':help     |', usertypes.Completion.helptopic, ''),
-    (':open |', usertypes.Completion.url, ''),
-    (':bind |', None, ''),
-    (':bind <c-x> |', usertypes.Completion.command, ''),
-    (':bind <c-x> foo|', usertypes.Completion.command, 'foo'),
-    (':bind <c-x>| foo', None, '<c-x>'),
-    (':set| general ', usertypes.Completion.command, 'set'),
-    (':|set general ', usertypes.Completion.command, 'set'),
-    (':set gene|ral ignore-case', usertypes.Completion.section, 'general'),
-    (':|', usertypes.Completion.command, ''),
-    (':   |', usertypes.Completion.command, ''),
-    ('/|', None, ''),
-    (':open -t|', None, ''),
-    (':open --tab|', None, ''),
-    (':open -t |', usertypes.Completion.url, ''),
-    (':open --tab |', usertypes.Completion.url, ''),
-    (':open | -t', usertypes.Completion.url, ''),
-    (':tab-detach |', None, ''),
-    (':bind --mode=caret <c-x> |', usertypes.Completion.command, ''),
+@pytest.mark.parametrize('txt, kind, pattern, pos_args', [
+    (':nope|', usertypes.Completion.command, 'nope', []),
+    (':nope |', None, '', []),
+    (':set |', usertypes.Completion.section, '', []),
+    (':set gen|', usertypes.Completion.section, 'gen', []),
+    (':set general |', usertypes.Completion.option, '', ['general']),
+    (':set what |', usertypes.Completion.option, '', ['what']),
+    (':set general editor |', usertypes.Completion.value, '',
+        ['general', 'editor']),
+    (':set general editor gv|', usertypes.Completion.value, 'gv',
+        ['general', 'editor']),
+    (':set general editor "gvim -f"|', usertypes.Completion.value, 'gvim -f',
+        ['general', 'editor']),
+    (':set general editor "gvim |', usertypes.Completion.value, 'gvim',
+        ['general', 'editor']),
+    (':set general huh |', usertypes.Completion.value, '', ['general', 'huh']),
+    (':help |', usertypes.Completion.helptopic, '', []),
+    (':help     |', usertypes.Completion.helptopic, '', []),
+    (':open |', usertypes.Completion.url, '', []),
+    (':bind |', None, '', []),
+    (':bind <c-x> |', usertypes.Completion.command, '', ['<c-x>']),
+    (':bind <c-x> foo|', usertypes.Completion.command, 'foo', ['<c-x>']),
+    (':bind <c-x>| foo', None, '<c-x>', []),
+    (':set| general ', usertypes.Completion.command, 'set', []),
+    (':|set general ', usertypes.Completion.command, 'set', []),
+    (':set gene|ral ignore-case', usertypes.Completion.section, 'general', []),
+    (':|', usertypes.Completion.command, '', []),
+    (':   |', usertypes.Completion.command, '', []),
+    ('/|', None, '', []),
+    (':open -t|', None, '', []),
+    (':open --tab|', None, '', []),
+    (':open -t |', usertypes.Completion.url, '', []),
+    (':open --tab |', usertypes.Completion.url, '', []),
+    (':open | -t', usertypes.Completion.url, '', []),
+    (':tab-detach |', None, '', []),
+    (':bind --mode=caret <c-x> |', usertypes.Completion.command, '',
+        ['<c-x>']),
     pytest.param(':bind --mode caret <c-x> |', usertypes.Completion.command,
-                 '', marks=pytest.mark.xfail(reason='issue #74')),
-    (':set -t -p |', usertypes.Completion.section, ''),
-    (':open -- |', None, ''),
-    (':gibberish nonesense |', None, ''),
-    ('/:help|', None, ''),
+                 '', [], marks=pytest.mark.xfail(reason='issue #74')),
+    (':set -t -p |', usertypes.Completion.section, '', []),
+    (':open -- |', None, '', []),
+    (':gibberish nonesense |', None, '', []),
+    ('/:help|', None, '', []),
     ('::bind|', usertypes.Completion.command, ':bind'),
 ])
-def test_update_completion(txt, kind, pattern, status_command_stub,
+def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
@@ -192,7 +188,9 @@ def test_update_completion(txt, kind, pattern, status_command_stub,
     if kind is None:
         assert args[0] is None
     else:
-        assert args[0].srcmodel.kind == kind
+        model = args[0].srcmodel
+        assert model.kind == kind
+        assert model.pos_args == pos_args
         assert args[1] == pattern
 
 

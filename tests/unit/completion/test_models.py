@@ -56,6 +56,9 @@ def _check_completions(model, expected):
             misc = actual_cat.child(j, 2)
             actual_item = (name.text(), desc.text(), misc.text())
             assert actual_item in expected_cat
+    # sanity-check the column_widths
+    assert len(model.column_widths) == 3
+    assert sum(model.column_widths) == 100
 
 
 def _patch_cmdutils(monkeypatch, stubs, symbol):
@@ -184,7 +187,7 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     key_config_stub.set_bindings_for('normal', {'s': 'stop',
                                                 'rr': 'roll',
                                                 'ro': 'rock'})
-    model = miscmodels.CommandCompletionModel()
+    model = miscmodels.command()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -212,7 +215,7 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
     _patch_cmdutils(monkeypatch, stubs, module + '.cmdutils')
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    model = miscmodels.HelpCompletionModel()
+    model = miscmodels.helptopic()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -236,7 +239,7 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
 
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
-    model = miscmodels.QuickmarkCompletionModel()
+    model = miscmodels.quickmark()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -251,7 +254,7 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
 
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
-    model = miscmodels.BookmarkCompletionModel()
+    model = miscmodels.bookmark()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -275,7 +278,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     """
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
-    model = urlmodel.UrlCompletionModel()
+    model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -303,7 +306,7 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
-    model = urlmodel.UrlCompletionModel()
+    model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -321,7 +324,7 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
-    model = urlmodel.UrlCompletionModel()
+    model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -335,7 +338,7 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
 
 def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
-    model = miscmodels.SessionCompletionModel()
+    model = miscmodels.session()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -354,7 +357,7 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     tabbed_browser_stubs[1].tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.TabCompletionModel()
+    model = miscmodels.buffer()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -381,7 +384,7 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
     tabbed_browser_stubs[1].tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.TabCompletionModel()
+    model = miscmodels.buffer()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -398,7 +401,7 @@ def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     _patch_config_section_desc(monkeypatch, stubs,
                                module + '.configdata.SECTION_DESC')
-    model = configmodel.SettingSectionCompletionModel()
+    model = configmodel.section()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -418,7 +421,7 @@ def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
     config_stub.data = {'ui': {'gesture': 'off',
                                'mind': 'on',
                                'voice': 'sometimes'}}
-    model = configmodel.SettingOptionCompletionModel('ui')
+    model = configmodel.option('ui')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -440,7 +443,7 @@ def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
             'DEFAULT': 'https://duckduckgo.com/?q={}'
         }
     }
-    model = configmodel.SettingOptionCompletionModel('searchengines')
+    model = configmodel.option('searchengines')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -454,7 +457,7 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     config_stub.data = {'general': {'volume': '0'}}
-    model = configmodel.SettingValueCompletionModel('general', 'volume')
+    model = configmodel.value('general', 'volume')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -486,7 +489,7 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     key_config_stub.set_bindings_for('normal', {'s': 'stop',
                                                 'rr': 'roll',
                                                 'ro': 'rock'})
-    model = miscmodels.BindCompletionModel()
+    model = miscmodels.bind('s')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 

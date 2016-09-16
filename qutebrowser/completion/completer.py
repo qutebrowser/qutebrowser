@@ -72,20 +72,7 @@ class Completer(QObject):
         Return:
             A completion model or None.
         """
-        if completion == usertypes.Completion.option:
-            section = pos_args[0]
-            model = instances.get(completion).get(section)
-        elif completion == usertypes.Completion.value:
-            section = pos_args[0]
-            option = pos_args[1]
-            try:
-                model = instances.get(completion)[section][option]
-            except KeyError:
-                # No completion model for this section/option.
-                model = None
-        else:
-            model = instances.get(completion)
-
+        model = instances.get(completion)(*pos_args)
         if model is None:
             return None
         else:
@@ -109,7 +96,7 @@ class Completer(QObject):
         log.completion.debug("After removing flags: {}".format(before_cursor))
         if not before_cursor:
             # '|' or 'set|'
-            model = instances.get(usertypes.Completion.command)
+            model = instances.get(usertypes.Completion.command)()
             return sortfilter.CompletionFilterModel(source=model, parent=self)
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]
