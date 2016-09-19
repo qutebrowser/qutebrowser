@@ -616,14 +616,6 @@ workaround.
 * Check relevant
 https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Aqt[qutebrowser
 bugs] and check if they're fixed.
-* As soon as Homebrew updated, update the custom OS X bottle:
-  - Update https://github.com/The-Compiler/homebrew-qt5-webkit/blob/master/Formula/qt5.rb[qt5.rb]
-  - `brew install --build-from-source --build-bottle --verbose qt5.rb`
-  - `brew bottle qt5.rb`
-  - `brew install --build-from-source --build-bottle --verbose pyqt5`
-  - `brew bottle pyqt5`
-  - Upload bottles to github
-  - Adjust `scripts/dev/ci/travis_install.sh`
 
 New PyQt release
 ~~~~~~~~~~~~~~~~
