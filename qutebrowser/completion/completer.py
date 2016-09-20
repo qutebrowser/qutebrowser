@@ -23,8 +23,8 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
-from qutebrowser.utils import usertypes, log, utils
-from qutebrowser.completion.models import instances, sortfilter
+from qutebrowser.utils import log, utils
+from qutebrowser.completion.models import sortfilter, miscmodels
 
 
 class Completer(QObject):
@@ -72,7 +72,7 @@ class Completer(QObject):
         Return:
             A completion model or None.
         """
-        model = instances.get(completion)(*pos_args)
+        model = completion(*pos_args)
         if model is None:
             return None
         else:
@@ -96,7 +96,7 @@ class Completer(QObject):
         log.completion.debug("After removing flags: {}".format(before_cursor))
         if not before_cursor:
             # '|' or 'set|'
-            model = instances.get(usertypes.Completion.command)()
+            model = miscmodels.command()
             return sortfilter.CompletionFilterModel(source=model, parent=self)
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]

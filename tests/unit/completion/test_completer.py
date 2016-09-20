@@ -26,7 +26,6 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
-from qutebrowser.utils import usertypes
 from qutebrowser.commands import command, cmdutils
 
 
@@ -70,30 +69,45 @@ def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
 
 
 @pytest.fixture(autouse=True)
-def instances(monkeypatch):
-    """Mock the instances module so get returns a fake completion model."""
-    # populate a model for each completion type, with a nested structure for
-    # option and value completion
-    get = lambda kind: lambda *args: FakeCompletionModel(kind, *args)
-    monkeypatch.setattr(completer, 'instances', get)
+def miscmodels_patch(mocker):
+    """Patch the miscmodels module to provide fake completion functions.
+
+    Technically some of these are not part of miscmodels, but rolling them into
+    one module is easier and sufficient for mocking. The only one referenced
+    directly by Completer is miscmodels.command.
+    """
+    m = mocker.patch('qutebrowser.completion.completer.miscmodels',
+                     autospec=True)
+    m.command = lambda *args: FakeCompletionModel('command', *args)
+    m.helptopic = lambda *args: FakeCompletionModel('helptopic', *args)
+    m.quickmark = lambda *args: FakeCompletionModel('quickmark', *args)
+    m.bookmark = lambda *args: FakeCompletionModel('bookmark', *args)
+    m.session = lambda *args: FakeCompletionModel('session', *args)
+    m.buffer = lambda *args: FakeCompletionModel('buffer', *args)
+    m.bind = lambda *args: FakeCompletionModel('bind', *args)
+    m.url = lambda *args: FakeCompletionModel('url', *args)
+    m.section = lambda *args: FakeCompletionModel('section', *args)
+    m.option = lambda *args: FakeCompletionModel('option', *args)
+    m.value = lambda *args: FakeCompletionModel('value', *args)
+    return m
 
 
 @pytest.fixture(autouse=True)
-def cmdutils_patch(monkeypatch, stubs):
+def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
     """Patch the cmdutils module to provide fake commands."""
-    @cmdutils.argument('section_', completion=usertypes.Completion.section)
-    @cmdutils.argument('option', completion=usertypes.Completion.option)
-    @cmdutils.argument('value', completion=usertypes.Completion.value)
+    @cmdutils.argument('section_', completion=miscmodels_patch.section)
+    @cmdutils.argument('option', completion=miscmodels_patch.option)
+    @cmdutils.argument('value', completion=miscmodels_patch.value)
     def set_command(section_=None, option=None, value=None):
         """docstring."""
         pass
 
-    @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
+    @cmdutils.argument('topic', completion=miscmodels_patch.helptopic)
     def show_help(tab=False, bg=False, window=False, topic=None):
         """docstring."""
         pass
 
-    @cmdutils.argument('url', completion=usertypes.Completion.url)
+    @cmdutils.argument('url', completion=miscmodels_patch.url)
     @cmdutils.argument('count', count=True)
     def openurl(url=None, implicit=False, bg=False, tab=False, window=False,
                 count=None):
@@ -101,7 +115,7 @@ def cmdutils_patch(monkeypatch, stubs):
         pass
 
     @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('command', completion=usertypes.Completion.command)
+    @cmdutils.argument('command', completion=miscmodels_patch.command)
     def bind(key, win_id, command=None, *, mode='normal', force=False):
         """docstring."""
         pass
@@ -132,49 +146,45 @@ def _set_cmd_prompt(cmd, txt):
 
 
 @pytest.mark.parametrize('txt, kind, pattern, pos_args', [
-    (':nope|', usertypes.Completion.command, 'nope', []),
+    (':nope|', 'command', 'nope', []),
     (':nope |', None, '', []),
-    (':set |', usertypes.Completion.section, '', []),
-    (':set gen|', usertypes.Completion.section, 'gen', []),
-    (':set general |', usertypes.Completion.option, '', ['general']),
-    (':set what |', usertypes.Completion.option, '', ['what']),
-    (':set general editor |', usertypes.Completion.value, '',
+    (':set |', 'section', '', []),
+    (':set gen|', 'section', 'gen', []),
+    (':set general |', 'option', '', ['general']),
+    (':set what |', 'option', '', ['what']),
+    (':set general editor |', 'value', '', ['general', 'editor']),
+    (':set general editor gv|', 'value', 'gv', ['general', 'editor']),
+    (':set general editor "gvim -f"|', 'value', 'gvim -f',
         ['general', 'editor']),
-    (':set general editor gv|', usertypes.Completion.value, 'gv',
-        ['general', 'editor']),
-    (':set general editor "gvim -f"|', usertypes.Completion.value, 'gvim -f',
-        ['general', 'editor']),
-    (':set general editor "gvim |', usertypes.Completion.value, 'gvim',
-        ['general', 'editor']),
-    (':set general huh |', usertypes.Completion.value, '', ['general', 'huh']),
-    (':help |', usertypes.Completion.helptopic, '', []),
-    (':help     |', usertypes.Completion.helptopic, '', []),
-    (':open |', usertypes.Completion.url, '', []),
+    (':set general editor "gvim |', 'value', 'gvim', ['general', 'editor']),
+    (':set general huh |', 'value', '', ['general', 'huh']),
+    (':help |', 'helptopic', '', []),
+    (':help     |', 'helptopic', '', []),
+    (':open |', 'url', '', []),
     (':bind |', None, '', []),
-    (':bind <c-x> |', usertypes.Completion.command, '', ['<c-x>']),
-    (':bind <c-x> foo|', usertypes.Completion.command, 'foo', ['<c-x>']),
+    (':bind <c-x> |', 'command', '', ['<c-x>']),
+    (':bind <c-x> foo|', 'command', 'foo', ['<c-x>']),
     (':bind <c-x>| foo', None, '<c-x>', []),
-    (':set| general ', usertypes.Completion.command, 'set', []),
-    (':|set general ', usertypes.Completion.command, 'set', []),
-    (':set gene|ral ignore-case', usertypes.Completion.section, 'general', []),
-    (':|', usertypes.Completion.command, '', []),
-    (':   |', usertypes.Completion.command, '', []),
+    (':set| general ', 'command', 'set', []),
+    (':|set general ', 'command', 'set', []),
+    (':set gene|ral ignore-case', 'section', 'general', []),
+    (':|', 'command', '', []),
+    (':   |', 'command', '', []),
     ('/|', None, '', []),
     (':open -t|', None, '', []),
     (':open --tab|', None, '', []),
-    (':open -t |', usertypes.Completion.url, '', []),
-    (':open --tab |', usertypes.Completion.url, '', []),
-    (':open | -t', usertypes.Completion.url, '', []),
+    (':open -t |', 'url', '', []),
+    (':open --tab |', 'url', '', []),
+    (':open | -t', 'url', '', []),
     (':tab-detach |', None, '', []),
-    (':bind --mode=caret <c-x> |', usertypes.Completion.command, '',
-        ['<c-x>']),
-    pytest.param(':bind --mode caret <c-x> |', usertypes.Completion.command,
-                 '', [], marks=pytest.mark.xfail(reason='issue #74')),
-    (':set -t -p |', usertypes.Completion.section, '', []),
+    (':bind --mode=caret <c-x> |', 'command', '', ['<c-x>']),
+    pytest.param(':bind --mode caret <c-x> |', 'command', '', [],
+                 marks=pytest.mark.xfail(reason='issue #74')),
+    (':set -t -p |', 'section', '', []),
     (':open -- |', None, '', []),
     (':gibberish nonesense |', None, '', []),
     ('/:help|', None, '', []),
-    ('::bind|', usertypes.Completion.command, ':bind'),
+    ('::bind|', 'command', ':bind', []),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub):

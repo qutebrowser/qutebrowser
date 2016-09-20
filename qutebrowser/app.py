@@ -42,7 +42,7 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion.models import instances as completionmodels
+from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
@@ -459,9 +459,6 @@ def _init_modules(args, crash_handler):
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
 
-    log.init.debug("Initializing completions...")
-    completionmodels.init()
-
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
@@ -753,7 +750,7 @@ class Quitter:
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
 
     @cmdutils.register(instance='quitter', name='wq')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def save_and_quit(self, name=sessions.default):
         """Save open pages and quit.
 
