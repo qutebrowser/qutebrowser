@@ -1,6 +1,6 @@
 flake8<3.0.0
 flake8-copyright
-flake8-debugger
+flake8-debugger!=2.0.0
 flake8-deprecated
 flake8-docstrings
 flake8-future-import
@@ -20,3 +20,6 @@ pep8==1.7.0
 
 # Waiting until hacking/flake8-tuple are updated
 #@ filter: flake8 < 3.0.0
+
+# https://github.com/JBKahn/flake8-debugger/issues/5
+#@ filter: flake8-debugger != 2.0.0
