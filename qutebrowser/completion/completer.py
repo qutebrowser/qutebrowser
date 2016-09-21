@@ -226,11 +226,6 @@ class Completer(QObject):
     @pyqtSlot()
     def _update_completion(self):
         """Check if completions are available and activate them."""
-        before_cursor, pattern, after_cursor = self._partition()
-
-        log.completion.debug("Updating completion: {} {} {}".format(
-            before_cursor, pattern, after_cursor))
-
         if self._ignore_change:
             log.completion.debug("Ignoring completion update because "
                                  "ignore_change is True.")
@@ -246,6 +241,11 @@ class Completer(QObject):
             # https://github.com/The-Compiler/qutebrowser/issues/32
             completion.set_model(None)
             return
+
+        before_cursor, pattern, after_cursor = self._partition()
+
+        log.completion.debug("Updating completion: {} {} {}".format(
+            before_cursor, pattern, after_cursor))
 
         pattern = pattern.strip("'\"")
         model = self._get_new_completion(before_cursor, pattern)
