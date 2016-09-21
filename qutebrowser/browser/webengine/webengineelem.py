@@ -140,16 +140,15 @@ class WebEngineElement(webelem.AbstractWebElement):
             # height = rect.get("height", 0)
             width = rect['width']
             height = rect['height']
+            left = rect['left']
+            top = rect['top']
             if width > 1 and height > 1:
                 # Fix coordinates according to zoom level
                 # We're not checking for zoom-text-only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
-                rect["left"] *= zoom
-                rect["top"] *= zoom
-                width *= zoom
-                height *= zoom
-                rect = QRect(rect["left"], rect["top"], width, height)
+                rect = QRect(left * zoom, top * zoom,
+                             width * zoom, height * zoom)
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
                 # while frame is not None:
