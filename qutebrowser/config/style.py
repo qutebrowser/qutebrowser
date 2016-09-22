@@ -46,7 +46,7 @@ def get_stylesheet(template_str):
                            config=objreg.get('config'))
 
 
-def set_register_stylesheet(obj):
+def set_register_stylesheet(obj, *, generator=None):
     """Set the stylesheet for an object based on it's STYLESHEET attribute.
 
     Also, register an update when the config is changed.
@@ -54,19 +54,23 @@ def set_register_stylesheet(obj):
     Args:
         obj: The object to set the stylesheet for and register.
              Must have a STYLESHEET attribute.
+        generator: If set, call the given function to dynamically generate a
+                   stylesheet instead.
     """
-    qss = get_stylesheet(obj.STYLESHEET)
+    stylesheet = generator() if generator is not None else obj.STYLESHEET
+    qss = get_stylesheet(stylesheet)
     log.config.vdebug("stylesheet for {}: {}".format(
         obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
     objreg.get('config').changed.connect(
-        functools.partial(update_stylesheet, obj))
+        functools.partial(_update_stylesheet, obj, generator=generator))
 
 
-def update_stylesheet(obj):
+def _update_stylesheet(obj, *, generator):
     """Update the stylesheet for obj."""
     if not sip.isdeleted(obj):
-        obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
+        stylesheet = generator() if generator is not None else obj.STYLESHEET
+        obj.setStyleSheet(get_stylesheet(stylesheet))
 
 
 class ColorDict(collections.UserDict):

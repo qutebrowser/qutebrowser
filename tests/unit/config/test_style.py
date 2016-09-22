@@ -59,6 +59,24 @@ class Obj(QObject):
         self.rendered_stylesheet = stylesheet
 
 
+class GeneratedObj(QObject):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.rendered_stylesheet = None
+        self._generated = False
+
+    def setStyleSheet(self, stylesheet):
+        self.rendered_stylesheet = stylesheet
+
+    def generate(self):
+        if not self._generated:
+            self._generated = True
+            return 'one'
+        else:
+            return 'two'
+
+
 @pytest.mark.parametrize('delete', [True, False])
 def test_set_register_stylesheet(delete, qtbot, config_stub, caplog):
     config_stub.data = {'fonts': {'foo': 'bar'}, 'colors': {}}
@@ -85,6 +103,15 @@ def test_set_register_stylesheet(delete, qtbot, config_stub, caplog):
     else:
         expected = 'baz'
     assert obj.rendered_stylesheet == expected
+
+
+def test_set_register_stylesheet_generator(qtbot, config_stub):
+    config_stub.data = {'fonts': {}, 'colors': {}}
+    obj = GeneratedObj()
+    style.set_register_stylesheet(obj, generator=obj.generate)
+    assert obj.rendered_stylesheet == 'one'
+    config_stub.changed.emit('foo', 'bar')
+    assert obj.rendered_stylesheet == 'two'
 
 
 class TestColorDict:
