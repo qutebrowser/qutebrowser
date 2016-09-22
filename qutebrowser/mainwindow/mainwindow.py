@@ -433,23 +433,6 @@ class MainWindow(QWidget):
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
 
-    def _get_overlay_position(self, height):
-        """Get the position for a full-width overlay with the given height."""
-        status_position = config.get('ui', 'status-position')
-        if status_position == 'bottom':
-            top = self.height() - self.status.height() - height
-            top = qtutils.check_overflow(top, 'int', fatal=False)
-            topleft = QPoint(0, top)
-            bottomright = self.status.geometry().topRight()
-        elif status_position == 'top':
-            topleft = self.status.geometry().bottomLeft()
-            bottom = self.status.height() + height
-            bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(self.width(), bottom)
-        else:
-            raise ValueError("Invalid position {}!".format(status_position))
-        return QRect(topleft, bottomright)
-
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
     def close(self):
