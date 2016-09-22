@@ -176,7 +176,7 @@ class Command:
                 "{}: Only available with {} "
                 "backend.".format(self.name, self.backend.name))
 
-        if  count == 0:
+        if count == 0:
             raise cmdexc.PrerequisitesError("Zero count not allowed")
 
         if self.deprecated:
