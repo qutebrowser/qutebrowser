@@ -233,9 +233,9 @@ class MainWindow(QWidget):
             bottomright = QPoint(width, self.status.geometry().top())
         elif status_position == 'top':
             topleft = self.status.geometry().bottomLeft()
-            bottom = self.status.height() + widget.height()
+            bottom = self.status.height() + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(size_hint.width(), bottom)
+            bottomright = QPoint(width, bottom)
         else:
             raise ValueError("Invalid position {}!".format(status_position))
 
