@@ -54,7 +54,7 @@ def replace_variables(win_id, arglist):
         'url': lambda: _current_url(tabbed_browser).toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
         'url:pretty': lambda: _current_url(tabbed_browser).toString(
-            QUrl.RemovePassword),
+            QUrl.DecodeReserved | QUrl.RemovePassword),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
