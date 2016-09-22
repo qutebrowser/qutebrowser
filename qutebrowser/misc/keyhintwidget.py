@@ -45,28 +45,19 @@ class KeyHintView(QLabel):
         update_geometry: Emitted when this widget should be resized/positioned.
     """
 
-    STYLESHEET = """
-        QLabel {
-            font: {{ font['keyhint'] }};
-            color: {{ color['keyhint.fg'] }};
-            background-color: {{ color['keyhint.bg'] }};
-            padding: 6px;
-            border-top-right-radius: 6px;
-        }
-    """
-
     update_geometry = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self.setTextFormat(Qt.RichText)
         self._win_id = win_id
-        style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.setInterval(500)
         self._show_timer.timeout.connect(self.show)
+        style.set_register_stylesheet(self,
+                                      generator=self._generate_stylesheet)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
@@ -75,6 +66,22 @@ class KeyHintView(QLabel):
         """Adjust the keyhint size when it's freshly shown."""
         self.update_geometry.emit()
         super().showEvent(e)
+
+    def _generate_stylesheet(self):
+        """Generate a stylesheet with the right edge rounded."""
+        stylesheet = """
+            QLabel {
+                font: {{ font['keyhint'] }};
+                color: {{ color['keyhint.fg'] }};
+                background-color: {{ color['keyhint.bg'] }};
+                padding: 6px;
+                border-EDGE-radius: 6px;
+            }
+        """
+        if config.get('ui', 'status-position') == 'top':
+            return stylesheet.replace('EDGE', 'bottom-right')
+        else:
+            return stylesheet.replace('EDGE', 'top-right')
 
     @pyqtSlot(str)
     def update_keyhint(self, modename, prefix):
