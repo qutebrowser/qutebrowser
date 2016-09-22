@@ -20,8 +20,8 @@
 """Showing messages above the statusbar."""
 
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, objreg
@@ -71,13 +71,14 @@ class MessageView(QWidget):
 
     """Widget which stacks error/warning/info messages."""
 
-    reposition = pyqtSignal()
+    update_geometry = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self._clear_timer = QTimer()
         self._clear_timer.timeout.connect(self._clear_messages)
@@ -87,14 +88,16 @@ class MessageView(QWidget):
         self._last_text = None
         self._messages = []
 
+    def sizeHint(self):
+        """Get the proposed height for the view."""
+        height = sum(label.sizeHint().height() for label in self._messages)
+        # The width isn't really relevant as we're expanding anyways.
+        return QSize(-1, height)
+
     @config.change_filter('ui', 'message-timeout')
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
         self._clear_timer.setInterval(config.get('ui', 'message-timeout'))
-
-    def message_height(self):
-        """Get the total height of all messages."""
-        return sum(label.sizeHint().height() for label in self._messages)
 
     @pyqtSlot()
     def _clear_messages(self):
@@ -121,4 +124,4 @@ class MessageView(QWidget):
         self._messages.append(widget)
         self._last_text = text
         self.show()
-        self.reposition.emit()
+        self.update_geometry.emit()

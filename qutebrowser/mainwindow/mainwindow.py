@@ -25,7 +25,7 @@ import itertools
 import functools
 
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
@@ -125,6 +125,7 @@ class MainWindow(QWidget):
         _downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
+        _overlays: Widgets shown as overlay for the current webpage.
     """
 
     def __init__(self, geometry=None, parent=None):
@@ -137,6 +138,7 @@ class MainWindow(QWidget):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
+        self._overlays = []
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
@@ -177,7 +179,10 @@ class MainWindow(QWidget):
                                                     partial_match=True)
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
+        self._overlays.append((self._keyhint, self._keyhint.update_geometry))
         self._messageview = messageview.MessageView(parent=self)
+        self._overlays.append((self._messageview,
+                               self._messageview.update_geometry))
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
@@ -196,10 +201,48 @@ class MainWindow(QWidget):
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
-        QTimer.singleShot(0, self._connect_resize_signals)
+        QTimer.singleShot(0, self._connect_overlay_signals)
         objreg.get('config').changed.connect(self.on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+
+    def _update_overlay_geometry(self, widget=None):
+        """Reposition/resize the given overlay.
+
+        If no widget is given, reposition/resize all overlays.
+        """
+        if widget is None:
+            for w, _signal in self._overlays:
+                self._update_overlay_geometry(w)
+            return
+
+        if not widget.isVisible():
+            return
+
+        size_hint = widget.sizeHint()
+        if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
+            width = self.width()
+        else:
+            width = size_hint.width()
+
+        status_position = config.get('ui', 'status-position')
+        if status_position == 'bottom':
+            top = self.height() - self.status.height() - size_hint.height()
+            top = qtutils.check_overflow(top, 'int', fatal=False)
+            topleft = QPoint(0, top)
+            bottomright = QPoint(width, self.status.geometry().top())
+        elif status_position == 'top':
+            topleft = self.status.geometry().bottomLeft()
+            bottom = self.status.height() + widget.height()
+            bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
+            bottomright = QPoint(size_hint.width(), bottom)
+        else:
+            raise ValueError("Invalid position {}!".format(status_position))
+
+        rect = QRect(topleft, bottomright)
+        log.misc.debug('new geometry for {!r}: {}'.format(widget, rect))
+        if rect.isValid():
+            widget.setGeometry(rect)
 
     def _init_downloadmanager(self):
         log.init.debug("Initializing downloads...")
@@ -218,6 +261,8 @@ class MainWindow(QWidget):
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
                         window=self.win_id)
+        self._overlays.append((self._completion,
+                               self._completion.update_geometry))
 
     def _init_command_dispatcher(self):
         dispatcher = commands.CommandDispatcher(self.win_id,
@@ -234,15 +279,15 @@ class MainWindow(QWidget):
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Resize the completion if related config options changed."""
-        if section == 'completion' and option in ['height', 'shrink']:
-            self.resize_completion()
-        elif section == 'ui' and option == 'statusbar-padding':
-            self.resize_completion()
-        elif section == 'ui' and option == 'downloads-position':
+        if section != 'ui':
+            return
+        if option == 'statusbar-padding':
+            self._update_overlay_geometry()
+        elif option == 'downloads-position':
             self._add_widgets()
-        elif section == 'ui' and option == 'status-position':
+        elif option == 'status-position':
             self._add_widgets()
-            self.resize_completion()
+            self._update_overlay_geometry()
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
@@ -303,14 +348,12 @@ class MainWindow(QWidget):
             log.init.warning("Error while loading geometry.")
             self._set_default_geometry()
 
-    def _connect_resize_signals(self):
+    def _connect_overlay_signals(self):
         """Connect the resize signal and resize everything once."""
-        self._completion.resize_completion.connect(self.resize_completion)
-        self._keyhint.reposition_keyhint.connect(self.reposition_keyhint)
-        self._messageview.reposition.connect(self._reposition_messageview)
-        self.resize_completion()
-        self.reposition_keyhint()
-        self._reposition_messageview()
+        for widget, signal in self._overlays:
+            signal.connect(
+                functools.partial(self._update_overlay_geometry, widget))
+            self._update_overlay_geometry(widget)
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
@@ -407,63 +450,6 @@ class MainWindow(QWidget):
             raise ValueError("Invalid position {}!".format(status_position))
         return QRect(topleft, bottomright)
 
-    @pyqtSlot()
-    def resize_completion(self):
-        """Adjust completion according to config."""
-        if not self._completion.isVisible():
-            # It doesn't make sense to resize the completion as long as it's
-            # not shown anyways.
-            return
-        # Get the configured height/percentage.
-        confheight = str(config.get('completion', 'height'))
-        if confheight.endswith('%'):
-            perc = int(confheight.rstrip('%'))
-            height = self.height() * perc / 100
-        else:
-            height = int(confheight)
-        # Shrink to content size if needed and shrinking is enabled
-        if config.get('completion', 'shrink'):
-            contents_height = (
-                self._completion.viewportSizeHint().height() +
-                self._completion.horizontalScrollBar().sizeHint().height())
-            if contents_height <= height:
-                height = contents_height
-        else:
-            contents_height = -1
-        rect = self._get_overlay_position(height)
-        log.misc.debug('completion rect: {}'.format(rect))
-        if rect.isValid():
-            self._completion.setGeometry(rect)
-
-    @pyqtSlot()
-    def reposition_keyhint(self):
-        """Adjust keyhint according to config."""
-        if not self._keyhint.isVisible():
-            return
-        # Shrink the window to the shown text and place it at the bottom left
-        width = self._keyhint.width()
-        height = self._keyhint.height()
-        topleft_y = self.height() - self.status.height() - height
-        topleft_y = qtutils.check_overflow(topleft_y, 'int', fatal=False)
-        topleft = QPoint(0, topleft_y)
-        bottomright = (self.status.geometry().topLeft() +
-                       QPoint(width, 0))
-        rect = QRect(topleft, bottomright)
-        log.misc.debug('keyhint rect: {}'.format(rect))
-        if rect.isValid():
-            self._keyhint.setGeometry(rect)
-
-    @pyqtSlot()
-    def _reposition_messageview(self):
-        """Position the message view correctly."""
-        if not self._messageview.isVisible():
-            return
-        height = self._messageview.message_height()
-        rect = self._get_overlay_position(height)
-        log.misc.debug('messageview rect: {}'.format(rect))
-        if rect.isValid():
-            self._messageview.setGeometry(rect)
-
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
     def close(self):
@@ -490,8 +476,7 @@ class MainWindow(QWidget):
             e: The QResizeEvent
         """
         super().resizeEvent(e)
-        self.resize_completion()
-        self.reposition_keyhint()
+        self._update_overlay_geometry()
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 

@@ -67,13 +67,13 @@ def test_message_hiding(qtbot, view):
     assert not view._messages
 
 
-def test_message_height(view):
+def test_size_hint(view):
     """The message height should increase with more messages."""
     view.show_message(usertypes.MessageLevel.info, 'test1')
-    height1 = view.message_height()
+    height1 = view.sizeHint().height()
     assert height1 > 0
     view.show_message(usertypes.MessageLevel.info, 'test2')
-    height2 = view.message_height()
+    height2 = view.sizeHint().height()
     assert height2 == height1 * 2
 
 

@@ -39,6 +39,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
             'scrollbar-padding': 2,
             'shrink': False,
             'quick-complete': False,
+            'height': '50%',
         },
         'colors': {
             'completion.fg': QColor(),
@@ -87,13 +88,13 @@ def test_set_pattern(completionview):
     model.set_pattern.assert_called_with('foo')
 
 
-def test_maybe_resize_completion(completionview, config_stub, qtbot):
+def test_maybe_update_geometry(completionview, config_stub, qtbot):
     """Ensure completion is resized only if shrink is True."""
-    with qtbot.assertNotEmitted(completionview.resize_completion):
-        completionview.maybe_resize_completion()
-    config_stub.data = {'completion': {'shrink': True}}
-    with qtbot.waitSignal(completionview.resize_completion):
-        completionview.maybe_resize_completion()
+    with qtbot.assertNotEmitted(completionview.update_geometry):
+        completionview._maybe_update_geometry()
+    config_stub.data['completion']['shrink'] = True
+    with qtbot.waitSignal(completionview.update_geometry):
+        completionview._maybe_update_geometry()
 
 
 @pytest.mark.parametrize('which, tree, expected', [

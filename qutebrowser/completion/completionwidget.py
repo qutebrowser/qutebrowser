@@ -24,12 +24,12 @@ subclasses to provide completions.
 """
 
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import utils, usertypes, objreg
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -49,7 +49,7 @@ class CompletionView(QTreeView):
         _active: Whether a selection is active.
 
     Signals:
-        resize_completion: Emitted when the completion should be resized.
+        update_geometry: Emitted when the completion should be resized.
         selection_changed: Emitted when the completion item selection changes.
     """
 
@@ -102,7 +102,7 @@ class CompletionView(QTreeView):
         }
     """
 
-    resize_completion = pyqtSignal()
+    update_geometry = pyqtSignal()
     selection_changed = pyqtSignal(str)
 
     def __init__(self, win_id, parent=None):
@@ -110,6 +110,7 @@ class CompletionView(QTreeView):
         self._win_id = win_id
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
+        objreg.get('config').changed.connect(self._on_config_changed)
 
         self._column_widths = base.BaseCompletionModel.COLUMN_WIDTHS
         self._active = False
@@ -117,7 +118,7 @@ class CompletionView(QTreeView):
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         style.set_register_stylesheet(self)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
         self.setIndentation(0)
@@ -137,6 +138,13 @@ class CompletionView(QTreeView):
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    @pyqtSlot(str, str)
+    def _on_config_changed(self, section, option):
+        if section != 'completion':
+            return
+        if option in ['height', 'shrink']:
+            self.update_geometry.emit()
 
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
@@ -287,13 +295,12 @@ class CompletionView(QTreeView):
 
         self._column_widths = model.srcmodel.COLUMN_WIDTHS
         self._resize_columns()
-        self.maybe_resize_completion()
+        self._maybe_update_geometry()
 
-    @pyqtSlot()
-    def maybe_resize_completion(self):
-        """Emit the resize_completion signal if the config says so."""
+    def _maybe_update_geometry(self):
+        """Emit the update_geometry signal if the config says so."""
         if config.get('completion', 'shrink'):
-            self.resize_completion.emit()
+            self.update_geometry.emit()
 
     @pyqtSlot()
     def on_clear_completion_selection(self):
@@ -303,6 +310,27 @@ class CompletionView(QTreeView):
         if selmod is not None:
             selmod.clearSelection()
             selmod.clearCurrentIndex()
+
+    def sizeHint(self):
+        """Get the completion size according to the config."""
+        # Get the configured height/percentage.
+        confheight = str(config.get('completion', 'height'))
+        if confheight.endswith('%'):
+            perc = int(confheight.rstrip('%'))
+            height = self.window().height() * perc / 100
+        else:
+            height = int(confheight)
+        # Shrink to content size if needed and shrinking is enabled
+        if config.get('completion', 'shrink'):
+            contents_height = (
+                self.viewportSizeHint().height() +
+                self.horizontalScrollBar().sizeHint().height())
+            if contents_height <= height:
+                height = contents_height
+        else:
+            contents_height = -1
+        # The width isn't really relevant as we're expanding anyways.
+        return QSize(-1, height)
 
     def selectionChanged(self, selected, deselected):
         """Extend selectionChanged to call completers selection_changed."""
@@ -322,7 +350,7 @@ class CompletionView(QTreeView):
 
     def showEvent(self, e):
         """Adjust the completion size and scroll when it's freshly shown."""
-        self.resize_completion.emit()
+        self.update_geometry.emit()
         scrollbar = self.verticalScrollBar()
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
