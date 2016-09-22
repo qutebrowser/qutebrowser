@@ -397,6 +397,16 @@ class TestArgument:
 
         assert str(excinfo.value) == "Argument marked as both count/win_id!"
 
+    def test_zero_count_and_win_id_same_arg(self):
+        with pytest.raises(TypeError) as excinfo:
+            @cmdutils.argument('arg', count=True,
+             zero_count=True, win_id=True)
+            def fun(arg=0):
+                """Blah."""
+                pass
+
+        assert str(excinfo.value) == "Argument marked as both count/win_id!"
+
     def test_no_docstring(self, caplog):
         with caplog.at_level(logging.WARNING):
             @cmdutils.register()

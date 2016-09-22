@@ -150,7 +150,7 @@ class Command:
 
         self._inspect_func()
 
-    def _check_prerequisites(self, win_id):
+    def _check_prerequisites(self, win_id, count):
         """Check if the command is permitted to run currently.
 
         Args:
@@ -175,6 +175,9 @@ class Command:
             raise cmdexc.PrerequisitesError(
                 "{}: Only available with {} "
                 "backend.".format(self.name, self.backend.name))
+
+        if  count == 0:
+            raise cmdexc.PrerequisitesError("Zero count not allowed")
 
         if self.deprecated:
             message.warning(win_id, '{} is deprecated - {}'.format(
@@ -518,7 +521,7 @@ class Command:
                 e.status, e))
             return
         self._count = count
-        self._check_prerequisites(win_id)
+        self._check_prerequisites(win_id, count)
         posargs, kwargs = self._get_call_args(win_id)
         log.commands.debug('Calling {}'.format(
             debug_utils.format_call(self.handler, posargs, kwargs)))

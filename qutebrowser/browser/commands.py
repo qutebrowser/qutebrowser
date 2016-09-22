@@ -968,8 +968,8 @@ class CommandDispatcher:
                    Negative indices count from the end, such that -1 is the
                    last tab.
             count: The tab index to focus, starting with 1.
-            zero_count: The tab index to focus, with 0. The special value
-                   0 value focuses the last focused tab.
+                   zero_count: The tab index to focus, with 0.
+                   The special value 0 value focuses the last focused tab.
         """
         if index == 'last':
             self._tab_focus_last()
@@ -983,6 +983,7 @@ class CommandDispatcher:
             return
         if index < 0:
             index = self._count() + index + 1
+
         if 1 <= index <= self._count():
             self._set_current_index(index - 1)
         else:
