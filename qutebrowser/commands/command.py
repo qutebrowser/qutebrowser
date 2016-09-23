@@ -37,6 +37,8 @@ class ArgInfo:
                  zero_count=False, flag=None, completion=None, choices=None):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
+        if zero_count and not count:
+            raise TypeError("Zero_count Argument cannot exist without count!")
         self.win_id = win_id
         self.count = count
         self.zero_count = zero_count
@@ -139,6 +141,7 @@ class Command:
         self.opt_args = collections.OrderedDict()
         self.namespace = None
         self._count = None
+        self._zero_count = None
         self.pos_args = []
         self.desc = None
         self.flags_with_args = []
@@ -176,8 +179,10 @@ class Command:
                 "{}: Only available with {} "
                 "backend.".format(self.name, self.backend.name))
 
-        if count == 0:
-            raise cmdexc.PrerequisitesError("Zero count not allowed")
+        if self._count == 0 and not self._zero_count:
+            raise cmdexc.PrerequisitesError(
+                "{}: Argument zero_count not been set to true!".format(
+                    self.name))
 
         if self.deprecated:
             message.warning(win_id, '{} is deprecated - {}'.format(
@@ -250,6 +255,9 @@ class Command:
                 assert param.kind != inspect.Parameter.POSITIONAL_ONLY
                 if param.name == 'self':
                     continue
+                arg_info = self.get_arg_info(param)
+                if arg_info.count:
+                    self._zero_count = arg_info.zero_count
                 if self._inspect_special_param(param):
                     continue
                 typ = self._get_type(param)
