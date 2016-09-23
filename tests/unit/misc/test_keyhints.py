@@ -53,7 +53,7 @@ def keyhint(qtbot, config_stub, key_config_stub):
             'keyhint.bg': 'black'
         },
         'fonts': {'keyhint': 'Comic Sans'},
-        'ui': {'keyhint-blacklist': ''},
+        'ui': {'keyhint-blacklist': '', 'status-position': 'bottom'},
     }
     keyhint = KeyHintView(0, None)
     qtbot.add_widget(keyhint)
