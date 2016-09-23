@@ -336,7 +336,6 @@ class Question(QObject):
                  For text, a default text as string.
                  For user_pwd, a default username as string.
         text: The prompt text to display to the user.
-        user: The value the user entered as username.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
 
@@ -365,7 +364,6 @@ class Question(QObject):
         self._mode = None
         self.default = None
         self.text = None
-        self.user = None
         self.answer = None
         self.is_aborted = False
 

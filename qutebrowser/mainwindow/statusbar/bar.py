@@ -162,16 +162,9 @@ class StatusBar(QWidget):
         self.txt = textwidget.Text()
         self._stack.addWidget(self.txt)
 
-        self.prompt = prompt.Prompt(win_id)
-        self._stack.addWidget(self.prompt)
-
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
-        prompter = objreg.get('prompter', scope='window', window=self._win_id)
-        prompter.show_prompt.connect(self._show_prompt_widget)
-        prompter.hide_prompt.connect(self._hide_prompt_widget)
-        self._hide_prompt_widget()
 
         self.keystring = keystring.KeyString()
         self._hbox.addWidget(self.keystring)
@@ -282,21 +275,6 @@ class StatusBar(QWidget):
     def _hide_cmd_widget(self):
         """Show temporary text instead of command widget."""
         log.statusbar.debug("Hiding cmd widget")
-        self._stack.setCurrentWidget(self.txt)
-        self.maybe_hide()
-
-    def _show_prompt_widget(self):
-        """Show prompt widget instead of temporary text."""
-        if self._stack.currentWidget() is self.prompt:
-            return
-        self._set_prompt_active(True)
-        self._stack.setCurrentWidget(self.prompt)
-        self.show()
-
-    def _hide_prompt_widget(self):
-        """Show temporary text instead of prompt widget."""
-        self._set_prompt_active(False)
-        log.statusbar.debug("Hiding prompt widget")
         self._stack.setCurrentWidget(self.txt)
         self.maybe_hide()
 

@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
-from qutebrowser.mainwindow import tabbedbrowser, messageview
+from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
@@ -179,10 +179,14 @@ class MainWindow(QWidget):
                                                     partial_match=True)
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
-        self._overlays.append((self._keyhint, self._keyhint.update_geometry))
+        self._add_overlay(self._keyhint, self._keyhint.update_geometry)
         self._messageview = messageview.MessageView(parent=self)
-        self._overlays.append((self._messageview,
-                               self._messageview.update_geometry))
+        self._add_overlay(self._messageview, self._messageview.update_geometry)
+        self._promptcontainer = prompt.PromptContainer(self)
+        self._add_overlay(self._promptcontainer,
+                          self._promptcontainer.update_geometry,
+                          centered=True)
+        self._promptcontainer.hide()
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
@@ -206,15 +210,20 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
 
-    def _update_overlay_geometry(self, widget=None):
+    def _add_overlay(self, widget, signal, *, centered=False):
+        self._overlays.append((widget, signal, centered))
+
+    def _update_overlay_geometry(self, widget=None, centered=None):
         """Reposition/resize the given overlay.
 
         If no widget is given, reposition/resize all overlays.
         """
         if widget is None:
-            for w, _signal in self._overlays:
-                self._update_overlay_geometry(w)
+            for w, _signal, centered in self._overlays:
+                self._update_overlay_geometry(w, centered)
             return
+
+        assert centered is not None
 
         if not widget.isVisible():
             return
@@ -222,17 +231,19 @@ class MainWindow(QWidget):
         size_hint = widget.sizeHint()
         if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
             width = self.width()
+            left = 0
         else:
             width = size_hint.width()
+            left = (self.width() - size_hint.width()) / 2 if centered else 0
 
         status_position = config.get('ui', 'status-position')
         if status_position == 'bottom':
             top = self.height() - self.status.height() - size_hint.height()
             top = qtutils.check_overflow(top, 'int', fatal=False)
-            topleft = QPoint(0, top)
-            bottomright = QPoint(width, self.status.geometry().top())
+            topleft = QPoint(left, top)
+            bottomright = QPoint(left + width, self.status.geometry().top())
         elif status_position == 'top':
-            topleft = self.status.geometry().bottomLeft()
+            topleft = QPoint(left, self.status.geometry().bottom())
             bottom = self.status.height() + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
             bottomright = QPoint(width, bottom)
@@ -261,8 +272,7 @@ class MainWindow(QWidget):
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
                         window=self.win_id)
-        self._overlays.append((self._completion,
-                               self._completion.update_geometry))
+        self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
         dispatcher = commands.CommandDispatcher(self.win_id,
@@ -350,10 +360,11 @@ class MainWindow(QWidget):
 
     def _connect_overlay_signals(self):
         """Connect the resize signal and resize everything once."""
-        for widget, signal in self._overlays:
+        for widget, signal, centered in self._overlays:
             signal.connect(
-                functools.partial(self._update_overlay_geometry, widget))
-            self._update_overlay_geometry(widget)
+                functools.partial(self._update_overlay_geometry, widget,
+                                  centered))
+            self._update_overlay_geometry(widget, centered)
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
@@ -374,7 +385,7 @@ class MainWindow(QWidget):
         cmd = self._get_object('status-command')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
-        prompter = self._get_object('prompter')
+        #prompter = self._get_object('prompter')
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
@@ -384,7 +395,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(status.on_mode_entered)
         mode_manager.left.connect(status.on_mode_left)
         mode_manager.left.connect(cmd.on_mode_left)
-        mode_manager.left.connect(prompter.on_mode_left)
+        #mode_manager.left.connect(prompter.on_mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
@@ -408,8 +419,8 @@ class MainWindow(QWidget):
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
         message_bridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        message_bridge.s_question.connect(prompter.ask_question,
-                                          Qt.DirectConnection)
+        #message_bridge.s_question.connect(prompter.ask_question,
+        #                                  Qt.DirectConnection)
 
         # statusbar
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)
