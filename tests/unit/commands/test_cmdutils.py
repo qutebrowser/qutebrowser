@@ -405,7 +405,8 @@ class TestArgument:
                 """Blah."""
                 pass
 
-        assert str(excinfo.value) == "Zero_count Argument cannot exist without count!"
+        assert str(excinfo.value) == "Zero_count Argument"
+        "cannot exist without count!"
 
     def test_no_docstring(self, caplog):
         with caplog.at_level(logging.WARNING):

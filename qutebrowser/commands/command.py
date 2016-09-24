@@ -179,7 +179,7 @@ class Command:
                 "{}: Only available with {} "
                 "backend.".format(self.name, self.backend.name))
 
-        if self._count == 0 and not self._zero_count:
+        if count == 0 and not self._zero_count:
             raise cmdexc.PrerequisitesError(
                 "{}: Argument zero_count not been set to true!".format(
                     self.name))
