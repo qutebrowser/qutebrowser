@@ -639,6 +639,49 @@ Feature: Various utility commands.
         And I run :message-info {clipboard}bar{url}
         Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
 
+    Scenario: Variable {url:pretty}
+        When I open data/hello.txt
+        And I run :message-info foo{url:pretty}
+        Then the message "foohttp://localhost:*/hello.txt" should be shown
+
+    Scenario: Variable {url:domain}
+        When I open data/hello.txt
+        And I run :message-info foo{url:pretty}
+        Then the message "foohttp://localhost:*" should be shown
+
+    Scenario: Variable {url:auth} without basic auth
+        When I open data/hello.txt
+        And I run :message-info foo{url:auth}
+        Then the message "foo" should be shown
+
+# Tests for HTTP basic auth variables are missing here, pytest-bdd bug
+# https://github.com/The-Compiler/qutebrowser/pull/1921#issuecomment-244695985
+
+    Scenario: Variable {url:scheme}
+        When I open data/hello.txt
+        And I run :message-info foo{url:scheme}
+        Then the message "foohttp" should be shown
+
+    Scenario: Variable {url:host}
+        When I open data/hello.txt
+        And I run :message-info foo{url:host}
+        Then the message "foolocalhost" should be shown
+
+    Scenario: Variable {url:path}
+        When I open data/hello.txt
+        And I run :message-info foo{url:path}
+        Then the message "foo*/hello.txt" should be shown
+
+    Scenario: Variable {url:query}
+        When I open data/hello.txt?q=bar
+        And I run :message-info foo{url:query}
+        Then the message "fooq=bar" should be shown
+
+    Scenario: Variable {title}
+        When I open data/title.html
+        And I run :message-info foo{title}
+        Then the message "fooTest title" should be shown
+
     ## :click-element
 
     Scenario: Clicking an element with unknown ID
