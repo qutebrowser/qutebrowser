@@ -8,7 +8,7 @@ decorator==4.0.10
 Flask==0.11.1
 glob2==0.4.1
 httpbin==0.5.0
-hypothesis==3.4.2
+hypothesis==3.5.1
 itsdangerous==0.24
 # Jinja2==2.8
 Mako==1.0.4
@@ -30,5 +30,8 @@ pytest-travis-fold==1.2.0
 pytest-warnings==0.1.0
 pytest-xvfb==0.3.0
 six==1.10.0
+spark-parser==1.4.0
+uncompyle6==2.8.3
 vulture==0.10
 Werkzeug==0.11.11
+xdis==2.3.1
