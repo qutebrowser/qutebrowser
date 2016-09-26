@@ -61,7 +61,7 @@ def _validate_regex(pattern, flags):
         except re.error as e:
             raise configexc.ValidationError(
                 pattern, "must be a valid regex - " + str(e))
-        except RuntimeError:
+        except RuntimeError:  # pragma: no cover
             raise configexc.ValidationError(
                 pattern, "must be a valid regex - recursion depth exceeded")
 
