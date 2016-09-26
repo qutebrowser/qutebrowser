@@ -100,14 +100,14 @@ class Command:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
-            self._modes = modes
+            self._modes = set(modes)
         elif not_modes is not None:
             for m in not_modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
-            self._modes = [m for m in usertypes.KeyMode if m not in not_modes]
+            self._modes = set(usertypes.KeyMode).difference(not_modes)
         else:
-            self._modes = list(usertypes.KeyMode)
+            self._modes = set(usertypes.KeyMode)
         if scope != 'global' and instance is None:
             raise ValueError("Setting scope without setting instance makes "
                              "no sense!")
@@ -524,7 +524,7 @@ class Command:
             mode: The usertypes.KeyMode to check.
         """
         if mode not in self._modes:
-            mode_names = '/'.join(m.name for m in self._modes)
+            mode_names = '/'.join(sorted(m.name for m in self._modes))
             raise cmdexc.PrerequisitesError(
                 "{}: This command is only allowed in {} mode, not {}.".format(
                     self.name, mode_names, mode.name))
