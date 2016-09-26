@@ -174,7 +174,9 @@ Feature: Keyboard input
         And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log
         And I run :fake-key x
         And I run :debug-console
-        And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView *>" in the log
+        # Different widgets for QtWebKit/QtWebEngine, so just use the window
+        # activation
+        And I wait for "Window activation changed to <qutebrowser.mainwindow.mainwindow.MainWindow> (win_id=0)" in the log
         Then the error "No focused webview!" should be shown
 
     Scenario: :fake-key sending special key to the website
