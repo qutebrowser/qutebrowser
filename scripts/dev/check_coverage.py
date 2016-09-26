@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 from scripts import utils
 
-Message = collections.namedtuple('Message', 'typ, text')
+Message = collections.namedtuple('Message', 'typ, filename, text')
 MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 
 
@@ -233,12 +233,12 @@ def check(fileobj, perfect_files):
         if filename in perfect_src_files and is_bad:
             text = "{} has {}% line and {}% branch coverage!".format(
                 filename, line_cov, branch_cov)
-            messages.append(Message(MsgType.insufficent_coverage, text))
+            messages.append(Message(MsgType.insufficent_coverage, filename, text))
         elif (filename not in perfect_src_files and not is_bad and
               filename not in WHITELISTED_FILES):
             text = ("{} has 100% coverage but is not in "
                     "perfect_files!".format(filename))
-            messages.append(Message(MsgType.perfect_file, text))
+            messages.append(Message(MsgType.perfect_file, filename, text))
 
     return messages
 
@@ -259,8 +259,13 @@ def main_check():
         for msg in messages:
             print(msg.text)
         print()
-        print("You can run 'tox -e py35-cov' (or py34-cov) locally and check "
-              "htmlcov/index.html to debug this.")
+        filters = ','.join(msg.filename for msg in messages)
+        subprocess.check_call([sys.executable, '-m', 'coverage', 'report',
+                               '--show-missing', '--include', filters])
+        print()
+        print("To debug this, run 'tox -e py35-cov' (or py34-cov) locally and check "
+              "htmlcov/index.html")
+        print("or check https://codecov.io/github/The-Compiler/qutebrowser")
         print()
 
     if 'CI' in os.environ:
