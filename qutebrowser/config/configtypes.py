@@ -107,6 +107,10 @@ class ValidValues:
         return utils.get_repr(self, values=self.values,
                               descriptions=self.descriptions)
 
+    def __eq__(self, other):
+        return (self.values == other.values and
+                self.descriptions == other.descriptions)
+
 
 class BaseType:
 

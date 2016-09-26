@@ -163,6 +163,21 @@ class TestValidValues:
         with pytest.raises(ValueError):
             klass()
 
+    @pytest.mark.parametrize('args1, args2, is_equal', [
+        (('foo', 'bar'), ('foo', 'bar'), True),
+        (('foo', 'bar'), ('foo', 'baz'), False),
+        ((('foo', 'foo desc'), ('bar', 'bar desc')),
+         (('foo', 'foo desc'), ('bar', 'bar desc')),
+         True),
+        ((('foo', 'foo desc'), ('bar', 'bar desc')),
+         (('foo', 'foo desc'), ('bar', 'bar desc2')),
+         False),
+    ])
+    def test_equal(self, klass, args1, args2, is_equal):
+        obj1 = klass(*args1)
+        obj2 = klass(*args2)
+        assert (obj1 == obj2) == is_equal
+
 
 class TestBaseType:
 
@@ -223,6 +238,13 @@ class TestBaseType:
         """Test complete with valid_values set without description."""
         basetype.valid_values = configtypes.ValidValues(*valid_values)
         assert basetype.complete() == completions
+
+    def test_get_name(self, basetype):
+        assert basetype.get_name() == 'BaseType'
+
+    def test_get_valid_values(self, basetype):
+        basetype.valid_values = configtypes.ValidValues('foo')
+        assert basetype.get_valid_values() is basetype.valid_values
 
 
 class MappingSubclass(configtypes.MappingType):
@@ -409,6 +431,13 @@ class TestList:
     def test_transform(self, klass, val, expected):
         assert klass().transform(val) == expected
 
+    def test_get_name(self, klass):
+        assert klass().get_name() == 'ListSubclass of BaseType'
+
+    def test_get_valid_values(self, klass):
+        expected = configtypes.ValidValues('foo', 'bar', 'baz')
+        assert klass().get_valid_values() == expected
+
 
 class FlagListSubclass(configtypes.FlagList):
 
@@ -488,6 +517,10 @@ class TestFlagList:
 
     def test_complete_no_valid_values(self, klass_valid_none):
         assert klass_valid_none().complete() is None
+
+    def test_get_name(self, klass):
+        """Make sure the name has no "of ..." in it."""
+        assert klass().get_name() == 'FlagListSubclass'
 
 
 class TestBool:
@@ -1594,6 +1627,7 @@ class TestHeaderDict:
         '{"hello": "wörld"}',  # non-ascii data in value
         '',  # empty value with none_ok=False
         '{}',  # ditto
+        '[invalid',  # invalid json
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
