@@ -15,6 +15,7 @@ th { background: lightgrey; }
 th pre { color: grey; text-align: left; }
 .noscript, .noscript-text { color:red; }
 .noscript-text { margin-bottom: 5cm; }
+.option_description { margin: .5ex 0; color: grey; font-size: 80%; font-style: italic; white-space: pre-line; }
 {% endblock %}
 
 {% block content %}
@@ -25,7 +26,11 @@ th pre { color: grey; text-align: left; }
   <tr><th colspan="2"><h3>{{ section }}</h3><pre>{{ config.SECTION_DESC.get(section)|wordwrap(width=120) }}</pre></th></tr>
   {% for d, e in config.DATA.get(section).items() %}
     <tr>
-      <td>{{ d }} (Current: {{ confget(section, d)|truncate(100) }})</td>
+      <td>{{ d }} (Current: {{ confget(section, d)|truncate(100) }})
+        {% if config.DATA.get(section).descriptions[d] %}
+          <p class="option_description">{{ config.DATA.get(section).descriptions[d]|e }}</p>
+        {% endif %}
+      </td>
       <td>
         <input type="text"
           onblur="cset('{{ section }}', '{{ d }}', this)"
