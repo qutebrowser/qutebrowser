@@ -677,7 +677,9 @@ class CommandDispatcher:
         """Helper method for yank() to get the URL to copy."""
         assert what in ['url', 'pretty-url'], what
         flags = QUrl.RemovePassword
-        if what != 'pretty-url':
+        if what == 'pretty-url':
+            flags |= QUrl.DecodeReserved
+        else:
             flags |= QUrl.FullyEncoded
         url = QUrl(self._current_url())
         url_query = QUrlQuery(url)
