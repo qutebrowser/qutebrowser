@@ -38,7 +38,7 @@ class ArgInfo:
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
         if zero_count and not count:
-            raise TypeError("Zero_count Argument cannot exist without count!")
+            raise TypeError("zero_count argument cannot exist without count!")
         self.win_id = win_id
         self.count = count
         self.zero_count = zero_count
@@ -181,8 +181,8 @@ class Command:
 
         if count == 0 and not self._zero_count:
             raise cmdexc.PrerequisitesError(
-                "{}: Argument zero_count not been set to true!".format(
-                    self.name))
+                "{}: A zero count is not allowed for this command!"
+                .format(self.name))
 
         if self.deprecated:
             message.warning(win_id, '{} is deprecated - {}'.format(

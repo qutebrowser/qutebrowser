@@ -255,11 +255,12 @@ Feature: Tab management
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-focus with 0
+    Scenario: :tab-focus with count 0
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
-        And I run :tab-focus 0
+        And I run :tab-focus with count 1
+        And I run :tab-focus with count 0
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
