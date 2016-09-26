@@ -132,6 +132,7 @@ Changed
     * `fonts -> messages.error`
     * `fonts -> messages.warning`
     * `fonts -> messages.info`
+- The `qute:settings` page now also shows option descriptions.
 
 Deprecated
 ~~~~~~~~~~
