@@ -1,0 +1,25 @@
+#!/usr/bin/env python2
+#
+# Executes python-readability on current page and opens the summary as new tab.
+#
+# Usage:
+#   :spawn --userscript readability
+#
+from __future__ import absolute_import
+import codecs, os
+from readability.readability import Document
+
+tmpfile=os.path.expanduser('~/.local/share/qutebrowser/userscripts/readability.html')
+if not os.path.exists(os.path.dirname(tmpfile)):
+    os.makedirs(os.path.dirname(tmpfile))
+
+with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
+    doc = Document(source.read())
+    content = doc.summary().replace('<html>', '<html><head><title>%s</title></head>' % doc.title())
+
+    with codecs.open(tmpfile, 'w', 'utf-8') as target:
+        target.write('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />')
+        target.write(content)
+
+    with open(os.environ['QUTE_FIFO'], 'w') as fifo:
+        fifo.write('open -t %s' % tmpfile)
