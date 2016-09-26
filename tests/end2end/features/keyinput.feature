@@ -170,11 +170,10 @@ Feature: Keyboard input
     @qutewm @posix @qtwebengine_skip
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/keyinput/log.html
-        And I set general -> developer-extras to true
-        And I run :inspector
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I run :debug-console
+        And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log
         And I run :fake-key x
-        And I run :inspector
+        And I run :debug-console
         And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView *>" in the log
         Then the error "No focused webview!" should be shown
 
