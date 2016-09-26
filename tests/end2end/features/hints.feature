@@ -2,7 +2,7 @@ Feature: Using hints
 
     Scenario: Using :follow-hint outside of hint mode (issue 1105)
         When I run :follow-hint
-        Then the error "follow-hint: This command is only allowed in hint mode." should be shown
+        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
 
     Scenario: Using :follow-hint with an invalid index.
         When I open data/hints/html/simple.html

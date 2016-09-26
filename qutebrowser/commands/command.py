@@ -82,7 +82,6 @@ class Command:
         no_replace_variables: Don't replace variables like {url}
         _qute_args: The saved data from @cmdutils.argument
         _modes: The modes the command can be executed in.
-        _not_modes: The modes the command can not be executed in.
         _count: The count set for the command.
         _instance: The object to bind 'self' to.
         _scope: The scope to get _instance for in the object registry.
@@ -101,10 +100,14 @@ class Command:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
-        if not_modes is not None:
+            self._modes = set(modes)
+        elif not_modes is not None:
             for m in not_modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
+            self._modes = set(usertypes.KeyMode).difference(not_modes)
+        else:
+            self._modes = set(usertypes.KeyMode)
         if scope != 'global' and instance is None:
             raise ValueError("Setting scope without setting instance makes "
                              "no sense!")
@@ -114,8 +117,6 @@ class Command:
         self.hide = hide
         self.deprecated = deprecated
         self._instance = instance
-        self._modes = modes
-        self._not_modes = not_modes
         self._scope = scope
         self._star_args_optional = star_args_optional
         self.debug = debug
@@ -155,17 +156,7 @@ class Command:
         """
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=win_id)
-        curmode = mode_manager.mode
-        if self._modes is not None and curmode not in self._modes:
-            mode_names = '/'.join(mode.name for mode in self._modes)
-            raise cmdexc.PrerequisitesError(
-                "{}: This command is only allowed in {} mode.".format(
-                    self.name, mode_names))
-        elif self._not_modes is not None and curmode in self._not_modes:
-            mode_names = '/'.join(mode.name for mode in self._not_modes)
-            raise cmdexc.PrerequisitesError(
-                "{}: This command is not allowed in {} mode.".format(
-                    self.name, mode_names))
+        self.validate_mode(mode_manager.mode)
 
         used_backend = usertypes.arg2backend[objreg.get('args').backend]
         if self.backend is not None and used_backend != self.backend:
@@ -525,3 +516,15 @@ class Command:
         log.commands.debug('Calling {}'.format(
             debug_utils.format_call(self.handler, posargs, kwargs)))
         self.handler(*posargs, **kwargs)
+
+    def validate_mode(self, mode):
+        """Raise cmdexc.PrerequisitesError unless allowed in the given mode.
+
+        Args:
+            mode: The usertypes.KeyMode to check.
+        """
+        if mode not in self._modes:
+            mode_names = '/'.join(sorted(m.name for m in self._modes))
+            raise cmdexc.PrerequisitesError(
+                "{}: This command is only allowed in {} mode, not {}.".format(
+                    self.name, mode_names, mode.name))

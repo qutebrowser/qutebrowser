@@ -73,6 +73,10 @@ Feature: Keyboard input
         And I run :bind <test26>
         Then the message "<test26> is bound to 'mib' in normal mode" should be shown
 
+    Scenario: Binding with an unsupported mode
+        When I run :bind --mode=caret test27 rl-unix-filename-rubout
+        Then the error "rl-unix-filename-rubout: This command is only allowed in command/prompt mode, not caret." should be shown
+
     # :unbind
 
     Scenario: Binding and unbinding a keychain

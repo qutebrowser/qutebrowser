@@ -177,12 +177,13 @@ class KeyConfigParser(QObject):
                                                                      mode))
             return
 
-        mode = self._normalize_sectname(mode)
-        for m in mode.split(','):
+        modenames = self._normalize_sectname(mode).split(',')
+        for m in modenames:
             if m not in configdata.KEY_DATA:
                 raise cmdexc.CommandError("Invalid mode {}!".format(m))
         try:
-            self._validate_command(command)
+            modes = [usertypes.KeyMode[m] for m in modenames]
+            self._validate_command(command, modes)
         except KeyConfigError as e:
             raise cmdexc.CommandError(str(e))
         try:
@@ -192,7 +193,7 @@ class KeyConfigParser(QObject):
                                       "override!".format(str(e.keychain)))
         except KeyConfigError as e:
             raise cmdexc.CommandError(e)
-        for m in mode.split(','):
+        for m in modenames:
             self.changed.emit(m)
             self._mark_config_dirty()
 
@@ -331,8 +332,13 @@ class KeyConfigParser(QObject):
         self.is_dirty = True
         self.config_dirty.emit()
 
-    def _validate_command(self, line):
-        """Check if a given command is valid."""
+    def _validate_command(self, line, modes=None):
+        """Check if a given command is valid.
+
+        Args:
+            line: The commandline to validate.
+            modes: A list of modes to validate the commands for, or None.
+        """
         from qutebrowser.config import config
         if line == self.UNBOUND_COMMAND:
             return
@@ -352,8 +358,15 @@ class KeyConfigParser(QObject):
         commands = [c.split(maxsplit=1)[0].strip() for c in commands]
         for cmd in commands:
             aliases = config.section('aliases')
-            if cmd not in cmdutils.cmd_dict and cmd not in aliases:
+            if cmd in cmdutils.cmd_dict:
+                cmdname = cmd
+            elif cmd in aliases:
+                cmdname = aliases[cmd].split(maxsplit=1)[0].strip()
+            else:
                 raise KeyConfigError("Invalid command '{}'!".format(cmd))
+            cmd_obj = cmdutils.cmd_dict[cmdname]
+            for m in modes or []:
+                cmd_obj.validate_mode(m)
 
     def _read_command(self, line):
         """Read a command from a line."""
