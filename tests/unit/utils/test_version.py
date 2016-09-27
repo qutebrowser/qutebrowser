@@ -314,9 +314,7 @@ def test_release_info(files, expected, caplog, monkeypatch):
 
 
 def test_path_info(monkeypatch):
-
     """Test _path_info()."""
-
     patches = {
         'config': lambda: 'CONFIG PATH',
         'data': lambda: 'DATA PATH',
