@@ -313,6 +313,32 @@ def test_release_info(files, expected, caplog, monkeypatch):
         assert caplog.records[0].message == "Error while reading fake-file."
 
 
+def test_path_info(monkeypatch):
+
+    """Test _path_info()."""
+
+    patches = {
+        'config': lambda: 'CONFIG PATH',
+        'data': lambda: 'DATA PATH',
+        'system_data': lambda: 'SYSTEM DATA PATH',
+        'cache': lambda: 'CACHE PATH',
+        'download': lambda: 'DOWNLOAD PATH',
+        'runtime': lambda: 'RUNTIME PATH',
+    }
+
+    for attr, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.standarddir.' + attr, val)
+
+    pathinfo = version._path_info()
+
+    assert pathinfo['config'] == 'CONFIG PATH'
+    assert pathinfo['data'] == 'DATA PATH'
+    assert pathinfo['system_data'] == 'SYSTEM DATA PATH'
+    assert pathinfo['cache'] == 'CACHE PATH'
+    assert pathinfo['download'] == 'DOWNLOAD PATH'
+    assert pathinfo['runtime'] == 'RUNTIME PATH'
+
+
 class ImportFake:
 
     """A fake for __import__ which is used by the import_fake fixture.
