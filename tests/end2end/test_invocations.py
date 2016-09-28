@@ -21,8 +21,14 @@
 
 import sys
 import logging
+import re
 
 import pytest
+
+from PyQt5.QtCore import QProcess
+
+from end2end.fixtures.quteprocess import QuteProc
+from end2end.fixtures.testprocess import ProcessExited
 
 
 def _base_args(config):
@@ -177,3 +183,83 @@ def test_optimize(request, quteproc_new, capfd, level):
     # Waiting for quit to make sure no other warning is emitted
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_version(request):
+    """Test invocation with --version argument."""
+    args = ['--version'] + _base_args(request.config)
+    # can't use quteproc_new here because it's confused by
+    # early process termination
+    proc = QuteProc(request)
+    proc.proc.setProcessChannelMode(QProcess.SeparateChannels)
+
+    try:
+        proc.start(args)
+        proc.wait_for_quit()
+    except ProcessExited:
+        assert proc.proc.exitStatus() == QProcess.NormalExit
+        pass
+    else:
+        assert False
+
+    proc.proc.setReadChannel(QProcess.StandardOutput)
+    lines = []
+    while proc.proc.canReadLine():
+        line = proc.proc.readLine()
+        lines.append(bytes(line).decode('utf-8').rstrip('\r\n'))
+    output = '\n'.join(lines)
+
+    assert re.search('^qutebrowser\s+v\d+(\.\d+)*$',
+        output, re.MULTILINE) is not None
+    assert re.search('^CPython:\s+\d+(\.\d+)*$',
+        output, re.MULTILINE) is not None
+    assert re.search('^Qt:\s+\d+(\.\d+)*$',
+        output, re.MULTILINE) is not None
+    assert re.search('^PyQt:\s+\d+(\.\d+)*$',
+        output, re.MULTILINE) is not None
+    assert re.search('^sip:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^colorama:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^pypeg2:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^jinja2:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^pygments:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^yaml:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^cssutils:\s+(\d+(\.\d+)*.*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^typing:\s+(yes|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^PyQt5\.QtWebEngineWidgets:\s+(yes|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^pdf\.js:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^Webkit:\s+(\d+(\.\d+)*|no)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^SSL:\s.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^Platform:\s.+,\s+.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^Frozen:\s(True|False)$',
+        output, re.MULTILINE) is not None
+    assert re.search('^Imported from .+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^OS Version: .*$',
+        output, re.MULTILINE) is not None
+    assert re.search('^Paths$',
+        output, re.MULTILINE) is not None
+    assert re.search('^config:\s+.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^system_data:\s+.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^cache:\s+.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^data:\s+.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^download:\s+.+$',
+        output, re.MULTILINE) is not None
+    assert re.search('^runtime:\s+.+$',
+        output, re.MULTILINE) is not None
