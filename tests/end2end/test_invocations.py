@@ -198,7 +198,6 @@ def test_version(request):
         proc.wait_for_quit()
     except ProcessExited:
         assert proc.proc.exitStatus() == QProcess.NormalExit
-        pass
     else:
         assert False
 
