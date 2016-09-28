@@ -202,64 +202,6 @@ def test_version(request):
     else:
         assert False
 
-    proc.proc.setReadChannel(QProcess.StandardOutput)
-    lines = []
-    while proc.proc.canReadLine():
-        line = proc.proc.readLine()
-        lines.append(bytes(line).decode('utf-8').rstrip('\r\n'))
-    output = '\n'.join(lines)
+    output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
 
-    assert re.search('^qutebrowser\s+v\d+(\.\d+)*$',
-        output, re.MULTILINE) is not None
-    assert re.search('^CPython:\s+\d+(\.\d+)*$',
-        output, re.MULTILINE) is not None
-    assert re.search('^Qt:\s+\d+(\.\d+)*$',
-        output, re.MULTILINE) is not None
-    assert re.search('^PyQt:\s+\d+(\.\d+)*$',
-        output, re.MULTILINE) is not None
-    assert re.search('^sip:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^colorama:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^pypeg2:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^jinja2:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^pygments:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^yaml:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^cssutils:\s+(\d+(\.\d+)*.*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^typing:\s+(yes|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^PyQt5\.QtWebEngineWidgets:\s+(yes|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^pdf\.js:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^Webkit:\s+(\d+(\.\d+)*|no)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^SSL:\s.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^Platform:\s.+,\s+.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^Frozen:\s(True|False)$',
-        output, re.MULTILINE) is not None
-    assert re.search('^Imported from .+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^OS Version: .*$',
-        output, re.MULTILINE) is not None
-    assert re.search('^Paths$',
-        output, re.MULTILINE) is not None
-    assert re.search('^config:\s+.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^system_data:\s+.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^cache:\s+.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^data:\s+.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^download:\s+.+$',
-        output, re.MULTILINE) is not None
-    assert re.search('^runtime:\s+.+$',
-        output, re.MULTILINE) is not None
+    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
