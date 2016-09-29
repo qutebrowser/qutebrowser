@@ -325,12 +325,14 @@ class NotFoundError(Exception):
         message: descriptive message string of the error
     """
 
-    def __init__(self, script_name, paths=[]):
+    def __init__(self, script_name, paths=None):
+        super().__init__()
         self.script_name = script_name
         self.paths = paths
         self.message = "Userscript '" + script_name + "' not found"
         if paths:
-            self.message += " in userscript directory '" + ("' or '".join(paths)) + "'"
+            self.message += " in userscript directory '" + \
+                            ("' or '".join(paths)) + "'"
 
     def __str__(self):
         return self.message
@@ -344,12 +346,41 @@ class UnsupportedError(Exception):
         return "Userscripts are not supported on this platform!"
 
 
+def _lookup_path(cmd):
+    """Search userscript directories for given command.
+
+    Raises:
+        NotFoundError if the command could not be found.
+
+    Args:
+        cmd: The command to look for.
+
+    Returns:
+        A path to the userscript.
+    """
+    cmd_path = os.path.join(standarddir.data(), "userscripts", cmd)
+    if os.path.exists(cmd_path):
+        return cmd_path
+
+    directories = [
+        os.path.join(standarddir.data(), "userscripts"),
+        os.path.join(standarddir.system_data(), "userscripts"),
+    ]
+    for directory in directories:
+        cmd_path = os.path.join(directory, cmd)
+        if os.path.exists(cmd_path):
+            return cmd_path
+
+    raise NotFoundError(cmd, directories)
+
+
 def run_async(tab, cmd, *args, win_id, env, verbose=False):
     """Run a userscript after dumping page html/source.
 
     Raises:
         UnsupportedError if userscripts are not supported on the current
         platform.
+        NotFoundError if the command could not be found.
 
     Args:
         tab: The WebKitTab/WebEngineTab to get the source from.
@@ -392,15 +423,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
     if not os.path.isabs(cmd_path):
         log.misc.debug("{} is no absolute path".format(cmd_path))
-        cmd_path = os.path.join(standarddir.data(), "userscripts", cmd)
-        if not os.path.exists(cmd_path):
-            cmd_path = os.path.join(standarddir.system_data(),
-                                    "userscripts", cmd)
-            if not os.path.exists(cmd_path):
-                raise NotFoundError(cmd, [
-                    os.path.join(standarddir.data(), "userscripts"),
-                    os.path.join(standarddir.system_data(), "userscripts"),
-                ])
+        cmd_path = _lookup_path(cmd)
     elif not os.path.exists(cmd_path):
         raise NotFoundError(cmd_path)
     log.misc.debug("Userscript to run: {}".format(cmd_path))
