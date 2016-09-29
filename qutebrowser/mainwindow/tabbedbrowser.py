@@ -615,8 +615,14 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot()
     def on_scroll_pos_changed(self):
         """Update tab and window title when scroll position changed."""
+        idx = self.currentIndex()
+        if idx == -1:
+            # (e.g. last tab removed)
+            log.webview.debug("Not updating scroll position because index is "
+                              "-1")
+            return
         self.update_window_title()
-        self.update_tab_title(self.currentIndex())
+        self.update_tab_title(idx)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
