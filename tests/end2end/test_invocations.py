@@ -27,8 +27,7 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from end2end.fixtures.quteprocess import QuteProc
-from end2end.fixtures.testprocess import ProcessExited
+from end2end.fixtures import quteprocess, testprocess
 
 
 def _base_args(config):
@@ -190,13 +189,13 @@ def test_version(request):
     args = ['--version'] + _base_args(request.config)
     # can't use quteproc_new here because it's confused by
     # early process termination
-    proc = QuteProc(request)
+    proc = quteprocess.QuteProc(request)
     proc.proc.setProcessChannelMode(QProcess.SeparateChannels)
 
     try:
         proc.start(args)
         proc.wait_for_quit()
-    except ProcessExited:
+    except testprocess.ProcessExited:
         assert proc.proc.exitStatus() == QProcess.NormalExit
     else:
         assert False
