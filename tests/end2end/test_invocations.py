@@ -198,7 +198,7 @@ def test_version(request):
     except testprocess.ProcessExited:
         assert proc.proc.exitStatus() == QProcess.NormalExit
     else:
-        assert False
+        pytest.fail("Process did not exit!")
 
     output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
 
