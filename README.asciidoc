@@ -168,13 +168,13 @@ Contributors, sorted by the number of commits in descending order:
 * Austin Anderson
 * Jimmy
 * Niklas Haas
+* Daniel Karbach
 * Alexey "Averrin" Nabrodov
 * nanjekyejoannah
 * avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Daniel Karbach
 * Clayton Craft
 * Peter Vilim
 * knaggita
