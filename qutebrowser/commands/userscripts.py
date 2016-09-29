@@ -315,6 +315,27 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             return
 
 
+class NotFoundError(Exception):
+
+    """Raised when spawning a userscript that doesn't exist.
+
+    Attributes:
+        script_name: name of the userscript as called
+        paths: path names that were searched for the userscript
+        message: descriptive message string of the error
+    """
+
+    def __init__(self, script_name, paths=[]):
+        self.script_name = script_name
+        self.paths = paths
+        self.message = "Userscript '" + script_name + "' not found"
+        if paths:
+            self.message += " in userscript directory '" + ("' or '".join(paths)) + "'"
+
+    def __str__(self):
+        return self.message
+
+
 class UnsupportedError(Exception):
 
     """Raised when userscripts aren't supported on this platform."""
@@ -375,6 +396,13 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         if not os.path.exists(cmd_path):
             cmd_path = os.path.join(standarddir.system_data(),
                                     "userscripts", cmd)
+            if not os.path.exists(cmd_path):
+                raise NotFoundError(cmd, [
+                    os.path.join(standarddir.data(), "userscripts"),
+                    os.path.join(standarddir.system_data(), "userscripts"),
+                ])
+    elif not os.path.exists(cmd_path):
+        raise NotFoundError(cmd_path)
     log.misc.debug("Userscript to run: {}".format(cmd_path))
 
     runner.finished.connect(commandrunner.deleteLater)
