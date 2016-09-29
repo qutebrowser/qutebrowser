@@ -274,7 +274,7 @@ def version():
 
     lines += [
         '',
-        'Paths',
+        'Paths:',
     ]
     for name, path in _path_info().items():
         lines += ['{}: {}'.format(name, path)]

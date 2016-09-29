@@ -700,7 +700,7 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         OS INFO 1
         OS INFO 2
 
-        Paths
+        Paths:
         PATH DESC: PATH NAME
     """.lstrip('\n'))
 
