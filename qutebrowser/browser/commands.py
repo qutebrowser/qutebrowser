@@ -683,9 +683,10 @@ class CommandDispatcher:
             flags |= QUrl.FullyEncoded
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
-        if ';' in url.query():
+        url_query_str = url.query()
+        if '&' not in url_query_str and ';' in url_query_str:
             url_query.setQueryDelimiters('=', ';')
-        url_query.setQuery(url.query())
+        url_query.setQuery(url_query_str)
         for key in dict(url_query.queryItems()):
             if key in config.get('general', 'yank-ignored-url-parameters'):
                 url_query.removeQueryItem(key)
