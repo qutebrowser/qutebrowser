@@ -38,7 +38,7 @@ except ImportError:  # pragma: no cover
     qWebKitVersion = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, standarddir
 from qutebrowser.browser import pdfjs
 
 
@@ -152,6 +152,22 @@ def _module_versions():
     return lines
 
 
+def _path_info():
+    """Get info about important path names.
+
+    Return:
+        A dictionary of descriptive to actual path names.
+    """
+    return {
+        'config': standarddir.config(),
+        'data': standarddir.data(),
+        'system_data': standarddir.system_data(),
+        'cache': standarddir.cache(),
+        'download': standarddir.download(),
+        'runtime': standarddir.runtime(),
+    }
+
+
 def _os_info():
     """Get operating system info.
 
@@ -255,4 +271,12 @@ def version():
         "Imported from {}".format(importpath),
     ]
     lines += _os_info()
+
+    lines += [
+        '',
+        'Paths:',
+    ]
+    for name, path in _path_info().items():
+        lines += ['{}: {}'.format(name, path)]
+
     return '\n'.join(lines)

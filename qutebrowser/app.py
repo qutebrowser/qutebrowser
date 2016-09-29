@@ -62,10 +62,6 @@ qApp = None
 
 def run(args):
     """Initialize everything and run the application."""
-    if args.version:
-        print(version.version())
-        sys.exit(usertypes.Exit.ok)
-
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
@@ -78,6 +74,13 @@ def run(args):
     qApp.setApplicationName("qutebrowser")
     qApp.setApplicationVersion(qutebrowser.__version__)
     qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
+
+    log.init.debug("Initializing directories...")
+    standarddir.init(args)
+
+    if args.version:
+        print(version.version())
+        sys.exit(usertypes.Exit.ok)
 
     crash_handler = crashsignal.CrashHandler(
         app=qApp, quitter=quitter, args=args, parent=qApp)
@@ -377,9 +380,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
-
-    log.init.debug("Initializing directories...")
-    standarddir.init(args)
 
     log.init.debug("Initializing config...")
     config.init(qApp)
