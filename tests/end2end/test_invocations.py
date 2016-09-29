@@ -21,8 +21,14 @@
 
 import sys
 import logging
+import re
 
 import pytest
+
+from PyQt5.QtCore import QProcess
+
+from end2end.fixtures.quteprocess import QuteProc
+from end2end.fixtures.testprocess import ProcessExited
 
 
 def _base_args(config):
@@ -177,3 +183,24 @@ def test_optimize(request, quteproc_new, capfd, level):
     # Waiting for quit to make sure no other warning is emitted
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_version(request):
+    """Test invocation with --version argument."""
+    args = ['--version'] + _base_args(request.config)
+    # can't use quteproc_new here because it's confused by
+    # early process termination
+    proc = QuteProc(request)
+    proc.proc.setProcessChannelMode(QProcess.SeparateChannels)
+
+    try:
+        proc.start(args)
+        proc.wait_for_quit()
+    except ProcessExited:
+        assert proc.proc.exitStatus() == QProcess.NormalExit
+    else:
+        assert False
+
+    output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
+
+    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
