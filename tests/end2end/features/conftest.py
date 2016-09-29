@@ -568,11 +568,11 @@ def check_scrolled(quteproc, direction):
     quteproc.wait_scroll_pos_changed()
     x, y = _get_scroll_values(quteproc)
     if direction == 'horizontally':
-        assert x != 0
+        assert x > 0
         assert y == 0
     else:
         assert x == 0
-        assert y != 0
+        assert y > 0
 
 
 @bdd.then("the page should not be scrolled")
