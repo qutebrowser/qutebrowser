@@ -304,3 +304,13 @@ Feature: Scrolling
         When I open data/hello.txt
         And I run :scroll-page 1 1
         Then the page should not be scrolled
+
+    ## issues
+
+    @qtwebengine_todo: #1945
+    Scenario: Relative scroll position with a position:absolute page
+        When I open data/scroll/position_absolute.html
+        And I run :scroll-perc 100
+        And I wait until the scroll position changed
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then data/hello2.txt should be loaded
