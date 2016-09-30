@@ -353,7 +353,8 @@ class WebKitZoom(browsertab.AbstractZoom):
     def _set_factor_internal(self, factor):
         widget = self._widget
         if pdfjs.is_pdfjs_page(widget):
-            cmd = 'PDFView.pdfViewer.currentScaleValue = {!r}'.format(factor)
+            cmd = ('(window.PDFView || window.PDFViewerApplication)'
+                   '.pdfViewer.currentScaleValue = {!r}'.format(factor))
             widget.page().mainFrame().evaluateJavaScript(cmd)
         else:
             widget.setZoomFactor(factor)
@@ -361,7 +362,8 @@ class WebKitZoom(browsertab.AbstractZoom):
     def factor(self):
         widget = self._widget
         if pdfjs.is_pdfjs_page(widget):
-            cmd = 'PDFView.pdfViewer.currentScaleValue'
+            cmd = ('(window.PDFView || window.PDFViewerApplication)'
+                   '.pdfViewer.currentScaleValue')
             return widget.page().mainFrame().evaluateJavaScript(cmd)
         else:
             return widget.zoomFactor()
