@@ -604,6 +604,10 @@ Feature: Various utility commands.
             - data/hints/link_blank.html
             - data/hello.txt (active)
 
+    Scenario: Using 0 as count
+        When I run :scroll down with count 0
+        Then the error "scroll: A zero count is not allowed for this command!" should be shown
+
     @no_xvfb
     Scenario: :window-only
         Given I run :tab-only
