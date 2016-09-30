@@ -431,7 +431,6 @@ class TestArgument:
                 pass
 
         expected = "zero_count argument cannot exist without count!"
-
         assert str(excinfo.value) == expected
 
     def test_no_docstring(self, caplog):

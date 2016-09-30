@@ -975,12 +975,12 @@ class CommandDispatcher:
             self._tab_focus_last()
             return
         index = count if count is not None else index
+
         if index is None:
             self.tab_next()
             return
         elif index == 0:
             index = self._count()
-
         elif index < 0:
             index = self._count() + index + 1
 
