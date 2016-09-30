@@ -246,7 +246,7 @@ class TestKeyChain:
         assert keyparser._keystring == ''
 
     def test_0_press(self, handle_text, keyparser):
-        handle_text((Qt.Key_X, '0'),
+        handle_text((Qt.Key_0, '0'),
                     (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
         keyparser.execute.assert_called_once_with(
             'ba', keyparser.Type.chain, 0)
