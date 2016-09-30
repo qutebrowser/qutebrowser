@@ -246,9 +246,10 @@ class TestKeyChain:
         assert keyparser._keystring == ''
 
     def test_0_press(self, handle_text, keyparser):
-        handle_text((Qt.Key_0, '0'))
+        handle_text((Qt.Key_X, '0'),
+                    (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
         keyparser.execute.assert_called_once_with(
-            '0', keyparser.Type.chain, None)
+            'ba', keyparser.Type.chain, 0)
         assert keyparser._keystring == ''
 
     def test_ambiguous_keychain(self, qapp, handle_text, config_stub,
@@ -314,9 +315,8 @@ class TestCount:
 
     def test_count_0(self, handle_text, keyparser):
         handle_text((Qt.Key_0, '0'), (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
-        calls = [mock.call('0', keyparser.Type.chain, None),
-                 mock.call('ba', keyparser.Type.chain, None)]
-        keyparser.execute.assert_has_calls(calls)
+        keyparser.execute.assert_called_once_with(
+            'ba', keyparser.Type.chain, 0)
         assert keyparser._keystring == ''
 
     def test_count_42(self, handle_text, keyparser):
