@@ -12,7 +12,7 @@ flake8-tidy-imports
 flake8-tuple
 hacking
 pep8-naming
-pydocstyle
+pydocstyle!=1.1.0
 pyflakes
 
 # Pinned to 1.5.7 by hacking otherwise
@@ -23,3 +23,6 @@ pep8==1.7.0
 
 # https://github.com/JBKahn/flake8-debugger/issues/5
 #@ filter: flake8-debugger != 2.0.0
+
+# https://gitlab.com/pycqa/flake8-docstrings/issues/16
+#@ filter: pydocstyle != 1.1.0

@@ -19,7 +19,7 @@ pbr==1.10.0
 pep8==1.7.0
 pep8-naming==0.4.1
 pycodestyle==2.0.0
-pydocstyle==1.0.0
+pydocstyle==1.0.0  # rq.filter: != 1.1.0
 pyflakes==1.3.0
 pyparsing==2.1.9
 six==1.10.0
