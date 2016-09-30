@@ -327,20 +327,19 @@ class NotFoundError(Error):
     Attributes:
         script_name: name of the userscript as called
         paths: path names that were searched for the userscript
-        message: descriptive message string of the error
     """
 
     def __init__(self, script_name, paths=None):
         super().__init__()
         self.script_name = script_name
         self.paths = paths
-        self.message = "Userscript '" + script_name + "' not found"
-        if paths:
-            self.message += " in userscript directory '" + \
-                            ("' or '".join(paths)) + "'"
 
     def __str__(self):
-        return self.message
+        msg = "Userscript '{}' not found".format(self.script_name)
+        if self.paths:
+            msg += " in userscript directories {}".format(
+                ', '.join(repr(path) for path in self.paths))
+        return msg
 
 
 class UnsupportedError(Error):

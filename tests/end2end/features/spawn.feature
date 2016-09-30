@@ -10,7 +10,7 @@ Feature: :spawn
 
     Scenario: Starting a userscript which doesn't exist
         When I run :spawn -u this_does_not_exist
-        Then regex "Userscript 'this_does_not_exist' not found in userscript directory '(.*)'( or '(.*)')*" should be logged
+        Then the error "Userscript 'this_does_not_exist' not found in userscript directories *" should be shown
 
     Scenario: Starting a userscript with absoloute path which doesn't exist
         When I run :spawn -u /this_does_not_exist
