@@ -362,10 +362,6 @@ def _lookup_path(cmd):
     Returns:
         A path to the userscript.
     """
-    cmd_path = os.path.join(standarddir.data(), "userscripts", cmd)
-    if os.path.exists(cmd_path):
-        return cmd_path
-
     directories = [
         os.path.join(standarddir.data(), "userscripts"),
         os.path.join(standarddir.system_data(), "userscripts"),
