@@ -315,7 +315,12 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             return
 
 
-class NotFoundError(Exception):
+class Error(Exception):
+
+    """Base class for userscript exceptions."""
+
+
+class NotFoundError(Error):
 
     """Raised when spawning a userscript that doesn't exist.
 
@@ -338,7 +343,7 @@ class NotFoundError(Exception):
         return self.message
 
 
-class UnsupportedError(Exception):
+class UnsupportedError(Error):
 
     """Raised when userscripts aren't supported on this platform."""
 
