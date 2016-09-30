@@ -24,6 +24,7 @@ import os
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, javascript
+from qutebrowser.browser.webkit import webview as webkit_webview
 
 
 class PDFJSNotFound(Exception):
@@ -201,3 +202,29 @@ def is_available():
         return False
     else:
         return True
+
+
+def is_pdfjs_page(webview):
+    """Check whether the given webview displays a pdfjs site.
+
+    This currently only works for WebKit views, as pdfjs is not implemented for
+    WebEngine.
+
+    Args:
+        webview: The browser.webkit.webview.WebView instance. Only works for
+                 WebKit!
+
+    Return:
+        True if the view displays pdfjs, False otherwise.
+    """
+    assert isinstance(webview, webkit_webview.WebView)
+    frame = webview.page().mainFrame()
+    has_viewer = frame.findFirstElement('#viewer.pdfViewer')
+    if has_viewer.isNull():
+        return False
+    scripts = frame.findAllElements('script')
+    suffixes = ['/pdf.js', 'viewer.js']
+    has_scripts = all(
+        any(script.attribute('src').endswith(suffix) for script in scripts)
+        for suffix in suffixes)
+    return has_scripts
