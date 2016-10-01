@@ -609,8 +609,11 @@ class TabBarStyle(QCommonStyle):
             # any sophisticated drawing.
             super().drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
         elif element == QStyle.CE_TabBarTabLabel:
+            position = config.get('tabs', 'position')
             if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
+            elif position in [QTabWidget.West, QTabWidget.East]:
+                layouts.text.translate(opt.iconSize.width() + 4, 0)
             alignment = (config.get('tabs', 'title-alignment') |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
