@@ -283,8 +283,14 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         if ssl_strict == 'ask':
+            prompt_bindings = (objreg.get('key-config').
+                              get_reverse_bindings_for('prompt'))
+            yes_keys = ''.join(prompt_bindings['prompt-accept yes'])
+            no_keys = ''.join(prompt_bindings['prompt-accept no'])
+            keys = '[{}{}]'.format(yes_keys, no_keys.upper())
             err_string = '\n'.join('- ' + err.errorString() for err in errors)
-            answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
+            answer = self._ask('SSL errors - continue? {}\n{}'.
+                               format(keys, err_string),
                                mode=usertypes.PromptMode.yesno, owner=reply)
             log.webview.debug("Asked for SSL errors, answer {}".format(answer))
             if answer:
