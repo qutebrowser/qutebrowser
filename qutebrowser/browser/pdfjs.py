@@ -24,7 +24,6 @@ import os
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, javascript
-from qutebrowser.browser.webkit import webview as webkit_webview
 
 
 class PDFJSNotFound(Exception):
@@ -217,7 +216,9 @@ def is_pdfjs_page(webview):
     Return:
         True if the view displays pdfjs, False otherwise.
     """
-    assert isinstance(webview, webkit_webview.WebView)
+    # import late to avoid errors when QWebView is not available
+    from PyQt5.QtWebKitWidgets import QWebView
+    assert isinstance(webview, QWebView)
     frame = webview.page().mainFrame()
     has_viewer = frame.findFirstElement('#viewer.pdfViewer')
     if has_viewer.isNull():
