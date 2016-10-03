@@ -315,12 +315,63 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
             return
 
 
-class UnsupportedError(Exception):
+class Error(Exception):
+
+    """Base class for userscript exceptions."""
+
+
+class NotFoundError(Error):
+
+    """Raised when spawning a userscript that doesn't exist.
+
+    Attributes:
+        script_name: name of the userscript as called
+        paths: path names that were searched for the userscript
+    """
+
+    def __init__(self, script_name, paths=None):
+        super().__init__()
+        self.script_name = script_name
+        self.paths = paths
+
+    def __str__(self):
+        msg = "Userscript '{}' not found".format(self.script_name)
+        if self.paths:
+            msg += " in userscript directories {}".format(
+                ', '.join(repr(path) for path in self.paths))
+        return msg
+
+
+class UnsupportedError(Error):
 
     """Raised when userscripts aren't supported on this platform."""
 
     def __str__(self):
         return "Userscripts are not supported on this platform!"
+
+
+def _lookup_path(cmd):
+    """Search userscript directories for given command.
+
+    Raises:
+        NotFoundError if the command could not be found.
+
+    Args:
+        cmd: The command to look for.
+
+    Returns:
+        A path to the userscript.
+    """
+    directories = [
+        os.path.join(standarddir.data(), "userscripts"),
+        os.path.join(standarddir.system_data(), "userscripts"),
+    ]
+    for directory in directories:
+        cmd_path = os.path.join(directory, cmd)
+        if os.path.exists(cmd_path):
+            return cmd_path
+
+    raise NotFoundError(cmd, directories)
 
 
 def run_async(tab, cmd, *args, win_id, env, verbose=False):
@@ -329,6 +380,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     Raises:
         UnsupportedError if userscripts are not supported on the current
         platform.
+        NotFoundError if the command could not be found.
 
     Args:
         tab: The WebKitTab/WebEngineTab to get the source from.
@@ -371,10 +423,9 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
     if not os.path.isabs(cmd_path):
         log.misc.debug("{} is no absolute path".format(cmd_path))
-        cmd_path = os.path.join(standarddir.data(), "userscripts", cmd)
-        if not os.path.exists(cmd_path):
-            cmd_path = os.path.join(standarddir.system_data(),
-                                    "userscripts", cmd)
+        cmd_path = _lookup_path(cmd)
+    elif not os.path.exists(cmd_path):
+        raise NotFoundError(cmd_path)
     log.misc.debug("Userscript to run: {}".format(cmd_path))
 
     runner.finished.connect(commandrunner.deleteLater)

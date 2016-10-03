@@ -136,6 +136,7 @@ Changed
     * `fonts -> messages.info`
 - The `qute:settings` page now also shows option descriptions.
 - `qute:version` and `qutebrowser --version` now show various important paths
+- `:spawn`/userscripts now show a nicer error when a script wasn't found
 
 Deprecated
 ~~~~~~~~~~

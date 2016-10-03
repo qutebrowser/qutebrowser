@@ -10,7 +10,11 @@ Feature: :spawn
 
     Scenario: Starting a userscript which doesn't exist
         When I run :spawn -u this_does_not_exist
-        Then the error "Error while spawning userscript: The process failed to start." should be shown
+        Then the error "Userscript 'this_does_not_exist' not found in userscript directories *" should be shown
+
+    Scenario: Starting a userscript with absoloute path which doesn't exist
+        When I run :spawn -u /this_does_not_exist
+        Then the error "Userscript '/this_does_not_exist' not found" should be shown
 
     # https://github.com/The-Compiler/qutebrowser/issues/1614
     @posix

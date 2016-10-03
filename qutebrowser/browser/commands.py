@@ -1126,7 +1126,7 @@ class CommandDispatcher:
         try:
             userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
                                   env=env, verbose=verbose)
-        except userscripts.UnsupportedError as e:
+        except userscripts.Error as e:
             raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
