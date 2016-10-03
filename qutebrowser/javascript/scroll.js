@@ -61,12 +61,13 @@ window._qutebrowser.scroll = (function() {
 
     funcs.pos = function() {
         var elem = document.documentElement;
+        var body = document.body;
 
         var pos = {
             "px": {"x": window.scrollX, "y": window.scrollY},
             "scroll": {
-                "width": elem.scrollWidth,
-                "height": elem.scrollHeight,
+                "width": Math.max(body.scrollWidth, elem.scrollWidth),
+                "height": Math.max(body.scrollHeight, elem.scrollHeight),
             },
             "inner": {
                 "width": window.innerWidth,
