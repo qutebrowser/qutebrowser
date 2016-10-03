@@ -19,13 +19,15 @@
 
 """Showing prompts above the statusbar."""
 
+import os.path
 import html
 import collections
 
 import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QSpacerItem, QWidgetItem)
+                             QLabel, QSpacerItem, QWidgetItem,
+                             QFileSystemModel, QTreeView)
 
 from qutebrowser.config import style, config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg
@@ -419,7 +421,63 @@ class LineEditPrompt(_BasePrompt):
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
 
 
-class DownloadFilenamePrompt(LineEditPrompt):
+class FilenamePrompt(_BasePrompt):
+
+    def __init__(self, question, win_id, parent=None):
+        super().__init__(question, win_id, parent)
+        self._init_title(question)
+        self._init_fileview()
+        self._set_fileview_root(question.default)
+
+        self._lineedit = QLineEdit(self)
+        self._lineedit.textChanged.connect(self._set_fileview_root)
+        self._vbox.addWidget(self._lineedit)
+
+        if question.default:
+            self._lineedit.setText(question.default)
+        self.setFocusProxy(self._lineedit)
+        self._init_key_label()
+
+    def sizeHint(self):
+        orig = super().sizeHint()
+        orig.setWidth(orig.width() * 3)
+        return orig
+
+    @pyqtSlot(str)
+    def _set_fileview_root(self, path):
+        try:
+            if os.path.isdir(path):
+                path = path
+            elif os.path.isdir(os.path.basename(path)):
+                path = os.path.basename(path)
+            else:
+                path = None
+        except OSError:
+            path = None
+
+        if path is None:
+            return
+
+        root = self._file_model.setRootPath(path)
+        self._file_view.setRootIndex(root)
+
+    def _init_fileview(self):
+        self._file_view = QTreeView(self)
+        self._file_model = QFileSystemModel(self)
+        self._file_view.setModel(self._file_model)
+        self._vbox.addWidget(self._file_view)
+
+    def accept(self, value=None):
+        text = value if value is not None else self._lineedit.text()
+        self.question.answer = text
+        return True
+
+    def _allowed_commands(self):
+        """Get the commands we could run as response to this message."""
+        return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
+
+
+class DownloadFilenamePrompt(FilenamePrompt):
 
     # FIXME have a FilenamePrompt
 
