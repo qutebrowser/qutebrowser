@@ -57,6 +57,24 @@ Feature: Yanking and pasting.
         Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
 
+	Scenario: Yanking URL that has = and & in its query string
+		When I open data/title.html?a=b&c=d
+		And I run :yank
+		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b&c=d" should be shown
+		And the clipboard should contain "http://localhost:(port)/data/title.html?a=b&c=d"
+
+	Scenario: Yanking URL that has = and ; in its query string
+		When I open data/title.html?a=b;c=d
+		And I run :yank
+		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b;c=d" should be shown
+		And the clipboard should contain "http://localhost:(port)/data/title.html?a=b;c=d"
+
+	Scenario: Yanking URL with both & and ; in its query string
+		When I open data/title.html?a;b&c=d
+		And I run :yank
+		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a;b&c=d" should be shown
+		And the clipboard should contain "http://localhost:(port)/data/title.html?a;b&c=d"
+
     #### {clipboard} and {primary}
 
     Scenario: Pasting a URL
