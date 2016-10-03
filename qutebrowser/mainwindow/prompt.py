@@ -183,7 +183,6 @@ class PromptContainer(QWidget):
         self._prompt.show()
         self.show()
         self._prompt.setFocus()
-        self.setFocus()
         self.update_geometry.emit()
         return True
 
@@ -370,6 +369,7 @@ class LineEditPrompt(_BasePrompt):
         self._init_title(question.text)
         if question.default:
             self._lineedit.setText(question.default)
+        self.setFocusProxy(self._lineedit)
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
@@ -427,9 +427,7 @@ class AuthenticationPrompt(_BasePrompt):
         help_2 = QLabel("<b>Abort:</b> Escape")
         self._layout.addWidget(help_1, 4, 0)
         self._layout.addWidget(help_2, 5, 0)
-
-        # FIXME needed?
-        self._user_lineedit.setFocus()
+        self.setFocusProxy(self._user_lineedit)
 
     def accept(self, value=None):
         if value is not None:
