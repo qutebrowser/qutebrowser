@@ -246,7 +246,7 @@ class PromptContainer(QWidget):
                 question.cancel()
 
 
-    @cmdutils.register(instance='prompter', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
     def prompt_open_download(self, cmdline: str=None):
         """Immediately open a download.
@@ -309,7 +309,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.alert: AlertPrompt,
         }
         klass = classes[question.mode]
-        self._show_prompt(klass(question))
+        self._show_prompt(klass(question, self._win_id))
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
@@ -334,9 +334,10 @@ class _BasePrompt(QWidget):
 
     KEY_MODE = usertypes.KeyMode.prompt
 
-    def __init__(self, question, parent=None):
+    def __init__(self, question, win_id, parent=None):
         super().__init__(parent)
         self.question = question
+        self._win_id = win_id
         self._vbox = QVBoxLayout(self)
         self._vbox.setSpacing(15)
         self._key_grid = None
@@ -398,8 +399,8 @@ class _BasePrompt(QWidget):
 
 class LineEditPrompt(_BasePrompt):
 
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
+    def __init__(self, question, win_id, parent=None):
+        super().__init__(question, win_id, parent)
         self._lineedit = QLineEdit(self)
         self._init_title(question)
         self._vbox.addWidget(self._lineedit)
@@ -444,8 +445,8 @@ class DownloadFilenamePrompt(LineEditPrompt):
 
 class AuthenticationPrompt(_BasePrompt):
 
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
+    def __init__(self, question, win_id, parent=None):
+        super().__init__(question, win_id, parent)
         self._init_title(question)
 
         user_label = QLabel("Username:", self)
@@ -499,8 +500,8 @@ class YesNoPrompt(_BasePrompt):
 
     KEY_MODE = usertypes.KeyMode.yesno
 
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
+    def __init__(self, question, win_id, parent=None):
+        super().__init__(question, win_id, parent)
         self._init_title(question)
         self._init_key_label()
 
@@ -528,8 +529,8 @@ class YesNoPrompt(_BasePrompt):
 
 class AlertPrompt(_BasePrompt):
 
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
+    def __init__(self, question, win_id, parent=None):
+        super().__init__(question, win_id, parent)
         self._init_title(question)
         self._init_key_label()
 
