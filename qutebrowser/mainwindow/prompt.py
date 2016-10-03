@@ -19,15 +19,16 @@
 
 """Showing prompts above the statusbar."""
 
-import sip
+import html
 import collections
 
+import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QSpacerItem, QWidgetItem)
 
 from qutebrowser.config import style, config
-from qutebrowser.utils import usertypes, log, utils, qtutils
+from qutebrowser.utils import usertypes, log, utils, qtutils, objreg
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils
 
@@ -338,6 +339,7 @@ class _BasePrompt(QWidget):
         self.question = question
         self._vbox = QVBoxLayout(self)
         self._vbox.setSpacing(15)
+        self._key_grid = None
 
     def __repr__(self):
         return utils.get_repr(self, question=self.question, constructor=True)
@@ -350,11 +352,48 @@ class _BasePrompt(QWidget):
             text_label = QLabel(question.text)
             self._vbox.addWidget(text_label)
 
+    def _init_key_label(self):
+        # Remove old grid
+        if self._key_grid is not None:
+            self._key_grid.hide()
+            self._vbox.removeWidget(self._key_grid)
+
+        self._key_grid = QGridLayout()
+        self._key_grid.setVerticalSpacing(0)
+
+        key_config = objreg.get('key-config')
+        all_bindings = key_config.get_reverse_bindings_for(self.KEY_MODE.name)
+        labels = []
+
+        for cmd, text in self._allowed_commands():
+            bindings = all_bindings.get(cmd, [])
+            if bindings:
+                binding = None
+                preferred = ['<enter>', '<escape>']
+                for pref in preferred:
+                    if pref in bindings:
+                        binding = pref
+                if binding is None:
+                    binding = bindings[0]
+                key_label = QLabel('<b>{}</b>'.format(html.escape(binding)))
+                text_label = QLabel(text)
+                labels.append((key_label, text_label))
+
+        for i, (key_label, text_label) in enumerate(labels):
+            self._key_grid.addWidget(key_label, i, 0)
+            self._key_grid.addWidget(text_label, i, 1)
+
+        self._vbox.addLayout(self._key_grid)
+
     def accept(self, value=None):
         raise NotImplementedError
 
     def open_download(self, _cmdline):
         raise UnsupportedOperationError
+
+    def _allowed_commands(self):
+        """Get the commands we could run as response to this message."""
+        raise NotImplementedError
 
 
 class LineEditPrompt(_BasePrompt):
@@ -367,27 +406,21 @@ class LineEditPrompt(_BasePrompt):
         if question.default:
             self._lineedit.setText(question.default)
         self.setFocusProxy(self._lineedit)
+        self._init_key_label()
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
         self.question.answer = text
         return True
 
+    def _allowed_commands(self):
+        """Get the commands we could run as response to this message."""
+        return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
+
 
 class DownloadFilenamePrompt(LineEditPrompt):
 
     # FIXME have a FilenamePrompt
-
-    def __init__(self, question, parent=None):
-        super().__init__(question, parent)
-        # FIXME show :prompt-open-download keybinding
-#         key_mode = self.KEY_MODES[self.question.mode]
-#         key_config = objreg.get('key-config')
-#         all_bindings = key_config.get_reverse_bindings_for(key_mode.name)
-#         bindings = all_bindings.get('prompt-open-download', [])
-#         if bindings:
-#             text += ' ({} to open)'.format(bindings[0])
-
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
@@ -399,6 +432,14 @@ class DownloadFilenamePrompt(LineEditPrompt):
         modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
                             'download open')
         self.question.done()
+
+    def _allowed_commands(self):
+        cmds = [
+            ('prompt-accept', 'Accept'),
+            ('leave-mode', 'Abort'),
+            ('prompt-open-download', "Open download"),
+        ]
+        return cmds
 
 
 class AuthenticationPrompt(_BasePrompt):
@@ -420,6 +461,7 @@ class AuthenticationPrompt(_BasePrompt):
         grid.addWidget(password_label, 2, 0)
         grid.addWidget(self._password_lineedit, 2, 1)
         self._vbox.addLayout(grid)
+        self._init_key_label()
 
         assert not question.default, question.default
         self.setFocusProxy(self._user_lineedit)
@@ -437,11 +479,20 @@ class AuthenticationPrompt(_BasePrompt):
             # Earlier, tab was bound to :prompt-accept, so to still support that
             # we simply switch the focus when tab was pressed.
             self._password_lineedit.setFocus()
+            self._init_key_label()
             return False
         else:
             self.question.answer = AuthTuple(self._user_lineedit.text(),
                                              self._password_lineedit.text())
             return True
+
+    def _allowed_commands(self):
+        if self._user_lineedit.hasFocus():
+            cmds = [('prompt-accept', "Switch to password field")]
+        else:
+            cmds = [('prompt-accept', "Accept")]
+        cmds.append(('leave-mode', "Abort"))
+        return cmds
 
 
 class YesNoPrompt(_BasePrompt):
@@ -451,10 +502,7 @@ class YesNoPrompt(_BasePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._init_title(question)
-        # FIXME
-        # "Enter/y: yes"
-        # "n: no"
-        # (depending on default)
+        self._init_key_label()
 
     def accept(self, value=None):
         if value is None:
@@ -467,17 +515,29 @@ class YesNoPrompt(_BasePrompt):
             raise Error("Invalid value {} - expected yes/no!".format(value))
         return True
 
+    def _allowed_commands(self):
+        cmds = [
+            ('prompt-accept',
+             "Use default ({})".format(self.question.default)),
+            ('prompt-accept yes', "Yes"),
+            ('prompt-accept no', "No"),
+            ('leave-mode', "Abort"),
+        ]
+        return cmds
+
 
 class AlertPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._init_title(question)
-        # FIXME
-        # Enter: acknowledge
+        self._init_key_label()
 
     def accept(self, value=None):
         if value is not None:
             raise Error("No value is permitted with alert prompts!")
         # Doing nothing otherwise
         return True
+
+    def _allowed_commands(self):
+        return [('prompt-accept', "Hide")]
