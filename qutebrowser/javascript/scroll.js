@@ -23,20 +23,20 @@ window._qutebrowser.scroll = (function() {
     var funcs = {};
 
     funcs.to_perc = function(x, y) {
-        var elem = document.documentElement;
         var x_px = window.scrollX;
         var y_px = window.scrollY;
+
         var width = Math.max(
             document.body.scrollWidth,
             document.body.offsetWidth,
-            elem.scrollWidth,
-            elem.offsetWidth
+            document.documentElement.scrollWidth,
+            document.documentElement.offsetWidth
         );
         var height = Math.max(
             document.body.scrollHeight,
             document.body.offsetHeight,
-            elem.scrollHeight,
-            elem.offsetHeight
+            document.documentElement.scrollHeight,
+            document.documentElement.offsetHeight
         );
 
         if (x !== undefined) {
@@ -52,12 +52,12 @@ window._qutebrowser.scroll = (function() {
             "x": x,
             "window.scrollX": window.scrollX,
             "window.innerWidth": window.innerWidth,
-            "elem.scrollWidth": elem.scrollWidth,
+            "elem.scrollWidth": document.documentElement.scrollWidth,
             "x_px": x_px,
             "y": y,
             "window.scrollY": window.scrollY,
             "window.innerHeight": window.innerHeight,
-            "elem.scrollHeight": elem.scrollHeight,
+            "elem.scrollHeight": document.documentElement.scrollHeight,
             "y_px": y_px,
         }));
         */
@@ -72,23 +72,20 @@ window._qutebrowser.scroll = (function() {
     };
 
     funcs.pos = function() {
-        var elem = document.documentElement;
-        var body = document.body;
-
         var pos = {
             "px": {"x": window.scrollX, "y": window.scrollY},
             "scroll": {
                 "width": Math.max(
-                    body.scrollWidth,
-                    body.offsetWidth,
-                    elem.scrollWidth,
-                    elem.offsetWidth
+                    document.body.scrollWidth,
+                    document.body.offsetWidth,
+                    document.documentElement.scrollWidth,
+                    document.documentElement.offsetWidth
                 ),
                 "height": Math.max(
-                    body.scrollHeight,
-                    body.offsetHeight,
-                    elem.scrollHeight,
-                    elem.offsetHeight
+                    document.body.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight
                 ),
             },
             "inner": {
