@@ -23,16 +23,28 @@ window._qutebrowser.scroll = (function() {
     var funcs = {};
 
     funcs.to_perc = function(x, y) {
-        var elem = document.documentElement;
         var x_px = window.scrollX;
         var y_px = window.scrollY;
 
+        var width = Math.max(
+            document.body.scrollWidth,
+            document.body.offsetWidth,
+            document.documentElement.scrollWidth,
+            document.documentElement.offsetWidth
+        );
+        var height = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.scrollHeight,
+            document.documentElement.offsetHeight
+        );
+
         if (x !== undefined) {
-            x_px = (elem.scrollWidth - window.innerWidth) / 100 * x;
+            x_px = (width - window.innerWidth) / 100 * x;
         }
 
         if (y !== undefined) {
-            y_px = (elem.scrollHeight - window.innerHeight) / 100 * y;
+            y_px = (height - window.innerHeight) / 100 * y;
         }
 
         /*
@@ -40,12 +52,12 @@ window._qutebrowser.scroll = (function() {
             "x": x,
             "window.scrollX": window.scrollX,
             "window.innerWidth": window.innerWidth,
-            "elem.scrollWidth": elem.scrollWidth,
+            "elem.scrollWidth": document.documentElement.scrollWidth,
             "x_px": x_px,
             "y": y,
             "window.scrollY": window.scrollY,
             "window.innerHeight": window.innerHeight,
-            "elem.scrollHeight": elem.scrollHeight,
+            "elem.scrollHeight": document.documentElement.scrollHeight,
             "y_px": y_px,
         }));
         */
@@ -60,13 +72,21 @@ window._qutebrowser.scroll = (function() {
     };
 
     funcs.pos = function() {
-        var elem = document.documentElement;
-
         var pos = {
             "px": {"x": window.scrollX, "y": window.scrollY},
             "scroll": {
-                "width": elem.scrollWidth,
-                "height": elem.scrollHeight,
+                "width": Math.max(
+                    document.body.scrollWidth,
+                    document.body.offsetWidth,
+                    document.documentElement.scrollWidth,
+                    document.documentElement.offsetWidth
+                ),
+                "height": Math.max(
+                    document.body.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.scrollHeight,
+                    document.documentElement.offsetHeight
+                ),
             },
             "inner": {
                 "width": window.innerWidth,

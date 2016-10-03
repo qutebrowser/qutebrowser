@@ -307,7 +307,6 @@ Feature: Scrolling
 
     ## issues
 
-    @qtwebengine_todo: #1945
     Scenario: Relative scroll position with a position:absolute page
         When I open data/scroll/position_absolute.html
         And I run :scroll-perc 100
