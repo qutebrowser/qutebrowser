@@ -77,6 +77,30 @@ class PromptContainer(QWidget):
         _win_id: The window ID this object is associated with.
     """
 
+    STYLESHEET = """
+        QWidget#Prompt {
+            {% if config.get('ui', 'status-position') == 'top' %}
+                border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 10px;
+            {% else %}
+                border-top-left-radius: 10px;
+                border-top-right-radius: 10px;
+            {% endif %}
+        }
+
+        QWidget {
+            /* FIXME
+            font: {{ font['keyhint'] }};
+            FIXME
+            */
+            color: {{ color['statusbar.fg.prompt'] }};
+            background-color: {{ color['statusbar.bg.prompt'] }};
+        }
+
+        QLineEdit {
+            border: 1px solid grey;
+        }
+    """
     update_geometry = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
@@ -86,8 +110,7 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._prompt = None
-        style.set_register_stylesheet(self,
-                                      generator=self._generate_stylesheet)
+        style.set_register_stylesheet(self)
 
         # FIXME review this
         self._shutting_down = False
@@ -98,35 +121,6 @@ class PromptContainer(QWidget):
     def __repr__(self):
         return utils.get_repr(self, loops=len(self._loops),
                               queue=len(self._queue), prompt=self._prompt)
-
-    def _generate_stylesheet(self):
-        """Generate a stylesheet with the right edge rounded."""
-        stylesheet = """
-            QWidget#Prompt {
-                border-POSITION-left-radius: 10px;
-                border-POSITION-right-radius: 10px;
-            }
-
-            QWidget {
-                /* FIXME
-                font: {{ font['keyhint'] }};
-                FIXME
-                */
-                color: {{ color['statusbar.fg.prompt'] }};
-                background-color: {{ color['statusbar.bg.prompt'] }};
-            }
-
-            QLineEdit {
-                border: 1px solid grey;
-            }
-        """
-        position = config.get('ui', 'status-position')
-        if position == 'top':
-            return stylesheet.replace('POSITION', 'bottom')
-        elif position == 'bottom':
-            return stylesheet.replace('POSITION', 'top')
-        else:
-            raise ValueError("Invalid position {}!".format(position))
 
     def _pop_later(self):
         """Helper to call self._pop as soon as everything else is done."""
