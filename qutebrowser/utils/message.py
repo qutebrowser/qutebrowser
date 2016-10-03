@@ -76,7 +76,21 @@ def info(message):
     global_bridge.show_message.emit(usertypes.MessageLevel.info, message)
 
 
-def ask(win_id, message, mode, default=None):
+def _build_question(title, mode, *, default=None, text=None, abort_on=()):
+    """Common function for ask/ask_async."""
+    if not isinstance(mode, usertypes.PromptMode):
+        raise TypeError("Mode {} is no PromptMode member!".format(mode))
+    question = usertypes.Question()
+    question.title = title
+    question.text = text
+    question.mode = mode
+    question.default = default
+    for sig in abort_on:
+        sig.connect(question.abort)
+    return question
+
+
+def ask(win_id, *args, **kwargs):
     """Ask a modular question in the statusbar (blocking).
 
     Args:
@@ -84,21 +98,21 @@ def ask(win_id, message, mode, default=None):
         message: The message to display to the user.
         mode: A PromptMode.
         default: The default value to display.
+        text: Additional text to show
+        abort_on: A list of signals which abort the question if emitted.
 
     Return:
         The answer the user gave or None if the prompt was cancelled.
     """
-    q = usertypes.Question()
-    q.text = message
-    q.mode = mode
-    q.default = default
+    question = _build_question(*args, **kwargs)
     bridge = objreg.get('message-bridge', scope='window', window=win_id)
-    bridge.ask(q, blocking=True)
-    q.deleteLater()
-    return q.answer
+    bridge.ask(question, blocking=True)
+    answer = question.answer
+    question.deleteLater()
+    return answer
 
 
-def ask_async(win_id, message, mode, handler, default=None):
+def ask_async(win_id, text, mode, handler, **kwargs):
     """Ask an async question in the statusbar.
 
     Args:
@@ -107,20 +121,17 @@ def ask_async(win_id, message, mode, handler, default=None):
         mode: A PromptMode.
         handler: The function to get called with the answer as argument.
         default: The default value to display.
+        text: Additional text to show.
     """
-    if not isinstance(mode, usertypes.PromptMode):
-        raise TypeError("Mode {} is no PromptMode member!".format(mode))
-    q = usertypes.Question()
-    q.text = message
-    q.mode = mode
-    q.default = default
-    q.answered.connect(handler)
-    q.completed.connect(q.deleteLater)
+    question = _build_question(text, mode, **kwargs)
+    question.answered.connect(handler)
+    question.completed.connect(question.deleteLater)
     bridge = objreg.get('message-bridge', scope='window', window=win_id)
-    bridge.ask(q, blocking=False)
+    bridge.ask(question, blocking=False)
 
 
-def confirm_async(win_id, message, yes_action, no_action=None, default=None):
+def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
+                  *args, **kwargs):
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
@@ -128,18 +139,25 @@ def confirm_async(win_id, message, yes_action, no_action=None, default=None):
         message: The message to display to the user.
         yes_action: Callable to be called when the user answered yes.
         no_action: Callable to be called when the user answered no.
+        cancel_action: Callable to be called when the user cancelled the
+                       question.
         default: True/False to set a default value, or None.
+        text: Additional text to show.
+
+    Return:
+        The question object.
     """
-    q = usertypes.Question()
-    q.text = message
-    q.mode = usertypes.PromptMode.yesno
-    q.default = default
-    q.answered_yes.connect(yes_action)
+    question = self._build_question(*args, **kwargs)
+    question.answered_yes.connect(yes_action)
     if no_action is not None:
-        q.answered_no.connect(no_action)
-    q.completed.connect(q.deleteLater)
+        question.answered_no.connect(no_action)
+    if cancel_action is not None:
+        question.cancelled.connect(cancel_action)
+
+    question.completed.connect(q.deleteLater)
     bridge = objreg.get('message-bridge', scope='window', window=win_id)
-    bridge.ask(q, blocking=False)
+    bridge.ask(question, blocking=False)
+    return question
 
 
 class GlobalMessageBridge(QObject):

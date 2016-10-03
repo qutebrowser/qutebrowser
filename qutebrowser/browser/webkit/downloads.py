@@ -150,7 +150,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
     suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
     q = usertypes.Question(parent)
-    q.text = "Save file to:"
+    q.title = "Save file to:"
     q.mode = usertypes.PromptMode.text
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
@@ -382,20 +382,13 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _ask_confirm_question(self, msg):
+    def _ask_confirm_question(self, title, msg):
         """Create a Question object to be asked."""
-        q = usertypes.Question(self)
-        q.text = msg
-        q.mode = usertypes.PromptMode.yesno
-        q.answered_yes.connect(self._create_fileobj)
-        q.answered_no.connect(functools.partial(self.cancel,
-                                                remove_data=False))
-        q.cancelled.connect(functools.partial(self.cancel, remove_data=False))
-        self.cancelled.connect(q.abort)
-        self.error.connect(q.abort)
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.ask(q, blocking=False)
+        no_action = functools.partial(self.cancel, remove_data=False)
+        message.confirm_async(self._win_id, title=title, text=msg,
+                              yes_action=self._create_fileobj,
+                              no_action=no_action, cancel_action=no_action,
+                              abort_on=[self.cancelled, self.error])
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -615,13 +608,13 @@ class DownloadItem(QObject):
             # The file already exists, so ask the user if it should be
             # overwritten.
             txt = self._filename + " already exists. Overwrite?"
-            self._ask_confirm_question(txt)
+            self._ask_confirm_question("Overwrite existing file?", txt)
         # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and
               not os.path.isdir(self._filename)):
             txt = (self._filename + " already exists and is a special file. "
                    "Write to this?")
-            self._ask_confirm_question(txt)
+            self._ask_confirm_question("Overwrite special file?", txt)
         else:
             self._create_fileobj()
 

@@ -220,25 +220,19 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             The answer the user gave or None if the prompt was cancelled.
         """
-        q = usertypes.Question()
-        q.title = title
-        q.text = text
-        q.mode = mode
-        self.shutting_down.connect(q.abort)
+        abort_on = [self.shutting_down]
         if owner is not None:
-            owner.destroyed.connect(q.abort)
+            abort_on.append(owner.destroyed)
 
         # This might be a generic network manager, e.g. one belonging to a
         # DownloadManager. In this case, just skip the webview thing.
         if self._tab_id is not None:
             tab = objreg.get('tab', scope='tab', window=self._win_id,
                              tab=self._tab_id)
-            tab.load_started.connect(q.abort)
-        bridge = objreg.get('message-bridge', scope='window',
-                            window=self._win_id)
-        bridge.ask(q, blocking=True)
-        q.deleteLater()
-        return q.answer
+            abort_on.append(tab.load_started)
+
+        return message.ask(win_id=self._win_id, title=title, text=text, mode=mode,
+                           abort_on=abort_on)
 
     def shutdown(self):
         """Abort all running requests."""
