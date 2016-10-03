@@ -26,13 +26,25 @@ window._qutebrowser.scroll = (function() {
         var elem = document.documentElement;
         var x_px = window.scrollX;
         var y_px = window.scrollY;
+        var width = Math.max(
+            document.body.scrollWidth,
+            document.body.offsetWidth,
+            elem.scrollWidth,
+            elem.offsetWidth
+        );
+        var height = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            elem.scrollHeight,
+            elem.offsetHeight
+        );
 
         if (x !== undefined) {
-            x_px = (elem.scrollWidth - window.innerWidth) / 100 * x;
+            x_px = (width - window.innerWidth) / 100 * x;
         }
 
         if (y !== undefined) {
-            y_px = (elem.scrollHeight - window.innerHeight) / 100 * y;
+            y_px = (height - window.innerHeight) / 100 * y;
         }
 
         /*
