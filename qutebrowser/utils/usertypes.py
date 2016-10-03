@@ -335,6 +335,7 @@ class Question(QObject):
                  For yesno, None (no default), True or False.
                  For text, a default text as string.
                  For user_pwd, a default username as string.
+        title: The question title to show.
         text: The prompt text to display to the user.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
@@ -363,13 +364,14 @@ class Question(QObject):
         super().__init__(parent)
         self._mode = None
         self.default = None
+        self.title = None
         self.text = None
         self.answer = None
         self.is_aborted = False
 
     def __repr__(self):
-        return utils.get_repr(self, text=self.text, mode=self._mode,
-                              default=self.default)
+        return utils.get_repr(self, title=self.title, text=self.text,
+                              mode=self._mode, default=self.default)
 
     @property
     def mode(self):

@@ -98,8 +98,8 @@ class BrowserPage(QWebPage):
             if (self._is_shutting_down or
                     config.get('content', 'ignore-javascript-prompt')):
                 return (False, "")
-            answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
-                               default)
+            answer = self._ask('Javascript prompt', msg,
+                               usertypes.PromptMode.text, default)
             if answer is None:
                 return (False, "")
             else:
@@ -196,10 +196,11 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
-    def _ask(self, text, mode, default=None):
+    def _ask(self, title, text, mode, default=None):
         """Ask a blocking question in the statusbar.
 
         Args:
+            title: The title to display.
             text: The text to display to the user.
             mode: A PromptMode.
             default: The default value to display.
@@ -208,6 +209,7 @@ class BrowserPage(QWebPage):
             The answer the user gave or None if the prompt was cancelled.
         """
         q = usertypes.Question()
+        q.title = title
         q.text = text
         q.mode = mode
         q.default = default
@@ -478,7 +480,7 @@ class BrowserPage(QWebPage):
         if (self._is_shutting_down or
                 config.get('content', 'ignore-javascript-alert')):
             return
-        self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
+        self._ask('Javascript alert', msg, usertypes.PromptMode.alert)
 
     def javaScriptConfirm(self, frame, msg):
         """Override javaScriptConfirm to use the statusbar."""
@@ -488,8 +490,7 @@ class BrowserPage(QWebPage):
 
         if self._is_shutting_down:
             return False
-        ans = self._ask("[js confirm] {}".format(msg),
-                        usertypes.PromptMode.yesno)
+        ans = self._ask('Javascript confirm', msg, usertypes.PromptMode.yesno)
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):

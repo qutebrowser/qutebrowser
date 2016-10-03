@@ -105,18 +105,17 @@ class PromptContainer(QWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setObjectName('Prompt')
-        self.setAttribute(Qt.WA_StyledBackground, True)
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._prompt = None
-        style.set_register_stylesheet(self)
-
-        # FIXME review this
         self._shutting_down = False
         self._loops = []
         self._queue = collections.deque()
         self._win_id = win_id
+
+        self.setObjectName('Prompt')
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        style.set_register_stylesheet(self)
 
     def __repr__(self):
         return utils.get_repr(self, loops=len(self._loops),
@@ -337,15 +336,25 @@ class _BasePrompt(QWidget):
     def __init__(self, question, parent=None):
         super().__init__(parent)
         self.question = question
-        self._layout = QGridLayout(self)
-        self._layout.setVerticalSpacing(15)
+        self._vbox = QVBoxLayout(self)
+        self._vbox.setSpacing(15)
 
     def __repr__(self):
         return utils.get_repr(self, question=self.question, constructor=True)
 
-    def _init_title(self, title, *, span=1):
-        label = QLabel('<b>{}</b>'.format(title), self)
-        self._layout.addWidget(label, 0, 0, 1, span)
+    def _init_title(self, question):
+        if question.title is None:
+            title = question.text
+            text = None
+        else:
+            title = question.title
+            text = question.text
+
+        title_label = QLabel('<b>{}</b>'.format(title), self)
+        self._vbox.addWidget(title_label)
+        if text is not None:
+            text_label = QLabel(text)
+            self._vbox.addWidget(text_label)
 
     def accept(self, value=None):
         raise NotImplementedError
@@ -357,10 +366,10 @@ class _BasePrompt(QWidget):
 class LineEditPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
-        super().__init__(parent)
+        super().__init__(question, parent)
         self._lineedit = QLineEdit(self)
-        self._layout.addWidget(self._lineedit, 1, 0)
-        self._init_title(question.text)
+        self._init_title(question)
+        self._vbox.addWidget(self._lineedit)
         if question.default:
             self._lineedit.setText(question.default)
         self.setFocusProxy(self._lineedit)
@@ -402,25 +411,23 @@ class AuthenticationPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question.text, span=2)
+        self._init_title(question)
+
         user_label = QLabel("Username:", self)
         self._user_lineedit = QLineEdit(self)
+
         password_label = QLabel("Password:", self)
         self._password_lineedit = QLineEdit(self)
         self._password_lineedit.setEchoMode(QLineEdit.Password)
-        self._layout.addWidget(user_label, 1, 0)
-        self._layout.addWidget(self._user_lineedit, 1, 1)
-        self._layout.addWidget(password_label, 2, 0)
-        self._layout.addWidget(self._password_lineedit, 2, 1)
+
+        grid = QGridLayout()
+        grid.addWidget(user_label, 1, 0)
+        grid.addWidget(self._user_lineedit, 1, 1)
+        grid.addWidget(password_label, 2, 0)
+        grid.addWidget(self._password_lineedit, 2, 1)
+        self._vbox.addLayout(grid)
+
         assert not question.default, question.default
-
-        spacer = QSpacerItem(0, 10)
-        self._layout.addItem(spacer, 3, 0)
-
-        help_1 = QLabel("<b>Accept:</b> Enter")
-        help_2 = QLabel("<b>Abort:</b> Escape")
-        self._layout.addWidget(help_1, 4, 0)
-        self._layout.addWidget(help_2, 5, 0)
         self.setFocusProxy(self._user_lineedit)
 
     def accept(self, value=None):
@@ -449,7 +456,7 @@ class YesNoPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question.text)
+        self._init_title(question)
         # FIXME
         # "Enter/y: yes"
         # "n: no"
@@ -471,7 +478,7 @@ class AlertPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question.text)
+        self._init_title(question)
         # FIXME
         # Enter: acknowledge
 
