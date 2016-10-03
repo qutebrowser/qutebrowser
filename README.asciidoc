@@ -166,9 +166,9 @@ Contributors, sorted by the number of commits in descending order:
 * Nathan Isom
 * Thorsten Wißmann
 * Austin Anderson
+* Daniel Karbach
 * Jimmy
 * Niklas Haas
-* Daniel Karbach
 * Alexey "Averrin" Nabrodov
 * nanjekyejoannah
 * avk
