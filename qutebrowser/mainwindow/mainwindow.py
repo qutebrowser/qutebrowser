@@ -420,7 +420,6 @@ class MainWindow(QWidget):
 
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
-        message_bridge.s_set_cmd_text.connect(cmd.set_cmd_text)
         message_bridge.s_question.connect(self._prompt_container.ask_question,
                                           Qt.DirectConnection)
 
