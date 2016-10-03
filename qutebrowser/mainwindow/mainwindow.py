@@ -182,11 +182,14 @@ class MainWindow(QWidget):
         self._add_overlay(self._keyhint, self._keyhint.update_geometry)
         self._messageview = messageview.MessageView(parent=self)
         self._add_overlay(self._messageview, self._messageview.update_geometry)
-        self._promptcontainer = prompt.PromptContainer(self)
-        self._add_overlay(self._promptcontainer,
-                          self._promptcontainer.update_geometry,
+
+        self._prompt_container = prompt.PromptContainer(self.win_id, self)
+        self._add_overlay(self._prompt_container,
+                          self._prompt_container.update_geometry,
                           centered=True)
-        self._promptcontainer.hide()
+        objreg.register('prompt-container', self._prompt_container,
+                        scope='window', window=self.win_id)
+        self._prompt_container.hide()
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)
@@ -385,7 +388,6 @@ class MainWindow(QWidget):
         cmd = self._get_object('status-command')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
-        #prompter = self._get_object('prompter')
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
@@ -395,7 +397,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(status.on_mode_entered)
         mode_manager.left.connect(status.on_mode_left)
         mode_manager.left.connect(cmd.on_mode_left)
-        #mode_manager.left.connect(prompter.on_mode_left)
+        mode_manager.left.connect(self._prompt_container.on_mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
@@ -419,8 +421,8 @@ class MainWindow(QWidget):
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
         message_bridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        #message_bridge.s_question.connect(prompter.ask_question,
-        #                                  Qt.DirectConnection)
+        message_bridge.s_question.connect(self._prompt_container.ask_question,
+                                          Qt.DirectConnection)
 
         # statusbar
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)

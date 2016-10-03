@@ -645,9 +645,9 @@ class Quitter:
 
         deferrer = False
         for win_id in objreg.window_registry:
-            prompter = objreg.get('prompter', None, scope='window',
-                                  window=win_id)
-            if prompter is not None and prompter.shutdown():
+            prompt_container = objreg.get('prompt-container', None,
+                                          scope='window', window=win_id)
+            if prompt_container is not None and prompt_container.shutdown():
                 deferrer = True
         if deferrer:
             # If shutdown was called while we were asking a question, we're in
