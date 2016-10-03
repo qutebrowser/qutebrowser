@@ -248,6 +248,7 @@ Contributors, sorted by the number of commits in descending order:
 * Moez Bouhlel
 * Matthias Lisin
 * Marcel Schilling
+* Lazlow Carmichael
 * Ján Kobezda
 * Julie Engel
 * Johannes Martinsson
