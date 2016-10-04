@@ -340,8 +340,9 @@ class BrowserPage(QWebPage):
                                                        self.loadStarted],
                                              title='Permission request',
                                              text=text)
-            self.featurePermissionRequestCanceled.connect(functools.partial(
-                self.on_feature_permission_cancelled, question, frame, feature))
+            self.featurePermissionRequestCanceled.connect(
+                functools.partial(self.on_feature_permission_cancelled,
+                                  question, frame, feature))
         elif config_val:
             self.setFeaturePermission(frame, feature,
                                       QWebPage.PermissionGrantedByUser)

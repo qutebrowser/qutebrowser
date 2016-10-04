@@ -231,8 +231,8 @@ class NetworkManager(QNetworkAccessManager):
                              tab=self._tab_id)
             abort_on.append(tab.load_started)
 
-        return message.ask(win_id=self._win_id, title=title, text=text, mode=mode,
-                           abort_on=abort_on)
+        return message.ask(win_id=self._win_id, title=title, text=text,
+                           mode=mode, abort_on=abort_on)
 
     def shutdown(self):
         """Abort all running requests."""

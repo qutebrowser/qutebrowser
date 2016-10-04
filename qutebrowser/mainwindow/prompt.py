@@ -26,10 +26,9 @@ import collections
 import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QSpacerItem, QWidgetItem,
-                             QFileSystemModel, QTreeView)
+                             QLabel, QWidgetItem, QFileSystemModel, QTreeView)
 
-from qutebrowser.config import style, config
+from qutebrowser.config import style
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
@@ -246,7 +245,6 @@ class PromptContainer(QWidget):
             if question.answer is None and not question.is_aborted:
                 question.cancel()
 
-
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
     def prompt_open_download(self, cmdline: str=None):
@@ -330,6 +328,8 @@ class PromptContainer(QWidget):
 
 
 class LineEdit(QLineEdit):
+
+    """A line edit used in prompts."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -430,6 +430,8 @@ class _BasePrompt(QWidget):
 
 class LineEditPrompt(_BasePrompt):
 
+    """A prompt for a single text value."""
+
     def __init__(self, question, win_id, parent=None):
         super().__init__(question, win_id, parent)
         self._lineedit = LineEdit(self)
@@ -452,6 +454,8 @@ class LineEditPrompt(_BasePrompt):
 
 class FilenamePrompt(_BasePrompt):
 
+    """A prompt for a filename."""
+
     def __init__(self, question, win_id, parent=None):
         super().__init__(question, win_id, parent)
         self._init_title(question)
@@ -468,12 +472,17 @@ class FilenamePrompt(_BasePrompt):
         self._init_key_label()
 
     def sizeHint(self):
+        """Get some more width.
+
+        FIXME do this properly...
+        """
         orig = super().sizeHint()
         orig.setWidth(orig.width() * 3)
         return orig
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path):
+        """Set the root path for the file display."""
         try:
             if os.path.isdir(path):
                 path = path
@@ -508,7 +517,7 @@ class FilenamePrompt(_BasePrompt):
 
 class DownloadFilenamePrompt(FilenamePrompt):
 
-    # FIXME have a FilenamePrompt
+    """A prompt for a filename for downloads."""
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
@@ -531,6 +540,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
 
 class AuthenticationPrompt(_BasePrompt):
+
+    """A prompt for username/password."""
 
     def __init__(self, question, win_id, parent=None):
         super().__init__(question, win_id, parent)
@@ -564,8 +575,8 @@ class AuthenticationPrompt(_BasePrompt):
             self.question.answer = AuthTuple(username, password)
             return True
         elif self._user_lineedit.hasFocus():
-            # Earlier, tab was bound to :prompt-accept, so to still support that
-            # we simply switch the focus when tab was pressed.
+            # Earlier, tab was bound to :prompt-accept, so to still support
+            # that we simply switch the focus when tab was pressed.
             self._password_lineedit.setFocus()
             self._init_key_label()
             return False
@@ -584,6 +595,8 @@ class AuthenticationPrompt(_BasePrompt):
 
 
 class YesNoPrompt(_BasePrompt):
+
+    """A prompt with yes/no answers."""
 
     KEY_MODE = usertypes.KeyMode.yesno
 
@@ -615,6 +628,8 @@ class YesNoPrompt(_BasePrompt):
 
 
 class AlertPrompt(_BasePrompt):
+
+    """A prompt without any answer possibility."""
 
     def __init__(self, question, win_id, parent=None):
         super().__init__(question, win_id, parent)

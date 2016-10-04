@@ -104,7 +104,7 @@ def ask(win_id, *args, **kwargs):
     Return:
         The answer the user gave or None if the prompt was cancelled.
     """
-    question = _build_question(*args, **kwargs)
+    question = _build_question(*args, **kwargs)  # pylint: disable=missing-kwoa
     bridge = objreg.get('message-bridge', scope='window', window=win_id)
     bridge.ask(question, blocking=True)
     answer = question.answer
@@ -148,7 +148,7 @@ def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
         The question object.
     """
     kwargs['mode'] = usertypes.PromptMode.yesno
-    question = _build_question(*args, **kwargs)
+    question = _build_question(*args, **kwargs)  # pylint: disable=missing-kwoa
     question.answered_yes.connect(yes_action)
     if no_action is not None:
         question.answered_no.connect(no_action)
