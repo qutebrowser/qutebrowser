@@ -732,15 +732,15 @@ class TabBarStyle(QCommonStyle):
                       else QIcon.Off)
         # reserve space for favicon when tab bar is vertical (issue #1968)
         position = config.get('tabs', 'position')
-        show_favicons = config.get('tabs', 'show-favicons')
-        if (opt.icon.isNull()
-            and position in [QTabWidget.East, QTabWidget.West]
-            and show_favicons):
+        if (opt.icon.isNull() and
+                position in [QTabWidget.East, QTabWidget.West] and
+                config.get('tabs', 'show-favicons')):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
-            tab_icon_size = QSize(min(actual_size.width(), icon_size.width()),
-                                 min(actual_size.height(), icon_size.height()))
+            tab_icon_size = QSize(
+                min(actual_size.width(), icon_size.width()),
+                min(actual_size.height(), icon_size.height()))
         icon_rect = QRect(text_rect.left(), text_rect.top() + 1,
                           tab_icon_size.width(), tab_icon_size.height())
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
