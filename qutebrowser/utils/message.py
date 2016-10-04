@@ -147,6 +147,7 @@ def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
     Return:
         The question object.
     """
+    kwargs['mode'] = usertypes.PromptMode.yesno
     question = _build_question(*args, **kwargs)
     question.answered_yes.connect(yes_action)
     if no_action is not None:
@@ -154,7 +155,7 @@ def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
     if cancel_action is not None:
         question.cancelled.connect(cancel_action)
 
-    question.completed.connect(q.deleteLater)
+    question.completed.connect(question.deleteLater)
     bridge = objreg.get('message-bridge', scope='window', window=win_id)
     bridge.ask(question, blocking=False)
     return question
