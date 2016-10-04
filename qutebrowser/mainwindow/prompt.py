@@ -99,10 +99,6 @@ class PromptContainer(QWidget):
             color: {{ color['statusbar.fg.prompt'] }};
             background-color: {{ color['statusbar.bg.prompt'] }};
         }
-
-        QLineEdit {
-            border: 1px solid grey;
-        }
     """
     update_geometry = pyqtSignal()
 
@@ -333,6 +329,35 @@ class PromptContainer(QWidget):
             question.completed.connect(self._pop_later)
 
 
+class LineEdit(QLineEdit):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid grey;
+                background-color: transparent;
+            }
+        """)
+        self.setAttribute(Qt.WA_MacShowFocusRect, False)
+
+    def keyPressEvent(self, e):
+        """Override keyPressEvent to paste primary selection on Shift + Ins."""
+        if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
+            try:
+                text = utils.get_clipboard(selection=True)
+            except utils.ClipboardError:
+                pass
+            else:
+                e.accept()
+                self.insert(text)
+                return
+        super().keyPressEvent(e)
+
+    def __repr__(self):
+        return utils.get_repr(self)
+
+
 class _BasePrompt(QWidget):
 
     """Base class for all prompts."""
@@ -407,7 +432,7 @@ class LineEditPrompt(_BasePrompt):
 
     def __init__(self, question, win_id, parent=None):
         super().__init__(question, win_id, parent)
-        self._lineedit = QLineEdit(self)
+        self._lineedit = LineEdit(self)
         self._init_title(question)
         self._vbox.addWidget(self._lineedit)
         if question.default:
@@ -433,7 +458,7 @@ class FilenamePrompt(_BasePrompt):
         self._init_fileview()
         self._set_fileview_root(question.default)
 
-        self._lineedit = QLineEdit(self)
+        self._lineedit = LineEdit(self)
         self._lineedit.textChanged.connect(self._set_fileview_root)
         self._vbox.addWidget(self._lineedit)
 
@@ -512,10 +537,10 @@ class AuthenticationPrompt(_BasePrompt):
         self._init_title(question)
 
         user_label = QLabel("Username:", self)
-        self._user_lineedit = QLineEdit(self)
+        self._user_lineedit = LineEdit(self)
 
         password_label = QLabel("Password:", self)
-        self._password_lineedit = QLineEdit(self)
+        self._password_lineedit = LineEdit(self)
         self._password_lineedit.setEchoMode(QLineEdit.Password)
 
         grid = QGridLayout()
