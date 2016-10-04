@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
 from qutebrowser.config import style, config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg
 from qutebrowser.keyinput import modeman
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, cmdexc
 
 
 AuthTuple = collections.namedtuple('AuthTuple', ['user', 'password'])
@@ -215,7 +215,10 @@ class PromptContainer(QWidget):
             value: If given, uses this value instead of the entered one.
                    For boolean prompts, "yes"/"no" are accepted as value.
         """
-        done = self._prompt.accept(value)
+        try:
+            done = self._prompt.accept(value)
+        except Error as e:
+            raise cmdexc.CommandError(str(e))
         if done:
             self._prompt.question.done()
             modeman.maybe_leave(self._win_id, self._prompt.KEY_MODE,
