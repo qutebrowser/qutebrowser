@@ -147,7 +147,7 @@ def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
     Return:
         The question object.
     """
-    question = self._build_question(*args, **kwargs)
+    question = _build_question(*args, **kwargs)
     question.answered_yes.connect(yes_action)
     if no_action is not None:
         question.answered_no.connect(no_action)
