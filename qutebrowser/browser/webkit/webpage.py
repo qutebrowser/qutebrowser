@@ -335,7 +335,7 @@ class BrowserPage(QWebPage):
             question = message.confirm_async(self._win_id,
                                              yes_action=yes_action,
                                              no_action=no_action,
-                                             cancel_action=cancel_action,
+                                             cancel_action=no_action,
                                              abort_on=[self.shutting_down,
                                                        self.loadStarted],
                                              title='Permission request',
