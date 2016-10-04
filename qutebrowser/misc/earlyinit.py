@@ -37,12 +37,16 @@ import signal
 import operator
 import importlib
 import pkg_resources
+import datetime
 try:
     import tkinter
 except ImportError:
     tkinter = None
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
+
+
+START_TIME = datetime.datetime.now()
 
 
 def _missing_str(name, *, windows=None, pip=None, webengine=False):
