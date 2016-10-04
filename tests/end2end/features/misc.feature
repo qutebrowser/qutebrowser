@@ -642,3 +642,15 @@ Feature: Various utility commands.
         And I run :command-accept
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
+
+    ## :quit
+
+    Scenario: Exiting qutebrowser via :quit command
+        Given I have a fresh instance
+        When I run :quit
+        Then qutebrowser should quit
+
+    Scenario: Exiting qutebrowser via :q alias
+        Given I have a fresh instance
+        When I run :q
+        Then qutebrowser should quit
