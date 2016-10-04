@@ -76,7 +76,7 @@ def info(message):
     global_bridge.show_message.emit(usertypes.MessageLevel.info, message)
 
 
-def _build_question(title, mode, *, default=None, text=None, abort_on=()):
+def _build_question(title, text=None, *, mode, default=None, abort_on=()):
     """Common function for ask/ask_async."""
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
@@ -123,7 +123,7 @@ def ask_async(win_id, text, mode, handler, **kwargs):
         default: The default value to display.
         text: Additional text to show.
     """
-    question = _build_question(text, mode, **kwargs)
+    question = _build_question(text, mode=mode, **kwargs)
     question.answered.connect(handler)
     question.completed.connect(question.deleteLater)
     bridge = objreg.get('message-bridge', scope='window', window=win_id)

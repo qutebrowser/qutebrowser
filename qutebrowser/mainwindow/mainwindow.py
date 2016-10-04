@@ -521,7 +521,7 @@ class MainWindow(QWidget):
         if quit_texts or 'always' in confirm_quit:
             text = '\n'.join(['Really quit?'] + quit_texts)
             confirmed = message.ask(self.win_id, text,
-                                    usertypes.PromptMode.yesno,
+                                    mode=usertypes.PromptMode.yesno,
                                     default=True)
             # Stop asking if the user cancels
             if not confirmed:

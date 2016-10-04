@@ -99,7 +99,8 @@ class BrowserPage(QWebPage):
                     config.get('content', 'ignore-javascript-prompt')):
                 return (False, "")
             answer = message.ask(self._win_id, 'Javascript prompt', msg,
-                                 usertypes.PromptMode.text, default=default,
+                                 mode=usertypes.PromptMode.text,
+                                 default=default,
                                  abort_on=[self.loadStarted,
                                            self.shutting_down])
             if answer is None:
@@ -451,7 +452,7 @@ class BrowserPage(QWebPage):
                 config.get('content', 'ignore-javascript-alert')):
             return
         message.ask(self._win_id, 'Javascript alert', msg,
-                    usertypes.PromptMode.alert,
+                    mode=usertypes.PromptMode.alert,
                     abort_on=[self.loadStarted, self.shutting_down])
 
     def javaScriptConfirm(self, frame, msg):
@@ -463,7 +464,7 @@ class BrowserPage(QWebPage):
         if self._is_shutting_down:
             return False
         ans = message.ask(self._win_id, 'Javascript confirm', msg,
-                          usertypes.PromptMode.yesno,
+                          mode=usertypes.PromptMode.yesno,
                           abort_on=[self.loadStarted, self.shutting_down])
         return bool(ans)
 
