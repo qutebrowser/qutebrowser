@@ -326,7 +326,18 @@ class TestPeek:
 
     @pytest.fixture
     def neighborlist(self):
-        return usertypes.NeighborList([20, 9, 1, 5])
+        return usertypes.NeighborList(
+            [20, 9, 1, 5], mode=usertypes.NeighborList.Modes.edge)
+
+    def test_empty(self):
+        neighborlist = usertypes.NeighborList([])
+        with pytest.raises(IndexError):
+            neighborlist.peek_at(1, 1)
+
+    def test_fuzzyval(self, neighborlist):
+        neighborlist.fuzzyval = 7
+        assert neighborlist.peek_at(None, 1) == 9
+        assert neighborlist._idx is None
 
     def test_bigger(self, neighborlist):
         assert neighborlist.peek_at(7, 1) == 9
@@ -347,3 +358,19 @@ class TestPeek:
     def test_equal_smaller(self, neighborlist):
         assert neighborlist.peek_at(5, -1) == 1
         assert neighborlist._idx is None
+
+    def test_edge_right(self, neighborlist):
+        assert neighborlist.peek_at(5, 5) == 5
+
+    def test_edge_left(self, neighborlist):
+        assert neighborlist.peek_at(20, -5) == 20
+
+    def test_exception_left(self):
+        neighborlist = usertypes.NeighborList([20, 9, 1, 5])
+        with pytest.raises(IndexError):
+            neighborlist.peek_at(20, -5)
+
+    def test_exception_right(self):
+        neighborlist = usertypes.NeighborList([20, 9, 1, 5])
+        with pytest.raises(IndexError):
+            neighborlist.peek_at(5, 5)
