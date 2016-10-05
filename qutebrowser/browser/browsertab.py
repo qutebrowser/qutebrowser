@@ -75,6 +75,11 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
+class SmartZoomException(UnsupportedOperationError):
+
+    """Raised when smart zoom is not supported."""
+
+
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -210,39 +215,72 @@ class AbstractZoom(QObject):
             levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.get('ui', 'default-zoom')
 
-    def offset(self, offset):
+    def offset(self, offset, *, smart=False):
         """Increase/Decrease the zoom level by the given offset.
 
         Args:
             offset: The offset in the zoom level list.
+            smart: Try to use smart zoom if possible.
 
         Return:
             The new zoom percentage.
         """
+        if smart:
+            level = self.factor(smart=True)
+            level = self._neighborlist.peek_at(level * 100, offset)
+            try:
+                self.set_factor(float(level) / 100, fuzzyval=False, smart=True)
+            except SmartZoomException:
+                return self.offset(offset)
+            return level
+
         level = self._neighborlist.getitem(offset)
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
 
-    def set_factor(self, factor, *, fuzzyval=True):
+    def set_factor(self, factor, *, fuzzyval=True, smart=False):
         """Zoom to a given zoom factor.
 
         Args:
             factor: The zoom factor as float.
             fuzzyval: Whether to set the NeighborLists fuzzyval.
+            smart: Try to use smart zoom if possible.
         """
-        if fuzzyval:
-            self._neighborlist.fuzzyval = int(factor * 100)
         if factor < 0:
             raise ValueError("Can't zoom to factor {}!".format(factor))
+        if smart:
+            try:
+                self._set_factor_internal(factor, smart=True)
+            except SmartZoomException:
+                return self.set_factor(factor)
+            log.misc.debug("Smart zoomed to: {}%".format(
+                self.factor(smart=True) * 100))
+            return
+
+        if fuzzyval:
+            self._neighborlist.fuzzyval = int(factor * 100)
         self._default_zoom_changed = True
         self._set_factor_internal(factor)
 
-    def factor(self):
+    def factor(self, *, smart=False):
+        """Get the current zoom factor.
+
+        Args:
+            smart: Try to use smart zoom if possible.
+
+        Return:
+            The current zoom factor.
+        """
         raise NotImplementedError
 
-    def set_default(self):
+    def set_default(self, *, smart=False):
+        """Set the zoom to the default factor.
+
+        Args:
+            smart: Try to use smart zoom if possible.
+        """
         default_zoom = config.get('ui', 'default-zoom')
-        self._set_factor_internal(float(default_zoom) / 100)
+        self._set_factor_internal(float(default_zoom) / 100, smart=smart)
 
 
 class AbstractCaret(QObject):

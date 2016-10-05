@@ -350,20 +350,22 @@ class WebKitZoom(browsertab.AbstractZoom):
 
     """QtWebKit implementations related to zooming."""
 
-    def _set_factor_internal(self, factor):
+    def _set_factor_internal(self, factor, *, smart=False):
         widget = self._widget
-        if pdfjs.is_pdfjs_page(widget):
+        if smart and pdfjs.is_pdfjs_page(widget):
             cmd = ('(window.PDFView || window.PDFViewerApplication)'
                    '.pdfViewer.currentScaleValue = {!r}'.format(factor))
             widget.page().mainFrame().evaluateJavaScript(cmd)
+        elif smart:
+            raise browsertab.SmartZoomException
         else:
             widget.setZoomFactor(factor)
 
-    def factor(self):
+    def factor(self, *, smart=False):
         widget = self._widget
-        if pdfjs.is_pdfjs_page(widget):
+        if smart and pdfjs.is_pdfjs_page(widget):
             cmd = ('(window.PDFView || window.PDFViewerApplication)'
-                   '.pdfViewer.currentScaleValue')
+                   '.pdfViewer.currentScale')
             return widget.page().mainFrame().evaluateJavaScript(cmd)
         else:
             return widget.zoomFactor()

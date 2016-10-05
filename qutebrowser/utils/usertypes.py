@@ -112,18 +112,31 @@ class NeighborList(collections.abc.Sequence):
             True if the value snapped in (changed),
             False when the value already was in the list.
         """
+        self._idx = self._find_closest(self.fuzzyval, offset)
+        return self.fuzzyval not in self._items
+
+    def _find_closest(self, val, offset):
+        """Find the index of the item closest to the given value.
+
+        Args:
+            val: Value to search.
+            offset: negative to get the next smaller item, positive for the
+                    next bigger one.
+
+        Return:
+            The computed index.
+        """
         op = operator.le if offset < 0 else operator.ge
         items = [(idx, e) for (idx, e) in enumerate(self._items)
-                 if op(e, self.fuzzyval)]
+                 if op(e, val)]
         if items:
-            item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
+            item = min(items, key=lambda tpl: abs(val - tpl[1]))
         else:
             sorted_items = sorted([(idx, e) for (idx, e) in
                                    enumerate(self.items)], key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
-        self._idx = item[0]
-        return self.fuzzyval not in self._items
+        return item[0]
 
     def _get_new_item(self, offset):
         """Logic for getitem to get the item at offset.
@@ -210,6 +223,40 @@ class NeighborList(collections.abc.Sequence):
             raise IndexError("No items found!")
         self._idx = len(self._items) - 1
         return self.curitem()
+
+    def peek_at(self, value, offset):
+        """Get the value in the list offseted from the given value.
+
+        Unlike the other methods, this will not modify the list's internal
+        index.
+
+        Args:
+            value: The temporary "fuzzyval" to search. If value is None,
+                   self.fuzzyval is used.
+            offset: The offset from the found value.
+
+        Return:
+            The offseted value.
+        """
+        if not self._items:
+            raise IndexError("No items found!")
+        if value is None:
+            value = self.fuzzyval
+        index = self._find_closest(value, offset)
+        try:
+            if index + offset >= 0:
+                return self._items[index + offset]
+            else:
+                raise IndexError
+        except IndexError:
+            if self._mode == self.Modes.edge:
+                assert offset != 0
+                if offset > 0:
+                    return self._items[-1]
+                else:
+                    return self._items[0]
+            elif self._mode == self.Modes.exception:  # pragma: no branch
+                raise
 
     def reset(self):
         """Reset the position to the default."""

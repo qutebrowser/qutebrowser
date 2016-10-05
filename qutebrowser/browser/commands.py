@@ -744,26 +744,28 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_in(self, count=1):
+    def zoom_in(self, count=1, smart=False):
         """Increase the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom in.
+            smart: Try to use smart zoom (see `zoom` for more).
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom.offset(count)
+            perc = tab.zoom.offset(count, smart=smart)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         message.info("Zoom level: {}%".format(perc))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_out(self, count=1):
+    def zoom_out(self, count=1, smart=False):
         """Decrease the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom out.
+            smart: Try to use smart zoom (see `zoom` for more).
         """
         tab = self._current_widget()
         try:
@@ -774,7 +776,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: int=None, count=None):
+    def zoom(self, zoom: int=None, count=None, smart=False):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -784,6 +786,8 @@ class CommandDispatcher:
         Args:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
+            smart: Try to use smart zoom. Smart zoom tries to delegate the
+                   zooming to the current page (supported e.g. for pdfjs).
         """
         level = count if count is not None else zoom
         if level is None:
@@ -791,7 +795,7 @@ class CommandDispatcher:
         tab = self._current_widget()
 
         try:
-            tab.zoom.set_factor(float(level) / 100)
+            tab.zoom.set_factor(float(level) / 100, smart=smart)
         except ValueError:
             raise cmdexc.CommandError("Can't zoom {}%!".format(level))
         message.info("Zoom level: {}%".format(level))
