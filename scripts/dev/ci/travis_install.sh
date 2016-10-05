@@ -94,7 +94,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
 
     brew --version
     brew_install python3 qt5 pyqt5
-    pip_install pip
+
     pip_install tox
     pip --version
     tox --version
