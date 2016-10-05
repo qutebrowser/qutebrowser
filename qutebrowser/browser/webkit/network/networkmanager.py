@@ -330,7 +330,7 @@ class NetworkManager(QNetworkAccessManager):
             # altogether.
             reply.netrc_used = True
             try:
-                net = netrc.netrc()
+                net = netrc.netrc(os.environ.get('QUTE_NETRC'))
                 authenticators = net.authenticators(reply.url().host())
                 if authenticators is not None:
                     (user, _account, password) = authenticators
