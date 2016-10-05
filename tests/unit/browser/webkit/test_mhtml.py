@@ -275,7 +275,8 @@ def test_empty_content_type(checker):
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
     if not has_cssutils:
-        monkeypatch.setattr('qutebrowser.browser.webkit.mhtml.cssutils', None)
+        monkeypatch.setattr(mhtml, '_get_css_imports_cssutils',
+                            lambda data, inline=False: None)
     expected_urls.sort()
     urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()
