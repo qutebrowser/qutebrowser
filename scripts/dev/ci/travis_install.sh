@@ -88,6 +88,10 @@ if [[ $DOCKER ]]; then
 elif [[ $TRAVIS_OS_NAME == osx ]]; then
     # Disable App Nap
     defaults write NSGlobalDomain NSAppSleepDisabled -bool YES
+
+    curl -LO https://bootstrap.pypa.io/get-pip.py
+    sudo -H python get-pip.py
+
     brew --version
     brew_install python3 qt5 pyqt5
     pip_install pip
