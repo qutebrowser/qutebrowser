@@ -113,6 +113,64 @@ def get_target_window():
         return None
 
 
+def get_window_close_prompt_reasons(win_id):
+    """Get reasons why closing the window with given ID needs confirmation."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    tab_count = tabbed_browser.count()
+    download_model = objreg.get('download-model', scope='window',
+                                window=win_id)
+    download_count = download_model.running_downloads()
+    return _collect_close_prompt_reasons(tab_count, download_count)
+
+
+def get_all_windows_close_prompt_reasons():
+    """Get reasons why closing the all windows needs confirmation."""
+    tab_count = 0
+    download_count = 0
+    for win_id in objreg.window_registry:
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        tab_count += tabbed_browser.count()
+        download_model = objreg.get('download-model', scope='window',
+                                    window=win_id)
+        download_count += download_model.running_downloads()
+    return _collect_close_prompt_reasons(tab_count, download_count)
+
+
+def _collect_close_prompt_reasons(tab_count, download_count):
+    confirm_quit = config.get('ui', 'confirm-quit')
+    reasons = []
+    # Ask if multiple-tabs are open
+    if 'multiple-tabs' in confirm_quit and tab_count > 1:
+        reasons.append("{} tabs are open.".format(tab_count))
+    # Ask if multiple downloads running
+    if 'downloads' in confirm_quit and download_count > 0:
+        reasons.append("{} {} running.".format(
+            download_count,
+            "download is" if download_count == 1 else "downloads are"))
+    return reasons
+
+
+def has_close_confirmation(win_id, reasons):
+    """Present given reasons and return whether it's okay to close."""
+    confirm_quit = config.get('ui', 'confirm-quit')
+    reasons = get_window_close_prompt_reasons(win_id)
+    if reasons or 'always' in confirm_quit:
+        msg = jinja2.Template("""
+            <ul>
+                {% for text in quit_texts %}
+                   <li>{{text}}</li>
+                {% endfor %}
+                </ul>
+            """.strip()).render(quit_texts=reasons)
+        return message.ask('Really quit?', msg,
+                           mode=usertypes.PromptMode.yesno,
+                           default=True)
+    else:
+        return True
+
+
 class MainWindow(QWidget):
 
     """The main window of qutebrowser.
@@ -508,39 +566,11 @@ class MainWindow(QWidget):
         if crashsignal.is_crashing:
             e.accept()
             return
-        confirm_quit = config.get('ui', 'confirm-quit')
-        tab_count = self.tabbed_browser.count()
-        download_model = objreg.get('download-model', scope='window',
-                                    window=self.win_id)
-        download_count = download_model.running_downloads()
-        quit_texts = []
-        # Ask if multiple-tabs are open
-        if 'multiple-tabs' in confirm_quit and tab_count > 1:
-            quit_texts.append("{} {} open.".format(
-                tab_count, "tab is" if tab_count == 1 else "tabs are"))
-        # Ask if multiple downloads running
-        if 'downloads' in confirm_quit and download_count > 0:
-            quit_texts.append("{} {} running.".format(
-                download_count,
-                "download is" if download_count == 1 else "downloads are"))
-        # Process all quit messages that user must confirm
-        if quit_texts or 'always' in confirm_quit:
-            msg = jinja2.Template("""
-                <ul>
-                {% for text in quit_texts %}
-                   <li>{{text}}</li>
-                {% endfor %}
-                </ul>
-            """.strip()).render(quit_texts=quit_texts)
-            confirmed = message.ask('Really quit?', msg,
-                                    mode=usertypes.PromptMode.yesno,
-                                    default=True)
-
-            # Stop asking if the user cancels
-            if not confirmed:
-                log.destroy.debug("Cancelling closing of window {}".format(
-                    self.win_id))
-                e.ignore()
-                return
+        reasons = get_window_close_prompt_reasons(self.win_id)
+        if not has_close_confirmation(self.win_id, reasons):
+            log.destroy.debug("Cancelling closing of window {}".format(
+                self.win_id))
+            e.ignore()
+            return
         e.accept()
         self._do_close()

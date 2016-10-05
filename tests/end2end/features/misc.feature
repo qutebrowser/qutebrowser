@@ -665,6 +665,22 @@ Feature: Various utility commands.
         When I run :q
         Then qutebrowser should quit
 
+    Scenario: Exiting qutebrowser via :quit command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :quit
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept yes
+        Then qutebrowser should quit
+
+    Scenario: Abort exiting qutebrowser via :quit command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :quit
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept no
+        Then "Cancelling shutdown: confirmation negative" should be logged
+
     Scenario: Exiting qutebrowser via :close on last window
         Given I have a fresh instance
         When I run :close
