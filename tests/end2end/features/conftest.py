@@ -289,6 +289,17 @@ def wait_for_message(quteproc, httpbin, category, message):
     expect_message(quteproc, httpbin, category, message)
 
 
+@bdd.when(bdd.parsers.re(r'I wait for the prompt "(?P<prompt>.*)"'))
+def wait_for_prompt(quteproc, prompt):
+    """Wait for a given prompt prompt."""
+    quteproc.log_summary('Waiting for prompt "{}"'.format(prompt))
+    pattern = re.compile(r'Asking question .* text=.* title=\'{}\'.*'.format(
+        re.escape(prompt)))
+
+    line = quteproc.wait_for(message=pattern)
+    line.expected = True
+
+
 @bdd.when(bdd.parsers.parse("I wait {delay}s"))
 def wait_time(quteproc, delay):
     """Sleep for the given delay."""
