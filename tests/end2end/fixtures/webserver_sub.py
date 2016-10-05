@@ -80,8 +80,11 @@ def redirect_later():
 @app.route('/custom/redirect-later-continue')
 def redirect_later_continue():
     """Continue a redirect-later request."""
-    _redirect_later_event.set()
-    return flask.Response(b'Continued redirect.')
+    if _redirect_later_event is None:
+        return flask.Response(b'Timed out or no redirect pending.')
+    else:
+        _redirect_later_event.set()
+        return flask.Response(b'Continued redirect.')
 
 
 @app.route('/custom/content-size')

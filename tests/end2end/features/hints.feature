@@ -70,7 +70,15 @@ Feature: Using hints
         Then the message "Command exited successfully." should be shown
 
     @posix
-    Scenario: Using :hint spawn with flags passed to the command (issue 797)
+    Scenario: Using :hint spawn with flags class Test
+
+  log: (args...) ->
+    console.log "[Foo]", args...
+
+
+test = new Test()
+test.log("Hello World")
+passed to the command (issue 797)
         When I open data/hints/html/simple.html
         And I hint with args "--rapid all spawn -v echo -e foo" and follow a
         Then the message "Command exited successfully." should be shown
