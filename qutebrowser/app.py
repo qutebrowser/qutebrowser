@@ -50,8 +50,8 @@ from qutebrowser.browser.webkit import cookies, cache, downloads
 from qutebrowser.browser.webkit.network import (webkitqutescheme, proxy,
                                                 networkmanager)
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.misc import (readline, ipc, savemanager, sessions, crashsignal,
-                              earlyinit)
+from qutebrowser.misc import (readline, ipc, savemanager, sessions,
+                              crashsignal, earlyinit)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir, error, debug)
