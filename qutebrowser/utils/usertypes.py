@@ -243,6 +243,11 @@ class NeighborList(collections.abc.Sequence):
         if value is None:
             value = self.fuzzyval
         index = self._find_closest(value, offset)
+        snapped = value not in self._items
+        if snapped and offset > 0:
+            offset -= 1
+        elif snapped and offset < 0:
+            offset += 1
         try:
             if index + offset >= 0:
                 return self._items[index + offset]
