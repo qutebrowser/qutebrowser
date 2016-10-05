@@ -185,7 +185,7 @@ Feature: Using hints
     Scenario: Ignoring key presses after auto-following hints
         When I set hints -> auto-follow-timeout to 500
         And I set hints -> mode to number
-        And I run :bind --force , message-error "This should not happen"
+        And I run :bind --force , message-error "This error message was triggered via a keybinding which should have been inhibited"
         And I open data/hints/html/simple.html
         And I hint with args "all"
         And I press the key "f"
