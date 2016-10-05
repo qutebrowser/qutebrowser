@@ -643,7 +643,17 @@ Feature: Various utility commands.
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
 
-    ## :quit
+    ## :run-with-count
+
+    Scenario: :run-with-count
+        When I run :run-with-count 2 scroll down
+        Then "command called: scroll ['down'] (count=2)" should be logged
+
+    Scenario: :run-with-count with count
+        When I run :run-with-count 2 scroll down with count 3
+        Then "command called: scroll ['down'] (count=6)" should be logged
+
+    ## shutdown sequences
 
     Scenario: Exiting qutebrowser via :quit command
         Given I have a fresh instance
@@ -654,3 +664,24 @@ Feature: Various utility commands.
         Given I have a fresh instance
         When I run :q
         Then qutebrowser should quit
+
+    Scenario: Exiting qutebrowser via :close on last window
+        Given I have a fresh instance
+        When I run :close
+        Then qutebrowser should quit
+
+    Scenario: Exiting qutebrowser via :close command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :close
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept yes
+        Then qutebrowser should quit
+
+    Scenario: Abort exiting qutebrowser via :close command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :close
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept no
+        Then the closing of window 0 should be cancelled

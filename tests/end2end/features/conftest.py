@@ -587,6 +587,15 @@ def should_quit(qtbot, quteproc):
     quteproc.wait_for_quit()
 
 
+@bdd.then(bdd.parsers.re(r'the closing of window (?P<win_id>.*) '
+                         r'should be cancelled'))
+def should_cancel_close(quteproc, win_id):
+    """Verify that closing of a window has been cancelled."""
+    message = 'Cancelling closing of window {}'.format(win_id)
+    line = quteproc.wait_for(message=message)
+    line.expected = True
+
+
 def _get_scroll_values(quteproc):
     data = quteproc.get_session()
     pos = data['windows'][0]['tabs'][0]['history'][-1]['scroll-pos']

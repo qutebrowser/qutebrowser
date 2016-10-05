@@ -395,6 +395,10 @@ class QuteProc(testprocess.Process):
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
 
+        # if a test sets this to anything else, terminate might wait forever
+        if self.is_running():
+            self.set_setting('ui', 'confirm-quit', 'never')
+
         try:
             call = self.request.node.rep_call
         except AttributeError:
