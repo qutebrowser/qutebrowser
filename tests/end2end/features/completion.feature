@@ -22,3 +22,8 @@ Feature: Command bar completion
         # Make sure qutebrowser doesn't hang
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown
+
+    Scenario: Crash when pasting emoji into the command line (#2007)
+        Given I open about:blank
+        When I run :set-cmd-text -s :🌀
+        Then no crash should happen
