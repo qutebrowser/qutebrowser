@@ -318,3 +318,32 @@ class TestSnapIn:
         neighborlist.fuzzyval = 0
         assert neighborlist.previtem() == 1
         assert neighborlist._idx == 2
+
+
+class TestPeek:
+
+    """Test the peek features."""
+
+    @pytest.fixture
+    def neighborlist(self):
+        return usertypes.NeighborList([20, 9, 1, 5])
+
+    def test_bigger(self, neighborlist):
+        assert neighborlist.peek_at(7, 1) == 9
+        assert neighborlist._idx is None
+        assert neighborlist.peek_at(7, 2) == 1
+        assert neighborlist._idx is None
+
+    def test_smaller(self, neighborlist):
+        assert neighborlist.peek_at(3, -1) == 1
+        assert neighborlist._idx is None
+        assert neighborlist.peek_at(3, -2) == 9
+        assert neighborlist._idx is None
+
+    def test_equal_bigger(self, neighborlist):
+        assert neighborlist.peek_at(20, 1) == 9
+        assert neighborlist._idx is None
+
+    def test_equal_smaller(self, neighborlist):
+        assert neighborlist.peek_at(5, -1) == 1
+        assert neighborlist._idx is None
