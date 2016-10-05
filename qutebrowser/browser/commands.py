@@ -769,7 +769,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom.offset(-count)
+            perc = tab.zoom.offset(-count, smart=smart)
         except ValueError as e:
             raise cmdexc.CommandError(e)
         message.info("Zoom level: {}%".format(perc))
