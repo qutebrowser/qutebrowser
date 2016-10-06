@@ -56,6 +56,10 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
             # second time.
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
         quteproc.send_cmd(':insert-text {clipboard}')
+    else:
+        raise ValueError("Invalid source {!r}".format(source))
+
+    quteproc.wait_for_js('contents: {}'.format(input_text))
 
     quteproc.send_cmd(':leave-mode')
     quteproc.send_cmd(':hint all')
