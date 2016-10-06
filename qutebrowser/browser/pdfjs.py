@@ -229,3 +229,21 @@ def is_pdfjs_page(webview):
         any(script.attribute('src').endswith(suffix) for script in scripts)
         for suffix in suffixes)
     return has_scripts
+
+
+def get_zoom_script():
+    """Get a JS snippet that will return the current pdfjs zoom factor."""
+    cmd = ('(window.PDFView || window.PDFViewerApplication)'
+            '.pdfViewer.currentScale')
+    return cmd
+
+
+def set_zoom_script(factor):
+    """Get a JS snippet that will set the current pdfjs zoom factor.
+
+    Args:
+        factor: Zoom factor as float.
+    """
+    cmd = ('(window.PDFView || window.PDFViewerApplication)'
+            '.pdfViewer.currentScaleValue = {!r}'.format(factor))
+    return cmd
