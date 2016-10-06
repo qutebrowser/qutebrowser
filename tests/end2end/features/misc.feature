@@ -622,6 +622,28 @@ Feature: Various utility commands.
                 history:
                 - url: http://localhost:*/data/hello3.txt
 
+    Scenario: Recording a simple macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :scroll down with count 5
+        And I run :record-macro
+        And I run :scroll up
+        And I run :scroll up
+        And I run :record-macro
+        And I run :run-macro with count 2
+        Then the page should not be scrolled
+
+    Scenario: Recording a named macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :scroll down with count 5
+        And I run :record-macro foo
+        And I run :scroll up
+        And I run :scroll up
+        And I run :record-macro foo
+        And I run :run-macro foo with count 2
+        Then the page should not be scrolled
+
     ## Variables
 
     Scenario: {url} as part of an argument

@@ -1634,6 +1634,8 @@ KEY_DATA = collections.OrderedDict([
         ('follow-selected', RETURN_KEYS),
         ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
         ('repeat-command', ['.']),
+        ('record-macro', ['q']),
+        ('run-macro', ['@']),
     ])),
 
     ('insert', collections.OrderedDict([

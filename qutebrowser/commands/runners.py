@@ -27,13 +27,15 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils, utils
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split
 
 
 ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline',
                                                      'count'])
 last_command = {}
+macro = {}
+recording_macro = None
 
 
 def _current_url(tabbed_browser):
@@ -301,10 +303,17 @@ class CommandRunner(QObject):
             else:
                 result.cmd.run(self._win_id, args)
 
+            parsed_command = (self._parse_count(text)[1],
+                              count if count is not None else result.count)
+
             if result.cmdline[0] != 'repeat-command':
-                last_command[cur_mode] = (
-                    self._parse_count(text)[1],
-                    count if count is not None else result.count)
+                last_command[cur_mode] = parsed_command
+
+            if (recording_macro is not None and
+                    cur_mode == usertypes.KeyMode.normal and
+                    result.cmdline[0] not in ['record-macro', 'run-macro',
+                                              'set-cmd-text']):
+                macro[recording_macro].append(parsed_command)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)

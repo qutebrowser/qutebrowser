@@ -234,6 +234,45 @@ def repeat_command(win_id, count=None):
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
 
 
+@cmdutils.register(maxsplit=0)
+@cmdutils.argument('name')
+def record_macro(name=""):
+    """Start or stop recording a macro.
+
+    Args:
+        name: Which name to give the macro.
+    """
+    if runners.recording_macro is None:
+        message.info("Defining macro...")
+        runners.macro[name] = []
+        runners.recording_macro = name
+    elif runners.recording_macro == name:
+        message.info("Macro defined.")
+        runners.recording_macro = None
+    else:
+        raise cmdexc.CommandError(
+            "Already recording macro '{}'".format(runners.recording_macro))
+
+
+@cmdutils.register(maxsplit=0)
+@cmdutils.argument('win_id', win_id=True)
+@cmdutils.argument('count', count=True)
+@cmdutils.argument('name')
+def run_macro(win_id, count=1, name=""):
+    """Run a recorded macro.
+
+    Args:
+        count: How many times to run the macro.
+        name: Which macro to run.
+    """
+    if name not in runners.macro:
+        raise cmdexc.CommandError("No macro defined!")
+    commandrunner = runners.CommandRunner(win_id)
+    for _ in range(count):
+        for cmd in runners.macro[name]:
+            commandrunner.run(*cmd)
+
+
 @cmdutils.register(debug=True, name='debug-log-capacity')
 def log_capacity(capacity: int):
     """Change the number of log lines to be stored in RAM.
