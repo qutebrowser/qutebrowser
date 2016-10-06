@@ -179,6 +179,7 @@ Fixed
 - Fixed hang when using multiple spaces in a row with the URL completion
 - Fixed crash when closing a window without focusing it
 - Userscripts now can access QUTE_FIFO correctly on Windows
+- Compatibility with pdfjs v1.6.210
 
 v0.8.3 (unreleased)
 -------------------
