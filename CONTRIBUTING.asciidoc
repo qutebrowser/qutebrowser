@@ -652,4 +652,4 @@ as closed.
 * OS X: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand)
 * On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand)
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed
-* Announce to qutebrowser mailinglist
+* Announce to qutebrowser and qutebrowser-announce mailinglist
