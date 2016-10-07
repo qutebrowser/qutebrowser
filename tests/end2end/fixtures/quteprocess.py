@@ -395,6 +395,11 @@ class QuteProc(testprocess.Process):
         bad_msgs = [msg for msg in self._data
                     if self._is_error_logline(msg) and not msg.expected]
 
+        # give the process some time to exit if it's expected to
+        # this ensures the next is_running() gives a reasonably accurate result
+        if self.exit_expected:
+            self.proc.waitForFinished()
+
         # if a test sets this to anything else, terminate might wait forever
         if self.is_running():
             self.set_setting('ui', 'confirm-quit', 'never')
