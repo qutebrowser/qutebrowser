@@ -32,7 +32,8 @@ image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding c
 `scripts/asciidoc2html.py` to generate the documentation.
 * Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it.
 * Subscribe to
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist]
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist] or
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[the announce-only mailinglist].
 * Let me know what features you are missing or things that need (even small!)
 improvements.
 
