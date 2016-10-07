@@ -549,6 +549,7 @@ Feature: Various utility commands.
         And I open cookies/set?qute-test=42 without waiting
         And I wait until cookies is loaded
         And I open cookies in a new tab
+        And I set general -> private-browsing to false
         Then the cookie qute-test should be set to 42
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1742
@@ -557,6 +558,7 @@ Feature: Various utility commands.
     Scenario: Private browsing is activated in QtWebKit without restart
         When I set general -> private-browsing to true
         And I open data/javascript/localstorage.html
+        And I set general -> private-browsing to false
         Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
