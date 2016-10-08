@@ -234,7 +234,8 @@ def repeat_command(win_id, count=None):
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
 
 
-@cmdutils.register(instance='mode-manager', name='record-macro', scope='window')
+@cmdutils.register(instance='mode-manager', name='record-macro',
+                   scope='window')
 @cmdutils.argument('register')
 def record_macro_command(self, register=None):
     """Start or stop recording a macro.

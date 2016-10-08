@@ -306,7 +306,8 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
         elif self._mode == usertypes.KeyMode.run_macro:
             utilcmds.run_macro(self._win_id, key)
         else:
-            raise ValueError("{} is not a valid register key".format(self._mode))
+            raise ValueError(
+                "{} is not a valid register key".format(self._mode))
 
         self.request_leave.emit(self._mode, "valid register key")
 
