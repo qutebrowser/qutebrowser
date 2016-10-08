@@ -693,6 +693,7 @@ Feature: Various utility commands.
         And I run :command-history-prev
         And I run :command-history-prev
         And I run :command-history-next
+        And I run :command-history-next
         And I run :command-accept
         Then the message "blarg" should be shown
     
