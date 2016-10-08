@@ -78,8 +78,10 @@ def init(win_id, parent):
                                                   warn=False),
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
         KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
-        KM.set_mark: modeparsers.MarkKeyParser(win_id, KM.set_mark, modeman),
-        KM.jump_mark: modeparsers.MarkKeyParser(win_id, KM.jump_mark, modeman),
+        KM.set_mark: modeparsers.RegisterKeyParser(win_id, KM.set_mark, modeman),
+        KM.jump_mark: modeparsers.RegisterKeyParser(win_id, KM.jump_mark, modeman),
+        KM.record_macro: modeparsers.RegisterKeyParser(win_id, KM.record_macro, modeman),
+        KM.run_macro: modeparsers.RegisterKeyParser(win_id, KM.run_macro, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(

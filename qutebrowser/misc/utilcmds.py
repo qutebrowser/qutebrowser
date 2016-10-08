@@ -234,42 +234,57 @@ def repeat_command(win_id, count=None):
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
 
 
-@cmdutils.register(maxsplit=0)
-@cmdutils.argument('name')
-def record_macro(name=""):
+@cmdutils.register(instance='mode-manager', name='record-macro', scope='window')
+@cmdutils.argument('register')
+def record_macro_command(self, register=None):
     """Start or stop recording a macro.
 
     Args:
-        name: Which name to give the macro.
+        register: Which register to store the macro in.
     """
     if runners.recording_macro is None:
-        message.info("Defining macro...")
-        runners.macro[name] = []
-        runners.recording_macro = name
-    elif runners.recording_macro == name:
-        message.info("Macro defined.")
-        runners.recording_macro = None
+        if register is None:
+            self.enter(usertypes.KeyMode.record_macro, 'record_macro')
+        else:
+            record_macro(register)
     else:
-        raise cmdexc.CommandError(
-            "Already recording macro '{}'".format(runners.recording_macro))
+        message.info("Macro recorded.")
+        runners.recording_macro = None
 
 
-@cmdutils.register(maxsplit=0)
+def record_macro(register):
+    """Start recording a macro."""
+    message.info("Recording macro...")
+    runners.macro[register] = []
+    runners.recording_macro = register
+
+
+@cmdutils.register(instance='mode-manager', name='run-macro', scope='window')
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)
-@cmdutils.argument('name')
-def run_macro(win_id, count=1, name=""):
+@cmdutils.argument('register')
+def run_macro_command(self, win_id, count=1, register=None):
     """Run a recorded macro.
 
     Args:
         count: How many times to run the macro.
-        name: Which macro to run.
+        register: Which macro to run.
     """
-    if name not in runners.macro:
-        raise cmdexc.CommandError("No macro defined!")
+    runners.macro_count[win_id] = count
+    if register is None:
+        self.enter(usertypes.KeyMode.run_macro, 'run_macro')
+    else:
+        run_macro(win_id, register)
+
+
+def run_macro(win_id, register):
+    """Run a recorded macro."""
+    if register not in runners.macro:
+        raise cmdexc.CommandError(
+            "No macro recorded in '{}'!".format(register))
     commandrunner = runners.CommandRunner(win_id)
-    for _ in range(count):
-        for cmd in runners.macro[name]:
+    for _ in range(runners.macro_count[win_id]):
+        for cmd in runners.macro[register]:
             commandrunner.run(*cmd)
 
 

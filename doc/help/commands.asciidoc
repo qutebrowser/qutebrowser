@@ -606,15 +606,12 @@ Quit qutebrowser.
 
 [[record-macro]]
 === record-macro
-Syntax: +:record-macro ['name']+
+Syntax: +:record-macro ['register']+
 
 Start or stop recording a macro.
 
 ==== positional arguments
-* +'name'+: Which name to give the macro.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
+* +'register'+: Which register to store the macro in.
 
 [[reload]]
 === reload
@@ -653,18 +650,15 @@ Restart qutebrowser while keeping existing tabs open.
 
 [[run-macro]]
 === run-macro
-Syntax: +:run-macro ['name']+
+Syntax: +:run-macro ['register']+
 
 Run a recorded macro.
 
 ==== positional arguments
-* +'name'+: Which macro to run.
+* +'register'+: Which macro to run.
 
 ==== count
 How many times to run the macro.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
 
 [[save]]
 === save

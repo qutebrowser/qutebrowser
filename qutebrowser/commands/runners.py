@@ -34,8 +34,10 @@ from qutebrowser.misc import split
 ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline',
                                                      'count'])
 last_command = {}
+
 macro = {}
 recording_macro = None
+macro_count = {}
 
 
 def _current_url(tabbed_browser):

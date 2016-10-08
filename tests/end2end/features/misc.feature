@@ -625,18 +625,20 @@ Feature: Various utility commands.
     Scenario: Recording a simple macro
         Given I open data/scroll/simple.html
         And I run :tab-only
-        When I run :scroll down with count 5
+        When I run :scroll down with count 6
         And I run :record-macro
+        And I press the key "a"
         And I run :scroll up
         And I run :scroll up
         And I run :record-macro
         And I run :run-macro with count 2
+        And I press the key "a"
         Then the page should not be scrolled
 
     Scenario: Recording a named macro
         Given I open data/scroll/simple.html
         And I run :tab-only
-        When I run :scroll down with count 5
+        When I run :scroll down with count 6
         And I run :record-macro foo
         And I run :scroll up
         And I run :scroll up

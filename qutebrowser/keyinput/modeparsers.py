@@ -27,6 +27,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
+from qutebrowser.misc import utilcmds
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
@@ -264,12 +265,13 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         self.read_config('caret')
 
 
-class MarkKeyParser(keyparser.BaseKeyParser):
+class RegisterKeyParser(keyparser.BaseKeyParser):
 
-    """KeyParser for set_mark and jump_mark mode.
+    """KeyParser for modes that record a register key.
 
     Attributes:
-        _mode: Either KeyMode.set_mark or KeyMode.jump_mark.
+        _mode: One of KeyMode.set_mark, KeyMode.jump_mark, KeyMode.record_macro
+        and KeyMode.run_macro.
     """
 
     def __init__(self, win_id, mode, parent=None):
@@ -278,7 +280,7 @@ class MarkKeyParser(keyparser.BaseKeyParser):
         self._mode = mode
 
     def handle(self, e):
-        """Override handle to always match the next key and create a mark.
+        """Override handle to always match the next key and use the register.
 
         Args:
             e: the KeyPressEvent from Qt.
@@ -299,18 +301,22 @@ class MarkKeyParser(keyparser.BaseKeyParser):
             tabbed_browser.set_mark(key)
         elif self._mode == usertypes.KeyMode.jump_mark:
             tabbed_browser.jump_mark(key)
+        elif self._mode == usertypes.KeyMode.record_macro:
+            utilcmds.record_macro(key)
+        elif self._mode == usertypes.KeyMode.run_macro:
+            utilcmds.run_macro(self._win_id, key)
         else:
-            raise ValueError("{} is not a valid mark mode".format(self._mode))
+            raise ValueError("{} is not a valid register key".format(self._mode))
 
-        self.request_leave.emit(self._mode, "valid mark key")
+        self.request_leave.emit(self._mode, "valid register key")
 
         return True
 
     @pyqtSlot(str)
     def on_keyconfig_changed(self, mode):
-        """MarkKeyParser has no config section (no bindable keys)."""
+        """RegisterKeyParser has no config section (no bindable keys)."""
         pass
 
     def execute(self, cmdstr, _keytype, count=None):
-        """Should never be called on MarkKeyParser."""
+        """Should never be called on RegisterKeyParser."""
         assert False
