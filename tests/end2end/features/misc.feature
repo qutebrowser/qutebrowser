@@ -714,7 +714,7 @@ Feature: Various utility commands.
         When I run :set-cmd-text :message-info blah
         And I run :command-accept
         And I set general -> private-browsing to true
-        And I run :set-cmd-text :message-error This should only be shown once
+        And I run :set-cmd-text :message-error "This should only be shown once"
         And I run :command-accept
         And I wait for the error "This should only be shown once"
         And I run :set-cmd-text :
