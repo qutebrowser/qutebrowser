@@ -185,6 +185,7 @@ Contributors, sorted by the number of commits in descending order:
 * Julian Weigt
 * Jonas Schürmann
 * error800
+* Sebastian Frysztak
 * Michael Hoang
 * Liam BEGUIN
 * skinnay
@@ -198,7 +199,6 @@ Contributors, sorted by the number of commits in descending order:
 * rikn00
 * kanikaa1234
 * haitaka
-* Sebastian Frysztak
 * Nick Ginther
 * Michał Góral
 * Michael Ilsaas
