@@ -34,4 +34,4 @@ spark-parser==1.4.0
 uncompyle6==2.8.4
 vulture==0.10
 Werkzeug==0.11.11
-xdis==2.3.2
+xdis==3.0.0
