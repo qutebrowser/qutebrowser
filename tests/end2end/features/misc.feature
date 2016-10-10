@@ -675,7 +675,7 @@ Feature: Various utility commands.
         Then the error "Element position is out of view!" should be shown
 
     ## :command-history-{prev,next}
-    
+
     Scenario: Calling previous command
         When I run :set-cmd-text :message-info blah
         And I run :command-accept
@@ -684,7 +684,7 @@ Feature: Various utility commands.
         And I run :command-history-prev
         And I run :command-accept
         Then the message "blah" should be shown
-    
+ 
     Scenario: Browsing through commands 
         When I run :set-cmd-text :message-info blarg
         And I run :command-accept
@@ -696,14 +696,14 @@ Feature: Various utility commands.
         And I run :command-history-next
         And I run :command-accept
         Then the message "blarg" should be shown
-    
+ 
     Scenario: Calling previous command when history is empty
         Given I have a fresh instance
         When I run :set-cmd-text :
         And I run :command-history-prev
         And I run :command-accept
         Then the error "No command given" should be shown
-        
+
     Scenario: Calling next command when there's no next command
         When I run :set-cmd-text :
         And I run :command-history-next
