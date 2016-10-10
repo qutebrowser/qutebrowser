@@ -549,6 +549,7 @@ Feature: Various utility commands.
         And I open cookies/set?qute-test=42 without waiting
         And I wait until cookies is loaded
         And I open cookies in a new tab
+        And I set general -> private-browsing to false
         Then the cookie qute-test should be set to 42
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1742
@@ -557,6 +558,7 @@ Feature: Various utility commands.
     Scenario: Private browsing is activated in QtWebKit without restart
         When I set general -> private-browsing to true
         And I open data/javascript/localstorage.html
+        And I set general -> private-browsing to false
         Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
@@ -671,3 +673,52 @@ Feature: Various utility commands.
         And I wait until the scroll position changed
         And I run :click-element id link
         Then the error "Element position is out of view!" should be shown
+
+    ## :command-history-{prev,next}
+
+    Scenario: Calling previous command
+        When I run :set-cmd-text :message-info blah
+        And I run :command-accept
+        And I wait for "blah" in the log
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        Then the message "blah" should be shown
+ 
+    Scenario: Browsing through commands 
+        When I run :set-cmd-text :message-info blarg
+        And I run :command-accept
+        And I wait for "blarg" in the log
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-history-prev
+        And I run :command-history-next
+        And I run :command-history-next
+        And I run :command-accept
+        Then the message "blarg" should be shown
+ 
+    Scenario: Calling previous command when history is empty
+        Given I have a fresh instance
+        When I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        Then the error "No command given" should be shown
+
+    Scenario: Calling next command when there's no next command
+        When I run :set-cmd-text :
+        And I run :command-history-next
+        And I run :command-accept
+        Then the error "No command given" should be shown
+
+    Scenario: Calling previous command with private-browsing mode
+        When I run :set-cmd-text :message-info blah
+        And I run :command-accept
+        And I set general -> private-browsing to true
+        And I run :set-cmd-text :message-error This should only be shown once
+        And I run :command-accept
+        And I wait for the error "This should only be shown once"
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        And I set general -> private-browsing to false
+        Then the message "blah" should be shown
