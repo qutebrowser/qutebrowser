@@ -710,6 +710,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
+    @qtwebengine_todo: private browsing is not implemented yet
     Scenario: Calling previous command with private-browsing mode
         When I run :set-cmd-text :message-info blah
         And I run :command-accept
