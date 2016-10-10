@@ -234,7 +234,7 @@ def is_pdfjs_page(webview):
 def get_zoom_script():
     """Get a JS snippet that will return the current pdfjs zoom factor."""
     cmd = ('(window.PDFView || window.PDFViewerApplication)'
-            '.pdfViewer.currentScale')
+           '.pdfViewer.currentScale')
     return cmd
 
 
@@ -245,5 +245,5 @@ def set_zoom_script(factor):
         factor: Zoom factor as float.
     """
     cmd = ('(window.PDFView || window.PDFViewerApplication)'
-            '.pdfViewer.currentScaleValue = {!r}'.format(factor))
+           '.pdfViewer.currentScaleValue = {!r}'.format(factor))
     return cmd
