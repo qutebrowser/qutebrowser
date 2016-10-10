@@ -709,3 +709,16 @@ Feature: Various utility commands.
         And I run :command-history-next
         And I run :command-accept
         Then the error "No command given" should be shown
+
+    Scenario: Calling previous command with private-browsing mode
+        When I run :set-cmd-text :message-info blah
+        And I run :command-accept
+        And I set general -> private-browsing to true
+        And I run :set-cmd-text :message-error This should only be shown once
+        And I run :command-accept
+        And I wait for the error "This should only be shown once"
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        And I set general -> private-browsing to false
+        Then the message "blah" should be shown
