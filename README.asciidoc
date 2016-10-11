@@ -183,9 +183,9 @@ Contributors, sorted by the number of commits in descending order:
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
+* Sebastian Frysztak
 * Jonas Schürmann
 * error800
-* Sebastian Frysztak
 * Michael Hoang
 * Liam BEGUIN
 * skinnay
