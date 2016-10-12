@@ -248,6 +248,7 @@ Contributors, sorted by the number of commits in descending order:
 * Tim Harder
 * Thiago Barroso Perrotta
 * Sorokin Alexei
+* Simon Désaulniers
 * Rok Mandeljc
 * Noah Huesser
 * Moez Bouhlel
