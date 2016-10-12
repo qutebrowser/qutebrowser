@@ -86,6 +86,23 @@ def repeat(times: int, command, win_id):
         commandrunner.run_safely(command)
 
 
+@cmdutils.register(maxsplit=1, hide=True, no_cmd_split=True,
+                   no_replace_variables=True)
+@cmdutils.argument('win_id', win_id=True)
+@cmdutils.argument('count', count=True)
+def run_with_count(count_arg: int, command, win_id, count=1):
+    """Run a command with the given count.
+
+    If run_with_count itself is run with a count, it multiplies count_arg.
+
+    Args:
+        count_arg: The count to pass to the command.
+        command: The command to run, with optional args.
+        count: The count that run_with_count itself received.
+    """
+    runners.CommandRunner(win_id).run(command, count_arg * count)
+
+
 @cmdutils.register(hide=True)
 def message_error(text):
     """Show an error message in the statusbar.

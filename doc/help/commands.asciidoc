@@ -994,6 +994,7 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
+|<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-perc,scroll-perc>>|Scroll to a specific percentage of the page.
@@ -1341,6 +1342,26 @@ This acts like readline's unix-word-rubout. Whitespace is used as a word delimit
 Paste the most recently deleted text.
 
 This acts like readline's yank.
+
+[[run-with-count]]
+=== run-with-count
+Syntax: +:run-with-count 'count-arg' 'command'+
+
+Run a command with the given count.
+
+If run_with_count itself is run with a count, it multiplies count_arg.
+
+==== positional arguments
+* +'count-arg'+: The count to pass to the command.
+* +'command'+: The command to run, with optional args.
+
+==== count
+The count that run_with_count itself received.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
 
 [[scroll]]
 === scroll

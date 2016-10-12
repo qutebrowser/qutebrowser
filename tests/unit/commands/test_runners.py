@@ -64,15 +64,6 @@ class TestCommandRunner:
         with pytest.raises(cmdexc.NoSuchCommandError):
             list(cr.parse_all(command))
 
-    def test_parse_with_count(self):
-        """Test parsing of commands with a count."""
-        cr = runners.CommandRunner(0)
-        result = cr.parse('20:scroll down')
-        assert result.cmd.name == 'scroll'
-        assert result.count == 20
-        assert result.args == ['down']
-        assert result.cmdline == ['scroll', 'down']
-
     def test_partial_parsing(self):
         """Test partial parsing with a runner where it's enabled.
 

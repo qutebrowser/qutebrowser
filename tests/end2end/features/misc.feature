@@ -499,7 +499,7 @@ Feature: Various utility commands.
     Scenario: Using :debug-log-capacity
         When I run :debug-log-capacity 100
         And I run :message-info oldstuff
-        And I run :repeat 20 :message-info otherstuff
+        And I run :repeat 20 message-info otherstuff
         And I run :message-info newstuff
         And I open qute:log
         Then the page should contain the plaintext "newstuff"
@@ -723,3 +723,13 @@ Feature: Various utility commands.
         And I run :command-accept
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
+
+    ## :run-with-count
+
+    Scenario: :run-with-count
+        When I run :run-with-count 2 scroll down
+        Then "command called: scroll ['down'] (count=2)" should be logged
+
+    Scenario: :run-with-count with count
+        When I run :run-with-count 2 scroll down with count 3
+        Then "command called: scroll ['down'] (count=6)" should be logged

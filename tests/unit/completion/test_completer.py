@@ -181,6 +181,7 @@ def _set_cmd_prompt(cmd, txt):
     (':open -- |', None, ''),
     (':gibberish nonesense |', None, ''),
     ('/:help|', None, ''),
+    ('::bind|', usertypes.Completion.command, ':bind'),
 ])
 def test_update_completion(txt, kind, pattern, status_command_stub,
                            completer_obj, completion_widget_stub):
