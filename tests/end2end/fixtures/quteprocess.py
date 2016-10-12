@@ -437,7 +437,8 @@ class QuteProc(testprocess.Process):
             command = command.replace('\\', r'\\')
 
         if count is not None:
-            command = ':{}:{}'.format(count, command.lstrip(':'))
+            command = ':run-with-count {} {}'.format(count,
+                                                     command.lstrip(':'))
 
         self.send_ipc([command])
         if not invalid:
