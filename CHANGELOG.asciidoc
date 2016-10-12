@@ -47,6 +47,8 @@ Added
   https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API[HTML5 page visibility API]
 - New `readability` userscript which shows a readable version of a page (using
   the `readability-lxml` python package)
+- New `cast` userscript to show a video on a Google Chromecast
+- New `:run-with-count` command which replaces the (undocumented) `:count:command` syntax.
 
 Changed
 ~~~~~~~
