@@ -294,11 +294,13 @@ Feature: Saving and loading sessions
   Scenario: Deleting internal session with --force
     When I run :session-save --force _internal
     And I run :session-delete --force _internal
+    And I wait for "Deleted session _internal." in the log
     Then the session _internal should not exist
 
   Scenario: Normally deleting a session
     When I run :session-save deleted_session
     And I run :session-delete deleted_session
+    And I wait for "Deleted session deleted_session." in the log
     Then the session deleted_session should not exist
 
   Scenario: Deleting a session which doesn't exist

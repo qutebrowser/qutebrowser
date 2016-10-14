@@ -481,3 +481,5 @@ class SessionManager(QObject):
             log.sessions.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"
                                       .format(e))
+        else:
+            log.sessions.debug("Deleted session {}.".format(name))
