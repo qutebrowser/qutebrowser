@@ -438,6 +438,11 @@ def data(readonly=False):
              SettingValue(typ.HeaderDict(none_ok=True), ''),
              "Set custom headers for qutebrowser HTTP requests."),
 
+            ('netrc-file',
+             SettingValue(typ.File(none_ok=True), ''),
+             "Set location of a netrc-file for HTTP authentication. If empty, "
+             "~/.netrc is used."),
+
             readonly=readonly
         )),
 
