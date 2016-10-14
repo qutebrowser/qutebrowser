@@ -24,9 +24,9 @@
 # Caveat: Does not use authentication of any kind. Add it in if you want it to.
 #
 
-path=/tmp/qutebrowser_$(mktemp XXXXXXXX).html
+path=$(mktemp --tmpdir qutebrowser_XXXXXXXX.html)
 
-curl "$QUTE_URL" > $path
+curl "$QUTE_URL" > "$path"
 urxvt -e vim "$path"
 
 rm "$path"
