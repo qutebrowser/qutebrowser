@@ -69,6 +69,7 @@
 |<<network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
 |<<network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
 |<<network-custom-headers,custom-headers>>|Set custom headers for qutebrowser HTTP requests.
+|<<network-netrc-file,netrc-file>>|Set location of netrc-file for HTTP authentication.
 |==============
 
 .Quick reference for section ``completion''
@@ -805,6 +806,12 @@ This setting is only available with the QtWebKit backend.
 [[network-custom-headers]]
 === custom-headers
 Set custom headers for qutebrowser HTTP requests.
+
+Default: empty
+
+[[network-netrc-file]]
+=== netrc-file
+Set location of netrc-file for HTTP authentication.
 
 Default: empty
 
