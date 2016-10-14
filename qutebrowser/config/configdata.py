@@ -440,7 +440,8 @@ def data(readonly=False):
 
             ('netrc-file',
              SettingValue(typ.File(none_ok=True), ''),
-             "Set location of netrc-file for HTTP authentication."),
+             "Set location of a netrc-file for HTTP authentication. If empty, "
+             "~/.netrc is used."),
 
             readonly=readonly
         )),

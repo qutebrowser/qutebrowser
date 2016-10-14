@@ -69,7 +69,7 @@
 |<<network-ssl-strict,ssl-strict>>|Whether to validate SSL handshakes.
 |<<network-dns-prefetch,dns-prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
 |<<network-custom-headers,custom-headers>>|Set custom headers for qutebrowser HTTP requests.
-|<<network-netrc-file,netrc-file>>|Set location of netrc-file for HTTP authentication.
+|<<network-netrc-file,netrc-file>>|Set location of a netrc-file for HTTP authentication. If empty, ~/.netrc is used.
 |==============
 
 .Quick reference for section ``completion''
@@ -811,7 +811,7 @@ Default: empty
 
 [[network-netrc-file]]
 === netrc-file
-Set location of netrc-file for HTTP authentication.
+Set location of a netrc-file for HTTP authentication. If empty, ~/.netrc is used.
 
 Default: empty
 
