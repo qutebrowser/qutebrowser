@@ -162,11 +162,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Insert the given text into the element."""
         raise NotImplementedError
 
-    def parent(self):
-        """Get the parent element of this element."""
-        # FIXME:qtwebengine get rid of this?
-        raise NotImplementedError
-
     def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
@@ -294,16 +289,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def remove_blank_target(self):
         """Remove target from link."""
-        elem = self
-        for _ in range(5):
-            if elem is None:
-                break
-            tag = elem.tag_name()
-            if tag == 'a' or tag == 'area':
-                if elem.get('target', None) == '_blank':
-                    elem['target'] = '_top'
-                break
-            elem = elem.parent()
+        raise NotImplementedError
 
     def resolve_url(self, baseurl):
         """Resolve the URL in the element's src/href attribute.
