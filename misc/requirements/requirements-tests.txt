@@ -31,7 +31,7 @@ pytest-warnings==0.1.0
 pytest-xvfb==0.3.0
 six==1.10.0
 spark-parser==1.4.0
-uncompyle6==2.9.1
+uncompyle6==2.9.2
 vulture==0.10
 Werkzeug==0.11.11
-xdis==3.0.2
+xdis==3.1.0
