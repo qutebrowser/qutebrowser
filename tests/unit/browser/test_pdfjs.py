@@ -36,11 +36,11 @@ from qutebrowser.browser import pdfjs
      'http://foobar/%22);alert(%22attack!%22);'),
 ])
 def test_generate_pdfjs_script(url, expected):
-    expected_code = ('PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-                     'PDFView.open("{}");\n'.format(expected))
+    expected_open = 'open("{}");'.format(expected)
     url = QUrl(url)
     actual = pdfjs._generate_pdfjs_script(url)
-    assert actual == expected_code
+    assert expected_open in actual
+    assert 'PDFView' in actual
 
 
 def test_fix_urls():

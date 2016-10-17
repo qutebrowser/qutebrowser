@@ -26,6 +26,15 @@ import pytest
 mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
 
 
+try:
+    import cssutils
+except (ImportError, re.error):
+    # Catching re.error because cssutils in earlier releases (<= 1.0) is
+    # broken on Python 3.5
+    # See https://bitbucket.org/cthedot/cssutils/issues/52
+    cssutils = None
+
+
 @pytest.fixture(autouse=True)
 def patch_uuid(monkeypatch):
     monkeypatch.setattr("uuid.uuid4", lambda: "UUID")
@@ -248,8 +257,7 @@ def test_empty_content_type(checker):
 
 
 @pytest.mark.parametrize('has_cssutils', [
-    pytest.mark.skipif(mhtml.cssutils is None,
-                       reason="requires cssutils")(True),
+    pytest.mark.skipif(cssutils is None, reason="requires cssutils")(True),
     False,
 ], ids=['with_cssutils', 'no_cssutils'])
 @pytest.mark.parametrize('inline, style, expected_urls', [
@@ -267,7 +275,8 @@ def test_empty_content_type(checker):
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
     if not has_cssutils:
-        monkeypatch.setattr('qutebrowser.browser.webkit.mhtml.cssutils', None)
+        monkeypatch.setattr(mhtml, '_get_css_imports_cssutils',
+                            lambda data, inline=False: None)
     expected_urls.sort()
     urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()

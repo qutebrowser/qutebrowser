@@ -37,14 +37,6 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser.webkit import webkitelem, downloads
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
-try:
-    import cssutils
-except (ImportError, re.error):
-    # Catching re.error because cssutils in earlier releases (<= 1.0) is broken
-    # on Python 3.5
-    # See https://bitbucket.org/cthedot/cssutils/issues/52
-    cssutils = None
-
 _File = collections.namedtuple('_File',
                                ['content', 'content_type', 'content_location',
                                 'transfer_encoding'])
@@ -85,6 +77,14 @@ def _get_css_imports_cssutils(data, inline=False):
         data: The content of the stylesheet to scan as string.
         inline: True if the argument is an inline HTML style attribute.
     """
+    try:
+        import cssutils
+    except (ImportError, re.error):
+        # Catching re.error because cssutils in earlier releases (<= 1.0) is
+        # broken on Python 3.5
+        # See https://bitbucket.org/cthedot/cssutils/issues/52
+        return None
+
     # We don't care about invalid CSS data, this will only litter the log
     # output with CSS errors
     parser = cssutils.CSSParser(loglevel=100,
@@ -114,10 +114,10 @@ def _get_css_imports(data, inline=False):
         data: The content of the stylesheet to scan as string.
         inline: True if the argument is an inline HTML style attribute.
     """
-    if cssutils is None:
-        return _get_css_imports_regex(data)
-    else:
-        return _get_css_imports_cssutils(data, inline)
+    imports = _get_css_imports_cssutils(data, inline)
+    if imports is None:
+        imports = _get_css_imports_regex(data)
+    return imports
 
 
 def _check_rel(element):

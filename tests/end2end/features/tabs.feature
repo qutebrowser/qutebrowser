@@ -987,13 +987,13 @@ Feature: Tab management
     Scenario: Using :tab-next after closing last tab (#1448)
         When I set tabs -> last-close to close
         And I run :tab-only
-        And I run :tab-close ;; :tab-next
+        And I run :tab-close ;; tab-next
         Then qutebrowser should quit
         And no crash should happen
 
     Scenario: Using :tab-prev after closing last tab (#1448)
         When I set tabs -> last-close to close
         And I run :tab-only
-        And I run :tab-close ;; :tab-prev
+        And I run :tab-close ;; tab-prev
         Then qutebrowser should quit
         And no crash should happen

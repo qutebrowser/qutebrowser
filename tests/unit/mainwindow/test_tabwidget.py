@@ -41,6 +41,7 @@ class TestTabWidget:
             'position': 0,
             'select-on-remove': 1,
             'show': 'always',
+            'show-favicons': True,
             'padding': configtypes.PaddingValues(0, 0, 5, 5),
             'indicator-width': 3,
             'indicator-padding': configtypes.PaddingValues(2, 2, 0, 4),

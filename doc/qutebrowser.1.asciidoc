@@ -162,6 +162,8 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 * Website: http://www.qutebrowser.org/
 * Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] /
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
+* Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
 * IRC: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
 http://freenode.net/[Freenode]
 * Github: https://github.com/The-Compiler/qutebrowser

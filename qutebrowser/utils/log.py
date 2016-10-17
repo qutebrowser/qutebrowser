@@ -148,7 +148,11 @@ console_filter = None
 
 def stub(suffix=''):
     """Show a STUB: message for the calling function."""
-    function = inspect.stack()[1][3]
+    try:
+        function = inspect.stack()[1][3]
+    except IndexError:  # pragma: no cover
+        misc.exception("Failed to get stack")
+        function = '<unknown>'
     text = "STUB: {}".format(function)
     if suffix:
         text = '{} ({})'.format(text, suffix)

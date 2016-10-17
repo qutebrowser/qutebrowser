@@ -70,6 +70,9 @@ message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
+There's also a https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
+at mailto:qutebrowser-announce@lists.qutebrowser.org[].
+
 Contributions / Bugs
 --------------------
 
@@ -159,10 +162,10 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * Corentin Julé
 * meles5
+* Kevin Velghe
 * Philipp Hansch
 * Daniel Karbach
 * Panagiotis Ktistakis
-* Kevin Velghe
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
@@ -180,6 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
+* Sebastian Frysztak
 * Jonas Schürmann
 * error800
 * Michael Hoang
@@ -244,6 +248,7 @@ Contributors, sorted by the number of commits in descending order:
 * Tim Harder
 * Thiago Barroso Perrotta
 * Sorokin Alexei
+* Simon Désaulniers
 * Rok Mandeljc
 * Noah Huesser
 * Moez Bouhlel

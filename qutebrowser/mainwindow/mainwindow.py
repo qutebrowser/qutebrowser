@@ -503,8 +503,8 @@ class MainWindow(QWidget):
         # Ask if multiple downloads running
         if 'downloads' in confirm_quit and download_count > 0:
             quit_texts.append("{} {} running.".format(
-                tab_count,
-                "download is" if tab_count == 1 else "downloads are"))
+                download_count,
+                "download is" if download_count == 1 else "downloads are"))
         # Process all quit messages that user must confirm
         if quit_texts or 'always' in confirm_quit:
             text = '\n'.join(['Really quit?'] + quit_texts)

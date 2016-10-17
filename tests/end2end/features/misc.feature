@@ -149,7 +149,7 @@ Feature: Various utility commands.
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
-    @no_xvfb @posix
+    @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
@@ -165,7 +165,7 @@ Feature: Various utility commands.
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
-    @no_xvfb @posix
+    @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I set general -> developer-extras to true
         And I run :inspector
@@ -499,7 +499,7 @@ Feature: Various utility commands.
     Scenario: Using :debug-log-capacity
         When I run :debug-log-capacity 100
         And I run :message-info oldstuff
-        And I run :repeat 20 :message-info otherstuff
+        And I run :repeat 20 message-info otherstuff
         And I run :message-info newstuff
         And I open qute:log
         Then the page should contain the plaintext "newstuff"
@@ -549,6 +549,7 @@ Feature: Various utility commands.
         And I open cookies/set?qute-test=42 without waiting
         And I wait until cookies is loaded
         And I open cookies in a new tab
+        And I set general -> private-browsing to false
         Then the cookie qute-test should be set to 42
 
     ## https://github.com/The-Compiler/qutebrowser/issues/1742
@@ -557,6 +558,7 @@ Feature: Various utility commands.
     Scenario: Private browsing is activated in QtWebKit without restart
         When I set general -> private-browsing to true
         And I open data/javascript/localstorage.html
+        And I set general -> private-browsing to false
         Then the page should contain the plaintext "Local storage status: not working"
 
     Scenario: :repeat-command
@@ -695,3 +697,63 @@ Feature: Various utility commands.
         And I wait until the scroll position changed
         And I run :click-element id link
         Then the error "Element position is out of view!" should be shown
+
+    ## :command-history-{prev,next}
+
+    Scenario: Calling previous command
+        When I run :set-cmd-text :message-info blah
+        And I run :command-accept
+        And I wait for "blah" in the log
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        Then the message "blah" should be shown
+ 
+    Scenario: Browsing through commands 
+        When I run :set-cmd-text :message-info blarg
+        And I run :command-accept
+        And I wait for "blarg" in the log
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-history-prev
+        And I run :command-history-next
+        And I run :command-history-next
+        And I run :command-accept
+        Then the message "blarg" should be shown
+ 
+    Scenario: Calling previous command when history is empty
+        Given I have a fresh instance
+        When I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        Then the error "No command given" should be shown
+
+    Scenario: Calling next command when there's no next command
+        When I run :set-cmd-text :
+        And I run :command-history-next
+        And I run :command-accept
+        Then the error "No command given" should be shown
+
+    @qtwebengine_todo: private browsing is not implemented yet
+    Scenario: Calling previous command with private-browsing mode
+        When I run :set-cmd-text :message-info blah
+        And I run :command-accept
+        And I set general -> private-browsing to true
+        And I run :set-cmd-text :message-error "This should only be shown once"
+        And I run :command-accept
+        And I wait for the error "This should only be shown once"
+        And I run :set-cmd-text :
+        And I run :command-history-prev
+        And I run :command-accept
+        And I set general -> private-browsing to false
+        Then the message "blah" should be shown
+
+    ## :run-with-count
+
+    Scenario: :run-with-count
+        When I run :run-with-count 2 scroll down
+        Then "command called: scroll ['down'] (count=2)" should be logged
+
+    Scenario: :run-with-count with count
+        When I run :run-with-count 2 scroll down with count 3
+        Then "command called: scroll ['down'] (count=6)" should be logged
