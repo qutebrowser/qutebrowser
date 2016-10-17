@@ -155,5 +155,9 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
+    funcs.set_attribute = function(id, name, value) {
+        elements[id].setAttribute(name, value);
+    };
+
     return funcs;
 })();

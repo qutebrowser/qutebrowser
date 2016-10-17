@@ -47,7 +47,10 @@ class WebEngineElement(webelem.AbstractWebElement):
         return attrs[key]
 
     def __setitem__(self, key, val):
-        log.stub()
+        self._js_dict['attributes'][key] = val
+        js_code = javascript.assemble('webelem', 'set_attribute', self._id,
+            key, val)
+        self._tab.run_js_async(js_code)
 
     def __delitem__(self, key):
         log.stub()
