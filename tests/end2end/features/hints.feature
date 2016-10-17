@@ -180,6 +180,11 @@ Feature: Using hints
             - data/hints/iframe_target.html
             - data/hello.txt (active)
 
+    Scenario: Clicking on iframe with :hint all current
+        When I open data/hints/iframe.html
+        And I hint with args "all current" and follow a
+        Then no crash should happen
+
     ### hints -> auto-follow-timeout
 
     @not_osx
