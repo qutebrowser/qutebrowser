@@ -26,10 +26,12 @@ Module attributes:
 
 import mimetypes
 import urllib.parse
+import datetime
 
 import qutebrowser
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, usertypes)
+from qutebrowser.config import config
 
 
 pyeval_output = ":pyeval was never called"
@@ -156,6 +158,35 @@ def qute_bookmarks(_url):
                         title='Bookmarks',
                         bookmarks=bookmarks,
                         quickmarks=quickmarks)
+    return 'text/html', html
+
+
+@add_handler('history')
+def qute_history(_url):
+    """Handler for qute:history. Display browsing history."""
+    history = reversed(objreg.get('web-history').history_dict.values())
+
+    fmt = config.get('completion', 'timestamp-format')
+    if fmt is None:
+        def fmt_atime(atime):
+            return ''
+    else:
+        def fmt_atime(atime):
+            try:
+                dt = datetime.datetime.fromtimestamp(atime)
+            except (ValueError, OSError, OverflowError):
+                # Different errors which can occur for too large values...
+                log.misc.error("Got invalid timestamp {}!".format(atime))
+                return '(invalid)'
+            else:
+                return dt.strftime(fmt)
+
+    hist_fmt = [(h.url.toDisplayString(), h.title, fmt_atime(h.atime))
+                for h in history]
+
+    html = jinja.render('history.html',
+                        title='History',
+                        history=hist_fmt)
     return 'text/html', html
 
 
