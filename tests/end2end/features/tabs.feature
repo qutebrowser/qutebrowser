@@ -143,29 +143,29 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-only with --left
+    Scenario: :tab-only with --prev
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-only --left
+        And I run :tab-only --prev
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
 
-    Scenario: :tab-only with --right
+    Scenario: :tab-only with --next
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-only --right
+        And I run :tab-only --next
         Then the following tabs should be open:
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-only with --left and --right
-        When I run :tab-only --left --right
-        Then the error "Only one of -l/-r can be given!" should be shown
+    Scenario: :tab-only with --prev and --next
+        When I run :tab-only --prev --next
+        Then the error "Only one of -p/-n can be given!" should be shown
 
     # :tab-focus
 

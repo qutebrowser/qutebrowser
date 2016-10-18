@@ -1786,4 +1786,9 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^tab-close --left$'), r'tab-close --prev'),
     (re.compile(r'^tab-close -r$'), r'tab-close --next'),
     (re.compile(r'^tab-close --right$'), r'tab-close --next'),
+
+    (re.compile(r'^tab-only -l$'), r'tab-only --prev'),
+    (re.compile(r'^tab-only --left$'), r'tab-only --prev'),
+    (re.compile(r'^tab-only -r$'), r'tab-only --next'),
+    (re.compile(r'^tab-only --right$'), r'tab-only --next'),
 ]

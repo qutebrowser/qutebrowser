@@ -801,20 +801,20 @@ class CommandDispatcher:
         message.info("Zoom level: {}%".format(level))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_only(self, left=False, right=False):
+    def tab_only(self, prev=False, next_=False):
         """Close all tabs except for the current one.
 
         Args:
-            left: Keep tabs to the left of the current.
-            right: Keep tabs to the right of the current.
+            prev: Keep tabs before the current.
+            next_: Keep tabs after the current.
         """
-        cmdutils.check_exclusive((left, right), 'lr')
+        cmdutils.check_exclusive((prev, next_), 'pn')
         cur_idx = self._tabbed_browser.currentIndex()
         assert cur_idx != -1
 
         for i, tab in enumerate(self._tabbed_browser.widgets()):
-            if (i == cur_idx or (left and i < cur_idx) or
-                    (right and i > cur_idx)):
+            if (i == cur_idx or (prev and i < cur_idx) or
+                    (next_ and i > cur_idx)):
                 continue
             else:
                 self._tabbed_browser.close_tab(tab)
