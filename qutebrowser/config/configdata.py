@@ -583,7 +583,7 @@ def data(readonly=False):
              "Which tab to select when the focused tab is removed."),
 
             ('new-tab-position',
-             SettingValue(typ.NewTabPosition(), 'right'),
+             SettingValue(typ.NewTabPosition(), 'next'),
              "How new tabs are positioned."),
 
             ('new-tab-position-explicit',

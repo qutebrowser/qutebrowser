@@ -1436,10 +1436,10 @@ class NewTabPosition(BaseType):
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
         self.valid_values = ValidValues(
-            ('left', "On the left of the current tab."),
-            ('right', "On the right of the current tab."),
-            ('first', "At the left end."),
-            ('last', "At the right end."))
+            ('prev', "Before the current tab."),
+            ('next', "After the current tab."),
+            ('first', "At the beginning."),
+            ('last', "At the end."))
 
 
 class IgnoreCase(Bool):

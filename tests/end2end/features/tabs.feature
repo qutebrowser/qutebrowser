@@ -821,8 +821,8 @@ Feature: Tab management
             - data/hints/html/simple.html (active)
             - data/hello.txt
 
-    Scenario: opening tab with tabs->new-tab-position left
-        When I set tabs -> new-tab-position to left
+    Scenario: opening tab with tabs->new-tab-position prev
+        When I set tabs -> new-tab-position to prev
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
@@ -833,8 +833,8 @@ Feature: Tab management
             - data/hello.txt (active)
             - data/hints/html/simple.html
 
-    Scenario: opening tab with tabs->new-tab-position right
-        When I set tabs -> new-tab-position to right
+    Scenario: opening tab with tabs->new-tab-position next
+        When I set tabs -> new-tab-position to next
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab

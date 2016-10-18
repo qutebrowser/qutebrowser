@@ -411,6 +411,14 @@ class ConfigManager(QObject):
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
             _get_value_transformer({'default': 'no-3rdparty'}),
+        ('tabs', 'new-tab-position'):
+            _get_value_transformer({
+                'left': 'prev',
+                'right': 'next'}),
+        ('tabs', 'new-tab-position-explicit'):
+            _get_value_transformer({
+                'left': 'prev',
+                'right': 'next'}),
         ('tabs', 'position'): _transform_position,
         ('tabs', 'select-on-remove'):
             _get_value_transformer({
