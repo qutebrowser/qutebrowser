@@ -145,7 +145,8 @@ class WebKitElement(webelem.AbstractWebElement):
             this.dispatchEvent(event);
         """.format(javascript.string_escape(text)))
 
-    def parent(self):
+    def _parent(self):
+        """Get the parent element of this element."""
         self._check_vanished()
         elem = self._elem.parent()
         if elem is None or elem.isNull():
@@ -282,6 +283,18 @@ class WebKitElement(webelem.AbstractWebElement):
         else:
             visible_in_frame = visible_on_screen
         return all([visible_on_screen, visible_in_frame])
+
+    def remove_blank_target(self):
+        elem = self
+        for _ in range(5):
+            if elem is None:
+                break
+            tag = elem.tag_name()
+            if tag == 'a' or tag == 'area':
+                if elem.get('target', None) == '_blank':
+                    elem['target'] = '_top'
+                break
+            elem = elem._parent()  # pylint: disable=protected-access
 
 
 def get_child_frames(startframe):
