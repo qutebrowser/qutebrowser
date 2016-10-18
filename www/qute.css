@@ -136,6 +136,7 @@ code {
 	padding: 10px 10px;
 	background-color: #DDDDDD;
 	border-radius: 4px;
+    overflow-x: scroll;
 }
 
 table td {
