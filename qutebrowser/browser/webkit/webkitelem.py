@@ -294,7 +294,7 @@ class WebKitElement(webelem.AbstractWebElement):
                 if elem.get('target', None) == '_blank':
                     elem['target'] = '_top'
                 break
-            elem = elem._parent()
+            elem = elem._parent()  # pylint: disable=protected-access
 
 
 def get_child_frames(startframe):
