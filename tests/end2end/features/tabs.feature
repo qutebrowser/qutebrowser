@@ -70,24 +70,24 @@ Feature: Tab management
             - data/numbers/3.txt
             - data/numbers/4.txt (active)
 
-    Scenario: :tab-close with select-on-remove = prev and --right
+    Scenario: :tab-close with select-on-remove = prev and --next
         When I set tabs -> select-on-remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-close --right
+        And I run :tab-close --next
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = next and --left
+    Scenario: :tab-close with select-on-remove = next and --prev
         When I set tabs -> select-on-remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-close --left
+        And I run :tab-close --prev
         Then the following tabs should be open:
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
@@ -126,7 +126,7 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I open data/numbers/4.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-close --left
+        And I run :tab-close --prev
         And I run :tab-focus 2
         And I run :tab-close
         Then the following tabs should be open:

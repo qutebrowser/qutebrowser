@@ -1781,4 +1781,9 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^prompt-yes$'), r'prompt-accept yes'),
     (re.compile(r'^prompt-no$'), r'prompt-accept no'),
+
+    (re.compile(r'^tab-close -l$'), r'tab-close --prev'),
+    (re.compile(r'^tab-close --left$'), r'tab-close --prev'),
+    (re.compile(r'^tab-close -r$'), r'tab-close --next'),
+    (re.compile(r'^tab-close --right$'), r'tab-close --next'),
 ]
