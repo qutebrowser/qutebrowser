@@ -168,7 +168,7 @@ def qute_history(_url):
 
     fmt = config.get('completion', 'timestamp-format')
     if fmt is None:
-        def fmt_atime(atime):
+        def fmt_atime(_atime):
             return ''
     else:
         def fmt_atime(atime):
