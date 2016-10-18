@@ -9,6 +9,10 @@ body {
 	color: #333333;
 }
 
+p {
+    margin: 6px 0;
+}
+
 #header {
 	display: none;
 }
@@ -155,7 +159,7 @@ code {
 
 .admonitionblock .title {
 	color: #0A396E;
-	font-size: bold;
+	font-weight: bold;
 }
 
 .admonitionblock .content {
