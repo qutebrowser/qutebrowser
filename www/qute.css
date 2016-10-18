@@ -69,6 +69,8 @@ body {
 
 .sect1 {
 	padding: 10px 40px;
+	margin: 0 auto;
+	max-width: 1000px;
 }
 
 .sect2 {
@@ -136,7 +138,29 @@ code {
 	padding: 10px 10px;
 	background-color: #DDDDDD;
 	border-radius: 4px;
-    overflow-x: scroll;
+	overflow-x: auto;
+}
+
+/*Display table as something that is not a table*/
+.admonitionblock table,
+.admonitionblock tbody,
+.admonitionblock tr,
+.admonitionblock td {
+	display: block;
+}
+
+.admonitionblock td {
+	padding: 0;
+}
+
+.admonitionblock .title {
+	color: #0A396E;
+	font-size: bold;
+}
+
+.admonitionblock .content {
+	padding-left: 10px;
+	border-left: 1px solid #ccc;
 }
 
 table td {
@@ -175,7 +199,7 @@ table td {
 }
 
 </style>
-<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <link href="media/font.css" rel="stylesheet" type="text/css" />
 <link rel="icon" href="media/favicon.png" type="image/png" />
 <style type="text/css">
