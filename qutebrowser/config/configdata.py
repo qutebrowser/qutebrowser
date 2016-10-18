@@ -579,7 +579,7 @@ def data(readonly=False):
              "background."),
 
             ('select-on-remove',
-             SettingValue(typ.SelectOnRemove(), 'right'),
+             SettingValue(typ.SelectOnRemove(), 'next'),
              "Which tab to select when the focused tab is removed."),
 
             ('new-tab-position',

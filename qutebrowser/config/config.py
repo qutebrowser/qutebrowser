@@ -412,6 +412,11 @@ class ConfigManager(QObject):
         ('content', 'cookies-accept'):
             _get_value_transformer({'default': 'no-3rdparty'}),
         ('tabs', 'position'): _transform_position,
+        ('tabs', 'select-on-remove'):
+            _get_value_transformer({
+                'left': 'prev',
+                'right': 'next',
+                'previous': 'last-used'}),
         ('ui', 'downloads-position'): _transform_position,
         ('ui', 'remove-finished-downloads'):
             _get_value_transformer({'false': '-1', 'true': '1000'}),

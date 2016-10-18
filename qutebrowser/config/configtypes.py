@@ -1379,18 +1379,20 @@ class SelectOnRemove(MappingType):
     """Which tab to select when the focused tab is removed."""
 
     MAPPING = {
-        'left': QTabBar.SelectLeftTab,
-        'right': QTabBar.SelectRightTab,
-        'previous': QTabBar.SelectPreviousTab,
+        'prev': QTabBar.SelectLeftTab,
+        'next': QTabBar.SelectRightTab,
+        'last-used': QTabBar.SelectPreviousTab,
     }
 
     def __init__(self, none_ok=False):
         super().__init__(
             none_ok,
             valid_values=ValidValues(
-                ('left', "Select the tab on the left."),
-                ('right', "Select the tab on the right."),
-                ('previous', "Select the previously selected tab.")))
+                ('prev', "Select the tab which came before the closed one "
+                 "(left in horizontal, above in vertical)."),
+                ('next', "Select the tab which came after the closed one "
+                 "(right in horizontal, below in vertical)."),
+                ('last-used', "Select the previously selected tab.")))
 
 
 class ConfirmQuit(FlagList):
