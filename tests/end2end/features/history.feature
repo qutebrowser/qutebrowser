@@ -11,6 +11,13 @@ Feature: Page history
         Then the history file should contain:
             http://localhost:(port)/data/numbers/1.txt
             http://localhost:(port)/data/numbers/2.txt
+
+    Scenario: Listing history
+        When I open data/numbers/3.txt
+        And I open data/numbers/4.txt
+        And I open qute:history
+        Then the page should contain the plaintext "data/numbers/3.txt"
+        And the page should contain the plaintext "data/numbers/4.txt"
             
     Scenario: History item with title
         When I open data/title.html
