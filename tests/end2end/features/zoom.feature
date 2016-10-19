@@ -95,3 +95,8 @@ Feature: Zooming in and out
         And I run :zoom --smart 200
         Then "Smart zoomed to: 200.0%" should be logged
         And the zoom should be 100%
+
+    Scenario: Smart zoom on non-smart page
+        When I run :zoom --smart 150
+        Then the message "Zoom level: 150%" should be shown
+        Then the zoom should be 150%
