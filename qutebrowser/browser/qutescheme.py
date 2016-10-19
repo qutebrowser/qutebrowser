@@ -164,7 +164,7 @@ def qute_bookmarks(_url):
 @add_handler('history')
 def qute_history(_url):
     """Handler for qute:history. Display browsing history."""
-    history = reversed(objreg.get('web-history').history_dict.values())
+    history = reversed(list(objreg.get('web-history').history_dict.values()))
 
     fmt = config.get('completion', 'timestamp-format')
     if fmt is None:
