@@ -34,10 +34,6 @@ from qutebrowser.misc import split
 ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline'])
 last_command = {}
 
-macro = {}
-recording_macro = None
-macro_count = {}
-
 
 def _current_url(tabbed_browser):
     """Convenience method to get the current url."""
@@ -263,27 +259,33 @@ class CommandRunner(QObject):
             text: The text to parse.
             count: The count to pass to the command.
         """
-        for result in self.parse_all(text):
-            mode_manager = objreg.get('mode-manager', scope='window',
-                                      window=self._win_id)
-            cur_mode = mode_manager.mode
+        record_last_command = True
+        record_macro = True
 
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        cur_mode = mode_manager.mode
+
+        for result in self.parse_all(text):
             if result.cmd.no_replace_variables:
                 args = result.args
             else:
                 args = replace_variables(self._win_id, result.args)
             result.cmd.run(self._win_id, args, count=count)
 
-            parsed_command = (text, count)
+            if result.cmdline[0] == 'repeat-command':
+                record_last_command = False
 
-            if result.cmdline[0] != 'repeat-command':
-                last_command[cur_mode] = parsed_command
+            if result.cmdline[0] in ['record-macro', 'run-macro',
+                                     'set-cmd-text']:
+                record_macro = False
 
-            if (recording_macro is not None and
-                    cur_mode == usertypes.KeyMode.normal and
-                    result.cmdline[0] not in ['record-macro', 'run-macro',
-                                              'set-cmd-text']):
-                macro[recording_macro].append(parsed_command)
+        if record_last_command:
+            last_command[cur_mode] = (text, count)
+
+        if record_macro and cur_mode == usertypes.KeyMode.normal:
+            macro_recorder = objreg.get('macro-recorder')
+            macro_recorder.record(text, count)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)

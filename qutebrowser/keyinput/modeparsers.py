@@ -27,7 +27,6 @@ from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
-from qutebrowser.misc import utilcmds
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 
@@ -296,15 +295,16 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
+        macro_recorder = objreg.get('macro-recorder')
 
         if self._mode == usertypes.KeyMode.set_mark:
             tabbed_browser.set_mark(key)
         elif self._mode == usertypes.KeyMode.jump_mark:
             tabbed_browser.jump_mark(key)
         elif self._mode == usertypes.KeyMode.record_macro:
-            utilcmds.record_macro(key)
+            macro_recorder.record_macro(key)
         elif self._mode == usertypes.KeyMode.run_macro:
-            utilcmds.run_macro(self._win_id, key)
+            macro_recorder.run_macro(self._win_id, key)
         else:
             raise ValueError(
                 "{} is not a valid register key".format(self._mode))
