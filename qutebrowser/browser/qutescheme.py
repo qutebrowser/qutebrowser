@@ -167,19 +167,17 @@ def qute_history(_url):
     history = reversed(list(objreg.get('web-history').history_dict.values()))
 
     fmt = config.get('completion', 'timestamp-format')
-    if fmt is None:
-        def fmt_atime(_atime):
+    def fmt_atime(atime):
+        if fmt is None:
             return ''
-    else:
-        def fmt_atime(atime):
-            try:
-                dt = datetime.datetime.fromtimestamp(atime)
-            except (ValueError, OSError, OverflowError):
-                # Different errors which can occur for too large values...
-                log.misc.error("Got invalid timestamp {}!".format(atime))
-                return '(invalid)'
-            else:
-                return dt.strftime(fmt)
+        try:
+            dt = datetime.datetime.fromtimestamp(atime)
+        except (ValueError, OSError, OverflowError):
+            # Different errors which can occur for too large values...
+            log.misc.error("Got invalid timestamp {}!".format(atime))
+            return '(invalid)'
+        else:
+            return dt.strftime(fmt)
 
     hist_fmt = [(h.url.toDisplayString(), h.title, fmt_atime(h.atime))
                 for h in history]
