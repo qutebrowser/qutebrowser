@@ -71,3 +71,8 @@ Feature: Javascript stuff
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "error while opening window" should be logged
+
+    Scenario: Executing jseval when javascript is disabled
+        When I set content -> allow-javascript to false
+        And I run :jseval console.log('jseval executed')
+        Then the javascript message "jseval executed" should be logged
