@@ -253,7 +253,7 @@ class AbstractZoom(QObject):
                 self._set_factor_internal(factor, smart=True)
             except SmartZoomException:
                 return self.set_factor(factor)
-            log.misc.debug("Smart zoomed to: {}%".format(
+            log.misc.debug("Smart zoomed to: {:.1f}%".format(
                 self.factor(smart=True) * 100))
             return
 
