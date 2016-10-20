@@ -256,6 +256,16 @@ Feature: Yanking and pasting.
         # Compare
         Then the javascript message "textarea contents: Hello world" should be logged
 
+    Scenario: Inserting text into an empty text field with javascript disabled
+        When I set general -> log-javascript-console to info
+        And I set content -> allow-javascript to false
+        And I open data/paste_primary.html
+        And I run :click-element id qute-textarea
+        And I wait for "Clicked editable element!" in the log
+        And I run :insert-text Hello world
+        # Compare
+        Then the javascript message "textarea contents: Hello world" should be logged
+
     Scenario: Inserting text into a text field at specific position
         When I set general -> log-javascript-console to info
         And I open data/paste_primary.html
