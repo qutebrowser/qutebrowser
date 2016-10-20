@@ -47,7 +47,7 @@ def pip_install(pkg):
 print("Getting PyQt5...")
 qt_version = '5.5.1'
 pyqt_version = '5.5.1'
-pyqt_url = ('http://www.qutebrowser.org/pyqt/'
+pyqt_url = ('https://www.qutebrowser.org/pyqt/'
             'PyQt5-{}-gpl-Py3.4-Qt{}-x32.exe'.format(
                 pyqt_version, qt_version))
 
