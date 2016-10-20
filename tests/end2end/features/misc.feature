@@ -648,6 +648,21 @@ Feature: Various utility commands.
         And I run :run-macro foo with count 2
         Then the page should not be scrolled
 
+    Scenario: Running an invalid macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :run-macro
+        And I press the key "b"
+        Then the error "No macro recorded in 'b'!" should be shown
+        And no crash should happen
+
+    Scenario: Running an invalid named macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :run-macro bar
+        Then the error "No macro recorded in 'bar'!" should be shown
+        And no crash should happen
+
     ## Variables
 
     Scenario: {url} as part of an argument

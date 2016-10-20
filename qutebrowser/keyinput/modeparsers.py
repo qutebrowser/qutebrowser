@@ -23,11 +23,14 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
+import traceback
+
 from PyQt5.QtCore import pyqtSlot, Qt
 
+from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, message, objreg, utils
 
 
 STARTCHARS = ":/?"
@@ -297,17 +300,20 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
                                     window=self._win_id)
         macro_recorder = objreg.get('macro-recorder')
 
-        if self._mode == usertypes.KeyMode.set_mark:
-            tabbed_browser.set_mark(key)
-        elif self._mode == usertypes.KeyMode.jump_mark:
-            tabbed_browser.jump_mark(key)
-        elif self._mode == usertypes.KeyMode.record_macro:
-            macro_recorder.record_macro(key)
-        elif self._mode == usertypes.KeyMode.run_macro:
-            macro_recorder.run_macro(self._win_id, key)
-        else:
-            raise ValueError(
-                "{} is not a valid register key".format(self._mode))
+        try:
+            if self._mode == usertypes.KeyMode.set_mark:
+                tabbed_browser.set_mark(key)
+            elif self._mode == usertypes.KeyMode.jump_mark:
+                tabbed_browser.jump_mark(key)
+            elif self._mode == usertypes.KeyMode.record_macro:
+                macro_recorder.record_macro(key)
+            elif self._mode == usertypes.KeyMode.run_macro:
+                macro_recorder.run_macro(self._win_id, key)
+            else:
+                raise ValueError(
+                    "{} is not a valid register key".format(self._mode))
+        except (cmdexc.CommandMetaError, cmdexc.CommandError) as err:
+            message.error(str(err), stack=traceback.format_exc())
 
         self.request_leave.emit(self._mode, "valid register key")
 
