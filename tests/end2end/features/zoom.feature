@@ -96,6 +96,18 @@ Feature: Zooming in and out
         Then "Smart zoomed to: 200.0%" should be logged
         And the zoom should be 100%
 
+    @qtwebengine_todo: pdfjs is not implemented yet
+    Scenario: Zooming in with pdfjs
+        Given pdfjs is available
+        When I set content -> enable-pdfjs to true
+        And I open data/misc/test.pdf
+        And I run :zoom 100
+        # Make sure we start at 100%, not "Page fit" or something like that
+        And I run :zoom --smart 100
+        And I run :zoom-in --smart
+        Then "Smart zoomed to: 110.0%" should be logged
+        And the zoom should be 100%
+
     Scenario: Smart zoom on non-smart page
         When I run :zoom --smart 150
         Then the message "Zoom level: 150%" should be shown
