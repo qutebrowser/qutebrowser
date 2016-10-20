@@ -1539,8 +1539,6 @@ class CommandDispatcher:
             text: The text to insert.
         """
         tab = self._current_widget()
-        if not tab.has_js():
-            raise cmdexc.CommandError("This command needs javascript enabled.")
 
         def _insert_text_cb(elem):
             if elem is None:
