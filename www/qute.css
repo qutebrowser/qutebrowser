@@ -13,6 +13,10 @@ p {
     margin: 6px 0;
 }
 
+#preamble > .sectionbody > .paragraph > p {
+    margin: 0;
+}
+
 #header {
 	display: none;
 }
