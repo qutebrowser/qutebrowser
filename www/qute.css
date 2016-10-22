@@ -166,7 +166,7 @@ code {
 	font-weight: bold;
 }
 
-.admonitionblock .content {
+.admonitionblock td.content {
 	padding-left: 10px;
 	border-left: 1px solid #ccc;
 }
