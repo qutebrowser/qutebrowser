@@ -75,10 +75,16 @@ p {
 	background-color: #1e89c6;
 }
 
-.sect1 {
+.sect1,
+div.footnote {
 	padding: 10px 40px;
 	margin: 0 auto;
-	max-width: 1000px;
+	max-width: 1200px;
+}
+
+#footnotes > hr {
+    max-width: 1200px;
+    margin: 20px auto;
 }
 
 .sect2 {
