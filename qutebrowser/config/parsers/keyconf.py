@@ -117,7 +117,7 @@ class KeyConfigParser(QObject):
             for cmd, keys in data.items():
                 lines.append(cmd)
                 for k in keys:
-                    lines.append(' ' * 4 + k)
+                    lines.append(' ' * 4 + k.replace(" ", "<space>"))
                 lines.append('')
         return '\n'.join(lines) + '\n'
 
@@ -389,7 +389,7 @@ class KeyConfigParser(QObject):
                                  "command!".format(line))
         else:
             assert self._cur_section is not None
-            self._add_binding(self._cur_section, line, self._cur_command)
+            self._add_binding(self._cur_section, line.replace("<space>", " "), self._cur_command)
 
     def _add_binding(self, sectname, keychain, command, *, force=False):
         """Add a new binding from keychain to command in section sectname."""
