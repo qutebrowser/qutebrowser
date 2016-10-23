@@ -657,6 +657,10 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to open windows instead of tabs."),
 
+            ('refresh-on-select', 
+             SettingValue(typ.Bool(), 'false'), 
+             "Whether the tabs should be loaded when doing session-load or after, when selecting the tab"),
+
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',

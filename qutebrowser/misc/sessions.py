@@ -24,6 +24,7 @@ import sip
 import os.path
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 import yaml
 try:
@@ -217,10 +218,35 @@ class SessionManager(QObject):
         data = {'history': []}
         if active:
             data['active'] = True
-        for idx, item in enumerate(tab.history):
-            qtutils.ensure_valid(item)
-            item_data = self._save_tab_item(tab, idx, item)
-            data['history'].append(item_data)
+        if len(tab.history_prepared) > 0:
+            entries = tab.history_prepared
+            data['active'] = False
+            for history in entries:
+                if 'zoom' in history.user_data:
+                    zoom = history.user_data['zoom']
+                else:
+                    zoom = 1
+                #end if
+                if 'scroll-pos' in history.user_data:
+                    point = history.user_data['scroll-pos']
+                    scroll_pos = {'x': point.x(), 'y': point.y()}
+                else:
+                    scroll_pos = {'x': 0, 'y': 0}
+                #end if
+                item = {'title': history.title, 'zoom': zoom, 
+                        'url': history.url.toString(), 'active': history.active, 
+                        'scroll-pos': scroll_pos}
+
+                if history.original_url != None:
+                    item['original-url'] = history.original_url.toString()
+                data['history'].append(item)
+            #end for
+        else:
+            for idx, item in enumerate(tab.history):
+                qtutils.ensure_valid(item)
+                item_data = self._save_tab_item(tab, idx, item)
+                data['history'].append(item_data)
+        #end if
         return data
 
     def _save_all(self):
@@ -345,10 +371,14 @@ class SessionManager(QObject):
             entries.append(entry)
             if active:
                 new_tab.title_changed.emit(histentry['title'])
-        try:
-            new_tab.history.load_items(entries)
-        except ValueError as e:
-            raise SessionError(e)
+        if config.get('tabs', 'refresh-on-select'):
+            new_tab.history_prepared = entries
+        else:
+            try:
+                new_tab.history.load_items(entries)
+            except ValueError as e:
+                raise SessionError(e)
+        #end if
 
     def load(self, name, temp=False):
         """Load a named session.
@@ -375,8 +405,16 @@ class SessionManager(QObject):
                 self._load_tab(new_tab, tab)
                 if tab.get('active', False):
                     tab_to_focus = i
+                elif config.get('tabs', 'refresh-on-select'):
+                    tabbed_browser.set_tab_indicator_color(i, QColor("orange"))
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
+
+            # If it's the last tab, the on_current_changed is not triggered, 
+            # so we load it manually
+            if tab_to_focus == tabbed_browser.count() - 1 and config.get('tabs', 'refresh-on-select'):
+                tabbed_browser.load_prepared_history(tab_to_focus)
+            #end if
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
         self.did_load = True
