@@ -176,6 +176,7 @@ Contributors, sorted by the number of commits in descending order:
 * nanjekyejoannah
 * avk
 * ZDarian
+* Spreadyy
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Clayton Craft
@@ -211,7 +212,6 @@ Contributors, sorted by the number of commits in descending order:
 * jnphilipp
 * Tobias Patzl
 * Stefan Tatschner
-* Spreadyy
 * Samuel Loury
 * Peter Michely
 * Panashe M. Fundira
