@@ -16,7 +16,7 @@ image:https://travis-ci.org/The-Compiler/qutebrowser.svg?branch=master["Build St
 image:https://ci.appveyor.com/api/projects/status/9gmnuip6i1oq7046?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/The-Compiler/qutebrowser"]
 image:https://codecov.io/github/The-Compiler/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/The-Compiler/qutebrowser?branch=master"]
 
-link:http://www.qutebrowser.org[website] | link:http://blog.qutebrowser.org[blog] | link:https://github.com/The-Compiler/qutebrowser/releases[releases]
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | link:https://github.com/The-Compiler/qutebrowser/releases[releases]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
@@ -48,8 +48,8 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
-* A http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
-image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
+* A https://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
+image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
 * link:FAQ.asciidoc[Frequently asked questions]
@@ -90,7 +90,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
-http://www.the-compiler.org/pubkey.asc[0xFD55A072].
+https://www.the-compiler.org/pubkey.asc[0xFD55A072].
 
 Requirements
 ------------

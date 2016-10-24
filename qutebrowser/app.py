@@ -329,7 +329,7 @@ def _open_quickstart(args):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
         tabbed_browser.tabopen(
-            QUrl('http://www.qutebrowser.org/quickstart.html'))
+            QUrl('https://www.qutebrowser.org/quickstart.html'))
         state_config['general']['quickstart-done'] = '1'
 
 

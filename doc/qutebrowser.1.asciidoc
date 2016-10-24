@@ -7,7 +7,7 @@
 :man source: qutebrowser
 :man manual: qutebrowser manpage
 :toc:
-:homepage: http://www.qutebrowser.org/
+:homepage: https://www.qutebrowser.org/
 
 == NAME
 qutebrowser - a keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.
@@ -143,7 +143,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
 For security bugs, please contact me directly at me@the-compiler.org, GPG ID
-http://www.the-compiler.org/pubkey.asc[0xFD55A072].
+https://www.the-compiler.org/pubkey.asc[0xFD55A072].
 
 == COPYRIGHT
 This program is free software: you can redistribute it and/or modify it under
@@ -159,7 +159,7 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
 == RESOURCES
-* Website: http://www.qutebrowser.org/
+* Website: https://www.qutebrowser.org/
 * Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] /
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
 * Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
