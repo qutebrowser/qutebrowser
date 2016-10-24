@@ -263,6 +263,7 @@ Contributors, sorted by the number of commits in descending order:
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
+* Eric Drechsel
 * Eivind Uggedal
 * Dietrich Daroch
 * Derek Sivers
