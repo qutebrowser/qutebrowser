@@ -27,7 +27,7 @@ pytest-qt==2.0.0
 pytest-repeat==0.4.1
 pytest-rerunfailures==2.0.1
 pytest-travis-fold==1.2.0
-pytest-warnings==0.1.0
+pytest-warnings==0.2.0
 pytest-xvfb==0.3.0
 six==1.10.0
 spark-parser==1.4.0
