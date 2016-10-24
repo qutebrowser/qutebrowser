@@ -71,4 +71,4 @@ app = BUNDLE(coll,
              name='qutebrowser.app',
              icon=icon,
              info_plist={'NSHighResolutionCapable': 'True'},
-             bundle_identifier=None)
+             bundle_identifier='org.qt-project.Qt.QtWebEngineCore')
