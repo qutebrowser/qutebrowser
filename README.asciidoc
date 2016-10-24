@@ -231,6 +231,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jean-Louis Fuchs
 * Fritz V155 Reichwald
 * Franz Fellner
+* Eric Drechsel
 * zwarag
 * xd1le
 * rsteube
@@ -263,7 +264,6 @@ Contributors, sorted by the number of commits in descending order:
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
-* Eric Drechsel
 * Eivind Uggedal
 * Dietrich Daroch
 * Derek Sivers
