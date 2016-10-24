@@ -381,7 +381,7 @@ class _CrashDialog(QDialog):
         lines = ['The report has been sent successfully. Thanks!']
         lines.append("There was an error while getting the newest version: "
                      "{}. Please check for a new version on "
-                     "<a href=http://www.qutebrowser.org/>qutebrowser.org</a> "
+                     "<a href=https://www.qutebrowser.org/>qutebrowser.org</a> "
                      "by yourself.".format(msg))
         text = '<br/><br/>'.join(lines)
         self.finish()

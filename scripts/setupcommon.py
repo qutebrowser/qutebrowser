@@ -104,7 +104,7 @@ setupdata = {
     'version': '.'.join(str(e) for e in _get_constant('version_info')),
     'description': _get_constant('description'),
     'long_description': read_file('README.asciidoc'),
-    'url': 'http://www.qutebrowser.org/',
+    'url': 'https://www.qutebrowser.org/',
     'requires': ['pypeg2', 'jinja2', 'pygments', 'PyYAML'],
     'author': _get_constant('author'),
     'author_email': _get_constant('email'),

@@ -90,7 +90,7 @@ SECTION_DESC = {
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
         "`:qtb` to open qutebrowsers website:\n\n"
-        "`qtb = open http://www.qutebrowser.org/`"),
+        "`qtb = open https://www.qutebrowser.org/`"),
     'colors': (
         "Colors used in the UI.\n"
         "A value can be in one of the following format:\n\n"
@@ -871,11 +871,11 @@ def data(readonly=False):
             ('host-block-lists',
              SettingValue(
                  typ.List(typ.Url(), none_ok=True),
-                 'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
+                 'https://www.malwaredomainlist.com/hostslist/hosts.txt,'
                  'http://someonewhocares.org/hosts/hosts,'
                  'http://winhelp2002.mvps.org/hosts.zip,'
                  'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
-                 'http://pgl.yoyo.org/adservers/serverlist.php?'
+                 'https://pgl.yoyo.org/adservers/serverlist.php?'
                  'hostformat=hosts&mimetype=plaintext'),
              "List of URLs of lists which contain hosts to block.\n\n"
              "The file can be in one of the following formats:\n\n"
