@@ -84,7 +84,8 @@ div.footnote {
 
 #footnotes > hr {
     max-width: 1200px;
-    margin: 20px auto;
+    margin: 20px auto 10px;
+    width: calc(100% - 80px);
 }
 
 .sect2 {
@@ -92,7 +93,7 @@ div.footnote {
 }
 
 div.footnote {
-	padding: 10px 40px;
+	padding: 10px 40px 30px;
 }
 
 hr {
