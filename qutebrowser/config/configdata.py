@@ -657,9 +657,9 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'false'),
              "Whether to open windows instead of tabs."),
 
-            ('refresh-on-select', 
-             SettingValue(typ.Bool(), 'false'), 
-             "Whether the tabs should be loaded when doing session-load or after, when selecting the tab"),
+            ('lazy-load',
+             SettingValue(typ.Bool(), 'false'),
+             "Lazy loading the tabs from a session"),
 
             ('title-format',
              SettingValue(typ.FormatString(
@@ -1199,6 +1199,10 @@ def data(readonly=False):
             ('tabs.indicator.error',
              SettingValue(typ.QtColor(), '#ff0000'),
              "Color for the tab indicator on errors.."),
+
+            ('tabs.indicator.lazy',
+             SettingValue(typ.QtColor(), 'orange'),
+             "Color lazy-loaded for the tab indicator."),
 
             ('tabs.indicator.system',
              SettingValue(typ.ColorSystem(), 'rgb'),

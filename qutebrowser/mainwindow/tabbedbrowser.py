@@ -553,11 +553,9 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def load_prepared_history(self, idx):
         tab = self.widget(idx)
-        if len(tab.history_prepared) > 0:
+        if tab.history_prepared:
             tab.history.load_items(tab.history_prepared)
             tab.history_prepared = []
-        #end if
-    #end def load_prepared_history
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
