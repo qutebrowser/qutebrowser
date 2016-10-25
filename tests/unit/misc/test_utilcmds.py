@@ -21,8 +21,10 @@
 
 import contextlib
 import logging
+import os
 import pytest
 import signal
+import time
 
 _hunter_available = False
 try:
@@ -44,11 +46,15 @@ def _trapped_segv(handler):
     signal.signal(signal.SIGSEGV, old_handler)
 
 
-def test_debug_crash():
+def test_debug_crash_exception():
     """Verify that debug_crash crashes as intended."""
     with pytest.raises(Exception):
         utilcmdsmod.debug_crash(typ='exception')
 
+@pytest.mark.skipif(os.name == 'nt',
+                    reason="current CPython/win can't recover from SIGSEGV")
+def test_debug_crash_segfault():
+    """Verify that debug_crash crashes as intended."""
     caught = False
 
     def _handler(num, frame):
@@ -61,6 +67,7 @@ def test_debug_crash():
         # the "Segfault failed (wat.)" Exception
         with pytest.raises(Exception) as excinfo:
             utilcmdsmod.debug_crash(typ='segfault')
+        time.sleep(0.001)
     assert caught
     assert 'Segfault failed' in str(excinfo.value)
 
