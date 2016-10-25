@@ -65,7 +65,7 @@ class TestBaseLineParser:
 
     def test_double_open(self, mocker, lineparser):
         """Test if _open refuses reentry."""
-        mocker.patch('qutebrowser.misc.lineparser.open', mock.mock_open())
+        mocker.patch('builtins.open', mock.mock_open())
 
         with lineparser._open('r'):
             with pytest.raises(IOError):
@@ -75,7 +75,7 @@ class TestBaseLineParser:
     def test_binary(self, mocker):
         """Test if _open and _write correctly handle binary files."""
         open_mock = mock.mock_open()
-        mocker.patch('qutebrowser.misc.lineparser.open', open_mock)
+        mocker.patch('builtins.open', open_mock)
 
         testdata = b'\xf0\xff'
 
