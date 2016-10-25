@@ -1,5 +1,2 @@
 # https://github.com/pyinstaller/pyinstaller/pull/2238
 -e git+https://github.com/edrex/pyinstaller.git@1984_add_QtWebEngineCore#egg=PyInstaller
-
-# remove @commit-id for scm installs
-#@ replace: @.*# #
