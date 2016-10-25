@@ -97,7 +97,7 @@ class FakeModeMan:
 
 
 def test_repeat_command_initial(mocker):
-    """Test repeat_command first-time behaviour.
+    """Test repeat_command first-time behavior.
 
     If :repeat-command is called initially, it should err, because there's
     nothing to repeat.
