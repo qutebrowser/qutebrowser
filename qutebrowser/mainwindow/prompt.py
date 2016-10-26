@@ -391,7 +391,8 @@ class _BasePrompt(QWidget):
         self._key_grid.setVerticalSpacing(0)
 
         key_config = objreg.get('key-config')
-        all_bindings = key_config.get_reverse_bindings_for(self.KEY_MODE.name)
+        # The bindings are all in the 'prompt' mode, even for yesno prompts
+        all_bindings = key_config.get_reverse_bindings_for('prompt')
         labels = []
 
         for cmd, text in self._allowed_commands():
@@ -616,11 +617,11 @@ class YesNoPrompt(_BasePrompt):
         return True
 
     def _allowed_commands(self):
+        default = 'yes' if self.question.default else 'no'
         cmds = [
-            ('prompt-accept',
-             "Use default ({})".format(self.question.default)),
             ('prompt-accept yes', "Yes"),
             ('prompt-accept no', "No"),
+            ('prompt-accept', "Use default ({})".format(default)),
             ('leave-mode', "Abort"),
         ]
         return cmds
