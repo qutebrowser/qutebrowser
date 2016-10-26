@@ -215,9 +215,9 @@ class PromptContainer(QWidget):
         except Error as e:
             raise cmdexc.CommandError(str(e))
         if done:
+            key_mode = self._prompt.KEY_MODE
             self._prompt.question.done()
-            modeman.maybe_leave(self._win_id, self._prompt.KEY_MODE,
-                                ':prompt-accept')
+            modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
 
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.yesno],
