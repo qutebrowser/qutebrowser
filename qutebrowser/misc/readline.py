@@ -19,6 +19,8 @@
 
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
+import os
+
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
 from qutebrowser.commands import cmdutils
@@ -47,6 +49,55 @@ class ReadlineBridge:
             return w
         else:
             return None
+
+    @cmdutils.register(instance='readline-bridge', hide=True,
+                       modes=[typ.KeyMode.prompt])
+    def rl_complete_path(self):
+        """Complete the current path
+
+        This takes the current word and parses it as a path. If the
+        parsing is succesful, it completes the path to the common prefix
+        of all files/directories currently matching the path.
+        """
+        widget = self._widget()
+        if widget is None:
+            return
+        text = widget.text()
+
+        # to the end of the word
+        widget.cursorWordForward(False)
+
+        # select the whole word (path?)
+        cursor_position = widget.cursorPosition()
+        target_position = cursor_position
+
+        while target_position > 0 and text[target_position - 1] != " ":
+            target_position -= 1
+
+        moveby = cursor_position - target_position
+        widget.cursorBackward(True, moveby)
+
+        # parse as a path
+        path = widget.selectedText()
+        if not os.path.exists(os.path.dirname(os.path.abspath(path))):
+            widget.deselect()
+            widget.setCursorPosition(cursor_position)
+            return
+
+        # get the common prefix of all matching paths
+        directory, basename = os.path.split(os.path.abspath(path))
+        completion = os.path.commonprefix([
+            os.path.join(directory, subpath)
+            for subpath in os.listdir(directory)
+            if subpath.startswith(basename)
+        ])
+
+        # ensure a / after a directory
+        if os.path.isdir(completion):
+            completion = os.path.join(completion, '')
+
+        widget.insert(completion)
+
 
     @cmdutils.register(instance='readline-bridge', hide=True,
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
