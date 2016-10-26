@@ -1079,14 +1079,6 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
 
-            ('statusbar.fg.prompt',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
-             "Foreground color of the statusbar if there is a prompt."),
-
-            ('statusbar.bg.prompt',
-             SettingValue(typ.QssColor(), 'darkblue'),
-             "Background color of the statusbar if there is a prompt."),
-
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in insert mode."),
@@ -1310,6 +1302,14 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#333333'),
              "Border color of an info message."),
 
+            ('prompts.fg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color for prompts."),
+
+            ('prompts.bg',
+             SettingValue(typ.QssColor(), 'darkblue'),
+             "Background color for prompts."),
+
             readonly=readonly
         )),
 
@@ -1410,6 +1410,10 @@ def data(readonly=False):
             ('messages.info',
              SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used for info messages."),
+
+            ('prompts',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' sans-serif'),
+             "Font used for prompts."),
 
             readonly=readonly
         )),

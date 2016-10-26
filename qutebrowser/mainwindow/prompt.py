@@ -92,12 +92,9 @@ class PromptContainer(QWidget):
         }
 
         QWidget {
-            /* FIXME
-            font: {{ font['keyhint'] }};
-            FIXME
-            */
-            color: {{ color['statusbar.fg.prompt'] }};
-            background-color: {{ color['statusbar.bg.prompt'] }};
+            font: {{ font['prompts'] }};
+            color: {{ color['prompts.fg'] }};
+            background-color: {{ color['prompts.bg'] }};
         }
     """
     update_geometry = pyqtSignal()

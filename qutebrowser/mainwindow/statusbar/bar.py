@@ -112,8 +112,8 @@ class StatusBar(QWidget):
         QWidget#StatusBar[prompt_active="true"],
         QWidget#StatusBar[prompt_active="true"] QLabel,
         QWidget#StatusBar[prompt_active="true"] QLineEdit {
-            color: {{ color['statusbar.fg.prompt'] }};
-            background-color: {{ color['statusbar.bg.prompt'] }};
+            color: {{ color['prompts.fg'] }};
+            background-color: {{ color['prompts.bg'] }};
         }
 
         QWidget#StatusBar[insert_active="true"],
