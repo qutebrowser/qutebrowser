@@ -420,7 +420,7 @@ class _BasePrompt(QWidget):
     def accept(self, value=None):
         raise NotImplementedError
 
-    def open_download(self, _cmdline):
+    def download_open(self, _cmdline):
         raise UnsupportedOperationError
 
     def _allowed_commands(self):
