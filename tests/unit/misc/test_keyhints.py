@@ -63,8 +63,8 @@ def keyhint(qtbot, config_stub, key_config_stub):
 
 def test_show_and_hide(qtbot, keyhint):
     with qtbot.waitSignal(keyhint.update_geometry):
-        keyhint.show()
-    qtbot.waitForWindowShown(keyhint)
+        with qtbot.waitExposed(keyhint):
+            keyhint.show()
     keyhint.update_keyhint('normal', '')
     assert not keyhint.isVisible()
 

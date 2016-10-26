@@ -23,7 +23,7 @@ pytest-cov==2.4.0
 pytest-faulthandler==1.3.0
 pytest-instafail==0.3.0
 pytest-mock==1.2
-pytest-qt==2.0.0
+pytest-qt==2.1.0
 pytest-repeat==0.4.1
 pytest-rerunfailures==2.0.1
 pytest-travis-fold==1.2.0

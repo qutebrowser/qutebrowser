@@ -131,8 +131,8 @@ def fake_statusbar(qtbot):
     statusbar.container = container
     vbox.addWidget(statusbar)
 
-    container.show()
-    qtbot.waitForWindowShown(container)
+    with qtbot.waitExposed(container):
+        container.show()
     return statusbar
 
 

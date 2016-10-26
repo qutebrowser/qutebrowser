@@ -121,5 +121,5 @@ def test_tab(qtbot, view, config_stub, tab_registry, mode_manager):
     assert tab_w.history._history is view.history()
     assert view.parent() is tab_w
 
-    tab_w.show()
-    qtbot.waitForWindowShown(tab_w)
+    with qtbot.waitExposed(tab_w):
+        tab_w.show()
