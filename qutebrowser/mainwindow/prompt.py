@@ -24,7 +24,7 @@ import html
 import collections
 
 import sip
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer, QDir
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QWidgetItem, QFileSystemModel, QTreeView,
                              QSizePolicy)
@@ -497,10 +497,26 @@ class FilenamePrompt(_BasePrompt):
         root = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(root)
 
+    @pyqtSlot(QModelIndex)
+    def _on_clicked(self, index):
+        """Handle a click on an element."""
+        parts = []
+        cur = index
+        while cur.isValid():
+            parts.append(cur.data())
+            cur = cur.parent()
+        path = os.path.normpath(os.path.join(*reversed(parts))) + os.sep
+        log.prompt.debug('Clicked {!r} -> {}'.format(parts, path))
+        self._lineedit.setText(path)
+        self._lineedit.setFocus()
+        # Avoid having a ..-subtree highlighted
+        self._file_view.setCurrentIndex(QModelIndex())
+
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
         self._file_view.setModel(self._file_model)
+        self._file_view.clicked.connect(self._on_clicked)
         self._vbox.addWidget(self._file_view)
         # Only show name
         self._file_view.setHeaderHidden(True)
@@ -523,8 +539,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def __init__(self, question, win_id, parent=None):
         super().__init__(question, win_id, parent)
-        self._file_model.setFilter(QDir.AllDirs | QDir.Drives |
-                                   QDir.NoDotAndDotDot)
+        self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
