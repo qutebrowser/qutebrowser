@@ -208,16 +208,6 @@ class StatusBar(QWidget):
         """Getter for self.prompt_active, so it can be used as Qt property."""
         return self._prompt_active
 
-    def _set_prompt_active(self, val):
-        """Setter for self.prompt_active.
-
-        Re-set the stylesheet after setting the value, so everything gets
-        updated by Qt properly.
-        """
-        log.statusbar.debug("Setting prompt_active to {}".format(val))
-        self._prompt_active = val
-        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
-
     @pyqtProperty(bool)
     def command_active(self):
         """Getter for self.command_active, so it can be used as Qt property."""
@@ -245,6 +235,9 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.command:
             log.statusbar.debug("Setting command_active to {}".format(val))
             self._command_active = val
+        elif mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
+            log.statusbar.debug("Setting prompt_active to {}".format(val))
+            self._prompt_active = val
         elif mode == usertypes.KeyMode.caret:
             tab = objreg.get('tabbed-browser', scope='window',
                              window=self._win_id).currentWidget()
@@ -291,7 +284,9 @@ class StatusBar(QWidget):
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
                     usertypes.KeyMode.command,
-                    usertypes.KeyMode.caret]:
+                    usertypes.KeyMode.caret,
+                    usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
             self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
@@ -306,7 +301,9 @@ class StatusBar(QWidget):
                 self.txt.set_text(self.txt.Text.normal, '')
         if old_mode in [usertypes.KeyMode.insert,
                         usertypes.KeyMode.command,
-                        usertypes.KeyMode.caret]:
+                        usertypes.KeyMode.caret,
+                        usertypes.KeyMode.prompt,
+                        usertypes.KeyMode.yesno]:
             self.set_mode_active(old_mode, False)
 
     def resizeEvent(self, e):
