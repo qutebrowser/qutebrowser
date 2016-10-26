@@ -1680,6 +1680,8 @@ KEY_DATA = collections.OrderedDict([
         ('prompt-accept yes', ['y']),
         ('prompt-accept no', ['n']),
         ('prompt-open-download', ['<Ctrl-X>']),
+        ('prompt-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('prompt-item-focus next', ['<Tab>', '<Down>']),
     ])),
 
     ('command,prompt', collections.OrderedDict([

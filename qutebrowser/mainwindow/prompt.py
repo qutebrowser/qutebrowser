@@ -24,7 +24,8 @@ import html
 import collections
 
 import sip
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
+                          QItemSelectionModel)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QWidgetItem, QFileSystemModel, QTreeView,
                              QSizePolicy)
@@ -264,6 +265,20 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.prompt])
+    @cmdutils.argument('which', choices=['next', 'prev'])
+    def prompt_item_focus(self, which):
+        """Shift the focus of the prompt file completion menu to another item.
+
+        Args:
+            which: 'next', 'prev'
+        """
+        try:
+            self._prompt.item_focus(which)
+        except UnsupportedOperationError:
+            pass
+
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
         """Display a prompt for a given question.
@@ -425,6 +440,10 @@ class _BasePrompt(QWidget):
         """Open the download directly if this is a download prompt."""
         raise UnsupportedOperationError
 
+    def item_focus(self, _which):
+        """Switch to next file item if this is a filename prompt.."""
+        raise UnsupportedOperationError
+
     def _allowed_commands(self):
         """Get the commands we could run as response to this message."""
         raise NotImplementedError
@@ -477,7 +496,7 @@ class FilenamePrompt(_BasePrompt):
     @pyqtSlot(str)
     def _set_fileview_root(self, path):
         """Set the root path for the file display."""
-        if not path.endswith('/'):
+        if not path.endswith('/') or path == '/':
             return
         path.rstrip('/')
 
@@ -498,25 +517,33 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setRootIndex(root)
 
     @pyqtSlot(QModelIndex)
-    def _on_clicked(self, index):
-        """Handle a click on an element."""
+    def _insert_path(self, index, *, clicked=True):
+        """Handle an element selection.
+
+        Args:
+            index: The QModelIndex of the selected element.
+            clicked: Whether the element was clicked.
+        """
         parts = []
         cur = index
         while cur.isValid():
             parts.append(cur.data())
             cur = cur.parent()
-        path = os.path.normpath(os.path.join(*reversed(parts))) + os.sep
+        path = os.path.normpath(os.path.join(*reversed(parts)))
+        if clicked:
+            path += os.sep
         log.prompt.debug('Clicked {!r} -> {}'.format(parts, path))
         self._lineedit.setText(path)
         self._lineedit.setFocus()
-        # Avoid having a ..-subtree highlighted
-        self._file_view.setCurrentIndex(QModelIndex())
+        if clicked:
+            # Avoid having a ..-subtree highlighted
+            self._file_view.setCurrentIndex(QModelIndex())
 
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
         self._file_view.setModel(self._file_model)
-        self._file_view.clicked.connect(self._on_clicked)
+        self._file_view.clicked.connect(self._insert_path)
         self._vbox.addWidget(self._file_view)
         # Only show name
         self._file_view.setHeaderHidden(True)
@@ -527,6 +554,31 @@ class FilenamePrompt(_BasePrompt):
         text = value if value is not None else self._lineedit.text()
         self.question.answer = text
         return True
+
+    def item_focus(self, which):
+        # This duplicates some completion code, but I don't see a nicer way...
+        assert which in ['prev', 'next'], which
+        selmodel = self._file_view.selectionModel()
+
+        first_index = self._file_model.index(0, 0)
+        last_index = self._file_model.index(self._file_model.rowCount() - 1, 0)
+
+        idx = selmodel.currentIndex()
+        if not idx.isValid():
+            # No item selected yet
+            idx = last_index if which == 'prev' else first_index
+
+        if which == 'prev':
+            idx = self._file_view.indexAbove(idx)
+        else:
+            idx = self._file_view.indexBelow(idx)
+        # wrap around if we arrived at beginning/end
+        if not idx.isValid():
+            idx = last_index if which == 'prev' else first_index
+
+        selmodel.setCurrentIndex(
+            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+        self._insert_path(idx, clicked=False)
 
     def _allowed_commands(self):
         """Get the commands we could run as response to this message."""
