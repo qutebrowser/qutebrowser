@@ -24,7 +24,7 @@ import html
 import collections
 
 import sip
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer, QDir
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QWidgetItem, QFileSystemModel, QTreeView,
                              QSizePolicy)
@@ -520,6 +520,11 @@ class FilenamePrompt(_BasePrompt):
 class DownloadFilenamePrompt(FilenamePrompt):
 
     """A prompt for a filename for downloads."""
+
+    def __init__(self, question, win_id, parent=None):
+        super().__init__(question, win_id, parent)
+        self._file_model.setFilter(QDir.AllDirs | QDir.Drives |
+                                   QDir.NoDotAndDotDot)
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
