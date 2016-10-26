@@ -63,7 +63,7 @@ Feature: Downloading things from a website.
         And I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text=None title='Save file to:'>, *" in the log
         Then the error "Download error: No handler found for qute://!" should be shown
 
     Scenario: Downloading a data: link (issue 1214)
@@ -71,7 +71,7 @@ Feature: Downloading things from a website.
         And I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1214.html
         And I hint with args "links download" and follow a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text=None title='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 
@@ -338,7 +338,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1725.html
         And I run :click-element id long-link
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text=None title='Save file to:'>, *" in the log
         And I directly open the download
         And I wait until the download is finished
         Then "Opening * with [*python*]" should be logged
