@@ -607,6 +607,8 @@ class YesNoPrompt(_BasePrompt):
 
     def accept(self, value=None):
         if value is None:
+            if self.question.default is None:
+                raise Error("No default value was set for this question!")
             self.question.answer = self.question.default
         elif value == 'yes':
             self.question.answer = True
@@ -617,13 +619,17 @@ class YesNoPrompt(_BasePrompt):
         return True
 
     def _allowed_commands(self):
-        default = 'yes' if self.question.default else 'no'
         cmds = [
             ('prompt-accept yes', "Yes"),
             ('prompt-accept no', "No"),
-            ('prompt-accept', "Use default ({})".format(default)),
-            ('leave-mode', "Abort"),
         ]
+
+        if self.question.default is not None:
+            assert self.question.default in [True, False]
+            default = 'yes' if self.question.default else 'no'
+            cmds.append(('prompt-accept', "Use default ({})".format(default)))
+
+        cmds.append(('leave-mode', "Abort"))
         return cmds
 
 

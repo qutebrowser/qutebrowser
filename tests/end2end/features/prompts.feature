@@ -249,3 +249,12 @@ Feature: Prompts
         And I run :prompt-accept yes
         Then the javascript message "confirm reply: true" should be logged
         And the error "Invalid value nope - expected yes/no!" should be shown
+
+    Scenario: Javascript confirm with default value
+        When I open data/prompt/jsconfirm.html
+        And I run :click-element id button
+        And I wait for a prompt
+        And I run :prompt-accept
+        And I run :prompt-accept yes
+        Then the javascript message "confirm reply: true" should be logged
+        And the error "No default value was set for this question!" should be shown
