@@ -526,6 +526,21 @@ generate code and subsequently overwrite part or all of it. Running with all
 will slow Valgrind down noticeably.
 ____
 
+Setting up a Windows Development Environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Install https://www.python.org/downloads/release/python-344/[Python 3.4]
+* Install https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/[PyQt 5.5]
+* Create a file at `C:\Windows\system32\python3.bat` with the following content:
+  `@C:\Python34\python %*`
+  This will make the Python 3.4 interpreter available as `python3`, which is used by various development scripts.
+* Install git from the https://git-scm.com/download/win[git-scm downloads page]
+  Try not to enable `core.autocrlf`, since that will cause `flake8` to complain a lot. Use an editor that can deal with plain line feeds instead.
+* Clone your favourite qutebrowser repository.
+* To install tox, open an elevated cmd, enter your working directory and run `pip install -rmisc/requirements/requirements-tox.txt`.
+
+Note that the `flake8` tox env might not run due to encoding errors despite having LANG/LC_* set correctly.
+
 Style conventions
 -----------------
 
