@@ -204,7 +204,8 @@ class QuickmarkManager(UrlMarkManager):
 
         if name in self.marks:
             message.confirm_async(
-                win_id, "Override existing quickmark?", set_mark, default=True)
+                win_id, title="Override existing quickmark?",
+                yes_action=set_mark, default=True)
         else:
             set_mark()
 

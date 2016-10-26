@@ -137,11 +137,12 @@ class BrowserPage(QWebPage):
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
             url = QUrl(info.url)
-            msg = "Open external application for {}-link?\nURL: {}".format(
-                url.scheme(), url.toDisplayString())
+            scheme = url.scheme()
             message.confirm_async(
-                self._win_id, msg,
-                functools.partial(QDesktopServices.openUrl, url))
+                self._win_id,
+                title="Open external application for {}-link?".format(scheme),
+                text="URL: {}".format(url.toDisplayString()),
+                yes_action=functools.partial(QDesktopServices.openUrl, url))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
