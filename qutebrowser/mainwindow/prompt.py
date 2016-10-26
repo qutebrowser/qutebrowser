@@ -477,6 +477,10 @@ class FilenamePrompt(_BasePrompt):
     @pyqtSlot(str)
     def _set_fileview_root(self, path):
         """Set the root path for the file display."""
+        if not path.endswith('/'):
+            return
+        path.rstrip('/')
+
         try:
             if os.path.isdir(path):
                 path = path
@@ -498,6 +502,10 @@ class FilenamePrompt(_BasePrompt):
         self._file_model = QFileSystemModel(self)
         self._file_view.setModel(self._file_model)
         self._vbox.addWidget(self._file_view)
+        # Only show name
+        self._file_view.setHeaderHidden(True)
+        for col in range(1, 4):
+            self._file_view.setColumnHidden(col, True)
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
