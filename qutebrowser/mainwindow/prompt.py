@@ -421,6 +421,7 @@ class _BasePrompt(QWidget):
         raise NotImplementedError
 
     def download_open(self, _cmdline):
+        """Open the download directly if this is a download prompt."""
         raise UnsupportedOperationError
 
     def _allowed_commands(self):
