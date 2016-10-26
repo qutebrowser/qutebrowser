@@ -26,7 +26,8 @@ import collections
 import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QTimer
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QWidgetItem, QFileSystemModel, QTreeView)
+                             QLabel, QWidgetItem, QFileSystemModel, QTreeView,
+                             QSizePolicy)
 
 from qutebrowser.config import style
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg
@@ -168,6 +169,7 @@ class PromptContainer(QWidget):
                                         'aborted'))
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
         self._prompt = prompt
+        self.setSizePolicy(self._prompt.sizePolicy())
         self._layout.addWidget(self._prompt)
         self._prompt.show()
         self.show()
@@ -470,15 +472,7 @@ class FilenamePrompt(_BasePrompt):
             self._lineedit.setText(question.default)
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
-
-    def sizeHint(self):
-        """Get some more width.
-
-        FIXME do this properly...
-        """
-        orig = super().sizeHint()
-        orig.setWidth(orig.width() * 3)
-        return orig
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path):

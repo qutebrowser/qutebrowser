@@ -186,7 +186,7 @@ class MainWindow(QWidget):
         self._prompt_container = prompt.PromptContainer(self.win_id, self)
         self._add_overlay(self._prompt_container,
                           self._prompt_container.update_geometry,
-                          centered=True)
+                          centered=True, padding=10)
         objreg.register('prompt-container', self._prompt_container,
                         scope='window', window=self.win_id)
         self._prompt_container.hide()
@@ -213,17 +213,17 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
 
-    def _add_overlay(self, widget, signal, *, centered=False):
-        self._overlays.append((widget, signal, centered))
+    def _add_overlay(self, widget, signal, *, centered=False, padding=0):
+        self._overlays.append((widget, signal, centered, padding))
 
-    def _update_overlay_geometry(self, widget=None, centered=None):
+    def _update_overlay_geometry(self, widget=None, centered=None, padding=0):
         """Reposition/resize the given overlay.
 
         If no widget is given, reposition/resize all overlays.
         """
         if widget is None:
-            for w, _signal, centered in self._overlays:
-                self._update_overlay_geometry(w, centered)
+            for w, _signal, centered, padding in self._overlays:
+                self._update_overlay_geometry(w, centered, padding)
             return
 
         assert centered is not None
@@ -233,8 +233,8 @@ class MainWindow(QWidget):
 
         size_hint = widget.sizeHint()
         if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
-            width = self.width()
-            left = 0
+            width = self.width() - 2 * padding
+            left = padding
         else:
             width = size_hint.width()
             left = (self.width() - size_hint.width()) / 2 if centered else 0
@@ -363,10 +363,10 @@ class MainWindow(QWidget):
 
     def _connect_overlay_signals(self):
         """Connect the resize signal and resize everything once."""
-        for widget, signal, centered in self._overlays:
+        for widget, signal, centered, padding in self._overlays:
             signal.connect(
                 functools.partial(self._update_overlay_geometry, widget,
-                                  centered))
+                                  centered, padding))
             self._update_overlay_geometry(widget, centered)
 
     def _set_default_geometry(self):
