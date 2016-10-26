@@ -384,6 +384,10 @@ def data(readonly=False):
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
 
+            ('prompt-radius',
+             SettingValue(typ.Int(minval=0), '8'),
+             "The rounding radius for the edges of prompts."),
+
             readonly=readonly
         )),
 
