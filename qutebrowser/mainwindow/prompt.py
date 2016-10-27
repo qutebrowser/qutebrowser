@@ -652,7 +652,6 @@ class AuthenticationPrompt(_BasePrompt):
             # Earlier, tab was bound to :prompt-accept, so to still support
             # that we simply switch the focus when tab was pressed.
             self._password_lineedit.setFocus()
-            self._init_key_label()
             return False
         else:
             self.question.answer = AuthTuple(self._user_lineedit.text(),
@@ -660,12 +659,8 @@ class AuthenticationPrompt(_BasePrompt):
             return True
 
     def _allowed_commands(self):
-        if self._user_lineedit.hasFocus():
-            cmds = [('prompt-accept', "Switch to password field")]
-        else:
-            cmds = [('prompt-accept', "Accept")]
-        cmds.append(('leave-mode', "Abort"))
-        return cmds
+        return [('prompt-accept', "Accept"),
+                ('leave-mode', "Abort")]
 
 
 class YesNoPrompt(_BasePrompt):
