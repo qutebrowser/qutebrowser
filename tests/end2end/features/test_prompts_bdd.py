@@ -39,8 +39,7 @@ def wait_ssl_page_finished_loading(quteproc, ssl_server):
 
 @bdd.when("I wait for a prompt")
 def wait_for_prompt(quteproc):
-    quteproc.wait_for(message='Entering mode KeyMode.* (reason: question '
-                              'asked)')
+    quteproc.wait_for(message='Asking question *')
 
 
 @bdd.then("no prompt should be shown")

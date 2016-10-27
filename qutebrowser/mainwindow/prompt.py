@@ -361,7 +361,7 @@ class LineEdit(QLineEdit):
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
             try:
                 text = utils.get_clipboard(selection=True)
-            except utils.ClipboardError:
+            except utils.ClipboardError:  # pragma: no cover
                 pass
             else:
                 e.accept()

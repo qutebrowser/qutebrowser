@@ -484,3 +484,15 @@ Feature: Downloading things from a website.
         And I run :click-element id download
         And I wait until the download is finished
         Then the downloaded file test.pdf should exist
+
+    Scenario: Answering a question for a cancelled download (#415)
+        When I set storage -> prompt-download-directory to true
+        And I run :download http://localhost:(port)/data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text=None title='Save file to:'>, *" in the log
+        And I run :download http://localhost:(port)/data/downloads/download2.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text=None title='Save file to:'>, *" in the log
+        And I run :download-cancel with count 2
+        And I run :prompt-accept
+        And I wait until the download is finished
+        Then the downloaded file download.bin should exist
+        And the downloaded file download2.bin should not exist

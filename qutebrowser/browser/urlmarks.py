@@ -33,7 +33,7 @@ import collections
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
-                               standarddir, objreg)
+                               standarddir, objreg, log)
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import lineparser
 
@@ -201,6 +201,7 @@ class QuickmarkManager(UrlMarkManager):
             self.marks[name] = url
             self.changed.emit()
             self.added.emit(name, url)
+            log.misc.debug("Added quickmark {} for {}".format(name, url))
 
         if name in self.marks:
             message.confirm_async(
