@@ -36,6 +36,7 @@ class Progress(QProgressBar):
             border-radius: 0px;
             border: 2px solid transparent;
             background-color: transparent;
+            font: {{ font['statusbar'] }};
         }
 
         QProgressBar::chunk {
