@@ -98,7 +98,7 @@ class BrowserPage(QWebPage):
             if (self._is_shutting_down or
                     config.get('content', 'ignore-javascript-prompt')):
                 return (False, "")
-            answer = message.ask(self._win_id, 'Javascript prompt', msg,
+            answer = message.ask('Javascript prompt', msg,
                                  mode=usertypes.PromptMode.text,
                                  default=default,
                                  abort_on=[self.loadStarted,
@@ -139,7 +139,6 @@ class BrowserPage(QWebPage):
             url = QUrl(info.url)
             scheme = url.scheme()
             message.confirm_async(
-                self._win_id,
                 title="Open external application for {}-link?".format(scheme),
                 text="URL: {}".format(url.toDisplayString()),
                 yes_action=functools.partial(QDesktopServices.openUrl, url))
@@ -453,8 +452,7 @@ class BrowserPage(QWebPage):
         if (self._is_shutting_down or
                 config.get('content', 'ignore-javascript-alert')):
             return
-        message.ask(self._win_id, 'Javascript alert', msg,
-                    mode=usertypes.PromptMode.alert,
+        message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                     abort_on=[self.loadStarted, self.shutting_down])
 
     def javaScriptConfirm(self, frame, msg):
@@ -465,7 +463,7 @@ class BrowserPage(QWebPage):
 
         if self._is_shutting_down:
             return False
-        ans = message.ask(self._win_id, 'Javascript confirm', msg,
+        ans = message.ask('Javascript confirm', msg,
                           mode=usertypes.PromptMode.yesno,
                           abort_on=[self.loadStarted, self.shutting_down])
         return bool(ans)

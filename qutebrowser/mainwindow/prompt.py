@@ -25,15 +25,18 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel)
+                          QItemSelectionModel, QObject)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QWidgetItem, QFileSystemModel, QTreeView,
                              QSizePolicy)
 
 from qutebrowser.config import style
-from qutebrowser.utils import usertypes, log, utils, qtutils, objreg
+from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
+
+
+prompt_queue = None
 
 
 AuthTuple = collections.namedtuple('AuthTuple', ['user', 'password'])
@@ -49,9 +52,9 @@ class UnsupportedOperationError(Exception):
     """Raised when the prompt class doesn't support the requested operation."""
 
 
-class PromptContainer(QWidget):
+class PromptQueue(QObject):
 
-    """Container for prompts to be shown above the statusbar.
+    """Global manager and queue for upcoming prompts.
 
     The way in which multiple questions are handled deserves some explanation.
 
@@ -77,43 +80,19 @@ class PromptContainer(QWidget):
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
         _prompt: The current prompt object if we're handling a question.
-        _layout: The layout used to show prompts in.
-        _win_id: The window ID this object is associated with.
+
+    Signals:
+        show_prompt: Emitted when a prompt should be shown.
     """
 
-    STYLESHEET = """
-        {% set prompt_radius = config.get('ui', 'prompt-radius') %}
-        QWidget#Prompt {
-            {% if config.get('ui', 'status-position') == 'top' %}
-                border-bottom-left-radius: {{ prompt_radius }}px;
-                border-bottom-right-radius: {{ prompt_radius }}px;
-            {% else %}
-                border-top-left-radius: {{ prompt_radius }}px;
-                border-top-right-radius: {{ prompt_radius }}px;
-            {% endif %}
-        }
+    show_prompt = pyqtSignal(object)
 
-        QWidget {
-            font: {{ font['prompts'] }};
-            color: {{ color['prompts.fg'] }};
-            background-color: {{ color['prompts.bg'] }};
-        }
-    """
-    update_geometry = pyqtSignal()
-
-    def __init__(self, win_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._layout = QVBoxLayout(self)
-        self._layout.setContentsMargins(10, 10, 10, 10)
         self._prompt = None
         self._shutting_down = False
         self._loops = []
         self._queue = collections.deque()
-        self._win_id = win_id
-
-        self.setObjectName('Prompt')
-        self.setAttribute(Qt.WA_StyledBackground, True)
-        style.set_register_stylesheet(self)
 
     def __repr__(self):
         return utils.get_repr(self, loops=len(self._loops),
@@ -134,50 +113,6 @@ class PromptContainer(QWidget):
                 # https://github.com/The-Compiler/qutebrowser/issues/415
                 self.ask_question(question, blocking=False)
 
-    def _show_prompt(self, prompt):
-        """SHow the given prompt object.
-
-        Args:
-            prompt: A Prompt object or None.
-
-        Return: True if a prompt was shown, False otherwise.
-        """
-        # Before we set a new prompt, make sure the old one is what we expect
-        # This will also work if self._prompt is None and verify nothing is
-        # displayed.
-        #
-        # Note that we don't delete the old prompt here, as we might be in the
-        # middle of saving/restoring an old prompt object.
-        assert self._layout.count() in [0, 1], self._layout.count()
-        item = self._layout.takeAt(0)
-        if item is None:
-            assert self._prompt is None, self._prompt
-        else:
-            if (not isinstance(item, QWidgetItem) or
-                    item.widget() is not self._prompt):
-                raise AssertionError("Expected {} to be in layout but got "
-                                    "{}!".format(self._prompt, item))
-            item.widget().hide()
-
-        log.prompt.debug("Displaying prompt {}".format(prompt))
-        self._prompt = prompt
-        if prompt is None:
-            self.hide()
-            return False
-
-        prompt.question.aborted.connect(
-            lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
-                                        'aborted'))
-        modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
-        self._prompt = prompt
-        self.setSizePolicy(self._prompt.sizePolicy())
-        self._layout.addWidget(self._prompt)
-        self._prompt.show()
-        self.show()
-        self._prompt.setFocus()
-        self.update_geometry.emit()
-        return True
-
     def shutdown(self):
         """Cancel all blocking questions.
 
@@ -196,7 +131,7 @@ class PromptContainer(QWidget):
         else:
             return False
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-queue', hide=True,
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
     def prompt_accept(self, value=None):
@@ -211,42 +146,30 @@ class PromptContainer(QWidget):
             value: If given, uses this value instead of the entered one.
                    For boolean prompts, "yes"/"no" are accepted as value.
         """
+        question = self._prompt.question
         try:
             done = self._prompt.accept(value)
         except Error as e:
             raise cmdexc.CommandError(str(e))
         if done:
-            key_mode = self._prompt.KEY_MODE
-            self._prompt.question.done()
-            modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
+            message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
+            question.done()
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-queue', hide=True,
                        modes=[usertypes.KeyMode.yesno],
                        deprecated='Use :prompt-accept yes instead!')
     def prompt_yes(self):
         """Answer yes to a yes/no prompt."""
         self.prompt_accept('yes')
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-queue', hide=True,
                        modes=[usertypes.KeyMode.yesno],
                        deprecated='Use :prompt-accept no instead!')
     def prompt_no(self):
         """Answer no to a yes/no prompt."""
         self.prompt_accept('no')
 
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
-        """Clear and reset input when the mode was left."""
-        # FIXME when is this not the case?
-        if (self._prompt is not None and
-                mode == self._prompt.KEY_MODE):
-            question = self._prompt.question
-            self._show_prompt(None)
-            # FIXME move this somewhere else?
-            if question.answer is None and not question.is_aborted:
-                question.cancel()
-
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-queue', hide=True,
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
     def prompt_open_download(self, cmdline: str=None):
         """Immediately open a download.
@@ -265,7 +188,7 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-queue', hide=True,
                        modes=[usertypes.KeyMode.prompt])
     @cmdutils.argument('which', choices=['next', 'prev'])
     def prompt_item_focus(self, which):
@@ -323,7 +246,11 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.alert: AlertPrompt,
         }
         klass = classes[question.mode]
-        self._show_prompt(klass(question, self._win_id))
+
+        prompt = klass(question)
+        self._prompt = prompt
+        self.show_prompt.emit(prompt)
+
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
@@ -331,8 +258,10 @@ class PromptContainer(QWidget):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             loop.exec_()
+            self._prompt = prompt
             # FIXME don't we end up connecting modeman signals twice here now?
-            if not self._show_prompt(old_prompt):
+            self.show_prompt.emit(old_prompt)
+            if old_prompt is None:
                 # Nothing left to restore, so we can go back to popping async
                 # questions.
                 if self._queue:
@@ -340,6 +269,104 @@ class PromptContainer(QWidget):
             return question.answer
         else:
             question.completed.connect(self._pop_later)
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_left(self, mode):
+        """Clear and reset input when the mode was left."""
+        # FIXME when is this not the case?
+        if (self._prompt is not None and
+                mode == self._prompt.KEY_MODE):
+            question = self._prompt.question
+            self._prompt = None
+            self.show_prompt.emit(None)
+            # FIXME move this somewhere else?
+            if question.answer is None and not question.is_aborted:
+                question.cancel()
+
+
+class PromptContainer(QWidget):
+
+    """Container for prompts to be shown above the statusbar.
+
+    This is a per-window object, however each window shows the same prompt.
+
+    Attributes:
+        _layout: The layout used to show prompts in.
+        _win_id: The window ID this object is associated with.
+
+    Signals:
+        update_geometry: Emitted when the geometry should be updated.
+    """
+
+    STYLESHEET = """
+        {% set prompt_radius = config.get('ui', 'prompt-radius') %}
+        QWidget#PromptContainer {
+            {% if config.get('ui', 'status-position') == 'top' %}
+                border-bottom-left-radius: {{ prompt_radius }}px;
+                border-bottom-right-radius: {{ prompt_radius }}px;
+            {% else %}
+                border-top-left-radius: {{ prompt_radius }}px;
+                border-top-right-radius: {{ prompt_radius }}px;
+            {% endif %}
+        }
+
+        QWidget {
+            font: {{ font['prompts'] }};
+            color: {{ color['prompts.fg'] }};
+            background-color: {{ color['prompts.bg'] }};
+        }
+    """
+    update_geometry = pyqtSignal()
+
+    def __init__(self, win_id, parent=None):
+        super().__init__(parent)
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(10, 10, 10, 10)
+        self._win_id = win_id
+
+        self.setObjectName('PromptContainer')
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        style.set_register_stylesheet(self)
+
+        message.global_bridge.prompt_done.connect(self._on_prompt_done)
+        prompt_queue.show_prompt.connect(self._on_show_prompt)
+
+    def __repr__(self):
+        return utils.get_repr(self, win_id=self._win_id)
+
+    @pyqtSlot(object)
+    def _on_show_prompt(self, prompt):
+        """Show the given prompt object.
+
+        Args:
+            prompt: A Prompt object or None.
+        """
+        # Note that we don't delete the old prompt here, as we might be in the
+        # middle of saving/restoring an old prompt object.
+        # FIXME where is it deleted?
+        self._layout.takeAt(0)
+        assert self._layout.count() == 0
+        log.prompt.debug("Displaying prompt {}".format(prompt))
+        if prompt is None:
+            self.hide()
+            return
+
+        prompt.question.aborted.connect(
+            lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
+                                        'aborted'))
+        modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
+
+        self.setSizePolicy(prompt.sizePolicy())
+        self._layout.addWidget(prompt)
+        prompt.show()
+        self.show()
+        prompt.setFocus()
+        self.update_geometry.emit()
+
+    @pyqtSlot(usertypes.KeyMode)
+    def _on_prompt_done(self, key_mode):
+        """Leave the prompt mode in this window if a question was answered."""
+        modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
 
 
 class LineEdit(QLineEdit):
@@ -379,10 +406,9 @@ class _BasePrompt(QWidget):
 
     KEY_MODE = usertypes.KeyMode.prompt
 
-    def __init__(self, question, win_id, parent=None):
+    def __init__(self, question, parent=None):
         super().__init__(parent)
         self.question = question
-        self._win_id = win_id
         self._vbox = QVBoxLayout(self)
         self._vbox.setSpacing(15)
         self._key_grid = None
@@ -448,8 +474,8 @@ class LineEditPrompt(_BasePrompt):
 
     """A prompt for a single text value."""
 
-    def __init__(self, question, win_id, parent=None):
-        super().__init__(question, win_id, parent)
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
         self._lineedit = LineEdit(self)
         self._init_title(question)
         self._vbox.addWidget(self._lineedit)
@@ -472,8 +498,8 @@ class FilenamePrompt(_BasePrompt):
 
     """A prompt for a filename."""
 
-    def __init__(self, question, win_id, parent=None):
-        super().__init__(question, win_id, parent)
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
         self._init_title(question)
         self._init_fileview()
         self._set_fileview_root(question.default)
@@ -584,8 +610,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     """A prompt for a filename for downloads."""
 
-    def __init__(self, question, win_id, parent=None):
-        super().__init__(question, win_id, parent)
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
         self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
 
     def accept(self, value=None):
@@ -595,8 +621,9 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline):
         self.question.answer = usertypes.OpenFileDownloadTarget(cmdline)
-        modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
-                            'download open')
+        # FIXME now we don't have a window ID here...
+        # modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
+        #                     'download open')
         self.question.done()
 
     def _allowed_commands(self):
@@ -612,8 +639,8 @@ class AuthenticationPrompt(_BasePrompt):
 
     """A prompt for username/password."""
 
-    def __init__(self, question, win_id, parent=None):
-        super().__init__(question, win_id, parent)
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
         self._init_title(question)
 
         user_label = QLabel("Username:", self)
@@ -672,8 +699,8 @@ class YesNoPrompt(_BasePrompt):
 
     KEY_MODE = usertypes.KeyMode.yesno
 
-    def __init__(self, question, win_id, parent=None):
-        super().__init__(question, win_id, parent)
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
         self._init_title(question)
         self._init_key_label()
 
@@ -709,8 +736,8 @@ class AlertPrompt(_BasePrompt):
 
     """A prompt without any answer possibility."""
 
-    def __init__(self, question, win_id, parent=None):
-        super().__init__(question, win_id, parent)
+    def __init__(self, question, parent=None):
+        super().__init__(question, parent)
         self._init_title(question)
         self._init_key_label()
 
@@ -722,3 +749,11 @@ class AlertPrompt(_BasePrompt):
 
     def _allowed_commands(self):
         return [('prompt-accept', "Hide")]
+
+
+def init():
+    global prompt_queue
+    prompt_queue = PromptQueue()
+    objreg.register('prompt-queue', prompt_queue)  # for commands
+    message.global_bridge.ask_question.connect(
+        prompt_queue.ask_question, Qt.DirectConnection)

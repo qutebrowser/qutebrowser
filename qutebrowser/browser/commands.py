@@ -1137,7 +1137,7 @@ class CommandDispatcher:
     def quickmark_save(self):
         """Save the current page as a quickmark."""
         quickmark_manager = objreg.get('quickmark-manager')
-        quickmark_manager.prompt_save(self._win_id, self._current_url())
+        quickmark_manager.prompt_save(self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)

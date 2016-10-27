@@ -397,7 +397,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(status.on_mode_entered)
         mode_manager.left.connect(status.on_mode_left)
         mode_manager.left.connect(cmd.on_mode_left)
-        mode_manager.left.connect(self._prompt_container.on_mode_left)
+        mode_manager.left.connect(prompt.prompt_queue.on_mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
@@ -420,8 +420,6 @@ class MainWindow(QWidget):
 
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
-        message_bridge.s_question.connect(self._prompt_container.ask_question,
-                                          Qt.DirectConnection)
 
         # statusbar
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)
@@ -520,8 +518,7 @@ class MainWindow(QWidget):
         # Process all quit messages that user must confirm
         if quit_texts or 'always' in confirm_quit:
             text = '\n'.join(['Really quit?'] + quit_texts)
-            confirmed = message.ask(self.win_id, text,
-                                    mode=usertypes.PromptMode.yesno,
+            confirmed = message.ask(text, mode=usertypes.PromptMode.yesno,
                                     default=True)
             # Stop asking if the user cancels
             if not confirmed:

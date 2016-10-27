@@ -90,11 +90,10 @@ def _build_question(title, text=None, *, mode, default=None, abort_on=()):
     return question
 
 
-def ask(win_id, *args, **kwargs):
+def ask(*args, **kwargs):
     """Ask a modular question in the statusbar (blocking).
 
     Args:
-        win_id: The ID of the window which is calling this function.
         message: The message to display to the user.
         mode: A PromptMode.
         default: The default value to display.
@@ -105,18 +104,16 @@ def ask(win_id, *args, **kwargs):
         The answer the user gave or None if the prompt was cancelled.
     """
     question = _build_question(*args, **kwargs)  # pylint: disable=missing-kwoa
-    bridge = objreg.get('message-bridge', scope='window', window=win_id)
-    bridge.ask(question, blocking=True)
+    global_bridge.ask(question, blocking=True)
     answer = question.answer
     question.deleteLater()
     return answer
 
 
-def ask_async(win_id, text, mode, handler, **kwargs):
+def ask_async(text, mode, handler, **kwargs):
     """Ask an async question in the statusbar.
 
     Args:
-        win_id: The ID of the window which is calling this function.
         message: The message to display to the user.
         mode: A PromptMode.
         handler: The function to get called with the answer as argument.
@@ -126,16 +123,14 @@ def ask_async(win_id, text, mode, handler, **kwargs):
     question = _build_question(text, mode=mode, **kwargs)
     question.answered.connect(handler)
     question.completed.connect(question.deleteLater)
-    bridge = objreg.get('message-bridge', scope='window', window=win_id)
-    bridge.ask(question, blocking=False)
+    global_bridge.ask(question, blocking=False)
 
 
-def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
+def confirm_async(yes_action, no_action=None, cancel_action=None,
                   *args, **kwargs):
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
-        win_id: The ID of the window which is calling this function.
         message: The message to display to the user.
         yes_action: Callable to be called when the user answered yes.
         no_action: Callable to be called when the user answered no.
@@ -156,8 +151,7 @@ def confirm_async(win_id, yes_action, no_action=None, cancel_action=None,
         question.cancelled.connect(cancel_action)
 
     question.completed.connect(question.deleteLater)
-    bridge = objreg.get('message-bridge', scope='window', window=win_id)
-    bridge.ask(question, blocking=False)
+    global_bridge.ask(question, blocking=False)
     return question
 
 
@@ -169,9 +163,32 @@ class GlobalMessageBridge(QObject):
         show_message: Show a message
                       arg 0: A MessageLevel member
                       arg 1: The text to show
+        prompt_done: Emitted when a prompt was answered somewhere.
+        ask_question: Ask a question to the user.
+                      arg 0: The Question object to ask.
+                      arg 1: Whether to block (True) or ask async (False).
+
+                      IMPORTANT: Slots need to be connected to this signal via
+                                 a Qt.DirectConnection!
     """
 
     show_message = pyqtSignal(usertypes.MessageLevel, str)
+    prompt_done = pyqtSignal(usertypes.KeyMode)
+    ask_question = pyqtSignal(usertypes.Question, bool)
+
+    def ask(self, question, blocking, *, log_stack=False):
+        """Ask a question to the user.
+
+        Note this method doesn't return the answer, it only blocks. The caller
+        needs to construct a Question object and get the answer.
+
+        Args:
+            question: A Question object.
+            blocking: Whether to return immediately or wait until the
+                      question is answered.
+            log_stack: ignored
+        """
+        self.ask_question.emit(question, blocking)
 
 
 class MessageBridge(QObject):
@@ -183,18 +200,10 @@ class MessageBridge(QObject):
                     arg: The text to set.
         s_maybe_reset_text: Reset the text if it hasn't been changed yet.
                             arg: The expected text.
-
-        s_question: Ask a question to the user in the statusbar.
-                    arg 0: The Question object to ask.
-                    arg 1: Whether to block (True) or ask async (False).
-
-                    IMPORTANT: Slots need to be connected to this signal via a
-                               Qt.DirectConnection!
     """
 
     s_set_text = pyqtSignal(str)
     s_maybe_reset_text = pyqtSignal(str)
-    s_question = pyqtSignal(usertypes.Question, bool)
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -218,20 +227,6 @@ class MessageBridge(QObject):
             log_stack: ignored
         """
         self.s_maybe_reset_text.emit(str(text))
-
-    def ask(self, question, blocking, *, log_stack=False):
-        """Ask a question to the user.
-
-        Note this method doesn't return the answer, it only blocks. The caller
-        needs to construct a Question object and get the answer.
-
-        Args:
-            question: A Question object.
-            blocking: Whether to return immediately or wait until the
-                      question is answered.
-            log_stack: ignored
-        """
-        self.s_question.emit(question, blocking)
 
 
 global_bridge = GlobalMessageBridge()
