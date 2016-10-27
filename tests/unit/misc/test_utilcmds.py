@@ -26,13 +26,6 @@ import pytest
 import signal
 import time
 
-_hunter_available = False
-try:
-    import hunter  # pylint: disable=unused-import
-    _hunter_available = True
-except ImportError:
-    pass
-
 from qutebrowser.misc import utilcmds
 
 from qutebrowser.commands import cmdexc
@@ -73,16 +66,22 @@ def test_debug_crash_segfault():
     assert 'Segfault failed' in str(excinfo.value)
 
 
-@pytest.mark.skipif(not _hunter_available, reason="hunter not available")
 def test_debug_trace(mocker):
     """Check if hunter.trace is properly called."""
+    # but only if hunter is available
+    pytest.importorskip('hunter')
     hunter_mock = mocker.patch('qutebrowser.misc.utilcmds.hunter')
     utilcmds.debug_trace(1)
     assert hunter_mock.trace.assert_called_with(1)
 
+    def _mock_exception():
+        """Side effect for testing debug_trace's reraise."""
+        raise Exception('message')
+
     hunter_mock.trace.side_effect = Exception
-    with pytest.raises(Exception):
+    with pytest.raises(CommandError) as excinfo:
         utilcmds.debug_trace()
+    assert str(excinfo.value) == 'Exception: message'
 
 
 def test_debug_trace_no_hunter(monkeypatch):
