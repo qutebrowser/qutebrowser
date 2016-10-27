@@ -79,7 +79,7 @@ def test_debug_trace(mocker):
         raise Exception('message')
 
     hunter_mock.trace.side_effect = Exception
-    with pytest.raises(CommandError) as excinfo:
+    with pytest.raises(cmdexc.CommandError) as excinfo:
         utilcmds.debug_trace()
     assert str(excinfo.value) == 'Exception: message'
 

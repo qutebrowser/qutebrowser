@@ -66,10 +66,10 @@ class TestBaseLineParser:
         mocker.patch('builtins.open', mock.mock_open())
 
         with lineparser._open('r'):
-            with pytest.raises(IOError) as excinfo:
+            with pytest.raises(IOError) as excinf:
                 with lineparser._open('r'):
                     pass
-        assert str(excinfo.value) == 'Refusing to double-open AppendLineParser.'
+        assert str(excinf.value) == 'Refusing to double-open AppendLineParser.'
 
     def test_binary(self, mocker):
         """Test if _open and _write correctly handle binary files."""
