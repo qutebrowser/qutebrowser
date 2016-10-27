@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,7 +33,7 @@ try:
 except ImportError:
     pass
 
-from qutebrowser.misc import utilcmds as utilcmdsmod
+from qutebrowser.misc import utilcmds
 
 from qutebrowser.commands import cmdexc
 
@@ -49,7 +49,8 @@ def _trapped_segv(handler):
 def test_debug_crash_exception():
     """Verify that debug_crash crashes as intended."""
     with pytest.raises(Exception):
-        utilcmdsmod.debug_crash(typ='exception')
+        utilcmds.debug_crash(typ='exception')
+
 
 @pytest.mark.skipif(os.name == 'nt',
                     reason="current CPython/win can't recover from SIGSEGV")
@@ -66,7 +67,7 @@ def test_debug_crash_segfault():
         # since we handle the segfault, execution will continue and run into
         # the "Segfault failed (wat.)" Exception
         with pytest.raises(Exception) as excinfo:
-            utilcmdsmod.debug_crash(typ='segfault')
+            utilcmds.debug_crash(typ='segfault')
         time.sleep(0.001)
     assert caught
     assert 'Segfault failed' in str(excinfo.value)
@@ -76,43 +77,31 @@ def test_debug_crash_segfault():
 def test_debug_trace(mocker):
     """Check if hunter.trace is properly called."""
     hunter_mock = mocker.patch('qutebrowser.misc.utilcmds.hunter')
-    utilcmdsmod.debug_trace(1)
+    utilcmds.debug_trace(1)
     assert hunter_mock.trace.assert_called_with(1)
 
     hunter_mock.trace.side_effect = Exception
     with pytest.raises(Exception):
-        utilcmdsmod.debug_trace()
+        utilcmds.debug_trace()
 
 
 def test_debug_trace_no_hunter(monkeypatch):
     """Test that an error is shown if debug_trace is called without hunter."""
-    monkeypatch.setattr(utilcmdsmod, 'hunter', None)
+    monkeypatch.setattr(utilcmds, 'hunter', None)
     with pytest.raises(cmdexc.CommandError):
-        utilcmdsmod.debug_trace()
+        utilcmds.debug_trace()
 
 
-class FakeModeMan:
-
-    """ModeManager mock class for :repeat-command test.
-
-    Attributes:
-        mode: False
-    """
-
-    def __init__(self):
-        self.mode = False
-
-
-def test_repeat_command_initial(mocker):
+def test_repeat_command_initial(mocker, mode_manager):
     """Test repeat_command first-time behavior.
 
     If :repeat-command is called initially, it should err, because there's
     nothing to repeat.
     """
     objreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')
-    objreg_mock.get.return_value = FakeModeMan()
+    objreg_mock.get.return_value = mode_manager
     with pytest.raises(cmdexc.CommandError):
-        utilcmdsmod.repeat_command(win_id=0)
+        utilcmds.repeat_command(win_id=0)
 
 
 def test_debug_log_level(mocker):
@@ -121,7 +110,7 @@ def test_debug_log_level(mocker):
         'qutebrowser.misc.utilcmds.log.change_console_formatter')
     handler_mock = mocker.patch(
         'qutebrowser.misc.utilcmds.log.console_handler')
-    utilcmdsmod.debug_log_level(level='debug')
+    utilcmds.debug_log_level(level='debug')
     formatter_mock.assert_called_with(logging.DEBUG)
     handler_mock.setLevel.assert_called_with(logging.DEBUG)
 
@@ -146,7 +135,7 @@ def test_window_only(mocker, monkeypatch):
     winreg_mock.window_registry = test_windows
     sip_mock = mocker.patch('qutebrowser.misc.utilcmds.sip')
     sip_mock.isdeleted.side_effect = lambda window: window.deleted
-    utilcmdsmod.window_only(current_win_id=0)
+    utilcmds.window_only(current_win_id=0)
     assert not test_windows[0].closed
     assert not test_windows[1].closed
     assert test_windows[2].closed

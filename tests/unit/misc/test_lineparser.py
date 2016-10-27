@@ -28,8 +28,6 @@ from qutebrowser.misc import lineparser as lineparsermod
 
 class TestBaseLineParser:
 
-    """Tests for BaseLineParser."""
-
     CONFDIR = "this really doesn't matter"
     FILENAME = "and neither does this"
 
@@ -95,8 +93,6 @@ class TestBaseLineParser:
 
 class TestLineParser:
 
-    """Tests for LineParser."""
-
     @pytest.fixture
     def lineparser(self, tmpdir):
         """Fixture to get a LineParser for tests."""
@@ -139,8 +135,6 @@ class TestLineParser:
 
 
 class TestAppendLineParser:
-
-    """Tests for AppendLineParser."""
 
     BASE_DATA = ['old data 1', 'old data 2']
 
