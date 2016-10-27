@@ -317,7 +317,7 @@ Default: +pass:[smart]+
 === startpage
 The default page(s) to open at the start, separated by commas.
 
-Default: +pass:[https://duckduckgo.com]+
+Default: +pass:[https://start.duckduckgo.com]+
 
 [[general-yank-ignored-url-parameters]]
 === yank-ignored-url-parameters
