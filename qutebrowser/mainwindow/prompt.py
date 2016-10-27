@@ -292,6 +292,7 @@ class PromptContainer(QWidget):
 
     Attributes:
         _layout: The layout used to show prompts in.
+        _win_id: The window ID this object is associated with.
 
     Signals:
         update_geometry: Emitted when the geometry should be updated.
@@ -317,10 +318,11 @@ class PromptContainer(QWidget):
     """
     update_geometry = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
+        self._win_id = win_id
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -330,7 +332,7 @@ class PromptContainer(QWidget):
         prompt_queue.show_prompt.connect(self._on_show_prompt)
 
     def __repr__(self):
-        return utils.get_repr(self)
+        return utils.get_repr(self, win_id=self._win_id)
 
     @pyqtSlot(object)
     def _on_show_prompt(self, prompt):
@@ -349,11 +351,10 @@ class PromptContainer(QWidget):
             self.hide()
             return
 
-        # FIXME no win-id
-        # prompt.question.aborted.connect(
-        #     lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
-        #                                 'aborted'))
-        # modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
+        prompt.question.aborted.connect(
+            lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
+                                        'aborted'))
+        modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
 
         self.setSizePolicy(prompt.sizePolicy())
         self._layout.addWidget(prompt)
@@ -365,8 +366,7 @@ class PromptContainer(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def _on_prompt_done(self, key_mode):
         """Leave the prompt mode in this window if a question was answered."""
-        # FIXME no win-id
-        #modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
+        modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
 
 
 class LineEdit(QLineEdit):
@@ -752,9 +752,8 @@ class AlertPrompt(_BasePrompt):
 
 
 def init():
-    global prompt_queue, prompt_container
+    global prompt_queue
     prompt_queue = PromptQueue()
-    prompt_container = PromptContainer()
     objreg.register('prompt-queue', prompt_queue)  # for commands
     message.global_bridge.ask_question.connect(
         prompt_queue.ask_question, Qt.DirectConnection)

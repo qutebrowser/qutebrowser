@@ -183,9 +183,13 @@ class MainWindow(QWidget):
         self._messageview = messageview.MessageView(parent=self)
         self._add_overlay(self._messageview, self._messageview.update_geometry)
 
-        self._add_overlay(prompt.prompt_container,
-                          prompt.prompt_container.update_geometry,
+        self._prompt_container = prompt.PromptContainer(self.win_id, self)
+        self._add_overlay(self._prompt_container,
+                          self._prompt_container.update_geometry,
                           centered=True, padding=10)
+        objreg.register('prompt-container', self._prompt_container,
+                        scope='window', window=self.win_id)
+        self._prompt_container.hide()
 
         log.init.debug("Initializing modes...")
         modeman.init(self.win_id, self)

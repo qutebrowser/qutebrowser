@@ -372,6 +372,9 @@ def _init_modules(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     # pylint: disable=too-many-statements
+    log.init.debug("Initializing prompts...")
+    prompt.init()
+
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
@@ -387,9 +390,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing config...")
     config.init(qApp)
     save_manager.init_autosave()
-
-    log.init.debug("Initializing prompts...")
-    prompt.init()
 
     log.init.debug("Initializing web history...")
     history.init(qApp)
