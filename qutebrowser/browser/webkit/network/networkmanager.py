@@ -207,7 +207,7 @@ class NetworkManager(QNetworkAccessManager):
         self.setCache(cache)
         cache.setParent(app)
 
-    def _ask(self, title, text, mode, owner=None):
+    def _ask(self, title, text, mode, owner=None, default=None):
         """Ask a blocking question in the statusbar.
 
         Args:
@@ -232,7 +232,7 @@ class NetworkManager(QNetworkAccessManager):
             abort_on.append(tab.load_started)
 
         return message.ask(win_id=self._win_id, title=title, text=text,
-                           mode=mode, abort_on=abort_on)
+                           mode=mode, abort_on=abort_on, default=default)
 
     def shutdown(self):
         """Abort all running requests."""
@@ -281,7 +281,8 @@ class NetworkManager(QNetworkAccessManager):
         if ssl_strict == 'ask':
             err_string = '\n'.join('- ' + err.errorString() for err in errors)
             answer = self._ask('SSL errors - continue?', err_string,
-                               mode=usertypes.PromptMode.yesno, owner=reply)
+                               mode=usertypes.PromptMode.yesno, owner=reply,
+                               default=False)
             log.webview.debug("Asked for SSL errors, answer {}".format(answer))
             if answer:
                 reply.ignoreSslErrors()
