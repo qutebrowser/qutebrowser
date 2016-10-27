@@ -658,6 +658,14 @@ class AuthenticationPrompt(_BasePrompt):
                                              self._password_lineedit.text())
             return True
 
+    def item_focus(self, which):
+        """Support switching between fields with tab."""
+        assert which in ['prev', 'next'], which
+        if which == 'next' and self._user_lineedit.hasFocus():
+            self._password_lineedit.setFocus()
+        elif which == 'prev' and self._password_lineedit.hasFocus():
+            self._user_lineedit.setFocus()
+
     def _allowed_commands(self):
         return [('prompt-accept', "Accept"),
                 ('leave-mode', "Abort")]
