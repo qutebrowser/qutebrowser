@@ -155,9 +155,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
 
-    message_bridge = objreg.get('message-bridge', scope='window',
-                                window=win_id)
-    q.ask = lambda: message_bridge.ask(q, blocking=False)
+    q.ask = lambda: message.global_bridge.ask(q, blocking=False)
     return _DownloadPath(filename=None, question=q)
 
 
@@ -385,7 +383,7 @@ class DownloadItem(QObject):
     def _ask_confirm_question(self, title, msg):
         """Create a Question object to be asked."""
         no_action = functools.partial(self.cancel, remove_data=False)
-        message.confirm_async(self._win_id, title=title, text=msg,
+        message.confirm_async(title=title, text=msg,
                               yes_action=self._create_fileobj,
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error])

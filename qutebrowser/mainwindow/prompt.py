@@ -61,8 +61,8 @@ class PromptQueue(QObject):
     If a question is blocking, we *need* to ask it immediately, and can't wait
     for previous questions to finish. We could theoretically ask a blocking
     question inside of another blocking one, so in ask_question we simply save
-    the current prompt state on the stack, let the user answer the *most
-    recent* question, and then restore the previous state.
+    the current question on the stack, let the user answer the *most recent*
+    question, and then restore the previous state.
 
     With a non-blocking question, things are a bit easier. We simply add it to
     self._queue if we're still busy handling another question, since it can be
@@ -79,24 +79,24 @@ class PromptQueue(QObject):
                         should ignore future questions to avoid segfaults.
         _loops: A list of local EventLoops to spin in when blocking.
         _queue: A deque of waiting questions.
-        _prompt: The current prompt object if we're handling a question.
+        _question: The current Question object if we're handling a question.
 
     Signals:
-        show_prompt: Emitted when a prompt should be shown.
+        show_prompts: Emitted with a Question object when prompts should be shown.
     """
 
-    show_prompt = pyqtSignal(object)
+    show_prompts = pyqtSignal(usertypes.Question)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._prompt = None
+        self._question = None
         self._shutting_down = False
         self._loops = []
         self._queue = collections.deque()
 
     def __repr__(self):
         return utils.get_repr(self, loops=len(self._loops),
-                              queue=len(self._queue), prompt=self._prompt)
+                              queue=len(self._queue), question=self._question)
 
     def _pop_later(self):
         """Helper to call self._pop as soon as everything else is done."""
@@ -131,77 +131,6 @@ class PromptQueue(QObject):
         else:
             return False
 
-    @cmdutils.register(instance='prompt-queue', hide=True,
-                       modes=[usertypes.KeyMode.prompt,
-                              usertypes.KeyMode.yesno])
-    def prompt_accept(self, value=None):
-        """Accept the current prompt.
-
-        //
-
-        This executes the next action depending on the question mode, e.g. asks
-        for the password or leaves the mode.
-
-        Args:
-            value: If given, uses this value instead of the entered one.
-                   For boolean prompts, "yes"/"no" are accepted as value.
-        """
-        question = self._prompt.question
-        try:
-            done = self._prompt.accept(value)
-        except Error as e:
-            raise cmdexc.CommandError(str(e))
-        if done:
-            message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
-            question.done()
-
-    @cmdutils.register(instance='prompt-queue', hide=True,
-                       modes=[usertypes.KeyMode.yesno],
-                       deprecated='Use :prompt-accept yes instead!')
-    def prompt_yes(self):
-        """Answer yes to a yes/no prompt."""
-        self.prompt_accept('yes')
-
-    @cmdutils.register(instance='prompt-queue', hide=True,
-                       modes=[usertypes.KeyMode.yesno],
-                       deprecated='Use :prompt-accept no instead!')
-    def prompt_no(self):
-        """Answer no to a yes/no prompt."""
-        self.prompt_accept('no')
-
-    @cmdutils.register(instance='prompt-queue', hide=True,
-                       modes=[usertypes.KeyMode.prompt], maxsplit=0)
-    def prompt_open_download(self, cmdline: str=None):
-        """Immediately open a download.
-
-        If no specific command is given, this will use the system's default
-        application to open the file.
-
-        Args:
-            cmdline: The command which should be used to open the file. A `{}`
-                     is expanded to the temporary file name. If no `{}` is
-                     present, the filename is automatically appended to the
-                     cmdline.
-        """
-        try:
-            self._prompt.download_open(cmdline)
-        except UnsupportedOperationError:
-            pass
-
-    @cmdutils.register(instance='prompt-queue', hide=True,
-                       modes=[usertypes.KeyMode.prompt])
-    @cmdutils.argument('which', choices=['next', 'prev'])
-    def prompt_item_focus(self, which):
-        """Shift the focus of the prompt file completion menu to another item.
-
-        Args:
-            which: 'next', 'prev'
-        """
-        try:
-            self._prompt.item_focus(which)
-        except UnsupportedOperationError:
-            pass
-
     @pyqtSlot(usertypes.Question, bool)
     def ask_question(self, question, blocking):
         """Display a prompt for a given question.
@@ -226,7 +155,7 @@ class PromptQueue(QObject):
             question.abort()
             return None
 
-        if self._prompt is not None and not blocking:
+        if self._question is not None and not blocking:
             # We got an async question, but we're already busy with one, so we
             # just queue it up for later.
             log.prompt.debug("Adding {} to queue.".format(question))
@@ -234,22 +163,12 @@ class PromptQueue(QObject):
             return
 
         if blocking:
-            # If we're blocking we save the old state on the stack, so we can
-            # restore it after exec, if exec gets called multiple times.
-            old_prompt = self._prompt
+            # If we're blocking we save the old question on the stack, so we
+            # can restore it after exec, if exec gets called multiple times.
+            old_question = self._question
 
-        classes = {
-            usertypes.PromptMode.yesno: YesNoPrompt,
-            usertypes.PromptMode.text: LineEditPrompt,
-            usertypes.PromptMode.user_pwd: AuthenticationPrompt,
-            usertypes.PromptMode.download: DownloadFilenamePrompt,
-            usertypes.PromptMode.alert: AlertPrompt,
-        }
-        klass = classes[question.mode]
-
-        prompt = klass(question)
-        self._prompt = prompt
-        self.show_prompt.emit(prompt)
+        self._question = question
+        self.show_prompts.emit(question)
 
         if blocking:
             loop = qtutils.EventLoop()
@@ -258,10 +177,9 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             loop.exec_()
-            self._prompt = prompt
             # FIXME don't we end up connecting modeman signals twice here now?
-            self.show_prompt.emit(old_prompt)
-            if old_prompt is None:
+            self.show_prompts.emit(old_question)
+            if old_question is None:
                 # Nothing left to restore, so we can go back to popping async
                 # questions.
                 if self._queue:
@@ -273,15 +191,12 @@ class PromptQueue(QObject):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
-        # FIXME when is this not the case?
-        if (self._prompt is not None and
-                mode == self._prompt.KEY_MODE):
-            question = self._prompt.question
-            self._prompt = None
-            self.show_prompt.emit(None)
+        if self._question is not None:
+            self.show_prompts.emit(None)
             # FIXME move this somewhere else?
-            if question.answer is None and not question.is_aborted:
-                question.cancel()
+            if self._question.answer is None and not self._question.is_aborted:
+                self._question.cancel()
+            self._question = None
 
 
 class PromptContainer(QWidget):
@@ -323,35 +238,49 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
+        self._prompt = None
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
         style.set_register_stylesheet(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
-        prompt_queue.show_prompt.connect(self._on_show_prompt)
+        prompt_queue.show_prompts.connect(self._on_show_prompts)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
 
-    @pyqtSlot(object)
-    def _on_show_prompt(self, prompt):
-        """Show the given prompt object.
+    @pyqtSlot(usertypes.Question)
+    def _on_show_prompts(self, question):
+        """Show a prompt for the given question.
 
         Args:
-            prompt: A Prompt object or None.
+            question: A Question object or None.
         """
-        # Note that we don't delete the old prompt here, as we might be in the
-        # middle of saving/restoring an old prompt object.
-        # FIXME where is it deleted?
-        self._layout.takeAt(0)
+        item = self._layout.takeAt(0)
         assert self._layout.count() == 0
-        log.prompt.debug("Displaying prompt {}".format(prompt))
-        if prompt is None:
+        if item is not None:
+            item.widget().deleteLater()
+
+        if question is None:
+            self._prompt = None
             self.hide()
             return
 
-        prompt.question.aborted.connect(
+        classes = {
+            usertypes.PromptMode.yesno: YesNoPrompt,
+            usertypes.PromptMode.text: LineEditPrompt,
+            usertypes.PromptMode.user_pwd: AuthenticationPrompt,
+            usertypes.PromptMode.download: DownloadFilenamePrompt,
+            usertypes.PromptMode.alert: AlertPrompt,
+        }
+        klass = classes[question.mode]
+        prompt = klass(question)
+
+        log.prompt.debug("Displaying prompt {}".format(prompt))
+        self._prompt = prompt
+
+        question.aborted.connect(
             lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
                                         'aborted'))
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
@@ -367,6 +296,78 @@ class PromptContainer(QWidget):
     def _on_prompt_done(self, key_mode):
         """Leave the prompt mode in this window if a question was answered."""
         modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
+
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.prompt,
+                              usertypes.KeyMode.yesno])
+    def prompt_accept(self, value=None):
+        """Accept the current prompt.
+
+        //
+
+        This executes the next action depending on the question mode, e.g. asks
+        for the password or leaves the mode.
+
+        Args:
+            value: If given, uses this value instead of the entered one.
+                   For boolean prompts, "yes"/"no" are accepted as value.
+        """
+        question = self._prompt.question
+        try:
+            done = self._prompt.accept(value)
+        except Error as e:
+            raise cmdexc.CommandError(str(e))
+        if done:
+            message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
+            question.done()
+
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.yesno],
+                       deprecated='Use :prompt-accept yes instead!')
+    def prompt_yes(self):
+        """Answer yes to a yes/no prompt."""
+        self.prompt_accept('yes')
+
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.yesno],
+                       deprecated='Use :prompt-accept no instead!')
+    def prompt_no(self):
+        """Answer no to a yes/no prompt."""
+        self.prompt_accept('no')
+
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.prompt], maxsplit=0)
+    def prompt_open_download(self, cmdline: str=None):
+        """Immediately open a download.
+
+        If no specific command is given, this will use the system's default
+        application to open the file.
+
+        Args:
+            cmdline: The command which should be used to open the file. A `{}`
+                     is expanded to the temporary file name. If no `{}` is
+                     present, the filename is automatically appended to the
+                     cmdline.
+        """
+        try:
+            self._prompt.download_open(cmdline)
+        except UnsupportedOperationError:
+            pass
+
+    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+                       modes=[usertypes.KeyMode.prompt])
+    @cmdutils.argument('which', choices=['next', 'prev'])
+    def prompt_item_focus(self, which):
+        """Shift the focus of the prompt file completion menu to another item.
+
+        Args:
+            which: 'next', 'prev'
+        """
+        try:
+            self._prompt.item_focus(which)
+        except UnsupportedOperationError:
+            pass
+
 
 
 class LineEdit(QLineEdit):
