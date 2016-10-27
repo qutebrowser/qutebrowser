@@ -136,7 +136,8 @@ def data(readonly=False):
              "Whether to find text on a page case-insensitively."),
 
             ('startpage',
-             SettingValue(typ.List(typ.String()), 'https://duckduckgo.com'),
+             SettingValue(typ.List(typ.String()),
+                          'https://start.duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
             ('yank-ignored-url-parameters',
