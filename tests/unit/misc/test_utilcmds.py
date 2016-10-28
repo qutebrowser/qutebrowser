@@ -74,11 +74,15 @@ def test_debug_trace(mocker):
     utilcmds.debug_trace(1)
     assert hunter_mock.trace.assert_called_with(1)
 
+def test_debug_trace_exception(mocker):
+    """Check that exceptions thrown by hunter.trace are handled."""
+
     def _mock_exception():
         """Side effect for testing debug_trace's reraise."""
         raise Exception('message')
 
-    hunter_mock.trace.side_effect = Exception
+    hunter_mock = mocker.patch('qutebrowser.misc.utilcmds.hunter')
+    hunter_mock.trace.side_effect = _mock_exception
     with pytest.raises(cmdexc.CommandError) as excinfo:
         utilcmds.debug_trace()
     assert str(excinfo.value) == 'Exception: message'
