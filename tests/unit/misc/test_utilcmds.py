@@ -41,8 +41,9 @@ def _trapped_segv(handler):
 
 def test_debug_crash_exception():
     """Verify that debug_crash crashes as intended."""
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as excinfo:
         utilcmds.debug_crash(typ='exception')
+    assert str(excinfo.value) == 'Forced crash'
 
 
 @pytest.mark.skipif(os.name == 'nt',
@@ -91,8 +92,10 @@ def test_debug_trace_exception(mocker):
 def test_debug_trace_no_hunter(monkeypatch):
     """Test that an error is shown if debug_trace is called without hunter."""
     monkeypatch.setattr(utilcmds, 'hunter', None)
-    with pytest.raises(cmdexc.CommandError):
+    with pytest.raises(cmdexc.CommandError) as excinfo:
         utilcmds.debug_trace()
+    assert str(excinfo.value) == "You need to install 'hunter' to use this " \
+                                 "command!"
 
 
 def test_repeat_command_initial(mocker, mode_manager):
@@ -103,8 +106,9 @@ def test_repeat_command_initial(mocker, mode_manager):
     """
     objreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')
     objreg_mock.get.return_value = mode_manager
-    with pytest.raises(cmdexc.CommandError):
+    with pytest.raises(cmdexc.CommandError) as excinfo:
         utilcmds.repeat_command(win_id=0)
+    assert str(excinfo.value) == "You didn't do anything yet."
 
 
 def test_debug_log_level(mocker):
