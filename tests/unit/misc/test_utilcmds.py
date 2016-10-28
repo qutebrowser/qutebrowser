@@ -75,9 +75,9 @@ def test_debug_trace(mocker):
     utilcmds.debug_trace(1)
     assert hunter_mock.trace.assert_called_with(1)
 
+
 def test_debug_trace_exception(mocker):
     """Check that exceptions thrown by hunter.trace are handled."""
-
     def _mock_exception():
         """Side effect for testing debug_trace's reraise."""
         raise Exception('message')
