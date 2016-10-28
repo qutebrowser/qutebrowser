@@ -633,10 +633,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline):
         self.question.answer = usertypes.OpenFileDownloadTarget(cmdline)
-        # FIXME now we don't have a window ID here...
-        # modeman.maybe_leave(self._win_id, usertypes.KeyMode.prompt,
-        #                     'download open')
         self.question.done()
+        message.global_bridge.prompt_done.emit(self.KEY_MODE)
 
     def _allowed_commands(self):
         cmds = [
