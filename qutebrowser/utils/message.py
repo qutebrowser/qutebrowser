@@ -26,7 +26,7 @@ import traceback
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, utils
 
 
 def _log_stack(typ, stack):

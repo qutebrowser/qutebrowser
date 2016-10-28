@@ -119,7 +119,7 @@ def create_full_filename(basename, filename):
     return None
 
 
-def ask_for_filename(suggested_filename, win_id, *, parent=None,
+def ask_for_filename(suggested_filename, *, parent=None,
                      prompt_download_directory=None):
     """Prepare a question for a download-path.
 
@@ -133,7 +133,6 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
 
     Args:
         suggested_filename: The "default"-name that is pre-entered as path.
-        win_id: The window where the question will be asked.
         parent: The parent of the question (a QObject).
         prompt_download_directory: If this is something else than None, it
                                    will overwrite the
@@ -954,7 +953,7 @@ class DownloadManager(QObject):
 
         # Neither filename nor fileobj were given, prepare a question
         filename, q = ask_for_filename(
-            suggested_filename, self._win_id, parent=self,
+            suggested_filename, parent=self,
             prompt_download_directory=prompt_download_directory,
         )
 

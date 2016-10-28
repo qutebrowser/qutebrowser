@@ -27,8 +27,7 @@ import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QWidgetItem, QFileSystemModel, QTreeView,
-                             QSizePolicy)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.config import style
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
@@ -82,7 +81,8 @@ class PromptQueue(QObject):
         _question: The current Question object if we're handling a question.
 
     Signals:
-        show_prompts: Emitted with a Question object when prompts should be shown.
+        show_prompts: Emitted with a Question object when prompts should be
+                      shown.
     """
 
     show_prompts = pyqtSignal(usertypes.Question)
@@ -393,7 +393,6 @@ class PromptContainer(QWidget):
             self._prompt.item_focus(which)
         except UnsupportedOperationError:
             pass
-
 
 
 class LineEdit(QLineEdit):
@@ -774,6 +773,7 @@ class AlertPrompt(_BasePrompt):
 
 
 def init():
+    """Initialize global prompt objects."""
     global prompt_queue
     prompt_queue = PromptQueue()
     objreg.register('prompt-queue', prompt_queue)  # for commands
