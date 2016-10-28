@@ -646,10 +646,7 @@ class Quitter:
             session_manager.save(sessions.default, last_window=last_window,
                                  load_next_time=True)
 
-        deferrer = False
         if prompt.prompt_queue.shutdown():
-            deferrer = True
-        if deferrer:
             # If shutdown was called while we were asking a question, we're in
             # a still sub-eventloop (which gets quit now) and not in the main
             # one.
