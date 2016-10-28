@@ -175,6 +175,9 @@ class MainWindow(QWidget):
 
         self._init_completion()
 
+        log.init.debug("Initializing modes...")
+        modeman.init(self.win_id, self)
+
         self._commandrunner = runners.CommandRunner(self.win_id,
                                                     partial_match=True)
 
@@ -190,9 +193,6 @@ class MainWindow(QWidget):
         objreg.register('prompt-container', self._prompt_container,
                         scope='window', window=self.win_id)
         self._prompt_container.hide()
-
-        log.init.debug("Initializing modes...")
-        modeman.init(self.win_id, self)
 
         if geometry is not None:
             self._load_geometry(geometry)
@@ -397,7 +397,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(status.on_mode_entered)
         mode_manager.left.connect(status.on_mode_left)
         mode_manager.left.connect(cmd.on_mode_left)
-        mode_manager.left.connect(prompt.prompt_queue.on_mode_left)
+        mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(

@@ -93,6 +93,7 @@ class PromptQueue(QObject):
         self._shutting_down = False
         self._loops = []
         self._queue = collections.deque()
+        message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):
         return utils.get_repr(self, loops=len(self._loops),
@@ -198,14 +199,15 @@ class PromptQueue(QObject):
             question.completed.connect(self._pop_later)
 
     @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
-        """Clear and reset input when the mode was left."""
+    def _on_mode_left(self, mode):
+        """Abort question when a mode was left."""
         if self._question is not None:
             log.prompt.debug("Left mode {}, hiding {}".format(
                 mode, self._question))
             self.show_prompts.emit(None)
-            # FIXME move this somewhere else?
             if self._question.answer is None and not self._question.is_aborted:
+                log.prompt.debug("Cancelling {} because {} was left".format(
+                    self._question, mode))
                 self._question.cancel()
             self._question = None
 
@@ -257,6 +259,7 @@ class PromptContainer(QWidget):
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)
+        message.global_bridge.mode_left.connect(self._on_global_mode_left)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
@@ -307,6 +310,18 @@ class PromptContainer(QWidget):
     def _on_prompt_done(self, key_mode):
         """Leave the prompt mode in this window if a question was answered."""
         modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
+
+    @pyqtSlot(usertypes.KeyMode)
+    def _on_global_mode_left(self, mode):
+        """Leave prompt/yesno mode in this window if it was left elsewhere.
+
+        PromptQueue takes care of getting rid of the question if a mode was
+        left, but if that happens in a different window, this window will still
+        be stuck in prompt mode. Here we make sure to leave that if it was left
+        anywhere else.
+        """
+        if mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
+            modeman.maybe_leave(self._win_id, mode, 'left in other window')
 
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt,

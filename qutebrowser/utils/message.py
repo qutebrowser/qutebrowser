@@ -170,11 +170,13 @@ class GlobalMessageBridge(QObject):
 
                       IMPORTANT: Slots need to be connected to this signal via
                                  a Qt.DirectConnection!
+        mode_left: Emitted when a keymode was left in any window.
     """
 
     show_message = pyqtSignal(usertypes.MessageLevel, str)
     prompt_done = pyqtSignal(usertypes.KeyMode)
     ask_question = pyqtSignal(usertypes.Question, bool)
+    mode_left = pyqtSignal(usertypes.KeyMode)
 
     def ask(self, question, blocking, *, log_stack=False):
         """Ask a question to the user.
