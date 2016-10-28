@@ -538,16 +538,9 @@ class FilenamePrompt(_BasePrompt):
         path.rstrip(separators)
 
         try:
-            if os.path.isdir(path):
-                path = path
-            elif os.path.isdir(os.path.basename(path)):
-                path = os.path.basename(path)
-            else:
-                path = None
+            if not os.path.isdir(path):
+                return
         except OSError:
-            path = None
-
-        if path is None:
             return
 
         root = self._file_model.setRootPath(path)
