@@ -339,6 +339,7 @@ class Question(QObject):
         text: The prompt text to display to the user.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
+        interrupted: Whether the question was interrupted by another one.
 
     Signals:
         answered: Emitted when the question has been answered by the user.
@@ -368,6 +369,7 @@ class Question(QObject):
         self.text = None
         self.answer = None
         self.is_aborted = False
+        self.interrupted = False
 
     def __repr__(self):
         return utils.get_repr(self, title=self.title, text=self.text,

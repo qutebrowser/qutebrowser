@@ -170,6 +170,8 @@ class PromptQueue(QObject):
             log.prompt.debug("New question is blocking, saving {}".format(
                 self._question))
             old_question = self._question
+            if old_question is not None:
+                old_question.interrupted = True
 
         self._question = question
         self.show_prompts.emit(question)
@@ -184,7 +186,6 @@ class PromptQueue(QObject):
             loop.exec_()
             log.prompt.debug("Ending loop.exec_() for {}".format(question))
 
-            # FIXME don't we end up connecting modeman signals twice here now?
             log.prompt.debug("Restoring old question {}".format(old_question))
             self._question = old_question
             self.show_prompts.emit(old_question)
@@ -294,9 +295,11 @@ class PromptContainer(QWidget):
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
 
-        question.aborted.connect(
-            lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
-                                        'aborted'))
+        if not question.interrupted:
+            # If this question was interrupted, we already connected the signal
+            question.aborted.connect(
+                lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
+                                            'aborted'))
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
 
         self.setSizePolicy(prompt.sizePolicy())
