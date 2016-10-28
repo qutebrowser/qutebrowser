@@ -1355,9 +1355,7 @@ class CommandDispatcher:
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
-            filename, q = downloads.ask_for_filename(
-                suggested_fn, self._win_id, parent=tab,
-            )
+            filename, q = downloads.ask_for_filename(suggested_fn, parent=tab)
             if filename is not None:
                 mhtml.start_download_checked(filename, tab=tab)
             else:
