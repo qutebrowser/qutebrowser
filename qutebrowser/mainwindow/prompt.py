@@ -122,6 +122,7 @@ class PromptQueue(QObject):
             True if loops needed to be aborted,
             False otherwise.
         """
+        log.prompt.debug("Shutting down with loops {}".format(self._loops))
         self._shutting_down = True
         if self._loops:
             for loop in self._loops:
@@ -165,6 +166,8 @@ class PromptQueue(QObject):
         if blocking:
             # If we're blocking we save the old question on the stack, so we
             # can restore it after exec, if exec gets called multiple times.
+            log.prompt.debug("New question is blocking, saving {}".format(
+                self._question))
             old_question = self._question
 
         self._question = question
@@ -176,8 +179,11 @@ class PromptQueue(QObject):
             loop.destroyed.connect(lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
+            log.prompt.debug("Starting loop.exec_() for {}".format(question))
             loop.exec_()
+            log.prompt.debug("Ending loop.exec_() for {}".format(question))
             # FIXME don't we end up connecting modeman signals twice here now?
+            log.prompt.debug("Restoring old question {}".format(old_question))
             self.show_prompts.emit(old_question)
             if old_question is None:
                 # Nothing left to restore, so we can go back to popping async
@@ -192,6 +198,8 @@ class PromptQueue(QObject):
     def on_mode_left(self, mode):
         """Clear and reset input when the mode was left."""
         if self._question is not None:
+            log.prompt.debug("Left mode {}, hiding {}".format(
+                mode, self._question))
             self.show_prompts.emit(None)
             # FIXME move this somewhere else?
             if self._question.answer is None and not self._question.is_aborted:
