@@ -182,14 +182,17 @@ class PromptQueue(QObject):
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
             loop.exec_()
             log.prompt.debug("Ending loop.exec_() for {}".format(question))
+
             # FIXME don't we end up connecting modeman signals twice here now?
             log.prompt.debug("Restoring old question {}".format(old_question))
+            self._question = old_question
             self.show_prompts.emit(old_question)
             if old_question is None:
                 # Nothing left to restore, so we can go back to popping async
                 # questions.
                 if self._queue:
                     self._pop_later()
+
             return question.answer
         else:
             question.completed.connect(self._pop_later)
