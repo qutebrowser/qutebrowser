@@ -529,9 +529,13 @@ class FilenamePrompt(_BasePrompt):
     @pyqtSlot(str)
     def _set_fileview_root(self, path):
         """Set the root path for the file display."""
-        if not path.endswith('/') or path == '/':
+        separators = os.sep
+        if os.altsep is not None:
+            separators += os.altsep
+
+        if path == '/' or (path and path[-1] not in separators):
             return
-        path.rstrip('/')
+        path.rstrip(separators)
 
         try:
             if os.path.isdir(path):
