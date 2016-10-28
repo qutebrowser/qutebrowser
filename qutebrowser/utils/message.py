@@ -110,7 +110,7 @@ def ask(*args, **kwargs):
     return answer
 
 
-def ask_async(text, mode, handler, **kwargs):
+def ask_async(title, mode, handler, **kwargs):
     """Ask an async question in the statusbar.
 
     Args:
@@ -120,7 +120,7 @@ def ask_async(text, mode, handler, **kwargs):
         default: The default value to display.
         text: Additional text to show.
     """
-    question = _build_question(text, mode=mode, **kwargs)
+    question = _build_question(title, mode=mode, **kwargs)
     question.answered.connect(handler)
     question.completed.connect(question.deleteLater)
     global_bridge.ask(question, blocking=False)

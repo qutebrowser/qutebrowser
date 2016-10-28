@@ -28,6 +28,7 @@ import shutil
 import functools
 import tempfile
 import collections
+import html
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
@@ -119,7 +120,7 @@ def create_full_filename(basename, filename):
     return None
 
 
-def ask_for_filename(suggested_filename, *, parent=None,
+def ask_for_filename(suggested_filename, *, url, parent=None,
                      prompt_download_directory=None):
     """Prepare a question for a download-path.
 
@@ -133,6 +134,7 @@ def ask_for_filename(suggested_filename, *, parent=None,
 
     Args:
         suggested_filename: The "default"-name that is pre-entered as path.
+        url: The URL the download originated from.
         parent: The parent of the question (a QObject).
         prompt_download_directory: If this is something else than None, it
                                    will overwrite the
@@ -150,6 +152,8 @@ def ask_for_filename(suggested_filename, *, parent=None,
 
     q = usertypes.Question(parent)
     q.title = "Save file to:"
+    q.text = "Please enter a location for <b>{}</b>".format(
+        html.escape(url.toDisplayString()))
     q.mode = usertypes.PromptMode.text
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
@@ -604,13 +608,14 @@ class DownloadItem(QObject):
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            txt = self._filename + " already exists. Overwrite?"
+            txt = "<b>{}</b> already exists. Overwrite?".format(
+                html.escape(self._filename))
             self._ask_confirm_question("Overwrite existing file?", txt)
         # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and
               not os.path.isdir(self._filename)):
-            txt = (self._filename + " already exists and is a special file. "
-                   "Write to this?")
+            txt = ("<b>{}</b> already exists and is a special file. Write to "
+                   "it anyways?".format(html.escape(self._filename)))
             self._ask_confirm_question("Overwrite special file?", txt)
         else:
             self._create_fileobj()
@@ -955,7 +960,7 @@ class DownloadManager(QObject):
         filename, q = ask_for_filename(
             suggested_filename, parent=self,
             prompt_download_directory=prompt_download_directory,
-        )
+            url=reply.url())
 
         # User doesn't want to be asked, so just use the download_dir
         if filename is not None:

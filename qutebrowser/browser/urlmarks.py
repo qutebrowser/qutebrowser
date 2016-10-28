@@ -26,6 +26,7 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
 import os
+import html
 import os.path
 import functools
 import collections
@@ -171,7 +172,9 @@ class QuickmarkManager(UrlMarkManager):
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         message.ask_async(
             "Add quickmark:", usertypes.PromptMode.text,
-            functools.partial(self.quickmark_add, urlstr))
+            functools.partial(self.quickmark_add, urlstr),
+            text="Please enter a quickmark name for<br/><b>{}</b>".format(
+                html.escape(url.toDisplayString())))
 
     @cmdutils.register(instance='quickmark-manager')
     def quickmark_add(self, url, name):

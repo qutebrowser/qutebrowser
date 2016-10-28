@@ -22,6 +22,7 @@
 import os
 import collections
 import netrc
+import html
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
@@ -279,7 +280,15 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         if ssl_strict == 'ask':
-            err_string = '\n'.join('- ' + err.errorString() for err in errors)
+            err_list = []
+            for err in errors:
+                err_list.append('<li>{}</li>'.format(
+                    html.escape(err.errorString())))
+            err_string = ("Errors while loading <b>{}</b>:<br>"
+                          "<ul>{}</ul>".format(
+                              html.escape(reply.url().toDisplayString()),
+                              '\n'.join(err_list)))
+
             answer = self._ask('SSL errors - continue?', err_string,
                                mode=usertypes.PromptMode.yesno, owner=reply,
                                default=False)
@@ -340,9 +349,11 @@ class NetworkManager(QNetworkAccessManager):
 
         if user is None:
             # netrc check failed
+            msg = '<b>{}</b> says:<br/>{}'.format(
+                html.escape(reply.url().toDisplayString()),
+                html.escape(authenticator.realm()))
             answer = self._ask("Authentication required",
-                               authenticator.realm(),
-                               mode=usertypes.PromptMode.user_pwd,
+                               text=msg, mode=usertypes.PromptMode.user_pwd,
                                owner=reply)
             if answer is not None:
                 user, password = answer.user, answer.password
@@ -359,8 +370,11 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
         else:
+            msg = '<b>{}</b> says:<br/>{}'.format(
+                html.escape(proxy.hostName()),
+                html.escape(authenticator.realm()))
             answer = self._ask(
-                "Proxy authentication required", authenticator.realm(),
+                "Proxy authentication required", msg,
                 mode=usertypes.PromptMode.user_pwd)
             if answer is not None:
                 authenticator.setUser(answer.user)

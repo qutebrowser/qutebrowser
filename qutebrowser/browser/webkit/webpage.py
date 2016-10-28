@@ -19,6 +19,7 @@
 
 """The main browser widgets."""
 
+import html
 import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint
@@ -93,11 +94,14 @@ class BrowserPage(QWebPage):
         # of a bug in PyQt.
         # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
 
-        def javaScriptPrompt(self, _frame, msg, default):
+        def javaScriptPrompt(self, _frame, js_msg, default):
             """Override javaScriptPrompt to use the statusbar."""
             if (self._is_shutting_down or
                     config.get('content', 'ignore-javascript-prompt')):
                 return (False, "")
+            msg = '<b>{}</b> asks:<br/>{}'.format(
+                html.escape(self.mainFrame().url().toDisplayString()),
+                html.escape(js_msg))
             answer = message.ask('Javascript prompt', msg,
                                  mode=usertypes.PromptMode.text,
                                  default=default,
@@ -140,7 +144,8 @@ class BrowserPage(QWebPage):
             scheme = url.scheme()
             message.confirm_async(
                 title="Open external application for {}-link?".format(scheme),
-                text="URL: {}".format(url.toDisplayString()),
+                text="URL: <b>{}</b>".format(
+                    html.escape(url.toDisplayString())),
                 yes_action=functools.partial(QDesktopServices.openUrl, url))
             return True
         elif (info.domain, info.error) in ignored_errors:
@@ -171,11 +176,11 @@ class BrowserPage(QWebPage):
             log.webview.debug("Error domain: {}, error code: {}".format(
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
-            html = jinja.render(
+            error_html = jinja.render(
                 'error.html',
                 title=title, url=urlstr, error=error_str, icon='',
                 qutescheme=False)
-            errpage.content = html.encode('utf-8')
+            errpage.content = error_html.encode('utf-8')
             errpage.encoding = 'utf-8'
             return True
 
@@ -320,8 +325,8 @@ class BrowserPage(QWebPage):
 
             host = frame.url().host()
             if host:
-                text = "Allow the website at {} to {}?".format(
-                    frame.url().host(), msgs[feature])
+                text = "Allow the website at <b>{}</b> to {}?".format(
+                    html.escape(frame.url().toDisplayString()), msgs[feature])
             else:
                 text = "Allow the website to {}?".format(msgs[feature])
 
@@ -442,26 +447,34 @@ class BrowserPage(QWebPage):
             return super().extension(ext, opt, out)
         return handler(opt, out)
 
-    def javaScriptAlert(self, frame, msg):
+    def javaScriptAlert(self, frame, js_msg):
         """Override javaScriptAlert to use the statusbar."""
-        log.js.debug("alert: {}".format(msg))
+        log.js.debug("alert: {}".format(js_msg))
         if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptAlert(frame, msg)
+            return super().javaScriptAlert(frame, js_msg)
 
         if (self._is_shutting_down or
                 config.get('content', 'ignore-javascript-alert')):
             return
+
+        msg = 'From <b>{}</b>:<br/>{}'.format(
+            html.escape(self.mainFrame().url().toDisplayString()),
+            html.escape(js_msg))
         message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                     abort_on=[self.loadStarted, self.shutting_down])
 
-    def javaScriptConfirm(self, frame, msg):
+    def javaScriptConfirm(self, frame, js_msg):
         """Override javaScriptConfirm to use the statusbar."""
-        log.js.debug("confirm: {}".format(msg))
+        log.js.debug("confirm: {}".format(js_msg))
         if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptConfirm(frame, msg)
+            return super().javaScriptConfirm(frame, js_msg)
 
         if self._is_shutting_down:
             return False
+
+        msg = 'From <b>{}</b>:<br/>{}'.format(
+            html.escape(self.mainFrame().url().toDisplayString()),
+            html.escape(js_msg))
         ans = message.ask('Javascript confirm', msg,
                           mode=usertypes.PromptMode.yesno,
                           abort_on=[self.loadStarted, self.shutting_down])

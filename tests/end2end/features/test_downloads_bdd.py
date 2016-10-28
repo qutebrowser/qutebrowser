@@ -31,7 +31,7 @@ pytestmark = pytest.mark.qtwebengine_todo("Downloads not implemented yet",
 
 
 PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
-              "default={!r} mode=<PromptMode.download: 5> text=None "
+              "default={!r} mode=<PromptMode.download: 5> text=* "
               "title='Save file to:'>, *")
 
 
