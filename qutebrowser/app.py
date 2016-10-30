@@ -47,8 +47,7 @@ from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import urlmarks, adblock, history, browsertab
 from qutebrowser.browser.webkit import cookies, cache, downloads
-from qutebrowser.browser.webkit.network import (webkitqutescheme, proxy,
-                                                networkmanager)
+from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit)
@@ -399,10 +398,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing sessions...")
     sessions.init(qApp)
 
-    log.init.debug("Initializing js-bridge...")
-    js_bridge = webkitqutescheme.JSBridge(qApp)
-    objreg.register('js-bridge', js_bridge)
-
     log.init.debug("Initializing websettings...")
     websettings.init()
 
@@ -418,9 +413,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing bookmarks...")
     bookmark_manager = urlmarks.BookmarkManager(qApp)
     objreg.register('bookmark-manager', bookmark_manager)
-
-    log.init.debug("Initializing proxy...")
-    proxy.init()
 
     log.init.debug("Initializing cookies...")
     cookie_jar = cookies.CookieJar(qApp)
@@ -716,7 +708,6 @@ class Quitter:
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
         # Delete temp download dir
-        objreg.get('temporary-downloads').cleanup()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)

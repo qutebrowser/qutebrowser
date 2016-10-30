@@ -26,19 +26,27 @@ import xml.etree.ElementTree
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
+from qutebrowser.browser.webkit import webview, tabhistory, webkitelem, cache
+from qutebrowser.browser.webkit.network import proxy, webkitqutescheme
+from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, standarddir
 
 
 def init():
     """Initialize QtWebKit-specific modules."""
-    # FIXME:qtwebengine Move things we don't need with QtWebEngine here.
-    pass
+    qapp = QApplication.instance()
+
+    log.init.debug("Initializing proxy...")
+    proxy.init()
+
+    log.init.debug("Initializing js-bridge...")
+    js_bridge = webkitqutescheme.JSBridge(qapp)
+    objreg.register('js-bridge', js_bridge)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
