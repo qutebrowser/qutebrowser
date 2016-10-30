@@ -20,7 +20,8 @@
 """Misc. utility commands exposed to the user."""
 
 import functools
-import types
+import os
+import signal
 import traceback
 
 try:
@@ -142,10 +143,7 @@ def debug_crash(typ='exception'):
         typ: either 'exception' or 'segfault'.
     """
     if typ == 'segfault':
-        # From python's Lib/test/crashers/bogus_code_obj.py
-        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
-                            '', '', 1, b'')
-        exec(co)
+        os.kill(os.getpid(), signal.SIGSEGV)
         raise Exception("Segfault failed (wat.)")
     else:
         raise Exception("Forced crash")
@@ -173,12 +171,15 @@ def debug_console():
     try:
         con_widget = objreg.get('debug-console')
     except KeyError:
+        log.misc.debug('initializing debug console')
         con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
 
     if con_widget.isVisible():
+        log.misc.debug('hiding debug console')
         con_widget.hide()
     else:
+        log.misc.debug('showing debug console')
         con_widget.show()
 
 

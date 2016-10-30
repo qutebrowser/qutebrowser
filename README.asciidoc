@@ -155,6 +155,7 @@ Contributors, sorted by the number of commits in descending order:
 * Alexander Cogneau
 * Felix Van der Jeugt
 * Martin Tournoij
+* Daniel Karbach
 * Raphael Pierzina
 * Kevin Velghe
 * Joel Torstensson
@@ -163,7 +164,6 @@ Contributors, sorted by the number of commits in descending order:
 * Claude
 * Corentin Julé
 * meles5
-* Daniel Karbach
 * Philipp Hansch
 * Panagiotis Ktistakis
 * Artur Shaik
