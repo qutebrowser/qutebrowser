@@ -406,6 +406,8 @@ def qt_message_handler(msg_type, context, msg):
             "Chromium-based browser to ",
         # https://github.com/The-Compiler/qutebrowser/issues/1287
         "QXcbClipboard: SelectionRequest too old",
+        # https://github.com/The-Compiler/qutebrowser/issues/2071
+        'QXcbWindow: Unhandled client message: ""',
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [
