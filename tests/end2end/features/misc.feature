@@ -45,20 +45,6 @@ Feature: Various utility commands.
         When I run :set-cmd-text foo
         Then the error "Invalid command text 'foo'." should be shown
 
-    ## :message-*
-
-    Scenario: :message-error
-        When I run :message-error "Hello World"
-        Then the error "Hello World" should be shown
-
-    Scenario: :message-info
-        When I run :message-info "Hello World"
-        Then the message "Hello World" should be shown
-
-    Scenario: :message-warning
-        When I run :message-warning "Hello World"
-        Then the warning "Hello World" should be shown
-
     ## :jseval
 
     Scenario: :jseval
@@ -242,16 +228,6 @@ Feature: Various utility commands.
         And I run :view-source
         And I run :view-source
         Then the error "Already viewing source!" should be shown
-
-    # :debug-console
-
-    @no_xvfb
-    Scenario: :debug-console smoke test
-        When I run :debug-console
-        And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log
-        And I run :debug-console
-        And I wait for "Focus object changed: *" in the log
-        Then no crash should happen
 
     # :help
 
@@ -496,31 +472,6 @@ Feature: Various utility commands.
         Then qute://log?level=error should be loaded
         And the page should contain the plaintext "No messages to show."
 
-    Scenario: Using :debug-log-capacity
-        When I run :debug-log-capacity 100
-        And I run :message-info oldstuff
-        And I run :repeat 20 message-info otherstuff
-        And I run :message-info newstuff
-        And I open qute:log
-        Then the page should contain the plaintext "newstuff"
-        And the page should not contain the plaintext "oldstuff"
-
-   Scenario: Using :debug-log-capacity with negative capacity
-       When I run :debug-log-capacity -1
-       Then the error "Can't set a negative log capacity!" should be shown
-
-    # :debug-log-level / :debug-log-filter
-    # Other :debug-log-{level,filter} features are tested in
-    # unit/utils/test_log.py as using them would break end2end tests.
-
-    Scenario: Using debug-log-level with invalid level
-        When I run :debug-log-level hello
-        Then the error "level: Invalid value hello - expected one of: vdebug, debug, info, warning, error, critical" should be shown
-
-    Scenario: Using debug-log-filter with invalid filter
-        When I run :debug-log-filter blah
-        Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
-
     ## https://github.com/The-Compiler/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
@@ -560,51 +511,6 @@ Feature: Various utility commands.
         And I open data/javascript/localstorage.html
         And I set general -> private-browsing to false
         Then the page should contain the plaintext "Local storage status: not working"
-
-    Scenario: :repeat-command
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down
-        And I run :repeat-command
-        And I run :scroll up
-        Then the page should be scrolled vertically
-
-    Scenario: :repeat-command with count
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 3
-        And I wait until the scroll position changed
-        And I run :scroll up
-        And I wait until the scroll position changed
-        And I run :repeat-command with count 2
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
-
-    Scenario: :repeat-command with not-normal command inbetween
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 3
-        And I wait until the scroll position changed
-        And I run :scroll up
-        And I wait until the scroll position changed
-        And I run :prompt-accept
-        And I run :repeat-command with count 2
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
-        And the error "prompt-accept: This command is only allowed in prompt/yesno mode, not normal." should be shown
-
-    @qtwebengine_createWindow
-    Scenario: :repeat-command with mode-switching command
-        Given I open data/hints/link_blank.html
-        And I run :tab-only
-        When I hint with args "all"
-        And I run :leave-mode
-        And I run :repeat-command
-        And I run :follow-hint a
-        And I wait until data/hello.txt is loaded
-        Then the following tabs should be open:
-            - data/hints/link_blank.html
-            - data/hello.txt (active)
 
     Scenario: Using 0 as count
         When I run :scroll down with count 0
@@ -723,13 +629,3 @@ Feature: Various utility commands.
         And I run :command-accept
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
-
-    ## :run-with-count
-
-    Scenario: :run-with-count
-        When I run :run-with-count 2 scroll down
-        Then "command called: scroll ['down'] (count=2)" should be logged
-
-    Scenario: :run-with-count with count
-        When I run :run-with-count 2 scroll down with count 3
-        Then "command called: scroll ['down'] (count=6)" should be logged

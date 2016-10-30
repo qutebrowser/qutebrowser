@@ -92,6 +92,12 @@ class BaseLineParser(QObject):
 
         Args:
             mode: The mode to use ('a'/'r'/'w')
+
+        Raises:
+            IOError: if the file is already open
+
+        Yields:
+            a file object for the config file
         """
         assert self._configfile is not None
         if self._opened:
