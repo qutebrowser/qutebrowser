@@ -171,12 +171,12 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Austin Anderson
 * Jimmy
+* Spreadyy
 * Niklas Haas
 * Alexey "Averrin" Nabrodov
 * nanjekyejoannah
 * avk
 * ZDarian
-* Spreadyy
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
 * Clayton Craft
