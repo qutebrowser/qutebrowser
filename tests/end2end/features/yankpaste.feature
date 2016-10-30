@@ -263,8 +263,10 @@ Feature: Yanking and pasting.
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         And I run :insert-text Hello world
+        And I press the keys "<Ctrl+a>"
+        And I run :yank selection
         # Compare
-        Then the javascript message "textarea contents: Hello world" should be logged
+        Then the clipboard should contain "Hello world"
 
     Scenario: Inserting text into a text field at specific position
         When I set general -> log-javascript-console to info
