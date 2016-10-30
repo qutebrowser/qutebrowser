@@ -265,6 +265,7 @@ Feature: Yanking and pasting.
         And I run :insert-text Hello world
         And I press the keys "<Ctrl+a>"
         And I run :yank selection
+        And I set content -> allow-javascript to true
         # Compare
         Then the clipboard should contain "Hello world"
 
