@@ -528,10 +528,6 @@ class WebEngineTab(browsertab.AbstractTab):
             else:
                 self._widget.page().runJavaScript(code, callback)
 
-    def has_js(self):
-        # QtWebEngine can run JS even if the page can't
-        return True
-
     def shutdown(self):
         log.stub()
 

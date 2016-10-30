@@ -761,10 +761,6 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def has_js(self):
-        """Check if qutebrowser can run javascript in this tab."""
-        raise NotImplementedError
-
     def shutdown(self):
         raise NotImplementedError
 
