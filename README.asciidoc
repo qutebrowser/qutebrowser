@@ -189,11 +189,11 @@ Contributors, sorted by the number of commits in descending order:
 * error800
 * Michael Hoang
 * Liam BEGUIN
+* Julie Engel
 * skinnay
 * Zach-Button
 * Tomasz Kramkowski
 * Peter Rice
-* Julie Engel
 * Ismail S
 * Halfwit
 * David Vogt
