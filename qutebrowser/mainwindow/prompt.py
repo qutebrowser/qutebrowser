@@ -447,7 +447,8 @@ class _BasePrompt(QWidget):
 
     def _init_title(self, question):
         assert question.title is not None, question
-        title = '<font size="4"><b>{}</b></font>'.format(question.title)
+        title = '<font size="4"><b>{}</b></font>'.format(
+            html.escape(question.title))
         title_label = QLabel(title, self)
         self._vbox.addWidget(title_label)
         if question.text is not None:
