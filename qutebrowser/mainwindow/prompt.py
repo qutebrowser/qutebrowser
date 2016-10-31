@@ -522,7 +522,6 @@ class LineEditPrompt(_BasePrompt):
         return True
 
     def _allowed_commands(self):
-        """Get the commands we could run as response to this message."""
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
 
 
@@ -631,7 +630,6 @@ class FilenamePrompt(_BasePrompt):
         self._insert_path(idx, clicked=False)
 
     def _allowed_commands(self):
-        """Get the commands we could run as response to this message."""
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
 
 
