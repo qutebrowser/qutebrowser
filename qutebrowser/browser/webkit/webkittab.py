@@ -32,9 +32,9 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webkitelem, cache
+from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.browser.webkit.network import proxy, webkitqutescheme
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, standarddir
+from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
 
 
 def init():
