@@ -536,11 +536,11 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(question.default)
 
         self._lineedit = LineEdit(self)
+        if question.default:
+            self._lineedit.setText(question.default)
         self._lineedit.textChanged.connect(self._set_fileview_root)
         self._vbox.addWidget(self._lineedit)
 
-        if question.default:
-            self._lineedit.setText(question.default)
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
