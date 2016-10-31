@@ -260,10 +260,10 @@ Feature: Yanking and pasting.
         When I set general -> log-javascript-console to info
         And I set content -> allow-javascript to false
         And I open data/paste_primary.html
-        And I run :jseval document.getElementById('qute-textarea').addEventListener('input', function() { console.log("textarea contents: " + document.getElementById('qute-textarea').value); });
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         And I run :insert-text Hello world
+        And I run :jseval console.log("textarea contents: " + document.getElementById('qute-textarea').value);
         # Enable javascript again for the other tests
         And I set content -> allow-javascript to true
         # Compare
