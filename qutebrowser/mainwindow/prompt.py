@@ -581,6 +581,7 @@ class FilenamePrompt(_BasePrompt):
         path = os.path.normpath(os.path.join(*reversed(parts)))
         if clicked:
             path += os.sep
+
         log.prompt.debug('Clicked {!r} -> {}'.format(parts, path))
         self._lineedit.setText(path)
         self._lineedit.setFocus()
