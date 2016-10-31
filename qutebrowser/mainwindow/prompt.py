@@ -452,6 +452,7 @@ class _BasePrompt(QWidget):
         title_label = QLabel(title, self)
         self._vbox.addWidget(title_label)
         if question.text is not None:
+            # Not doing any HTML escaping here as the text can be formatted
             text_label = QLabel(question.text)
             self._vbox.addWidget(text_label)
 
