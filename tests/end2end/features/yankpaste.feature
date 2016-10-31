@@ -260,14 +260,14 @@ Feature: Yanking and pasting.
         When I set general -> log-javascript-console to info
         And I set content -> allow-javascript to false
         And I open data/paste_primary.html
+        And I run :jseval document.getElementById('qute-textarea').addEventListener('input', function() { console.log("textarea contents: " + document.getElementById('qute-textarea').value); });
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         And I run :insert-text Hello world
-        And I press the keys "<Ctrl+a>"
-        And I run :yank selection
+        # Enable javascript again for the other tests
         And I set content -> allow-javascript to true
         # Compare
-        Then the clipboard should contain "Hello world"
+        Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into a text field at specific position
         When I set general -> log-javascript-console to info
