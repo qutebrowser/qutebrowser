@@ -784,7 +784,7 @@ class AlertPrompt(_BasePrompt):
     def accept(self, value=None):
         if value is not None:
             raise Error("No value is permitted with alert prompts!")
-        # Doing nothing otherwise
+        # Simply mark prompt as done without setting self.question.answer
         return True
 
     def _allowed_commands(self):
