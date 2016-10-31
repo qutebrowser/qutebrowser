@@ -445,7 +445,7 @@ class _BasePrompt(QWidget):
     def __repr__(self):
         return utils.get_repr(self, question=self.question, constructor=True)
 
-    def _init_title(self, question):
+    def _init_texts(self, question):
         assert question.title is not None, question
         title = '<font size="4"><b>{}</b></font>'.format(
             html.escape(question.title))
@@ -508,7 +508,7 @@ class LineEditPrompt(_BasePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._lineedit = LineEdit(self)
-        self._init_title(question)
+        self._init_texts(question)
         self._vbox.addWidget(self._lineedit)
         if question.default:
             self._lineedit.setText(question.default)
@@ -531,7 +531,7 @@ class FilenamePrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question)
+        self._init_texts(question)
         self._init_fileview()
         self._set_fileview_root(question.default)
 
@@ -667,7 +667,7 @@ class AuthenticationPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question)
+        self._init_texts(question)
 
         user_label = QLabel("Username:", self)
         self._user_lineedit = LineEdit(self)
@@ -727,7 +727,7 @@ class YesNoPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question)
+        self._init_texts(question)
         self._init_key_label()
 
     def accept(self, value=None):
@@ -764,7 +764,7 @@ class AlertPrompt(_BasePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._init_title(question)
+        self._init_texts(question)
         self._init_key_label()
 
     def accept(self, value=None):
