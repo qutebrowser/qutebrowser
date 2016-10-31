@@ -144,7 +144,7 @@ class ObjectRegistry(collections.UserDict):
         """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
-            if not sip.isdeleted(obj):
+            if not (isinstance(obj, QObject) and sip.isdeleted(obj)):
                 lines.append("{}: {}".format(name, repr(obj)))
         return lines
 
