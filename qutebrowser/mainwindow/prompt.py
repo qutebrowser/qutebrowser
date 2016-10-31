@@ -599,6 +599,11 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setHeaderHidden(True)
         for col in range(1, 4):
             self._file_view.setColumnHidden(col, True)
+        # Nothing selected initially
+        self._file_view.setCurrentIndex(QModelIndex())
+        # The model needs to be sorted so we get the correct first/last index
+        self._file_model.directoryLoaded.connect(
+            lambda: self._file_model.sort(0))
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
@@ -610,18 +615,27 @@ class FilenamePrompt(_BasePrompt):
         assert which in ['prev', 'next'], which
         selmodel = self._file_view.selectionModel()
 
-        first_index = self._file_model.index(0, 0)
-        last_index = self._file_model.index(self._file_model.rowCount() - 1, 0)
+        parent = self._file_view.rootIndex()
+        first_index = self._file_model.index(0, 0, parent)
+        row = self._file_model.rowCount(parent) - 1
+        last_index = self._file_model.index(row, 0, parent)
+
+        if not first_index.isValid():
+            # No entries
+            return
+
+        assert last_index.isValid()
 
         idx = selmodel.currentIndex()
         if not idx.isValid():
             # No item selected yet
             idx = last_index if which == 'prev' else first_index
-
-        if which == 'prev':
+        elif which == 'prev':
             idx = self._file_view.indexAbove(idx)
         else:
+            assert which == 'next', which
             idx = self._file_view.indexBelow(idx)
+
         # wrap around if we arrived at beginning/end
         if not idx.isValid():
             idx = last_index if which == 'prev' else first_index
