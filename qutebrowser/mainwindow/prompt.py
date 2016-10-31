@@ -573,16 +573,11 @@ class FilenamePrompt(_BasePrompt):
             index: The QModelIndex of the selected element.
             clicked: Whether the element was clicked.
         """
-        parts = []
-        cur = index
-        while cur.isValid():
-            parts.append(cur.data())
-            cur = cur.parent()
-        path = os.path.normpath(os.path.join(*reversed(parts)))
+        path = os.path.normpath(self._file_model.filePath(index))
         if clicked:
             path += os.sep
 
-        log.prompt.debug('Clicked {!r} -> {}'.format(parts, path))
+        log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
         self._lineedit.setFocus()
         if clicked:
