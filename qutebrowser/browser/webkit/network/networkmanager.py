@@ -24,6 +24,7 @@ import collections
 import netrc
 import html
 
+import jinja2
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
@@ -280,16 +281,17 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         if ssl_strict == 'ask':
-            err_list = []
-            for err in errors:
-                err_list.append('<li>{}</li>'.format(
-                    html.escape(err.errorString())))
-            err_string = ("Errors while loading <b>{}</b>:<br>"
-                          "<ul>{}</ul>".format(
-                              html.escape(reply.url().toDisplayString()),
-                              '\n'.join(err_list)))
+            err_template = jinja2.Template("""
+                Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
+                <ul>
+                {% for err in errors %}
+                   <li>{{err.errorString()}}</li>
+                {% endfor %}
+                </ul>
+            """.strip())
+            msg = err_template.render(url=reply.url(), errors=errors)
 
-            answer = self._ask('SSL errors - continue?', err_string,
+            answer = self._ask('SSL errors - continue?', msg,
                                mode=usertypes.PromptMode.yesno, owner=reply,
                                default=False)
             log.webview.debug("Asked for SSL errors, answer {}".format(answer))
