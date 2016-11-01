@@ -28,7 +28,7 @@ import collections
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qutebrowser.utils import message, usertypes, log, urlutils, objreg
+from qutebrowser.utils import message, usertypes, log, urlutils
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -68,8 +68,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         _reply: The QNetworkReply associated with this download.
 
     Signals:
-        adopt_download: Emitted when a download is retried and should be adopted
-                        by the QNAM if needed..
+        adopt_download: Emitted when a download is retried and should be
+                        adopted by the QNAM if needed.
                         arg 0: The new DownloadItem
     """
 
