@@ -470,7 +470,7 @@ class KeyParseError(Exception):
 
 def is_special_key(keystr):
     """True if keystr is a 'special' keystring (e.g. <ctrl-x> or <space>)."""
-    return keystr.startswith('<') and keystr.endswith('>')
+    return keystr.startswith('<') and keystr.endswith('>') or keystr.startswith('<space>')
 
 
 def _parse_single_key(keystr):

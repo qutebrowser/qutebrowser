@@ -166,7 +166,7 @@ class KeyConfigParser(QObject):
         """
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            key = key.lower()
+            key = key.lower().replace('<space>', ' ')
 
         if command is None:
             cmd = self.get_bindings_for(mode).get(key, None)
@@ -208,7 +208,7 @@ class KeyConfigParser(QObject):
         """
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            key = key.lower()
+            key = key.lower().replace('<space>', ' ')
 
         mode = self._normalize_sectname(mode)
         for m in mode.split(','):
