@@ -372,7 +372,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         old_reply.deleteLater()
         return True
 
-    def uses_nam(self, nam):
+    def _uses_nam(self, nam):
         """Check if this download uses the given QNetworkAccessManager."""
         running_nam = self._reply is not None and self._reply.manager() is nam
         # user could request retry after tab is closed.
@@ -380,24 +380,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                      self._retry_info.manager is nam)
         return running_nam or retry_nam
 
-    def _open_if_successful(self, cmdline):
-        """Open the downloaded file, but only if it was successful.
-
-        Args:
-            cmdline: Passed to DownloadItem.open_file().
-        """
-        if not self.successful:
-            log.downloads.debug("{} finished but not successful, not opening!"
-                                .format(self))
-            return
-        self.open_file(cmdline)
-
     def set_target(self, target):
-        """Set the target for a given download.
-
-        Args:
-            target: The usertypes.DownloadTarget for this download.
-        """
         if isinstance(target, usertypes.FileObjDownloadTarget):
             self._set_fileobj(target.fileobj)
             self.autoclose = False
@@ -417,7 +400,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.autoclose = True
             self._set_fileobj(fobj)
         else:  # pragma: no cover
-            raise ValueError("Unknown download target: {}".format(target))
+            raise ValueError("Unsupported download target: {}".format(target))
 
 
 class DownloadManager(QObject):
@@ -654,7 +637,7 @@ class DownloadManager(QObject):
         """
         assert nam.adopted_downloads == 0
         for download in self.downloads:
-            if download.uses_nam(nam):
+            if download._uses_nam(nam):  # pylint: disable=protected-access
                 nam.adopt_download(download)
         return nam.adopted_downloads
 

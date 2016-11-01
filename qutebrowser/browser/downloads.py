@@ -499,3 +499,43 @@ class AbstractDownloadItem(QObject):
             self._ask_confirm_question("Overwrite special file?", txt)
         else:
             self._after_set_filename()
+
+    def _open_if_successful(self, cmdline):
+        """Open the downloaded file, but only if it was successful.
+
+        Args:
+            cmdline: Passed to DownloadItem.open_file().
+        """
+        if not self.successful:
+            log.downloads.debug("{} finished but not successful, not opening!"
+                                .format(self))
+            return
+        self.open_file(cmdline)
+
+    def set_target(self, target):
+        """Set the target for a given download.
+
+        Args:
+            target: The usertypes.DownloadTarget for this download.
+        """
+        raise NotImplementedError
+
+
+class AbstractDownloadManager(QObject):
+
+    """Backend-independent download manager code.
+
+    Attributes:
+        downloads: A list of active DownloadItems.
+        questions: A list of Question objects to not GC them.
+        _networkmanager: A NetworkManager for generic downloads.
+        _win_id: The window ID the DownloadManager runs in.
+
+    Signals:
+        begin_remove_rows: Emitted before downloads are removed.
+        end_remove_rows: Emitted after downloads are removed.
+        begin_insert_rows: Emitted before downloads are inserted.
+        end_insert_rows: Emitted after downloads are inserted.
+        data_changed: Emitted when the data of the model changed.
+                      The arguments are int indices to the downloads.
+    """
