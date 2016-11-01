@@ -327,6 +327,10 @@ class AbstractDownloadItem(QObject):
                         remaining=remaining, perc=perc, down=down,
                         total=total, errmsg=errmsg))
 
+    def _do_die(self):
+        """Do cleanup steps after a download has died."""
+        raise NotImplementedError
+
     def _die(self, msg):
         """Abort the download and emit an error."""
         assert not self.successful
@@ -350,6 +354,7 @@ class AbstractDownloadItem(QObject):
         if self._dead:
             return
         self._dead = True
+        self._do_die()
         self.error_msg = msg
         self.stats.finish()
         self.error.emit(msg)

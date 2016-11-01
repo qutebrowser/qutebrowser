@@ -118,9 +118,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error])
 
-    def _die(self, msg):
+    def _do_die(self):
         """Abort the download and emit an error."""
-        super()._die(msg)
         self._read_timer.stop()
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
