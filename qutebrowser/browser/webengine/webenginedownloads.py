@@ -22,8 +22,9 @@
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
-from PyQt5.QtWidgets import QApplication
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import downloads
 from qutebrowser.utils import debug, usertypes, message, log
@@ -80,7 +81,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         # https://bugreports.qt.io/browse/QTBUG-56840
         raise downloads.UnsupportedOperationError
 
-    def get_open_filename(self):
+    def _get_open_filename(self):
         return self._filename
 
     def _set_fileobj(self, fileobj):
@@ -90,8 +91,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         state = self._qt_item.state()
         if state != QWebEngineDownloadItem.DownloadRequested:
             state_name = debug.qenum_key(QWebEngineDownloadItem, state)
-            raise ValueError("Trying to set filename {} on {!r} which is state "
-                             "{} (not in requested state)!".format(
+            raise ValueError("Trying to set filename {} on {!r} which is "
+                             "state {} (not in requested state)!".format(
                                  filename, self, state_name))
 
     def _ask_confirm_question(self, title, msg):
@@ -123,6 +124,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
+        """Start a download coming from a QWebEngineProfile."""
         download = DownloadItem(qt_item)
         self._init_item(download, auto_remove=False,
                         suggested_filename=qt_item.path())

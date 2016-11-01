@@ -559,7 +559,8 @@ class AbstractDownloadItem(QObject):
             target: The usertypes.DownloadTarget for this download.
         """
         if isinstance(target, usertypes.FileObjDownloadTarget):
-            raise UnsupportedAttribute("FileObjDownloadTarget is unsupported")
+            raise UnsupportedOperationError("FileObjDownloadTarget is "
+                                            "unsupported")
         elif isinstance(target, usertypes.FileDownloadTarget):
             self._set_filename(target.filename)
         elif isinstance(target, usertypes.OpenFileDownloadTarget):

@@ -21,7 +21,6 @@ import os
 import sys
 import shlex
 
-import pytest
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
 
