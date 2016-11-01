@@ -529,7 +529,6 @@ class AbstractDownloadManager(QObject):
         downloads: A list of active DownloadItems.
         questions: A list of Question objects to not GC them.
         _networkmanager: A NetworkManager for generic downloads.
-        _win_id: The window ID the DownloadManager runs in.
 
     Signals:
         begin_remove_rows: Emitted before downloads are removed.

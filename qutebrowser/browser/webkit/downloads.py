@@ -83,7 +83,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                  target file.
         _read_timer: A Timer which reads the QNetworkReply into self._buffer
                      periodically.
-        _win_id: The window ID the DownloadItem runs in.
+        _manager: The DownloadManager which started this download
         _dead: Whether the Download has _die()'d.
         _reply: The QNetworkReply associated with this download.
 
@@ -103,13 +103,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
     _MAX_REDIRECTS = 10
     adopt_download = pyqtSignal(object)  # DownloadItem
 
-    def __init__(self, reply, win_id, parent=None):
+    def __init__(self, reply, manager):
         """Constructor.
 
         Args:
             reply: The QNetworkReply to download.
         """
-        super().__init__(parent)
+        super().__init__(parent=manager)
         self.autoclose = True
         self.fileobj = None
         self.raw_headers = {}
@@ -117,6 +117,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._filename = None
         self._dead = False
 
+        self._manager = manager
         self._retry_info = None
         self._reply = None
         self._buffer = io.BytesIO()
@@ -125,7 +126,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._read_timer.timeout.connect(self._on_read_timer_timeout)
         self._redirects = 0
         self._init_reply(reply)
-        self._win_id = win_id
 
     def _create_fileobj(self):
         """Create a file object using the internal filename."""
@@ -205,11 +205,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """Retry a failed download."""
         assert self.done
         assert not self.successful
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
         new_reply = self._retry_info.manager.get(self._retry_info.request)
-        new_download = download_manager.fetch(
-            new_reply, suggested_filename=self.basename)
+        new_download = self._manager.fetch(new_reply,
+                                           suggested_filename=self.basename)
         self.adopt_download.emit(new_download)
         self.cancel()
 
@@ -411,7 +409,6 @@ class DownloadManager(QObject):
         downloads: A list of active DownloadItems.
         questions: A list of Question objects to not GC them.
         _networkmanager: A NetworkManager for generic downloads.
-        _win_id: The window ID the DownloadManager runs in.
 
     Signals:
         begin_remove_rows: Emitted before downloads are removed.
@@ -432,7 +429,6 @@ class DownloadManager(QObject):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self._win_id = win_id
         self.downloads = []
         self.questions = []
         self._networkmanager = networkmanager.NetworkManager(
@@ -560,7 +556,7 @@ class DownloadManager(QObject):
                 _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
-        download = DownloadItem(reply, self._win_id, self)
+        download = DownloadItem(reply, manager=self)
         download.cancelled.connect(download.remove)
         download.remove_requested.connect(functools.partial(
             self._remove_item, download))
