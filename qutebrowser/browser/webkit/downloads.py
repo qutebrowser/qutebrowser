@@ -273,7 +273,7 @@ class DownloadItem(QObject):
         autoclose: Whether to close the associated file if the download is
                    done.
         fileobj: The file object to download the file to.
-        retry_info: A _RetryInfo instance.
+        _retry_info: A _RetryInfo instance.
         raw_headers: The headers sent by the server.
         _filename: The filename of the download.
         _redirects: How many time we were redirected already.
@@ -312,7 +312,7 @@ class DownloadItem(QObject):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent)
-        self.retry_info = None
+        self._retry_info = None
         self.done = False
         self.stats = DownloadItemStats(self)
         self.index = 0
@@ -443,8 +443,8 @@ class DownloadItem(QObject):
         reply.error.connect(self._on_reply_error)
         reply.readyRead.connect(self._on_ready_read)
         reply.metaDataChanged.connect(self._on_meta_data_changed)
-        self.retry_info = _RetryInfo(request=reply.request(),
-                                     manager=reply.manager())
+        self._retry_info = _RetryInfo(request=reply.request(),
+                                      manager=reply.manager())
         if not self.fileobj:
             self._read_timer.start()
         # We could have got signals before we connected slots to them.
@@ -521,7 +521,7 @@ class DownloadItem(QObject):
         assert not self.successful
         download_manager = objreg.get('download-manager', scope='window',
                                       window=self._win_id)
-        new_reply = self.retry_info.manager.get(self.retry_info.request)
+        new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = download_manager.fetch(
             new_reply, suggested_filename=self.basename)
         self.do_retry.emit(new_download)
@@ -765,7 +765,7 @@ class DownloadItem(QObject):
         running_nam = self._reply is not None and self._reply.manager() is nam
         # user could request retry after tab is closed.
         retry_nam = (self.done and (not self.successful) and
-                     self.retry_info.manager is nam)
+                     self._retry_info.manager is nam)
         return running_nam or retry_nam
 
 
