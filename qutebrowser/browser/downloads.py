@@ -24,17 +24,16 @@ import shlex
 import html
 import os.path
 import collections
+import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QUrl
+import sip
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QUrl, QModelIndex,
+                          QTimer, QAbstractListModel)
 from PyQt5.QtGui import QDesktopServices
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, standarddir, utils, message, log
 from qutebrowser.misc import guiprocess
-
-
-_DownloadPath = collections.namedtuple('_DownloadPath', ['filename',
-                                                         'question'])
 
 
 ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
@@ -118,33 +117,14 @@ def create_full_filename(basename, filename):
     return None
 
 
-def ask_for_filename(suggested_filename, *, url, parent=None,
-                     prompt_download_directory=None):
-    """Prepare a question for a download-path.
-
-    If a filename can be determined directly, it is returned instead.
-
-    Returns a (filename, question)-namedtuple, in which one component is
-    None. filename is a string, question is a usertypes.Question. The
-    question has a special .ask() method that takes no arguments for
-    convenience, as this function does not yet ask the question, it
-    only prepares it.
+def get_filename_question(*, suggested_filename, url, parent=None):
+    """Get a Question object for a download-path.
 
     Args:
         suggested_filename: The "default"-name that is pre-entered as path.
         url: The URL the download originated from.
         parent: The parent of the question (a QObject).
-        prompt_download_directory: If this is something else than None, it
-                                   will overwrite the
-                                   storage->prompt-download-directory setting.
     """
-    if prompt_download_directory is None:
-        prompt_download_directory = config.get('storage',
-                                               'prompt-download-directory')
-
-    if not prompt_download_directory:
-        return _DownloadPath(filename=download_dir(), question=None)
-
     encoding = sys.getfilesystemencoding()
     suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
@@ -155,9 +135,7 @@ def ask_for_filename(suggested_filename, *, url, parent=None,
     q.mode = usertypes.PromptMode.text
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
-
-    q.ask = lambda: message.global_bridge.ask(q, blocking=False)
-    return _DownloadPath(filename=None, question=q)
+    return q
 
 
 class DownloadItemStats(QObject):
@@ -246,7 +224,27 @@ class AbstractDownloadItem(QObject):
 
     """Shared QtNetwork/QtWebEngine part of a download item.
 
-    FIXME
+    Attributes:
+        done: Whether the download is finished.
+        stats: A DownloadItemStats object.
+        index: The index of the download in the view.
+        successful: Whether the download has completed successfully.
+        error_msg: The current error message, or None
+        autoclose: Whether to close the associated file if the download is
+                   done.
+        fileobj: The file object to download the file to.
+        raw_headers: The headers sent by the server.
+        _filename: The filename of the download.
+        _dead: Whether the Download has _die()'d.
+
+    Signals:
+        data_changed: The downloads metadata changed.
+        finished: The download was finished.
+        cancelled: The download was cancelled.
+        error: An error with the download occurred.
+               arg: The error message as string.
+        remove_requested: Emitted when the removal of this download was
+                          requested.
     """
 
     data_changed = pyqtSignal()
@@ -538,3 +536,425 @@ class AbstractDownloadManager(QObject):
         data_changed: Emitted when the data of the model changed.
                       The arguments are int indices to the downloads.
     """
+
+    # parent, first, last
+    begin_remove_rows = pyqtSignal(QModelIndex, int, int)
+    end_remove_rows = pyqtSignal()
+    # parent, first, last
+    begin_insert_rows = pyqtSignal(QModelIndex, int, int)
+    end_insert_rows = pyqtSignal()
+    data_changed = pyqtSignal(int, int)  # begin, end
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.downloads = []
+        self.questions = []
+        self._update_timer = usertypes.Timer(self, 'download-update')
+        self._update_timer.timeout.connect(self._update_gui)
+        self._update_timer.setInterval(_REFRESH_INTERVAL)
+
+    def __repr__(self):
+        return utils.get_repr(self, downloads=len(self.downloads))
+
+    def _postprocess_question(self, q):
+        """Postprocess a Question object that is asked."""
+        q.destroyed.connect(functools.partial(self.questions.remove, q))
+        # We set the mode here so that other code that uses ask_for_filename
+        # doesn't need to handle the special download mode.
+        q.mode = usertypes.PromptMode.download
+        self.questions.append(q)
+
+    @pyqtSlot()
+    def _update_gui(self):
+        """Periodical GUI update of all items."""
+        assert self.downloads
+        for dl in self.downloads:
+            dl.stats.update_speed()
+        self.data_changed.emit(0, -1)
+
+    def _init_item(self, download, auto_remove, suggested_filename):
+        """Initialize a newly created DownloadItem."""
+        download.cancelled.connect(download.remove)
+        download.remove_requested.connect(functools.partial(
+            self._remove_item, download))
+
+        delay = config.get('ui', 'remove-finished-downloads')
+        if delay > -1:
+            download.finished.connect(
+                lambda: QTimer.singleShot(delay, download.remove))
+        elif auto_remove:
+            download.finished.connect(download.remove)
+
+        download.data_changed.connect(
+            functools.partial(self._on_data_changed, download))
+        download.error.connect(self._on_error)
+        download.basename = suggested_filename
+        idx = len(self.downloads)
+        download.index = idx + 1  # "Human readable" index
+        self.begin_insert_rows.emit(QModelIndex(), idx, idx)
+        self.downloads.append(download)
+        self.end_insert_rows.emit()
+
+        if not self._update_timer.isActive():
+            self._update_timer.start()
+
+    @pyqtSlot(AbstractDownloadItem)
+    def _on_data_changed(self, download):
+        """Emit data_changed signal when download data changed."""
+        try:
+            idx = self.downloads.index(download)
+        except ValueError:
+            # download has been deleted in the meantime
+            return
+        self.data_changed.emit(idx, idx)
+
+    @pyqtSlot(str)
+    def _on_error(self, msg):
+        """Display error message on download errors."""
+        message.error("Download error: {}".format(msg))
+
+    @pyqtSlot(AbstractDownloadItem)
+    def _remove_item(self, download):
+        """Remove a given download."""
+        if sip.isdeleted(self):
+            # https://github.com/The-Compiler/qutebrowser/issues/1242
+            return
+        try:
+            idx = self.downloads.index(download)
+        except ValueError:
+            # already removed
+            return
+        self.begin_remove_rows.emit(QModelIndex(), idx, idx)
+        del self.downloads[idx]
+        self.end_remove_rows.emit()
+        download.deleteLater()
+        self._update_indexes()
+        if not self.downloads:
+            self._update_timer.stop()
+        log.downloads.debug("Removed download {}".format(download))
+
+    def _update_indexes(self):
+        """Update indexes of all DownloadItems."""
+        first_idx = None
+        for i, d in enumerate(self.downloads, 1):
+            if first_idx is None and d.index != i:
+                first_idx = i - 1
+            d.index = i
+        if first_idx is not None:
+            self.data_changed.emit(first_idx, -1)
+
+
+class DownloadModel(QAbstractListModel):
+
+    """A list model showing downloads."""
+
+    def __init__(self, downloader, parent=None):
+        super().__init__(parent)
+        self._downloader = downloader
+        # FIXME we'll need to translate indices here...
+        downloader.data_changed.connect(self._on_data_changed)
+        downloader.begin_insert_rows.connect(self.beginInsertRows)
+        downloader.end_insert_rows.connect(self.endInsertRows)
+        downloader.begin_remove_rows.connect(self.beginRemoveRows)
+        downloader.end_remove_rows.connect(self.endRemoveRows)
+
+    def _all_downloads(self):
+        """Combine downloads from both downloaders."""
+        return self._downloader.downloads[:]
+
+    def __len__(self):
+        return len(self._all_downloads())
+
+    def __iter__(self):
+        return iter(self._all_downloads())
+
+    def __getitem__(self, idx):
+        return self._all_downloads()[idx]
+
+    @pyqtSlot(int, int)
+    def _on_data_changed(self, start, end):
+        """Called when a downloader's data changed.
+
+        Args:
+            start: The first changed index as int.
+            end: The last changed index as int, or -1 for all indices.
+        """
+        # FIXME we'll need to translate indices here...
+        start_index = self.index(start, 0)
+        qtutils.ensure_valid(start_index)
+        if end == -1:
+            end_index = self.last_index()
+        else:
+            end_index = self.index(end, 0)
+            qtutils.ensure_valid(end_index)
+        self.dataChanged.emit(start_index, end_index)
+
+    def _raise_no_download(self, count):
+        """Raise an exception that the download doesn't exist.
+
+        Args:
+            count: The index of the download
+        """
+        if not count:
+            raise cmdexc.CommandError("There's no download!")
+        raise cmdexc.CommandError("There's no download {}!".format(count))
+
+    @cmdutils.register(instance='download-model', scope='window')
+    @cmdutils.argument('count', count=True)
+    def download_cancel(self, all_=False, count=0):
+        """Cancel the last/[count]th download.
+
+        Args:
+            all_: Cancel all running downloads
+            count: The index of the download to cancel.
+        """
+        downloads = self._all_downloads()
+        if all_:
+            for download in downloads:
+                if not download.done:
+                    download.cancel()
+        else:
+            try:
+                download = downloads[count - 1]
+            except IndexError:
+                self._raise_no_download(count)
+            if download.done:
+                if not count:
+                    count = len(self)
+                raise cmdexc.CommandError("Download {} is already done!"
+                                        .format(count))
+            download.cancel()
+
+    @cmdutils.register(instance='download-model', scope='window')
+    @cmdutils.argument('count', count=True)
+    def download_delete(self, count=0):
+        """Delete the last/[count]th download from disk.
+
+        Args:
+            count: The index of the download to delete.
+        """
+        try:
+            download = self[count - 1]
+        except IndexError:
+            self._raise_no_download(count)
+        if not download.successful:
+            if not count:
+                count = len(self)
+            raise cmdexc.CommandError("Download {} is not done!".format(count))
+        download.delete()
+        download.remove()
+        log.downloads.debug("deleted download {}".format(download))
+
+    @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
+    @cmdutils.argument('count', count=True)
+    def download_open(self, cmdline: str=None, count=0):
+        """Open the last/[count]th download.
+
+        If no specific command is given, this will use the system's default
+        application to open the file.
+
+        Args:
+            cmdline: The command which should be used to open the file. A `{}`
+                     is expanded to the temporary file name. If no `{}` is
+                     present, the filename is automatically appended to the
+                     cmdline.
+            count: The index of the download to open.
+        """
+        try:
+            download = self[count - 1]
+        except IndexError:
+            self._raise_no_download(count)
+        if not download.successful:
+            if not count:
+                count = len(self)
+            raise cmdexc.CommandError("Download {} is not done!".format(count))
+        download.open_file(cmdline)
+
+    @cmdutils.register(instance='download-model', scope='window')
+    @cmdutils.argument('count', count=True)
+    def download_retry(self, count=0):
+        """Retry the first failed/[count]th download.
+
+        Args:
+            count: The index of the download to retry.
+        """
+        if count:
+            try:
+                download = self[count - 1]
+            except IndexError:
+                self._raise_no_download(count)
+            if download.successful or not download.done:
+                raise cmdexc.CommandError("Download {} did not fail!".format(
+                    count))
+        else:
+            to_retry = [d for d in self if d.done and not d.successful]
+            if not to_retry:
+                raise cmdexc.CommandError("No failed downloads!")
+            else:
+                download = to_retry[0]
+        download.retry()
+
+    def can_clear(self):
+        """Check if there are finished downloads to clear."""
+        return any(download.done for download in self)
+
+    @cmdutils.register(instance='download-model', scope='window')
+    def download_clear(self):
+        """Remove all finished downloads from the list."""
+        for download in self:
+            if download.done:
+                download.remove()
+
+    @cmdutils.register(instance='download-model', scope='window')
+    @cmdutils.argument('count', count=True)
+    def download_remove(self, all_=False, count=0):
+        """Remove the last/[count]th download from the list.
+
+        Args:
+            all_: Remove all finished downloads.
+            count: The index of the download to remove.
+        """
+        if all_:
+            self.download_clear()
+        else:
+            try:
+                download = self[count - 1]
+            except IndexError:
+                self._raise_no_download(count)
+            if not download.done:
+                if not count:
+                    count = len(self)
+                raise cmdexc.CommandError("Download {} is not done!"
+                                          .format(count))
+            download.remove()
+
+    def running_downloads(self):
+        """Return the amount of still running downloads.
+
+        Return:
+            The number of unfinished downloads.
+        """
+        return sum(1 for download in self if not download.done)
+
+    def last_index(self):
+        """Get the last index in the model.
+
+        Return:
+            A (possibly invalid) QModelIndex.
+        """
+        idx = self.index(self.rowCount() - 1)
+        return idx
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """Simple constant header."""
+        if (section == 0 and orientation == Qt.Horizontal and
+                role == Qt.DisplayRole):
+            return "Downloads"
+        else:
+            return ""
+
+    def data(self, index, role):
+        """Download data from DownloadManager."""
+        if not index.isValid():
+            return None
+
+        if index.parent().isValid() or index.column() != 0:
+            return None
+
+        item = self[index.row()]
+        if role == Qt.DisplayRole:
+            data = str(item)
+        elif role == Qt.ForegroundRole:
+            data = item.get_status_color('fg')
+        elif role == Qt.BackgroundRole:
+            data = item.get_status_color('bg')
+        elif role == ModelRole.item:
+            data = item
+        elif role == Qt.ToolTipRole:
+            if item.error_msg is None:
+                data = None
+            else:
+                return item.error_msg
+        else:
+            data = None
+        return data
+
+    def flags(self, index):
+        """Override flags so items aren't selectable.
+
+        The default would be Qt.ItemIsEnabled | Qt.ItemIsSelectable.
+        """
+        if not index.isValid():
+            return Qt.ItemFlags()
+        return Qt.ItemIsEnabled | Qt.ItemNeverHasChildren
+
+    def rowCount(self, parent=QModelIndex()):
+        """Get count of active downloads."""
+        if parent.isValid():
+            # We don't have children
+            return 0
+        return len(self)
+
+
+class TempDownloadManager(QObject):
+
+    """Manager to handle temporary download files.
+
+    The downloads are downloaded to a temporary location and then openened with
+    the system standard application. The temporary files are deleted when
+    qutebrowser is shutdown.
+
+    Attributes:
+        files: A list of NamedTemporaryFiles of downloaded items.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.files = []
+        self._tmpdir = None
+
+    def cleanup(self):
+        """Clean up any temporary files."""
+        if self._tmpdir is not None:
+            try:
+                self._tmpdir.cleanup()
+            except OSError:
+                log.misc.exception("Failed to clean up temporary download "
+                                   "directory")
+            self._tmpdir = None
+
+    def _get_tmpdir(self):
+        """Return the temporary directory that is used for downloads.
+
+        The directory is created lazily on first access.
+
+        Return:
+            The tempfile.TemporaryDirectory that is used.
+        """
+        if self._tmpdir is None:
+            self._tmpdir = tempfile.TemporaryDirectory(
+                prefix='qutebrowser-downloads-')
+        return self._tmpdir
+
+    def get_tmpfile(self, suggested_name):
+        """Return a temporary file in the temporary downloads directory.
+
+        The files are kept as long as qutebrowser is running and automatically
+        cleaned up at program exit.
+
+        Args:
+            suggested_name: str of the "suggested"/original filename. Used as a
+                            suffix, so any file extenions are preserved.
+
+        Return:
+            A tempfile.NamedTemporaryFile that should be used to save the file.
+        """
+        tmpdir = self._get_tmpdir()
+        encoding = sys.getfilesystemencoding()
+        suggested_name = utils.force_encoding(suggested_name, encoding)
+        # Make sure that the filename is not too long
+        suggested_name = utils.elide_filename(suggested_name, 50)
+        fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
+                                           suffix=suggested_name)
+        self.files.append(fobj)
+        return fobj
