@@ -414,7 +414,7 @@ class NetworkManager(QNetworkAccessManager):
         log.downloads.debug("Adopted download, {} adopted.".format(
             self.adopted_downloads))
         download.destroyed.connect(self.on_adopted_download_destroyed)
-        download.do_retry.connect(self.adopt_download)
+        download.adopt_download.connect(self.adopt_download)
 
     def set_referer(self, req, current_url):
         """Set the referer header."""

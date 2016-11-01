@@ -291,8 +291,9 @@ class DownloadItem(QObject):
         cancelled: The download was cancelled.
         error: An error with the download occurred.
                arg: The error message as string.
-        do_retry: Emitted when a download is retried.
-            arg 0: The new DownloadItem
+        adopt_download: Emitted when a download is retried and should be adopted
+                        by the QNAM if needed..
+                        arg 0: The new DownloadItem
         remove_requested: Emitted when the removal of this download was
                           requested.
     """
@@ -302,7 +303,7 @@ class DownloadItem(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
-    do_retry = pyqtSignal(object)  # DownloadItem
+    adopt_download = pyqtSignal(object)  # DownloadItem
     remove_requested = pyqtSignal()
 
     def __init__(self, reply, win_id, parent=None):
@@ -524,7 +525,7 @@ class DownloadItem(QObject):
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = download_manager.fetch(
             new_reply, suggested_filename=self.basename)
-        self.do_retry.emit(new_download)
+        self.adopt_download.emit(new_download)
         self.cancel()
 
     @pyqtSlot()
