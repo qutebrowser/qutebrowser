@@ -106,15 +106,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
         else:
             self._set_fileobj(fileobj)
 
-    def _ask_confirm_question(self, title, msg):
-        """Create a Question object to be asked."""
-        # FIXME:qtwebengine move this?
-        no_action = functools.partial(self.cancel, remove_data=False)
-        message.confirm_async(title=title, text=msg,
-                              yes_action=self._after_set_filename,
-                              no_action=no_action, cancel_action=no_action,
-                              abort_on=[self.cancelled, self.error])
-
     def _do_die(self):
         """Abort the download and emit an error."""
         self._read_timer.stop()
@@ -195,6 +186,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _after_set_filename(self):
         self._create_fileobj()
+
+    def _ask_confirm_question(self, title, msg):
+        no_action = functools.partial(self.cancel, remove_data=False)
+        message.confirm_async(title=title, text=msg,
+                              yes_action=self._after_set_filename,
+                              no_action=no_action, cancel_action=no_action,
+                              abort_on=[self.cancelled, self.error])
 
     def _set_fileobj(self, fileobj):
         """"Set the file object to write the download to.

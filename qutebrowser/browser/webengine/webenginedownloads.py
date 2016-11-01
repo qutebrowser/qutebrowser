@@ -19,6 +19,7 @@
 
 """QtWebEngine specific code for downloads."""
 
+import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
@@ -92,6 +93,19 @@ class DownloadItem(downloads.AbstractDownloadItem):
             raise ValueError("Trying to set filename {} on {!r} which is state "
                              "{} (not in requested state)!".format(
                                  filename, self, state_name))
+
+    def _ask_confirm_question(self, title, msg):
+        no_action = functools.partial(self.cancel, remove_data=False)
+        question = usertypes.Question()
+        question.title = title
+        question.text = msg
+        question.mode = usertypes.PromptMode.yesno
+        question.answered_yes.connect(self._after_set_filename)
+        question.answered_no.connect(no_action)
+        question.cancelled.connect(no_action)
+        self.cancelled.connect(question.abort)
+        self.error.connect(question.abort)
+        message.global_bridge.ask(question, blocking=True)
 
     def _after_set_filename(self):
         self._qt_item.setPath(self._filename)

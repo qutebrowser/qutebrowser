@@ -475,6 +475,10 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
+    def _ask_confirm_question(self, title, msg):
+        """Ask a confirmation question for the download."""
+        raise NotImplementedError
+
     def _set_fileobj(self, fileobj):
         """Set a file object to save the download to.
 
