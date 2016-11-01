@@ -43,8 +43,7 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem)
-from qutebrowser.browser.webkit import downloads
+                                 webelem, downloads)
 try:
     from qutebrowser.browser.webkit import mhtml
 except ImportError:
@@ -1318,8 +1317,9 @@ class CommandDispatcher:
                                           " download.")
             dest = dest_old
 
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
+        # FIXME:qtwebengine do this with the QtWebEngine download manager?
+        download_manager = objreg.get('qtnetwork-download-manager',
+                                      scope='window', window=self._win_id)
         if url:
             if mhtml_:
                 raise cmdexc.CommandError("Can only download the current page"

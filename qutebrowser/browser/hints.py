@@ -288,8 +288,9 @@ class HintActions:
         qnam = elem._elem.webFrame().page().networkAccessManager()
         # pylint: enable=protected-access
 
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
+        # FIXME:qtwebengine do this with QtWebEngine downloads?
+        download_manager = objreg.get('qtnetwork-download-manager',
+                                      scope='window', window=self._win_id)
         download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):

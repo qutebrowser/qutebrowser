@@ -34,7 +34,8 @@ import email.message
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser.webkit import webkitelem, downloads
+from qutebrowser.browser import downloads
+from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
 _File = collections.namedtuple('_File',
@@ -341,8 +342,8 @@ class _Downloader:
             self.writer.add_file(urlutils.encoded_url(url), b'')
             return
 
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager',
+                                      scope='window', window=self._win_id)
         target = usertypes.FileObjDownloadTarget(_NoCloseBytesIO())
         item = download_manager.get(url, target=target,
                                     auto_remove=True)

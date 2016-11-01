@@ -190,8 +190,8 @@ class HostBlocker:
         self._blocked_hosts = set()
         self._done_count = 0
         urls = config.get('content', 'host-block-lists')
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window='last-focused')
+        download_manager = objreg.get('qtnetwork-download-manager',
+                                      scope='window', window='last-focused')
         if urls is None:
             return
         for url in urls:

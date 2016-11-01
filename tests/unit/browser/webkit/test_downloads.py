@@ -18,12 +18,12 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from qutebrowser.browser.webkit import downloads
+from qutebrowser.browser import downloads, qtnetworkdownloads
 
 
 def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache):
     """Simple check for download model internals."""
     config_stub.data = {'general': {'private-browsing': False}}
-    manager = downloads.DownloadManager(win_id=0)
+    manager = qtnetworkdownloads.DownloadManager(win_id=0)
     model = downloads.DownloadModel(manager)
     qtmodeltester.check(model)
