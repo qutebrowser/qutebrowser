@@ -160,6 +160,11 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to save the config automatically on quit."),
 
+            ('auto-save-session',
+             SettingValue(typ.Bool(), 'false'),
+             "Whether to save the session automatically when a page finishes "
+             "loading."),
+
             ('auto-save-interval',
              SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '15000'),
              "How often (in milliseconds) to auto-save config/cookies/etc."),
