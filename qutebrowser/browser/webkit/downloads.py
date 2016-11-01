@@ -291,9 +291,6 @@ class DownloadItem(QObject):
         cancelled: The download was cancelled.
         error: An error with the download occurred.
                arg: The error message as string.
-        redirected: Signal emitted when a download was redirected.
-            arg 0: The new QNetworkRequest.
-            arg 1: The old QNetworkReply.
         do_retry: Emitted when a download is retried.
             arg 0: The new DownloadItem
         remove_requested: Emitted when the removal of this download was
@@ -305,7 +302,6 @@ class DownloadItem(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
-    redirected = pyqtSignal(QNetworkRequest, QNetworkReply)
     do_retry = pyqtSignal(object)  # DownloadItem
     remove_requested = pyqtSignal()
 
@@ -332,7 +328,7 @@ class DownloadItem(QObject):
         self.successful = False
         self.fileobj = None
         self._filename = None
-        self.init_reply(reply)
+        self._init_reply(reply)
         self._win_id = win_id
         self.raw_headers = {}
         self._dead = False
@@ -395,7 +391,7 @@ class DownloadItem(QObject):
         """Abort the download and emit an error."""
         assert not self.successful
         # Prevent actions if calling _die() twice. This might happen if the
-        # error handler correctly connects, and the error occurs in init_reply
+        # error handler correctly connects, and the error occurs in _init_reply
         # between reply.error.connect and the reply.error() check. In this
         # case, the connected error handlers will be called twice, once via the
         # direct error.emit() and once here in _die(). The stacks look like
@@ -403,7 +399,7 @@ class DownloadItem(QObject):
         #   <networkmanager error.emit> -> on_reply_error -> _die ->
         #   self.error.emit()
         # and
-        #   [init_reply -> <single shot timer> ->] <lambda in init_reply> ->
+        #   [_init_reply -> <single shot timer> ->] <lambda in _init_reply> ->
         #   self.error.emit()
         # which may lead to duplicate error messages (and failing tests)
         if self._dead:
@@ -432,7 +428,7 @@ class DownloadItem(QObject):
             except OSError:
                 log.downloads.exception("Error while closing file object")
 
-    def init_reply(self, reply):
+    def _init_reply(self, reply):
         """Set a new reply and connect its signals.
 
         Args:
@@ -737,8 +733,8 @@ class DownloadItem(QObject):
         if redirect is None or redirect.isEmpty():
             return False
         new_url = self._reply.url().resolved(redirect)
-        request = self._reply.request()
-        if new_url == request.url():
+        new_request = self._reply.request()
+        if new_url == new_request.url():
             return False
 
         if self._redirects > self._MAX_REDIRECTS:
@@ -748,15 +744,20 @@ class DownloadItem(QObject):
 
         log.downloads.debug("{}: Handling redirect".format(self))
         self._redirects += 1
-        request.setUrl(new_url)
-        reply = self._reply
-        reply.finished.disconnect(self._on_reply_finished)
+        new_request.setUrl(new_url)
+        old_reply = self._reply
+        old_reply.finished.disconnect(self._on_reply_finished)
         self._read_timer.stop()
         self._reply = None
         if self.fileobj is not None:
             self.fileobj.seek(0)
-        self.redirected.emit(request, reply)  # this will change self._reply!
-        reply.deleteLater()  # the old one
+
+        log.downloads.debug("redirected: {} -> {}".format(
+            old_reply.url(), new_request.url()))
+        new_reply = old_reply.manager().get(new_request)
+        self._init_reply(new_reply)
+
+        old_reply.deleteLater()
         return True
 
     def uses_nam(self, nam):
@@ -940,8 +941,6 @@ class DownloadManager(QObject):
         download.data_changed.connect(
             functools.partial(self._on_data_changed, download))
         download.error.connect(self._on_error)
-        download.redirected.connect(
-            functools.partial(self._on_redirect, download))
         download.basename = suggested_filename
         idx = len(self.downloads)
         download.index = idx + 1  # "Human readable" index
@@ -1022,20 +1021,6 @@ class DownloadManager(QObject):
                                 .format(download))
             return
         download.open_file(cmdline)
-
-    @pyqtSlot(QNetworkRequest, QNetworkReply)
-    def _on_redirect(self, download, request, reply):
-        """Handle an HTTP redirect of a download.
-
-        Args:
-            download: The old DownloadItem.
-            request: The new QNetworkRequest.
-            reply: The old QNetworkReply.
-        """
-        log.downloads.debug("redirected: {} -> {}".format(
-            reply.url(), request.url()))
-        new_reply = reply.manager().get(request)
-        download.init_reply(new_reply)
 
     @pyqtSlot(DownloadItem)
     def _on_data_changed(self, download):
