@@ -63,6 +63,11 @@ class UnsupportedAttribute:
     pass
 
 
+class UnsupportedOperationError(Exception):
+
+    """Raised when an operation is not supported with the given backend."""
+
+
 def download_dir():
     """Get the download directory to use."""
     directory = config.get('storage', 'download-directory')
@@ -396,7 +401,6 @@ class AbstractDownloadItem(QObject):
         """
         self._do_cancel()
         log.downloads.debug("cancelled")
-        self.cancelled.emit()
         if remove_data:
             self.delete()
         self.done = True
@@ -471,7 +475,15 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def set_filename(self, filename):
+    def _set_fileobj(self, fileobj):
+        """Set a file object to save the download to.
+
+        Note that some backends (QtWebEngine) will simply access the .name
+        attribute and not actually use the file object directly.
+        """
+        raise NotImplementedError
+
+    def _set_filename(self, filename):
         """Set the filename to save the download to.
 
         Args:
@@ -542,7 +554,23 @@ class AbstractDownloadItem(QObject):
         Args:
             target: The usertypes.DownloadTarget for this download.
         """
-        raise NotImplementedError
+        if isinstance(target, usertypes.FileObjDownloadTarget):
+            raise UnsupportedAttribute("FileObjDownloadTarget is unsupported")
+        elif isinstance(target, usertypes.FileDownloadTarget):
+            self._set_filename(target.filename)
+        elif isinstance(target, usertypes.OpenFileDownloadTarget):
+            try:
+                fobj = temp_download_manager.get_tmpfile(self.basename)
+            except OSError as exc:
+                msg = "Download error: {}".format(exc)
+                message.error(msg)
+                self.cancel()
+                return
+            self.finished.connect(
+                functools.partial(self._open_if_successful, target.cmdline))
+            self._set_fileobj(fobj)
+        else:  # pragma: no cover
+            raise ValueError("Unsupported download target: {}".format(target))
 
 
 class AbstractDownloadManager(QObject):
@@ -658,6 +686,14 @@ class AbstractDownloadManager(QObject):
             d.index = i
         if first_idx is not None:
             self.data_changed.emit(first_idx, -1)
+
+    def _init_filename_question(self, question, download):
+        """Set up an existing filename question with a download."""
+        question.mode = usertypes.PromptMode.download
+        question.answered.connect(download.set_target)
+        question.cancelled.connect(download.cancel)
+        download.cancelled.connect(question.abort)
+        download.error.connect(question.abort)
 
 
 class DownloadModel(QAbstractListModel):

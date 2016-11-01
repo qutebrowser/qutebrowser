@@ -87,9 +87,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self.fileobj = None
         self.raw_headers = {}
 
-        self._filename = None
-        self._dead = False
-
         self._manager = manager
         self._retry_info = None
         self._reply = None
@@ -171,6 +168,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._reply = None
         if self.fileobj is not None:
             self.fileobj.close()
+        self.cancelled.emit()
 
     @pyqtSlot()
     def retry(self):
@@ -354,23 +352,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if isinstance(target, usertypes.FileObjDownloadTarget):
             self._set_fileobj(target.fileobj)
             self.autoclose = False
-        elif isinstance(target, usertypes.FileDownloadTarget):
-            self.set_filename(target.filename)
-        elif isinstance(target, usertypes.OpenFileDownloadTarget):
-            try:
-                fobj = downloads.temp_download_manager.get_tmpfile(
-                    self.basename)
-            except OSError as exc:
-                msg = "Download error: {}".format(exc)
-                message.error(msg)
-                self.cancel()
-                return
-            self.finished.connect(
-                functools.partial(self._open_if_successful, target.cmdline))
-            self.autoclose = True
-            self._set_fileobj(fobj)
-        else:  # pragma: no cover
-            raise ValueError("Unsupported download target: {}".format(target))
+        else:
+            super().set_target(target)
 
 
 class DownloadManager(downloads.AbstractDownloadManager):
@@ -506,11 +489,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         question = downloads.get_filename_question(
             suggested_filename=suggested_filename, url=reply.url(),
             parent=self)
-        question.mode = usertypes.PromptMode.download
-        question.answered.connect(download.set_target)
-        question.cancelled.connect(download.cancel)
-        download.cancelled.connect(question.abort)
-        download.error.connect(question.abort)
+        self._init_filename_question(question, download)
         message.global_bridge.ask(question, blocking=False)
 
         return download
