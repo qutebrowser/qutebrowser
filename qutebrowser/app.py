@@ -435,8 +435,6 @@ def _init_modules(args, crash_handler):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
-    temp_downloads = downloads.TempDownloadManager(qApp)
-    objreg.register('temporary-downloads', temp_downloads)
     # Init backend-specific stuff
     browsertab.init(args)
 

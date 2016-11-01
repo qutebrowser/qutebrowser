@@ -907,7 +907,7 @@ class DownloadModel(QAbstractListModel):
         return len(self)
 
 
-class TempDownloadManager(QObject):
+class TempDownloadManager:
 
     """Manager to handle temporary download files.
 
@@ -919,8 +919,7 @@ class TempDownloadManager(QObject):
         files: A list of NamedTemporaryFiles of downloaded items.
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
         self.files = []
         self._tmpdir = None
 
@@ -969,3 +968,6 @@ class TempDownloadManager(QObject):
                                            suffix=suggested_name)
         self.files.append(fobj)
         return fobj
+
+
+temp_download_manager = TempDownloadManager()

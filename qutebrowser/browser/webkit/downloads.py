@@ -358,9 +358,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
         elif isinstance(target, usertypes.FileDownloadTarget):
             self.set_filename(target.filename)
         elif isinstance(target, usertypes.OpenFileDownloadTarget):
-            tmp_manager = objreg.get('temporary-downloads')
             try:
-                fobj = tmp_manager.get_tmpfile(self.basename)
+                fobj = downloads.temp_download_manager.get_tmpfile(
+                    self.basename)
             except OSError as exc:
                 msg = "Download error: {}".format(exc)
                 message.error(msg)
