@@ -46,43 +46,6 @@ from qutebrowser.browser.webkit.network import networkmanager
 _RetryInfo = collections.namedtuple('_RetryInfo', ['request', 'manager'])
 
 
-_DownloadPath = collections.namedtuple('_DownloadPath', ['filename',
-                                                         'question'])
-
-
-def ask_for_filename_async(suggested_filename, *, url, parent=None,
-                           prompt_download_directory=None):
-    """Prepare a question for a download-path.
-
-    If a filename can be determined directly, it is returned instead.
-
-    Returns a (filename, question)-namedtuple, in which one component is
-    None. filename is a string, question is a usertypes.Question. The
-    question has a special .ask() method that takes no arguments for
-    convenience, as this function does not yet ask the question, it
-    only prepares it.
-
-    Args:
-        suggested_filename: The "default"-name that is pre-entered as path.
-        url: The URL the download originated from.
-        parent: The parent of the question (a QObject).
-        prompt_download_directory: If this is something else than None, it
-                                   will overwrite the
-                                   storage->prompt-download-directory setting.
-    """
-    if prompt_download_directory is None:
-        prompt_download_directory = config.get('storage',
-                                               'prompt-download-directory')
-
-    if not prompt_download_directory:
-        return _DownloadPath(filename=downloads.download_dir(), question=None)
-
-    q = downloads.get_filename_question(
-        suggested_filename=suggested_filename, url=url, parent=parent)
-    q.ask = lambda: message.global_bridge.ask(q, blocking=False)
-    return _DownloadPath(filename=None, question=q)
-
-
 class DownloadItem(downloads.AbstractDownloadItem):
 
     """A single download currently running.
@@ -540,27 +503,25 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(target)
             return download
 
-        # Neither filename nor fileobj were given, prepare a question
-        filename, q = ask_for_filename_async(
-            suggested_filename, parent=self,
-            prompt_download_directory=prompt_download_directory,
-            url=reply.url())
+        # Neither filename nor fileobj were given
 
-        # User doesn't want to be asked, so just use the download_dir
+        filename = downloads.immediate_download_path(prompt_download_directory)
         if filename is not None:
+            # User doesn't want to be asked, so just use the download_dir
             target = usertypes.FileDownloadTarget(filename)
             download.set_target(target)
             return download
 
-        ## FIXME
-
         # Ask the user for a filename
-        self._postprocess_question(q)
-        q.answered.connect(download.set_target)
-        q.cancelled.connect(download.cancel)
-        download.cancelled.connect(q.abort)
-        download.error.connect(q.abort)
-        q.ask()
+        question = downloads.get_filename_question(
+            suggested_filename=suggested_filename, url=reply.url(),
+            parent=self)
+        question.mode = usertypes.PromptMode.download
+        question.answered.connect(download.set_target)
+        question.cancelled.connect(download.cancel)
+        download.cancelled.connect(question.abort)
+        download.error.connect(question.abort)
+        message.global_bridge.ask(question, blocking=False)
 
         return download
 

@@ -1355,14 +1355,16 @@ class CommandDispatcher:
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
-            filename, q = downloads.ask_for_filename_async(
-                suggested_fn, parent=tab, url=tab.url())
+
+            filename = downloads.immediate_download_path()
             if filename is not None:
                 mhtml.start_download_checked(filename, tab=tab)
             else:
-                q.answered.connect(functools.partial(
+                question = downloads.get_filename_question(
+                    suggested_filename=suggested_fn, url=tab.url(), parent=tab)
+                question.answered.connect(functools.partial(
                     mhtml.start_download_checked, tab=tab))
-                q.ask()
+                message.global_bridge.ask(question, blocking=False)
         else:
             mhtml.start_download_checked(dest, tab=tab)
 

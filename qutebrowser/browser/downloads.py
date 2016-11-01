@@ -73,6 +73,24 @@ def download_dir():
         return directory
 
 
+def immediate_download_path(prompt_download_directory=None):
+    """Try to get an immediate download path without asking the user.
+
+    If that's possible, we return a path immediately. If not, None is returned.
+
+    Args:
+        prompt_download_directory: If this is something else than None, it
+                                   will overwrite the
+                                   storage->prompt-download-directory setting.
+    """
+    if prompt_download_directory is None:
+        prompt_download_directory = config.get('storage',
+                                               'prompt-download-directory')
+
+    if not prompt_download_directory:
+        return download_dir()
+
+
 def _path_suggestion(filename):
     """Get the suggested file path.
 
@@ -525,7 +543,6 @@ class AbstractDownloadManager(QObject):
 
     Attributes:
         downloads: A list of active DownloadItems.
-        questions: A list of Question objects to not GC them.
         _networkmanager: A NetworkManager for generic downloads.
 
     Signals:
@@ -548,21 +565,12 @@ class AbstractDownloadManager(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.downloads = []
-        self.questions = []
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)
 
     def __repr__(self):
         return utils.get_repr(self, downloads=len(self.downloads))
-
-    def _postprocess_question(self, q):
-        """Postprocess a Question object that is asked."""
-        q.destroyed.connect(functools.partial(self.questions.remove, q))
-        # We set the mode here so that other code that uses ask_for_filename
-        # doesn't need to handle the special download mode.
-        q.mode = usertypes.PromptMode.download
-        self.questions.append(q)
 
     @pyqtSlot()
     def _update_gui(self):
