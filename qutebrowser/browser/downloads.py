@@ -586,21 +586,19 @@ class AbstractDownloadManager(QObject):
         _networkmanager: A NetworkManager for generic downloads.
 
     Signals:
-        begin_remove_rows: Emitted before downloads are removed.
-        end_remove_rows: Emitted after downloads are removed.
-        begin_insert_rows: Emitted before downloads are inserted.
-        end_insert_rows: Emitted after downloads are inserted.
+        begin_remove_row: Emitted before downloads are removed.
+        end_remove_row: Emitted after downloads are removed.
+        begin_insert_row: Emitted before downloads are inserted.
+        end_insert_row: Emitted after downloads are inserted.
         data_changed: Emitted when the data of the model changed.
-                      The arguments are int indices to the downloads.
+                      The argument is the index of the changed download
     """
 
-    # parent, first, last
-    begin_remove_rows = pyqtSignal(QModelIndex, int, int)
-    end_remove_rows = pyqtSignal()
-    # parent, first, last
-    begin_insert_rows = pyqtSignal(QModelIndex, int, int)
-    end_insert_rows = pyqtSignal()
-    data_changed = pyqtSignal(int, int)  # begin, end
+    begin_remove_row = pyqtSignal(int)
+    end_remove_row = pyqtSignal()
+    begin_insert_row = pyqtSignal(int)
+    end_insert_row = pyqtSignal()
+    data_changed = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -618,7 +616,7 @@ class AbstractDownloadManager(QObject):
         assert self.downloads
         for dl in self.downloads:
             dl.stats.update_speed()
-        self.data_changed.emit(0, -1)
+        self.data_changed.emit(-1)
 
     def _init_item(self, download, auto_remove, suggested_filename):
         """Initialize a newly created DownloadItem."""
@@ -639,9 +637,9 @@ class AbstractDownloadManager(QObject):
         download.basename = suggested_filename
         idx = len(self.downloads)
         download.index = idx + 1  # "Human readable" index
-        self.begin_insert_rows.emit(QModelIndex(), idx, idx)
+        self.begin_insert_row.emit(idx)
         self.downloads.append(download)
-        self.end_insert_rows.emit()
+        self.end_insert_row.emit()
 
         if not self._update_timer.isActive():
             self._update_timer.start()
@@ -654,7 +652,7 @@ class AbstractDownloadManager(QObject):
         except ValueError:
             # download has been deleted in the meantime
             return
-        self.data_changed.emit(idx, idx)
+        self.data_changed.emit(idx)
 
     @pyqtSlot(str)
     def _on_error(self, msg):
@@ -672,9 +670,9 @@ class AbstractDownloadManager(QObject):
         except ValueError:
             # already removed
             return
-        self.begin_remove_rows.emit(QModelIndex(), idx, idx)
+        self.begin_remove_row.emit(idx)
         del self.downloads[idx]
-        self.end_remove_rows.emit()
+        self.end_remove_row.emit()
         download.deleteLater()
         self._update_indexes()
         if not self.downloads:
@@ -683,13 +681,9 @@ class AbstractDownloadManager(QObject):
 
     def _update_indexes(self):
         """Update indexes of all DownloadItems."""
-        first_idx = None
         for i, d in enumerate(self.downloads, 1):
-            if first_idx is None and d.index != i:
-                first_idx = i - 1
             d.index = i
-        if first_idx is not None:
-            self.data_changed.emit(first_idx, -1)
+        self.data_changed.emit(-1)
 
     def _init_filename_question(self, question, download):
         """Set up an existing filename question with a download."""
@@ -704,19 +698,37 @@ class DownloadModel(QAbstractListModel):
 
     """A list model showing downloads."""
 
-    def __init__(self, downloader, parent=None):
+    def __init__(self, qtnetwork_manager, webengine_manager=None, parent=None):
         super().__init__(parent)
-        self._downloader = downloader
-        # FIXME we'll need to translate indices here...
-        downloader.data_changed.connect(self._on_data_changed)
-        downloader.begin_insert_rows.connect(self.beginInsertRows)
-        downloader.end_insert_rows.connect(self.endInsertRows)
-        downloader.begin_remove_rows.connect(self.beginRemoveRows)
-        downloader.end_remove_rows.connect(self.endRemoveRows)
+        self._qtnetwork_manager = qtnetwork_manager
+        self._webengine_manager = webengine_manager
+
+        qtnetwork_manager.data_changed.connect(
+            functools.partial(self._on_data_changed, webengine=False))
+        qtnetwork_manager.begin_insert_row.connect(
+            functools.partial(self._on_begin_insert_row, webengine=False))
+        qtnetwork_manager.begin_remove_row.connect(
+            functools.partial(self._on_begin_remove_row, webengine=False))
+        qtnetwork_manager.end_insert_row.connect(self.endInsertRows)
+        qtnetwork_manager.end_remove_row.connect(self.endRemoveRows)
+
+        if webengine_manager is not None:
+            webengine_manager.data_changed.connect(
+                functools.partial(self._on_data_changed, webengine=True))
+            webengine_manager.begin_insert_row.connect(
+                functools.partial(self._on_begin_insert_row, webengine=True))
+            webengine_manager.begin_remove_row.connect(
+                functools.partial(self._on_begin_remove_row, webengine=True))
+            webengine_manager.end_insert_row.connect(self.endInsertRows)
+            webengine_manager.end_remove_row.connect(self.endRemoveRows)
 
     def _all_downloads(self):
         """Combine downloads from both downloaders."""
-        return self._downloader.downloads[:]
+        if self._webengine_manager is None:
+            return self._qtnetwork_manager.downloads[:]
+        else:
+            return (self._qtnetwork_manager.downloads +
+                    self._webengine_manager.downloads)
 
     def __len__(self):
         return len(self._all_downloads())
@@ -727,21 +739,48 @@ class DownloadModel(QAbstractListModel):
     def __getitem__(self, idx):
         return self._all_downloads()[idx]
 
-    @pyqtSlot(int, int)
-    def _on_data_changed(self, start, end):
+    def _on_begin_insert_row(self, idx, webengine=False):
+        log.downloads.debug("_on_begin_insert_row with idx {}, "
+                            "webengine {}".format(idx, webengine))
+        if idx == -1:
+            self.beginInsertRows(QModelIndex(), 0, -1)
+            return
+
+        assert idx >= 0, idx
+        if webengine:
+            idx += len(self._qtnetwork_manager.downloads)
+        self.beginInsertRows(QModelIndex(), idx, idx)
+
+    def _on_begin_remove_row(self, idx, webengine=False):
+        log.downloads.debug("_on_begin_remove_row with idx {}, "
+                            "webengine {}".format(idx, webengine))
+        if idx == -1:
+            self.beginRemoveRows(QModelIndex(), 0, -1)
+            return
+
+        assert idx >= 0, idx
+        if webengine:
+            idx += len(self._qtnetwork_manager.downloads)
+        self.beginRemoveRows(QModelIndex(), idx, idx)
+
+    def _on_data_changed(self, idx, *, webengine):
         """Called when a downloader's data changed.
 
         Args:
             start: The first changed index as int.
             end: The last changed index as int, or -1 for all indices.
+            webengine: If given, the QtNetwork download length is added to the
+                      index.
         """
-        # FIXME we'll need to translate indices here...
-        start_index = self.index(start, 0)
-        qtutils.ensure_valid(start_index)
-        if end == -1:
+        if idx == -1:
+            start_index = self.index(0, 0)
             end_index = self.last_index()
         else:
-            end_index = self.index(end, 0)
+            if webengine:
+                idx += len(self._qtnetwork_manager.downloads)
+            start_index = self.index(idx, 0)
+            end_index = self.index(idx, 0)
+            qtutils.ensure_valid(start_index)
             qtutils.ensure_valid(end_index)
         self.dataChanged.emit(start_index, end_index)
 
