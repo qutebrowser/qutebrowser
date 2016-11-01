@@ -19,6 +19,7 @@
 
 """QtWebEngine specific code for downloads."""
 
+import os.path
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt
@@ -125,9 +126,11 @@ class DownloadManager(downloads.AbstractDownloadManager):
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
+        suggested_filename = os.path.basename(qt_item.path())
+
         download = DownloadItem(qt_item)
         self._init_item(download, auto_remove=False,
-                        suggested_filename=qt_item.path())
+                        suggested_filename=suggested_filename)
 
         filename = downloads.immediate_download_path()
         if filename is not None:
@@ -138,7 +141,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         # Ask the user for a filename - needs to be blocking!
         question = downloads.get_filename_question(
-            suggested_filename=qt_item.path(), url=qt_item.url(),
+            suggested_filename=suggested_filename, url=qt_item.url(),
             parent=self)
         self._init_filename_question(question, download)
 
