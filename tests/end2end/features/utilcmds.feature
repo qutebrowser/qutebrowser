@@ -91,7 +91,7 @@ Feature: Miscellaneous utility commands exposed to the user.
 
     ## :debug-console
 
-    @no_xvfb
+    @qutewm
     Scenario: :debug-console smoke test
         When I run :debug-console
         And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log

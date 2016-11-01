@@ -573,7 +573,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
-    @no_xvfb
+    @qutewm
     Scenario: :window-only
         Given I run :tab-only
         And I open data/hello.txt
