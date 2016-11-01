@@ -25,14 +25,17 @@ import html
 import os.path
 import collections
 import functools
+import tempfile
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QUrl, QModelIndex,
                           QTimer, QAbstractListModel)
 from PyQt5.QtGui import QDesktopServices
 
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, standarddir, utils, message, log
+from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
+                               qtutils)
 from qutebrowser.misc import guiprocess
 
 

@@ -20,24 +20,15 @@
 """Download manager."""
 
 import io
-import os
-import sys
 import os.path
 import shutil
 import functools
-import tempfile
 import collections
-import html
 
-import sip
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
-                          Qt, QModelIndex, QUrl)
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import (message, usertypes, log, utils, urlutils,
-                               objreg, standarddir, qtutils)
+from qutebrowser.utils import message, usertypes, log, urlutils, objreg
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
