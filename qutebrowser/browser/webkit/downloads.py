@@ -134,7 +134,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         except OSError as e:
             self._die(e.strerror)
         else:
-            self.set_fileobj(fileobj)
+            self._set_fileobj(fileobj)
 
     def _ask_confirm_question(self, title, msg):
         """Create a Question object to be asked."""
@@ -228,7 +228,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _after_set_filename(self):
         self._create_fileobj()
 
-    def set_fileobj(self, fileobj):
+    def _set_fileobj(self, fileobj):
         """"Set the file object to write the download to.
 
         Args:
@@ -379,6 +379,45 @@ class DownloadItem(downloads.AbstractDownloadItem):
         retry_nam = (self.done and (not self.successful) and
                      self._retry_info.manager is nam)
         return running_nam or retry_nam
+
+    def _open_if_successful(self, cmdline):
+        """Open the downloaded file, but only if it was successful.
+
+        Args:
+            cmdline: Passed to DownloadItem.open_file().
+        """
+        if not self.successful:
+            log.downloads.debug("{} finished but not successful, not opening!"
+                                .format(self))
+            return
+        self.open_file(cmdline)
+
+    def set_target(self, target):
+        """Set the target for a given download.
+
+        Args:
+            target: The usertypes.DownloadTarget for this download.
+        """
+        if isinstance(target, usertypes.FileObjDownloadTarget):
+            self._set_fileobj(target.fileobj)
+            self.autoclose = False
+        elif isinstance(target, usertypes.FileDownloadTarget):
+            self.set_filename(target.filename)
+        elif isinstance(target, usertypes.OpenFileDownloadTarget):
+            tmp_manager = objreg.get('temporary-downloads')
+            try:
+                fobj = tmp_manager.get_tmpfile(self.basename)
+            except OSError as exc:
+                msg = "Download error: {}".format(exc)
+                message.error(msg)
+                self.cancel()
+                return
+            self.finished.connect(
+                functools.partial(self._open_if_successful, target.cmdline))
+            self.autoclose = True
+            self._set_fileobj(fobj)
+        else:  # pragma: no cover
+            raise ValueError("Unknown download target: {}".format(target))
 
 
 class DownloadManager(QObject):
@@ -564,7 +603,7 @@ class DownloadManager(QObject):
             self._update_timer.start()
 
         if target is not None:
-            self._set_download_target(download, suggested_filename, target)
+            download.set_target(target)
             return download
 
         # Neither filename nor fileobj were given, prepare a question
@@ -576,63 +615,18 @@ class DownloadManager(QObject):
         # User doesn't want to be asked, so just use the download_dir
         if filename is not None:
             target = usertypes.FileDownloadTarget(filename)
-            self._set_download_target(download, suggested_filename, target)
+            download.set_target(target)
             return download
 
         # Ask the user for a filename
         self._postprocess_question(q)
-        q.answered.connect(
-            functools.partial(self._set_download_target, download,
-                              suggested_filename))
+        q.answered.connect(download.set_target)
         q.cancelled.connect(download.cancel)
         download.cancelled.connect(q.abort)
         download.error.connect(q.abort)
         q.ask()
 
         return download
-
-    def _set_download_target(self, download, suggested_filename, target):
-        """Set the target for a given download.
-
-        Args:
-            download: The download to set the filename for.
-            suggested_filename: The suggested filename.
-            target: The usertypes.DownloadTarget for this download.
-        """
-        if isinstance(target, usertypes.FileObjDownloadTarget):
-            download.set_fileobj(target.fileobj)
-            download.autoclose = False
-        elif isinstance(target, usertypes.FileDownloadTarget):
-            download.set_filename(target.filename)
-        elif isinstance(target, usertypes.OpenFileDownloadTarget):
-            tmp_manager = objreg.get('temporary-downloads')
-            try:
-                fobj = tmp_manager.get_tmpfile(suggested_filename)
-            except OSError as exc:
-                msg = "Download error: {}".format(exc)
-                message.error(msg)
-                download.cancel()
-                return
-            download.finished.connect(
-                functools.partial(self._open_download, download,
-                                  target.cmdline))
-            download.autoclose = True
-            download.set_fileobj(fobj)
-        else:  # pragma: no cover
-            raise ValueError("Unknown download target: {}".format(target))
-
-    def _open_download(self, download, cmdline):
-        """Open the given download but only if it was successful.
-
-        Args:
-            download: The DownloadItem to use.
-            cmdline: Passed to DownloadItem.open_file().
-        """
-        if not download.successful:
-            log.downloads.debug("{} finished but not successful, not opening!"
-                                .format(download))
-            return
-        download.open_file(cmdline)
 
     @pyqtSlot(DownloadItem)
     def _on_data_changed(self, download):
