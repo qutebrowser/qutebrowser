@@ -251,7 +251,7 @@ class MainWindow(QWidget):
             topleft = QPoint(left, self.status.geometry().bottom())
             bottom = self.status.height() + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(width,
+            bottomright = QPoint(left + width,
                                  min(self.height() - max_height_padding, bottom))
         else:
             raise ValueError("Invalid position {}!".format(status_position))
