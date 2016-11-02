@@ -584,6 +584,9 @@ class FilenamePrompt(_BasePrompt):
         path = os.path.normpath(self._file_model.filePath(index))
         if clicked:
             path += os.sep
+        else:
+            # On Windows, when we have C:\foo and tab over .., we get C:\
+            path = path.rstrip(os.sep)
 
         log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
