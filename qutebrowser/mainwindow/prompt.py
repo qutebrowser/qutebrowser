@@ -567,6 +567,7 @@ class FilenamePrompt(_BasePrompt):
             else:
                 return
         except OSError:
+            log.prompt.exception("Failed to get directory information")
             return
 
         root = self._file_model.setRootPath(path)
