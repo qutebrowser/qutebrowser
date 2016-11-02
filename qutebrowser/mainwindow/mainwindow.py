@@ -24,6 +24,7 @@ import base64
 import itertools
 import functools
 
+import jinja2
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
@@ -517,9 +518,17 @@ class MainWindow(QWidget):
                 "download is" if download_count == 1 else "downloads are"))
         # Process all quit messages that user must confirm
         if quit_texts or 'always' in confirm_quit:
-            text = '\n'.join(['Really quit?'] + quit_texts)
-            confirmed = message.ask(text, mode=usertypes.PromptMode.yesno,
+            msg = jinja2.Template("""
+                <ul>
+                {% for text in quit_texts %}
+                   <li>{{text}}</li>
+                {% endfor %}
+                </ul>
+            """.strip()).render(quit_texts=quit_texts)
+            confirmed = message.ask('Really quit?', msg,
+                                    mode=usertypes.PromptMode.yesno,
                                     default=True)
+
             # Stop asking if the user cancels
             if not confirmed:
                 log.destroy.debug("Cancelling closing of window {}".format(
