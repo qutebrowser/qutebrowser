@@ -550,13 +550,12 @@ class FilenamePrompt(_BasePrompt):
         if os.altsep is not None:
             separators += os.altsep
 
-        if not path:
-            return
-
         dirname = os.path.dirname(path)
 
         try:
-            if path in separators and os.path.isdir(path):
+            if not path:
+                pass
+            elif path in separators and os.path.isdir(path):
                 # Input "/" -> don't strip anything
                 pass
             elif path[-1] in separators and os.path.isdir(path):
