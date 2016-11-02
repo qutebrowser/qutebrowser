@@ -215,8 +215,13 @@ class TabCompletionModel(base.BaseCompletionModel):
             for idx in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(idx)
                 if idx >= c.rowCount():
+                    if tab.history_prepared:
+                        item = tab.history_prepared[len(tab.history_prepared) - 1]
+                        title = item.url.toDisplayString()
+                    else:
+                        title = tab.url().toDisplayString()
                     self.new_item(c, "{}/{}".format(win_id, idx + 1),
-                                  tab.url().toDisplayString(),
+                                  title,
                                   tabbed_browser.page_title(idx))
                 else:
                     c.child(idx, 0).setData("{}/{}".format(win_id, idx + 1),
