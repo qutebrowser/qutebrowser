@@ -272,11 +272,6 @@ class PromptContainer(QWidget):
         Args:
             question: A Question object or None.
         """
-        item = self._layout.takeAt(0)
-        assert self._layout.count() == 0
-        if item is not None:
-            item.widget().deleteLater()
-
         if question is None:
             self._prompt = None
             self.hide()
@@ -318,13 +313,16 @@ class PromptContainer(QWidget):
     def _on_global_mode_left(self, mode):
         """Leave prompt/yesno mode in this window if it was left elsewhere.
 
-        PromptQueue takes care of getting rid of the question if a mode was
-        left, but if that happens in a different window, this window will still
-        be stuck in prompt mode. Here we make sure to leave that if it was left
-        anywhere else.
+        This ensures no matter where a prompt was answered, we leave the prompt
+        mode and dispose of the prompt object in every window.
         """
         if mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
             modeman.maybe_leave(self._win_id, mode, 'left in other window')
+            item = self._layout.takeAt(0)
+            if item is not None:
+                widget = item.widget()
+                widget.hide()
+                widget.deleteLater()
 
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt,
