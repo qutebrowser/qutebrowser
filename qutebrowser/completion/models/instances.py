@@ -102,6 +102,15 @@ def init_bookmark_completions():
     model = miscmodels.BookmarkCompletionModel()
     _instances[usertypes.Completion.bookmark_by_url] = model
 
+def init_jumps_list_completion():
+    """Initialize jumps list completion model"""
+    _instances[usertypes.Completion.jumps_list] = retrieve_jumps_list
+
+def retrieve_jumps_list():
+    app = objreg.get('app')
+    window = app.activeWindow()
+    return (miscmodels.JumpsListCompletionModel(window.win_id))
+
 
 def init_session_completion():
     """Initialize session completion model."""
@@ -130,6 +139,7 @@ INITIALIZERS = {
     usertypes.Completion.option: _init_setting_completions,
     usertypes.Completion.value: _init_setting_completions,
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
+    usertypes.Completion.jumps_list: init_jumps_list_completion,
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
     usertypes.Completion.bind: _init_bind_completion,
