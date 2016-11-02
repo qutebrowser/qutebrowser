@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import pytest
 
 from qutebrowser.mainwindow import prompt as promptmod
@@ -28,26 +30,38 @@ def setup(qapp, key_config_stub):
     key_config_stub.set_bindings_for('prompt', {})
 
 
-@pytest.mark.parametrize('steps, where, subfolder', [
-    (1, 'next', '..'),
-    (1, 'prev', 'c'),
-    (2, 'next', 'a'),
-    (2, 'prev', 'b'),
-])
-def test_file_completion(tmpdir, qtbot, steps, where, subfolder):
-    for directory in 'abc':
-        (tmpdir / directory).ensure(dir=True)
-    question = usertypes.Question()
-    question.title = "test"
-    question.default = str(tmpdir) + '/'
+class TestFileCompletion:
 
-    prompt = promptmod.DownloadFilenamePrompt(question)
-    qtbot.add_widget(prompt)
-    with qtbot.wait_signal(prompt._file_model.directoryLoaded):
-        pass
-    assert prompt._lineedit.text() == str(tmpdir) + '/'
+    @pytest.fixture
+    def get_prompt(self, qtbot):
+        def _get_prompt_func(path):
+            question = usertypes.Question()
+            question.title = "test"
+            question.default = path
 
-    for _ in range(steps):
-        prompt.item_focus(where)
+            prompt = promptmod.DownloadFilenamePrompt(question)
+            qtbot.add_widget(prompt)
+            with qtbot.wait_signal(prompt._file_model.directoryLoaded):
+                pass
+            assert prompt._lineedit.text() == path
 
-    assert prompt._lineedit.text() == str(tmpdir / subfolder)
+            return prompt
+        return _get_prompt_func
+
+    @pytest.mark.parametrize('steps, where, subfolder', [
+        (1, 'next', '..'),
+        (1, 'prev', 'c'),
+        (2, 'next', 'a'),
+        (2, 'prev', 'b'),
+    ])
+    def test_simple_completion(self, tmpdir, get_prompt, steps, where,
+                               subfolder):
+        for directory in 'abc':
+            (tmpdir / directory).ensure(dir=True)
+
+        prompt = get_prompt(str(tmpdir) + os.sep)
+
+        for _ in range(steps):
+            prompt.item_focus(where)
+
+        assert prompt._lineedit.text() == str(tmpdir / subfolder)
