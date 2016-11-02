@@ -240,17 +240,19 @@ class MainWindow(QWidget):
             width = size_hint.width()
             left = (self.width() - size_hint.width()) / 2 if centered else 0
 
+        max_height_padding = 20
         status_position = config.get('ui', 'status-position')
         if status_position == 'bottom':
             top = self.height() - self.status.height() - size_hint.height()
             top = qtutils.check_overflow(top, 'int', fatal=False)
-            topleft = QPoint(left, top)
+            topleft = QPoint(left, max(max_height_padding, top))
             bottomright = QPoint(left + width, self.status.geometry().top())
         elif status_position == 'top':
             topleft = QPoint(left, self.status.geometry().bottom())
             bottom = self.status.height() + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(width, bottom)
+            bottomright = QPoint(width,
+                                 min(self.height() - max_height_padding, bottom))
         else:
             raise ValueError("Invalid position {}!".format(status_position))
 
