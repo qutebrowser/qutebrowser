@@ -20,6 +20,7 @@
 import os
 
 import pytest
+from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import prompt as promptmod
 from qutebrowser.utils import usertypes
@@ -34,6 +35,7 @@ class TestFileCompletion:
 
     @pytest.fixture
     def get_prompt(self, qtbot):
+        """Get a function to display a prompt with a path."""
         def _get_prompt_func(path):
             question = usertypes.Question()
             question.title = "test"
@@ -56,6 +58,7 @@ class TestFileCompletion:
     ])
     def test_simple_completion(self, tmpdir, get_prompt, steps, where,
                                subfolder):
+        """Simply trying to tab through items."""
         for directory in 'abc':
             (tmpdir / directory).ensure(dir=True)
 
@@ -65,3 +68,20 @@ class TestFileCompletion:
             prompt.item_focus(where)
 
         assert prompt._lineedit.text() == str(tmpdir / subfolder)
+
+    def test_backspacing_path(self, qtbot, tmpdir, get_prompt):
+        """When we start deleting a path we want to see the subdir."""
+        for directory in ['bar', 'foo']:
+            (tmpdir / directory).ensure(dir=True)
+
+        prompt = get_prompt(str(tmpdir / 'foo') + os.sep)
+
+        # Deleting /f[oo/]
+        with qtbot.wait_signal(prompt._file_model.directoryLoaded):
+            for _ in range(3):
+                qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+
+        # We should now show / again, so tabbing twice gives us .. -> bar
+        prompt.item_focus('next')
+        prompt.item_focus('next')
+        assert prompt._lineedit.text() == str(tmpdir / 'bar')

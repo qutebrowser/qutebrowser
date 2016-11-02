@@ -538,7 +538,7 @@ class FilenamePrompt(_BasePrompt):
         self._lineedit = LineEdit(self)
         if question.default:
             self._lineedit.setText(question.default)
-        self._lineedit.textChanged.connect(self._set_fileview_root)
+        self._lineedit.textEdited.connect(self._set_fileview_root)
         self._vbox.addWidget(self._lineedit)
 
         self.setFocusProxy(self._lineedit)
@@ -546,18 +546,25 @@ class FilenamePrompt(_BasePrompt):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
-    def _set_fileview_root(self, path):
+    def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
         separators = os.sep
         if os.altsep is not None:
             separators += os.altsep
 
-        if path == '/' or (path and path[-1] not in separators):
+        if not path:
             return
-        path.rstrip(separators)
+
+        dirname = os.path.dirname(path)
 
         try:
-            if not os.path.isdir(path):
+            if path[-1] in separators and os.path.isdir(path):
+                # Input like /foo/bar/ -> show /foo/bar/ contents
+                path = path.rstrip(separators)
+            elif os.path.isdir(dirname) and not tabbed:
+                # Input like /foo/ba -> show /foo contents
+                path = dirname
+            else:
                 return
         except OSError:
             return
@@ -580,6 +587,7 @@ class FilenamePrompt(_BasePrompt):
         log.prompt.debug('Inserting path {}'.format(path))
         self._lineedit.setText(path)
         self._lineedit.setFocus()
+        self._set_fileview_root(path, tabbed=True)
         if clicked:
             # Avoid having a ..-subtree highlighted
             self._file_view.setCurrentIndex(QModelIndex())
