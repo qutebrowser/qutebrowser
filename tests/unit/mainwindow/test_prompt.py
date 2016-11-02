@@ -85,3 +85,9 @@ class TestFileCompletion:
         prompt.item_focus('next')
         prompt.item_focus('next')
         assert prompt._lineedit.text() == str(tmpdir / 'bar')
+
+    @pytest.mark.linux
+    def test_root_path(self, get_prompt):
+        """With / as path, show root contents."""
+        prompt = get_prompt('/')
+        assert prompt._file_model.rootPath() == '/'

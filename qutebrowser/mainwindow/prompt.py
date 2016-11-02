@@ -556,7 +556,10 @@ class FilenamePrompt(_BasePrompt):
         dirname = os.path.dirname(path)
 
         try:
-            if path[-1] in separators and os.path.isdir(path):
+            if path in separators and os.path.isdir(path):
+                # Input "/" -> don't strip anything
+                pass
+            elif path[-1] in separators and os.path.isdir(path):
                 # Input like /foo/bar/ -> show /foo/bar/ contents
                 path = path.rstrip(separators)
             elif os.path.isdir(dirname) and not tabbed:
