@@ -269,6 +269,7 @@
 |<<colors-messages.border.info,messages.border.info>>|Border color of an info message.
 |<<colors-prompts.fg,prompts.fg>>|Foreground color for prompts.
 |<<colors-prompts.bg,prompts.bg>>|Background color for prompts.
+|<<colors-prompts.selected.bg,prompts.selected.bg>>|Background color for the selected item in filename prompts.
 |==============
 
 .Quick reference for section ``fonts''
@@ -2191,6 +2192,12 @@ Default: +pass:[white]+
 Background color for prompts.
 
 Default: +pass:[darkblue]+
+
+[[colors-prompts.selected.bg]]
+=== prompts.selected.bg
+Background color for the selected item in filename prompts.
+
+Default: +pass:[#308cc6]+
 
 == fonts
 Fonts used for the UI, with optional style/weight/size.

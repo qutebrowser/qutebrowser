@@ -244,6 +244,14 @@ class PromptContainer(QWidget):
             color: {{ color['prompts.fg'] }};
             background-color: {{ color['prompts.bg'] }};
         }
+
+        QTreeView {
+            selection-background-color: {{ color['prompts.selected.bg'] }};
+        }
+
+        QTreeView::item:selected, QTreeView::item:selected:hover {
+            background-color: {{ color['prompts.selected.bg'] }};
+        }
     """
     update_geometry = pyqtSignal()
 

@@ -1310,6 +1310,10 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'darkblue'),
              "Background color for prompts."),
 
+            ('prompts.selected.bg',
+             SettingValue(typ.QssColor(), '#308cc6'),
+             "Background color for the selected item in filename prompts."),
+
             readonly=readonly
         )),
 
