@@ -280,6 +280,12 @@ class PromptContainer(QWidget):
         Args:
             question: A Question object or None.
         """
+        item = self._layout.takeAt(0)
+        if item is not None:
+            widget = item.widget()
+            widget.hide()
+            widget.deleteLater()
+
         if question is None:
             self._prompt = None
             self.hide()
