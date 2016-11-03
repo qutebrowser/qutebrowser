@@ -61,8 +61,7 @@ except (OSError, IOError):
 print("Installing PyQt5...")
 subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
 
-print("Installing pip/tox")
-pip_install(r'-rmisc\requirements\requirements-pip.txt')
+print("Installing tox")
 pip_install(r'-rmisc\requirements\requirements-tox.txt')
 
 print("Linking Python...")

@@ -1,2 +1,0 @@
-pip==8.1.2
-setuptools==28.7.1
