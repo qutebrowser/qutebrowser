@@ -217,18 +217,13 @@ class MainWindow(QWidget):
     def _add_overlay(self, widget, signal, *, centered=False, padding=0):
         self._overlays.append((widget, signal, centered, padding))
 
-    def _update_overlay_geometry(self, widget=None, centered=None, padding=0):
-        """Reposition/resize the given overlay.
+    def _update_overlay_geometries(self):
+        """Update the size/position of all overlays."""
+        for w, _signal, centered, padding in self._overlays:
+            self._update_overlay_geometry(w, centered, padding)
 
-        If no widget is given, reposition/resize all overlays.
-        """
-        if widget is None:
-            for w, _signal, centered, padding in self._overlays:
-                self._update_overlay_geometry(w, centered, padding)
-            return
-
-        assert centered is not None
-
+    def _update_overlay_geometry(self, widget, centered, padding):
+        """Reposition/resize the given overlay."""
         if not widget.isVisible():
             return
 
@@ -298,12 +293,12 @@ class MainWindow(QWidget):
         if section != 'ui':
             return
         if option == 'statusbar-padding':
-            self._update_overlay_geometry()
+            self._update_overlay_geometries()
         elif option == 'downloads-position':
             self._add_widgets()
         elif option == 'status-position':
             self._add_widgets()
-            self._update_overlay_geometry()
+            self._update_overlay_geometries()
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
@@ -370,7 +365,7 @@ class MainWindow(QWidget):
             signal.connect(
                 functools.partial(self._update_overlay_geometry, widget,
                                   centered, padding))
-            self._update_overlay_geometry(widget, centered)
+            self._update_overlay_geometry(widget, centered, padding)
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
@@ -472,7 +467,7 @@ class MainWindow(QWidget):
             e: The QResizeEvent
         """
         super().resizeEvent(e)
-        self._update_overlay_geometry()
+        self._update_overlay_geometries()
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
