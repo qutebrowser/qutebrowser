@@ -384,6 +384,10 @@ def data(readonly=False):
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
 
+            ('prompt-radius',
+             SettingValue(typ.Int(minval=0), '8'),
+             "The rounding radius for the edges of prompts."),
+
             readonly=readonly
         )),
 
@@ -1075,14 +1079,6 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
 
-            ('statusbar.fg.prompt',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
-             "Foreground color of the statusbar if there is a prompt."),
-
-            ('statusbar.bg.prompt',
-             SettingValue(typ.QssColor(), 'darkblue'),
-             "Background color of the statusbar if there is a prompt."),
-
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in insert mode."),
@@ -1306,6 +1302,18 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#333333'),
              "Border color of an info message."),
 
+            ('prompts.fg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color for prompts."),
+
+            ('prompts.bg',
+             SettingValue(typ.QssColor(), 'darkblue'),
+             "Background color for prompts."),
+
+            ('prompts.selected.bg',
+             SettingValue(typ.QssColor(), '#308cc6'),
+             "Background color for the selected item in filename prompts."),
+
             readonly=readonly
         )),
 
@@ -1406,6 +1414,10 @@ def data(readonly=False):
             ('messages.info',
              SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used for info messages."),
+
+            ('prompts',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' sans-serif'),
+             "Font used for prompts."),
 
             readonly=readonly
         )),
@@ -1672,6 +1684,8 @@ KEY_DATA = collections.OrderedDict([
         ('prompt-accept yes', ['y']),
         ('prompt-accept no', ['n']),
         ('prompt-open-download', ['<Ctrl-X>']),
+        ('prompt-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('prompt-item-focus next', ['<Tab>', '<Down>']),
     ])),
 
     ('command,prompt', collections.OrderedDict([

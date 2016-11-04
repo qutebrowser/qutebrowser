@@ -1137,7 +1137,7 @@ class CommandDispatcher:
     def quickmark_save(self):
         """Save the current page as a quickmark."""
         quickmark_manager = objreg.get('quickmark-manager')
-        quickmark_manager.prompt_save(self._win_id, self._current_url())
+        quickmark_manager.prompt_save(self._current_url())
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1355,9 +1355,8 @@ class CommandDispatcher:
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
-            filename, q = downloads.ask_for_filename(
-                suggested_fn, self._win_id, parent=tab,
-            )
+            filename, q = downloads.ask_for_filename(suggested_fn, parent=tab,
+                                                     url=tab.url())
             if filename is not None:
                 mhtml.start_download_checked(filename, tab=tab)
             else:

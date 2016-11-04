@@ -50,10 +50,13 @@ def keyhint(qtbot, config_stub, key_config_stub):
         'colors': {
             'keyhint.fg': 'white',
             'keyhint.fg.suffix': 'yellow',
-            'keyhint.bg': 'black'
+            'keyhint.bg': 'black',
         },
         'fonts': {'keyhint': 'Comic Sans'},
-        'ui': {'keyhint-blacklist': '', 'status-position': 'bottom'},
+        'ui': {
+            'keyhint-blacklist': '',
+            'status-position': 'bottom',
+        },
     }
     keyhint = KeyHintView(0, None)
     qtbot.add_widget(keyhint)

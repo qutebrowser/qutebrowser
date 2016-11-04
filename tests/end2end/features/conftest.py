@@ -188,19 +188,21 @@ def open_path(quteproc, path):
     do_not_wait_suffix = ' without waiting'
     as_url_suffix = ' as a URL'
 
-    if path.endswith(new_tab_suffix):
-        path = path[:-len(new_tab_suffix)]
-        new_tab = True
-    elif path.endswith(new_window_suffix):
-        path = path[:-len(new_window_suffix)]
-        new_window = True
-    elif path.endswith(as_url_suffix):
-        path = path[:-len(as_url_suffix)]
-        as_url = True
-
-    if path.endswith(do_not_wait_suffix):
-        path = path[:-len(do_not_wait_suffix)]
-        wait = False
+    while True:
+        if path.endswith(new_tab_suffix):
+            path = path[:-len(new_tab_suffix)]
+            new_tab = True
+        elif path.endswith(new_window_suffix):
+            path = path[:-len(new_window_suffix)]
+            new_window = True
+        elif path.endswith(as_url_suffix):
+            path = path[:-len(as_url_suffix)]
+            as_url = True
+        elif path.endswith(do_not_wait_suffix):
+            path = path[:-len(do_not_wait_suffix)]
+            wait = False
+        else:
+            break
 
     quteproc.open_path(path, new_tab=new_tab, new_window=new_window,
                        as_url=as_url, wait=wait)

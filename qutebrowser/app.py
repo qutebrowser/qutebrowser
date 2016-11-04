@@ -48,7 +48,7 @@ from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import urlmarks, adblock, history, browsertab
 from qutebrowser.browser.webkit import cookies, cache, downloads
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.mainwindow import mainwindow
+from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
@@ -372,6 +372,9 @@ def _init_modules(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     # pylint: disable=too-many-statements
+    log.init.debug("Initializing prompts...")
+    prompt.init()
+
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
@@ -643,13 +646,7 @@ class Quitter:
             session_manager.save(sessions.default, last_window=last_window,
                                  load_next_time=True)
 
-        deferrer = False
-        for win_id in objreg.window_registry:
-            prompter = objreg.get('prompter', None, scope='window',
-                                  window=win_id)
-            if prompter is not None and prompter.shutdown():
-                deferrer = True
-        if deferrer:
+        if prompt.prompt_queue.shutdown():
             # If shutdown was called while we were asking a question, we're in
             # a still sub-eventloop (which gets quit now) and not in the main
             # one.

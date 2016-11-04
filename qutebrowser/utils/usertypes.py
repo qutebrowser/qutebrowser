@@ -335,10 +335,11 @@ class Question(QObject):
                  For yesno, None (no default), True or False.
                  For text, a default text as string.
                  For user_pwd, a default username as string.
+        title: The question title to show.
         text: The prompt text to display to the user.
-        user: The value the user entered as username.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
+        interrupted: Whether the question was interrupted by another one.
 
     Signals:
         answered: Emitted when the question has been answered by the user.
@@ -364,14 +365,15 @@ class Question(QObject):
         super().__init__(parent)
         self._mode = None
         self.default = None
+        self.title = None
         self.text = None
-        self.user = None
         self.answer = None
         self.is_aborted = False
+        self.interrupted = False
 
     def __repr__(self):
-        return utils.get_repr(self, text=self.text, mode=self._mode,
-                              default=self.default)
+        return utils.get_repr(self, title=self.title, text=self.text,
+                              mode=self._mode, default=self.default)
 
     @property
     def mode(self):
@@ -405,6 +407,9 @@ class Question(QObject):
     @pyqtSlot()
     def abort(self):
         """Abort the question."""
+        if self.is_aborted:
+            log.misc.debug("Question was already aborted")
+            return
         self.is_aborted = True
         try:
             self.aborted.emit()

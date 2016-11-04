@@ -77,7 +77,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             return ''
 
-    @pyqtSlot(str)
     def set_cmd_text(self, text):
         """Preset the statusbar to some text.
 
