@@ -427,3 +427,28 @@ Feature: Prompts
         And I wait for a prompt
         And I run :prompt-accept prompt-in-command-mode
         Then "Added quickmark prompt-in-command-mode for *" should be logged
+
+    # https://github.com/The-Compiler/qutebrowser/issues/1093
+    Scenario: Keyboard focus with multiple auth prompts
+        When I open basic-auth/user1/password1 without waiting
+        And I open basic-auth/user2/password2 in a new tab without waiting
+        And I wait for a prompt
+        And I wait for a prompt
+        # Second prompt (showed first)
+        And I press the keys "user2"
+        And I press the key "<Enter>"
+        And I press the keys "password2"
+        And I press the key "<Enter>"
+        And I wait until basic-auth/user2/password2 is loaded
+        # First prompt
+        And I press the keys "user1"
+        And I press the key "<Enter>"
+        And I press the keys "password1"
+        And I press the key "<Enter>"
+        And I wait until basic-auth/user1/password1 is loaded
+        # We're on the second page
+        Then the json on the page should be:
+            {
+              "authenticated": true,
+              "user": "user2"
+            }
