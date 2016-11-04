@@ -407,6 +407,9 @@ class Question(QObject):
     @pyqtSlot()
     def abort(self):
         """Abort the question."""
+        if self.is_aborted:
+            log.misc.debug("Question was already aborted")
+            return
         self.is_aborted = True
         try:
             self.aborted.emit()

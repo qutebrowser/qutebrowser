@@ -452,3 +452,18 @@ Feature: Prompts
               "authenticated": true,
               "user": "user2"
             }
+
+    # https://github.com/The-Compiler/qutebrowser/issues/1249#issuecomment-175205531
+    # https://github.com/The-Compiler/qutebrowser/pull/2054#issuecomment-258285544
+    Scenario: Interrupting SSL prompt during a notification prompt
+        When I set content -> notifications to ask
+        And I set network -> ssl-strict to ask
+        And I open data/prompt/notifications.html in a new tab
+        And I run :click-element id button
+        And I wait for a prompt
+        And I open about:blank in a new tab
+        And I load an SSL page
+        And I wait for a prompt
+        And I run :tab-close
+        And I run :prompt-accept yes
+        Then the javascript message "notification permission granted" should be logged
