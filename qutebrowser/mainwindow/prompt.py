@@ -201,16 +201,20 @@ class PromptQueue(QObject):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
-        """Abort question when a mode was left."""
-        if self._question is not None:
-            log.prompt.debug("Left mode {}, hiding {}".format(
-                mode, self._question))
-            self.show_prompts.emit(None)
-            if self._question.answer is None and not self._question.is_aborted:
-                log.prompt.debug("Cancelling {} because {} was left".format(
-                    self._question, mode))
-                self._question.cancel()
-            self._question = None
+        """Abort question when a prompt mode was left."""
+        if mode not in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
+            return
+        if self._question is None:
+            return
+
+        log.prompt.debug("Left mode {}, hiding {}".format(
+            mode, self._question))
+        self.show_prompts.emit(None)
+        if self._question.answer is None and not self._question.is_aborted:
+            log.prompt.debug("Cancelling {} because {} was left".format(
+                self._question, mode))
+            self._question.cancel()
+        self._question = None
 
 
 class PromptContainer(QWidget):
@@ -332,14 +336,15 @@ class PromptContainer(QWidget):
         This ensures no matter where a prompt was answered, we leave the prompt
         mode and dispose of the prompt object in every window.
         """
-        if mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
-            modeman.maybe_leave(self._win_id, mode, 'left in other window')
-            item = self._layout.takeAt(0)
-            if item is not None:
-                widget = item.widget()
-                log.prompt.debug("Deleting prompt {}".format(widget))
-                widget.hide()
-                widget.deleteLater()
+        if mode not in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
+            return
+        modeman.maybe_leave(self._win_id, mode, 'left in other window')
+        item = self._layout.takeAt(0)
+        if item is not None:
+            widget = item.widget()
+            log.prompt.debug("Deleting prompt {}".format(widget))
+            widget.hide()
+            widget.deleteLater()
 
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt,

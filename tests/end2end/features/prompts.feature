@@ -419,3 +419,11 @@ Feature: Prompts
         And I run :prompt-item-focus next
         And I run :prompt-accept test-prompt-item-focus
         Then "Added quickmark test-prompt-item-focus for *" should be logged
+
+    Scenario: Getting question in command mode
+        When I open data/hello.txt
+        And I run :later 500 quickmark-save
+        And I run :set-cmd-text :
+        And I wait for a prompt
+        And I run :prompt-accept prompt-in-command-mode
+        Then "Added quickmark prompt-in-command-mode for *" should be logged
