@@ -283,10 +283,12 @@ class PromptContainer(QWidget):
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()
+            log.prompt.debug("Deleting old prompt {}".format(widget))
             widget.hide()
             widget.deleteLater()
 
         if question is None:
+            log.prompt.debug("No prompts left, hiding prompt container.")
             self._prompt = None
             self.hide()
             return
@@ -335,6 +337,7 @@ class PromptContainer(QWidget):
             item = self._layout.takeAt(0)
             if item is not None:
                 widget = item.widget()
+                log.prompt.debug("Deleting prompt {}".format(widget))
                 widget.hide()
                 widget.deleteLater()
 
