@@ -67,12 +67,12 @@ class Request(testprocess.Line):
             '/favicon.ico': [http.client.NOT_FOUND],
             '/does-not-exist': [http.client.NOT_FOUND],
             '/does-not-exist-2': [http.client.NOT_FOUND],
-            '/basic-auth/user/password':
-                [http.client.UNAUTHORIZED, http.client.OK],
+            '/status/404': [http.client.NOT_FOUND],
+
             '/custom/redirect-later': [http.client.FOUND],
             '/custom/redirect-self': [http.client.FOUND],
             '/redirect-to': [http.client.FOUND],
-            '/status/404': [http.client.NOT_FOUND],
+
             '/cookies/set': [http.client.FOUND],
         }
         for i in range(15):
@@ -81,6 +81,10 @@ class Request(testprocess.Line):
                 http.client.FOUND]
             path_to_statuses['/absolute-redirect/{}'.format(i)] = [
                 http.client.FOUND]
+        for suffix in ['', '1', '2']:
+            key = '/basic-auth/user{}/password{}'.format(suffix, suffix)
+            path_to_statuses[key] = [http.client.UNAUTHORIZED, http.client.OK]
+
         default_statuses = [http.client.OK, http.client.NOT_MODIFIED]
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
