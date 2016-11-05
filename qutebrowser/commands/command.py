@@ -419,9 +419,16 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif issubclass(typ, typing.Union):
+        elif type(typ) is type(typing.Union):  # flake8: disable=E721
             # this is... slightly evil, I know
-            types = list(typ.__union_params__)
+            # We also can't use isinstance here because typing.Union doesn't
+            # support that.
+            # pylint: disable=no-member,useless-suppression
+            try:
+                types = list(typ.__union_params__)
+            except AttributeError:
+                types = list(typ.__args__)
+            # pylint: enable=no-member,useless-suppression
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
             choices = self.get_arg_info(param).choices
