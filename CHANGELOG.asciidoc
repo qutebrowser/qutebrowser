@@ -14,14 +14,25 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.8.3 (unreleased)
--------------------
+v0.8.3
+------
 
 Fixed
 ~~~~~
 
 - Fixed crash when doing `:<space><enter>`, another corner-case introduced in v0.8.0
-- Fixed `:restart` deleting the basedir when it was given with `--basedir`.
+- Fixed `:open-editor` (`<Ctrl-e>`) on Windows
+- Fixed crash when setting `general -> auto-save-interval` to a too big value.
+- Fixed crash when using hints on Void Linux.
+- Fixed compatibility with Python 3.5.2+ on Debian unstable
+- Compatibility with pdfjs v1.6.210
+- `:bind` can now be used to bind to an alias (binding by editing `keys.conf`
+  already worked before)
+- The command completion now updates correctly when changing aliases
+- The tabbar now displays correctly with the Adwaita Qt theme
+- The default `sk` keybinding now sets the commandline to `:bind` correctly
+- Fixed crash when closing a window without focusing it
+- Userscripts now can access QUTE_FIFO correctly on Windows
 
 v0.8.2
 ------
@@ -31,7 +42,6 @@ Fixed
 
 - Fixed `general -> private-browsing` not being set correctly until a restart
   (which caused e.g. local storage to be enabled).
-- Fixed crash when using hints with JS disabled in some rare circumstances.
 - When hinting input fields (`:t`), also consider input elements without a type.
 - Fixed crash when opening an invalid URL with a percent-encoded and a real @ in it
 - Fixed default `;o` and `;O` bindings
@@ -41,11 +51,11 @@ Fixed
 - Fixed HTML5 video playback on Windows
 - Fixed crash when using `:prompt-open-download` with a file with chars not
   encodable with the OS' filesystem encoding (e.g. with `LC_ALL=C`)
-- Fixed `:prompt-open-download` with a too long filename (< 255 bytes)
+- Fixed `:prompt-open-download` with a too long filename (> 255 bytes)
 - Fixed crash when cancelling a download after doing `:prompt-open-download`
 - Fixed crash when writing a download to disk fails with
   `:prompt-open-download`.
-- Fixed HTML5 video playback on Windows
+- Fixed `:restart` deleting the basedir when it was given with `--basedir`.
 
 v0.8.1
 ------
@@ -152,7 +162,6 @@ Changed
 - `:navigate` now clears the URL fragment
 - `:completion-item-del` (`Ctrl-D`) can now be used in `:buffer` completion to
   close a tab
-- Counts can now be used with special keybindings (e.g. with modifiers)
 - Various SSL ciphers are now disabled by default. With recent Qt/OpenSSL
   versions those already all are disabled, but with older versions they might
   not be.
