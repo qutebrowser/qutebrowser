@@ -18,6 +18,9 @@ pyflakes
 # Pinned to 1.5.7 by hacking otherwise
 pep8==1.7.0
 
+# Pinned to 2.0.0 otherwise
+pycodestyle==2.1.0
+
 # Waiting until hacking/flake8-tuple are updated
 #@ filter: flake8 < 3.0.0
 
