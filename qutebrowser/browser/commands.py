@@ -229,7 +229,10 @@ class CommandDispatcher:
             return
 
         if tab.pin is True:
-            return
+            result = message.ask("Are you sure you want to close a pinned tab?", 
+                        mode=usertypes.PromptMode.yesno, default=False)
+            if result is False or result is None:
+                return
 
         tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(left, right,
