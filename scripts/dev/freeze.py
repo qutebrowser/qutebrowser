@@ -100,7 +100,8 @@ def get_build_exe_options(skip_html=False):
         'excludes': ['tkinter'],
         'packages': ['pygments', 'pkg_resources._vendor.packaging',
                      'pkg_resources._vendor.pyparsing',
-                     'pkg_resources._vendor.six'],
+                     'pkg_resources._vendor.six',
+                     'pkg_resources._vendor.appdirs'],
     }
 
 
