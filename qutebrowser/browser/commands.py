@@ -310,7 +310,7 @@ class CommandDispatcher:
                         # Explicit count with a tab that doesn't exist.
                         return
                 elif curtab.pin is True:
-                     raise cmdexc.CommandError("Tab is pinned!")
+                     message.info("Tab is pinned!")
                 else:
                     curtab.openurl(cur_url)
 
