@@ -169,23 +169,15 @@ Removed
 Fixed
 ~~~~~
 
-- `:bind` can now be used to bind to an alias (binding by editing `keys.conf`
-  already worked before)
-- The command completion now updates correctly when changing aliases
 - `:undo` now doesn't undo tabs "closed" by `:tab-detach` anymore.
 - Fixed an issue with hint chars not being cleared correctly when leaving hint
   mode.
 - `:tab-detach` now fails correctly when there's only one tab open.
 - Various small issues with the command completion
-- The tabbar now displays correctly with the Adwaita Qt theme
-- The default `sk` keybinding now sets the commandline to `:bind` correctly
 - Fixed hang when using multiple spaces in a row with the URL completion
-- Fixed crash when closing a window without focusing it
-- Userscripts now can access QUTE_FIFO correctly on Windows
-- Compatibility with pdfjs v1.6.210
 
-v0.8.3 (unreleased)
--------------------
+v0.8.3
+------
 
 Fixed
 ~~~~~
@@ -194,6 +186,15 @@ Fixed
 - Fixed `:open-editor` (`<Ctrl-e>`) on Windows
 - Fixed crash when setting `general -> auto-save-interval` to a too big value.
 - Fixed crash when using hints on Void Linux.
+- Fixed compatibility with Python 3.5.2+ on Debian unstable
+- Compatibility with pdfjs v1.6.210
+- `:bind` can now be used to bind to an alias (binding by editing `keys.conf`
+  already worked before)
+- The command completion now updates correctly when changing aliases
+- The tabbar now displays correctly with the Adwaita Qt theme
+- The default `sk` keybinding now sets the commandline to `:bind` correctly
+- Fixed crash when closing a window without focusing it
+- Userscripts now can access QUTE_FIFO correctly on Windows
 
 v0.8.2
 ------
