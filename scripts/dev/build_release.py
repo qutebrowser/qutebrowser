@@ -258,7 +258,7 @@ def github_upload(artifacts, tag):
         with open(filename, 'rb') as f:
             basename = os.path.basename(filename)
             asset = release.upload_asset(mimetype, basename, f)
-        asset.edit(filename, description)
+        asset.edit(basename, description)
 
 
 def pypi_upload(artifacts):
