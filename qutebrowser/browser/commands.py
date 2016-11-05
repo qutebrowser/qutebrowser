@@ -243,22 +243,28 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window', name='pin')
+    @cmdutils.argument('index')
     @cmdutils.argument('count', count=True)
-    def tab_pin(self, count=None):
+    def tab_pin(self, index=1, count=None):
         tab = self._cntwidget(count)
         if tab is None:
             return
-        print(tab.pin)
         tab.pin = True
+        self.tab_move(int(index))
 
     @cmdutils.register(instance='command-dispatcher', scope='window', name='unpin')
+    @cmdutils.argument('index')
     @cmdutils.argument('count', count=True)
-    def tab_unpin(self, count=None):
+    def tab_unpin(self, index=None, count=None):
         tab = self._cntwidget(count)
         if tab is None:
             return
-        print(tab.pin)
         tab.pin = False
+        if index is not None:
+            self.tab_move(int(index))
+        else:
+            self.tab_move(self._count())
+
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -303,9 +309,8 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
-               # elif curtab.pin is True:
-                    #TODO: include message saying that this is pinned therefore cannot open a new url
-               #     return
+                elif curtab.pin is True:
+                     raise cmdexc.CommandError("Tab is pinned!")
                 else:
                     curtab.openurl(cur_url)
 
