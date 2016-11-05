@@ -32,7 +32,6 @@ Fixed
 - The tabbar now displays correctly with the Adwaita Qt theme
 - The default `sk` keybinding now sets the commandline to `:bind` correctly
 - Fixed crash when closing a window without focusing it
-- Userscripts now can access QUTE_FIFO correctly on Windows
 
 v0.8.2
 ------
