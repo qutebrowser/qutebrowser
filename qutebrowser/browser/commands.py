@@ -225,6 +225,7 @@ class CommandDispatcher:
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
+        result = True
         if tab is None:
             return
 
