@@ -446,11 +446,14 @@ class TabBar(QTabBar):
             size = minimum_size
         else:
             #TODO: relative size and/or configured one
-            tab = objreg.get('tab', scope='tab', window=self._win_id, tab=index)
-            if tab.pin is True:
-                size = QSize(40, height)
-                qtutils.ensure_valid(size)
-                return size
+            try:
+                tab = objreg.get('tab', scope='tab', window=self._win_id, tab=index)
+                if tab.pin is True:
+                    size = QSize(40, height)
+                    qtutils.ensure_valid(size)
+                    return size
+            except KeyError:
+                pass
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
             #looks like this generates high cpu usage
