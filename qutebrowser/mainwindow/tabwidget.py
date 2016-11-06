@@ -107,7 +107,12 @@ class TabWidget(QTabWidget):
         fields['index'] = idx + 1
 
         fmt = config.get('tabs', 'title-format')
-        title = '' if fmt is None else fmt.format(**fields)
+
+        if fields['pin'] is True:
+            title = '{index}'.format(**fields)
+        else:
+            title = '' if fmt is None else fmt.format(**fields)
+
         self.tabBar().setTabText(idx, title)
 
     def get_tab_fields(self, idx):
@@ -120,6 +125,7 @@ class TabWidget(QTabWidget):
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
+        fields['pin'] = tab.pin
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())
@@ -439,11 +445,21 @@ class TabBar(QTabBar):
             # get scroll buttons as soon as needed.
             size = minimum_size
         else:
+            #TODO: relative size and/or configured one
+            tab = objreg.get('tab', scope='tab', window=self._win_id, tab=index)
+            if tab.pin is True:
+                size = QSize(40, height)
+                qtutils.ensure_valid(size)
+                return size
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
+            #looks like this generates high cpu usage
+            #need to register the number of pin tabs in advance
+            #nb_of_pins = len([None for item in range(self.count()) if objreg.get('tab', scope='tab', window=self._win_id, tab=item).pin is True])
+            #width = (self.width() + 40*nb_of_pins) / self.count()
             width = self.width() / self.count()
-            # If width is not divisible by count, add a pixel to some tabs so
-            # that there is no ugly leftover space.
+            ## If width is not divisible by count, add a pixel to some tabs so
+            ## that there is no ugly leftover space.
             if index < self.width() % self.count():
                 width += 1
             size = QSize(width, height)
