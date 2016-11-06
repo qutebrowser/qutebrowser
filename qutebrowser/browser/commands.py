@@ -227,6 +227,13 @@ class CommandDispatcher:
         tab = self._cntwidget(count)
         if tab is None:
             return
+
+        if tab.pin is True:
+            result = message.ask("Are you sure you want to close a pinned tab?", 
+                        mode=usertypes.PromptMode.yesno, default=False)
+            if result is False or result is None:
+                return
+
         tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(left, right,
                                                           opposite)
@@ -237,6 +244,30 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(selection_override)
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window', name='pin')
+    @cmdutils.argument('index')
+    @cmdutils.argument('count', count=True)
+    def tab_pin(self, index=1, count=None):
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        tab.pin = True
+        self.tab_move(int(index))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window', name='unpin')
+    @cmdutils.argument('index')
+    @cmdutils.argument('count', count=True)
+    def tab_unpin(self, index=None, count=None):
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        tab.pin = False
+        if index is not None:
+            self.tab_move(int(index))
+        else:
+            self.tab_move(self._count())
+
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -281,6 +312,8 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
+                elif curtab.pin is True:
+                     message.info("Tab is pinned!")
                 else:
                     curtab.openurl(cur_url)
 

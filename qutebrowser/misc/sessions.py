@@ -205,6 +205,7 @@ class SessionManager(QObject):
             if 'scroll-pos' in user_data:
                 pos = user_data['scroll-pos']
                 data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+        data['pin'] = tab.pin
         return data
 
     def _save_tab(self, tab, active):
@@ -331,6 +332,9 @@ class SessionManager(QObject):
             elif 'scroll-pos' in histentry:
                 pos = histentry['scroll-pos']
                 user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
+
+            if 'pin' in histentry:
+                new_tab.pin = histentry['pin']
 
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
