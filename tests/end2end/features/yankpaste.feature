@@ -263,11 +263,11 @@ Feature: Yanking and pasting.
         And I run :click-element id qute-textarea
         And I wait for "Clicked editable element!" in the log
         And I run :insert-text Hello world
-        And I press the keys "<Ctrl+a>"
-        And I run :yank selection
+        And I run :jseval console.log("textarea contents: " + document.getElementById('qute-textarea').value);
+        # Enable javascript again for the other tests
         And I set content -> allow-javascript to true
         # Compare
-        Then the clipboard should contain "Hello world"
+        Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into a text field at specific position
         When I set general -> log-javascript-console to info
