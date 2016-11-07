@@ -255,7 +255,7 @@ class CommandDispatcher:
 
         Args:
             index: Location where the tab should be pinned/unpinned.
-            count: The tab index to pin or unpin
+            count: The tab index to pin or unpin, or None
         """
         tab = self._cntwidget(count)
         if tab is None:

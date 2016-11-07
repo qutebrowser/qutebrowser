@@ -108,7 +108,7 @@ class TabWidget(QTabWidget):
 
         fmt = config.get('tabs', 'title-format')
 
-        if fields['pin'] is True:
+        if fields['pinned']:
             title = '{index}'.format(**fields)
         else:
             title = '' if fmt is None else fmt.format(**fields)
@@ -125,7 +125,7 @@ class TabWidget(QTabWidget):
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
-        fields['pin'] = tab.data.pinned
+        fields['pinned'] = tab.data.pinned
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())
