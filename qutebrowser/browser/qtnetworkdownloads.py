@@ -66,15 +66,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
                      periodically.
         _manager: The DownloadManager which started this download
         _reply: The QNetworkReply associated with this download.
-
-    Signals:
-        adopt_download: Emitted when a download is retried and should be
-                        adopted by the QNAM if needed.
-                        arg 0: The new DownloadItem
     """
 
     _MAX_REDIRECTS = 10
-    adopt_download = pyqtSignal(object)  # DownloadItem
 
     def __init__(self, reply, manager):
         """Constructor.
@@ -167,9 +161,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert self.done
         assert not self.successful
         new_reply = self._retry_info.manager.get(self._retry_info.request)
-        new_download = self._manager.fetch(new_reply,
-                                           suggested_filename=self.basename)
-        self.adopt_download.emit(new_download)
+        self._manager.fetch(new_reply, suggested_filename=self.basename)
         self.cancel()
 
     def _get_open_filename(self):
@@ -338,14 +330,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
         old_reply.deleteLater()
         return True
 
-    def _uses_nam(self, nam):
-        """Check if this download uses the given QNetworkAccessManager."""
-        running_nam = self._reply is not None and self._reply.manager() is nam
-        # user could request retry after tab is closed.
-        retry_nam = (self.done and (not self.successful) and
-                     self._retry_info.manager is nam)
-        return running_nam or retry_nam
-
     def set_target(self, target):
         if isinstance(target, usertypes.FileObjDownloadTarget):
             self._set_fileobj(target.fileobj)
@@ -427,20 +411,17 @@ class DownloadManager(downloads.AbstractDownloadManager):
                                    suggested_filename=suggested_fn,
                                    **kwargs)
 
-    def _fetch_request(self, request, *, qnam=None, **kwargs):
+    def _fetch_request(self, request, **kwargs):
         """Download a QNetworkRequest to disk.
 
         Args:
             request: The QNetworkRequest to download.
-            qnam: The QNetworkAccessManager to use.
             **kwargs: passed to fetch().
 
         Return:
             The created DownloadItem.
         """
-        if qnam is None:
-            qnam = self._networkmanager
-        reply = qnam.get(request)
+        reply = self._networkmanager.get(request)
         return self.fetch(reply, **kwargs)
 
     @pyqtSlot('QNetworkReply')
@@ -491,18 +472,3 @@ class DownloadManager(downloads.AbstractDownloadManager):
         message.global_bridge.ask(question, blocking=False)
 
         return download
-
-    def has_downloads_with_nam(self, nam):
-        """Check if the DownloadManager has any downloads with the given QNAM.
-
-        Args:
-            nam: The QNetworkAccessManager to check.
-
-        Return:
-            A boolean.
-        """
-        assert nam.adopted_downloads == 0
-        for download in self.downloads:
-            if download._uses_nam(nam):  # pylint: disable=protected-access
-                nam.adopt_download(download)
-        return nam.adopted_downloads

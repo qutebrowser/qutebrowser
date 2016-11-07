@@ -219,13 +219,7 @@ class BrowserPage(QWebPage):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
         self.shutting_down.emit()
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
-        nam = self.networkAccessManager()
-        if download_manager.has_downloads_with_nam(nam):
-            nam.setParent(download_manager)
-        else:
-            nam.shutdown()
+        self.networkAccessManager().shutdown()
 
     def display_content(self, reply, mimetype):
         """Display a QNetworkReply with an explicitly set mimetype."""
@@ -254,7 +248,7 @@ class BrowserPage(QWebPage):
         req = QNetworkRequest(request)
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
-        download_manager.get_request(req, qnam=self.networkAccessManager())
+        download_manager.get_request(req)
 
     @pyqtSlot('QNetworkReply*')
     def on_unsupported_content(self, reply):
