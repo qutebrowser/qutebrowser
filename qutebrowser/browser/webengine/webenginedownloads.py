@@ -50,11 +50,13 @@ class DownloadItem(downloads.AbstractDownloadItem):
         state_name = debug.qenum_key(QWebEngineDownloadItem, state)
         log.downloads.debug("State for {!r} changed to {}".format(
             self, state_name))
+
         if state == QWebEngineDownloadItem.DownloadRequested:
             pass
         elif state == QWebEngineDownloadItem.DownloadInProgress:
             pass
         elif state == QWebEngineDownloadItem.DownloadCompleted:
+            log.downloads.debug("Download {} finished".format(self.basename))
             self.successful = True
             self.done = True
             self.finished.emit()
