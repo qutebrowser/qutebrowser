@@ -285,7 +285,11 @@ class HintActions:
 
         # FIXME:qtwebengine get a proper API for this
         # pylint: disable=protected-access
-        qnam = elem._elem.webFrame().page().networkAccessManager()
+        try:
+            qnam = elem._elem.webFrame().page().networkAccessManager()
+        except AttributeError:
+            # QtWebEngine
+            qnam = None
         # pylint: enable=protected-access
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
@@ -663,11 +667,6 @@ class HintManager(QObject):
         tab = tabbed_browser.currentWidget()
         if tab is None:
             raise cmdexc.CommandError("No WebView available yet!")
-        if (tab.backend == usertypes.Backend.QtWebEngine and
-                target == Target.download):
-            message.error("The download target is not available yet with "
-                          "QtWebEngine.")
-            return
 
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)

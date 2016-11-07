@@ -1294,8 +1294,7 @@ class CommandDispatcher:
         except inspector.WebInspectorError as e:
             raise cmdexc.CommandError(e)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       backend=usertypes.Backend.QtWebKit)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('dest_old', hide=True)
     def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
@@ -1335,10 +1334,16 @@ class CommandDispatcher:
             self._download_mhtml(dest)
         else:
             tab = self._current_widget()
+
             # FIXME:qtwebengine have a proper API for this
             # pylint: disable=protected-access
-            qnam = tab._widget.page().networkAccessManager()
+            try:
+                qnam = tab._widget.page().networkAccessManager()
+            except AttributeError:
+                # QtWebEngine
+                qnam = None
             # pylint: enable=protected-access
+
             if dest is None:
                 target = None
             else:
@@ -1352,6 +1357,10 @@ class CommandDispatcher:
             dest: The file path to write the download to.
         """
         tab = self._current_widget()
+        if tab.backend == usertypes.Backend.QtWebEngine:
+            raise cmdexc.CommandError("Download --mhtml is not implemented "
+                                      "with QtWebEngine yet")
+
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
