@@ -212,6 +212,19 @@ class CommandDispatcher:
                                  "{!r}!".format(conf_selection))
         return None
 
+    def _tab_close(self, tab, left=False, right=False, opposite=False, count=None):
+        tabbar = self._tabbed_browser.tabBar()
+        selection_override = self._get_selection_override(left, right,
+                                                          opposite)
+        if selection_override is None:
+            self._tabbed_browser.close_tab(tab)
+        else:
+            old_selection_behavior = tabbar.selectionBehaviorOnRemove()
+            tabbar.setSelectionBehaviorOnRemove(selection_override)
+            self._tabbed_browser.close_tab(tab)
+            tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
+
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def tab_close(self, left=False, right=False, opposite=False, count=None):
@@ -229,23 +242,17 @@ class CommandDispatcher:
         if tab is None:
             return
 
+        close = functools.partial(self._tab_close, tab, left,
+                                    right, opposite, count)
+
         if tab.data.pinned:
-            result = message.ask("Are you sure you want to close a pinned tab?",
-                    mode=usertypes.PromptMode.yesno, default=False)
-
-        if result is False or result is None:
-            return
-
-        tabbar = self._tabbed_browser.tabBar()
-        selection_override = self._get_selection_override(left, right,
-                                                          opposite)
-        if selection_override is None:
-            self._tabbed_browser.close_tab(tab)
+            message.confirm_async(title='Pinned Tab',
+                    text="Are you sure you want to close a pinned tab?",
+                    yes_action=close, default=False)
         else:
-            old_selection_behavior = tabbar.selectionBehaviorOnRemove()
-            tabbar.setSelectionBehaviorOnRemove(selection_override)
-            self._tabbed_browser.close_tab(tab)
-            tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
+            close()
+
+
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
