@@ -448,12 +448,14 @@ class TabBar(QTabBar):
             #TODO: relative size and/or configured one
             try:
                 tab = objreg.get('tab', scope='tab', window=self._win_id, tab=index)
+            except KeyError:
+                pass
+            else:
                 if tab.data.pinned:
                     size = QSize(40, height)
                     qtutils.ensure_valid(size)
                     return size
-            except KeyError:
-                pass
+
             # If we *do* have enough space, tabs should occupy the whole window
             # width.
             #looks like this generates high cpu usage
