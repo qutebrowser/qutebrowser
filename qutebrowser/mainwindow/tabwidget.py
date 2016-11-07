@@ -447,7 +447,8 @@ class TabBar(QTabBar):
         else:
             #TODO: relative size and/or configured one
             try:
-                tab = objreg.get('tab', scope='tab', window=self._win_id, tab=index)
+                tab = objreg.get('tab', scope='tab',
+                        window=self._win_id, tab=index)
             except KeyError:
                 pass
             else:
@@ -460,7 +461,9 @@ class TabBar(QTabBar):
             # width.
             #looks like this generates high cpu usage
             #need to register the number of pin tabs in advance
-            #nb_of_pins = len([None for item in range(self.count()) if objreg.get('tab', scope='tab', window=self._win_id, tab=item).pin is True])
+            #nb_of_pins = len([None for item in range(self.count()) 
+            #                    if objreg.get('tab', scope='tab',
+            #                            window=self._win_id, tab=item).pin is True])
             #width = (self.width() + 40*nb_of_pins) / self.count()
             width = self.width() / self.count()
             ## If width is not divisible by count, add a pixel to some tabs so

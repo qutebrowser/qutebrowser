@@ -247,7 +247,8 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window', name='tab-pin')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       name='tab-pin')
     @cmdutils.argument('index')
     @cmdutils.argument('count', count=True)
     def tab_pin(self, index=None, count=None):
@@ -267,7 +268,7 @@ class CommandDispatcher:
             index = 1 if index is None else int(index)
         else:
             index = self._count() if index is None else int(index)
-        
+
         self.tab_move(index)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
