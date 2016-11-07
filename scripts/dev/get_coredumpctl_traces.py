@@ -77,7 +77,11 @@ def get_info(pid):
     for line in output.split('\n'):
         if not line.strip():
             continue
-        key, value = line.split(':', maxsplit=1)
+        try:
+            key, value = line.split(':', maxsplit=1)
+        except ValueError:
+            # systemd stack output
+            continue
         data[key.strip()] = value.strip()
     return data
 
