@@ -229,7 +229,7 @@ class CommandDispatcher:
         if tab is None:
             return
 
-        if tab.pin is True:
+        if tab.data.pinned:
             result = message.ask("Are you sure you want to close a pinned tab?",
                     mode=usertypes.PromptMode.yesno, default=False)
 
@@ -251,13 +251,19 @@ class CommandDispatcher:
     @cmdutils.argument('index')
     @cmdutils.argument('count', count=True)
     def tab_pin(self, index=None, count=None):
+        """Pin/Unpin the current tab.
+
+        Args:
+            index: Location where the tab should be pinned/unpinned.
+            count: The tab index to pin or unpin
+        """
         tab = self._cntwidget(count)
         if tab is None:
             return
 
-        tab.pin = not tab.pin
+        tab.data.pinned = not tab.data.pinned
 
-        if tab.pin is True:
+        if tab.data.pinned:
             index = 1 if index is None else int(index)
         else:
             index = self._count() if index is None else int(index)
@@ -307,9 +313,8 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
-                elif curtab.pin is True:
+                elif curtab.data.pinned:
                     message.info("Tab is pinned!")
-
                 else:
                     curtab.openurl(cur_url)
 

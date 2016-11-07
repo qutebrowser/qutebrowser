@@ -125,7 +125,7 @@ class TabWidget(QTabWidget):
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
-        fields['pin'] = tab.pin
+        fields['pin'] = tab.data.pinned
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())
@@ -448,7 +448,7 @@ class TabBar(QTabBar):
             #TODO: relative size and/or configured one
             try:
                 tab = objreg.get('tab', scope='tab', window=self._win_id, tab=index)
-                if tab.pin is True:
+                if tab.data.pinned:
                     size = QSize(40, height)
                     qtutils.ensure_valid(size)
                     return size

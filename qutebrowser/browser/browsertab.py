@@ -86,6 +86,7 @@ class TabData:
         viewing_source: Set if we're currently showing a source view.
         open_target: How the next clicked link should be opened.
         override_target: Override for open_target for fake clicks (like hints).
+        pinned: Flag to pin the tab
     """
 
     def __init__(self):
@@ -94,6 +95,7 @@ class TabData:
         self.inspector = None
         self.open_target = usertypes.ClickTarget.normal
         self.override_target = None
+        self.pinned = False
 
     def combined_target(self):
         if self.override_target is not None:
@@ -560,7 +562,6 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, widget_class=self.WIDGET_CLASS, parent=self)
         self.backend = None
-        self.pin = False
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?
