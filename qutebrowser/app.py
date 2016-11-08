@@ -45,7 +45,8 @@ import qutebrowser.resources
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import urlmarks, adblock, history, browsertab
+from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
+                                 downloads)
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.mainwindow import mainwindow, prompt
@@ -702,6 +703,7 @@ class Quitter:
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
         # Delete temp download dir
+        downloads.temp_download_manager.cleanup()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)
