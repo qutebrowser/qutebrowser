@@ -12,11 +12,8 @@ flake8-putty==0.4.0
 flake8-string-format==0.2.3
 flake8-tidy-imports==1.0.3
 flake8-tuple==0.2.12
-hacking==0.11.0
 mccabe==0.5.2
 packaging==16.8
-pbr==1.10.0
-pep8==1.7.0
 pep8-naming==0.4.1
 pycodestyle==2.1.0
 pydocstyle==1.1.1
