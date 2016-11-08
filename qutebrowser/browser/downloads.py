@@ -482,17 +482,21 @@ class AbstractDownloadItem(QObject):
     def _set_fileobj(self, fileobj):
         """Set a file object to save the download to.
 
-        Note that some backends (QtWebEngine) will simply access the .name
-        attribute and not actually use the file object directly.
+        Not supported by QtWebEngine.
         """
         raise NotImplementedError
 
-    def _set_filename(self, filename):
+    def _set_tempfile(self, fileobj):
+        """Set a temporary file when opening the download."""
+        raise NotImplementedError
+
+    def _set_filename(self, filename, *, force_overwrite=False):
         """Set the filename to save the download to.
 
         Args:
             filename: The full filename to save the download to.
                       None: special value to stop the download.
+            force_overwrite: Force overwriting existing files.
         """
         global last_used_directory
         filename = os.path.expanduser(filename)
@@ -525,7 +529,9 @@ class AbstractDownloadItem(QObject):
         last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(filename))
-        if os.path.isfile(self._filename):
+        if force_overwrite:
+            self._after_set_filename()
+        elif os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
             txt = "<b>{}</b> already exists. Overwrite?".format(
@@ -573,7 +579,7 @@ class AbstractDownloadItem(QObject):
                 return
             self.finished.connect(
                 functools.partial(self._open_if_successful, target.cmdline))
-            self._set_fileobj(fobj)
+            self._set_tempfile(fobj)
         else:  # pragma: no cover
             raise ValueError("Unsupported download target: {}".format(target))
 

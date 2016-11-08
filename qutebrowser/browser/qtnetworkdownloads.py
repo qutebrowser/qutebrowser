@@ -214,6 +214,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
         except OSError as e:
             self._die(e.strerror)
 
+    def _set_tempfile(self, fileobj):
+        self._set_fileobj(fileobj)
+
     def _finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
         log.downloads.debug("Finishing download...")
