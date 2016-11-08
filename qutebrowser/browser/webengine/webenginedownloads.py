@@ -60,15 +60,18 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.successful = True
             self.done = True
             self.finished.emit()
+            self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadCancelled:
             self.successful = False
             self.done = True
             self.cancelled.emit()
+            self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
             self.done = True
             # https://bugreports.qt.io/browse/QTBUG-56839
             self.error.emit("Download failed")
+            self.stats.finish()
         else:
             raise ValueError("_on_state_changed was called with unknown state "
                              "{}".format(state_name))
