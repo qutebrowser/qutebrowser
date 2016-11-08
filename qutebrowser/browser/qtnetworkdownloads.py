@@ -66,6 +66,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
                      periodically.
         _manager: The DownloadManager which started this download
         _reply: The QNetworkReply associated with this download.
+        _autoclose: Whether to close the associated file when the download is
+                    done.
     """
 
     _MAX_REDIRECTS = 10
@@ -77,10 +79,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent=manager)
-        self.autoclose = True
         self.fileobj = None
         self.raw_headers = {}
 
+        self._autoclose = True
         self._manager = manager
         self._retry_info = None
         self._reply = None
@@ -196,7 +198,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             raise ValueError("fileobj was already set! Old: {}, new: "
                              "{}".format(self.fileobj, fileobj))
         self.fileobj = fileobj
-        self.autoclose = autoclose
+        self._autoclose = autoclose
         try:
             self._read_timer.stop()
             log.downloads.debug("buffer: {} bytes".format(self._buffer.tell()))
@@ -223,7 +225,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         log.downloads.debug("Finishing download...")
         if self._reply.isOpen():
             self.fileobj.write(self._reply.readAll())
-        if self.autoclose:
+        if self._autoclose:
             self.fileobj.close()
         self.successful = self._reply.error() == QNetworkReply.NoError
         self._reply.close()

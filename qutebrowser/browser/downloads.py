@@ -256,8 +256,6 @@ class AbstractDownloadItem(QObject):
         index: The index of the download in the view.
         successful: Whether the download has completed successfully.
         error_msg: The current error message, or None
-        autoclose: Whether to close the associated file if the download is
-                   done.
         fileobj: The file object to download the file to.
         raw_headers: The headers sent by the server.
         _filename: The filename of the download.
@@ -288,7 +286,6 @@ class AbstractDownloadItem(QObject):
         self.basename = '???'
         self.successful = False
 
-        self.autoclose = UnsupportedAttribute()
         self.fileobj = UnsupportedAttribute()
         self.raw_headers = UnsupportedAttribute()
 
