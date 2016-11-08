@@ -481,10 +481,14 @@ class AbstractDownloadItem(QObject):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
-    def _set_fileobj(self, fileobj):
+    def _set_fileobj(self, fileobj, *, autoclose=True):
         """Set a file object to save the download to.
 
         Not supported by QtWebEngine.
+
+        Args:
+            fileobj: The file object to download to.
+            autoclose: Close the file object automatically when it's done.
         """
         raise NotImplementedError
 
@@ -567,8 +571,7 @@ class AbstractDownloadItem(QObject):
             target: The usertypes.DownloadTarget for this download.
         """
         if isinstance(target, usertypes.FileObjDownloadTarget):
-            raise UnsupportedOperationError("FileObjDownloadTarget is "
-                                            "unsupported")
+            self._set_fileobj(target.fileobj, autoclose=False)
         elif isinstance(target, usertypes.FileDownloadTarget):
             self._set_filename(target.filename)
         elif isinstance(target, usertypes.OpenFileDownloadTarget):

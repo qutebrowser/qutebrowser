@@ -186,7 +186,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error])
 
-    def _set_fileobj(self, fileobj):
+    def _set_fileobj(self, fileobj, *, autoclose=True):
         """"Set the file object to write the download to.
 
         Args:
@@ -196,6 +196,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             raise ValueError("fileobj was already set! Old: {}, new: "
                              "{}".format(self.fileobj, fileobj))
         self.fileobj = fileobj
+        self.autoclose = autoclose
         try:
             self._read_timer.stop()
             log.downloads.debug("buffer: {} bytes".format(self._buffer.tell()))
@@ -332,13 +333,6 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
         old_reply.deleteLater()
         return True
-
-    def set_target(self, target):
-        if isinstance(target, usertypes.FileObjDownloadTarget):
-            self._set_fileobj(target.fileobj)
-            self.autoclose = False
-        else:
-            super().set_target(target)
 
 
 class DownloadManager(downloads.AbstractDownloadManager):
