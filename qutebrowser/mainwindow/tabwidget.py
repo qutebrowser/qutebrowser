@@ -107,9 +107,10 @@ class TabWidget(QTabWidget):
         fields['index'] = idx + 1
 
         fmt = config.get('tabs', 'title-format')
+        fmt_pinned = config.get('tabs', 'title-format-pinned')
 
         if fields['pinned']:
-            title = '{index}'.format(**fields)
+            title = fmt_pinned.format(**fields)
         else:
             title = '' if fmt is None else fmt.format(**fields)
 

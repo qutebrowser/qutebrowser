@@ -679,6 +679,23 @@ def data(readonly=False):
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page."),
 
+            ('title-format-pinned',
+             SettingValue(typ.FormatString(
+                 fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
+                         'id', 'scroll_pos', 'host'], none_ok=True),
+                 '{index}'),
+             "The format to use for the pinned tab title."
+             " The following placeholders are defined:\n\n"
+             "* `{perc}`: The percentage as a string like `[10%]`.\n"
+             "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
+             "* `{title}`: The title of the current web page\n"
+             "* `{title_sep}`: The string ` - ` if a title is set, empty "
+             "otherwise.\n"
+             "* `{index}`: The index of this tab.\n"
+             "* `{id}`: The internal tab ID of this tab.\n"
+             "* `{scroll_pos}`: The page scroll position.\n"
+             "* `{host}`: The host of the current web page."),
+
             ('title-alignment',
              SettingValue(typ.TextAlignment(), 'left'),
              "Alignment of the text inside of tabs"),
