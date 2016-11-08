@@ -533,6 +533,7 @@ class AbstractTab(QWidget):
     def __init__(self, win_id, mode_manager, parent=None):
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
+        self.history_prepared = []
         super().__init__(parent)
 
         self.registry = objreg.ObjectRegistry()

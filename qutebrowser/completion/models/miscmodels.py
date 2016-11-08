@@ -214,14 +214,19 @@ class TabCompletionModel(base.BaseCompletionModel):
                              c.rowCount() - tabbed_browser.count())
             for idx in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(idx)
+                if tab.history_prepared:
+                    item = tab.history_prepared[len(tab.history_prepared) - 1]
+                    url = item.url.toDisplayString()
+                else:
+                    url = tab.url().toDisplayString()
                 if idx >= c.rowCount():
                     self.new_item(c, "{}/{}".format(win_id, idx + 1),
-                                  tab.url().toDisplayString(),
+                                  url,
                                   tabbed_browser.page_title(idx))
                 else:
                     c.child(idx, 0).setData("{}/{}".format(win_id, idx + 1),
                                             Qt.DisplayRole)
-                    c.child(idx, 1).setData(tab.url().toDisplayString(),
+                    c.child(idx, 1).setData(url,
                                             Qt.DisplayRole)
                     c.child(idx, 2).setData(tabbed_browser.page_title(idx),
                                             Qt.DisplayRole)

@@ -551,6 +551,12 @@ class TabbedBrowser(tabwidget.TabWidget):
                 return
             widget.setFocus()
 
+    def load_prepared_history(self, idx):
+        tab = self.widget(idx)
+        if tab.history_prepared:
+            tab.history.load_items(tab.history_prepared)
+            tab.history_prepared = []
+
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
@@ -558,6 +564,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget(idx)
+        self.load_prepared_history(idx)
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
         for mode in [usertypes.KeyMode.hint, usertypes.KeyMode.insert,
