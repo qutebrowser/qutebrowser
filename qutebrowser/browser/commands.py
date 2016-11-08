@@ -1333,8 +1333,6 @@ class CommandDispatcher:
         elif mhtml_:
             self._download_mhtml(dest)
         else:
-            tab = self._current_widget()
-
             if dest is None:
                 target = None
             else:
