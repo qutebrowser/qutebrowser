@@ -732,6 +732,7 @@ class Application(QApplication):
 
     Attributes:
         _args: ArgumentParser instance.
+        _last_focus_object: The last focused object's repr.
     """
 
     new_window = pyqtSignal(mainwindow.MainWindow)
@@ -742,6 +743,8 @@ class Application(QApplication):
         Args:
             Argument namespace from argparse.
         """
+        self._last_focus_object = None
+
         qt_args = qtutils.get_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(qt_args)
@@ -758,7 +761,10 @@ class Application(QApplication):
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
         """Log when the focus object changed."""
-        log.misc.debug("Focus object changed: {!r}".format(obj))
+        output = repr(obj)
+        if self._last_focus_object != output:
+            log.misc.debug("Focus object changed: {}".format(output))
+        self._last_focus_object = output
 
     def __repr__(self):
         return utils.get_repr(self)
