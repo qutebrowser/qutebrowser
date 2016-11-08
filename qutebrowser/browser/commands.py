@@ -212,7 +212,18 @@ class CommandDispatcher:
                                  "{!r}!".format(conf_selection))
         return None
 
-    def _tab_close(self, tab, left=False, right=False, opposite=False, count=None):
+    def _tab_close(self, tab, left=False, right=False, opposite=False):
+        """Helper function for tab_close be able to handle message.async.
+
+        Args:
+            tab: Tab select to be closed.
+            left: Force selecting the tab to the left of the current tab.
+            right: Force selecting the tab to the right of the current tab.
+            opposite: Force selecting the tab in the opposite direction of
+                        what's configured in 'tabs->select-on-remove'.
+            count: The tab index to close, or None
+
+        """
         tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(left, right,
                                                           opposite)
@@ -223,7 +234,6 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(selection_override)
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
-
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -238,12 +248,11 @@ class CommandDispatcher:
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
-        result = True
         if tab is None:
             return
 
         close = functools.partial(self._tab_close, tab, left,
-                                    right, opposite, count)
+                                    right, opposite)
 
         if tab.data.pinned:
             message.confirm_async(title='Pinned Tab',
@@ -251,8 +260,6 @@ class CommandDispatcher:
                     yes_action=close, default=False)
         else:
             close()
-
-
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
