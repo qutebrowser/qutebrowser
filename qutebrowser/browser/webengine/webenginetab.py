@@ -402,7 +402,10 @@ class WebEngineElements(browsertab.AbstractElements):
                       Called with a WebEngineElement or None.
             js_elem: The element serialized from javascript.
         """
-        log.webview.debug("Got element from JS: {!r}".format(js_elem))
+        debug_str = ('None' if js_elem is None
+                     else utils.elide(repr(js_elem), 100))
+        log.webview.debug("Got element from JS: {}".format(debug_str))
+
         if js_elem is None:
             callback(None)
         else:

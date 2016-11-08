@@ -559,6 +559,11 @@ class TabbedBrowser(tabwidget.TabWidget):
             # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget(idx)
+        if tab is None:
+            log.webview.debug("on_current_changed got called with invalid "
+                              "index {}".format(idx))
+            return
+
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
         for mode in [usertypes.KeyMode.hint, usertypes.KeyMode.insert,
