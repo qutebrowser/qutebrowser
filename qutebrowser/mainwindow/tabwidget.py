@@ -157,6 +157,12 @@ class TabWidget(QTabWidget):
         for idx in range(self.count()):
             self.update_tab_title(idx)
 
+    @config.change_filter('tabs', 'title-format-pinned')
+    def update_tab_titles_pinned(self):
+        """Update all texts."""
+        for idx in range(self.count()):
+            self.update_tab_title(idx)
+
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
