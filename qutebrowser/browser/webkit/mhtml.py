@@ -19,6 +19,7 @@
 
 """Utils for writing an MHTML file."""
 
+import html
 import functools
 import io
 import os
@@ -537,10 +538,10 @@ def start_download_checked(dest, tab):
 
     q = usertypes.Question()
     q.mode = usertypes.PromptMode.yesno
-    q.text = "{} exists. Overwrite?".format(path)
+    q.title = "Overwrite existing file?"
+    q.text = "<b>{}</b> already exists. Overwrite?".format(
+        html.escape(path))
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(
         _start_download, path, tab=tab))
-    message_bridge = objreg.get('message-bridge', scope='window',
-                                window=tab.win_id)
-    message_bridge.ask(q, blocking=False)
+    message.global_bridge.ask(q, blocking=False)
