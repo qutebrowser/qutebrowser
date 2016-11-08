@@ -240,7 +240,7 @@ class DownloadItemStats(QObject):
             bytes_done: How many bytes are downloaded.
             bytes_total: How many bytes there are to download in total.
         """
-        if bytes_total == -1:
+        if bytes_total in [0, -1]:  # QtWebEngine, QtWebKit
             bytes_total = None
         self.done = bytes_done
         self.total = bytes_total
@@ -311,10 +311,12 @@ class AbstractDownloadItem(QObject):
             errmsg = ""
         else:
             errmsg = " - {}".format(self.error_msg)
+
         if all(e is None for e in [perc, remaining, self.stats.total]):
             return ('{index}: {name} [{speed:>10}|{down}]{errmsg}'.format(
                 index=self.index, name=self.basename, speed=speed,
                 down=down, errmsg=errmsg))
+
         perc = round(perc)
         if remaining is None:
             remaining = '?'

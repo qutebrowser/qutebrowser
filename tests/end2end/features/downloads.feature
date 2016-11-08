@@ -503,3 +503,9 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
+
+    Scenario: Downloading a file with unknown size
+       When I set storage -> prompt-download-directory to false
+       And I open stream-bytes/1024 without waiting
+       And I wait until the download is finished
+       Then the downloaded file 1024 should exist
