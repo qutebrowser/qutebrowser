@@ -91,6 +91,17 @@ class TabWidget(QTabWidget):
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
+    def set_tab_pinned(self, idx, pinned):
+        """Set the tab status as pinned.
+
+        Args:
+            idx: The tab index.
+            pinned: Pinned tab state.
+        """
+        bar = self.tabBar()
+        bar.set_tab_data(idx, 'pinned',pinned)
+        bar.update(bar.tabRect(idx))
+
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
         self.tabBar().set_tab_data(idx, 'page-title', title)
@@ -102,6 +113,7 @@ class TabWidget(QTabWidget):
 
     def update_tab_title(self, idx):
         """Update the tab text for the given tab."""
+        tab = self.widget(idx)
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
         fields['index'] = idx + 1
@@ -109,8 +121,8 @@ class TabWidget(QTabWidget):
         fmt = config.get('tabs', 'title-format')
         fmt_pinned = config.get('tabs', 'title-format-pinned')
 
-        if fields['pinned']:
-            title = fmt_pinned.format(**fields)
+        if tab.data.pinned:
+            title = '' if fmt_pinned is None else fmt_pinned.format(**fields)
         else:
             title = '' if fmt is None else fmt.format(**fields)
 
@@ -126,7 +138,10 @@ class TabWidget(QTabWidget):
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
-        fields['pinned'] = tab.data.pinned
+
+        #TODO: Move this to a proper place
+        if tab.data.pinned:
+            self.set_tab_pinned(idx, tab.data.pinned)
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())
@@ -454,12 +469,11 @@ class TabBar(QTabBar):
         else:
             #TODO: relative size and/or configured one
             try:
-                tab = objreg.get('tab', scope='tab',
-                        window=self._win_id, tab=index)
+                pinned = self.tab_data(index, 'pinned')
             except KeyError:
                 pass
             else:
-                if tab.data.pinned:
+                if pinned:
                     size = QSize(40, height)
                     qtutils.ensure_valid(size)
                     return size

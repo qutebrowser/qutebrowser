@@ -284,6 +284,7 @@ class CommandDispatcher:
             index = self._count() if index is None else int(index)
 
         self.tab_move(index)
+        self._tabbed_browser.set_tab_pinned(self._current_index(), tab.data.pinned)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
