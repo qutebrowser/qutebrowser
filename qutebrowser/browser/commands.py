@@ -227,6 +227,10 @@ class CommandDispatcher:
         tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(left, right,
                                                           opposite)
+
+        if tab.data.pinned:
+            tabbar.pinned -= 1
+
         if selection_override is None:
             self._tabbed_browser.close_tab(tab)
         else:

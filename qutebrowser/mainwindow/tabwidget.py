@@ -99,8 +99,15 @@ class TabWidget(QTabWidget):
             pinned: Pinned tab state.
         """
         bar = self.tabBar()
-        bar.set_tab_data(idx, 'pinned',pinned)
+        bar.set_tab_data(idx, 'pinned', pinned)
         bar.update(bar.tabRect(idx))
+
+        if pinned:
+            bar.pinned += 1
+        else:
+            bar.pinned -= 1
+
+        bar.refresh()
 
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
@@ -138,10 +145,6 @@ class TabWidget(QTabWidget):
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
-
-        #TODO: Move this to a proper place
-        if tab.data.pinned:
-            self.set_tab_pinned(idx, tab.data.pinned)
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())
@@ -298,6 +301,7 @@ class TabBar(QTabBar):
         self._auto_hide_timer.timeout.connect(self._tabhide)
         self.setAutoFillBackground(True)
         self.set_colors()
+        self.pinned = 0
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.on_tab_colors_changed)
@@ -479,14 +483,16 @@ class TabBar(QTabBar):
                     return size
 
             # If we *do* have enough space, tabs should occupy the whole window
-            # width.
-            #looks like this generates high cpu usage
-            #need to register the number of pin tabs in advance
-            #nb_of_pins = len([None for item in range(self.count()) 
-            #                    if objreg.get('tab', scope='tab',
-            #                            window=self._win_id, tab=item).pin is True])
-            #width = (self.width() + 40*nb_of_pins) / self.count()
-            width = self.width() / self.count()
+            # width. Also taken in consideration the reduced space necessary for
+            # the pinned tabs.
+            #TODO: During shutdown the self.count goes down, but the self.pinned not
+            #this generates some odd bahavior.
+            #To avoid this we compare self.count against self.pinned.
+            if self.pinned > 0 and self.count() > self.pinned:
+                width = (self.width() - 40*self.pinned) / (self.count() - self.pinned)
+            else:
+                width = self.width() / self.count()
+
             ## If width is not divisible by count, add a pixel to some tabs so
             ## that there is no ugly leftover space.
             if index < self.width() % self.count():
