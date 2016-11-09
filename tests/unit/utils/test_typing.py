@@ -32,13 +32,23 @@ def pytyping():
 class TestUnion:
 
     def test_python_subclass(self, pytyping):
-        assert issubclass(pytyping.Union[str, int], pytyping.Union)
+        assert (type(pytyping.Union[str, int]) is  # flake8: disable=E721
+                type(pytyping.Union))
 
     def test_qute_subclass(self):
-        assert issubclass(typing.FakeUnion[str, int], typing.FakeUnion)
+        assert (type(typing.FakeUnion[str, int]) is  # flake8: disable=E721
+                type(typing.FakeUnion))
 
     def test_python_params(self, pytyping):
-        assert pytyping.Union[str, int].__union_params__ == (str, int)
+        union = pytyping.Union[str, int]
+        try:
+            assert union.__union_params__ == (str, int)
+        except AttributeError:
+            assert union.__args__ == (str, int)
 
     def test_qute_params(self):
-        assert typing.FakeUnion[str, int].__union_params__ == (str, int)
+        union = typing.FakeUnion[str, int]
+        try:
+            assert union.__union_params__ == (str, int)
+        except AttributeError:
+            assert union.__args__ == (str, int)
