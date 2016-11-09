@@ -415,7 +415,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # On first sight, we'd think we have to decrement
             # self._tab_insert_idx_left here, as we want the next tab to be
             # *before* the one we just opened. However, since we opened a tab
-            # *before* of the currently focused tab, indices will shift by
+            # *before* the currently focused tab, indices will shift by
             # 1 automatically.
         elif pos == 'next':
             idx = self._tab_insert_idx_right
