@@ -584,11 +584,11 @@ def data(readonly=False):
              "background."),
 
             ('select-on-remove',
-             SettingValue(typ.SelectOnRemove(), 'right'),
+             SettingValue(typ.SelectOnRemove(), 'next'),
              "Which tab to select when the focused tab is removed."),
 
             ('new-tab-position',
-             SettingValue(typ.NewTabPosition(), 'right'),
+             SettingValue(typ.NewTabPosition(), 'next'),
              "How new tabs are positioned."),
 
             ('new-tab-position-explicit',
@@ -1796,4 +1796,14 @@ CHANGED_KEY_COMMANDS = [
 
     (re.compile(r'^prompt-yes$'), r'prompt-accept yes'),
     (re.compile(r'^prompt-no$'), r'prompt-accept no'),
+
+    (re.compile(r'^tab-close -l$'), r'tab-close --prev'),
+    (re.compile(r'^tab-close --left$'), r'tab-close --prev'),
+    (re.compile(r'^tab-close -r$'), r'tab-close --next'),
+    (re.compile(r'^tab-close --right$'), r'tab-close --next'),
+
+    (re.compile(r'^tab-only -l$'), r'tab-only --prev'),
+    (re.compile(r'^tab-only --left$'), r'tab-only --prev'),
+    (re.compile(r'^tab-only -r$'), r'tab-only --next'),
+    (re.compile(r'^tab-only --right$'), r'tab-only --next'),
 ]

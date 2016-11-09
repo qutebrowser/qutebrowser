@@ -779,13 +779,13 @@ Duplicate the current tab.
 
 [[tab-close]]
 === tab-close
-Syntax: +:tab-close [*--left*] [*--right*] [*--opposite*]+
+Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*]+
 
 Close the current/[count]th tab.
 
 ==== optional arguments
-* +*-l*+, +*--left*+: Force selecting the tab to the left of the current tab.
-* +*-r*+, +*--right*+: Force selecting the tab to the right of the current tab.
+* +*-p*+, +*--prev*+: Force selecting the tab before the current tab.
+* +*-n*+, +*--next*+: Force selecting the tab after the current tab.
 * +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
 
 
@@ -841,13 +841,13 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
-Syntax: +:tab-only [*--left*] [*--right*]+
+Syntax: +:tab-only [*--prev*] [*--next*]+
 
 Close all tabs except for the current one.
 
 ==== optional arguments
-* +*-l*+, +*--left*+: Keep tabs to the left of the current.
-* +*-r*+, +*--right*+: Keep tabs to the right of the current.
+* +*-p*+, +*--prev*+: Keep tabs before the current.
+* +*-n*+, +*--next*+: Keep tabs after the current.
 
 [[tab-prev]]
 === tab-prev
