@@ -143,7 +143,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         filename = downloads.immediate_download_path()
         if filename is not None:
             # User doesn't want to be asked, so just use the download_dir
-            target = usertypes.FileDownloadTarget(filename)
+            target = downloads.FileDownloadTarget(filename)
             download.set_target(target)
             return
 

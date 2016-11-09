@@ -29,6 +29,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
+from qutebrowser.browser import downloads
 from qutebrowser.config import style
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
@@ -687,11 +688,11 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
-        self.question.answer = usertypes.FileDownloadTarget(text)
+        self.question.answer = downloads.FileDownloadTarget(text)
         return True
 
     def download_open(self, cmdline):
-        self.question.answer = usertypes.OpenFileDownloadTarget(cmdline)
+        self.question.answer = downloads.OpenFileDownloadTarget(cmdline)
         self.question.done()
         message.global_bridge.prompt_done.emit(self.KEY_MODE)
 

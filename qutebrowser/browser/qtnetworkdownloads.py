@@ -372,7 +372,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         Args:
             request: The QNetworkRequest to download.
-            target: Where to save the download as usertypes.DownloadTarget.
+            target: Where to save the download as downloads.DownloadTarget.
             **kwargs: Passed to _fetch_request.
 
         Return:
@@ -430,7 +430,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
         Args:
             reply: The QNetworkReply to download.
-            target: Where to save the download as usertypes.DownloadTarget.
+            target: Where to save the download as downloads.DownloadTarget.
             auto_remove: Whether to remove the download even if
                          ui -> remove-finished-downloads is set to -1.
 
@@ -456,7 +456,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         filename = downloads.immediate_download_path(prompt_download_directory)
         if filename is not None:
             # User doesn't want to be asked, so just use the download_dir
-            target = usertypes.FileDownloadTarget(filename)
+            target = downloads.FileDownloadTarget(filename)
             download.set_target(target)
             return download
 

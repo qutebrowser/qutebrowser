@@ -345,7 +345,7 @@ class _Downloader:
 
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
-        target = usertypes.FileObjDownloadTarget(_NoCloseBytesIO())
+        target = downloads.FileObjDownloadTarget(_NoCloseBytesIO())
         item = download_manager.get(url, target=target,
                                     auto_remove=True)
         self.pending_downloads.add((url, item))

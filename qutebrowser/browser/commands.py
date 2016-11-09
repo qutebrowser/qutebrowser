@@ -1328,7 +1328,7 @@ class CommandDispatcher:
             if dest is None:
                 target = None
             else:
-                target = usertypes.FileDownloadTarget(dest)
+                target = downloads.FileDownloadTarget(dest)
             download_manager.get(url, target=target)
         elif mhtml_:
             self._download_mhtml(dest)
@@ -1336,7 +1336,7 @@ class CommandDispatcher:
             if dest is None:
                 target = None
             else:
-                target = usertypes.FileDownloadTarget(dest)
+                target = downloads.FileDownloadTarget(dest)
             download_manager.get(self._current_url(), target=target)
 
     def _download_mhtml(self, dest=None):

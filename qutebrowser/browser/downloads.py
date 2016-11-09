@@ -164,6 +164,77 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     return q
 
 
+class NoFilenameError(Exception):
+
+    """Raised when we can't find out a filename in DownloadTarget."""
+
+
+# Where a download should be saved
+class _DownloadTarget:
+
+    """Abstract base class for different download targets."""
+
+    def __init__(self):
+        raise NotImplementedError
+
+    def suggested_filename(self):
+        """Get the suggested filename for this download target."""
+        raise NotImplementedError
+
+
+class FileDownloadTarget(_DownloadTarget):
+
+    """Save the download to the given file.
+
+    Attributes:
+        filename: Filename where the download should be saved.
+    """
+
+    def __init__(self, filename):
+        # pylint: disable=super-init-not-called
+        self.filename = filename
+
+    def suggested_filename(self):
+        return os.path.basename(self.filename)
+
+
+class FileObjDownloadTarget(_DownloadTarget):
+
+    """Save the download to the given file-like object.
+
+    Attributes:
+        fileobj: File-like object where the download should be written to.
+    """
+
+    def __init__(self, fileobj):
+        # pylint: disable=super-init-not-called
+        self.fileobj = fileobj
+
+    def suggested_filename(self):
+        try:
+            return self.fileobj.name
+        except AttributeError:
+            raise NoFilenameError
+
+
+class OpenFileDownloadTarget(_DownloadTarget):
+
+    """Save the download in a temp dir and directly open it.
+
+    Attributes:
+        cmdline: The command to use as string. A `{}` is expanded to the
+                 filename. None means to use the system's default application.
+                 If no `{}` is found, the filename is appended to the cmdline.
+    """
+
+    def __init__(self, cmdline=None):
+        # pylint: disable=super-init-not-called
+        self.cmdline = cmdline
+
+    def suggested_filename(self):
+        raise NoFilenameError
+
+
 class DownloadItemStats(QObject):
 
     """Statistics (bytes done, total bytes, time, etc.) about a download.
@@ -565,13 +636,13 @@ class AbstractDownloadItem(QObject):
         """Set the target for a given download.
 
         Args:
-            target: The usertypes.DownloadTarget for this download.
+            target: The DownloadTarget for this download.
         """
-        if isinstance(target, usertypes.FileObjDownloadTarget):
+        if isinstance(target, FileObjDownloadTarget):
             self._set_fileobj(target.fileobj, autoclose=False)
-        elif isinstance(target, usertypes.FileDownloadTarget):
+        elif isinstance(target, FileDownloadTarget):
             self._set_filename(target.filename)
-        elif isinstance(target, usertypes.OpenFileDownloadTarget):
+        elif isinstance(target, OpenFileDownloadTarget):
             try:
                 fobj = temp_download_manager.get_tmpfile(self.basename)
             except OSError as exc:
