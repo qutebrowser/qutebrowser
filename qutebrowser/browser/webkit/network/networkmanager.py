@@ -343,19 +343,18 @@ class NetworkManager(QNetworkAccessManager):
             except netrc.NetrcParseError:
                 log.misc.exception("Error when parsing the netrc file")
 
-        if user is None:
-            # netrc check failed
-            msg = '<b>{}</b> says:<br/>{}'.format(
-                html.escape(reply.url().toDisplayString()),
-                html.escape(authenticator.realm()))
-            answer = self._ask("Authentication required",
-                               text=msg, mode=usertypes.PromptMode.user_pwd,
-                               owner=reply)
-            if answer is not None:
-                user, password = answer.user, answer.password
         if user is not None:
             authenticator.setUser(user)
             authenticator.setPassword(password)
+        else:
+            abort_on = [self.shutting_down, reply.destroyed]
+            if self._tab_id is not None:
+                tab = objreg.get('tab', scope='tab', window=self._win_id,
+                                tab=self._tab_id)
+                abort_on.append(tab.load_started)
+
+            shared.authentication_required(reply.url(), authenticator,
+                                           abort_on=abort_on)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
     def on_proxy_authentication_required(self, proxy, authenticator):

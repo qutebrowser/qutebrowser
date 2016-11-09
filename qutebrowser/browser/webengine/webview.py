@@ -26,6 +26,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
+from qutebrowser.browser import shared
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
 
@@ -38,6 +39,9 @@ class WebEngineView(QWebEngineView):
         super().__init__(parent)
         self._win_id = win_id
         self.setPage(WebEnginePage(tabdata, parent=self))
+
+    def shutdown(self):
+        self.page().shutdown()
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
@@ -99,21 +103,64 @@ class WebEnginePage(QWebEnginePage):
 
     """Custom QWebEnginePage subclass with qutebrowser-specific features.
 
+    Attributes:
+        _is_shutting_down: Whether the page is currently shutting down.
+
     Signals:
         certificate_error: FIXME:qtwebengine
         link_clicked: Emitted when a link was clicked on a page.
+        shutting_down: Emitted when the page is shutting down.
     """
 
     certificate_error = pyqtSignal()
     link_clicked = pyqtSignal(QUrl)
+    shutting_down = pyqtSignal()
 
     def __init__(self, tabdata, parent=None):
         super().__init__(parent)
         self._tabdata = tabdata
+        self._is_shutting_down = False
+
+    def shutdown(self):
+        self._is_shutting_down = True
+        self.shutting_down.emit()
 
     def certificateError(self, error):
         self.certificate_error.emit()
         return super().certificateError(error)
+
+    def javaScriptConfirm(self, url, js_msg):
+        if self._is_shutting_down:
+            return False
+        try:
+            return shared.javascript_confirm(url, js_msg,
+                                             abort_on=[self.loadStarted,
+                                                       self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptConfirm(url, js_msg)
+
+    # Can't override javaScriptPrompt currently
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
+    # def javaScriptPrompt(self, url, js_msg, default, result):
+    #     if self._is_shutting_down:
+    #         return (False, "")
+    #     try:
+    #         return shared.javascript_prompt(url, js_msg, default,
+    #                                         abort_on=[self.loadStarted,
+    #                                                   self.shutting_down])
+    #     except shared.CallSuper:
+    #         return super().javaScriptPrompt(url, js_msg, default)
+
+    def javaScriptAlert(self, url, js_msg):
+        """Override javaScriptAlert to use the statusbar."""
+        if self._is_shutting_down:
+            return
+        try:
+            shared.javascript_alert(url, js_msg,
+                                    abort_on=[self.loadStarted,
+                                              self.shutting_down])
+        except shared.CallSuper:
+            super().javaScriptAlert(url, js_msg)
 
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
