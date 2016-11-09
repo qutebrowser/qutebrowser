@@ -211,16 +211,16 @@ def _load_session(name):
     """
     state_config = objreg.get('state-config')
     session_manager = objreg.get('session-manager')
-    if name is None:
+    if name is None and session_manager.exists('_autosave'):
+        name = '_autosave'
+    elif name is None:
         try:
             name = state_config['general']['session']
         except KeyError:
             # No session given as argument and none in the session file ->
             # start without loading a session
-            if session_manager.exists('_autosave'):
-                name = '_autosave'
-            else:
-                return
+            return
+
     try:
         session_manager.load(name)
     except sessions.SessionNotFoundError:
@@ -726,7 +726,7 @@ class Quitter:
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
         objreg.get('signal-handler').deactivate()
-        objreg.get('session-manager').session_delete('_autosave', force = True)
+        objreg.get('session-manager').session_delete('_autosave', force=True)
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
