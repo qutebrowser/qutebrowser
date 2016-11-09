@@ -23,6 +23,7 @@ Module attributes:
     _UNSET: Used as default argument in the constructor so default can be None.
 """
 
+import os.path
 import operator
 import collections.abc
 import enum as pyenum
@@ -268,12 +269,21 @@ JsWorld = enum('JsWorld', ['main', 'application', 'user', 'jseval'])
 MessageLevel = enum('MessageLevel', ['error', 'warning', 'info'])
 
 
+class NoFilenameError(Exception):
+
+    """Raised when we can't find out a filename in DownloadTarget."""
+
+
 # Where a download should be saved
 class DownloadTarget:
 
     """Abstract base class for different download targets."""
 
     def __init__(self):
+        raise NotImplementedError
+
+    def suggested_filename(self):
+        """Get the suggested filename for this download target."""
         raise NotImplementedError
 
 
@@ -289,6 +299,9 @@ class FileDownloadTarget(DownloadTarget):
         # pylint: disable=super-init-not-called
         self.filename = filename
 
+    def suggested_filename(self):
+        return os.path.basename(self.filename)
+
 
 class FileObjDownloadTarget(DownloadTarget):
 
@@ -301,6 +314,12 @@ class FileObjDownloadTarget(DownloadTarget):
     def __init__(self, fileobj):
         # pylint: disable=super-init-not-called
         self.fileobj = fileobj
+
+    def suggested_filename(self):
+        try:
+            return self.fileobj.name
+        except AttributeError:
+            raise NoFilenameError
 
 
 class OpenFileDownloadTarget(DownloadTarget):
@@ -316,6 +335,9 @@ class OpenFileDownloadTarget(DownloadTarget):
     def __init__(self, cmdline=None):
         # pylint: disable=super-init-not-called
         self.cmdline = cmdline
+
+    def suggested_filename(self):
+        raise NoFilenameError
 
 
 class Question(QObject):

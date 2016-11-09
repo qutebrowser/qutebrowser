@@ -438,12 +438,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
             The created DownloadItem.
         """
         if not suggested_filename:
-            if isinstance(target, usertypes.FileDownloadTarget):
-                suggested_filename = os.path.basename(target.filename)
-            elif (isinstance(target, usertypes.FileObjDownloadTarget) and
-                  getattr(target.fileobj, 'name', None)):
-                suggested_filename = target.fileobj.name
-            else:
+            try:
+                suggested_filename = target.suggested_filename()
+            except usertypes.NoFilenameError:
                 _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))
