@@ -20,16 +20,26 @@
 """Keyboard macro system."""
 
 from qutebrowser.commands import cmdexc, cmdutils, runners
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
 
 class MacroRecorder:
-    """An object for recording and running keyboard macros."""
+
+    """An object for recording and running keyboard macros.
+
+    Attributes:
+        _macros: A list of commands for each macro register.
+        _recording_macro: The register to which a macro is being recorded.
+        _macro_count: The count passed to run_macro_command for each window.
+                      Stored for use by run_macro, which may be called from
+                      keyinput/modeparsers.py after a key input.
+    """
 
     def __init__(self):
-        self.macro = {}
-        self.recording_macro = None
-        self.macro_count = {}
+        self._macros = {}
+        self._recording_macro = None
+        self._macro_count = {}
 
     @cmdutils.register(instance='macro-recorder', name='record-macro')
     @cmdutils.argument('win_id', win_id=True)
@@ -40,23 +50,22 @@ class MacroRecorder:
         Args:
             register: Which register to store the macro in.
         """
-        if self.recording_macro is None:
+        if self._recording_macro is None:
             if register is None:
-                mode_manager = objreg.get('mode-manager', scope='window',
-                                          window=win_id)
+                mode_manager = modeman.instance(win_id)
                 mode_manager.enter(usertypes.KeyMode.record_macro,
                                    'record_macro')
             else:
                 self.record_macro(register)
         else:
-            message.info("Macro recorded.")
-            self.recording_macro = None
+            message.info("Macro '{}' recorded.".format(self._recording_macro))
+            self._recording_macro = None
 
     def record_macro(self, register):
         """Start recording a macro."""
-        message.info("Recording macro...")
-        self.macro[register] = []
-        self.recording_macro = register
+        message.info("Recording macro '{}'...".format(register))
+        self._macros[register] = []
+        self._recording_macro = register
 
     @cmdutils.register(instance='macro-recorder', name='run-macro')
     @cmdutils.argument('win_id', win_id=True)
@@ -69,28 +78,27 @@ class MacroRecorder:
             count: How many times to run the macro.
             register: Which macro to run.
         """
-        self.macro_count[win_id] = count
+        self._macro_count[win_id] = count
         if register is None:
-            mode_manager = objreg.get('mode-manager', scope='window',
-                                      window=win_id)
+            mode_manager = modeman.instance(win_id)
             mode_manager.enter(usertypes.KeyMode.run_macro, 'run_macro')
         else:
             self.run_macro(win_id, register)
 
     def run_macro(self, win_id, register):
         """Run a recorded macro."""
-        if register not in self.macro:
+        if register not in self._macros:
             raise cmdexc.CommandError(
                 "No macro recorded in '{}'!".format(register))
         commandrunner = runners.CommandRunner(win_id)
-        for _ in range(self.macro_count[win_id]):
-            for cmd in self.macro[register]:
+        for _ in range(self._macro_count[win_id]):
+            for cmd in self._macros[register]:
                 commandrunner.run_safely(*cmd)
 
     def record(self, text, count):
         """Record a command if a macro is being recorded."""
-        if self.recording_macro is not None:
-            self.macro[self.recording_macro].append((text, count))
+        if self._recording_macro is not None:
+            self._macros[self._recording_macro].append((text, count))
 
 
 def init():

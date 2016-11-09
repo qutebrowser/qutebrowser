@@ -311,7 +311,7 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
                 macro_recorder.run_macro(self._win_id, key)
             else:
                 raise ValueError(
-                    "{} is not a valid register key".format(self._mode))
+                    "{} is not a valid register mode".format(self._mode))
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as err:
             message.error(str(err), stack=traceback.format_exc())
 
