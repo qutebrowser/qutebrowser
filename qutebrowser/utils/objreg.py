@@ -23,7 +23,6 @@
 import collections
 import functools
 
-import sip
 from PyQt5.QtCore import QObject, QTimer
 
 from qutebrowser.utils import log
@@ -144,8 +143,12 @@ class ObjectRegistry(collections.UserDict):
         """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
-            if not (isinstance(obj, QObject) and sip.isdeleted(obj)):
-                lines.append("{}: {}".format(name, repr(obj)))
+            try:
+                obj_repr = repr(obj)
+            except (RuntimeError, TypeError):
+                # Underlying object deleted probably
+                obj_repr = '<deleted>'
+            lines.append("{}: {}".format(name, obj_repr))
         return lines
 
 

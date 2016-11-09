@@ -348,6 +348,16 @@ class TestKeyConfigParser:
 
             ('prompt-yes', 'prompt-accept yes'),
             ('prompt-no', 'prompt-accept no'),
+
+            ('tab-close -l', 'tab-close --prev'),
+            ('tab-close --left', 'tab-close --prev'),
+            ('tab-close -r', 'tab-close --next'),
+            ('tab-close --right', 'tab-close --next'),
+
+            ('tab-only -l', 'tab-only --prev'),
+            ('tab-only --left', 'tab-only --prev'),
+            ('tab-only -r', 'tab-only --next'),
+            ('tab-only --right', 'tab-only --next'),
         ]
     )
     def test_migrations(self, old, new_expected):

@@ -75,6 +75,7 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
+    @qtwebengine_todo: ssl-strict is not implemented yet
     Scenario: Downloading with SSL errors (issue 1413)
         When I run :debug-clear-ssl-errors
         And I set network -> ssl-strict to ask
@@ -85,7 +86,7 @@ Feature: Downloading things from a website.
 
     Scenario: Closing window with remove-finished-downloads timeout (issue 1242)
         When I set ui -> remove-finished-downloads to 500
-        And I open data/downloads/download.bin in a new window
+        And I open data/downloads/download.bin in a new window without waiting
         And I wait until the download is finished
         And I run :close
         And I wait 0.5s
@@ -95,7 +96,7 @@ Feature: Downloading things from a website.
         Given I have a fresh instance
         When I set storage -> prompt-download-directory to false
         And I set ui -> confirm-quit to downloads
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :close
         Then qutebrowser should quit
@@ -171,15 +172,33 @@ Feature: Downloading things from a website.
 
     ## mhtml downloads
 
+    @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Downloading as mhtml is available
         When I open html
         And I run :download --mhtml
         And I wait for "File successfully written." in the log
         Then no crash should happen
 
+    @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Downloading as mhtml with non-ASCII headers
         When I open response-headers?Content-Type=text%2Fpl%C3%A4in
         And I run :download --mhtml --dest mhtml-response-headers.mht
+        And I wait for "File successfully written." in the log
+        Then no crash should happen
+
+    @qtwebengine_todo: :download --mhtml is not implemented yet
+    Scenario: Overwriting existing mhtml file
+        When I set storage -> prompt-download-directory to true
+        And I open html
+        And I run :download --mhtml
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.text: 2> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
+        And I run :prompt-accept
+        And I wait for "File successfully written." in the log
+        And I run :download --mhtml
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.text: 2> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
+        And I run :prompt-accept
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> already exists. Overwrite?' title='Overwrite existing file?'>, *" in the log
+        And I run :prompt-accept yes
         And I wait for "File successfully written." in the log
         Then no crash should happen
 
@@ -199,13 +218,13 @@ Feature: Downloading things from a website.
         Then the error "There's no download 42!" should be shown
 
     Scenario: Cancelling a download which is already done
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :download-cancel
         Then the error "Download 1 is already done!" should be shown
 
     Scenario: Cancelling a download which is already done (with count)
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :download-cancel with count 1
         Then the error "Download 1 is already done!" should be shown
@@ -218,6 +237,7 @@ Feature: Downloading things from a website.
         And "cancelled" should be logged
 
     # https://github.com/The-Compiler/qutebrowser/issues/1535
+    @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Cancelling an MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
         And I run :download --mhtml
@@ -228,7 +248,7 @@ Feature: Downloading things from a website.
     ## :download-remove / :download-clear
 
     Scenario: Removing a download
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :download-remove
         Then "Removed download *" should be logged
@@ -248,17 +268,17 @@ Feature: Downloading things from a website.
         Then the error "Download 1 is not done!" should be shown
 
     Scenario: Removing all downloads via :download-remove
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
-        And I open data/downloads/download2.bin
+        And I open data/downloads/download2.bin without waiting
         And I wait until the download is finished
         And I run :download-remove --all
         Then "Removed download *" should be logged
 
     Scenario: Removing all downloads via :download-clear
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
-        And I open data/downloads/download2.bin
+        And I open data/downloads/download2.bin without waiting
         And I wait until the download is finished
         And I run :download-clear
         Then "Removed download *" should be logged
@@ -266,7 +286,7 @@ Feature: Downloading things from a website.
     ## :download-delete
 
     Scenario: Deleting a download
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :download-delete
         And I wait for "deleted download *" in the log
@@ -289,13 +309,13 @@ Feature: Downloading things from a website.
     ## :download-open
 
     Scenario: Opening a download
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I open the download
         Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download with a placeholder
-        When I open data/downloads/download.bin
+        When I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I open the download with a placeholder
         Then "Opening *download.bin* with [*python*]" should be logged
@@ -318,7 +338,8 @@ Feature: Downloading things from a website.
 
     Scenario: Opening a download directly
         When I set storage -> prompt-download-directory to true
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*"
         And I directly open the download
         And I wait until the download is finished
         Then "Opening *download.bin* with [*python*]" should be logged
@@ -328,6 +349,7 @@ Feature: Downloading things from a website.
     Scenario: Cancelling a download that should be opened
         When I set storage -> prompt-download-directory to true
         And I run :download http://localhost:(port)/drip?numbytes=128&duration=5
+        And I wait for the download prompt for "*"
         And I directly open the download
         And I run :download-cancel
         Then "* finished but not successful, not opening!" should be logged
@@ -338,7 +360,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I open data/downloads/issue1725.html
         And I run :click-element id long-link
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for the download prompt for "*"
         And I directly open the download
         And I wait until the download is finished
         Then "Opening * with [*python*]" should be logged
@@ -348,19 +370,19 @@ Feature: Downloading things from a website.
     Scenario: completion -> download-path-suggestion = path
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to path
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/"
 
     Scenario: completion -> download-path-suggestion = filename
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to filename
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
         Then the download prompt should be shown with "download.bin"
 
     Scenario: completion -> download-path-suggestion = both
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/download.bin"
 
     ## storage -> remember-download-directory
@@ -369,20 +391,20 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
         And I set storage -> remember-download-directory to true
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*/download.bin"
         And I run :prompt-accept (tmpdir)(dirsep)subdir
-        And I open data/downloads/download2.bin
+        And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/subdir/download2.bin"
 
     Scenario: Not remembering the last download directory
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
         And I set storage -> remember-download-directory to false
-        And I open data/downloads/download.bin
+        And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "(tmpdir)/download.bin"
         And I run :prompt-accept (tmpdir)(dirsep)subdir
-        And I open data/downloads/download2.bin
+        And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/download2.bin"
 
     # Overwriting files
@@ -475,6 +497,7 @@ Feature: Downloading things from a website.
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 
+    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: Downloading via pdfjs
         Given pdfjs is available
         When I set storage -> prompt-download-directory to false
@@ -496,3 +519,9 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
+
+    Scenario: Downloading a file with unknown size
+       When I set storage -> prompt-download-directory to false
+       And I open stream-bytes/1024 without waiting
+       And I wait until the download is finished
+       Then the downloaded file 1024 should exist

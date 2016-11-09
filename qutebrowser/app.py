@@ -45,8 +45,9 @@ import qutebrowser.resources
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.browser import urlmarks, adblock, history, browsertab
-from qutebrowser.browser.webkit import cookies, cache, downloads
+from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
+                                 downloads)
+from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
@@ -371,7 +372,6 @@ def _init_modules(args, crash_handler):
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
     """
-    # pylint: disable=too-many-statements
     log.init.debug("Initializing prompts...")
     prompt.init()
 
@@ -435,8 +435,6 @@ def _init_modules(args, crash_handler):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
-    temp_downloads = downloads.TempDownloadManager(qApp)
-    objreg.register('temporary-downloads', temp_downloads)
     # Init backend-specific stuff
     browsertab.init(args)
 
@@ -705,6 +703,7 @@ class Quitter:
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
         # Delete temp download dir
+        downloads.temp_download_manager.cleanup()
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)
