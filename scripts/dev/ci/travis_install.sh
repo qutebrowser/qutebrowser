@@ -54,7 +54,7 @@ brew_install() {
 
 pip_install() {
     # this uses python2
-    travis_retry sudo -H python -m pip install -r misc/requirements/requirements-$1.txt
+    travis_retry sudo -H python -m pip install "$@"
 }
 
 npm_install() {
@@ -95,7 +95,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     brew --version
     brew_install python3 qt5 pyqt5
 
-    pip_install tox
+    pip_install -r misc/requirements/requirements-tox.txt
     pip --version
     tox --version
     check_pyqt
@@ -105,14 +105,14 @@ fi
 pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtwebkit"
 
 pip_install pip
-pip_install tox
+pip_install -r misc/requirements/requirements-tox.txt
 
 pip --version
 tox --version
 
 case $TESTENV in
     py34-cov)
-        pip_install codecov
+        pip_install -r misc/requirements/requirements-codecov.txt
         apt_install xvfb $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;

@@ -47,7 +47,10 @@ class WebEngineElement(webelem.AbstractWebElement):
         return attrs[key]
 
     def __setitem__(self, key, val):
-        log.stub()
+        self._js_dict['attributes'][key] = val
+        js_code = javascript.assemble('webelem', 'set_attribute', self._id,
+            key, val)
+        self._tab.run_js_async(js_code)
 
     def __delitem__(self, key):
         log.stub()
@@ -114,12 +117,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         js_code = javascript.assemble('webelem', 'insert_text', self._id, text)
         self._tab.run_js_async(js_code)
 
-    def parent(self):
-        """Get the parent element of this element."""
-        # FIXME:qtwebengine get rid of this?
-        log.stub()
-        return None
-
     def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
@@ -160,3 +157,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.webelem.debug("Couldn't find rectangle for {!r} ({})".format(
             self, rects))
         return QRect()
+
+    def remove_blank_target(self):
+        js_code = javascript.assemble('webelem', 'remove_blank_target',
+            self._id)
+        self._tab.run_js_async(js_code)

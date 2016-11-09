@@ -402,7 +402,10 @@ class WebEngineElements(browsertab.AbstractElements):
                       Called with a WebEngineElement or None.
             js_elem: The element serialized from javascript.
         """
-        log.webview.debug("Got element from JS: {!r}".format(js_elem))
+        debug_str = ('None' if js_elem is None
+                     else utils.elide(repr(js_elem), 100))
+        log.webview.debug("Got element from JS: {}".format(debug_str))
+
         if js_elem is None:
             callback(None)
         else:
@@ -527,10 +530,6 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._widget.page().runJavaScript(code)
             else:
                 self._widget.page().runJavaScript(code, callback)
-
-    def has_js(self):
-        # QtWebEngine can run JS even if the page can't
-        return True
 
     def shutdown(self):
         log.stub()

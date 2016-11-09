@@ -25,8 +25,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
-                                              percentage, url, prompt,
-                                              tabindex)
+                                              percentage, url, tabindex)
 from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
@@ -113,8 +112,8 @@ class StatusBar(QWidget):
         QWidget#StatusBar[prompt_active="true"],
         QWidget#StatusBar[prompt_active="true"] QLabel,
         QWidget#StatusBar[prompt_active="true"] QLineEdit {
-            color: {{ color['statusbar.fg.prompt'] }};
-            background-color: {{ color['statusbar.bg.prompt'] }};
+            color: {{ color['prompts.fg'] }};
+            background-color: {{ color['prompts.bg'] }};
         }
 
         QWidget#StatusBar[insert_active="true"],
@@ -162,16 +161,9 @@ class StatusBar(QWidget):
         self.txt = textwidget.Text()
         self._stack.addWidget(self.txt)
 
-        self.prompt = prompt.Prompt(win_id)
-        self._stack.addWidget(self.prompt)
-
         self.cmd.show_cmd.connect(self._show_cmd_widget)
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
-        prompter = objreg.get('prompter', scope='window', window=self._win_id)
-        prompter.show_prompt.connect(self._show_prompt_widget)
-        prompter.hide_prompt.connect(self._hide_prompt_widget)
-        self._hide_prompt_widget()
 
         self.keystring = keystring.KeyString()
         self._hbox.addWidget(self.keystring)
@@ -216,16 +208,6 @@ class StatusBar(QWidget):
         """Getter for self.prompt_active, so it can be used as Qt property."""
         return self._prompt_active
 
-    def _set_prompt_active(self, val):
-        """Setter for self.prompt_active.
-
-        Re-set the stylesheet after setting the value, so everything gets
-        updated by Qt properly.
-        """
-        log.statusbar.debug("Setting prompt_active to {}".format(val))
-        self._prompt_active = val
-        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
-
     @pyqtProperty(bool)
     def command_active(self):
         """Getter for self.command_active, so it can be used as Qt property."""
@@ -253,6 +235,9 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.command:
             log.statusbar.debug("Setting command_active to {}".format(val))
             self._command_active = val
+        elif mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
+            log.statusbar.debug("Setting prompt_active to {}".format(val))
+            self._prompt_active = val
         elif mode == usertypes.KeyMode.caret:
             tab = objreg.get('tabbed-browser', scope='window',
                              window=self._win_id).currentWidget()
@@ -285,21 +270,6 @@ class StatusBar(QWidget):
         self._stack.setCurrentWidget(self.txt)
         self.maybe_hide()
 
-    def _show_prompt_widget(self):
-        """Show prompt widget instead of temporary text."""
-        if self._stack.currentWidget() is self.prompt:
-            return
-        self._set_prompt_active(True)
-        self._stack.setCurrentWidget(self.prompt)
-        self.show()
-
-    def _hide_prompt_widget(self):
-        """Show temporary text instead of prompt widget."""
-        self._set_prompt_active(False)
-        log.statusbar.debug("Hiding prompt widget")
-        self._stack.setCurrentWidget(self.txt)
-        self.maybe_hide()
-
     @pyqtSlot(str)
     def set_text(self, val):
         """Set a normal (persistent) text in the status bar."""
@@ -314,7 +284,9 @@ class StatusBar(QWidget):
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
                     usertypes.KeyMode.command,
-                    usertypes.KeyMode.caret]:
+                    usertypes.KeyMode.caret,
+                    usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
             self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
@@ -329,7 +301,9 @@ class StatusBar(QWidget):
                 self.txt.set_text(self.txt.Text.normal, '')
         if old_mode in [usertypes.KeyMode.insert,
                         usertypes.KeyMode.command,
-                        usertypes.KeyMode.caret]:
+                        usertypes.KeyMode.caret,
+                        usertypes.KeyMode.prompt,
+                        usertypes.KeyMode.yesno]:
             self.set_mode_active(old_mode, False)
 
     def resizeEvent(self, e):

@@ -152,7 +152,7 @@ def test_process_never_started(qtbot, quit_pyproc):
 def test_wait_signal_raising(qtbot):
     """testprocess._wait_signal should raise by default."""
     proc = testprocess.Process()
-    with pytest.raises(qtbot.SignalTimeoutError):
+    with pytest.raises(qtbot.TimeoutError):
         with proc._wait_signal(proc.proc.started, timeout=0):
             pass
 

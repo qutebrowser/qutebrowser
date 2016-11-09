@@ -272,18 +272,12 @@ qutebrowser from source.
 
 ==== Homebrew
 
-For Homebrew, a few extra steps are necessary since Homebrew dropped QtWebKit
-from Qt 5.6 - however, some users reported this didn't work for them, so using
-the `.app` is strongly encouraged.
-
-This installs a Qt 5.5 and symlinks it so PyQt5 will work with it instead of Qt
-5.6. This requires that `qt5` is not installed via Homebrew:
+Homebrew's builds of Qt and PyQt no longer include QtWebKit, so it is necessary 
+to build from source. The build takes several hours on an average laptop.
 
 ----
-$ brew install python3 d-bus mysql sip xz
-$ brew install homebrew/versions/qt55
-$ brew install --ignore-dependencies pyqt5
-$ ln -s /usr/local/opt/qt55 /usr/local/opt/qt5
+$ brew install qt5 --with-qtwebkit
+$ brew install -s pyqt5
 
 $ pip3.5 install qutebrowser
 ----

@@ -8,6 +8,7 @@
 </div>
 <div id="menu">
 	<a href="/index.html">Home</a>
+	<a href="/doc/help/">Help</a>
 	<a href="/FAQ.html">FAQ</a>
 	<a href="/INSTALL.html">Install</a>
 	<a href="/CHANGELOG.html">Changelog</a>

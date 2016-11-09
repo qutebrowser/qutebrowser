@@ -26,6 +26,7 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
 import os
+import html
 import os.path
 import functools
 import collections
@@ -33,7 +34,7 @@ import collections
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
-                               standarddir, objreg)
+                               standarddir, objreg, log)
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import lineparser
 
@@ -159,11 +160,10 @@ class QuickmarkManager(UrlMarkManager):
         else:
             self.marks[key] = url
 
-    def prompt_save(self, win_id, url):
+    def prompt_save(self, url):
         """Prompt for a new quickmark name to be added and add it.
 
         Args:
-            win_id: The current window ID.
             url: The quickmark url as a QUrl.
         """
         if not url.isValid():
@@ -171,19 +171,19 @@ class QuickmarkManager(UrlMarkManager):
             return
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         message.ask_async(
-            win_id, "Add quickmark:", usertypes.PromptMode.text,
-            functools.partial(self.quickmark_add, win_id, urlstr))
+            "Add quickmark:", usertypes.PromptMode.text,
+            functools.partial(self.quickmark_add, urlstr),
+            text="Please enter a quickmark name for<br/><b>{}</b>".format(
+                html.escape(url.toDisplayString())))
 
     @cmdutils.register(instance='quickmark-manager')
-    @cmdutils.argument('win_id', win_id=True)
-    def quickmark_add(self, win_id, url, name):
+    def quickmark_add(self, url, name):
         """Add a new quickmark.
 
         You can view all saved quickmarks on the
         link:qute://bookmarks[bookmarks page].
 
         Args:
-            win_id: The window ID to display the errors in.
             url: The url to add as quickmark.
             name: The name for the new quickmark.
         """
@@ -201,10 +201,12 @@ class QuickmarkManager(UrlMarkManager):
             self.marks[name] = url
             self.changed.emit()
             self.added.emit(name, url)
+            log.misc.debug("Added quickmark {} for {}".format(name, url))
 
         if name in self.marks:
             message.confirm_async(
-                win_id, "Override existing quickmark?", set_mark, default=True)
+                title="Override existing quickmark?",
+                yes_action=set_mark, default=True)
         else:
             set_mark()
 

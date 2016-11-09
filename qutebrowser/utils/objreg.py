@@ -143,7 +143,12 @@ class ObjectRegistry(collections.UserDict):
         """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
-            lines.append("{}: {}".format(name, repr(obj)))
+            try:
+                obj_repr = repr(obj)
+            except (RuntimeError, TypeError):
+                # Underlying object deleted probably
+                obj_repr = '<deleted>'
+            lines.append("{}: {}".format(name, obj_repr))
         return lines
 
 

@@ -155,5 +155,23 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
+    funcs.set_attribute = function(id, name, value) {
+        elements[id].setAttribute(name, value);
+    };
+
+    funcs.remove_blank_target = function(id) {
+        var elem = elements[id];
+        while (elem !== null) {
+            var tag = elem.tagName.toLowerCase();
+            if (tag === "a" || tag === "area") {
+                if (elem.getAttribute("target") === "_blank") {
+                    elem.setAttribute("target", "_top");
+                }
+                break;
+            }
+            elem = elem.parentElement;
+        }
+    };
+
     return funcs;
 })();

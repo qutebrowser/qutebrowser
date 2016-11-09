@@ -26,19 +26,27 @@ import xml.etree.ElementTree
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
+from qutebrowser.browser.webkit.network import proxy, webkitqutescheme
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
 
 
 def init():
     """Initialize QtWebKit-specific modules."""
-    # FIXME:qtwebengine Move things we don't need with QtWebEngine here.
-    pass
+    qapp = QApplication.instance()
+
+    log.init.debug("Initializing proxy...")
+    proxy.init()
+
+    log.init.debug("Initializing js-bridge...")
+    js_bridge = webkitqutescheme.JSBridge(qapp)
+    objreg.register('js-bridge', js_bridge)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -624,13 +632,10 @@ class WebKitTab(browsertab.AbstractTab):
     def run_js_async(self, code, callback=None, *, world=None):
         if world is not None and world != usertypes.JsWorld.jseval:
             log.webview.warning("Ignoring world ID {}".format(world))
-        result = self._widget.page().mainFrame().evaluateJavaScript(code)
+        document_element = self._widget.page().mainFrame().documentElement()
+        result = document_element.evaluateJavaScript(code)
         if callback is not None:
             callback(result)
-
-    def has_js(self):
-        settings = QWebSettings.globalSettings()
-        return settings.testAttribute(QWebSettings.JavascriptEnabled)
 
     def icon(self):
         return self._widget.icon()

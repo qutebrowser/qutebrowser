@@ -391,6 +391,8 @@ class ConfigManager(QObject):
         ('colors', 'statusbar.bg.error'): 'messages.bg.error',
         ('colors', 'statusbar.fg.warning'): 'messages.fg.warning',
         ('colors', 'statusbar.bg.warning'): 'messages.bg.warning',
+        ('colors', 'statusbar.fg.prompt'): 'prompts.fg',
+        ('colors', 'statusbar.bg.prompt'): 'prompts.bg',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),

@@ -7,6 +7,15 @@ body {
 	font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	-webkit-text-size-adjust: none;
 	color: #333333;
+    overflow-y: scroll;
+}
+
+p {
+    margin: 6px 0;
+}
+
+#preamble > .sectionbody > .paragraph > p {
+    margin: 0;
 }
 
 #header {
@@ -67,8 +76,17 @@ body {
 	background-color: #1e89c6;
 }
 
-.sect1 {
+.sect1,
+div.footnote {
 	padding: 10px 40px;
+	margin: 0 auto;
+	max-width: 1200px;
+}
+
+#footnotes > hr {
+    max-width: 1200px;
+    margin: 20px auto 10px;
+    width: calc(100% - 80px);
 }
 
 .sect2 {
@@ -76,7 +94,7 @@ body {
 }
 
 div.footnote {
-	padding: 10px 40px;
+	padding: 10px 40px 30px;
 }
 
 hr {
@@ -136,6 +154,29 @@ code {
 	padding: 10px 10px;
 	background-color: #DDDDDD;
 	border-radius: 4px;
+	overflow-x: auto;
+}
+
+/*Display table as something that is not a table*/
+.admonitionblock table,
+.admonitionblock tbody,
+.admonitionblock tr,
+.admonitionblock td {
+	display: block;
+}
+
+.admonitionblock td {
+	padding: 0;
+}
+
+.admonitionblock .title {
+	color: #0A396E;
+	font-weight: bold;
+}
+
+.admonitionblock td.content {
+	padding-left: 10px;
+	border-left: 1px solid #ccc;
 }
 
 table td {
@@ -174,7 +215,7 @@ table td {
 }
 
 </style>
-<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <link href="media/font.css" rel="stylesheet" type="text/css" />
 <link rel="icon" href="media/favicon.png" type="image/png" />
 <style type="text/css">

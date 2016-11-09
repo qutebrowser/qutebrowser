@@ -54,6 +54,7 @@
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
+|<<ui-prompt-radius,prompt-radius>>|The rounding radius for the edges of prompts.
 |==============
 
 .Quick reference for section ``network''
@@ -213,8 +214,6 @@
 |<<colors-completion.scrollbar.bg,completion.scrollbar.bg>>|Color of the scrollbar in completion view
 |<<colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
 |<<colors-statusbar.bg,statusbar.bg>>|Background color of the statusbar.
-|<<colors-statusbar.fg.prompt,statusbar.fg.prompt>>|Foreground color of the statusbar if there is a prompt.
-|<<colors-statusbar.bg.prompt,statusbar.bg.prompt>>|Background color of the statusbar if there is a prompt.
 |<<colors-statusbar.fg.insert,statusbar.fg.insert>>|Foreground color of the statusbar in insert mode.
 |<<colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
 |<<colors-statusbar.fg.command,statusbar.fg.command>>|Foreground color of the statusbar in command mode.
@@ -268,6 +267,9 @@
 |<<colors-messages.fg.info,messages.fg.info>>|Foreground color an info message.
 |<<colors-messages.bg.info,messages.bg.info>>|Background color of an info message.
 |<<colors-messages.border.info,messages.border.info>>|Border color of an info message.
+|<<colors-prompts.fg,prompts.fg>>|Foreground color for prompts.
+|<<colors-prompts.bg,prompts.bg>>|Background color for prompts.
+|<<colors-prompts.selected.bg,prompts.selected.bg>>|Background color for the selected item in filename prompts.
 |==============
 
 .Quick reference for section ``fonts''
@@ -296,6 +298,7 @@
 |<<fonts-messages.error,messages.error>>|Font used for error messages.
 |<<fonts-messages.warning,messages.warning>>|Font used for warning messages.
 |<<fonts-messages.info,messages.info>>|Font used for info messages.
+|<<fonts-prompts,prompts>>|Font used for prompts.
 |==============
 
 == general
@@ -317,7 +320,7 @@ Default: +pass:[smart]+
 === startpage
 The default page(s) to open at the start, separated by commas.
 
-Default: +pass:[https://duckduckgo.com]+
+Default: +pass:[https://start.duckduckgo.com]+
 
 [[general-yank-ignored-url-parameters]]
 === yank-ignored-url-parameters
@@ -705,6 +708,12 @@ Keychains that shouldn't be shown in the keyhint dialog
 Globs are supported, so ';*' will blacklist all keychainsstarting with ';'. Use '*' to disable keyhints
 
 Default: empty
+
+[[ui-prompt-radius]]
+=== prompt-radius
+The rounding radius for the edges of prompts.
+
+Default: +pass:[8]+
 
 == network
 Settings related to the network.
@@ -1560,7 +1569,7 @@ The file can be in one of the following formats:
 - One host per line
 - A zip-file of any of the above, with either only one file, or a file named 'hosts' (with any extension).
 
-Default: +pass:[http://www.malwaredomainlist.com/hostslist/hosts.txt,http://someonewhocares.org/hosts/hosts,http://winhelp2002.mvps.org/hosts.zip,http://malwaredomains.lehigh.edu/files/justdomains.zip,http://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
+Default: +pass:[https://www.malwaredomainlist.com/hostslist/hosts.txt,http://someonewhocares.org/hosts/hosts,http://winhelp2002.mvps.org/hosts.zip,http://malwaredomains.lehigh.edu/files/justdomains.zip,https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
 
 [[content-host-blocking-enabled]]
 === host-blocking-enabled
@@ -1718,7 +1727,7 @@ The searchengine named `DEFAULT` is used when `general -> auto-search` is true a
 Aliases for commands.
 By default, no aliases are defined. Example which adds a new command `:qtb` to open qutebrowsers website:
 
-`qtb = open http://www.qutebrowser.org/`
+`qtb = open https://www.qutebrowser.org/`
 
 == colors
 Colors used in the UI.
@@ -1830,18 +1839,6 @@ Default: +pass:[white]+
 Background color of the statusbar.
 
 Default: +pass:[black]+
-
-[[colors-statusbar.fg.prompt]]
-=== statusbar.fg.prompt
-Foreground color of the statusbar if there is a prompt.
-
-Default: +pass:[${statusbar.fg}]+
-
-[[colors-statusbar.bg.prompt]]
-=== statusbar.bg.prompt
-Background color of the statusbar if there is a prompt.
-
-Default: +pass:[darkblue]+
 
 [[colors-statusbar.fg.insert]]
 === statusbar.fg.insert
@@ -2184,6 +2181,24 @@ Border color of an info message.
 
 Default: +pass:[#333333]+
 
+[[colors-prompts.fg]]
+=== prompts.fg
+Foreground color for prompts.
+
+Default: +pass:[white]+
+
+[[colors-prompts.bg]]
+=== prompts.bg
+Background color for prompts.
+
+Default: +pass:[darkblue]+
+
+[[colors-prompts.selected.bg]]
+=== prompts.selected.bg
+Background color for the selected item in filename prompts.
+
+Default: +pass:[#308cc6]+
+
 == fonts
 Fonts used for the UI, with optional style/weight/size.
 
@@ -2322,3 +2337,9 @@ Default: +pass:[8pt ${_monospace}]+
 Font used for info messages.
 
 Default: +pass:[8pt ${_monospace}]+
+
+[[fonts-prompts]]
+=== prompts
+Font used for prompts.
+
+Default: +pass:[8pt sans-serif]+

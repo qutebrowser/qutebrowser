@@ -28,6 +28,7 @@ import shutil
 import functools
 import tempfile
 import collections
+import html
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QTimer,
@@ -119,7 +120,7 @@ def create_full_filename(basename, filename):
     return None
 
 
-def ask_for_filename(suggested_filename, win_id, *, parent=None,
+def ask_for_filename(suggested_filename, *, url, parent=None,
                      prompt_download_directory=None):
     """Prepare a question for a download-path.
 
@@ -133,7 +134,7 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
 
     Args:
         suggested_filename: The "default"-name that is pre-entered as path.
-        win_id: The window where the question will be asked.
+        url: The URL the download originated from.
         parent: The parent of the question (a QObject).
         prompt_download_directory: If this is something else than None, it
                                    will overwrite the
@@ -150,14 +151,14 @@ def ask_for_filename(suggested_filename, win_id, *, parent=None,
     suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
     q = usertypes.Question(parent)
-    q.text = "Save file to:"
+    q.title = "Save file to:"
+    q.text = "Please enter a location for <b>{}</b>".format(
+        html.escape(url.toDisplayString()))
     q.mode = usertypes.PromptMode.text
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
 
-    message_bridge = objreg.get('message-bridge', scope='window',
-                                window=win_id)
-    q.ask = lambda: message_bridge.ask(q, blocking=False)
+    q.ask = lambda: message.global_bridge.ask(q, blocking=False)
     return _DownloadPath(filename=None, question=q)
 
 
@@ -382,20 +383,13 @@ class DownloadItem(QObject):
         else:
             self.set_fileobj(fileobj)
 
-    def _ask_confirm_question(self, msg):
+    def _ask_confirm_question(self, title, msg):
         """Create a Question object to be asked."""
-        q = usertypes.Question(self)
-        q.text = msg
-        q.mode = usertypes.PromptMode.yesno
-        q.answered_yes.connect(self._create_fileobj)
-        q.answered_no.connect(functools.partial(self.cancel,
-                                                remove_data=False))
-        q.cancelled.connect(functools.partial(self.cancel, remove_data=False))
-        self.cancelled.connect(q.abort)
-        self.error.connect(q.abort)
-        message_bridge = objreg.get('message-bridge', scope='window',
-                                    window=self._win_id)
-        message_bridge.ask(q, blocking=False)
+        no_action = functools.partial(self.cancel, remove_data=False)
+        message.confirm_async(title=title, text=msg,
+                              yes_action=self._create_fileobj,
+                              no_action=no_action, cancel_action=no_action,
+                              abort_on=[self.cancelled, self.error])
 
     def _die(self, msg):
         """Abort the download and emit an error."""
@@ -614,14 +608,15 @@ class DownloadItem(QObject):
         if os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
             # overwritten.
-            txt = self._filename + " already exists. Overwrite?"
-            self._ask_confirm_question(txt)
+            txt = "<b>{}</b> already exists. Overwrite?".format(
+                html.escape(self._filename))
+            self._ask_confirm_question("Overwrite existing file?", txt)
         # FIFO, device node, etc. Make sure we want to do this
         elif (os.path.exists(self._filename) and
               not os.path.isdir(self._filename)):
-            txt = (self._filename + " already exists and is a special file. "
-                   "Write to this?")
-            self._ask_confirm_question(txt)
+            txt = ("<b>{}</b> already exists and is a special file. Write to "
+                   "it anyways?".format(html.escape(self._filename)))
+            self._ask_confirm_question("Overwrite special file?", txt)
         else:
             self._create_fileobj()
 
@@ -963,9 +958,9 @@ class DownloadManager(QObject):
 
         # Neither filename nor fileobj were given, prepare a question
         filename, q = ask_for_filename(
-            suggested_filename, self._win_id, parent=self,
+            suggested_filename, parent=self,
             prompt_download_directory=prompt_download_directory,
-        )
+            url=reply.url())
 
         # User doesn't want to be asked, so just use the download_dir
         if filename is not None:

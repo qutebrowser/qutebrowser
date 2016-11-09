@@ -22,7 +22,9 @@
 import os
 import collections
 import netrc
+import html
 
+import jinja2
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
@@ -207,10 +209,11 @@ class NetworkManager(QNetworkAccessManager):
         self.setCache(cache)
         cache.setParent(app)
 
-    def _ask(self, text, mode, owner=None):
+    def _ask(self, title, text, mode, owner=None, default=None):
         """Ask a blocking question in the statusbar.
 
         Args:
+            title: The title to display to the user.
             text: The text to display to the user.
             mode: A PromptMode.
             owner: An object which will abort the question if destroyed, or
@@ -219,24 +222,19 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             The answer the user gave or None if the prompt was cancelled.
         """
-        q = usertypes.Question()
-        q.text = text
-        q.mode = mode
-        self.shutting_down.connect(q.abort)
+        abort_on = [self.shutting_down]
         if owner is not None:
-            owner.destroyed.connect(q.abort)
+            abort_on.append(owner.destroyed)
 
         # This might be a generic network manager, e.g. one belonging to a
         # DownloadManager. In this case, just skip the webview thing.
         if self._tab_id is not None:
             tab = objreg.get('tab', scope='tab', window=self._win_id,
                              tab=self._tab_id)
-            tab.load_started.connect(q.abort)
-        bridge = objreg.get('message-bridge', scope='window',
-                            window=self._win_id)
-        bridge.ask(q, blocking=True)
-        q.deleteLater()
-        return q.answer
+            abort_on.append(tab.load_started)
+
+        return message.ask(title=title, text=text, mode=mode,
+                           abort_on=abort_on, default=default)
 
     def shutdown(self):
         """Abort all running requests."""
@@ -283,9 +281,19 @@ class NetworkManager(QNetworkAccessManager):
             return
 
         if ssl_strict == 'ask':
-            err_string = '\n'.join('- ' + err.errorString() for err in errors)
-            answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
-                               mode=usertypes.PromptMode.yesno, owner=reply)
+            err_template = jinja2.Template("""
+                Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
+                <ul>
+                {% for err in errors %}
+                   <li>{{err.errorString()}}</li>
+                {% endfor %}
+                </ul>
+            """.strip())
+            msg = err_template.render(url=reply.url(), errors=errors)
+
+            answer = self._ask('SSL errors - continue?', msg,
+                               mode=usertypes.PromptMode.yesno, owner=reply,
+                               default=False)
             log.webview.debug("Asked for SSL errors, answer {}".format(answer))
             if answer:
                 reply.ignoreSslErrors()
@@ -343,8 +351,11 @@ class NetworkManager(QNetworkAccessManager):
 
         if user is None:
             # netrc check failed
-            answer = self._ask("Username ({}):".format(authenticator.realm()),
-                               mode=usertypes.PromptMode.user_pwd,
+            msg = '<b>{}</b> says:<br/>{}'.format(
+                html.escape(reply.url().toDisplayString()),
+                html.escape(authenticator.realm()))
+            answer = self._ask("Authentication required",
+                               text=msg, mode=usertypes.PromptMode.user_pwd,
                                owner=reply)
             if answer is not None:
                 user, password = answer.user, answer.password
@@ -361,8 +372,11 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
         else:
+            msg = '<b>{}</b> says:<br/>{}'.format(
+                html.escape(proxy.hostName()),
+                html.escape(authenticator.realm()))
             answer = self._ask(
-                "Proxy username ({}):".format(authenticator.realm()),
+                "Proxy authentication required", msg,
                 mode=usertypes.PromptMode.user_pwd)
             if answer is not None:
                 authenticator.setUser(answer.user)

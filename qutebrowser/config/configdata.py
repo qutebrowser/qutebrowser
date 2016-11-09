@@ -90,7 +90,7 @@ SECTION_DESC = {
         "Aliases for commands.\n"
         "By default, no aliases are defined. Example which adds a new command "
         "`:qtb` to open qutebrowsers website:\n\n"
-        "`qtb = open http://www.qutebrowser.org/`"),
+        "`qtb = open https://www.qutebrowser.org/`"),
     'colors': (
         "Colors used in the UI.\n"
         "A value can be in one of the following format:\n\n"
@@ -136,7 +136,8 @@ def data(readonly=False):
              "Whether to find text on a page case-insensitively."),
 
             ('startpage',
-             SettingValue(typ.List(typ.String()), 'https://duckduckgo.com'),
+             SettingValue(typ.List(typ.String()),
+                          'https://start.duckduckgo.com'),
              "The default page(s) to open at the start, separated by commas."),
 
             ('yank-ignored-url-parameters',
@@ -382,6 +383,10 @@ def data(readonly=False):
              "Keychains that shouldn't be shown in the keyhint dialog\n\n"
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
+
+            ('prompt-radius',
+             SettingValue(typ.Int(minval=0), '8'),
+             "The rounding radius for the edges of prompts."),
 
             readonly=readonly
         )),
@@ -871,11 +876,11 @@ def data(readonly=False):
             ('host-block-lists',
              SettingValue(
                  typ.List(typ.Url(), none_ok=True),
-                 'http://www.malwaredomainlist.com/hostslist/hosts.txt,'
+                 'https://www.malwaredomainlist.com/hostslist/hosts.txt,'
                  'http://someonewhocares.org/hosts/hosts,'
                  'http://winhelp2002.mvps.org/hosts.zip,'
                  'http://malwaredomains.lehigh.edu/files/justdomains.zip,'
-                 'http://pgl.yoyo.org/adservers/serverlist.php?'
+                 'https://pgl.yoyo.org/adservers/serverlist.php?'
                  'hostformat=hosts&mimetype=plaintext'),
              "List of URLs of lists which contain hosts to block.\n\n"
              "The file can be in one of the following formats:\n\n"
@@ -1073,14 +1078,6 @@ def data(readonly=False):
             ('statusbar.bg',
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
-
-            ('statusbar.fg.prompt',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
-             "Foreground color of the statusbar if there is a prompt."),
-
-            ('statusbar.bg.prompt',
-             SettingValue(typ.QssColor(), 'darkblue'),
-             "Background color of the statusbar if there is a prompt."),
 
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
@@ -1305,6 +1302,18 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '#333333'),
              "Border color of an info message."),
 
+            ('prompts.fg',
+             SettingValue(typ.QssColor(), 'white'),
+             "Foreground color for prompts."),
+
+            ('prompts.bg',
+             SettingValue(typ.QssColor(), 'darkblue'),
+             "Background color for prompts."),
+
+            ('prompts.selected.bg',
+             SettingValue(typ.QssColor(), '#308cc6'),
+             "Background color for the selected item in filename prompts."),
+
             readonly=readonly
         )),
 
@@ -1405,6 +1414,10 @@ def data(readonly=False):
             ('messages.info',
              SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
              "Font used for info messages."),
+
+            ('prompts',
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' sans-serif'),
+             "Font used for prompts."),
 
             readonly=readonly
         )),
@@ -1673,6 +1686,8 @@ KEY_DATA = collections.OrderedDict([
         ('prompt-accept yes', ['y']),
         ('prompt-accept no', ['n']),
         ('prompt-open-download', ['<Ctrl-X>']),
+        ('prompt-item-focus prev', ['<Shift-Tab>', '<Up>']),
+        ('prompt-item-focus next', ['<Tab>', '<Down>']),
     ])),
 
     ('command,prompt', collections.OrderedDict([

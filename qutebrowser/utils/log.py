@@ -94,7 +94,7 @@ LOGGER_NAMES = [
     'commands', 'signals', 'downloads',
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
-    'webelem'
+    'webelem', 'prompt'
 ]
 
 
@@ -139,6 +139,7 @@ message = logging.getLogger('message')
 config = logging.getLogger('config')
 sessions = logging.getLogger('sessions')
 webelem = logging.getLogger('webelem')
+prompt = logging.getLogger('prompt')
 
 
 ram_handler = None
@@ -406,6 +407,10 @@ def qt_message_handler(msg_type, context, msg):
             "Chromium-based browser to ",
         # https://github.com/The-Compiler/qutebrowser/issues/1287
         "QXcbClipboard: SelectionRequest too old",
+        # https://github.com/The-Compiler/qutebrowser/issues/2071
+        'QXcbWindow: Unhandled client message: ""',
+        # No idea where this comes from...
+        "QObject::disconnect: Unexpected null parameter",
     ]
     if sys.platform == 'darwin':
         suppressed_msgs += [

@@ -24,13 +24,14 @@ import base64
 import itertools
 import functools
 
+import jinja2
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
-from qutebrowser.mainwindow import tabbedbrowser, messageview
+from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
@@ -175,17 +176,24 @@ class MainWindow(QWidget):
 
         self._init_completion()
 
+        log.init.debug("Initializing modes...")
+        modeman.init(self.win_id, self)
+
         self._commandrunner = runners.CommandRunner(self.win_id,
                                                     partial_match=True)
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
-        self._overlays.append((self._keyhint, self._keyhint.update_geometry))
+        self._add_overlay(self._keyhint, self._keyhint.update_geometry)
         self._messageview = messageview.MessageView(parent=self)
-        self._overlays.append((self._messageview,
-                               self._messageview.update_geometry))
+        self._add_overlay(self._messageview, self._messageview.update_geometry)
 
-        log.init.debug("Initializing modes...")
-        modeman.init(self.win_id, self)
+        self._prompt_container = prompt.PromptContainer(self.win_id, self)
+        self._add_overlay(self._prompt_container,
+                          self._prompt_container.update_geometry,
+                          centered=True, padding=10)
+        objreg.register('prompt-container', self._prompt_container,
+                        scope='window', window=self.win_id)
+        self._prompt_container.hide()
 
         if geometry is not None:
             self._load_geometry(geometry)
@@ -206,36 +214,40 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
 
-    def _update_overlay_geometry(self, widget=None):
-        """Reposition/resize the given overlay.
+    def _add_overlay(self, widget, signal, *, centered=False, padding=0):
+        self._overlays.append((widget, signal, centered, padding))
 
-        If no widget is given, reposition/resize all overlays.
-        """
-        if widget is None:
-            for w, _signal in self._overlays:
-                self._update_overlay_geometry(w)
-            return
+    def _update_overlay_geometries(self):
+        """Update the size/position of all overlays."""
+        for w, _signal, centered, padding in self._overlays:
+            self._update_overlay_geometry(w, centered, padding)
 
+    def _update_overlay_geometry(self, widget, centered, padding):
+        """Reposition/resize the given overlay."""
         if not widget.isVisible():
             return
 
         size_hint = widget.sizeHint()
         if widget.sizePolicy().horizontalPolicy() == QSizePolicy.Expanding:
-            width = self.width()
+            width = self.width() - 2 * padding
+            left = padding
         else:
             width = size_hint.width()
+            left = (self.width() - size_hint.width()) / 2 if centered else 0
 
+        height_padding = 20
         status_position = config.get('ui', 'status-position')
         if status_position == 'bottom':
             top = self.height() - self.status.height() - size_hint.height()
             top = qtutils.check_overflow(top, 'int', fatal=False)
-            topleft = QPoint(0, top)
-            bottomright = QPoint(width, self.status.geometry().top())
+            topleft = QPoint(left, max(height_padding, top))
+            bottomright = QPoint(left + width, self.status.geometry().top())
         elif status_position == 'top':
-            topleft = self.status.geometry().bottomLeft()
+            topleft = QPoint(left, self.status.geometry().bottom())
             bottom = self.status.height() + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
-            bottomright = QPoint(width, bottom)
+            bottomright = QPoint(left + width,
+                                 min(self.height() - height_padding, bottom))
         else:
             raise ValueError("Invalid position {}!".format(status_position))
 
@@ -261,8 +273,7 @@ class MainWindow(QWidget):
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
                         window=self.win_id)
-        self._overlays.append((self._completion,
-                               self._completion.update_geometry))
+        self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
         dispatcher = commands.CommandDispatcher(self.win_id,
@@ -282,12 +293,12 @@ class MainWindow(QWidget):
         if section != 'ui':
             return
         if option == 'statusbar-padding':
-            self._update_overlay_geometry()
+            self._update_overlay_geometries()
         elif option == 'downloads-position':
             self._add_widgets()
         elif option == 'status-position':
             self._add_widgets()
-            self._update_overlay_geometry()
+            self._update_overlay_geometries()
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
@@ -350,10 +361,11 @@ class MainWindow(QWidget):
 
     def _connect_overlay_signals(self):
         """Connect the resize signal and resize everything once."""
-        for widget, signal in self._overlays:
+        for widget, signal, centered, padding in self._overlays:
             signal.connect(
-                functools.partial(self._update_overlay_geometry, widget))
-            self._update_overlay_geometry(widget)
+                functools.partial(self._update_overlay_geometry, widget,
+                                  centered, padding))
+            self._update_overlay_geometry(widget, centered, padding)
 
     def _set_default_geometry(self):
         """Set some sensible default geometry."""
@@ -374,7 +386,6 @@ class MainWindow(QWidget):
         cmd = self._get_object('status-command')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
-        prompter = self._get_object('prompter')
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
@@ -384,7 +395,7 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(status.on_mode_entered)
         mode_manager.left.connect(status.on_mode_left)
         mode_manager.left.connect(cmd.on_mode_left)
-        mode_manager.left.connect(prompter.on_mode_left)
+        mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
@@ -407,9 +418,6 @@ class MainWindow(QWidget):
 
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
-        message_bridge.s_set_cmd_text.connect(cmd.set_cmd_text)
-        message_bridge.s_question.connect(prompter.ask_question,
-                                          Qt.DirectConnection)
 
         # statusbar
         tabs.current_tab_changed.connect(status.prog.on_tab_changed)
@@ -459,7 +467,7 @@ class MainWindow(QWidget):
             e: The QResizeEvent
         """
         super().resizeEvent(e)
-        self._update_overlay_geometry()
+        self._update_overlay_geometries()
         self._downloadview.updateGeometry()
         self.tabbed_browser.tabBar().refresh()
 
@@ -507,10 +515,17 @@ class MainWindow(QWidget):
                 "download is" if download_count == 1 else "downloads are"))
         # Process all quit messages that user must confirm
         if quit_texts or 'always' in confirm_quit:
-            text = '\n'.join(['Really quit?'] + quit_texts)
-            confirmed = message.ask(self.win_id, text,
-                                    usertypes.PromptMode.yesno,
+            msg = jinja2.Template("""
+                <ul>
+                {% for text in quit_texts %}
+                   <li>{{text}}</li>
+                {% endfor %}
+                </ul>
+            """.strip()).render(quit_texts=quit_texts)
+            confirmed = message.ask('Really quit?', msg,
+                                    mode=usertypes.PromptMode.yesno,
                                     default=True)
+
             # Stop asking if the user cancels
             if not confirmed:
                 log.destroy.debug("Cancelling closing of window {}".format(

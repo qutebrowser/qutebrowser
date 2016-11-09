@@ -72,5 +72,6 @@ class TestTabWidget:
         icon = QIcon(pixmap)
         tab = fake_web_tab()
         widget.addTab(tab, icon, 'foobar')
-        widget.show()
-        qtbot.waitForWindowShown(widget)
+
+        with qtbot.waitExposed(widget):
+            widget.show()

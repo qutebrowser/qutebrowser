@@ -19,6 +19,7 @@
 
 """The main browser widgets."""
 
+import html
 import functools
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint
@@ -93,13 +94,19 @@ class BrowserPage(QWebPage):
         # of a bug in PyQt.
         # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
 
-        def javaScriptPrompt(self, _frame, msg, default):
+        def javaScriptPrompt(self, _frame, js_msg, default):
             """Override javaScriptPrompt to use the statusbar."""
             if (self._is_shutting_down or
                     config.get('content', 'ignore-javascript-prompt')):
                 return (False, "")
-            answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
-                               default)
+            msg = '<b>{}</b> asks:<br/>{}'.format(
+                html.escape(self.mainFrame().url().toDisplayString()),
+                html.escape(js_msg))
+            answer = message.ask('Javascript prompt', msg,
+                                 mode=usertypes.PromptMode.text,
+                                 default=default,
+                                 abort_on=[self.loadStarted,
+                                           self.shutting_down])
             if answer is None:
                 return (False, "")
             else:
@@ -134,11 +141,12 @@ class BrowserPage(QWebPage):
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
             url = QUrl(info.url)
-            msg = "Open external application for {}-link?\nURL: {}".format(
-                url.scheme(), url.toDisplayString())
+            scheme = url.scheme()
             message.confirm_async(
-                self._win_id, msg,
-                functools.partial(QDesktopServices.openUrl, url))
+                title="Open external application for {}-link?".format(scheme),
+                text="URL: <b>{}</b>".format(
+                    html.escape(url.toDisplayString())),
+                yes_action=functools.partial(QDesktopServices.openUrl, url))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -168,11 +176,11 @@ class BrowserPage(QWebPage):
             log.webview.debug("Error domain: {}, error code: {}".format(
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
-            html = jinja.render(
+            error_html = jinja.render(
                 'error.html',
                 title=title, url=urlstr, error=error_str, icon='',
                 qutescheme=False)
-            errpage.content = html.encode('utf-8')
+            errpage.content = error_html.encode('utf-8')
             errpage.encoding = 'utf-8'
             return True
 
@@ -195,29 +203,6 @@ class BrowserPage(QWebPage):
         files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
                                                           suggested_file)
         return True
-
-    def _ask(self, text, mode, default=None):
-        """Ask a blocking question in the statusbar.
-
-        Args:
-            text: The text to display to the user.
-            mode: A PromptMode.
-            default: The default value to display.
-
-        Return:
-            The answer the user gave or None if the prompt was cancelled.
-        """
-        q = usertypes.Question()
-        q.text = text
-        q.mode = mode
-        q.default = default
-        self.loadStarted.connect(q.abort)
-        self.shutting_down.connect(q.abort)
-        bridge = objreg.get('message-bridge', scope='window',
-                            window=self._win_id)
-        bridge.ask(q, blocking=True)
-        q.deleteLater()
-        return q.answer
 
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
@@ -333,11 +318,6 @@ class BrowserPage(QWebPage):
         }
         config_val = config.get(*options[feature])
         if config_val == 'ask':
-            bridge = objreg.get('message-bridge', scope='window',
-                                window=self._win_id)
-            q = usertypes.Question(bridge)
-            q.mode = usertypes.PromptMode.yesno
-
             msgs = {
                 QWebPage.Notifications: 'show notifications',
                 QWebPage.Geolocation: 'access your location',
@@ -345,30 +325,28 @@ class BrowserPage(QWebPage):
 
             host = frame.url().host()
             if host:
-                q.text = "Allow the website at {} to {}?".format(
-                    frame.url().host(), msgs[feature])
+                text = "Allow the website at <b>{}</b> to {}?".format(
+                    html.escape(frame.url().toDisplayString()), msgs[feature])
             else:
-                q.text = "Allow the website to {}?".format(msgs[feature])
+                text = "Allow the website to {}?".format(msgs[feature])
 
             yes_action = functools.partial(
                 self.setFeaturePermission, frame, feature,
                 QWebPage.PermissionGrantedByUser)
-            q.answered_yes.connect(yes_action)
-
             no_action = functools.partial(
                 self.setFeaturePermission, frame, feature,
                 QWebPage.PermissionDeniedByUser)
-            q.answered_no.connect(no_action)
-            q.cancelled.connect(no_action)
 
-            self.shutting_down.connect(q.abort)
-            q.completed.connect(q.deleteLater)
-
-            self.featurePermissionRequestCanceled.connect(functools.partial(
-                self.on_feature_permission_cancelled, q, frame, feature))
-            self.loadStarted.connect(q.abort)
-
-            bridge.ask(q, blocking=False)
+            question = message.confirm_async(yes_action=yes_action,
+                                             no_action=no_action,
+                                             cancel_action=no_action,
+                                             abort_on=[self.shutting_down,
+                                                       self.loadStarted],
+                                             title='Permission request',
+                                             text=text)
+            self.featurePermissionRequestCanceled.connect(
+                functools.partial(self.on_feature_permission_cancelled,
+                                  question, frame, feature))
         elif config_val:
             self.setFeaturePermission(frame, feature,
                                       QWebPage.PermissionGrantedByUser)
@@ -469,27 +447,37 @@ class BrowserPage(QWebPage):
             return super().extension(ext, opt, out)
         return handler(opt, out)
 
-    def javaScriptAlert(self, frame, msg):
+    def javaScriptAlert(self, frame, js_msg):
         """Override javaScriptAlert to use the statusbar."""
-        log.js.debug("alert: {}".format(msg))
+        log.js.debug("alert: {}".format(js_msg))
         if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptAlert(frame, msg)
+            return super().javaScriptAlert(frame, js_msg)
 
         if (self._is_shutting_down or
                 config.get('content', 'ignore-javascript-alert')):
             return
-        self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
 
-    def javaScriptConfirm(self, frame, msg):
+        msg = 'From <b>{}</b>:<br/>{}'.format(
+            html.escape(self.mainFrame().url().toDisplayString()),
+            html.escape(js_msg))
+        message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
+                    abort_on=[self.loadStarted, self.shutting_down])
+
+    def javaScriptConfirm(self, frame, js_msg):
         """Override javaScriptConfirm to use the statusbar."""
-        log.js.debug("confirm: {}".format(msg))
+        log.js.debug("confirm: {}".format(js_msg))
         if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptConfirm(frame, msg)
+            return super().javaScriptConfirm(frame, js_msg)
 
         if self._is_shutting_down:
             return False
-        ans = self._ask("[js confirm] {}".format(msg),
-                        usertypes.PromptMode.yesno)
+
+        msg = 'From <b>{}</b>:<br/>{}'.format(
+            html.escape(self.mainFrame().url().toDisplayString()),
+            html.escape(js_msg))
+        ans = message.ask('Javascript confirm', msg,
+                          mode=usertypes.PromptMode.yesno,
+                          abort_on=[self.loadStarted, self.shutting_down])
         return bool(ans)
 
     def javaScriptConsoleMessage(self, msg, line, source):
