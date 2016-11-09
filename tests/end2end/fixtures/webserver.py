@@ -81,7 +81,7 @@ class Request(testprocess.Line):
                 http.client.FOUND]
             path_to_statuses['/absolute-redirect/{}'.format(i)] = [
                 http.client.FOUND]
-        for suffix in ['', '1', '2']:
+        for suffix in ['', '1', '2', '3', '4', '5', '6']:
             key = '/basic-auth/user{}/password{}'.format(suffix, suffix)
             path_to_statuses[key] = [http.client.UNAUTHORIZED, http.client.OK]
 

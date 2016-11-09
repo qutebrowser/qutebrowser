@@ -30,7 +30,7 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
-from qutebrowser.browser import pdfjs
+from qutebrowser.browser import pdfjs, shared
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
@@ -94,23 +94,16 @@ class BrowserPage(QWebPage):
         # of a bug in PyQt.
         # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
 
-        def javaScriptPrompt(self, _frame, js_msg, default):
+        def javaScriptPrompt(self, frame, js_msg, default):
             """Override javaScriptPrompt to use the statusbar."""
-            if (self._is_shutting_down or
-                    config.get('content', 'ignore-javascript-prompt')):
+            if self._is_shutting_down:
                 return (False, "")
-            msg = '<b>{}</b> asks:<br/>{}'.format(
-                html.escape(self.mainFrame().url().toDisplayString()),
-                html.escape(js_msg))
-            answer = message.ask('Javascript prompt', msg,
-                                 mode=usertypes.PromptMode.text,
-                                 default=default,
-                                 abort_on=[self.loadStarted,
-                                           self.shutting_down])
-            if answer is None:
-                return (False, "")
-            else:
-                return (True, answer)
+            try:
+                return shared.javascript_prompt(frame.url(), js_msg, default,
+                                                abort_on=[self.loadStarted,
+                                                          self.shutting_down])
+            except shared.CallSuper:
+                return super().javaScriptPrompt(frame, js_msg, default)
 
     def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
@@ -442,36 +435,25 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, frame, js_msg):
         """Override javaScriptAlert to use the statusbar."""
-        log.js.debug("alert: {}".format(js_msg))
-        if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptAlert(frame, js_msg)
-
-        if (self._is_shutting_down or
-                config.get('content', 'ignore-javascript-alert')):
+        if self._is_shutting_down:
             return
-
-        msg = 'From <b>{}</b>:<br/>{}'.format(
-            html.escape(self.mainFrame().url().toDisplayString()),
-            html.escape(js_msg))
-        message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
-                    abort_on=[self.loadStarted, self.shutting_down])
+        try:
+            shared.javascript_alert(frame.url(), js_msg,
+                                    abort_on=[self.loadStarted,
+                                              self.shutting_down])
+        except shared.CallSuper:
+            super().javaScriptAlert(frame, js_msg)
 
     def javaScriptConfirm(self, frame, js_msg):
         """Override javaScriptConfirm to use the statusbar."""
-        log.js.debug("confirm: {}".format(js_msg))
-        if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptConfirm(frame, js_msg)
-
         if self._is_shutting_down:
             return False
-
-        msg = 'From <b>{}</b>:<br/>{}'.format(
-            html.escape(self.mainFrame().url().toDisplayString()),
-            html.escape(js_msg))
-        ans = message.ask('Javascript confirm', msg,
-                          mode=usertypes.PromptMode.yesno,
-                          abort_on=[self.loadStarted, self.shutting_down])
-        return bool(ans)
+        try:
+            return shared.javascript_confirm(frame.url(), js_msg,
+                                             abort_on=[self.loadStarted,
+                                                       self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptConfirm(frame, js_msg)
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
