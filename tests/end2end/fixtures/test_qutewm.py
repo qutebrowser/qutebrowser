@@ -45,14 +45,8 @@ class Window(QMainWindow):
 @pytest.mark.qutewm
 class TestQuteWM:
 
-    @classmethod
-    def get_window(cls):
-        """Return a window suitable for testing."""
-        window = Window()
-        return window
-
     def test_single_window(self, qutewm, qtbot, qapp):
-        window = self.get_window()
+        window = Window()
         qtbot.addWidget(window)
         with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused,
                                 window.activated]):
@@ -77,7 +71,7 @@ class TestQuteWM:
         (lambda windows, qapp: windows[0].activateWindow()),
     ], ids=['window close', 'urgency hint', 'activateWindow()'])
     def test_focus_on_urgency_hint(self, qutewm, qtbot, qapp, focus_fn):
-        windows = [self.get_window() for _ in range(2)]
+        windows = [Window() for _ in range(2)]
         for window in windows:
             qtbot.addWidget(window)
 

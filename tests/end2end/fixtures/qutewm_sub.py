@@ -36,8 +36,7 @@ import sys
 import signal
 import logging
 
-from Xlib.display import Display
-from Xlib import X, Xatom, Xutil
+from Xlib import X, Xatom, Xutil, display
 
 LOG_FORMAT = ('{asctime:8} {levelname:8} {name:10}'
               ' {module}:{funcName}:{lineno} {message}')
@@ -47,6 +46,9 @@ logging.basicConfig(
     level=logging.INFO,
 )
 log = logging.getLogger('qutewm')
+
+# Picked arbitrarily, but should be consistent with the qutewm fixture
+RETCODE_WM_RUNNING = 42
 
 
 class AtomBag:
@@ -122,7 +124,7 @@ class QuteWM:
             X.PropertyNotify: self._on_property_notify,
             X.FocusIn: self._on_focus_in,
         }
-        self.dpy = Display()
+        self.dpy = display.Display()
         self.dpy.set_error_handler(self._error_handler)
 
         screen_width = self.dpy.screen().width_in_pixels
@@ -149,13 +151,15 @@ class QuteWM:
         log.error("Another window manager is running, exiting")
         # This is called async, which means we can't just raise an exception,
         # we need to signal the main thread to stop.
-        self._retcode = 42
+        self._retcode = RETCODE_WM_RUNNING
 
     def _error_handler(self, error, request):
         # This is called async, which means we can't just raise an exception,
         # we need to signal the main thread to stop.
         if self._retcode is None:
             log.error(error)
+            # Generic error exit code
+            self._retcode = 1
 
     def _set_supported_attribute(self):
         """Set the _NET_SUPPORTED attribute on the root window."""
@@ -169,11 +173,13 @@ class QuteWM:
             self.atoms.supported,
             Xatom.ATOM,
             32,
-            attributes,
-        )
+            attributes)
 
     def _set_supporting_wm_check(self):
         """Create and set a window for _NET_SUPPORTING_WM_CHECK."""
+        # Needed by clients to verify that this window manager supports EWMH.
+        # See also:
+        # https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html#idm140200472693600
         self.support_window = self.root.create_window(
             0, 0, 10, 10, 0, self.dpy.screen().root_depth)
 
@@ -201,7 +207,7 @@ class QuteWM:
             # avoid the "event loop started" message if we exit anyway
             return self._retcode
         log.info("event loop started")
-        while 1:
+        while True:
             if self._retcode is not None:
                 return self._retcode
             try:
@@ -273,7 +279,7 @@ class QuteWM:
     def _on_unmap_notify(self, ev):
         """Called when a window is unmapped from the screen."""
         log.debug("window unmapped: {}".format(ev.window))
-        if ev.event == self.root and not ev.from_configure:
+        if ev.event is self.root and not ev.from_configure:
             log.debug("ignoring synthetic event")
             return
         log.info("window closed: [{:#x}]".format(ev.window.id))
@@ -335,7 +341,12 @@ class QuteWM:
         else:
             client_properties = set(client_properties.value)
 
+        # action is STATE_ADD, STATE_REMOVE or STATE_TOGGLE
         action = ev.data[1][0]
+        # data[1] is the property to change, data[2] is either another
+        # property or just zero
+        # See also:
+        # https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html#idm140200472615568
         updates = {ev.data[1][1]}
         if ev.data[1][2] != 0:
             updates.add(ev.data[1][2])
