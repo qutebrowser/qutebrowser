@@ -35,8 +35,8 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = right
-        When I set tabs -> select-on-remove to right
+    Scenario: :tab-close with select-on-remove = next
+        When I set tabs -> select-on-remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
@@ -46,8 +46,8 @@ Feature: Tab management
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = left
-        When I set tabs -> select-on-remove to left
+    Scenario: :tab-close with select-on-remove = prev
+        When I set tabs -> select-on-remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
@@ -57,8 +57,8 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-close with select-on-remove = previous
-        When I set tabs -> select-on-remove to previous
+    Scenario: :tab-close with select-on-remove = last-used
+        When I set tabs -> select-on-remove to last-used
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
@@ -70,30 +70,30 @@ Feature: Tab management
             - data/numbers/3.txt
             - data/numbers/4.txt (active)
 
-    Scenario: :tab-close with select-on-remove = left and --right
-        When I set tabs -> select-on-remove to left
+    Scenario: :tab-close with select-on-remove = prev and --next
+        When I set tabs -> select-on-remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-close --right
+        And I run :tab-close --next
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = right and --left
-        When I set tabs -> select-on-remove to right
+    Scenario: :tab-close with select-on-remove = next and --prev
+        When I set tabs -> select-on-remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-close --left
+        And I run :tab-close --prev
         Then the following tabs should be open:
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-close with select-on-remove = left and --opposite
-        When I set tabs -> select-on-remove to left
+    Scenario: :tab-close with select-on-remove = prev and --opposite
+        When I set tabs -> select-on-remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
@@ -103,8 +103,8 @@ Feature: Tab management
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = right and --opposite
-        When I set tabs -> select-on-remove to right
+    Scenario: :tab-close with select-on-remove = next and --opposite
+        When I set tabs -> select-on-remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
@@ -114,19 +114,19 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-close with select-on-remove = previous and --opposite
-        When I set tabs -> select-on-remove to previous
+    Scenario: :tab-close with select-on-remove = last-used and --opposite
+        When I set tabs -> select-on-remove to last-used
         And I run :tab-close --opposite
-        Then the error "-o is not supported with 'tabs->select-on-remove' set to 'previous'!" should be shown
+        Then the error "-o is not supported with 'tabs->select-on-remove' set to 'last-used'!" should be shown
 
     Scenario: :tab-close should restore selection behavior
-        When I set tabs -> select-on-remove to right
+        When I set tabs -> select-on-remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I open data/numbers/4.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-close --left
+        And I run :tab-close --prev
         And I run :tab-focus 2
         And I run :tab-close
         Then the following tabs should be open:
@@ -143,29 +143,29 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-only with --left
+    Scenario: :tab-only with --prev
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-only --left
+        And I run :tab-only --prev
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
 
-    Scenario: :tab-only with --right
+    Scenario: :tab-only with --next
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 2
-        And I run :tab-only --right
+        And I run :tab-only --next
         Then the following tabs should be open:
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-only with --left and --right
-        When I run :tab-only --left --right
-        Then the error "Only one of -l/-r can be given!" should be shown
+    Scenario: :tab-only with --prev and --next
+        When I run :tab-only --prev --next
+        Then the error "Only one of -p/-n can be given!" should be shown
 
     # :tab-focus
 
@@ -821,8 +821,8 @@ Feature: Tab management
             - data/hints/html/simple.html (active)
             - data/hello.txt
 
-    Scenario: opening tab with tabs->new-tab-position left
-        When I set tabs -> new-tab-position to left
+    Scenario: opening tab with tabs->new-tab-position prev
+        When I set tabs -> new-tab-position to prev
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
@@ -833,8 +833,8 @@ Feature: Tab management
             - data/hello.txt (active)
             - data/hints/html/simple.html
 
-    Scenario: opening tab with tabs->new-tab-position right
-        When I set tabs -> new-tab-position to right
+    Scenario: opening tab with tabs->new-tab-position next
+        When I set tabs -> new-tab-position to next
         And I set tabs -> background-tabs to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab

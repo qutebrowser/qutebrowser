@@ -1038,11 +1038,11 @@ Which tab to select when the focused tab is removed.
 
 Valid values:
 
- * +left+: Select the tab on the left.
- * +right+: Select the tab on the right.
- * +previous+: Select the previously selected tab.
+ * +prev+: Select the tab which came before the closed one (left in horizontal, above in vertical).
+ * +next+: Select the tab which came after the closed one (right in horizontal, below in vertical).
+ * +last-used+: Select the previously selected tab.
 
-Default: +pass:[right]+
+Default: +pass:[next]+
 
 [[tabs-new-tab-position]]
 === new-tab-position
@@ -1050,12 +1050,12 @@ How new tabs are positioned.
 
 Valid values:
 
- * +left+: On the left of the current tab.
- * +right+: On the right of the current tab.
- * +first+: At the left end.
- * +last+: At the right end.
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
 
-Default: +pass:[right]+
+Default: +pass:[next]+
 
 [[tabs-new-tab-position-explicit]]
 === new-tab-position-explicit
@@ -1063,10 +1063,10 @@ How new tabs opened explicitly are positioned.
 
 Valid values:
 
- * +left+: On the left of the current tab.
- * +right+: On the right of the current tab.
- * +first+: At the left end.
- * +last+: At the right end.
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
+ * +first+: At the beginning.
+ * +last+: At the end.
 
 Default: +pass:[last]+
 
