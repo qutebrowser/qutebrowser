@@ -23,7 +23,6 @@ Module attributes:
     _UNSET: Used as default argument in the constructor so default can be None.
 """
 
-import os.path
 import operator
 import collections.abc
 import enum as pyenum

@@ -20,7 +20,6 @@
 """Download manager."""
 
 import io
-import os.path
 import shutil
 import functools
 import collections
@@ -440,7 +439,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         if not suggested_filename:
             try:
                 suggested_filename = target.suggested_filename()
-            except usertypes.NoFilenameError:
+            except downloads.NoFilenameError:
                 _, suggested_filename = http.parse_content_disposition(reply)
         log.downloads.debug("fetch: {} -> {}".format(reply.url(),
                                                      suggested_filename))

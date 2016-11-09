@@ -28,7 +28,7 @@ import fnmatch
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message, usertypes
+from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils, cmdexc
 
 
