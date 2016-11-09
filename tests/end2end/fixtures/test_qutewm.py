@@ -70,7 +70,7 @@ class TestQuteWM:
         ),
         (lambda windows, qapp: windows[0].activateWindow()),
     ], ids=['window close', 'urgency hint', 'activateWindow()'])
-    def test_focus_on_urgency_hint(self, qutewm, qtbot, qapp, focus_fn):
+    def test_focus_changing(self, qutewm, qtbot, qapp, focus_fn):
         windows = [Window() for _ in range(2)]
         for window in windows:
             qtbot.addWidget(window)
