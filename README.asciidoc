@@ -154,8 +154,8 @@ Contributors, sorted by the number of commits in descending order:
 * Bruno Oliveira
 * Alexander Cogneau
 * Felix Van der Jeugt
-* Martin Tournoij
 * Daniel Karbach
+* Martin Tournoij
 * Kevin Velghe
 * Raphael Pierzina
 * Joel Torstensson
