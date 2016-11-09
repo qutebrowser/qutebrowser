@@ -43,8 +43,7 @@ import pygments.formatters
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem)
-from qutebrowser.browser.webkit import downloads
+                                 webelem, downloads)
 try:
     from qutebrowser.browser.webkit import mhtml
 except ImportError:
@@ -1295,8 +1294,7 @@ class CommandDispatcher:
         except inspector.WebInspectorError as e:
             raise cmdexc.CommandError(e)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       backend=usertypes.Backend.QtWebKit)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('dest_old', hide=True)
     def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
@@ -1318,8 +1316,9 @@ class CommandDispatcher:
                                           " download.")
             dest = dest_old
 
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
+        # FIXME:qtwebengine do this with the QtWebEngine download manager?
+        download_manager = objreg.get('qtnetwork-download-manager',
+                                      scope='window', window=self._win_id)
         if url:
             if mhtml_:
                 raise cmdexc.CommandError("Can only download the current page"
@@ -1329,21 +1328,16 @@ class CommandDispatcher:
             if dest is None:
                 target = None
             else:
-                target = usertypes.FileDownloadTarget(dest)
+                target = downloads.FileDownloadTarget(dest)
             download_manager.get(url, target=target)
         elif mhtml_:
             self._download_mhtml(dest)
         else:
-            tab = self._current_widget()
-            # FIXME:qtwebengine have a proper API for this
-            # pylint: disable=protected-access
-            qnam = tab._widget.page().networkAccessManager()
-            # pylint: enable=protected-access
             if dest is None:
                 target = None
             else:
-                target = usertypes.FileDownloadTarget(dest)
-            download_manager.get(self._current_url(), qnam=qnam, target=target)
+                target = downloads.FileDownloadTarget(dest)
+            download_manager.get(self._current_url(), target=target)
 
     def _download_mhtml(self, dest=None):
         """Download the current page as an MHTML file, including all assets.
@@ -1352,17 +1346,23 @@ class CommandDispatcher:
             dest: The file path to write the download to.
         """
         tab = self._current_widget()
+        if tab.backend == usertypes.Backend.QtWebEngine:
+            raise cmdexc.CommandError("Download --mhtml is not implemented "
+                                      "with QtWebEngine yet")
+
         if dest is None:
             suggested_fn = self._current_title() + ".mht"
             suggested_fn = utils.sanitize_filename(suggested_fn)
-            filename, q = downloads.ask_for_filename(suggested_fn, parent=tab,
-                                                     url=tab.url())
+
+            filename = downloads.immediate_download_path()
             if filename is not None:
                 mhtml.start_download_checked(filename, tab=tab)
             else:
-                q.answered.connect(functools.partial(
+                question = downloads.get_filename_question(
+                    suggested_filename=suggested_fn, url=tab.url(), parent=tab)
+                question.answered.connect(functools.partial(
                     mhtml.start_download_checked, tab=tab))
-                q.ask()
+                message.global_bridge.ask(question, blocking=False)
         else:
             mhtml.start_download_checked(dest, tab=tab)
 

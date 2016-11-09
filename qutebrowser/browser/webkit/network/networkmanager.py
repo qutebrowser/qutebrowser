@@ -135,11 +135,6 @@ class NetworkManager(QNetworkAccessManager):
     """Our own QNetworkAccessManager.
 
     Attributes:
-        adopted_downloads: If downloads are running with this QNAM but the
-                           associated tab gets closed already, the NAM gets
-                           reparented to the DownloadManager. This counts the
-                           still running downloads, so the QNAM can clean
-                           itself up when this reaches zero again.
         _requests: Pending requests.
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
@@ -161,7 +156,6 @@ class NetworkManager(QNetworkAccessManager):
             # http://www.riverbankcomputing.com/pipermail/pyqt/2014-November/035045.html
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
-        self.adopted_downloads = 0
         self._win_id = win_id
         self._tab_id = tab_id
         self._requests = []
@@ -393,28 +387,6 @@ class NetworkManager(QNetworkAccessManager):
         else:
             # switched from private mode to normal mode
             self._set_cookiejar()
-
-    @pyqtSlot()
-    def on_adopted_download_destroyed(self):
-        """Check if we can clean up if an adopted download was destroyed.
-
-        See the description for adopted_downloads for details.
-        """
-        self.adopted_downloads -= 1
-        log.downloads.debug("Adopted download destroyed, {} left.".format(
-            self.adopted_downloads))
-        assert self.adopted_downloads >= 0
-        if self.adopted_downloads == 0:
-            self.deleteLater()
-
-    @pyqtSlot(object)  # DownloadItem
-    def adopt_download(self, download):
-        """Adopt a new DownloadItem."""
-        self.adopted_downloads += 1
-        log.downloads.debug("Adopted download, {} adopted.".format(
-            self.adopted_downloads))
-        download.destroyed.connect(self.on_adopted_download_destroyed)
-        download.do_retry.connect(self.adopt_download)
 
     def set_referer(self, req, current_url):
         """Set the referer header."""

@@ -21,13 +21,8 @@ import os
 import sys
 import shlex
 
-import pytest
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
-
-
-pytestmark = pytest.mark.qtwebengine_todo("Downloads not implemented yet",
-                                          run=False)
 
 
 PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
