@@ -27,6 +27,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split
 
@@ -262,8 +263,7 @@ class CommandRunner(QObject):
         record_last_command = True
         record_macro = True
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
+        mode_manager = modeman.instance(self._win_id)
         cur_mode = mode_manager.mode
 
         for result in self.parse_all(text):
@@ -285,7 +285,7 @@ class CommandRunner(QObject):
 
         if record_macro and cur_mode == usertypes.KeyMode.normal:
             macro_recorder = objreg.get('macro-recorder')
-            macro_recorder.record(text, count)
+            macro_recorder.record_command(text, count)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)
