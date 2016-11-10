@@ -203,24 +203,30 @@ Feature: Keyboard input
         Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 6
+        And I wait until the scroll position changed
         And I run :record-macro
         And I press the key "a"
         And I run :scroll up
         And I run :scroll up
+        And I wait until the scroll position changed
         And I run :record-macro
         And I run :run-macro with count 2
         And I press the key "a"
+        And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
     Scenario: Recording a named macro
         Given I open data/scroll/simple.html
         And I run :tab-only
         When I run :scroll down with count 6
+        And I wait until the scroll position changed
         And I run :record-macro foo
         And I run :scroll up
         And I run :scroll up
+        And I wait until the scroll position changed
         And I run :record-macro foo
         And I run :run-macro foo with count 2
+        And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
     Scenario: Running an invalid macro
