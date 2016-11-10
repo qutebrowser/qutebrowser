@@ -59,10 +59,12 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<quickmark-load,quickmark-load>>|Load a quickmark.
 |<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
+|<<record-macro,record-macro>>|Start or stop recording a macro.
 |<<reload,reload>>|Reload the current/[count]th tab.
 |<<repeat,repeat>>|Repeat a given command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
+|<<run-macro,run-macro>>|Run a recorded macro.
 |<<save,save>>|Save configs and state.
 |<<search,search>>|Search for a text on the current page. With no text, clear results.
 |<<session-delete,session-delete>>|Delete a session.
@@ -602,6 +604,15 @@ Save the current page as a quickmark.
 === quit
 Quit qutebrowser.
 
+[[record-macro]]
+=== record-macro
+Syntax: +:record-macro ['register']+
+
+Start or stop recording a macro.
+
+==== positional arguments
+* +'register'+: Which register to store the macro in.
+
 [[reload]]
 === reload
 Syntax: +:reload [*--force*]+
@@ -636,6 +647,18 @@ Report a bug in qutebrowser.
 [[restart]]
 === restart
 Restart qutebrowser while keeping existing tabs open.
+
+[[run-macro]]
+=== run-macro
+Syntax: +:run-macro ['register']+
+
+Run a recorded macro.
+
+==== positional arguments
+* +'register'+: Which macro to run.
+
+==== count
+How many times to run the macro.
 
 [[save]]
 === save

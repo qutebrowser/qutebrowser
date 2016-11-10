@@ -49,6 +49,7 @@ Added
   the `readability-lxml` python package)
 - New `cast` userscript to show a video on a Google Chromecast
 - New `:run-with-count` command which replaces the (undocumented) `:count:command` syntax.
+- New `:record-macro` (`q`) and `:run-macro` (`@`) commands for keyboard macros.
 
 Changed
 ~~~~~~~
