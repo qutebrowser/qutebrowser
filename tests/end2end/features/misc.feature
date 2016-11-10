@@ -530,45 +530,6 @@ Feature: Various utility commands.
                 history:
                 - url: http://localhost:*/data/hello3.txt
 
-    Scenario: Recording a simple macro
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 6
-        And I run :record-macro
-        And I press the key "a"
-        And I run :scroll up
-        And I run :scroll up
-        And I run :record-macro
-        And I run :run-macro with count 2
-        And I press the key "a"
-        Then the page should not be scrolled
-
-    Scenario: Recording a named macro
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 6
-        And I run :record-macro foo
-        And I run :scroll up
-        And I run :scroll up
-        And I run :record-macro foo
-        And I run :run-macro foo with count 2
-        Then the page should not be scrolled
-
-    Scenario: Running an invalid macro
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :run-macro
-        And I press the key "b"
-        Then the error "No macro recorded in 'b'!" should be shown
-        And no crash should happen
-
-    Scenario: Running an invalid named macro
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :run-macro bar
-        Then the error "No macro recorded in 'bar'!" should be shown
-        And no crash should happen
-
     ## Variables
 
     Scenario: {url} as part of an argument
