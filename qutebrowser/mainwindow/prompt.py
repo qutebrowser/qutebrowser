@@ -314,8 +314,8 @@ class PromptContainer(QWidget):
         if not question.interrupted:
             # If this question was interrupted, we already connected the signal
             question.aborted.connect(
-                lambda: modeman.maybe_leave(self._win_id, prompt.KEY_MODE,
-                                            'aborted'))
+                lambda: modeman.leave(self._win_id, prompt.KEY_MODE, 'aborted',
+                                      maybe=True))
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
 
         self.setSizePolicy(prompt.sizePolicy())
@@ -328,7 +328,7 @@ class PromptContainer(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def _on_prompt_done(self, key_mode):
         """Leave the prompt mode in this window if a question was answered."""
-        modeman.maybe_leave(self._win_id, key_mode, ':prompt-accept')
+        modeman.leave(self._win_id, key_mode, ':prompt-accept', maybe=True)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_global_mode_left(self, mode):
@@ -339,7 +339,7 @@ class PromptContainer(QWidget):
         """
         if mode not in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
             return
-        modeman.maybe_leave(self._win_id, mode, 'left in other window')
+        modeman.leave(self._win_id, mode, 'left in other window', maybe=True)
         item = self._layout.takeAt(0)
         if item is not None:
             widget = item.widget()

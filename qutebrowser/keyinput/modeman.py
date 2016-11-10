@@ -106,18 +106,9 @@ def enter(win_id, mode, reason=None, only_if_normal=False):
     instance(win_id).enter(mode, reason, only_if_normal)
 
 
-def leave(win_id, mode, reason=None):
+def leave(win_id, mode, reason=None, *, maybe=False):
     """Leave the mode 'mode'."""
-    instance(win_id).leave(mode, reason)
-
-
-def maybe_leave(win_id, mode, reason=None):
-    """Convenience method to leave 'mode' without exceptions."""
-    try:
-        instance(win_id).leave(mode, reason)
-    except NotInModeError as e:
-        # This is rather likely to happen, so we only log to debug log.
-        log.modes.debug("{} (leave reason: {})".format(e, reason))
+    instance(win_id).leave(mode, reason, maybe=maybe)
 
 
 class ModeManager(QObject):

@@ -742,8 +742,8 @@ class CommandDispatcher:
             message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
             if not keep:
-                modeman.maybe_leave(self._win_id, KeyMode.caret,
-                                    "yank selected")
+                modeman.leave(self._win_id, KeyMode.caret, "yank selected",
+                              maybe=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
