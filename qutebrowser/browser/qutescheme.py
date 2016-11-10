@@ -24,7 +24,6 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
-import mimetypes
 import urllib.parse
 
 import qutebrowser
@@ -103,7 +102,7 @@ class add_handler:  # pylint: disable=invalid-name
                             url=url.toDisplayString(),
                             error='{} is not available with this '
                                   'backend'.format(url.toDisplayString()),
-                            icon='', qutescheme=True)
+                            icon='')
         return 'text/html', html
 
 
@@ -238,8 +237,7 @@ def qute_help(url):
                   "repository, please run scripts/asciidoc2html.py. "
                   "If you're running a released version this is a bug, please "
                   "use :report to report it.",
-            icon='',
-            qutescheme=True)
+            icon='')
         return 'text/html', html
     urlpath = url.path()
     if not urlpath or urlpath == '/':
@@ -255,12 +253,3 @@ def qute_help(url):
     else:
         data = utils.read_file(path)
         return 'text/html', data
-
-
-@add_handler('resource')
-def qute_resource(url):
-    """Serve resources via a qute://resource/... URL."""
-    data = utils.read_file(url.path(), binary=True)
-    mimetype, _encoding = mimetypes.guess_type(url.fileName())
-    assert mimetype is not None, url
-    return mimetype, data

@@ -178,8 +178,7 @@ class BrowserPage(QWebPage):
             title = "Error loading page: {}".format(urlstr)
             error_html = jinja.render(
                 'error.html',
-                title=title, url=urlstr, error=error_str, icon='',
-                qutescheme=False)
+                title=title, url=urlstr, error=error_str, icon='')
             errpage.content = error_html.encode('utf-8')
             errpage.encoding = 'utf-8'
             return True
