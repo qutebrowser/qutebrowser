@@ -152,7 +152,7 @@ class MouseEventFilter(QObject):
             log.mouse.debug("Clicked non-editable element!")
             if config.get('input', 'auto-leave-insert-mode'):
                 modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
-                                    'click', maybe=True)
+                              'click', maybe=True)
 
     def _mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
