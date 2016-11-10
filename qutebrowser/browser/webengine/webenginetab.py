@@ -22,7 +22,6 @@
 
 """Wrapper over a QWebEngineView."""
 
-import html
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
@@ -38,7 +37,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            webenginedownloads)
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               objreg, message, debug)
+                               objreg)
 
 
 _qute_scheme_handler = None

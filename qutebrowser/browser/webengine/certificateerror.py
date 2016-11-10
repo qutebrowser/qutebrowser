@@ -29,9 +29,6 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a QWebEngineCertificateError."""
 
-    def __init__(self, error):
-        self._error = error
-
     def __str__(self):
         return self._error.errorDescription()
 

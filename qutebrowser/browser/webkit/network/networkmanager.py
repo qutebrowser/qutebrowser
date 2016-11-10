@@ -26,14 +26,13 @@ import html
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
-                             QSslSocket)
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
-                               urlutils, debug)
+                               urlutils)
 from qutebrowser.browser import shared
-from qutebrowser.browser.webkit import webkittab, certificateerror
+from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 
