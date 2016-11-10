@@ -23,11 +23,14 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
+import traceback
+
 from PyQt5.QtCore import pyqtSlot, Qt
 
+from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import keyparser
-from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.utils import usertypes, log, message, objreg, utils
 
 
 STARTCHARS = ":/?"
@@ -264,12 +267,13 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         self.read_config('caret')
 
 
-class MarkKeyParser(keyparser.BaseKeyParser):
+class RegisterKeyParser(keyparser.BaseKeyParser):
 
-    """KeyParser for set_mark and jump_mark mode.
+    """KeyParser for modes that record a register key.
 
     Attributes:
-        _mode: Either KeyMode.set_mark or KeyMode.jump_mark.
+        _mode: One of KeyMode.set_mark, KeyMode.jump_mark, KeyMode.record_macro
+        and KeyMode.run_macro.
     """
 
     def __init__(self, win_id, mode, parent=None):
@@ -278,7 +282,7 @@ class MarkKeyParser(keyparser.BaseKeyParser):
         self._mode = mode
 
     def handle(self, e):
-        """Override handle to always match the next key and create a mark.
+        """Override handle to always match the next key and use the register.
 
         Args:
             e: the KeyPressEvent from Qt.
@@ -294,23 +298,32 @@ class MarkKeyParser(keyparser.BaseKeyParser):
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
+        macro_recorder = objreg.get('macro-recorder')
 
-        if self._mode == usertypes.KeyMode.set_mark:
-            tabbed_browser.set_mark(key)
-        elif self._mode == usertypes.KeyMode.jump_mark:
-            tabbed_browser.jump_mark(key)
-        else:
-            raise ValueError("{} is not a valid mark mode".format(self._mode))
+        try:
+            if self._mode == usertypes.KeyMode.set_mark:
+                tabbed_browser.set_mark(key)
+            elif self._mode == usertypes.KeyMode.jump_mark:
+                tabbed_browser.jump_mark(key)
+            elif self._mode == usertypes.KeyMode.record_macro:
+                macro_recorder.record_macro(key)
+            elif self._mode == usertypes.KeyMode.run_macro:
+                macro_recorder.run_macro(self._win_id, key)
+            else:
+                raise ValueError(
+                    "{} is not a valid register mode".format(self._mode))
+        except (cmdexc.CommandMetaError, cmdexc.CommandError) as err:
+            message.error(str(err), stack=traceback.format_exc())
 
-        self.request_leave.emit(self._mode, "valid mark key")
+        self.request_leave.emit(self._mode, "valid register key", True)
 
         return True
 
     @pyqtSlot(str)
     def on_keyconfig_changed(self, mode):
-        """MarkKeyParser has no config section (no bindable keys)."""
+        """RegisterKeyParser has no config section (no bindable keys)."""
         pass
 
     def execute(self, cmdstr, _keytype, count=None):
-        """Should never be called on MarkKeyParser."""
+        """Should never be called on RegisterKeyParser."""
         assert False

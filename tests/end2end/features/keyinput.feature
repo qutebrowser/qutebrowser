@@ -121,11 +121,11 @@ Feature: Keyboard input
         When I open data/keyinput/log.html
         And I set general -> log-javascript-console to info
         And I set input -> forward-unbound-keys to all
-        And I press the key "q"
+        And I press the key ","
         And I press the key "<F1>"
-        # q
-        Then the javascript message "key press: 81" should be logged
-        And the javascript message "key release: 81" should be logged
+        # ,
+        Then the javascript message "key press: 188" should be logged
+        And the javascript message "key release: 188" should be logged
         # <F1>
         And the javascript message "key press: 112" should be logged
         And the javascript message "key release: 112" should be logged
@@ -195,4 +195,63 @@ Feature: Keyboard input
     Scenario: :fake-key sending keypress to qutebrowser
         When I run :fake-key -g x
         And I wait for "got keypress in mode KeyMode.normal - delegating to <qutebrowser.keyinput.modeparsers.NormalKeyParser>" in the log
+        Then no crash should happen
+
+    # Macros
+
+    Scenario: Recording a simple macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :scroll down with count 6
+        And I wait until the scroll position changed
+        And I run :record-macro
+        And I press the key "a"
+        And I run :scroll up
+        And I run :scroll up
+        And I wait until the scroll position changed
+        And I run :record-macro
+        And I run :run-macro with count 2
+        And I press the key "a"
+        And I wait until the scroll position changed to 0/0
+        Then the page should not be scrolled
+
+    Scenario: Recording a named macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :scroll down with count 6
+        And I wait until the scroll position changed
+        And I run :record-macro foo
+        And I run :scroll up
+        And I run :scroll up
+        And I wait until the scroll position changed
+        And I run :record-macro foo
+        And I run :run-macro foo with count 2
+        And I wait until the scroll position changed to 0/0
+        Then the page should not be scrolled
+
+    Scenario: Running an invalid macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :run-macro
+        And I press the key "b"
+        Then the error "No macro recorded in 'b'!" should be shown
+        And no crash should happen
+
+    Scenario: Running an invalid named macro
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :run-macro bar
+        Then the error "No macro recorded in 'bar'!" should be shown
+        And no crash should happen
+
+    Scenario: Running a macro with a mode-switching command
+        When I open data/hints/html/simple.html
+        And I run :record-macro a
+        And I run :hint links normal
+        And I wait for "hints: *" in the log
+        And I run :leave-mode
+        And I run :record-macro a
+        And I run :run-macro
+        And I press the key "a"
+        And I wait for "hints: *" in the log
         Then no crash should happen

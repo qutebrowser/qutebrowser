@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config, configexc
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils, utils
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split
 
 
@@ -259,19 +259,33 @@ class CommandRunner(QObject):
             text: The text to parse.
             count: The count to pass to the command.
         """
-        for result in self.parse_all(text):
-            mode_manager = objreg.get('mode-manager', scope='window',
-                                      window=self._win_id)
-            cur_mode = mode_manager.mode
+        record_last_command = True
+        record_macro = True
 
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        cur_mode = mode_manager.mode
+
+        for result in self.parse_all(text):
             if result.cmd.no_replace_variables:
                 args = result.args
             else:
                 args = replace_variables(self._win_id, result.args)
             result.cmd.run(self._win_id, args, count=count)
 
-            if result.cmdline[0] != 'repeat-command':
-                last_command[cur_mode] = (text, count)
+            if result.cmdline[0] == 'repeat-command':
+                record_last_command = False
+
+            if result.cmdline[0] in ['record-macro', 'run-macro',
+                                     'set-cmd-text']:
+                record_macro = False
+
+        if record_last_command:
+            last_command[cur_mode] = (text, count)
+
+        if record_macro and cur_mode == usertypes.KeyMode.normal:
+            macro_recorder = objreg.get('macro-recorder')
+            macro_recorder.record_command(text, count)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)

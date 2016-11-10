@@ -22,11 +22,13 @@
 import os
 import os.path
 import traceback
+import mimetypes
+import base64
 
 import jinja2
 import jinja2.exceptions
 
-from qutebrowser.utils import utils, urlutils, log, qtutils
+from qutebrowser.utils import utils, urlutils, log
 
 from PyQt5.QtCore import QUrl
 
@@ -64,25 +66,24 @@ def _guess_autoescape(template_name):
     return ext in ['html', 'htm', 'xml']
 
 
-def resource_url(path, qutescheme=False):
+def resource_url(path):
     """Load images from a relative path (to qutebrowser).
 
     Arguments:
         path: The relative path to the image
-        qutescheme: If the logo needs to be served via a qute:// scheme.
-                    This is the case when we want to show an error page from
-                    there.
     """
-    if qutescheme:
-        url = QUrl()
-        url.setScheme('qute')
-        url.setHost('resource')
-        url.setPath('/' + path)
-        qtutils.ensure_valid(url)
-        return url.toString(QUrl.FullyEncoded)
-    else:
-        full_path = utils.resource_filename(path)
-        return QUrl.fromLocalFile(full_path).toString(QUrl.FullyEncoded)
+    image = utils.resource_filename(path)
+    return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
+
+
+def data_url(path):
+    """Get a data: url for the broken qutebrowser logo."""
+    data = utils.read_file(path, binary=True)
+    filename = utils.resource_filename(path)
+    mimetype = mimetypes.guess_type(filename)
+    assert mimetype is not None, path
+    b64 = base64.b64encode(data).decode('ascii')
+    return 'data:{};charset=utf-8;base64,{}'.format(mimetype[0], b64)
 
 
 def render(template, **kwargs):
@@ -100,3 +101,4 @@ def render(template, **kwargs):
 _env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
 _env.globals['resource_url'] = resource_url
 _env.globals['file_url'] = urlutils.file_url
+_env.globals['data_url'] = data_url

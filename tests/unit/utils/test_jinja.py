@@ -34,23 +34,42 @@ from qutebrowser.utils import utils, jinja
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
     real_read_file = utils.read_file
+    real_resource_filename = utils.resource_filename
 
-    def _read_file(path):
+    def _read_file(path, binary=False):
         """A read_file which returns a simple template if the path is right."""
         if path == os.path.join('html', 'test.html'):
+            assert not binary
             return """Hello {{var}}"""
-        elif path == os.path.join('html', 'resource_url.html'):
-            return """{{ resource_url('utils/testfile', False) }}"""
-        elif path == os.path.join('html', 'resource_url_qute.html'):
-            return """{{ resource_url('utils/testfile', True) }}"""
+        elif path == os.path.join('html', 'test2.html'):
+            assert not binary
+            return """{{ resource_url('utils/testfile') }}"""
+        elif path == os.path.join('html', 'test3.html'):
+            assert not binary
+            return """{{ data_url('testfile.txt') }}"""
+        elif path == 'testfile.txt':
+            assert binary
+            return b'foo'
         elif path == os.path.join('html', 'undef.html'):
+            assert not binary
             return """{{ does_not_exist() }}"""
         elif path == os.path.join('html', 'undef_error.html'):
+            assert not binary
             return real_read_file(path)
         else:
             raise IOError("Invalid path {}!".format(path))
 
+    def _resource_filename(path):
+        if path == 'utils/testfile':
+            return real_resource_filename(path)
+        elif path == 'testfile.txt':
+            return path
+        else:
+            raise IOError("Invalid path {}!".format(path))
+
     monkeypatch.setattr('qutebrowser.utils.jinja.utils.read_file', _read_file)
+    monkeypatch.setattr('qutebrowser.utils.jinja.utils.resource_filename',
+                        _resource_filename)
 
 
 def test_simple_template():
@@ -61,7 +80,7 @@ def test_simple_template():
 
 def test_resource_url():
     """Test resource_url() which can be used from templates."""
-    data = jinja.render('resource_url.html')
+    data = jinja.render('test2.html')
     print(data)
     url = QUrl(data)
     assert url.isValid()
@@ -77,12 +96,13 @@ def test_resource_url():
         assert f.read().splitlines()[0] == "Hello World!"
 
 
-def test_resource_url_qutescheme():
-    """Test resource_url() which can be used from templates."""
-    data = jinja.render('resource_url_qute.html')
+def test_data_url():
+    """Test data_url() which can be used from templates."""
+    data = jinja.render('test3.html')
     print(data)
     url = QUrl(data)
-    assert url == QUrl('qute://resource/utils/testfile')
+    assert url.isValid()
+    assert data == 'data:text/plain;charset=utf-8;base64,Zm9v'  # 'foo'
 
 
 def test_not_found():

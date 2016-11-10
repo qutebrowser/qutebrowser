@@ -151,9 +151,8 @@ class MouseEventFilter(QObject):
         else:
             log.mouse.debug("Clicked non-editable element!")
             if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(self._tab.win_id,
-                                    usertypes.KeyMode.insert,
-                                    'click')
+                modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
+                              'click', maybe=True)
 
     def _mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
@@ -174,9 +173,8 @@ class MouseEventFilter(QObject):
             else:
                 log.mouse.debug("Clicked non-editable element (delayed)!")
                 if config.get('input', 'auto-leave-insert-mode'):
-                    modeman.maybe_leave(self._tab.win_id,
-                                        usertypes.KeyMode.insert,
-                                        'click-delayed')
+                    modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
+                                  'click-delayed', maybe=True)
 
         self._tab.elements.find_focused(mouserelease_insertmode_cb)
 

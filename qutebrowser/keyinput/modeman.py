@@ -78,8 +78,14 @@ def init(win_id, parent):
                                                   warn=False),
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
         KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
-        KM.set_mark: modeparsers.MarkKeyParser(win_id, KM.set_mark, modeman),
-        KM.jump_mark: modeparsers.MarkKeyParser(win_id, KM.jump_mark, modeman),
+        KM.set_mark: modeparsers.RegisterKeyParser(win_id, KM.set_mark,
+                                                   modeman),
+        KM.jump_mark: modeparsers.RegisterKeyParser(win_id, KM.jump_mark,
+                                                    modeman),
+        KM.record_macro: modeparsers.RegisterKeyParser(win_id, KM.record_macro,
+                                                       modeman),
+        KM.run_macro: modeparsers.RegisterKeyParser(win_id, KM.run_macro,
+                                                    modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(
@@ -100,18 +106,9 @@ def enter(win_id, mode, reason=None, only_if_normal=False):
     instance(win_id).enter(mode, reason, only_if_normal)
 
 
-def leave(win_id, mode, reason=None):
+def leave(win_id, mode, reason=None, *, maybe=False):
     """Leave the mode 'mode'."""
-    instance(win_id).leave(mode, reason)
-
-
-def maybe_leave(win_id, mode, reason=None):
-    """Convenience method to leave 'mode' without exceptions."""
-    try:
-        instance(win_id).leave(mode, reason)
-    except NotInModeError as e:
-        # This is rather likely to happen, so we only log to debug log.
-        log.modes.debug("{} (leave reason: {})".format(e, reason))
+    instance(win_id).leave(mode, reason, maybe=maybe)
 
 
 class ModeManager(QObject):
@@ -270,16 +267,24 @@ class ModeManager(QObject):
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
         self.enter(m, 'command')
 
-    @pyqtSlot(usertypes.KeyMode, str)
-    def leave(self, mode, reason=None):
+    @pyqtSlot(usertypes.KeyMode, str, bool)
+    def leave(self, mode, reason=None, maybe=False):
         """Leave a key mode.
 
         Args:
             mode: The mode to leave as a usertypes.KeyMode member.
             reason: Why the mode was left.
+            maybe: If set, ignore the request if we're not in that mode.
         """
         if self.mode != mode:
-            raise NotInModeError("Not in mode {}!".format(mode))
+            if maybe:
+                log.modes.debug("Ignoring leave request for {} (reason {}) as "
+                                "we're in mode {}".format(
+                                    mode, reason, self.mode))
+                return
+            else:
+                raise NotInModeError("Not in mode {}!".format(mode))
+
         log.modes.debug("Leaving mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         # leaving a mode implies clearing keychain, see

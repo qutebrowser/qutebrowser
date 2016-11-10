@@ -474,10 +474,10 @@ class TabbedBrowser(tabwidget.TabWidget):
     @pyqtSlot()
     def on_cur_load_started(self):
         """Leave insert/hint mode when loading started."""
-        modeman.maybe_leave(self._win_id, usertypes.KeyMode.insert,
-                            'load started')
-        modeman.maybe_leave(self._win_id, usertypes.KeyMode.hint,
-                            'load started')
+        modeman.leave(self._win_id, usertypes.KeyMode.insert, 'load started',
+                      maybe=True)
+        modeman.leave(self._win_id, usertypes.KeyMode.hint, 'load started',
+                      maybe=True)
 
     @pyqtSlot(browsertab.AbstractTab, str)
     def on_title_changed(self, tab, text):
@@ -568,7 +568,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.setFocus()
         for mode in [usertypes.KeyMode.hint, usertypes.KeyMode.insert,
                      usertypes.KeyMode.caret, usertypes.KeyMode.passthrough]:
-            modeman.maybe_leave(self._win_id, mode, 'tab changed')
+            modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
