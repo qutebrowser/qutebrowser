@@ -197,23 +197,6 @@ class NetworkManager(QNetworkAccessManager):
             abort_on.append(tab.load_started)
         return abort_on
 
-    def _ask(self, title, text, mode, owner=None, default=None):
-        """Ask a blocking question in the statusbar.
-
-        Args:
-            title: The title to display to the user.
-            text: The text to display to the user.
-            mode: A PromptMode.
-            owner: An object which will abort the question if destroyed, or
-                   None.
-
-        Return:
-            The answer the user gave or None if the prompt was cancelled.
-        """
-        abort_on = self._get_abort_signals(owner)
-        return message.ask(title=title, text=text, mode=mode,
-                           abort_on=abort_on, default=default)
-
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
@@ -325,9 +308,10 @@ class NetworkManager(QNetworkAccessManager):
             msg = '<b>{}</b> says:<br/>{}'.format(
                 html.escape(proxy.hostName()),
                 html.escape(authenticator.realm()))
-            answer = self._ask(
-                "Proxy authentication required", msg,
-                mode=usertypes.PromptMode.user_pwd)
+            abort_on = self._get_abort_signals()
+            answer = message.ask(
+                title="Proxy authentication required", text=msg,
+                mode=usertypes.PromptMode.user_pwd, abort_on=abort_on)
             if answer is not None:
                 authenticator.setUser(answer.user)
                 authenticator.setPassword(answer.password)
