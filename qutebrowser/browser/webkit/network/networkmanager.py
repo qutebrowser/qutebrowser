@@ -234,7 +234,8 @@ class NetworkManager(QNetworkAccessManager):
             errors: A list of errors.
         """
         errors = [webkittab.CertificateErrorWrapper(e) for e in errors]
-        log.webview.debug("Certificate errors {!r}".format(errors))
+        log.webview.debug("Certificate errors: {!r}".format(
+            ' / '.join(str(err) for err in errors)))
         try:
             host_tpl = urlutils.host_tuple(reply.url())
         except ValueError:
