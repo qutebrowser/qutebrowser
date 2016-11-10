@@ -29,9 +29,6 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
 
     """A wrapper over a QSslError."""
 
-    def __init__(self, error):
-        self._error = error
-
     def __str__(self):
         return self._error.errorString()
 
@@ -49,7 +46,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
                          self._error.error()))
 
     def __eq__(self, other):
-        return self._error == other._error
+        return self._error == other._error  # pylint: disable=protected-access
 
     def is_overridable(self):
         return True

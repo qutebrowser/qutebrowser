@@ -27,7 +27,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import webenginetab, certificateerror
+from qutebrowser.browser.webengine import certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, jinja
 
@@ -127,6 +127,7 @@ class WebEnginePage(QWebEnginePage):
         self.shutting_down.emit()
 
     def certificateError(self, error):
+        """Handle certificate errors coming from Qt."""
         self.certificate_error.emit()
         url = error.url()
         error = certificateerror.CertificateErrorWrapper(error)
@@ -147,9 +148,9 @@ class WebEnginePage(QWebEnginePage):
 
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
-        # However, self.url() is not available yet and self.requestedUrl() might
-        # not match the URL we get from the error - so we just apply a heuristic
-        # here.
+        # However, self.url() is not available yet and self.requestedUrl()
+        # might not match the URL we get from the error - so we just apply a
+        # heuristic here.
         # See https://bugreports.qt.io/browse/QTBUG-56207
         log.webview.debug("ignore {}, URL {}, requested {}".format(
             ignore, url, self.requestedUrl()))
@@ -159,6 +160,7 @@ class WebEnginePage(QWebEnginePage):
         return ignore
 
     def javaScriptConfirm(self, url, js_msg):
+        """Override javaScriptConfirm to use qutebrowser prompts."""
         if self._is_shutting_down:
             return False
         try:
@@ -181,7 +183,7 @@ class WebEnginePage(QWebEnginePage):
     #         return super().javaScriptPrompt(url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
-        """Override javaScriptAlert to use the statusbar."""
+        """Override javaScriptAlert to use qutebrowser prompts."""
         if self._is_shutting_down:
             return
         try:

@@ -95,7 +95,7 @@ class BrowserPage(QWebPage):
         # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
 
         def javaScriptPrompt(self, frame, js_msg, default):
-            """Override javaScriptPrompt to use the statusbar."""
+            """Override javaScriptPrompt to use qutebrowser prompts."""
             if self._is_shutting_down:
                 return (False, "")
             try:
@@ -434,7 +434,7 @@ class BrowserPage(QWebPage):
         return handler(opt, out)
 
     def javaScriptAlert(self, frame, js_msg):
-        """Override javaScriptAlert to use the statusbar."""
+        """Override javaScriptAlert to use qutebrowser prompts."""
         if self._is_shutting_down:
             return
         try:
