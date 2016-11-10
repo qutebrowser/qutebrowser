@@ -133,7 +133,6 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.MediaAudioCapture: ('content', 'media-capture'),
             QWebEnginePage.MediaVideoCapture: ('content', 'media-capture'),
             QWebEnginePage.MediaAudioVideoCapture: ('content', 'media-capture'),
-            QWebEnginePage.MouseLock: ('content', 'mouse-lock'),
         }
         messages = {
             QWebEnginePage.Geolocation: 'access your location',
@@ -141,6 +140,15 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.MediaVideoCapture: 'record video',
             QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
         }
+        assert options.keys() == messages.keys()
+
+        if feature not in options:
+            log.webview.error("Unhandled feature permission {}".format(
+                debug.qenum_key(QWebEnginePage, feature)))
+            self.setFeaturePermission(url, feature,
+                                      QWebEnginePage.PermissionDeniedByUser)
+            return
+
         yes_action = functools.partial(
             self.setFeaturePermission, url, feature,
             QWebEnginePage.PermissionGrantedByUser)
