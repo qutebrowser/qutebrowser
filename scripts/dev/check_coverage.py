@@ -74,8 +74,8 @@ PERFECT_FILES = [
 
     ('tests/unit/browser/test_signalfilter.py',
         'qutebrowser/browser/signalfilter.py'),
-    ('tests/unit/browser/test_shared.py',
-        'qutebrowser/browser/shared.py'),
+    (None,
+        'qutebrowser/browser/webkit/certificateerror.py'),
     # ('tests/unit/browser/test_tab.py',
     #     'qutebrowser/browser/tab.py'),
 
