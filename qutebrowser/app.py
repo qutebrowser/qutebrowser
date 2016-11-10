@@ -49,6 +49,7 @@ from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit)
@@ -156,6 +157,8 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('http', open_desktopservices_url)
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
+
+    macros.init()
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()

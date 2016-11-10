@@ -121,11 +121,11 @@ Feature: Keyboard input
         When I open data/keyinput/log.html
         And I set general -> log-javascript-console to info
         And I set input -> forward-unbound-keys to all
-        And I press the key "q"
+        And I press the key ","
         And I press the key "<F1>"
-        # q
-        Then the javascript message "key press: 81" should be logged
-        And the javascript message "key release: 81" should be logged
+        # ,
+        Then the javascript message "key press: 188" should be logged
+        And the javascript message "key release: 188" should be logged
         # <F1>
         And the javascript message "key press: 112" should be logged
         And the javascript message "key release: 112" should be logged
