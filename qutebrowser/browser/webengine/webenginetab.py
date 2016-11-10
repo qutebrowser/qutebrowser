@@ -569,7 +569,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._widget.setHtml(html, base_url)
 
     def clear_ssl_errors(self):
-        log.stub()
+        raise browsertab.UnsupportedOperationError
 
     @pyqtSlot()
     def _on_history_trigger(self):
