@@ -821,6 +821,16 @@ def data(readonly=False):
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to show notifications."),
 
+            ('media-capture',
+             SettingValue(typ.BoolAsk(), 'ask',
+                          backends=[usertypes.Backend.QtWebEngine]),
+             "Allow websites to record audio/video."),
+
+            ('mouse-lock',
+             SettingValue(typ.BoolAsk(), 'ask',
+                          backends=[usertypes.Backend.QtWebEngine]),
+             "Allow websites to lock the mouse pointer."),
+
             ('javascript-can-open-windows-automatically',
              SettingValue(typ.Bool(), 'false'),
              "Whether JavaScript programs can open new windows without user "

@@ -157,3 +157,37 @@ def ignore_certificate_errors(url, errors, abort_on):
     else:
         raise ValueError("Invalid ssl_strict value {!r}".format(ssl_strict))
     raise AssertionError("Not reached")
+
+
+def feature_permission(url, option, msg, yes_action, no_action, abort_on):
+    """Handle a feature permission request.
+
+    Args:
+        url: The URL the request was done for.
+        option: A (section, option) tuple for the option to check.
+        msg: A string like "show notifications"
+        yes_action: A callable to call if the request was approved
+        no_action: A callable to call if the request was denied
+        abort_on: A list of signals which interrupt the question.
+
+    Return:
+        The Question object if a question was asked, None otherwise.
+    """
+    config_val = config.get(*option)
+    if config_val == 'ask':
+        if url.isValid():
+            text = "Allow the website at <b>{}</b> to {}?".format(
+                html.escape(url.toDisplayString()), msg)
+        else:
+            text = "Allow the website to {}?".format(msg)
+
+        return message.confirm_async(
+            yes_action=yes_action, no_action=no_action,
+            cancel_action=no_action, abort_on=abort_on,
+            title='Permission request', text=text)
+    elif config_val:
+        yes_action()
+        return None
+    else:
+        no_action()
+        return None

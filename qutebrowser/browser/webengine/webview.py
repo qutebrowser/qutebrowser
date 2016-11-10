@@ -20,8 +20,9 @@
 """The main browser widget for QtWebEngine."""
 
 import os
+import functools
 
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -121,6 +122,55 @@ class WebEnginePage(QWebEnginePage):
         super().__init__(parent)
         self._tabdata = tabdata
         self._is_shutting_down = False
+        self.featurePermissionRequested.connect(
+            self._on_feature_permission_requested)
+
+    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
+    def _on_feature_permission_requested(self, url, feature):
+        """Ask the user for approval for geolocation/media/etc.."""
+        options = {
+            QWebEnginePage.Geolocation: ('content', 'geolocation'),
+            QWebEnginePage.MediaAudioCapture: ('content', 'media-capture'),
+            QWebEnginePage.MediaVideoCapture: ('content', 'media-capture'),
+            QWebEnginePage.MediaAudioVideoCapture: ('content', 'media-capture'),
+            QWebEnginePage.MouseLock: ('content', 'mouse-lock'),
+        }
+        messages = {
+            QWebEnginePage.Geolocation: 'access your location',
+            QWebEnginePage.MediaAudioCapture: 'record audio',
+            QWebEnginePage.MediaVideoCapture: 'record video',
+            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+        }
+        yes_action = functools.partial(
+            self.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            self.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionDeniedByUser)
+
+        question = shared.feature_permission(
+            url=url, option=options[feature], msg=messages[feature],
+            yes_action=yes_action, no_action=no_action,
+            abort_on=[self.shutting_down, self.loadStarted])
+
+        if question is not None:
+            self.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, url, feature))
+
+    def _on_feature_permission_cancelled(self, question, url, feature,
+                                         cancelled_url, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if url == cancelled_url and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
 
     def shutdown(self):
         self._is_shutting_down = True
