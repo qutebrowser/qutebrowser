@@ -121,8 +121,6 @@ def pytest_collection_modifyitems(config, items):
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
             item.add_marker(pytest.mark.xfail(run=False))
-        if item.get_marker('flaky_once'):
-            item.add_marker(pytest.mark.flaky())
         if item.get_marker('js_prompt'):
             if config.webengine:
                 js_prompt_pyqt_version = 0x050700
