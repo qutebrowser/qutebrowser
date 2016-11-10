@@ -75,6 +75,23 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
+class AbstractCertificateErrorWrapper:
+
+    """A wrapper over an SSL/certificate error."""
+
+    def __init__(self, error):
+        self._error = error
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def is_overridable(self):
+        raise NotImplementedError
+
+
 class TabData:
 
     """A simple namespace with a fixed set of attributes.

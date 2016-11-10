@@ -430,8 +430,7 @@ def data(readonly=False):
              "Whether to send DNS requests over the configured proxy."),
 
             ('ssl-strict',
-             SettingValue(typ.BoolAsk(), 'ask',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.BoolAsk(), 'ask'),
              "Whether to validate SSL handshakes."),
 
             ('dns-prefetch',

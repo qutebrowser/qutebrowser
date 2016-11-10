@@ -797,8 +797,6 @@ Valid values:
 
 Default: +pass:[ask]+
 
-This setting is only available with the QtWebKit backend.
-
 [[network-dns-prefetch]]
 === dns-prefetch
 Whether to try to pre-fetch DNS entries to speed up browsing.

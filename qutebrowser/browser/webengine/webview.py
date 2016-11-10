@@ -27,8 +27,9 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
+from qutebrowser.browser.webengine import webenginetab
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
+from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, jinja
 
 
 class WebEngineView(QWebEngineView):
@@ -107,7 +108,7 @@ class WebEnginePage(QWebEnginePage):
         _is_shutting_down: Whether the page is currently shutting down.
 
     Signals:
-        certificate_error: FIXME:qtwebengine
+        certificate_error: Emitted on certificate errors.
         link_clicked: Emitted when a link was clicked on a page.
         shutting_down: Emitted when the page is shutting down.
     """
@@ -127,7 +128,29 @@ class WebEnginePage(QWebEnginePage):
 
     def certificateError(self, error):
         self.certificate_error.emit()
-        return super().certificateError(error)
+        url = error.url()
+        error = webenginetab.CertificateErrorWrapper(error)
+
+        # FIXME
+        error_page = jinja.render('error.html',
+                                  title="Error while loading page",
+                                  url=url.toDisplayString(), error=str(error),
+                                  icon='', qutescheme=False)
+
+        if not error.is_overridable():
+            log.webview.error("Non-overridable certificate error: "
+                              "{}".format(error))
+            self.setHtml(error_page)
+            return False
+
+        ignore = shared.ignore_certificate_errors(
+            url, [error], abort_on=[self.loadStarted, self.shutting_down])
+
+        if not ignore:
+            log.webview.error("Certificate error: {}".format(error))
+            self.setHtml(error_page)
+
+        return ignore
 
     def javaScriptConfirm(self, url, js_msg):
         if self._is_shutting_down:

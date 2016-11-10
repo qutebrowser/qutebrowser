@@ -166,16 +166,14 @@ Feature: Prompts
 
     # SSL
 
-    @qtwebengine_todo: SSL errors are not implemented yet
     Scenario: SSL error with ssl-strict = false
         When I run :debug-clear-ssl-errors
         And I set network -> ssl-strict to false
         And I load an SSL page
         And I wait until the SSL page finished loading
-        Then the error "SSL error: *" should be shown
+        Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
-    @qtwebengine_todo: SSL errors are not implemented yet
     Scenario: SSL error with ssl-strict = true
         When I run :debug-clear-ssl-errors
         And I set network -> ssl-strict to true
@@ -183,7 +181,6 @@ Feature: Prompts
         Then "Error while loading *: SSL handshake failed" should be logged
         And the page should contain the plaintext "Unable to load page"
 
-    @qtwebengine_todo: SSL errors are not implemented yet
     Scenario: SSL error with ssl-strict = ask -> yes
         When I run :debug-clear-ssl-errors
         And I set network -> ssl-strict to ask
@@ -193,7 +190,6 @@ Feature: Prompts
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
-    @qtwebengine_todo: SSL errors are not implemented yet
     Scenario: SSL error with ssl-strict = ask -> no
         When I run :debug-clear-ssl-errors
         And I set network -> ssl-strict to ask
@@ -473,7 +469,6 @@ Feature: Prompts
 
     # https://github.com/The-Compiler/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/The-Compiler/qutebrowser/pull/2054#issuecomment-258285544
-    @qtwebengine_todo: SSL errors are not implemented yet
     Scenario: Interrupting SSL prompt during a notification prompt
         When I set content -> notifications to ask
         And I set network -> ssl-strict to ask

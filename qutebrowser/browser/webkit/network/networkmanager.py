@@ -24,7 +24,6 @@ import collections
 import netrc
 import html
 
-import jinja2
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
                           QUrl, QByteArray)
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
@@ -34,8 +33,9 @@ from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils, debug)
 from qutebrowser.browser import shared
-from qutebrowser.browser.webkit.network import webkitqutescheme, networkreply
-from qutebrowser.browser.webkit.network import filescheme
+from qutebrowser.browser.webkit import webkittab
+from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
+                                                filescheme)
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
@@ -112,24 +112,6 @@ def init():
     QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-class SslError(QSslError):
-
-    """A QSslError subclass which provides __hash__ on Qt < 5.4."""
-
-    def __hash__(self):
-        try:
-            # Qt >= 5.4
-            # pylint: disable=not-callable,useless-suppression
-            return super().__hash__()
-        except TypeError:
-            return hash((self.certificate().toDer(), self.error()))
-
-    def __repr__(self):
-        return utils.get_repr(
-            self, error=debug.qenum_key(QSslError, self.error()),
-            string=self.errorString())
-
-
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -203,6 +185,19 @@ class NetworkManager(QNetworkAccessManager):
         self.setCache(cache)
         cache.setParent(app)
 
+    def _get_abort_signals(self, owner=None):
+        """Get a list of signals which should abort a question."""
+        abort_on = [self.shutting_down]
+        if owner is not None:
+            abort_on.append(owner.destroyed)
+        # This might be a generic network manager, e.g. one belonging to a
+        # DownloadManager. In this case, just skip the webview thing.
+        if self._tab_id is not None:
+            tab = objreg.get('tab', scope='tab', window=self._win_id,
+                             tab=self._tab_id)
+            abort_on.append(tab.load_started)
+        return abort_on
+
     def _ask(self, title, text, mode, owner=None, default=None):
         """Ask a blocking question in the statusbar.
 
@@ -216,17 +211,7 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             The answer the user gave or None if the prompt was cancelled.
         """
-        abort_on = [self.shutting_down]
-        if owner is not None:
-            abort_on.append(owner.destroyed)
-
-        # This might be a generic network manager, e.g. one belonging to a
-        # DownloadManager. In this case, just skip the webview thing.
-        if self._tab_id is not None:
-            tab = objreg.get('tab', scope='tab', window=self._win_id,
-                             tab=self._tab_id)
-            abort_on.append(tab.load_started)
-
+        abort_on = self._get_abort_signals(owner)
         return message.ask(title=title, text=text, mode=mode,
                            abort_on=abort_on, default=default)
 
@@ -248,11 +233,8 @@ class NetworkManager(QNetworkAccessManager):
             reply: The QNetworkReply that is encountering the errors.
             errors: A list of errors.
         """
-        errors = [SslError(e) for e in errors]
-        ssl_strict = config.get('network', 'ssl-strict')
-        log.webview.debug("SSL errors {!r}, strict {}".format(
-            errors, ssl_strict))
-
+        errors = [webkittab.CertificateErrorWrapper(e) for e in errors]
+        log.webview.debug("Certificate errors {!r}".format(errors))
         try:
             host_tpl = urlutils.host_tuple(reply.url())
         except ValueError:
@@ -268,42 +250,22 @@ class NetworkManager(QNetworkAccessManager):
         log.webview.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
 
-        if (ssl_strict and ssl_strict != 'ask') or is_rejected:
+        if is_rejected:
             return
         elif is_accepted:
             reply.ignoreSslErrors()
             return
 
-        if ssl_strict == 'ask':
-            err_template = jinja2.Template("""
-                Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
-                <ul>
-                {% for err in errors %}
-                   <li>{{err.errorString()}}</li>
-                {% endfor %}
-                </ul>
-            """.strip())
-            msg = err_template.render(url=reply.url(), errors=errors)
-
-            answer = self._ask('SSL errors - continue?', msg,
-                               mode=usertypes.PromptMode.yesno, owner=reply,
-                               default=False)
-            log.webview.debug("Asked for SSL errors, answer {}".format(answer))
-            if answer:
-                reply.ignoreSslErrors()
-                err_dict = self._accepted_ssl_errors
-            else:
-                err_dict = self._rejected_ssl_errors
-            if host_tpl is not None:
-                err_dict[host_tpl] += errors
-        else:
-            log.webview.debug("ssl-strict is False, only warning about errors")
-            for err in errors:
-                # FIXME we might want to use warn here (non-fatal error)
-                # https://github.com/The-Compiler/qutebrowser/issues/114
-                message.error('SSL error: {}'.format(err.errorString()))
+        abort_on = self._get_abort_signals(reply)
+        ignore = shared.ignore_certificate_errors(reply.url(), errors,
+                                                  abort_on=abort_on)
+        if ignore:
             reply.ignoreSslErrors()
-            self._accepted_ssl_errors[host_tpl] += errors
+            err_dict = self._accepted_ssl_errors
+        else:
+            err_dict = self._rejected_ssl_errors
+        if host_tpl is not None:
+            err_dict[host_tpl] += errors
 
     def clear_all_ssl_errors(self):
         """Clear all remembered SSL errors."""
@@ -347,12 +309,7 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
         else:
-            abort_on = [self.shutting_down, reply.destroyed]
-            if self._tab_id is not None:
-                tab = objreg.get('tab', scope='tab', window=self._win_id,
-                                tab=self._tab_id)
-                abort_on.append(tab.load_started)
-
+            abort_on = self._get_abort_signals(reply)
             shared.authentication_required(reply.url(), authenticator,
                                            abort_on=abort_on)
 
