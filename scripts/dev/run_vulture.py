@@ -98,6 +98,7 @@ def whitelist_generator():
         yield 'scripts.dev.pylint_checkers.config.' + attr
 
     yield 'scripts.dev.pylint_checkers.modeline.process_module'
+    yield 'scripts.dev.pylint_checkers.qute_pylint.config.msgs'
 
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:

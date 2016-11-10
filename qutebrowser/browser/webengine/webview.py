@@ -132,7 +132,8 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.Geolocation: ('content', 'geolocation'),
             QWebEnginePage.MediaAudioCapture: ('content', 'media-capture'),
             QWebEnginePage.MediaVideoCapture: ('content', 'media-capture'),
-            QWebEnginePage.MediaAudioVideoCapture: ('content', 'media-capture'),
+            QWebEnginePage.MediaAudioVideoCapture:
+                ('content', 'media-capture'),
         }
         messages = {
             QWebEnginePage.Geolocation: 'access your location',
@@ -232,7 +233,8 @@ class WebEnginePage(QWebEnginePage):
         # WORKAROUND
         # Can't override javaScriptPrompt with older PyQt versions
         # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
-        def javaScriptPrompt(self, url, js_msg, default, result):
+        def javaScriptPrompt(self, url, js_msg, default):
+            """Override javaScriptPrompt to use qutebrowser prompts."""
             if self._is_shutting_down:
                 return (False, "")
             try:

@@ -235,7 +235,8 @@ class QuteProc(testprocess.Process):
         except testprocess.InvalidLine:
             if not line.strip():
                 return None
-            elif is_ignored_qt_message(line) or is_ignored_lowlevel_message(line):
+            elif (is_ignored_qt_message(line) or
+                  is_ignored_lowlevel_message(line)):
                 return None
             else:
                 raise
