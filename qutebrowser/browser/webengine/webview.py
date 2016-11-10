@@ -137,16 +137,23 @@ class WebEnginePage(QWebEnginePage):
             'error.html', title="Error loading page: {}".format(url_string),
             url=url_string, error=str(error), icon='')
 
-        if not error.is_overridable():
+        if error.is_overridable():
+            ignore = shared.ignore_certificate_errors(
+                url, [error], abort_on=[self.loadStarted, self.shutting_down])
+        else:
             log.webview.error("Non-overridable certificate error: "
                               "{}".format(error))
-            self.setHtml(error_page)
-            return False
+            ignore = False
 
-        ignore = shared.ignore_certificate_errors(
-            url, [error], abort_on=[self.loadStarted, self.shutting_down])
-
-        if not ignore:
+        # We can't really know when to show an error page, as the error might
+        # have happened when loading some resource.
+        # However, self.url() is not available yet and self.requestedUrl() might
+        # not match the URL we get from the error - so we just apply a heuristic
+        # here.
+        # See https://bugreports.qt.io/browse/QTBUG-56207
+        log.webview.debug("ignore {}, URL {}, requested {}".format(
+            ignore, url, self.requestedUrl()))
+        if not ignore and url.matches(self.requestedUrl(), QUrl.RemoveScheme):
             self.setHtml(error_page)
 
         return ignore
