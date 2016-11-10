@@ -53,9 +53,13 @@ def custom_headers():
 
 def authentication_required(url, authenticator, abort_on):
     """Ask a prompt for an authentication question."""
-    msg = '<b>{}</b> says:<br/>{}'.format(
-        html.escape(url.toDisplayString()),
-        html.escape(authenticator.realm()))
+    realm = authenticator.realm()
+    if realm:
+        msg = '<b>{}</b> says:<br/>{}'.format(
+            html.escape(url.toDisplayString()), html.escape(realm))
+    else:
+        msg = '<b>{}</b> needs authentication'.format(
+            html.escape(url.toDisplayString()))
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
                          abort_on=abort_on)
