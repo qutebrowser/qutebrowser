@@ -64,3 +64,20 @@ def ssl_error_page(request, quteproc):
                       "loading page: *'")
     content = quteproc.get_content().strip()
     assert "Unable to load page" in content
+
+
+class AbstractCertificateErrorWrapper:
+
+    """A wrapper over an SSL/certificate error."""
+
+    def __init__(self, error):
+        self._error = error
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def is_overridable(self):
+        raise NotImplementedError

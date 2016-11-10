@@ -30,8 +30,7 @@ from PyQt5.QtGui import QKeyEvent, QIcon
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWidgets import QOpenGLWidget, QApplication
 from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
-                                      QWebEngineProfile,
-                                      QWebEngineCertificateError)
+                                      QWebEngineProfile)
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import browsertab, mouse, shared
@@ -77,26 +76,6 @@ _JS_WORLD_MAP = {
     usertypes.JsWorld.user: QWebEngineScript.UserWorld,
     usertypes.JsWorld.jseval: QWebEngineScript.UserWorld + 1,
 }
-
-
-class CertificateErrorWrapper(browsertab.AbstractCertificateErrorWrapper):
-
-    """A wrapper over a QWebEngineCertificateError."""
-
-    def __init__(self, error):
-        self._error = error
-
-    def __str__(self):
-        return self._error.errorDescription()
-
-    def __repr__(self):
-        return utils.get_repr(
-            self, error=debug.qenum_key(QWebEngineCertificateError,
-                                        self._error.error()),
-            string=str(self))
-
-    def is_overridable(self):
-        return self._error.isOverridable()
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
