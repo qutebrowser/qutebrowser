@@ -402,3 +402,20 @@ class Timer(QTimer):
             super().start(msec)
         else:
             super().start()
+
+
+class AbstractCertificateErrorWrapper:
+
+    """A wrapper over an SSL/certificate error."""
+
+    def __init__(self, error):
+        self._error = error
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def is_overridable(self):
+        raise NotImplementedError

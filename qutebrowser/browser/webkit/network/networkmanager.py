@@ -33,7 +33,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
                                urlutils, debug)
 from qutebrowser.browser import shared
-from qutebrowser.browser.webkit import webkittab
+from qutebrowser.browser.webkit import webkittab, certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 
@@ -233,7 +233,7 @@ class NetworkManager(QNetworkAccessManager):
             reply: The QNetworkReply that is encountering the errors.
             errors: A list of errors.
         """
-        errors = [webkittab.CertificateErrorWrapper(e) for e in errors]
+        errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
         log.webview.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:

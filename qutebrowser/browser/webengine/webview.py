@@ -27,7 +27,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import webenginetab
+from qutebrowser.browser.webengine import webenginetab, certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, jinja
 
@@ -129,7 +129,7 @@ class WebEnginePage(QWebEnginePage):
     def certificateError(self, error):
         self.certificate_error.emit()
         url = error.url()
-        error = webenginetab.CertificateErrorWrapper(error)
+        error = certificateerror.CertificateErrorWrapper(error)
         log.webview.debug("Certificate error: {}".format(error))
 
         url_string = url.toDisplayString()

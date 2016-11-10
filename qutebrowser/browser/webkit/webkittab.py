@@ -30,7 +30,6 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtNetwork import QSslError
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
@@ -48,36 +47,6 @@ def init():
     log.init.debug("Initializing js-bridge...")
     js_bridge = webkitqutescheme.JSBridge(qapp)
     objreg.register('js-bridge', js_bridge)
-
-
-class CertificateErrorWrapper(browsertab.AbstractCertificateErrorWrapper):
-
-    """A wrapper over a QSslError."""
-
-    def __init__(self, error):
-        self._error = error
-
-    def __str__(self):
-        return self._error.errorString()
-
-    def __repr__(self):
-        return utils.get_repr(
-            self, error=debug.qenum_key(QSslError, self._error.error()),
-            string=str(self))
-
-    def __hash__(self):
-        try:
-            # Qt >= 5.4
-            return hash(self._error)
-        except TypeError:
-            return hash((self._error.certificate().toDer(),
-                         self._error.error()))
-
-    def __eq__(self, other):
-        return self._error == other._error
-
-    def is_overridable(self):
-        return True
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
