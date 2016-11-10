@@ -22,7 +22,7 @@
 import os
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -228,17 +228,19 @@ class WebEnginePage(QWebEnginePage):
         except shared.CallSuper:
             return super().javaScriptConfirm(url, js_msg)
 
-    # Can't override javaScriptPrompt currently
-    # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
-    # def javaScriptPrompt(self, url, js_msg, default, result):
-    #     if self._is_shutting_down:
-    #         return (False, "")
-    #     try:
-    #         return shared.javascript_prompt(url, js_msg, default,
-    #                                         abort_on=[self.loadStarted,
-    #                                                   self.shutting_down])
-    #     except shared.CallSuper:
-    #         return super().javaScriptPrompt(url, js_msg, default)
+    if PYQT_VERSION > 0x050700:
+        # WORKAROUND
+        # Can't override javaScriptPrompt with older PyQt versions
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
+        def javaScriptPrompt(self, url, js_msg, default, result):
+            if self._is_shutting_down:
+                return (False, "")
+            try:
+                return shared.javascript_prompt(url, js_msg, default,
+                                                abort_on=[self.loadStarted,
+                                                          self.shutting_down])
+            except shared.CallSuper:
+                return super().javaScriptPrompt(url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""
