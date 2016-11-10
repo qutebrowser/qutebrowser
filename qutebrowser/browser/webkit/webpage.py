@@ -82,7 +82,7 @@ class BrowserPage(QWebPage):
         self.unsupportedContent.connect(self.on_unsupported_content)
         self.loadStarted.connect(self.on_load_started)
         self.featurePermissionRequested.connect(
-            self.on_feature_permission_requested)
+            self._on_feature_permission_requested)
         self.saveFrameStateRequested.connect(
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
@@ -289,7 +289,7 @@ class BrowserPage(QWebPage):
             self.error_occurred = False
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
-    def on_feature_permission_requested(self, frame, feature):
+    def _on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
         if not isinstance(frame, QWebFrame):  # pragma: no cover
             # This makes no sense whatsoever, but someone reported this being
@@ -302,46 +302,30 @@ class BrowserPage(QWebPage):
             QWebPage.Notifications: ('content', 'notifications'),
             QWebPage.Geolocation: ('content', 'geolocation'),
         }
-        config_val = config.get(*options[feature])
-        if config_val == 'ask':
-            msgs = {
-                QWebPage.Notifications: 'show notifications',
-                QWebPage.Geolocation: 'access your location',
-            }
+        messages = {
+            QWebPage.Notifications: 'show notifications',
+            QWebPage.Geolocation: 'access your location',
+        }
+        yes_action = functools.partial(
+            self.setFeaturePermission, frame, feature,
+            QWebPage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            self.setFeaturePermission, frame, feature,
+            QWebPage.PermissionDeniedByUser)
 
-            host = frame.url().host()
-            if host:
-                text = "Allow the website at <b>{}</b> to {}?".format(
-                    html.escape(frame.url().toDisplayString()), msgs[feature])
-            else:
-                text = "Allow the website to {}?".format(msgs[feature])
+        question = shared.feature_permission(
+            url=frame.url(),
+            option=options[feature], msg=messages[feature],
+            yes_action=yes_action, no_action=no_action,
+            abort_on=[self.shutting_down, self.loadStarted])
 
-            yes_action = functools.partial(
-                self.setFeaturePermission, frame, feature,
-                QWebPage.PermissionGrantedByUser)
-            no_action = functools.partial(
-                self.setFeaturePermission, frame, feature,
-                QWebPage.PermissionDeniedByUser)
-
-            question = message.confirm_async(yes_action=yes_action,
-                                             no_action=no_action,
-                                             cancel_action=no_action,
-                                             abort_on=[self.shutting_down,
-                                                       self.loadStarted],
-                                             title='Permission request',
-                                             text=text)
+        if question is not None:
             self.featurePermissionRequestCanceled.connect(
-                functools.partial(self.on_feature_permission_cancelled,
+                functools.partial(self._on_feature_permission_cancelled,
                                   question, frame, feature))
-        elif config_val:
-            self.setFeaturePermission(frame, feature,
-                                      QWebPage.PermissionGrantedByUser)
-        else:
-            self.setFeaturePermission(frame, feature,
-                                      QWebPage.PermissionDeniedByUser)
 
-    def on_feature_permission_cancelled(self, question, frame, feature,
-                                        cancelled_frame, cancelled_feature):
+    def _on_feature_permission_cancelled(self, question, frame, feature,
+                                         cancelled_frame, cancelled_feature):
         """Slot invoked when a feature permission request was cancelled.
 
         To be used with functools.partial.
