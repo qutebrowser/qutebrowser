@@ -1992,7 +1992,7 @@ class CommandDispatcher:
                 tab.send_event(release_event)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       debug=True)
+                       debug=True, backend=usertypes.Backend.QtWebKit)
     def debug_clear_ssl_errors(self):
         """Clear remembered SSL error answers."""
         self._current_widget().clear_ssl_errors()
