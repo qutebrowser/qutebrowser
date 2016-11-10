@@ -22,6 +22,8 @@
 import os
 import os.path
 import traceback
+import mimetypes
+import base64
 
 import jinja2
 import jinja2.exceptions
@@ -74,6 +76,16 @@ def resource_url(path):
     return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
 
+def data_url(path):
+    """Get a data: url for the broken qutebrowser logo."""
+    data = utils.read_file(path, binary=True)
+    filename = utils.resource_filename(path)
+    mimetype = mimetypes.guess_type(filename)
+    assert mimetype is not None, path
+    b64 = base64.b64encode(data).decode('ascii')
+    return 'data:{};charset=utf-8;base64,{}'.format(mimetype[0], b64)
+
+
 def render(template, **kwargs):
     """Render the given template and pass the given arguments to it."""
     try:
@@ -89,3 +101,4 @@ def render(template, **kwargs):
 _env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
 _env.globals['resource_url'] = resource_url
 _env.globals['file_url'] = urlutils.file_url
+_env.globals['data_url'] = data_url
