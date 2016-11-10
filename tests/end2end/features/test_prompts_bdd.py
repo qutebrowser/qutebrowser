@@ -22,6 +22,15 @@ import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
 
 
+@bdd.when("I clear SSL errors")
+def clear_ssl_errors(request, quteproc):
+    if request.config.webengine:
+        quteproc.terminate()
+        quteproc.start()
+    else:
+        quteproc.send_cmd(':debug-clear-ssl-errors')
+
+
 @bdd.when("I load an SSL page")
 def load_ssl_page(quteproc, ssl_server):
     # We don't wait here as we can get an SSL question.
@@ -43,3 +52,15 @@ def wait_for_prompt(quteproc):
 def no_prompt_shown(quteproc):
     quteproc.ensure_not_logged(message='Entering mode KeyMode.* (reason: '
                                        'question asked)')
+
+
+@bdd.then("a SSL error page should be shown")
+def ssl_error_page(request, quteproc):
+    if not request.config.webengine:
+        line = quteproc.wait_for(message='Error while loading *: SSL '
+                                 'handshake failed')
+        line.expected = True
+    quteproc.wait_for(message="Changing title for idx * to 'Error "
+                      "loading page: *'")
+    content = quteproc.get_content().strip()
+    assert "Unable to load page" in content

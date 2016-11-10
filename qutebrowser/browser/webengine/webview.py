@@ -130,12 +130,12 @@ class WebEnginePage(QWebEnginePage):
         self.certificate_error.emit()
         url = error.url()
         error = webenginetab.CertificateErrorWrapper(error)
+        log.webview.debug("Certificate error: {}".format(error))
 
-        # FIXME
-        error_page = jinja.render('error.html',
-                                  title="Error while loading page",
-                                  url=url.toDisplayString(), error=str(error),
-                                  icon='', qutescheme=False)
+        url_string = url.toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading page: {}".format(url_string),
+            url=url_string, error=str(error), icon='')
 
         if not error.is_overridable():
             log.webview.error("Non-overridable certificate error: "
@@ -147,7 +147,6 @@ class WebEnginePage(QWebEnginePage):
             url, [error], abort_on=[self.loadStarted, self.shutting_down])
 
         if not ignore:
-            log.webview.error("Certificate error: {}".format(error))
             self.setHtml(error_page)
 
         return ignore

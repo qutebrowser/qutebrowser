@@ -167,7 +167,7 @@ Feature: Prompts
     # SSL
 
     Scenario: SSL error with ssl-strict = false
-        When I run :debug-clear-ssl-errors
+        When I clear SSL errors
         And I set network -> ssl-strict to false
         And I load an SSL page
         And I wait until the SSL page finished loading
@@ -175,14 +175,13 @@ Feature: Prompts
         And the page should contain the plaintext "Hello World via SSL!"
 
     Scenario: SSL error with ssl-strict = true
-        When I run :debug-clear-ssl-errors
+        When I clear SSL errors
         And I set network -> ssl-strict to true
         And I load an SSL page
-        Then "Error while loading *: SSL handshake failed" should be logged
-        And the page should contain the plaintext "Unable to load page"
+        Then a SSL error page should be shown
 
     Scenario: SSL error with ssl-strict = ask -> yes
-        When I run :debug-clear-ssl-errors
+        When I clear SSL errors
         And I set network -> ssl-strict to ask
         And I load an SSL page
         And I wait for a prompt
@@ -191,13 +190,12 @@ Feature: Prompts
         Then the page should contain the plaintext "Hello World via SSL!"
 
     Scenario: SSL error with ssl-strict = ask -> no
-        When I run :debug-clear-ssl-errors
+        When I clear SSL errors
         And I set network -> ssl-strict to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept no
-        Then "Error while loading *: SSL handshake failed" should be logged
-        And the page should contain the plaintext "Unable to load page"
+        Then a SSL error page should be shown
 
     # Geolocation
 
@@ -469,6 +467,7 @@ Feature: Prompts
 
     # https://github.com/The-Compiler/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/The-Compiler/qutebrowser/pull/2054#issuecomment-258285544
+    @qtwebengine_todo: Permissions are not implemented yet
     Scenario: Interrupting SSL prompt during a notification prompt
         When I set content -> notifications to ask
         And I set network -> ssl-strict to ask
