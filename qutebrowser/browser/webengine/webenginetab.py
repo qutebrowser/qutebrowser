@@ -150,11 +150,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
-        log.stub()
+        pass
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
-        log.stub()
+        pass
 
     def move_to_next_line(self, count=1):
         log.stub()
