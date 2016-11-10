@@ -237,3 +237,15 @@ Feature: Keyboard input
         When I run :run-macro bar
         Then the error "No macro recorded in 'bar'!" should be shown
         And no crash should happen
+
+    Scenario: Running a macro with a mode-switching command
+        When I open data/hints/html/simple.html
+        And I run :record-macro a
+        And I run :hint links normal
+        And I wait for "hints: *" in the log
+        And I run :leave-mode
+        And I run :record-macro a
+        And I run :run-macro
+        And I press the key "a"
+        And I wait for "hints: *" in the log
+        Then no crash should happen

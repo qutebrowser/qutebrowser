@@ -276,16 +276,24 @@ class ModeManager(QObject):
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
         self.enter(m, 'command')
 
-    @pyqtSlot(usertypes.KeyMode, str)
-    def leave(self, mode, reason=None):
+    @pyqtSlot(usertypes.KeyMode, str, bool)
+    def leave(self, mode, reason=None, maybe=False):
         """Leave a key mode.
 
         Args:
             mode: The mode to leave as a usertypes.KeyMode member.
             reason: Why the mode was left.
+            maybe: If set, ignore the request if we're not in that mode.
         """
         if self.mode != mode:
-            raise NotInModeError("Not in mode {}!".format(mode))
+            if maybe:
+                log.modes.debug("Ignoring leave request for {} (reason {}) as "
+                                "we're in mode {}".format(
+                                    mode, reason, self.mode))
+                return
+            else:
+                raise NotInModeError("Not in mode {}!".format(mode))
+
         log.modes.debug("Leaving mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         # leaving a mode implies clearing keychain, see

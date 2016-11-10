@@ -315,7 +315,7 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
         except (cmdexc.CommandMetaError, cmdexc.CommandError) as err:
             message.error(str(err), stack=traceback.format_exc())
 
-        self.request_leave.emit(self._mode, "valid register key")
+        self.request_leave.emit(self._mode, "valid register key", True)
 
         return True
 

@@ -70,10 +70,11 @@ class BaseKeyParser(QObject):
         request_leave: Emitted to request leaving a mode.
                        arg 0: Mode to leave.
                        arg 1: Reason for leaving.
+                       arg 2: Ignore the request if we're not in that mode
     """
 
     keystring_updated = pyqtSignal(str)
-    request_leave = pyqtSignal(usertypes.KeyMode, str)
+    request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
     do_log = True
     passthrough = False
 

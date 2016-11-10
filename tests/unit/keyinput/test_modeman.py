@@ -28,7 +28,7 @@ class FakeKeyparser(QObject):
 
     """A fake BaseKeyParser which doesn't handle anything."""
 
-    request_leave = pyqtSignal(usertypes.KeyMode, str)
+    request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
 
     def __init__(self):
         super().__init__()
