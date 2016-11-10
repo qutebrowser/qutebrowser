@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Wrapper over a QSslCertificateError."""
+"""Wrapper over a QSslError."""
 
 
 from PyQt5.QtNetwork import QSslError
