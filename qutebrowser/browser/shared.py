@@ -21,6 +21,8 @@
 
 import html
 
+import jinja2
+
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, message, log
 
@@ -110,3 +112,48 @@ def javascript_alert(url, js_msg, abort_on):
                                           html.escape(js_msg))
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on)
+
+
+def ignore_certificate_errors(url, errors, abort_on):
+    """Display a certificate error question.
+
+    Args:
+        url: The URL the errors happened in
+        errors: A list of QSslErrors or QWebEngineCertificateErrors
+
+    Return:
+        True if the error should be ignored, False otherwise.
+    """
+    ssl_strict = config.get('network', 'ssl-strict')
+    log.webview.debug("Certificate errors {!r}, strict {}".format(
+        errors, ssl_strict))
+
+    for error in errors:
+        assert error.is_overridable(), repr(error)
+
+    if ssl_strict == 'ask':
+        err_template = jinja2.Template("""
+            Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
+            <ul>
+            {% for err in errors %}
+                <li>{{err}}</li>
+            {% endfor %}
+            </ul>
+        """.strip())
+        msg = err_template.render(url=url, errors=errors)
+
+        return message.ask(title="Certificate errors - continue?", text=msg,
+                           mode=usertypes.PromptMode.yesno, default=False,
+                           abort_on=abort_on)
+    elif ssl_strict is False:
+        log.webview.debug("ssl-strict is False, only warning about errors")
+        for err in errors:
+            # FIXME we might want to use warn here (non-fatal error)
+            # https://github.com/The-Compiler/qutebrowser/issues/114
+            message.error('Certificate error: {}'.format(err))
+        return True
+    elif ssl_strict is True:
+        return False
+    else:
+        raise ValueError("Invalid ssl_strict value {!r}".format(ssl_strict))
+    raise AssertionError("Not reached")
