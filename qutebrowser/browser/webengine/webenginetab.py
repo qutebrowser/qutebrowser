@@ -538,6 +538,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 self._widget.page().runJavaScript(code, callback)
 
     def shutdown(self):
+        self.shutting_down.emit()
         self._widget.shutdown()
 
     def reload(self, *, force=False):
