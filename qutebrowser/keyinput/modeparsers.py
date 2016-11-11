@@ -290,6 +290,10 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
+        if e.key() == Qt.Key_Escape:
+            self.request_leave.emit(self._mode, "register key cancelled", True)
+            return True
+
         if utils.keyevent_to_string(e) is None:
             # this is a modifier key, let it pass and keep going
             return False
