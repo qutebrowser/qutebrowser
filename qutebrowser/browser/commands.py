@@ -271,6 +271,7 @@ class CommandDispatcher:
             index: Location where the tab should be pinned/unpinned.
             count: The tab index to pin or unpin, or None
         """
+        tabbar = self._tabbed_browser.tabBar()
         tab = self._cntwidget(count)
         if tab is None:
             return
@@ -278,7 +279,7 @@ class CommandDispatcher:
         tab.data.pinned = not tab.data.pinned
 
         if tab.data.pinned:
-            index = 1 if index is None else int(index)
+            index = tabbar.pinned + 1 if index is None else int(index)
         else:
             index = self._count() if index is None else int(index)
 
