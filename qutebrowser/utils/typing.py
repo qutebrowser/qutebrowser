@@ -38,10 +38,6 @@ class FakeTypingMeta(type):
                  **_kwds):
         pass
 
-    def __subclasscheck__(self, cls):
-        """We implement this for qutebrowser.commands.command to work."""
-        return isinstance(cls, FakeTypingMeta)
-
 
 class FakeUnionMeta(FakeTypingMeta):
 
