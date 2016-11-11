@@ -654,6 +654,11 @@ def data(readonly=False):
              "The width of the tab bar if it's vertical, in px or as "
              "percentage of the window."),
 
+            ('pinned-width',
+             SettingValue(typ.Int(minval=10),
+                          '43'),
+             "The width of the pinned tab if it's horizontal, in px."),
+
             ('indicator-width',
              SettingValue(typ.Int(minval=0), '3'),
              "Width of the progress indicator (0 to disable)."),

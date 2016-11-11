@@ -185,6 +185,11 @@ class TabWidget(QTabWidget):
         for idx in range(self.count()):
             self.update_tab_title(idx)
 
+    @config.change_filter('tabs', 'pinned-width')
+    def update_tab_pinned_width(self):
+        """Refresh bar"""
+        self.tabBar().refresh()
+
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
@@ -482,25 +487,27 @@ class TabBar(QTabBar):
             # get scroll buttons as soon as needed.
             size = minimum_size
         else:
-            #TODO: relative size and/or configured one
+            tab_width_pinned_conf = config.get('tabs', 'pinned-width')
+
             try:
                 pinned = self.tab_data(index, 'pinned')
             except KeyError:
                 pass
             else:
                 if pinned:
-                    size = QSize(40, height)
+                    size = QSize(tab_width_pinned_conf, height)
                     qtutils.ensure_valid(size)
                     return size
 
             # If we *do* have enough space, tabs should occupy the whole window
             # width. Also taken in consideration the reduced space necessary for
             # the pinned tabs.
-            #TODO: During shutdown the self.count goes down, but the self.pinned not
+            #WORKAROUND: During shutdown the self.count goes down, but the self.pinned not
             #this generates some odd bahavior.
             #To avoid this we compare self.count against self.pinned.
             if self.pinned > 0 and self.count() > self.pinned:
-                width = (self.width() - 40*self.pinned) / (self.count() - self.pinned)
+                pinned_width = tab_width_pinned_conf * self.pinned
+                width = (self.width() - pinned_width) / (self.count() - self.pinned)
             else:
                 width = self.width() / self.count()
 
