@@ -46,6 +46,8 @@ class TestTabWidget:
             'indicator-width': 3,
             'indicator-padding': configtypes.PaddingValues(2, 2, 0, 4),
             'title-format': '{index}: {title}',
+            'title-format-pinned': '{index}',
+            'pinned-width': 43,
             'title-alignment': Qt.AlignLeft,
         },
         'colors': {

@@ -213,6 +213,7 @@ class CommandDispatcher:
 
     def _tab_close(self, tab, prev=False, next_=False, opposite=False):
         """Helper function for tab_close be able to handle message.async.
+
         Args:
             tab: Tab select to be closed.
             prev: Force selecting the tab before the current tab.
@@ -240,6 +241,7 @@ class CommandDispatcher:
     @cmdutils.argument('count', count=True)
     def tab_close(self, prev=False, next_=False, opposite=False, count=None):
         """Close the current/[count]th tab.
+
         Args:
             prev: Force selecting the tab before the current tab.
             next_: Force selecting the tab after the current tab.
@@ -251,7 +253,7 @@ class CommandDispatcher:
         if tab is None:
             return
         close = functools.partial(self._tab_close, tab, prev,
-                                    next_, opposite)
+                                next_, opposite)
 
         if tab.data.pinned:
             message.confirm_async(title='Pinned Tab',
@@ -284,7 +286,8 @@ class CommandDispatcher:
             index = self._count() if index is None else int(index)
 
         self.tab_move(index)
-        self._tabbed_browser.set_tab_pinned(self._current_index(), tab.data.pinned)
+        self._tabbed_browser.set_tab_pinned(self._current_index(),
+                                            tab.data.pinned)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
