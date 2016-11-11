@@ -91,6 +91,10 @@ class TabWidget(QTabWidget):
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
+    def tab_indicator_color(self, idx):
+        """Get the tab indicator color for the given index."""
+        return self.tabBar().tab_indicator_color(idx)
+
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
         self.tabBar().set_tab_data(idx, 'page-title', title)
@@ -329,6 +333,13 @@ class TabBar(QTabBar):
             data = {}
         return data[key]
 
+    def tab_indicator_color(self, idx):
+        """Get the tab indicator color for the given index."""
+        try:
+            return self.tab_data(idx, 'indicator-color')
+        except KeyError:
+            return QColor()
+
     def page_title(self, idx):
         """Get the tab title user data.
 
@@ -478,10 +489,7 @@ class TabBar(QTabBar):
             tab.palette.setColor(QPalette.Window, bg_color)
             tab.palette.setColor(QPalette.WindowText, fg_color)
 
-            try:
-                indicator_color = self.tab_data(idx, 'indicator-color')
-            except KeyError:
-                indicator_color = QColor()
+            indicator_color = self.tab_indicator_color(idx)
             tab.palette.setColor(QPalette.Base, indicator_color)
             if tab.rect.right() < 0 or tab.rect.left() > self.width():
                 # Don't bother drawing a tab if the entire tab is outside of
