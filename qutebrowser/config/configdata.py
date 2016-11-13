@@ -430,8 +430,7 @@ def data(readonly=False):
              "Whether to send DNS requests over the configured proxy."),
 
             ('ssl-strict',
-             SettingValue(typ.BoolAsk(), 'ask',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.BoolAsk(), 'ask'),
              "Whether to validate SSL handshakes."),
 
             ('dns-prefetch',
@@ -821,6 +820,11 @@ def data(readonly=False):
             ('notifications',
              SettingValue(typ.BoolAsk(), 'ask'),
              "Allow websites to show notifications."),
+
+            ('media-capture',
+             SettingValue(typ.BoolAsk(), 'ask',
+                          backends=[usertypes.Backend.QtWebEngine]),
+             "Allow websites to record audio/video."),
 
             ('javascript-can-open-windows-automatically',
              SettingValue(typ.Bool(), 'false'),

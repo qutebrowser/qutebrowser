@@ -160,6 +160,7 @@
 |<<content-hyperlink-auditing,hyperlink-auditing>>|Enable or disable hyperlink auditing (<a ping>).
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
 |<<content-notifications,notifications>>|Allow websites to show notifications.
+|<<content-media-capture,media-capture>>|Allow websites to record audio/video.
 |<<content-javascript-can-open-windows-automatically,javascript-can-open-windows-automatically>>|Whether JavaScript programs can open new windows without user interaction.
 |<<content-javascript-can-close-windows,javascript-can-close-windows>>|Whether JavaScript programs can close windows.
 |<<content-javascript-can-access-clipboard,javascript-can-access-clipboard>>|Whether JavaScript programs can read or write to the clipboard.
@@ -796,8 +797,6 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
-
-This setting is only available with the QtWebKit backend.
 
 [[network-dns-prefetch]]
 === dns-prefetch
@@ -1451,6 +1450,20 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
+
+[[content-media-capture]]
+=== media-capture
+Allow websites to record audio/video.
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+This setting is only available with the QtWebEngine backend.
 
 [[content-javascript-can-open-windows-automatically]]
 === javascript-can-open-windows-automatically
