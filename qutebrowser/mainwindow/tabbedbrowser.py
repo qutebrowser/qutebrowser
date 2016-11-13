@@ -521,7 +521,8 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         # If needed, re-open the tab as a workaround for QTBUG-54419.
         # See https://bugreports.qt.io/browse/QTBUG-54419
-        if tab.needs_qtbug54419_workaround:
+        if (tab.backend == usertypes.Backend.QtWebEngine and
+                tab.needs_qtbug54419_workaround):
             log.misc.debug("Doing QTBUG-54419 workaround for {}, "
                            "url {}".format(tab, url))
             self.setUpdatesEnabled(False)
