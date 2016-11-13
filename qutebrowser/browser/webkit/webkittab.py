@@ -607,7 +607,6 @@ class WebKitTab(browsertab.AbstractTab):
         self._connect_signals()
         self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
-        self.needs_qtbug54419_workaround = False
 
     def _install_event_filter(self):
         self._widget.installEventFilter(self._mouse_event_filter)
