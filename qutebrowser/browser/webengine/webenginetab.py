@@ -472,7 +472,6 @@ class WebEngineTab(browsertab.AbstractTab):
         # init js stuff
         self._init_js()
         self._child_event_filter = None
-        self.needs_qtbug54419_workaround = False
 
     def _init_js(self):
         js_code = '\n'.join([
