@@ -5,6 +5,18 @@ Feature: Tab management
         Given I clean up open tabs
         And I set tabs -> tabs-are-windows to false
 
+    # :tab-pin
+
+    Scenario: :tab-pin
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
     # :tab-close
 
     Scenario: :tab-close
