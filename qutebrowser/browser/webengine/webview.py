@@ -67,15 +67,6 @@ class WebEngineView(QWebEngineView):
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
         log.webview.debug("createWindow with type {}".format(debug_type))
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
-        vercheck = qtutils.version_check
-        qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                             qtutils.version_check('5.7.1') or
-                             os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
-        if not qtbug_54419_fixed:
-            log.webview.debug("Ignoring createWindow because of QTBUG-54419")
-            return None
-
         background = False
         if wintype in [QWebEnginePage.WebBrowserWindow,
                        QWebEnginePage.WebDialog]:
@@ -91,8 +82,17 @@ class WebEngineView(QWebEngineView):
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        # pylint: disable=protected-access
-        return tabbed_browser.tabopen(background=background)._widget
+        tab = tabbed_browser.tabopen(background=background)
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
+        vercheck = qtutils.version_check
+        qtbug54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
+                            qtutils.version_check('5.7.1') or
+                            os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
+        if not qtbug54419_fixed:
+            tab.needs_qtbug54419_workaround = True
+
+        return tab._widget  # pylint: disable=protected-access
 
 
 class WebEnginePage(QWebEnginePage):

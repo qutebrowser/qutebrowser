@@ -112,6 +112,10 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         window: True to open in a new window, False for the current one.
     """
     def _prevnext_cb(elems):
+        if elems is None:
+            message.error("There was an error while getting hint elements")
+            return
+
         elem = _find_prevnext(prev, elems)
         word = 'prev' if prev else 'forward'
 

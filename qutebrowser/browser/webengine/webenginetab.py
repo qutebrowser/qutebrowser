@@ -392,8 +392,13 @@ class WebEngineElements(browsertab.AbstractElements):
 
         Args:
             callback: The callback to call with the found elements.
+                      Called with None if there was an error.
             js_elems: The elements serialized from javascript.
         """
+        if js_elems is None:
+            callback(None)
+            return
+
         elems = []
         for js_elem in js_elems:
             elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
@@ -467,6 +472,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # init js stuff
         self._init_js()
         self._child_event_filter = None
+        self.needs_qtbug54419_workaround = False
 
     def _init_js(self):
         js_code = '\n'.join([
