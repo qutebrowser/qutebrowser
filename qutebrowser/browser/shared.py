@@ -202,7 +202,7 @@ def get_tab(win_id, target):
 
     Args:
         win_id: The window ID to open new tabs in
-        target: An usertypes.ClickTarget
+        target: A usertypes.ClickTarget
     """
     if target == usertypes.ClickTarget.tab:
         win_id = win_id

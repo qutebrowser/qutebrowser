@@ -27,10 +27,9 @@ from PyQt5.QtWidgets import QWidget, QApplication
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
-from qutebrowser.utils import (utils, objreg, usertypes, message, log, qtutils,
-                               urlutils)
+from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
 from qutebrowser.misc import miscwidgets
-from qutebrowser.browser import mouse, hints, shared
+from qutebrowser.browser import mouse, hints
 
 
 tab_id_gen = itertools.count(0)
