@@ -291,7 +291,6 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
-
         if super().handle(e):
             return True
 
