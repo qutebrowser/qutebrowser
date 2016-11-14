@@ -329,7 +329,7 @@ class WebKitCaret(browsertab.AbstractCaret):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
-                self._tab.data.open_target = usertypes.ClickTarget.tab
+                self._tab.data.override_target = usertypes.ClickTarget.tab
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
@@ -714,7 +714,6 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
-        page.link_clicked.connect(self._on_link_clicked)
 
     def _event_target(self):
         return self._widget

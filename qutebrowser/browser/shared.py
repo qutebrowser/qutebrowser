@@ -24,7 +24,7 @@ import html
 import jinja2
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, message, log
+from qutebrowser.utils import usertypes, message, log, objreg
 
 
 class CallSuper(Exception):
@@ -195,3 +195,30 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
     else:
         no_action()
         return None
+
+
+def get_tab(win_id, target):
+    """Get a tab widget for the given usertypes.ClickTarget.
+
+    Args:
+        win_id: The window ID to open new tabs in
+        target: An usertypes.ClickTarget
+    """
+    if target == usertypes.ClickTarget.tab:
+        win_id = win_id
+        bg_tab = False
+    elif target == usertypes.ClickTarget.tab_bg:
+        win_id = win_id
+        bg_tab = True
+    elif target == usertypes.ClickTarget.window:
+        from qutebrowser.mainwindow import mainwindow
+        window = mainwindow.MainWindow()
+        window.show()
+        win_id = window.win_id
+        bg_tab = False
+    else:
+        raise ValueError("Invalid ClickTarget {}".format(target))
+
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    return tabbed_browser.tabopen(url=None, background=bg_tab)

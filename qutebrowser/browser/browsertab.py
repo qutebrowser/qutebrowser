@@ -30,7 +30,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, message, log, qtutils,
                                urlutils)
 from qutebrowser.misc import miscwidgets
-from qutebrowser.browser import mouse, hints
+from qutebrowser.browser import mouse, hints, shared
 
 
 tab_id_gen = itertools.count(0)
@@ -84,7 +84,6 @@ class TabData:
                    load.
         inspector: The QWebInspector used for this webview.
         viewing_source: Set if we're currently showing a source view.
-        open_target: How the next clicked link should be opened.
         override_target: Override for open_target for fake clicks (like hints).
     """
 
@@ -92,14 +91,7 @@ class TabData:
         self.keep_icon = False
         self.viewing_source = False
         self.inspector = None
-        self.open_target = usertypes.ClickTarget.normal
         self.override_target = None
-
-    def combined_target(self):
-        if self.override_target is not None:
-            return self.override_target
-        else:
-            return self.open_target
 
 
 class AbstractPrinting:
@@ -609,44 +601,6 @@ class AbstractTab(QWidget):
         recipient = self._event_target()
         evt.posted = True
         QApplication.postEvent(recipient, evt)
-
-    @pyqtSlot(QUrl)
-    def _on_link_clicked(self, url):
-        log.webview.debug("link clicked: url {}, override target {}, "
-                          "open_target {}".format(
-                              url.toDisplayString(),
-                              self.data.override_target,
-                              self.data.open_target))
-
-        if not url.isValid():
-            msg = urlutils.get_errstring(url, "Invalid link clicked")
-            message.error(msg)
-            self.data.open_target = usertypes.ClickTarget.normal
-            return False
-
-        target = self.data.combined_target()
-
-        if target == usertypes.ClickTarget.normal:
-            return
-        elif target == usertypes.ClickTarget.tab:
-            win_id = self.win_id
-            bg_tab = False
-        elif target == usertypes.ClickTarget.tab_bg:
-            win_id = self.win_id
-            bg_tab = True
-        elif target == usertypes.ClickTarget.window:
-            from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
-            window.show()
-            win_id = window.win_id
-            bg_tab = False
-        else:
-            raise ValueError("Invalid ClickTarget {}".format(target))
-
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
-        tabbed_browser.tabopen(url, background=bg_tab)
-        self.data.open_target = usertypes.ClickTarget.normal
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):

@@ -30,7 +30,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg, qtutils, jinja
+from qutebrowser.utils import (log, debug, usertypes, objreg, qtutils, jinja,
+                               urlutils, message)
 
 
 class WebEngineView(QWebEngineView):
@@ -40,7 +41,8 @@ class WebEngineView(QWebEngineView):
     def __init__(self, tabdata, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.setPage(WebEnginePage(tabdata, parent=self))
+        self._tabdata = tabdata
+        self.setPage(WebEnginePage(parent=self))
 
     def shutdown(self):
         self.page().shutdown()
@@ -71,24 +73,40 @@ class WebEngineView(QWebEngineView):
             The new QWebEngineView object.
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
-        log.webview.debug("createWindow with type {}".format(debug_type))
+        background_tabs = config.get('tabs', 'background-tabs')
+        override_target = self._tabdata.override_target
 
-        background = False
-        if wintype in [QWebEnginePage.WebBrowserWindow,
-                       QWebEnginePage.WebDialog]:
+        log.webview.debug("createWindow with type {}, background_tabs "
+                          "{}, override_target {}".format(
+                              debug_type, background_tabs, override_target))
+
+        if override_target is not None:
+            target = override_target
+        elif wintype == QWebEnginePage.WebBrowserWindow:
+            log.webview.debug("createWindow with WebBrowserWindow - when does "
+                              "this happen?!")
+            target = usertypes.ClickTarget.window
+        elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
+            target = usertypes.ClickTarget.tab
         elif wintype == QWebEnginePage.WebBrowserTab:
-            pass
+            # Middle-click / Ctrl-Click with Shift
+            if background_tabs:
+                target = usertypes.ClickTarget.tab
+            else:
+                target = usertypes.ClickTarget.tab_bg
         elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
               wintype == QWebEnginePage.WebBrowserBackgroundTab):
-            background = True
+            # Middle-click / Ctrl-Click
+            if background_tabs:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
         else:
             raise ValueError("Invalid wintype {}".format(debug_type))
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
-        tab = tabbed_browser.tabopen(background=background)
+        tab = shared.get_tab(self._win_id, target)
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
         vercheck = qtutils.version_check
@@ -110,17 +128,14 @@ class WebEnginePage(QWebEnginePage):
 
     Signals:
         certificate_error: Emitted on certificate errors.
-        link_clicked: Emitted when a link was clicked on a page.
         shutting_down: Emitted when the page is shutting down.
     """
 
     certificate_error = pyqtSignal()
-    link_clicked = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
 
-    def __init__(self, tabdata, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._tabdata = tabdata
         self._is_shutting_down = False
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
@@ -277,24 +292,17 @@ class WebEnginePage(QWebEnginePage):
                                 is_main_frame: bool):
         """Override acceptNavigationRequest to handle clicked links.
 
-        Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
-        to linkClicked won't work correctly, because when in a frameset, we
-        have no idea in which frame the link should be opened.
-
-        Checks if it should open it in a tab (middle-click or control) or not,
-        and then conditionally opens the URL. Opening it in a new tab/window
-        is handled in the slot connected to link_clicked.
+        This only show an error on invalid links - everything else is handled
+        in createWindow.
         """
-        target = self._tabdata.combined_target()
-        log.webview.debug("navigation request: url {}, type {}, "
-                          "target {}, is_main_frame {}".format(
-                              url.toDisplayString(),
-                              debug.qenum_key(QWebEnginePage, typ),
-                              target, is_main_frame))
-
-        if typ != QWebEnginePage.NavigationTypeLinkClicked:
-            return True
-
-        self.link_clicked.emit(url)
-
-        return url.isValid() and target == usertypes.ClickTarget.normal
+        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
+                          "{}".format(url.toDisplayString(),
+                                      debug.qenum_key(QWebEnginePage, typ),
+                                      is_main_frame))
+        if (typ == QWebEnginePage.NavigationTypeLinkClicked and
+                not url.isValid()):
+            msg = urlutils.get_errstring(url, "Invalid link clicked")
+            message.error(msg)
+            self.page().open_target = usertypes.ClickTarget.normal
+            return False
+        return True

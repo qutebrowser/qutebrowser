@@ -616,7 +616,6 @@ class WebEngineTab(browsertab.AbstractTab):
         view.urlChanged.connect(self._on_url_changed)
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
-        page.link_clicked.connect(self._on_link_clicked)
         page.authenticationRequired.connect(self._on_authentication_required)
         try:
             view.iconChanged.connect(self.icon_changed)
