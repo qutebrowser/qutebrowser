@@ -473,6 +473,7 @@ class BrowserPage(QWebPage):
 
         if self._tabdata.override_target is not None:
             target = self._tabdata.override_target
+            self._tabdata.override_target = None
         else:
             target = self.open_target
 

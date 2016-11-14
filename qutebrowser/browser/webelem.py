@@ -365,10 +365,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
             self._tab.send_event(evt)
 
         def after_click():
-            """Move cursor to end and reset override_target after clicking."""
+            """Move cursor to end after clicking."""
             if self.is_text_input() and self.is_editable():
                 self._tab.caret.move_to_end_of_document()
-            self._tab.data.override_target = None
         QTimer.singleShot(0, after_click)
 
     def hover(self):

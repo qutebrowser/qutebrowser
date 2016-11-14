@@ -112,6 +112,18 @@ Feature: Using hints
         And I hint with args "links yank-primary" and follow a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
 
+    Scenario: Rapid hinting
+        When I open data/hints/rapid.html
+        And I run :tab-only
+        And I hint with args "all tab-bg --rapid"
+        And I run :follow-hint a
+        And I run :follow-hint s
+        And I run :leave-mode
+        Then the following tabs should be open:
+            - data/hints/rapid.html (active)
+            - data/hello.txt
+            - data/hello2.txt
+
     Scenario: Using hint --rapid to hit multiple buttons
         When I open data/hints/buttons.html
         And I hint with args "--rapid"

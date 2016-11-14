@@ -82,6 +82,7 @@ class WebEngineView(QWebEngineView):
 
         if override_target is not None:
             target = override_target
+            self._tabdata.override_target = None
         elif wintype == QWebEnginePage.WebBrowserWindow:
             log.webview.debug("createWindow with WebBrowserWindow - when does "
                               "this happen?!")
