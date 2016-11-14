@@ -186,6 +186,7 @@ Feature: Using hints
     @qtwebengine_createWindow
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
+        And I run :tab-only
         And I hint with args "links tab" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
