@@ -42,7 +42,7 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion.models import instances as completionmodels
+from qutebrowser.completion.models import instances as completionmodels, sql
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
@@ -432,6 +432,7 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing completions...")
     completionmodels.init()
+    sql.init(os.path.join(standarddir.cache(), "completion.db"))
 
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
