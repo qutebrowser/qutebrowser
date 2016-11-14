@@ -370,7 +370,10 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         if url is not None:
             qtutils.ensure_valid(url)
-        log.webview.debug("Creating new tab with URL {}".format(url))
+        log.webview.debug("Creating new tab with URL {}, background {}, "
+                          "explicit {}, idx {}".format(
+                              url, background, explicit, idx))
+
         if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow()
@@ -522,13 +525,15 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         # If needed, re-open the tab as a workaround for QTBUG-54419.
         # See https://bugreports.qt.io/browse/QTBUG-54419
+        background = self.currentIndex() != idx
+
         if (tab.backend == usertypes.Backend.QtWebEngine and
                 tab.needs_qtbug54419_workaround):
             log.misc.debug("Doing QTBUG-54419 workaround for {}, "
                            "url {}".format(tab, url))
             self.setUpdatesEnabled(False)
             try:
-                self.tabopen(url)
+                self.tabopen(url, background=background, idx=idx)
                 self.close_tab(tab, add_undo=False)
             finally:
                 self.setUpdatesEnabled(True)

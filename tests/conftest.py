@@ -27,6 +27,7 @@ import warnings
 
 import pytest
 import hypothesis
+from PyQt5.QtCore import PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
@@ -120,8 +121,14 @@ def pytest_collection_modifyitems(config, items):
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
             item.add_marker(pytest.mark.xfail(run=False))
-        if item.get_marker('flaky_once'):
-            item.add_marker(pytest.mark.flaky())
+        if item.get_marker('js_prompt'):
+            if config.webengine:
+                js_prompt_pyqt_version = 0x050700
+            else:
+                js_prompt_pyqt_version = 0x050300
+            item.add_marker(pytest.mark.skipif(
+                PYQT_VERSION <= js_prompt_pyqt_version,
+                reason='JS prompts are not supported with this PyQt version'))
 
         if deselected:
             deselected_items.append(item)

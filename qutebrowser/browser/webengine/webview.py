@@ -20,14 +20,18 @@
 """The main browser widget for QtWebEngine."""
 
 import os
+import functools
 
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
+from qutebrowser.browser import shared
+from qutebrowser.browser.webengine import certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
+from qutebrowser.utils import (log, debug, usertypes, qtutils, jinja, urlutils,
+                               message)
 
 
 class WebEngineView(QWebEngineView):
@@ -37,7 +41,11 @@ class WebEngineView(QWebEngineView):
     def __init__(self, tabdata, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.setPage(WebEnginePage(tabdata, parent=self))
+        self._tabdata = tabdata
+        self.setPage(WebEnginePage(parent=self))
+
+    def shutdown(self):
+        self.page().shutdown()
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
@@ -65,24 +73,41 @@ class WebEngineView(QWebEngineView):
             The new QWebEngineView object.
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
-        log.webview.debug("createWindow with type {}".format(debug_type))
+        background_tabs = config.get('tabs', 'background-tabs')
+        override_target = self._tabdata.override_target
 
-        background = False
-        if wintype in [QWebEnginePage.WebBrowserWindow,
-                       QWebEnginePage.WebDialog]:
+        log.webview.debug("createWindow with type {}, background_tabs "
+                          "{}, override_target {}".format(
+                              debug_type, background_tabs, override_target))
+
+        if override_target is not None:
+            target = override_target
+            self._tabdata.override_target = None
+        elif wintype == QWebEnginePage.WebBrowserWindow:
+            log.webview.debug("createWindow with WebBrowserWindow - when does "
+                              "this happen?!")
+            target = usertypes.ClickTarget.window
+        elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
+            target = usertypes.ClickTarget.tab
         elif wintype == QWebEnginePage.WebBrowserTab:
-            pass
+            # Middle-click / Ctrl-Click with Shift
+            if background_tabs:
+                target = usertypes.ClickTarget.tab
+            else:
+                target = usertypes.ClickTarget.tab_bg
         elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
               wintype == QWebEnginePage.WebBrowserBackgroundTab):
-            background = True
+            # Middle-click / Ctrl-Click
+            if background_tabs:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
         else:
             raise ValueError("Invalid wintype {}".format(debug_type))
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
-        tab = tabbed_browser.tabopen(background=background)
+        tab = shared.get_tab(self._win_id, target)
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
         vercheck = qtutils.version_check
@@ -99,21 +124,152 @@ class WebEnginePage(QWebEnginePage):
 
     """Custom QWebEnginePage subclass with qutebrowser-specific features.
 
+    Attributes:
+        _is_shutting_down: Whether the page is currently shutting down.
+
     Signals:
-        certificate_error: FIXME:qtwebengine
-        link_clicked: Emitted when a link was clicked on a page.
+        certificate_error: Emitted on certificate errors.
+        shutting_down: Emitted when the page is shutting down.
     """
 
     certificate_error = pyqtSignal()
-    link_clicked = pyqtSignal(QUrl)
+    shutting_down = pyqtSignal()
 
-    def __init__(self, tabdata, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._tabdata = tabdata
+        self._is_shutting_down = False
+        self.featurePermissionRequested.connect(
+            self._on_feature_permission_requested)
+
+    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
+    def _on_feature_permission_requested(self, url, feature):
+        """Ask the user for approval for geolocation/media/etc.."""
+        options = {
+            QWebEnginePage.Geolocation: ('content', 'geolocation'),
+            QWebEnginePage.MediaAudioCapture: ('content', 'media-capture'),
+            QWebEnginePage.MediaVideoCapture: ('content', 'media-capture'),
+            QWebEnginePage.MediaAudioVideoCapture:
+                ('content', 'media-capture'),
+        }
+        messages = {
+            QWebEnginePage.Geolocation: 'access your location',
+            QWebEnginePage.MediaAudioCapture: 'record audio',
+            QWebEnginePage.MediaVideoCapture: 'record video',
+            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+        }
+        assert options.keys() == messages.keys()
+
+        if feature not in options:
+            log.webview.error("Unhandled feature permission {}".format(
+                debug.qenum_key(QWebEnginePage, feature)))
+            self.setFeaturePermission(url, feature,
+                                      QWebEnginePage.PermissionDeniedByUser)
+            return
+
+        yes_action = functools.partial(
+            self.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            self.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionDeniedByUser)
+
+        question = shared.feature_permission(
+            url=url, option=options[feature], msg=messages[feature],
+            yes_action=yes_action, no_action=no_action,
+            abort_on=[self.shutting_down, self.loadStarted])
+
+        if question is not None:
+            self.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, url, feature))
+
+    def _on_feature_permission_cancelled(self, question, url, feature,
+                                         cancelled_url, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if url == cancelled_url and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
+
+    def shutdown(self):
+        self._is_shutting_down = True
+        self.shutting_down.emit()
 
     def certificateError(self, error):
+        """Handle certificate errors coming from Qt."""
         self.certificate_error.emit()
-        return super().certificateError(error)
+        url = error.url()
+        error = certificateerror.CertificateErrorWrapper(error)
+        log.webview.debug("Certificate error: {}".format(error))
+
+        url_string = url.toDisplayString()
+        error_page = jinja.render(
+            'error.html', title="Error loading page: {}".format(url_string),
+            url=url_string, error=str(error), icon='')
+
+        if error.is_overridable():
+            ignore = shared.ignore_certificate_errors(
+                url, [error], abort_on=[self.loadStarted, self.shutting_down])
+        else:
+            log.webview.error("Non-overridable certificate error: "
+                              "{}".format(error))
+            ignore = False
+
+        # We can't really know when to show an error page, as the error might
+        # have happened when loading some resource.
+        # However, self.url() is not available yet and self.requestedUrl()
+        # might not match the URL we get from the error - so we just apply a
+        # heuristic here.
+        # See https://bugreports.qt.io/browse/QTBUG-56207
+        log.webview.debug("ignore {}, URL {}, requested {}".format(
+            ignore, url, self.requestedUrl()))
+        if not ignore and url.matches(self.requestedUrl(), QUrl.RemoveScheme):
+            self.setHtml(error_page)
+
+        return ignore
+
+    def javaScriptConfirm(self, url, js_msg):
+        """Override javaScriptConfirm to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return False
+        try:
+            return shared.javascript_confirm(url, js_msg,
+                                             abort_on=[self.loadStarted,
+                                                       self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptConfirm(url, js_msg)
+
+    if PYQT_VERSION > 0x050700:
+        # WORKAROUND
+        # Can't override javaScriptPrompt with older PyQt versions
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
+        def javaScriptPrompt(self, url, js_msg, default):
+            """Override javaScriptPrompt to use qutebrowser prompts."""
+            if self._is_shutting_down:
+                return (False, "")
+            try:
+                return shared.javascript_prompt(url, js_msg, default,
+                                                abort_on=[self.loadStarted,
+                                                          self.shutting_down])
+            except shared.CallSuper:
+                return super().javaScriptPrompt(url, js_msg, default)
+
+    def javaScriptAlert(self, url, js_msg):
+        """Override javaScriptAlert to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return
+        try:
+            shared.javascript_alert(url, js_msg,
+                                    abort_on=[self.loadStarted,
+                                              self.shutting_down])
+        except shared.CallSuper:
+            super().javaScriptAlert(url, js_msg)
 
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
@@ -137,24 +293,16 @@ class WebEnginePage(QWebEnginePage):
                                 is_main_frame: bool):
         """Override acceptNavigationRequest to handle clicked links.
 
-        Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
-        to linkClicked won't work correctly, because when in a frameset, we
-        have no idea in which frame the link should be opened.
-
-        Checks if it should open it in a tab (middle-click or control) or not,
-        and then conditionally opens the URL. Opening it in a new tab/window
-        is handled in the slot connected to link_clicked.
+        This only show an error on invalid links - everything else is handled
+        in createWindow.
         """
-        target = self._tabdata.combined_target()
-        log.webview.debug("navigation request: url {}, type {}, "
-                          "target {}, is_main_frame {}".format(
-                              url.toDisplayString(),
-                              debug.qenum_key(QWebEnginePage, typ),
-                              target, is_main_frame))
-
-        if typ != QWebEnginePage.NavigationTypeLinkClicked:
-            return True
-
-        self.link_clicked.emit(url)
-
-        return url.isValid() and target == usertypes.ClickTarget.normal
+        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
+                          "{}".format(url.toDisplayString(),
+                                      debug.qenum_key(QWebEnginePage, typ),
+                                      is_main_frame))
+        if (typ == QWebEnginePage.NavigationTypeLinkClicked and
+                not url.isValid()):
+            msg = urlutils.get_errstring(url, "Invalid link clicked")
+            message.error(msg)
+            return False
+        return True

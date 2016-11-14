@@ -112,6 +112,27 @@ Feature: Using hints
         And I hint with args "links yank-primary" and follow a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
 
+    Scenario: Rapid hinting
+        When I open data/hints/rapid.html in a new tab
+        And I run :tab-only
+        And I hint with args "all tab-bg --rapid"
+        And I run :follow-hint a
+        And I run :follow-hint s
+        And I run :leave-mode
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        # We should check what the active tab is, but for some reason that makes
+        # the test flaky
+        Then the session should look like:
+          windows:
+          - tabs:
+            - history:
+              - url: http://localhost:*/data/hints/rapid.html
+            - history:
+              - url: http://localhost:*/data/hello.txt
+            - history:
+              - url: http://localhost:*/data/hello2.txt
+
     Scenario: Using hint --rapid to hit multiple buttons
         When I open data/hints/buttons.html
         And I hint with args "--rapid"
@@ -174,6 +195,7 @@ Feature: Using hints
     @qtwebengine_createWindow
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
+        And I run :tab-only
         And I hint with args "links tab" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:

@@ -75,9 +75,8 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
-    @qtwebengine_todo: ssl-strict is not implemented yet
     Scenario: Downloading with SSL errors (issue 1413)
-        When I run :debug-clear-ssl-errors
+        When I clear SSL errors
         And I set network -> ssl-strict to ask
         And I download an SSL page
         And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log

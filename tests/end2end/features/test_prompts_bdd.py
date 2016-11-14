@@ -17,12 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
-
-
-pytestmark = pytest.mark.qtwebengine_todo("Prompts are not implemented")
 
 
 @bdd.when("I load an SSL page")
@@ -46,3 +42,32 @@ def wait_for_prompt(quteproc):
 def no_prompt_shown(quteproc):
     quteproc.ensure_not_logged(message='Entering mode KeyMode.* (reason: '
                                        'question asked)')
+
+
+@bdd.then("a SSL error page should be shown")
+def ssl_error_page(request, quteproc):
+    if not request.config.webengine:
+        line = quteproc.wait_for(message='Error while loading *: SSL '
+                                 'handshake failed')
+        line.expected = True
+    quteproc.wait_for(message="Changing title for idx * to 'Error "
+                      "loading page: *'")
+    content = quteproc.get_content().strip()
+    assert "Unable to load page" in content
+
+
+class AbstractCertificateErrorWrapper:
+
+    """A wrapper over an SSL/certificate error."""
+
+    def __init__(self, error):
+        self._error = error
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def is_overridable(self):
+        raise NotImplementedError

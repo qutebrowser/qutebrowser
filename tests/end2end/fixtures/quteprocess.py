@@ -53,6 +53,19 @@ def is_ignored_qt_message(message):
     return False
 
 
+def is_ignored_lowlevel_message(message):
+    """Check if we want to ignore a lowlevel process output."""
+    if 'Running without the SUID sandbox!' in message:
+        return True
+    elif message.startswith('Xlib: sequence lost'):
+        # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
+        # ???
+        return True
+    elif 'CERT_PKIXVerifyCert for localhost failed' in message:
+        return True
+    return False
+
+
 class LogLine(testprocess.Line):
 
     """A parsed line from the qutebrowser log output.
@@ -222,14 +235,8 @@ class QuteProc(testprocess.Process):
         except testprocess.InvalidLine:
             if not line.strip():
                 return None
-            elif 'Running without the SUID sandbox!' in line:
-                # QtWebEngine error
-                return None
-            elif line.startswith('Xlib: sequence lost'):
-                # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
-                # ???
-                return None
-            elif is_ignored_qt_message(line):
+            elif (is_ignored_qt_message(line) or
+                  is_ignored_lowlevel_message(line)):
                 return None
             else:
                 raise

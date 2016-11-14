@@ -352,6 +352,15 @@ def javascript_message_when(quteproc, message):
     quteproc.wait_for_js(message)
 
 
+@bdd.when("I clear SSL errors")
+def clear_ssl_errors(request, quteproc):
+    if request.config.webengine:
+        quteproc.terminate()
+        quteproc.start()
+    else:
+        quteproc.send_cmd(':debug-clear-ssl-errors')
+
+
 ## Then
 
 

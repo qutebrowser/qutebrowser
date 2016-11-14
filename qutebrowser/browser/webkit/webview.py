@@ -64,6 +64,7 @@ class WebView(QWebView):
         # FIXME:qtwebengine this is only used to set the zoom factor from
         # the QWebPage - we should get rid of it somehow (signals?)
         self.tab = tab
+        self._tabdata = tab.data
         self.win_id = win_id
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
@@ -280,3 +281,24 @@ class WebView(QWebView):
             pass
 
         super().hideEvent(e)
+
+    def mousePressEvent(self, e):
+        """Set the tabdata ClickTarget on a mousepress.
+
+        This is implemented here as we don't need it for QtWebEngine.
+        """
+        if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
+            background_tabs = config.get('tabs', 'background-tabs')
+            if e.modifiers() & Qt.ShiftModifier:
+                background_tabs = not background_tabs
+            if background_tabs:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
+            self.page().open_target = target
+            log.mouse.debug("Ctrl/Middle click, setting target: {}".format(
+                target))
+        else:
+            self.page().open_target = usertypes.ClickTarget.normal
+            log.mouse.debug("Normal click, setting normal target")
+        super().mousePressEvent(e)
