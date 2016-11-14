@@ -26,9 +26,17 @@ import pytest
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QTreeView
 
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
+                                           sql)
 from qutebrowser.browser import history
 from qutebrowser.config import sections, value
+
+
+@pytest.yield_fixture(autouse=True)
+def init_sql(cache_tmpdir):
+    sql.init(str(cache_tmpdir / 'completions.db'))
+    yield
+    sql.close()
 
 
 def _check_completions(model, expected):
