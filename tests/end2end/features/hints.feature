@@ -119,6 +119,8 @@ Feature: Using hints
         And I run :follow-hint a
         And I run :follow-hint s
         And I run :leave-mode
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
             - data/hints/rapid.html (active)
             - data/hello.txt
