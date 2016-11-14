@@ -43,7 +43,7 @@ def config():
             # WORKAROUND - see
             # https://bugreports.qt.io/browse/QTBUG-38872
             path = os.path.join(path, appname)
-    _maybe_create(path)
+    _create(path)
     return path
 
 
@@ -61,7 +61,7 @@ def data():
                 QStandardPaths.ConfigLocation)
             if data_path == config_path:
                 path = os.path.join(path, 'data')
-    _maybe_create(path)
+    _create(path)
     return path
 
 
@@ -82,7 +82,7 @@ def cache():
     overridden, path = _from_args(typ, _args)
     if not overridden:
         path = _writable_location(typ)
-    _maybe_create(path)
+    _create(path)
     return path
 
 
@@ -92,7 +92,7 @@ def download():
     overridden, path = _from_args(typ, _args)
     if not overridden:
         path = _writable_location(typ)
-    _maybe_create(path)
+    _create(path)
     return path
 
 
@@ -116,7 +116,7 @@ def runtime():
         # maximum length of 104 chars), so we don't add the username here...
         appname = QCoreApplication.instance().applicationName()
         path = os.path.join(path, appname)
-    _maybe_create(path)
+    _create(path)
     return path
 
 
@@ -175,16 +175,16 @@ def _from_args(typ, args):
     except KeyError:
         return (False, None)
     arg_value = getattr(args, argname)
+
+    assert arg_value != '', argname
     if arg_value is None:
         return (False, None)
-    elif arg_value == '':
-        return (True, None)
     else:
         return (True, arg_value)
 
 
-def _maybe_create(path):
-    """Create the `path` directory if path is not None.
+def _create(path):
+    """Create the `path` directory.
 
     From the XDG basedir spec:
         If, when attempting to write a file, the destination directory is
@@ -192,11 +192,10 @@ def _maybe_create(path):
         0700. If the destination directory exists already the permissions
         should not be changed.
     """
-    if path is not None:
-        try:
-            os.makedirs(path, 0o700)
-        except FileExistsError:
-            pass
+    try:
+        os.makedirs(path, 0o700)
+    except FileExistsError:
+        pass
 
 
 def init(args):
@@ -214,10 +213,7 @@ def _init_cachedir_tag():
 
     See http://www.brynosaurus.com/cachedir/spec.html
     """
-    cache_dir = cache()
-    if cache_dir is None:
-        return
-    cachedir_tag = os.path.join(cache_dir, 'CACHEDIR.TAG')
+    cachedir_tag = os.path.join(cache(), 'CACHEDIR.TAG')
     if not os.path.exists(cachedir_tag):
         try:
             with open(cachedir_tag, 'w', encoding='utf-8') as f:

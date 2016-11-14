@@ -73,8 +73,7 @@ class UrlMarkManager(QObject):
 
     Attributes:
         marks: An OrderedDict of all quickmarks/bookmarks.
-        _lineparser: The LineParser used for the marks, or None
-                     (when qutebrowser is started with -c '').
+        _lineparser: The LineParser used for the marks
 
     Signals:
         changed: Emitted when anything changed.
@@ -91,10 +90,6 @@ class UrlMarkManager(QObject):
         super().__init__(parent)
 
         self.marks = collections.OrderedDict()
-        self._lineparser = None
-
-        if standarddir.config() is None:
-            return
 
         self._init_lineparser()
         for line in self._lineparser:
@@ -115,10 +110,8 @@ class UrlMarkManager(QObject):
 
     def save(self):
         """Save the marks to disk."""
-        if self._lineparser is not None:
-            self._lineparser.data = [' '.join(tpl)
-                                     for tpl in self.marks.items()]
-            self._lineparser.save()
+        self._lineparser.data = [' '.join(tpl) for tpl in self.marks.items()]
+        self._lineparser.save()
 
     def delete(self, key):
         """Delete a quickmark/bookmark.

@@ -165,15 +165,12 @@ class TestArguments:
 
     """Tests with confdir/cachedir/datadir arguments."""
 
-    @pytest.fixture(params=[DirArgTest('', None), DirArgTest('foo', 'foo')])
+    @pytest.fixture(params=[DirArgTest('foo', 'foo')])
     def testcase(self, request, tmpdir):
         """Fixture providing testcases."""
-        if request.param.expected is None:
-            return request.param
-        else:
-            # prepend tmpdir to both
-            arg = str(tmpdir / request.param.arg)
-            return DirArgTest(arg, arg)
+        # prepend tmpdir to both
+        arg = str(tmpdir / request.param.arg)
+        return DirArgTest(arg, arg)
 
     def test_confdir(self, testcase):
         """Test --confdir."""
@@ -210,8 +207,8 @@ class TestArguments:
         monkeypatch.setattr(
             'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
             lambda _typ: str(tmpdir))
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
-                                     basedir=None)
+        args = types.SimpleNamespace(confdir=None, cachedir=None,
+                                     datadir=None, basedir=None)
         standarddir.init(args)
         assert standarddir.runtime() == str(tmpdir / 'qute_test')
 
@@ -238,13 +235,6 @@ class TestArguments:
 class TestInitCacheDirTag:
 
     """Tests for _init_cachedir_tag."""
-
-    def test_no_cache_dir(self, mocker, monkeypatch):
-        """Smoke test with cache() returning None."""
-        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
-                            lambda: None)
-        mocker.patch('builtins.open', side_effect=AssertionError)
-        standarddir._init_cachedir_tag()
 
     def test_existent_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test with an existent CACHEDIR.TAG."""

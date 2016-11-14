@@ -65,13 +65,6 @@ def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
     assert caplog.records[0].msg == expected
 
 
-def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
-    config_stub.data = {'general': {'private-browsing': False}}
-    hist = history.WebHistory(hist_dir=None, hist_name='history')
-    with qtbot.waitSignal(hist.async_read_done):
-        list(hist.async_read())
-
-
 @pytest.mark.parametrize('redirect', [True, False])
 def test_adding_item_during_async_read(qtbot, hist, redirect):
     """Check what happens when adding URL while reading the history."""

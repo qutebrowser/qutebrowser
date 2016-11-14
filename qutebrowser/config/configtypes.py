@@ -859,9 +859,7 @@ class File(BaseType):
         value = os.path.expanduser(value)
         value = os.path.expandvars(value)
         if not os.path.isabs(value):
-            cfgdir = standarddir.config()
-            assert cfgdir is not None
-            value = os.path.join(cfgdir, value)
+            value = os.path.join(standarddir.config(), value)
         return value
 
     def validate(self, value):
@@ -872,12 +870,7 @@ class File(BaseType):
         value = os.path.expandvars(value)
         try:
             if not os.path.isabs(value):
-                cfgdir = standarddir.config()
-                if cfgdir is None:
-                    raise configexc.ValidationError(
-                        value, "must be an absolute path when not using a "
-                        "config directory!")
-                value = os.path.join(cfgdir, value)
+                value = os.path.join(standarddir.config(), value)
                 not_isfile_message = ("must be a valid path relative to the "
                                       "config directory!")
             else:
@@ -1180,14 +1173,7 @@ class UserStyleSheet(File):
         if not value:
             return None
 
-        if standarddir.config() is None:
-            # We can't call super().transform() here as this counts on the
-            # validation previously ensuring that we don't have a relative path
-            # when starting with -c "".
-            path = None
-        else:
-            path = super().transform(value)
-
+        path = super().transform(value)
         if path is not None and os.path.exists(path):
             return QUrl.fromLocalFile(path)
         else:

@@ -47,12 +47,11 @@ def get_argparser():
     """Get the argparse parser."""
     parser = argparse.ArgumentParser(prog='qutebrowser',
                                      description=qutebrowser.__description__)
-    parser.add_argument('-c', '--confdir', help="Set config directory (empty "
-                        "for no config storage).")
-    parser.add_argument('--datadir', help="Set data directory (empty for "
-                        "no data storage).")
-    parser.add_argument('--cachedir', help="Set cache directory (empty for "
-                        "no cache storage).")
+    parser.add_argument('-c', '--confdir', help="Set config directory",
+                        type=directory)
+    parser.add_argument('--datadir', help="Set data directory", type=directory)
+    parser.add_argument('--cachedir', help="Set cache directory",
+                        type=directory)
     parser.add_argument('--basedir', help="Base directory for all storage. "
                         "Other --*dir arguments are ignored if this is given.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
@@ -122,6 +121,11 @@ def get_argparser():
     parser.add_argument('url', nargs='*', help="URLs to open on startup "
                         "(empty as a window separator).")
     return parser
+
+
+def directory(arg):
+    if not arg:
+        raise argparse.ArgumentTypeError("Invalid empty value")
 
 
 def logfilter_error(logfilter: str):

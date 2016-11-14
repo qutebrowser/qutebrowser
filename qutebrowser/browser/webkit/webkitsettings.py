@@ -95,18 +95,17 @@ def init():
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()
-    if config.get('general', 'private-browsing') or cache_path is None:
+    if config.get('general', 'private-browsing'):
         QWebSettings.setIconDatabasePath('')
     else:
         QWebSettings.setIconDatabasePath(cache_path)
-    if cache_path is not None:
-        QWebSettings.setOfflineWebApplicationCachePath(
-            os.path.join(cache_path, 'application-cache'))
-    if data_path is not None:
-        QWebSettings.globalSettings().setLocalStoragePath(
-            os.path.join(data_path, 'local-storage'))
-        QWebSettings.setOfflineStoragePath(
-            os.path.join(data_path, 'offline-storage'))
+
+    QWebSettings.setOfflineWebApplicationCachePath(
+        os.path.join(cache_path, 'application-cache'))
+    QWebSettings.globalSettings().setLocalStoragePath(
+        os.path.join(data_path, 'local-storage'))
+    QWebSettings.setOfflineStoragePath(
+        os.path.join(data_path, 'offline-storage'))
 
     websettings.init_mappings(MAPPINGS)
     objreg.get('config').changed.connect(update_settings)

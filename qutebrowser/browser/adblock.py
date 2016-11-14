@@ -29,7 +29,7 @@ import fnmatch
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
-from qutebrowser.commands import cmdutils, cmdexc
+from qutebrowser.commands import cmdutils
 
 
 def guess_zip_filename(zf):
@@ -113,17 +113,11 @@ class HostBlocker:
         self._done_count = 0
 
         data_dir = standarddir.data()
-        if data_dir is None:
-            self._local_hosts_file = None
-        else:
-            self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
+        self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
         self.on_config_changed()
 
         config_dir = standarddir.config()
-        if config_dir is None:
-            self._config_hosts_file = None
-        else:
-            self._config_hosts_file = os.path.join(config_dir, 'blocked-hosts')
+        self._config_hosts_file = os.path.join(config_dir, 'blocked-hosts')
 
         objreg.get('config').changed.connect(self.on_config_changed)
 
@@ -146,7 +140,7 @@ class HostBlocker:
         Return:
             True if a read was attempted, False otherwise
         """
-        if filename is None or not os.path.exists(filename):
+        if not os.path.exists(filename):
             return False
 
         try:
@@ -161,9 +155,6 @@ class HostBlocker:
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
         self._blocked_hosts = set()
-
-        if self._local_hosts_file is None:
-            return
 
         self._read_hosts_file(self._config_hosts_file,
                               self._config_blocked_hosts)
@@ -186,8 +177,6 @@ class HostBlocker:
         """
         self._read_hosts_file(self._config_hosts_file,
                               self._config_blocked_hosts)
-        if self._local_hosts_file is None:
-            raise cmdexc.CommandError("No data storage is configured!")
         self._blocked_hosts = set()
         self._done_count = 0
         urls = config.get('content', 'host-block-lists')
@@ -275,7 +264,7 @@ class HostBlocker:
     def on_config_changed(self):
         """Update files when the config changed."""
         urls = config.get('content', 'host-block-lists')
-        if urls is None and self._local_hosts_file is not None:
+        if urls is None:
             try:
                 os.remove(self._local_hosts_file)
             except FileNotFoundError:

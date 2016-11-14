@@ -69,24 +69,6 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
-def test_no_config(request, temp_basedir_env, quteproc_new):
-    """Test starting with -c ""."""
-    args = ['-c', ''] + _base_args(request.config)
-    quteproc_new.start(args, env=temp_basedir_env)
-    quteproc_new.send_cmd(':quit')
-    quteproc_new.wait_for_quit()
-
-
-@pytest.mark.linux
-def test_no_cache(request, temp_basedir_env, quteproc_new):
-    """Test starting with --cachedir=""."""
-    args = ['--cachedir='] + _base_args(request.config)
-    quteproc_new.start(args, env=temp_basedir_env)
-    quteproc_new.send_cmd(':quit')
-    quteproc_new.wait_for_quit()
-
-
-@pytest.mark.linux
 def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 

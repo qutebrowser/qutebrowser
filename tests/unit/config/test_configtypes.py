@@ -1284,14 +1284,6 @@ class TestFileAndUserStyleSheet:
         os_mock.path.join.assert_called_once_with(
             '/home/foo/.config/', 'foobar')
 
-    def test_validate_rel_config_none_file(self, os_mock, monkeypatch):
-        """Test with a relative path and standarddir.config returning None."""
-        monkeypatch.setattr(
-            'qutebrowser.config.configtypes.standarddir.config', lambda: None)
-        os_mock.path.isabs.return_value = False
-        with pytest.raises(configexc.ValidationError):
-            configtypes.File().validate('foobar')
-
     @pytest.mark.parametrize('configtype, value, raises', [
         (configtypes.File(), 'foobar', True),
         (configtypes.UserStyleSheet(), 'foobar', False),
@@ -1355,14 +1347,8 @@ class TestFileAndUserStyleSheet:
         expected = self._expected(klass, '/configdir/foo')
         assert klass().transform('foo') == expected
 
-    @pytest.mark.parametrize('no_config', [False, True])
-    def test_transform_userstylesheet_base64(self, monkeypatch, no_config):
+    def test_transform_userstylesheet_base64(self, monkeypatch):
         """Test transform with a data string."""
-        if no_config:
-            monkeypatch.setattr(
-                'qutebrowser.config.configtypes.standarddir.config',
-                lambda: None)
-
         b64 = base64.b64encode(b"test").decode('ascii')
         url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
         assert configtypes.UserStyleSheet().transform("test") == url

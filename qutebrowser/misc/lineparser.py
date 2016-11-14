@@ -57,10 +57,7 @@ class BaseLineParser(QObject):
         """
         super().__init__(parent)
         self._configdir = configdir
-        if self._configdir is None:
-            self._configfile = None
-        else:
-            self._configfile = os.path.join(self._configdir, fname)
+        self._configfile = os.path.join(self._configdir, fname)
         self._fname = fname
         self._binary = binary
         self._opened = False
@@ -76,8 +73,6 @@ class BaseLineParser(QObject):
         Return:
             True if the file should be saved, False otherwise.
         """
-        if self._configdir is None:
-            return False
         if not os.path.exists(self._configdir):
             os.makedirs(self._configdir, 0o755)
         return True
@@ -222,7 +217,7 @@ class LineParser(BaseLineParser):
             binary: Whether to open the file in binary mode.
         """
         super().__init__(configdir, fname, binary=binary, parent=parent)
-        if configdir is None or not os.path.isfile(self._configfile):
+        if not os.path.isfile(self._configfile):
             self.data = []
         else:
             log.init.debug("Reading {}".format(self._configfile))

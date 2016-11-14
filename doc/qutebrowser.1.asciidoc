@@ -39,13 +39,13 @@ show it.
     show this help message and exit
 
 *-c* 'CONFDIR', *--confdir* 'CONFDIR'::
-    Set config directory (empty for no config storage).
+    Set config directory
 
 *--datadir* 'DATADIR'::
-    Set data directory (empty for no data storage).
+    Set data directory
 
 *--cachedir* 'CACHEDIR'::
-    Set cache directory (empty for no cache storage).
+    Set cache directory
 
 *--basedir* 'BASEDIR'::
     Base directory for all storage. Other --*dir arguments are ignored if this is given.
