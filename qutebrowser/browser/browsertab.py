@@ -84,6 +84,7 @@ class TabData:
         inspector: The QWebInspector used for this webview.
         viewing_source: Set if we're currently showing a source view.
         override_target: Override for open_target for fake clicks (like hints).
+                         Only used for QtWebKit.
     """
 
     def __init__(self):

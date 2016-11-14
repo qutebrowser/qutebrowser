@@ -74,18 +74,12 @@ class WebEngineView(QWebEngineView):
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
         background_tabs = config.get('tabs', 'background-tabs')
-        override_target = self._tabdata.override_target
 
         log.webview.debug("createWindow with type {}, background_tabs "
-                          "{}, override_target {}".format(
-                              debug_type, background_tabs, override_target))
+                          "{}".format(debug_type, background_tabs))
 
-        if override_target is not None:
-            target = override_target
-            self._tabdata.override_target = None
-        elif wintype == QWebEnginePage.WebBrowserWindow:
-            log.webview.debug("createWindow with WebBrowserWindow - when does "
-                              "this happen?!")
+        if wintype == QWebEnginePage.WebBrowserWindow:
+            # Shift-Alt-Click
             target = usertypes.ClickTarget.window
         elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
