@@ -259,4 +259,4 @@ Feature: Keyboard input
     Scenario: Cancelling key input
         When I run :record-macro
         And I press the key "<Escape>"
-        Then "Leaving mode KeyMode.record_macro (reason: register key cancelled)" should be logged
+        Then "Leaving mode KeyMode.record_macro (reason: leave current)" should be logged
