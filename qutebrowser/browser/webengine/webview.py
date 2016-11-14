@@ -304,6 +304,5 @@ class WebEnginePage(QWebEnginePage):
                 not url.isValid()):
             msg = urlutils.get_errstring(url, "Invalid link clicked")
             message.error(msg)
-            self.page().open_target = usertypes.ClickTarget.normal
             return False
         return True
