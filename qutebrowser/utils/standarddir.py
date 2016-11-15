@@ -153,9 +153,6 @@ def _from_args(typ, args):
         QStandardPaths.RuntimeLocation: 'runtime',
     }
 
-    if args is None:
-        return (False, None)
-
     if getattr(args, 'basedir', None) is not None:
         basedir = args.basedir
 
@@ -164,6 +161,8 @@ def _from_args(typ, args):
         except KeyError:  # pragma: no cover
             return (False, None)
         return (True, os.path.abspath(os.path.join(basedir, suffix)))
+    else:
+        return (False, None)
 
 
 def _create(path):
