@@ -21,6 +21,7 @@
 
 import os
 import sys
+import shutil
 import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
@@ -188,6 +189,8 @@ def init(args):
         log.init.debug("Base directory: {}".format(args.basedir))
     _args = args
     _init_cachedir_tag()
+    if args is not None:
+        _move_webengine_data()
 
 
 def _init_cachedir_tag():
@@ -207,3 +210,49 @@ def _init_cachedir_tag():
                         "cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")
+
+
+def _move_webengine_data():
+    """Move QtWebEngine data from an older location to the new one."""
+    # Do NOT use _writable_location here as that'd give us a wrong path
+    old_data_dir = QStandardPaths.writableLocation(QStandardPaths.DataLocation)
+    old_cache_dir = QStandardPaths.writableLocation(
+        QStandardPaths.CacheLocation)
+    new_data_dir = os.path.join(data(), 'webengine')
+    new_cache_dir = os.path.join(cache(), 'webengine')
+
+    if (not os.path.exists(os.path.join(old_data_dir, 'QtWebEngine')) and
+            not os.path.exists(os.path.join(old_cache_dir, 'QtWebEngine'))):
+        return
+
+    log.init.debug("Moving QtWebEngine data from {} to {}".format(
+        old_data_dir, new_data_dir))
+    log.init.debug("Moving QtWebEngine cache from {} to {}".format(
+        old_cache_dir, new_cache_dir))
+
+    if os.path.exists(new_data_dir):
+        log.init.warning("Failed to move old QtWebEngine data as {} already "
+                         "exists!".format(new_data_dir))
+        return
+    if os.path.exists(new_cache_dir):
+        log.init.warning("Failed to move old QtWebEngine cache as {} already "
+                         "exists!".format(new_cache_dir))
+        return
+
+    try:
+        shutil.move(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
+                    new_data_dir)
+        shutil.move(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
+                    new_cache_dir)
+
+        # Remove e.g.
+        # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
+        if old_data_dir.split(os.sep)[-2:] == ['qutebrowser', 'qutebrowser']:
+            log.init.debug("Removing {} / {}".format(
+                old_data_dir, old_cache_dir))
+            for old_dir in old_data_dir, old_cache_dir:
+                os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
+                os.rmdir(old_dir)
+    except OSError as e:
+        log.init.exception("Failed to move old QtWebEngine data/cache: "
+                           "{}".format(e))

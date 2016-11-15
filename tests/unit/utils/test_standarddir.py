@@ -300,3 +300,102 @@ class TestSystemData:
         standarddir.init(fake_args)
         monkeypatch.setattr('sys.platform', "potato")
         assert standarddir.system_data() == standarddir.data()
+
+
+class TestMoveWebEngineData:
+
+    """Test moving QtWebEngine data from an old location."""
+
+    @pytest.fixture(autouse=True)
+    def patch_standardpaths(self, tmpdir, monkeypatch):
+        locations = {
+            QStandardPaths.DataLocation: str(tmpdir / 'data'),
+            QStandardPaths.CacheLocation: str(tmpdir / 'cache'),
+        }
+        monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                            locations.get)
+        monkeypatch.setattr(standarddir, 'data',
+                            lambda: str(tmpdir / 'new_data'))
+        monkeypatch.setattr(standarddir, 'cache',
+                            lambda: str(tmpdir / 'new_cache'))
+
+    @pytest.fixture
+    def files(self, tmpdir):
+        files = collections.namedtuple('Files', ['old_data', 'new_data',
+                                                 'old_cache', 'new_cache'])
+        return files(
+            old_data=tmpdir / 'data' / 'QtWebEngine' / 'Default' / 'datafile',
+            new_data=tmpdir / 'new_data' / 'webengine' / 'datafile',
+            old_cache=(tmpdir / 'cache' / 'QtWebEngine' / 'Default' /
+                       'cachefile'),
+            new_cache=(tmpdir / 'new_cache' / 'webengine' / 'cachefile'),
+        )
+
+    def test_no_webengine_dir(self, caplog):
+        """Nothing should happen without any QtWebEngine directory."""
+        standarddir._move_webengine_data()
+        assert not any(rec.message.startswith('Moving QtWebEngine')
+                       for rec in caplog.records)
+
+    def test_moving_data(self, files):
+        files.old_data.ensure()
+        files.old_cache.ensure()
+
+        standarddir._move_webengine_data()
+
+        assert not files.old_data.exists()
+        assert not files.old_cache.exists()
+        assert files.new_data.exists()
+        assert files.new_cache.exists()
+
+    @pytest.mark.parametrize('what', ['data', 'cache'])
+    def test_already_existing(self, files, caplog, what):
+        files.old_data.ensure()
+        files.old_cache.ensure()
+
+        if what == 'data':
+            files.new_data.ensure()
+        else:
+            files.new_cache.ensure()
+
+        with caplog.at_level(logging.WARNING):
+            standarddir._move_webengine_data()
+
+        record = caplog.records[-1]
+        expected = "Failed to move old QtWebEngine {}".format(what)
+        assert record.message.startswith(expected)
+
+    def test_deleting_empty_dirs(self, monkeypatch, tmpdir):
+        """When we have a qutebrowser/qutebrowser subfolder, clean it up."""
+        old_data = tmpdir / 'data' / 'qutebrowser' / 'qutebrowser'
+        old_cache = tmpdir / 'cache' / 'qutebrowser' / 'qutebrowser'
+        locations = {
+            QStandardPaths.DataLocation: str(old_data),
+            QStandardPaths.CacheLocation: str(old_cache),
+        }
+        monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                            locations.get)
+
+        old_data_file = old_data / 'QtWebEngine' / 'Default' / 'datafile'
+        old_cache_file = old_cache / 'QtWebEngine' / 'Default' / 'cachefile'
+        old_data_file.ensure()
+        old_cache_file.ensure()
+
+        standarddir._move_webengine_data()
+
+        assert not (tmpdir / 'data' / 'qutebrowser' / 'qutebrowser').exists()
+        assert not (tmpdir / 'cache' / 'qutebrowser' / 'qutebrowser').exists()
+
+    def test_deleting_error(self, files, monkeypatch, mocker, caplog):
+        """When there was an error it should be logged."""
+        mock = mocker.Mock(side_effect=OSError('error'))
+        monkeypatch.setattr(standarddir.shutil, 'move', mock)
+        files.old_data.ensure()
+        files.old_cache.ensure()
+
+        with caplog.at_level(logging.ERROR):
+            standarddir._move_webengine_data()
+
+        record = caplog.records[-1]
+        expected = "Failed to move old QtWebEngine data/cache: error"
+        assert record.message == expected

@@ -27,11 +27,11 @@ Module attributes:
 import os
 
 # pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.config import websettings, config
-from qutebrowser.utils import objreg, utils
+from qutebrowser.utils import objreg, utils, standarddir
 
 
 class Attribute(websettings.Attribute):
@@ -70,11 +70,14 @@ def update_settings(section, option):
 
 def init():
     """Initialize the global QWebSettings."""
-    # FIXME:qtwebengine set paths in profile
-
     if config.get('general', 'developer-extras'):
         # FIXME:qtwebengine Make sure we call globalSettings *after* this...
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
+
+    profile = QWebEngineProfile.defaultProfile()
+    profile.setCachePath(os.path.join(standarddir.cache(), 'webengine'))
+    profile.setPersistentStoragePath(
+        os.path.join(standarddir.data(), 'webengine'))
 
     websettings.init_mappings(MAPPINGS)
     objreg.get('config').changed.connect(update_settings)
@@ -98,13 +101,11 @@ def shutdown():
 # - PictographFont
 #
 # TODO settings on profile:
-# - cachePath
 # - httpAcceptLanguage
 # - httpCacheMaximumSize
 # - httpUserAgent
 # - persistentCookiesPolicy
 # - offTheRecord
-# - persistentStoragePath
 #
 # TODO settings elsewhere:
 # - proxy
