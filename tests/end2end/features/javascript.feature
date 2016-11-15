@@ -40,7 +40,7 @@ Feature: Javascript stuff
         And I run :click-element id close-twice
         Then "Requested to close * which does not exist!" should be logged
 
-    @qtwebkit_skip
+    @qtwebkit_skip @flaky
     Scenario: Closing a JS window twice (issue 906) - qtwebengine
         When I open about:blank
         And I run :tab-only
