@@ -217,7 +217,7 @@ class QuteWM:
                     handler(ev)
             except Quit:
                 return self._retcode
-            #log.debug("Got event {}".format(ev))
+            log.debug("Got event {}".format(ev))
             self._update_clients()
 
     def quit(self, reason=None):
