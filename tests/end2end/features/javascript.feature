@@ -33,7 +33,7 @@ Feature: Javascript stuff
     Scenario: Closing a JS window twice (issue 906) - qtwebkit
         When I open about:blank
         And I run :tab-only
-        When I open data/javascript/window_open.html in a new tab
+        And I open data/javascript/window_open.html in a new tab
         And I run :click-element id open-normal
         And I wait for "Changing title for idx 2 to 'about:blank'" in the log
         And I run :tab-focus 2
