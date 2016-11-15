@@ -87,6 +87,7 @@ class WebEngineView(QWebEngineView):
             target = usertypes.ClickTarget.tab
         elif wintype == QWebEnginePage.WebBrowserTab:
             # Middle-click / Ctrl-Click with Shift
+            # FIXME:qtwebengine this also affects target=_blank links...
             if background_tabs:
                 target = usertypes.ClickTarget.tab
             else:
