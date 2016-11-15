@@ -110,6 +110,7 @@ class TestStandardDir:
         (standarddir.data, 'XDG_DATA_HOME'),
         (standarddir.config, 'XDG_CONFIG_HOME'),
         (standarddir.cache, 'XDG_CACHE_HOME'),
+        (standarddir.runtime, 'XDG_RUNTIME_DIR'),
     ])
     @pytest.mark.linux
     def test_linux_explicit(self, monkeypatch, tmpdir, func, varname):
