@@ -356,7 +356,8 @@ def data(readonly=False):
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
-                                                   'scroll_pos', 'host']),
+                                                   'scroll_pos', 'host',
+                                                   'backend']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -367,7 +368,8 @@ def data(readonly=False):
              "otherwise.\n"
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
-             "* `{host}`: The host of the current web page."),
+             "* `{host}`: The host of the current web page.\n"
+             "* `{backend}`: Either 'webkit' or 'webengine'"),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -675,7 +677,8 @@ def data(readonly=False):
              "* `{index}`: The index of this tab.\n"
              "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
-             "* `{host}`: The host of the current web page."),
+             "* `{host}`: The host of the current web page.\n"
+             "* `{backend}`: Either 'webkit' or 'webengine'"),
 
             ('title-alignment',
              SettingValue(typ.TextAlignment(), 'left'),
