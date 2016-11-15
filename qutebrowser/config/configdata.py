@@ -323,14 +323,12 @@ def data(readonly=False):
              "page."),
 
             ('user-stylesheet',
-             SettingValue(typ.File(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.File(none_ok=True), ''),
              "User stylesheet to use (absolute filename or filename relative to "
              "the config directory). Will expand environment variables."),
 
             ('hide-scrollbar',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Bool(), 'true'),
              "Hide the main scrollbar."),
 
             ('css-media-type',
