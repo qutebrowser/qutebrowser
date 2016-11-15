@@ -1462,6 +1462,11 @@ class UserAgent(BaseType):
 
     def validate(self, value):
         self._basic_validation(value)
+        try:
+            value.encode('ascii')
+        except UnicodeEncodeError as e:
+            msg = "User-Agent contains non-ascii characters: {}".format(e)
+            raise configexc.ValidationError(value, msg)
 
     # To update the following list of user agents, run the script 'ua_fetch.py'
     # Vim-protip: Place your cursor below this comment and run

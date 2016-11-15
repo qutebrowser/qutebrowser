@@ -1976,10 +1976,11 @@ class TestUserAgent:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    def test_validate_invalid(self, klass):
+    @pytest.mark.parametrize('val', ['', 'überbrowser'])
+    def test_validate_invalid(self, klass, val):
         """Test validate with empty string and none_ok = False."""
         with pytest.raises(configexc.ValidationError):
-            klass().validate('')
+            klass().validate(val)
 
     def test_transform(self, klass):
         assert klass().transform('foobar') == 'foobar'

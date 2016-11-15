@@ -413,8 +413,7 @@ def data(readonly=False):
              "Send the Referer header"),
 
             ('user-agent',
-             SettingValue(typ.UserAgent(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.UserAgent(none_ok=True), ''),
              "User agent to send. Empty to send the default."),
 
             ('proxy',

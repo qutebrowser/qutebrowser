@@ -101,9 +101,7 @@ def shutdown():
 # - PictographFont
 #
 # TODO settings on profile:
-# - httpAcceptLanguage
 # - httpCacheMaximumSize
-# - httpUserAgent
 # - persistentCookiesPolicy
 # - offTheRecord
 #

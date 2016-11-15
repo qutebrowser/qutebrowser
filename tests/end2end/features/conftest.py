@@ -121,6 +121,8 @@ def set_setting_given(quteproc, httpbin, sect, opt, value):
 
     This is available as "Given:" step so it can be used as "Background:".
     """
+    if value == '<empty>':
+        value = ''
     value = value.replace('(port)', str(httpbin.port))
     quteproc.set_setting(sect, opt, value)
 
@@ -211,6 +213,8 @@ def open_path(quteproc, path):
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
 def set_setting(quteproc, httpbin, sect, opt, value):
     """Set a qutebrowser setting."""
+    if value == '<empty>':
+        value = ''
     value = value.replace('(port)', str(httpbin.port))
     quteproc.set_setting(sect, opt, value)
 
@@ -479,7 +483,7 @@ def check_header(quteproc, header, value):
     content = quteproc.get_content()
     data = json.loads(content)
     print(data)
-    assert data['headers'][header] == value
+    assert utils.pattern_match(pattern=value, value=data['headers'][header])
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the html "{text}"'))
