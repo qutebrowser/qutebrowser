@@ -22,7 +22,6 @@
 import re
 import json
 import shlex
-import base64
 import codecs
 import os.path
 import itertools

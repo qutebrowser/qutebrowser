@@ -26,7 +26,6 @@ Module attributes:
 
 import os.path
 
-from PyQt5.QtCore import QUrl
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings

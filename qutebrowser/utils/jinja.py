@@ -23,7 +23,6 @@ import os
 import os.path
 import traceback
 import mimetypes
-import base64
 
 import jinja2
 import jinja2.exceptions

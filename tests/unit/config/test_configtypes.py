@@ -22,7 +22,6 @@ import re
 import collections
 import itertools
 import os.path
-import base64
 import warnings
 
 import pytest

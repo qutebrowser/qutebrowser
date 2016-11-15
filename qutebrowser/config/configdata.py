@@ -324,8 +324,8 @@ def data(readonly=False):
 
             ('user-stylesheet',
              SettingValue(typ.File(none_ok=True), ''),
-             "User stylesheet to use (absolute filename or filename relative to "
-             "the config directory). Will expand environment variables."),
+             "User stylesheet to use (absolute filename or filename relative "
+             "to the config directory). Will expand environment variables."),
 
             ('hide-scrollbar',
              SettingValue(typ.Bool(), 'true'),
