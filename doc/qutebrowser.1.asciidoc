@@ -38,17 +38,8 @@ show it.
 *-h*, *--help*::
     show this help message and exit
 
-*-c* 'CONFDIR', *--confdir* 'CONFDIR'::
-    Set config directory
-
-*--datadir* 'DATADIR'::
-    Set data directory
-
-*--cachedir* 'CACHEDIR'::
-    Set cache directory
-
 *--basedir* 'BASEDIR'::
-    Base directory for all storage. Other --*dir arguments are ignored if this is given.
+    Base directory for all storage.
 
 *-V*, *--version*::
     Show version and quit.

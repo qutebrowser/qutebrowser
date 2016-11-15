@@ -163,54 +163,7 @@ DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
 @pytest.mark.usefixtures('reset_standarddir')
 class TestArguments:
 
-    """Tests with confdir/cachedir/datadir arguments."""
-
-    @pytest.fixture(params=[DirArgTest('foo', 'foo')])
-    def testcase(self, request, tmpdir):
-        """Fixture providing testcases."""
-        # prepend tmpdir to both
-        arg = str(tmpdir / request.param.arg)
-        return DirArgTest(arg, arg)
-
-    def test_confdir(self, testcase):
-        """Test --confdir."""
-        args = types.SimpleNamespace(confdir=testcase.arg, cachedir=None,
-                                     datadir=None, basedir=None)
-        standarddir.init(args)
-        assert standarddir.config() == testcase.expected
-
-    def test_cachedir(self, testcase):
-        """Test --cachedir."""
-        args = types.SimpleNamespace(confdir=None, cachedir=testcase.arg,
-                                     datadir=None, basedir=None)
-        standarddir.init(args)
-        assert standarddir.cache() == testcase.expected
-
-    def test_datadir(self, testcase):
-        """Test --datadir."""
-        args = types.SimpleNamespace(confdir=None, cachedir=None,
-                                     datadir=testcase.arg, basedir=None)
-        standarddir.init(args)
-        assert standarddir.data() == testcase.expected
-
-    def test_confdir_none(self, mocker):
-        """Test --confdir with None given."""
-        # patch makedirs to a noop so we don't really create a directory
-        mocker.patch('qutebrowser.utils.standarddir.os.makedirs')
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
-                                     basedir=None)
-        standarddir.init(args)
-        assert standarddir.config().split(os.sep)[-1] == 'qute_test'
-
-    def test_runtimedir(self, tmpdir, monkeypatch):
-        """Test runtime dir (which has no args)."""
-        monkeypatch.setattr(
-            'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
-            lambda _typ: str(tmpdir))
-        args = types.SimpleNamespace(confdir=None, cachedir=None,
-                                     datadir=None, basedir=None)
-        standarddir.init(args)
-        assert standarddir.runtime() == str(tmpdir / 'qute_test')
+    """Tests the --basedir argument."""
 
     @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
                                      pytest.mark.linux('runtime')])

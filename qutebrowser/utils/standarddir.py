@@ -145,11 +145,6 @@ def _from_args(typ, args):
             override: boolean, if the user did override the path
             path: The overridden path, or None to turn off storage.
     """
-    typ_to_argparse_arg = {
-        QStandardPaths.ConfigLocation: 'confdir',
-        QStandardPaths.DataLocation: 'datadir',
-        QStandardPaths.CacheLocation: 'cachedir',
-    }
     basedir_suffix = {
         QStandardPaths.ConfigLocation: 'config',
         QStandardPaths.DataLocation: 'data',
@@ -169,18 +164,6 @@ def _from_args(typ, args):
         except KeyError:  # pragma: no cover
             return (False, None)
         return (True, os.path.abspath(os.path.join(basedir, suffix)))
-
-    try:
-        argname = typ_to_argparse_arg[typ]
-    except KeyError:
-        return (False, None)
-    arg_value = getattr(args, argname)
-
-    assert arg_value != '', argname
-    if arg_value is None:
-        return (False, None)
-    else:
-        return (True, arg_value)
 
 
 def _create(path):

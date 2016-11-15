@@ -168,6 +168,8 @@ Removed
   thus removed.
 - All `--qt-*` arguments got replaced by `--qt-arg` and `--qt-flag` and thus
   removed.
+- The `-c`/`--confdir`, `--datadir` and `--cachedir` arguments got removed, as
+  `--basedir` should be sufficient.
 
 Fixed
 ~~~~~
