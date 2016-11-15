@@ -437,6 +437,11 @@ class ConfigManager(QObject):
         ('fonts', 'hints'): _transform_hint_font,
         ('completion', 'show'):
             _get_value_transformer({'false': 'never', 'true': 'always'}),
+        ('ui', 'user-stylesheet'):
+            _get_value_transformer({
+                'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
+                '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
+            }),
     }
 
     changed = pyqtSignal(str, str)

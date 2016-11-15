@@ -323,13 +323,15 @@ def data(readonly=False):
              "page."),
 
             ('user-stylesheet',
-             SettingValue(typ.UserStyleSheet(none_ok=True),
-                          'html > ::-webkit-scrollbar { width: 0px; '
-                          'height: 0px; }',
+             SettingValue(typ.File(none_ok=True), '',
                           backends=[usertypes.Backend.QtWebKit]),
-             "User stylesheet to use (absolute filename, filename relative to "
-             "the config directory or CSS string). Will expand environment "
-             "variables."),
+             "User stylesheet to use (absolute filename or filename relative to "
+             "the config directory). Will expand environment variables."),
+
+            ('hide-scrollbar',
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebKit]),
+             "Hide the main scrollbar."),
 
             ('css-media-type',
              SettingValue(typ.String(none_ok=True), '',

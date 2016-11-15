@@ -1165,40 +1165,6 @@ class Encoding(BaseType):
             raise configexc.ValidationError(value, "is not a valid encoding!")
 
 
-class UserStyleSheet(File):
-
-    """QWebSettings UserStyleSheet."""
-
-    def transform(self, value):
-        if not value:
-            return None
-
-        path = super().transform(value)
-        if path is not None and os.path.exists(path):
-            return QUrl.fromLocalFile(path)
-        else:
-            return urlutils.data_url('text/css', value.encode('utf-8'))
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        value = os.path.expandvars(value)
-        value = os.path.expanduser(value)
-        try:
-            super().validate(value)
-        except configexc.ValidationError:
-            try:
-                if not os.path.isabs(value):
-                    # probably a CSS, so we don't handle it as filename.
-                    # FIXME We just try if it is encodable, maybe we should
-                    # validate CSS?
-                    # https://github.com/The-Compiler/qutebrowser/issues/115
-                    value.encode('utf-8')
-            except UnicodeEncodeError as e:
-                raise configexc.ValidationError(value, str(e))
-
-
 class AutoSearch(BaseType):
 
     """Whether to start a search when something else than a URL is entered."""

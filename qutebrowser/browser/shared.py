@@ -222,3 +222,19 @@ def get_tab(win_id, target):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     return tabbed_browser.tabopen(url=None, background=bg_tab)
+
+
+def get_user_stylesheet():
+    """Get the combined user-stylesheet."""
+    filename = config.get('ui', 'user-stylesheet')
+
+    if filename is None:
+        css = ''
+    else:
+        with open(filename, 'r', encoding='utf-8') as f:
+            css = f.read()
+
+    if config.get('ui', 'hide-scrollbar'):
+        css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
+
+    return css

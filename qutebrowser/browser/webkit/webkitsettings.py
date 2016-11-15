@@ -26,10 +26,12 @@ Module attributes:
 
 import os.path
 
+from PyQt5.QtCore import QUrl
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg
+from qutebrowser.utils import standarddir, objreg, urlutils
+from qutebrowser.browser import shared
 
 
 class Attribute(websettings.Attribute):
@@ -80,14 +82,24 @@ class CookiePolicy(websettings.Base):
             self.MAPPING[value])
 
 
+def _set_user_stylesheet():
+    """Set the generated user-stylesheet."""
+    stylesheet = shared.get_user_stylesheet().encode('utf-8')
+    url = urlutils.data_url('text/css;charset=utf-8', stylesheet)
+    QWebSettings.globalSettings().setUserStyleSheetUrl(url)
+
+
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
-    cache_path = standarddir.cache()
     if (section, option) == ('general', 'private-browsing'):
+        cache_path = standarddir.cache()
         if config.get('general', 'private-browsing') or cache_path is None:
             QWebSettings.setIconDatabasePath('')
         else:
             QWebSettings.setIconDatabasePath(cache_path)
+    elif section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
+        _set_user_stylesheet()
+
     websettings.update_mappings(MAPPINGS, section, option)
 
 
@@ -108,6 +120,7 @@ def init():
         os.path.join(data_path, 'offline-storage'))
 
     websettings.init_mappings(MAPPINGS)
+    _set_user_stylesheet()
     objreg.get('config').changed.connect(update_settings)
 
 
@@ -204,9 +217,7 @@ MAPPINGS = {
             Attribute(QWebSettings.ZoomTextOnly),
         'frame-flattening':
             Attribute(QWebSettings.FrameFlatteningEnabled),
-        'user-stylesheet':
-            Setter(getter=QWebSettings.userStyleSheetUrl,
-                   setter=QWebSettings.setUserStyleSheetUrl),
+        # user-stylesheet is handled separately
         'css-media-type':
             NullStringSetter(getter=QWebSettings.cssMediaType,
                              setter=QWebSettings.setCSSMediaType),
