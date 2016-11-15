@@ -82,8 +82,7 @@ def data_url(path):
     filename = utils.resource_filename(path)
     mimetype = mimetypes.guess_type(filename)
     assert mimetype is not None, path
-    b64 = base64.b64encode(data).decode('ascii')
-    return 'data:{};charset=utf-8;base64,{}'.format(mimetype[0], b64)
+    return urlutils.data_url(mimetype[0], data).toString()
 
 
 def render(template, **kwargs):

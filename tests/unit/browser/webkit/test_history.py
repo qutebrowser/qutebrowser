@@ -19,7 +19,6 @@
 
 """Tests for the global page history."""
 
-import base64
 import logging
 
 import pytest
@@ -28,7 +27,7 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, urlutils
 
 
 class FakeWebHistory:
@@ -375,9 +374,8 @@ def hist_interface():
 
 
 def test_history_interface(qtbot, webview, hist_interface):
-    html = "<a href='about:blank'>foo</a>"
-    data = base64.b64encode(html.encode('utf-8')).decode('ascii')
-    url = QUrl("data:text/html;charset=utf-8;base64,{}".format(data))
+    html = b"<a href='about:blank'>foo</a>"
+    url = urlutils.data_url('text/html', html)
     with qtbot.waitSignal(webview.loadFinished):
         webview.load(url)
 

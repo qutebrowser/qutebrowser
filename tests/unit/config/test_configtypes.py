@@ -1350,7 +1350,7 @@ class TestFileAndUserStyleSheet:
     def test_transform_userstylesheet_base64(self, monkeypatch):
         """Test transform with a data string."""
         b64 = base64.b64encode(b"test").decode('ascii')
-        url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
+        url = QUrl("data:text/css;base64,{}".format(b64))
         assert configtypes.UserStyleSheet().transform("test") == url
 
 

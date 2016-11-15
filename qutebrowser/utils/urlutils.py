@@ -20,6 +20,7 @@
 """Utils regarding URL handling."""
 
 import re
+import base64
 import os.path
 import ipaddress
 import posixpath
@@ -580,3 +581,11 @@ def file_url(path):
         path: The absolute path to the local file
     """
     return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
+
+
+def data_url(mimetype, data):
+    """Get a data: QUrl for the given data."""
+    b64 = base64.b64encode(data).decode('ascii')
+    url = QUrl('data:{};base64,{}'.format(mimetype, b64))
+    qtutils.ensure_valid(url)
+    return url

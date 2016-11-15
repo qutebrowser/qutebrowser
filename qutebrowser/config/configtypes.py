@@ -37,7 +37,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, urlutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -1177,8 +1177,7 @@ class UserStyleSheet(File):
         if path is not None and os.path.exists(path):
             return QUrl.fromLocalFile(path)
         else:
-            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
-            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
+            return urlutils.data_url('text/css', value.encode('utf-8'))
 
     def validate(self, value):
         self._basic_validation(value)
