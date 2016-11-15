@@ -37,7 +37,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils, urlutils
+from qutebrowser.utils import standarddir, utils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
