@@ -1572,7 +1572,7 @@ class CommandDispatcher:
         def single_cb(elem):
             """Click a single element."""
             if elem is None:
-                message.error("No element found!")
+                message.error("No element found with id {}!".format(value))
                 return
             try:
                 elem.click(target)

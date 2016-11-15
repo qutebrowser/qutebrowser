@@ -566,7 +566,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element with unknown ID
         When I open data/click_element.html
         And I run :click-element id blah
-        Then the error "No element found!" should be shown
+        Then the error "No element found with id blah!" should be shown
 
     Scenario: Clicking an element by ID
         When I open data/click_element.html
