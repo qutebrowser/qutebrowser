@@ -88,12 +88,8 @@ class Entry:
         if not url.isValid():
             raise ValueError("Invalid URL: {}".format(url.errorString()))
 
-        if atime.startswith('\0'):
-            log.init.debug(
-                "Removing NUL bytes from entry {!r} - see "
-                "https://github.com/The-Compiler/qutebrowser/issues/"
-                "670".format(data))
-            atime = atime.lstrip('\0')
+        # https://github.com/The-Compiler/qutebrowser/issues/670
+        atime = atime.lstrip('\0')
 
         if '-' in atime:
             atime, flags = atime.split('-')
