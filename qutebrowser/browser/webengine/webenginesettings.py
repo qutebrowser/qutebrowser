@@ -109,8 +109,6 @@ def shutdown():
 #
 # TODO settings elsewhere:
 # - proxy
-# - custom headers
-# - ssl-strict
 
 MAPPINGS = {
     'content': {
