@@ -239,7 +239,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def tab_close(self, prev=False, next_=False, opposite=False, count=None):
+    def tab_close(self, prev=False, next_=False, opposite=False,
+                    force=False, count=None):
         """Close the current/[count]th tab.
 
         Args:
@@ -247,6 +248,7 @@ class CommandDispatcher:
             next_: Force selecting the tab after the current tab.
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs->select-on-remove'.
+            force: Avoid confirmation for pinned tabs.
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
@@ -255,7 +257,7 @@ class CommandDispatcher:
         close = functools.partial(self._tab_close, tab, prev,
                                 next_, opposite)
 
-        if tab.data.pinned:
+        if tab.data.pinned and not force:
             message.confirm_async(title='Pinned Tab',
                     text="Are you sure you want to close a pinned tab?",
                     yes_action=close, default=False)
