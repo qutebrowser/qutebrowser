@@ -102,8 +102,8 @@ show it.
 *--no-err-windows*::
     Don't show any error windows (used for tests/smoke.py).
 
-*--qt-arg* 'QT_ARG'::
-    Pass an argument with a value to Qt.
+*--qt-arg* 'NAME' 'VALUE'::
+    Pass an argument with a value to Qt. For example, you can do `--qt-arg geometry 650x555+200+300` to set the window geometry.
 
 *--qt-flag* 'QT_FLAG'::
     Pass an argument to Qt as flag.

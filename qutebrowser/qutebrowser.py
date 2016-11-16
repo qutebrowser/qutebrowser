@@ -105,8 +105,10 @@ def get_argparser():
                        "temporary basedir.")
     debug.add_argument('--no-err-windows', action='store_true', help="Don't "
                        "show any error windows (used for tests/smoke.py).")
-    debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt.",
-                       nargs=2)
+    debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt. "
+                       "For example, you can do "
+                       "`--qt-arg geometry 650x555+200+300` to set the window "
+                       "geometry.", nargs=2, metavar=('NAME', 'VALUE'))
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
                        nargs=1)
     parser.add_argument('command', nargs='*', help="Commands to execute on "
