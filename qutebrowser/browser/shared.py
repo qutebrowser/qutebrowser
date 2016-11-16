@@ -146,9 +146,13 @@ def ignore_certificate_errors(url, errors, abort_on):
         """.strip())
         msg = err_template.render(url=url, errors=errors)
 
-        return message.ask(title="Certificate errors - continue?", text=msg,
-                           mode=usertypes.PromptMode.yesno, default=False,
-                           abort_on=abort_on)
+        ignore = message.ask(title="Certificate errors - continue?", text=msg,
+                             mode=usertypes.PromptMode.yesno, default=False,
+                             abort_on=abort_on)
+        if ignore is None:
+            # prompt aborted
+            ignore = False
+        return ignore
     elif ssl_strict is False:
         log.webview.debug("ssl-strict is False, only warning about errors")
         for err in errors:
