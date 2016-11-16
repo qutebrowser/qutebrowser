@@ -24,7 +24,7 @@ import html
 import collections
 
 import sip
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelInhttp://cx-freeze.readthedocs.io/en/latest/releasenotes.html#version-5-0-november-2016dex,
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
