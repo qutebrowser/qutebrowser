@@ -87,7 +87,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def __str__(self):
-        return self.text()
+        raise NotImplementedError
 
     def __getitem__(self, key):
         raise NotImplementedError
@@ -138,24 +138,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the full HTML representation of this element."""
         raise NotImplementedError
 
-    def text(self, *, use_js=False):
-        """Get the plain text content for this element.
-
-        Args:
-            use_js: Whether to use javascript if the element isn't
-                    content-editable.
-        """
-        # FIXME:qtwebengine what to do about use_js with WebEngine?
+    def value(self):
+        """Get the value attribute for this element."""
         raise NotImplementedError
 
-    def set_text(self, text, *, use_js=False):
-        """Set the given plain text.
-
-        Args:
-            use_js: Whether to use javascript if the element isn't
-                    content-editable.
-        """
-        # FIXME:qtwebengine what to do about use_js with WebEngine?
+    def set_value(self, value):
+        """Set the element value."""
         raise NotImplementedError
 
     def insert_text(self, text):

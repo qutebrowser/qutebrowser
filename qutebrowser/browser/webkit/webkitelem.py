@@ -46,6 +46,10 @@ class WebKitElement(webelem.AbstractWebElement):
             raise IsNullError('{} is a null element!'.format(elem))
         self._elem = elem
 
+    def __str__(self):
+        self._check_vanished()
+        return self._elem.toPlainText()
+
     def __eq__(self, other):
         if not isinstance(other, WebKitElement):
             return NotImplemented
@@ -116,22 +120,19 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.toOuterXml()
 
-    def text(self, *, use_js=False):
+    def value(self):
         self._check_vanished()
-        if self.is_content_editable() or not use_js:
-            return self._elem.toPlainText()
-        else:
-            return self._elem.evaluateJavaScript('this.value')
+        return self._elem.evaluateJavaScript('this.value')
 
-    def set_text(self, text, *, use_js=False):
+    def set_value(self, value):
         self._check_vanished()
-        if self.is_content_editable() or not use_js:
+        if self.is_content_editable():
             log.webelem.debug("Filling {!r} via set_text.".format(self))
-            self._elem.setPlainText(text)
+            self._elem.setPlainText(value)
         else:
             log.webelem.debug("Filling {!r} via javascript.".format(self))
-            text = javascript.string_escape(text)
-            self._elem.evaluateJavaScript("this.value='{}'".format(text))
+            value = javascript.string_escape(value)
+            self._elem.evaluateJavaScript("this.value='{}'".format(value))
 
     def insert_text(self, text):
         self._check_vanished()

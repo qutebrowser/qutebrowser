@@ -1486,7 +1486,7 @@ class CommandDispatcher:
             message.error("Focused element is not editable!")
             return
 
-        text = elem.text(use_js=True)
+        text = elem.value()
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
@@ -1513,7 +1513,7 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         try:
-            elem.set_text(text, use_js=True)
+            elem.set_value(text)
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
 

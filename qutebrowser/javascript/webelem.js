@@ -34,6 +34,7 @@ window._qutebrowser.webelem = (function() {
         var out = {
             "id": id,
             "text": elem.text,
+            "value": elem.value,
             "tag_name": elem.tagName,
             "outer_xml": elem.outerHTML,
             "class_name": elem.className,
@@ -129,8 +130,8 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
-    funcs.set_text = function(id, text) {
-        elements[id].value = text;
+    funcs.set_value = function(id, value) {
+        elements[id].value = value;
     };
 
     funcs.insert_text = function(id, text) {
