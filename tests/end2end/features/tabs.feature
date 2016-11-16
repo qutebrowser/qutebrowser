@@ -5,18 +5,6 @@ Feature: Tab management
         Given I clean up open tabs
         And I set tabs -> tabs-are-windows to false
 
-    # :tab-pin
-
-    Scenario: :tab-pin
-        When I open data/numbers/1.txt
-        And I open data/numbers/2.txt in a new tab
-        And I open data/numbers/3.txt in a new tab
-        And I run :tab-pin
-        Then the following tabs should be open:
-            - data/numbers/3.txt (active)
-            - data/numbers/1.txt
-            - data/numbers/2.txt
-
     # :tab-close
 
     Scenario: :tab-close
@@ -1009,3 +997,36 @@ Feature: Tab management
         And I run :tab-close ;; tab-prev
         Then qutebrowser should quit
         And no crash should happen
+
+    # :tab-pin
+
+    Scenario: :tab-pin command
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-pin unpin
+        When I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-pin to index 2
+        When I run :tab-pin 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-pin unpin to index 1
+        When I run :tab-pin 1
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
