@@ -23,7 +23,6 @@ import os
 import os.path
 import traceback
 import mimetypes
-import base64
 
 import jinja2
 import jinja2.exceptions
@@ -82,8 +81,7 @@ def data_url(path):
     filename = utils.resource_filename(path)
     mimetype = mimetypes.guess_type(filename)
     assert mimetype is not None, path
-    b64 = base64.b64encode(data).decode('ascii')
-    return 'data:{};charset=utf-8;base64,{}'.format(mimetype[0], b64)
+    return urlutils.data_url(mimetype[0], data).toString()
 
 
 def render(template, **kwargs):

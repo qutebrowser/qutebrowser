@@ -37,6 +37,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         self._id = js_dict['id']
         self._js_dict = js_dict
 
+    def __str__(self):
+        return self._js_dict.get('text', '')
+
     def __eq__(self, other):
         if not isinstance(other, WebEngineElement):
             return NotImplemented
@@ -87,27 +90,11 @@ class WebEngineElement(webelem.AbstractWebElement):
         """Get the full HTML representation of this element."""
         return self._js_dict['outer_xml']
 
-    def text(self, *, use_js=False):
-        """Get the plain text content for this element.
+    def value(self):
+        return self._js_dict['value']
 
-        Args:
-            use_js: Whether to use javascript if the element isn't
-                    content-editable.
-        """
-        if use_js:
-            # FIXME:qtwebengine what to do about use_js with WebEngine?
-            log.stub('with use_js=True')
-        return self._js_dict.get('text', '')
-
-    def set_text(self, text, *, use_js=False):
-        """Set the given plain text.
-
-        Args:
-            use_js: Whether to use javascript if the element isn't
-                    content-editable.
-        """
-        # FIXME:qtwebengine what to do about use_js with WebEngine?
-        js_code = javascript.assemble('webelem', 'set_text', self._id, text)
+    def set_value(self, value):
+        js_code = javascript.assemble('webelem', 'set_value', self._id, value)
         self._tab.run_js_async(js_code)
 
     def insert_text(self, text):

@@ -160,19 +160,18 @@ def _init_main_config(parent=None):
         sys.exit(usertypes.Exit.err_config)
     else:
         objreg.register('config', config_obj)
-        if standarddir.config() is not None:
-            filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
-            save_manager = objreg.get('save-manager')
-            save_manager.add_saveable(
-                'config', config_obj.save, config_obj.changed,
-                config_opt=('general', 'auto-save-config'), filename=filename)
-            for sect in config_obj.sections.values():
-                for opt in sect.values.values():
-                    if opt.values['conf'] is None:
-                        # Option added to built-in defaults but not in user's
-                        # config yet
-                        save_manager.save('config', explicit=True, force=True)
-                        return
+        filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
+        save_manager = objreg.get('save-manager')
+        save_manager.add_saveable(
+            'config', config_obj.save, config_obj.changed,
+            config_opt=('general', 'auto-save-config'), filename=filename)
+        for sect in config_obj.sections.values():
+            for opt in sect.values.values():
+                if opt.values['conf'] is None:
+                    # Option added to built-in defaults but not in user's
+                    # config yet
+                    save_manager.save('config', explicit=True, force=True)
+                    return
 
 
 def _init_key_config(parent):
@@ -197,13 +196,12 @@ def _init_key_config(parent):
         sys.exit(usertypes.Exit.err_key_config)
     else:
         objreg.register('key-config', key_config)
-        if standarddir.config() is not None:
-            save_manager = objreg.get('save-manager')
-            filename = os.path.join(standarddir.config(), 'keys.conf')
-            save_manager.add_saveable(
-                'key-config', key_config.save, key_config.config_dirty,
-                config_opt=('general', 'auto-save-config'), filename=filename,
-                dirty=key_config.is_dirty)
+        save_manager = objreg.get('save-manager')
+        filename = os.path.join(standarddir.config(), 'keys.conf')
+        save_manager.add_saveable(
+            'key-config', key_config.save, key_config.config_dirty,
+            config_opt=('general', 'auto-save-config'), filename=filename,
+            dirty=key_config.is_dirty)
 
 
 def _init_misc():
@@ -237,10 +235,7 @@ def _init_misc():
     # This fixes one of the corruption issues here:
     # https://github.com/The-Compiler/qutebrowser/issues/515
 
-    if standarddir.config() is None:
-        path = os.devnull
-    else:
-        path = os.path.join(standarddir.config(), 'qsettings')
+    path = os.path.join(standarddir.config(), 'qsettings')
     for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:
         QSettings.setPath(fmt, QSettings.UserScope, path)
 
@@ -442,6 +437,11 @@ class ConfigManager(QObject):
         ('fonts', 'hints'): _transform_hint_font,
         ('completion', 'show'):
             _get_value_transformer({'false': 'never', 'true': 'always'}),
+        ('ui', 'user-stylesheet'):
+            _get_value_transformer({
+                'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
+                '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
+            }),
     }
 
     changed = pyqtSignal(str, str)
@@ -659,15 +659,11 @@ class ConfigManager(QObject):
     def read(self, configdir, fname, relaxed=False):
         """Read the config from the given directory/file."""
         self._fname = fname
-        if configdir is None:
-            self._configdir = None
-            self._initialized = True
-        else:
-            self._configdir = configdir
-            parser = ini.ReadConfigParser(configdir, fname)
-            self._from_cp(parser, relaxed)
-            self._initialized = True
-            self._validate_all()
+        self._configdir = configdir
+        parser = ini.ReadConfigParser(configdir, fname)
+        self._from_cp(parser, relaxed)
+        self._initialized = True
+        self._validate_all()
 
     def items(self, sectname, raw=True):
         """Get a list of (optname, value) tuples for a section.
@@ -884,8 +880,6 @@ class ConfigManager(QObject):
 
     def save(self):
         """Save the config file."""
-        if self._configdir is None:
-            return
         configfile = os.path.join(self._configdir, self._fname)
         log.destroy.debug("Saving config to {}".format(configfile))
         with qtutils.savefile_open(configfile) as f:

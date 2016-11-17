@@ -469,7 +469,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
-        # init js stuff
         self._init_js()
         self._child_event_filter = None
         self.needs_qtbug54419_workaround = False

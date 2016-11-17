@@ -88,12 +88,8 @@ class Entry:
         if not url.isValid():
             raise ValueError("Invalid URL: {}".format(url.errorString()))
 
-        if atime.startswith('\0'):
-            log.init.debug(
-                "Removing NUL bytes from entry {!r} - see "
-                "https://github.com/The-Compiler/qutebrowser/issues/"
-                "670".format(data))
-            atime = atime.lstrip('\0')
+        # https://github.com/The-Compiler/qutebrowser/issues/670
+        atime = atime.lstrip('\0')
 
         if '-' in atime:
             atime, flags = atime.split('-')
@@ -129,7 +125,6 @@ class WebHistory(QObject):
 
     Attributes:
         history_dict: An OrderedDict of URLs read from the on-disk history.
-        _hist_dir: The directory to store the history in
         _lineparser: The AppendLineParser used to save the history.
         _new_history: A list of Entry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
@@ -157,7 +152,6 @@ class WebHistory(QObject):
         super().__init__(parent)
         self._initial_read_started = False
         self._initial_read_done = False
-        self._hist_dir = hist_dir
         self._lineparser = lineparser.AppendLineParser(hist_dir, hist_name,
                                                        parent=self)
         self.history_dict = collections.OrderedDict()
@@ -182,12 +176,6 @@ class WebHistory(QObject):
             log.init.debug("Ignoring async_read() because reading is started.")
             return
         self._initial_read_started = True
-
-        if self._hist_dir is None:
-            self._initial_read_done = True
-            self.async_read_done.emit()
-            assert not self._temp_history
-            return
 
         with self._lineparser.open():
             for line in self._lineparser:

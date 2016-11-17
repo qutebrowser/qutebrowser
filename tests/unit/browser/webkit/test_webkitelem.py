@@ -258,8 +258,8 @@ class TestWebKitElement:
         lambda e: e.has_frame(),
         lambda e: e.geometry(),
         lambda e: e.style_property('visibility', strategy='computed'),
-        lambda e: e.text(),
-        lambda e: e.set_text('foo'),
+        lambda e: e.value(),
+        lambda e: e.set_value('foo'),
         lambda e: e.insert_text('foo'),
         lambda e: e.is_writable(),
         lambda e: e.is_content_editable(),
@@ -271,7 +271,7 @@ class TestWebKitElement:
         lambda e: e.rect_on_view(),
         lambda e: e._is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
-            'frame', 'geometry', 'style_property', 'text', 'set_text',
+            'frame', 'geometry', 'style_property', 'value', 'set_value',
             'insert_text', 'is_writable', 'is_content_editable', 'is_editable',
             'is_text_input', 'remove_blank_target', 'outer_xml', 'tag_name',
             'rect_on_view', 'is_visible'])
@@ -411,28 +411,18 @@ class TestWebKitElement:
     def test_style_property(self, elem):
         assert elem.style_property('foo', strategy='computed') == 'bar'
 
-    @pytest.mark.parametrize('use_js, editable, expected', [
-        (True, 'false', 'js'),
-        (True, 'true', 'nojs'),
-        (False, 'false', 'nojs'),
-        (False, 'true', 'nojs'),
-    ])
-    def test_text(self, use_js, editable, expected):
-        elem = get_webelem(attributes={'contenteditable': editable})
-        elem._elem.toPlainText.return_value = 'nojs'
+    def test_value(self, elem):
         elem._elem.evaluateJavaScript.return_value = 'js'
-        assert elem.text(use_js=use_js) == expected
+        assert elem.value() == 'js'
 
-    @pytest.mark.parametrize('use_js, editable, text, uses_js, arg', [
-        (True, 'false', 'foo', True, "this.value='foo'"),
-        (True, 'false', "foo'bar", True, r"this.value='foo\'bar'"),
-        (True, 'true', 'foo', False, 'foo'),
-        (False, 'false', 'foo', False, 'foo'),
-        (False, 'true', 'foo', False, 'foo'),
+    @pytest.mark.parametrize('editable, value, uses_js, arg', [
+        ('false', 'foo', True, "this.value='foo'"),
+        ('false', "foo'bar", True, r"this.value='foo\'bar'"),
+        ('true', 'foo', False, 'foo'),
     ])
-    def test_set_text(self, use_js, editable, text, uses_js, arg):
+    def test_set_value(self, editable, value, uses_js, arg):
         elem = get_webelem(attributes={'contenteditable': editable})
-        elem.set_text(text, use_js=use_js)
+        elem.set_value(value)
         attr = 'evaluateJavaScript' if uses_js else 'setPlainText'
         called_mock = getattr(elem._elem, attr)
         called_mock.assert_called_with(arg)

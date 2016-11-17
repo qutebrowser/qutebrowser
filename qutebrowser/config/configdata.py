@@ -323,13 +323,13 @@ def data(readonly=False):
              "page."),
 
             ('user-stylesheet',
-             SettingValue(typ.UserStyleSheet(none_ok=True),
-                          'html > ::-webkit-scrollbar { width: 0px; '
-                          'height: 0px; }',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "User stylesheet to use (absolute filename, filename relative to "
-             "the config directory or CSS string). Will expand environment "
-             "variables."),
+             SettingValue(typ.File(none_ok=True), ''),
+             "User stylesheet to use (absolute filename or filename relative "
+             "to the config directory). Will expand environment variables."),
+
+            ('hide-scrollbar',
+             SettingValue(typ.Bool(), 'true'),
+             "Hide the main scrollbar."),
 
             ('css-media-type',
              SettingValue(typ.String(none_ok=True), '',
@@ -356,7 +356,8 @@ def data(readonly=False):
             ('window-title-format',
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
-                                                   'scroll_pos', 'host']),
+                                                   'scroll_pos', 'host',
+                                                   'backend']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -367,7 +368,8 @@ def data(readonly=False):
              "otherwise.\n"
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
-             "* `{host}`: The host of the current web page."),
+             "* `{host}`: The host of the current web page.\n"
+             "* `{backend}`: Either 'webkit' or 'webengine'"),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -413,8 +415,7 @@ def data(readonly=False):
              "Send the Referer header"),
 
             ('user-agent',
-             SettingValue(typ.UserAgent(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.UserAgent(none_ok=True), ''),
              "User agent to send. Empty to send the default."),
 
             ('proxy',
@@ -681,7 +682,8 @@ def data(readonly=False):
              "* `{index}`: The index of this tab.\n"
              "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
-             "* `{host}`: The host of the current web page."),
+             "* `{host}`: The host of the current web page.\n"
+             "* `{backend}`: Either 'webkit' or 'webengine'"),
 
             ('title-format-pinned',
              SettingValue(typ.FormatString(

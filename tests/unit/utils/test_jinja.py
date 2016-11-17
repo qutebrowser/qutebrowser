@@ -102,7 +102,7 @@ def test_data_url():
     print(data)
     url = QUrl(data)
     assert url.isValid()
-    assert data == 'data:text/plain;charset=utf-8;base64,Zm9v'  # 'foo'
+    assert data == 'data:text/plain;base64,Zm9v'  # 'foo'
 
 
 def test_not_found():

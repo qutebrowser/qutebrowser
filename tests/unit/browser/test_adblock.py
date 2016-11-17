@@ -29,7 +29,6 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.browser import adblock
 from qutebrowser.utils import objreg
-from qutebrowser.commands import cmdexc
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
@@ -223,32 +222,6 @@ def generic_blocklists(directory):
                                        line_format='not_correct'))
 
     return [blocklist1, blocklist2, blocklist3, blocklist4, blocklist5]
-
-
-def test_without_datadir(config_stub, tmpdir, monkeypatch, win_registry):
-    """No directory for data configured so no hosts file exists.
-
-    Ensure CommandError is raised and no URL is blocked.
-    """
-    config_stub.data = {
-        'content': {
-            'host-block-lists': generic_blocklists(tmpdir),
-            'host-blocking-enabled': True,
-        }
-    }
-    monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: None)
-    host_blocker = adblock.HostBlocker()
-
-    with pytest.raises(cmdexc.CommandError) as excinfo:
-        host_blocker.adblock_update()
-    assert str(excinfo.value) == "No data storage is configured!"
-
-    host_blocker.read_hosts()
-    for str_url in URLS_TO_CHECK:
-        assert not host_blocker.is_blocked(QUrl(str_url))
-
-    # To test on_config_changed
-    config_stub.set('content', 'host-block-lists', None)
 
 
 def test_disabled_blocking_update(basedir, config_stub, download_stub,

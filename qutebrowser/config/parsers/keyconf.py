@@ -89,11 +89,9 @@ class KeyConfigParser(QObject):
         self._cur_command = None
         # Mapping of section name(s) to key binding -> command dicts.
         self.keybindings = collections.OrderedDict()
-        if configdir is None:
-            self._configfile = None
-        else:
-            self._configfile = os.path.join(configdir, fname)
-        if self._configfile is None or not os.path.exists(self._configfile):
+        self._configfile = os.path.join(configdir, fname)
+
+        if not os.path.exists(self._configfile):
             self._load_default()
         else:
             self._read(relaxed)
@@ -143,8 +141,6 @@ class KeyConfigParser(QObject):
 
     def save(self):
         """Save the key config file."""
-        if self._configfile is None:
-            return
         log.destroy.debug("Saving key config to {}".format(self._configfile))
         with qtutils.savefile_open(self._configfile, encoding='utf-8') as f:
             data = str(self)

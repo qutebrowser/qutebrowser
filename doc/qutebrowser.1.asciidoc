@@ -38,17 +38,8 @@ show it.
 *-h*, *--help*::
     show this help message and exit
 
-*-c* 'CONFDIR', *--confdir* 'CONFDIR'::
-    Set config directory (empty for no config storage).
-
-*--datadir* 'DATADIR'::
-    Set data directory (empty for no data storage).
-
-*--cachedir* 'CACHEDIR'::
-    Set cache directory (empty for no cache storage).
-
 *--basedir* 'BASEDIR'::
-    Base directory for all storage. Other --*dir arguments are ignored if this is given.
+    Base directory for all storage.
 
 *-V*, *--version*::
     Show version and quit.
@@ -111,8 +102,8 @@ show it.
 *--no-err-windows*::
     Don't show any error windows (used for tests/smoke.py).
 
-*--qt-arg* 'QT_ARG'::
-    Pass an argument with a value to Qt.
+*--qt-arg* 'NAME' 'VALUE'::
+    Pass an argument with a value to Qt. For example, you can do `--qt-arg geometry 650x555+200+300` to set the window geometry.
 
 *--qt-flag* 'QT_FLAG'::
     Pass an argument to Qt as flag.

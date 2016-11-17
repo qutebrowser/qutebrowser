@@ -320,8 +320,8 @@ def _open_quickstart(args):
     Args:
         args: The argparse namespace.
     """
-    if args.datadir is not None or args.basedir is not None:
-        # With --datadir or --basedir given, don't open quickstart.
+    if args.basedir is not None:
+        # With --basedir given, don't open quickstart.
         return
     state_config = objreg.get('state-config')
     try:

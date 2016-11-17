@@ -415,6 +415,16 @@ Feature: Various utility commands.
         And I open headers
         Then the header Accept-Language should be set to en,de
 
+    Scenario: Setting a custom user-agent header
+        When I set network -> user-agent to toaster
+        And I open headers
+        Then the header User-Agent should be set to toaster
+
+    Scenario: Setting the default user-agent header
+        When I set network -> user-agent to <empty>
+        And I open headers
+        Then the header User-Agent should be set to Mozilla/5.0 *
+
     ## :messages
 
     Scenario: Showing error messages
@@ -556,7 +566,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element with unknown ID
         When I open data/click_element.html
         And I run :click-element id blah
-        Then the error "No element found!" should be shown
+        Then the error "No element found with id blah!" should be shown
 
     Scenario: Clicking an element by ID
         When I open data/click_element.html

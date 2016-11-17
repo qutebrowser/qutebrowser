@@ -87,7 +87,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def __str__(self):
-        return self.text()
+        raise NotImplementedError
 
     def __getitem__(self, key):
         raise NotImplementedError
@@ -138,24 +138,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the full HTML representation of this element."""
         raise NotImplementedError
 
-    def text(self, *, use_js=False):
-        """Get the plain text content for this element.
-
-        Args:
-            use_js: Whether to use javascript if the element isn't
-                    content-editable.
-        """
-        # FIXME:qtwebengine what to do about use_js with WebEngine?
+    def value(self):
+        """Get the value attribute for this element."""
         raise NotImplementedError
 
-    def set_text(self, text, *, use_js=False):
-        """Set the given plain text.
-
-        Args:
-            use_js: Whether to use javascript if the element isn't
-                    content-editable.
-        """
-        # FIXME:qtwebengine what to do about use_js with WebEngine?
+    def set_value(self, value):
+        """Set the element value."""
         raise NotImplementedError
 
     def insert_text(self, text):
@@ -338,6 +326,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Simulate a click on the element."""
         # FIXME:qtwebengine do we need this?
         # self._widget.setFocus()
+
+        # For QtWebKit
         self._tab.data.override_target = click_target
 
         pos = self._mouse_pos()
@@ -345,20 +335,24 @@ class AbstractWebElement(collections.abc.MutableMapping):
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        if click_target in [usertypes.ClickTarget.tab,
-                            usertypes.ClickTarget.tab_bg,
-                            usertypes.ClickTarget.window]:
-            modifiers = Qt.ControlModifier
+        modifiers = {
+            usertypes.ClickTarget.normal: Qt.NoModifier,
+            usertypes.ClickTarget.window: Qt.AltModifier | Qt.ShiftModifier,
+            usertypes.ClickTarget.tab: Qt.ControlModifier,
+            usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
+        }
+        if config.get('tabs', 'background-tabs'):
+            modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
         else:
-            modifiers = Qt.NoModifier
+            modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
 
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
             QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                        Qt.LeftButton, modifiers),
+                        Qt.LeftButton, modifiers[click_target]),
             QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                        Qt.NoButton, modifiers),
+                        Qt.NoButton, modifiers[click_target]),
         ]
 
         for evt in events:

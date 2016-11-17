@@ -132,14 +132,7 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
-    vercheck = qtutils.version_check
-    qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                         qtutils.version_check('5.7.1') or
-                         os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
-
     markers = [
-        ('qtwebengine_createWindow', 'Skipped because of QTBUG-54419',
-         pytest.mark.skipif, not qtbug_54419_fixed and config.webengine),
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,

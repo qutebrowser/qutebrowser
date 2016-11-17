@@ -1,1 +1,5 @@
-cx_Freeze
+cx-Freeze < 5.0.0
+
+# We'll probably switch to PyInstaller soon, and 5.x doesn't install without a
+# compiler?
+#@ filter: cx-Freeze < 5.0.0

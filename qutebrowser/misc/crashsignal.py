@@ -72,10 +72,7 @@ class CrashHandler(QObject):
 
     def handle_segfault(self):
         """Handle a segfault from a previous run."""
-        data_dir = standarddir.data()
-        if data_dir is None:
-            return
-        logname = os.path.join(data_dir, 'crash.log')
+        logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             # First check if an old logfile exists.
             if os.path.exists(logname):
@@ -131,10 +128,7 @@ class CrashHandler(QObject):
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
         assert not self._args.no_err_windows
-        data_dir = standarddir.data()
-        if data_dir is None:
-            return
-        logname = os.path.join(data_dir, 'crash.log')
+        logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             self._crash_log_file = open(logname, 'w', encoding='ascii')
         except OSError:

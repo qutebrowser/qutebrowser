@@ -197,6 +197,14 @@ Feature: Prompts
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
+    Scenario: SSL error with ssl-strict = ask -> abort
+        When I clear SSL errors
+        And I set network -> ssl-strict to ask
+        And I load an SSL page
+        And I wait for a prompt
+        And I run :leave-mode
+        Then a SSL error page should be shown
+
     # Geolocation
 
     Scenario: Always rejecting geolocation

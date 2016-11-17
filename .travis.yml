@@ -45,6 +45,7 @@ matrix:
     - os: osx
       env: TESTENV=py35 OSX=elcapitan
       osx_image: xcode7.3
+  fast_finish: true
 
 cache:
   directories:
