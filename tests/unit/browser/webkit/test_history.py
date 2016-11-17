@@ -19,7 +19,6 @@
 
 """Tests for the global page history."""
 
-import base64
 import logging
 
 import pytest
@@ -28,7 +27,7 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, urlutils
 
 
 class FakeWebHistory:
@@ -63,13 +62,6 @@ def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
     expected = "Ignoring async_read() because reading is started."
     assert len(caplog.records) == 1
     assert caplog.records[0].msg == expected
-
-
-def test_async_read_no_datadir(qtbot, config_stub, fake_save_manager):
-    config_stub.data = {'general': {'private-browsing': False}}
-    hist = history.WebHistory(hist_dir=None, hist_name='history')
-    with qtbot.waitSignal(hist.async_read_done):
-        list(hist.async_read())
 
 
 @pytest.mark.parametrize('redirect', [True, False])
@@ -382,9 +374,8 @@ def hist_interface():
 
 
 def test_history_interface(qtbot, webview, hist_interface):
-    html = "<a href='about:blank'>foo</a>"
-    data = base64.b64encode(html.encode('utf-8')).decode('ascii')
-    url = QUrl("data:text/html;charset=utf-8;base64,{}".format(data))
+    html = b"<a href='about:blank'>foo</a>"
+    url = urlutils.data_url('text/html', html)
     with qtbot.waitSignal(webview.loadFinished):
         webview.load(url)
 

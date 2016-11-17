@@ -47,15 +47,12 @@ class ReadConfigParser(configparser.ConfigParser):
         self.optionxform = lambda opt: opt  # be case-insensitive
         self._configdir = configdir
         self._fname = fname
-        if self._configdir is None:
-            self._configfile = None
-            return
         self._configfile = os.path.join(self._configdir, fname)
+
         if not os.path.isfile(self._configfile):
             return
         log.init.debug("Reading config from {}".format(self._configfile))
-        if self._configfile is not None:
-            self.read(self._configfile, encoding='utf-8')
+        self.read(self._configfile, encoding='utf-8')
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,

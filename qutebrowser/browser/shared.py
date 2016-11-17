@@ -146,9 +146,13 @@ def ignore_certificate_errors(url, errors, abort_on):
         """.strip())
         msg = err_template.render(url=url, errors=errors)
 
-        return message.ask(title="Certificate errors - continue?", text=msg,
-                           mode=usertypes.PromptMode.yesno, default=False,
-                           abort_on=abort_on)
+        ignore = message.ask(title="Certificate errors - continue?", text=msg,
+                             mode=usertypes.PromptMode.yesno, default=False,
+                             abort_on=abort_on)
+        if ignore is None:
+            # prompt aborted
+            ignore = False
+        return ignore
     elif ssl_strict is False:
         log.webview.debug("ssl-strict is False, only warning about errors")
         for err in errors:
@@ -222,3 +226,19 @@ def get_tab(win_id, target):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     return tabbed_browser.tabopen(url=None, background=bg_tab)
+
+
+def get_user_stylesheet():
+    """Get the combined user-stylesheet."""
+    filename = config.get('ui', 'user-stylesheet')
+
+    if filename is None:
+        css = ''
+    else:
+        with open(filename, 'r', encoding='utf-8') as f:
+            css = f.read()
+
+    if config.get('ui', 'hide-scrollbar'):
+        css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
+
+    return css

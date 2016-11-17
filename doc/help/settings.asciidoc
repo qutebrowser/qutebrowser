@@ -44,7 +44,8 @@
 |<<ui-confirm-quit,confirm-quit>>|Whether to confirm quitting the application.
 |<<ui-zoom-text-only,zoom-text-only>>|Whether the zoom factor on a frame applies only to the text or to all content.
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
-|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
+|<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
+|<<ui-hide-scrollbar,hide-scrollbar>>|Hide the main scrollbar.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Number of milliseconds to wait before removing finished downloads. Will not be removed if value is -1.
@@ -618,11 +619,20 @@ This setting is only available with the QtWebKit backend.
 
 [[ui-user-stylesheet]]
 === user-stylesheet
-User stylesheet to use (absolute filename, filename relative to the config directory or CSS string). Will expand environment variables.
+User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
 
-Default: +pass:[html &gt; ::-webkit-scrollbar { width: 0px; height: 0px; }]+
+Default: empty
 
-This setting is only available with the QtWebKit backend.
+[[ui-hide-scrollbar]]
+=== hide-scrollbar
+Hide the main scrollbar.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 [[ui-css-media-type]]
 === css-media-type
@@ -677,6 +687,7 @@ The format to use for the window title. The following placeholders are defined:
 * `{id}`: The internal window ID of this window.
 * `{scroll_pos}`: The page scroll position.
 * `{host}`: The host of the current web page.
+* `{backend}`: Either 'webkit' or 'webengine'
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
 
@@ -755,8 +766,6 @@ This setting is only available with the QtWebKit backend.
 User agent to send. Empty to send the default.
 
 Default: empty
-
-This setting is only available with the QtWebKit backend.
 
 [[network-proxy]]
 === proxy
@@ -1195,6 +1204,7 @@ The format to use for the tab title. The following placeholders are defined:
 * `{id}`: The internal tab ID of this tab.
 * `{scroll_pos}`: The page scroll position.
 * `{host}`: The host of the current web page.
+* `{backend}`: Either 'webkit' or 'webengine'
 
 Default: +pass:[{index}: {title}]+
 

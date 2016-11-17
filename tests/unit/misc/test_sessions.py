@@ -40,9 +40,9 @@ webengine_refactoring_xfail = pytest.mark.xfail(
 
 
 @pytest.fixture
-def sess_man():
-    """Fixture providing a SessionManager with no session dir."""
-    return sessions.SessionManager(base_path=None)
+def sess_man(tmpdir):
+    """Fixture providing a SessionManager."""
+    return sessions.SessionManager(base_path=str(tmpdir))
 
 
 class TestInit:
@@ -51,13 +51,6 @@ class TestInit:
     def cleanup(self):
         yield
         objreg.delete('session-manager')
-
-    def test_no_standarddir(self, monkeypatch):
-        monkeypatch.setattr('qutebrowser.misc.sessions.standarddir.data',
-                            lambda: None)
-        sessions.init()
-        manager = objreg.get('session-manager')
-        assert manager._base_path is None
 
     @pytest.mark.parametrize('create_dir', [True, False])
     def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):
@@ -109,16 +102,6 @@ class TestExists:
             name = 'foo'
 
         assert not man.exists(name)
-
-    @pytest.mark.parametrize('absolute', [True, False])
-    def test_no_datadir(self, sess_man, tmpdir, absolute):
-        abs_session = tmpdir / 'foo.yml'
-        abs_session.ensure()
-
-        if absolute:
-            assert sess_man.exists(str(abs_session))
-        else:
-            assert not sess_man.exists('foo')
 
 
 @webengine_refactoring_xfail
@@ -246,11 +229,6 @@ class TestSave:
 
         objreg.delete('main-window', scope='window', window=0)
         objreg.delete('tabbed-browser', scope='window', window=0)
-
-    def test_no_config_storage(self, sess_man):
-        with pytest.raises(sessions.SessionError) as excinfo:
-            sess_man.save('foo')
-        assert str(excinfo.value) == "No data storage configured."
 
     def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
         session_path = tmpdir / 'foo.yml'
@@ -414,9 +392,6 @@ def test_delete_update_completion_signal(sess_man, qtbot, tmpdir):
 
 
 class TestListSessions:
-
-    def test_no_base_path(self, sess_man):
-        assert not sess_man.list_sessions()
 
     def test_no_sessions(self, tmpdir):
         sess_man = sessions.SessionManager(str(tmpdir))

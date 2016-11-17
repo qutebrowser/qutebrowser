@@ -1385,11 +1385,13 @@ class CommandDispatcher:
         elif mhtml_:
             self._download_mhtml(dest)
         else:
+            qnam = self._current_widget().networkaccessmanager()
+
             if dest is None:
                 target = None
             else:
                 target = downloads.FileDownloadTarget(dest)
-            download_manager.get(self._current_url(), target=target)
+            download_manager.get(self._current_url(), qnam=qnam, target=target)
 
     def _download_mhtml(self, dest=None):
         """Download the current page as an MHTML file, including all assets.
@@ -1539,7 +1541,7 @@ class CommandDispatcher:
             message.error("Focused element is not editable!")
             return
 
-        text = elem.text(use_js=True)
+        text = elem.value()
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
@@ -1566,7 +1568,7 @@ class CommandDispatcher:
             text: The new text to insert.
         """
         try:
-            elem.set_text(text, use_js=True)
+            elem.set_value(text)
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
 
@@ -1625,7 +1627,7 @@ class CommandDispatcher:
         def single_cb(elem):
             """Click a single element."""
             if elem is None:
-                message.error("No element found!")
+                message.error("No element found with id {}!".format(value))
                 return
             try:
                 elem.click(target)

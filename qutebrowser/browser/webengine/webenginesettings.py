@@ -27,11 +27,13 @@ Module attributes:
 import os
 
 # pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
+                                      QWebEngineScript)
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
+from qutebrowser.browser import shared
 from qutebrowser.config import websettings, config
-from qutebrowser.utils import objreg, utils
+from qutebrowser.utils import objreg, utils, standarddir, javascript
 
 
 class Attribute(websettings.Attribute):
@@ -63,18 +65,58 @@ class StaticSetter(websettings.StaticSetter):
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
+def _init_stylesheet(profile):
+    """Initialize custom stylesheets.
+
+    Mostly inspired by QupZilla:
+    https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
+    https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/tools/scripts.cpp#L119-L132
+
+    FIXME:qtwebengine Use QWebEngineStyleSheet once that's available
+    https://codereview.qt-project.org/#/c/148671/
+    """
+    old_script = profile.scripts().findScript('_qute_stylesheet')
+    if not old_script.isNull():
+        profile.scripts().remove(old_script)
+
+    css = shared.get_user_stylesheet()
+    source = """
+        (function() {{
+            var css = document.createElement('style');
+            css.setAttribute('type', 'text/css');
+            css.appendChild(document.createTextNode('{}'));
+            document.getElementsByTagName('head')[0].appendChild(css);
+        }})()
+    """.format(javascript.string_escape(css))
+
+    script = QWebEngineScript()
+    script.setName('_qute_stylesheet')
+    script.setInjectionPoint(QWebEngineScript.DocumentReady)
+    script.setWorldId(QWebEngineScript.ApplicationWorld)
+    script.setRunsOnSubFrames(True)
+    script.setSourceCode(source)
+    profile.scripts().insert(script)
+
+
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, section, option)
+    profile = QWebEngineProfile.defaultProfile()
+    if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
+        _init_stylesheet(profile)
 
 
 def init():
     """Initialize the global QWebSettings."""
-    # FIXME:qtwebengine set paths in profile
-
     if config.get('general', 'developer-extras'):
         # FIXME:qtwebengine Make sure we call globalSettings *after* this...
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
+
+    profile = QWebEngineProfile.defaultProfile()
+    profile.setCachePath(os.path.join(standarddir.cache(), 'webengine'))
+    profile.setPersistentStoragePath(
+        os.path.join(standarddir.data(), 'webengine'))
+    _init_stylesheet(profile)
 
     websettings.init_mappings(MAPPINGS)
     objreg.get('config').changed.connect(update_settings)
@@ -98,18 +140,12 @@ def shutdown():
 # - PictographFont
 #
 # TODO settings on profile:
-# - cachePath
-# - httpAcceptLanguage
 # - httpCacheMaximumSize
-# - httpUserAgent
 # - persistentCookiesPolicy
 # - offTheRecord
-# - persistentStoragePath
 #
 # TODO settings elsewhere:
 # - proxy
-# - custom headers
-# - ssl-strict
 
 MAPPINGS = {
     'content': {

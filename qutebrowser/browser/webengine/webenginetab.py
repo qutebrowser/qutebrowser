@@ -469,7 +469,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
-        # init js stuff
         self._init_js()
         self._child_event_filter = None
         self.needs_qtbug54419_workaround = False
@@ -574,6 +573,9 @@ class WebEngineTab(browsertab.AbstractTab):
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
+
+    def networkaccessmanager(self):
+        return None
 
     def clear_ssl_errors(self):
         raise browsertab.UnsupportedOperationError

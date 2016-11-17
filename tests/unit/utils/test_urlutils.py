@@ -731,3 +731,8 @@ class TestIncDecNumber:
 
 def test_file_url():
     assert urlutils.file_url('/foo/bar') == 'file:///foo/bar'
+
+
+def test_data_url():
+    url = urlutils.data_url('text/plain', b'foo')
+    assert url == QUrl('data:text/plain;base64,Zm9v')

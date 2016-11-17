@@ -52,15 +52,6 @@ class TestBaseLineParser:
         lineparser._prepare_save()
         os_mock.makedirs.assert_called_with(self.CONFDIR, 0o755)
 
-    def test_prepare_save_no_config(self, mocker):
-        """Test if _prepare_save doesn't create a None config dir."""
-        os_mock = mocker.patch('qutebrowser.misc.lineparser.os')
-        os_mock.path.exists.return_value = True
-
-        lineparser = lineparsermod.BaseLineParser(None, self.FILENAME)
-        assert not lineparser._prepare_save()
-        assert not os_mock.makedirs.called
-
     def test_double_open(self, mocker, lineparser):
         """Test if _open refuses reentry."""
         mocker.patch('builtins.open', mock.mock_open())
@@ -158,15 +149,6 @@ class TestAppendLineParser:
         lineparser.save()
         assert (tmpdir / 'file').read() == self._get_expected(new_data)
 
-    def test_save_without_configdir(self, tmpdir, lineparser):
-        """Test save() failing because no configdir was set."""
-        new_data = ['new data 1', 'new data 2']
-        lineparser.new_data = new_data
-        lineparser._configdir = None
-        assert not lineparser.save()
-        # make sure new data is still there
-        assert lineparser.new_data == new_data
-
     def test_clear(self, tmpdir, lineparser):
         """Check if calling clear() empties both pending and persisted data."""
         lineparser.new_data = ['one', 'two']
@@ -178,14 +160,6 @@ class TestAppendLineParser:
         lineparser.save()
         assert not lineparser.new_data
         assert (tmpdir / 'file').read() == ""
-
-    def test_clear_without_configdir(self, tmpdir, lineparser):
-        """Test clear() failing because no configdir was set."""
-        new_data = ['new data 1', 'new data 2']
-        lineparser.new_data = new_data
-        lineparser._configdir = None
-        assert not lineparser.clear()
-        assert lineparser.new_data == new_data
 
     def test_iter_without_open(self, lineparser):
         """Test __iter__ without having called open()."""

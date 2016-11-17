@@ -22,7 +22,6 @@ import re
 import collections
 import itertools
 import os.path
-import base64
 import warnings
 
 import pytest
@@ -1211,15 +1210,9 @@ def unrequired_class(**kwargs):
 
 @pytest.mark.usefixtures('qapp')
 @pytest.mark.usefixtures('config_tmpdir')
-class TestFileAndUserStyleSheet:
+class TestFile:
 
-    """Test File/UserStyleSheet."""
-
-    @pytest.fixture(params=[
-        configtypes.File,
-        configtypes.UserStyleSheet,
-        unrequired_class,
-    ])
+    @pytest.fixture(params=[configtypes.File, unrequired_class])
     def klass(self, request):
         return request.param
 
@@ -1227,18 +1220,12 @@ class TestFileAndUserStyleSheet:
     def file_class(self):
         return configtypes.File
 
-    @pytest.fixture
-    def userstylesheet_class(self):
-        return configtypes.UserStyleSheet
-
     def _expected(self, klass, arg):
         """Get the expected value."""
         if not arg:
             return None
         elif klass is configtypes.File:
             return arg
-        elif klass is configtypes.UserStyleSheet:
-            return QUrl.fromLocalFile(arg)
         elif klass is unrequired_class:
             return arg
         else:
@@ -1262,11 +1249,6 @@ class TestFileAndUserStyleSheet:
         os_mock.path.isfile.return_value = False
         configtypes.File(required=False).validate('foobar')
 
-    def test_validate_does_not_exist_userstylesheet(self, os_mock):
-        """Test validate with a file which does not exist (UserStyleSheet)."""
-        os_mock.path.isfile.return_value = False
-        configtypes.UserStyleSheet().validate('foobar')
-
     def test_validate_exists_abs(self, klass, os_mock):
         """Test validate with a file which does exist."""
         os_mock.path.isfile.return_value = True
@@ -1284,21 +1266,10 @@ class TestFileAndUserStyleSheet:
         os_mock.path.join.assert_called_once_with(
             '/home/foo/.config/', 'foobar')
 
-    def test_validate_rel_config_none_file(self, os_mock, monkeypatch):
-        """Test with a relative path and standarddir.config returning None."""
-        monkeypatch.setattr(
-            'qutebrowser.config.configtypes.standarddir.config', lambda: None)
-        os_mock.path.isabs.return_value = False
-        with pytest.raises(configexc.ValidationError):
-            configtypes.File().validate('foobar')
-
     @pytest.mark.parametrize('configtype, value, raises', [
         (configtypes.File(), 'foobar', True),
-        (configtypes.UserStyleSheet(), 'foobar', False),
-        (configtypes.UserStyleSheet(), '\ud800', True),
         (configtypes.File(required=False), 'foobar', False),
-    ], ids=['file-foobar', 'userstylesheet-foobar', 'userstylesheet-unicode',
-            'file-optional-foobar'])
+    ], ids=['file-foobar', 'file-optional-foobar'])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
         """Test with a relative path and standarddir.config returning None."""
@@ -1347,25 +1318,12 @@ class TestFileAndUserStyleSheet:
 
     def test_transform_relative(self, klass, os_mock, monkeypatch):
         """Test transform() with relative dir and an available configdir."""
-        os_mock.path.exists.return_value = True  # for TestUserStyleSheet
         os_mock.path.isabs.return_value = False
         monkeypatch.setattr(
             'qutebrowser.config.configtypes.standarddir.config',
             lambda: '/configdir')
         expected = self._expected(klass, '/configdir/foo')
         assert klass().transform('foo') == expected
-
-    @pytest.mark.parametrize('no_config', [False, True])
-    def test_transform_userstylesheet_base64(self, monkeypatch, no_config):
-        """Test transform with a data string."""
-        if no_config:
-            monkeypatch.setattr(
-                'qutebrowser.config.configtypes.standarddir.config',
-                lambda: None)
-
-        b64 = base64.b64encode(b"test").decode('ascii')
-        url = QUrl("data:text/css;charset=utf-8;base64,{}".format(b64))
-        assert configtypes.UserStyleSheet().transform("test") == url
 
 
 class TestDirectory:
@@ -1990,10 +1948,11 @@ class TestUserAgent:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    def test_validate_invalid(self, klass):
+    @pytest.mark.parametrize('val', ['', 'überbrowser'])
+    def test_validate_invalid(self, klass, val):
         """Test validate with empty string and none_ok = False."""
         with pytest.raises(configexc.ValidationError):
-            klass().validate('')
+            klass().validate(val)
 
     def test_transform(self, klass):
         assert klass().transform('foobar') == 'foobar'

@@ -152,6 +152,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        add_history: Whether to add yanked or spawned link to the history.
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
@@ -164,6 +165,7 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.rapid = False
+        self.add_history = False
         self.filterstr = None
         self.args = []
         self.tab = None
@@ -279,15 +281,14 @@ class HintActions:
         url = elem.resolve_url(context.baseurl)
         if url is None:
             raise HintingError("No suitable link found for this element.")
-        if context.rapid:
-            prompt = False
-        else:
-            prompt = None
+
+        prompt = False if context.rapid else None
+        qnam = context.tab.networkaccessmanager()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
-        download_manager.get(url, prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):
         """Call a userscript from a hint.
@@ -602,13 +603,15 @@ class HintManager(QObject):
                        star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None):
+              *args, win_id, mode=None, add_history=False):
         """Start hinting.
 
         Args:
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
+            add_history: Whether to add the spawned or yanked link to the
+                         browsing history.
             group: The element types to hint.
 
                 - `all`: All clickable elements.
@@ -691,6 +694,7 @@ class HintManager(QObject):
         self._context.target = target
         self._context.rapid = rapid
         self._context.hint_mode = mode
+        self._context.add_history = add_history
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
@@ -860,6 +864,8 @@ class HintManager(QObject):
                 return
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
+            if self._context.add_history:
+                objreg.get('web-history').add_url(url, "")
         else:
             raise ValueError("No suitable handler found!")
 

@@ -657,8 +657,7 @@ class WebKitTab(browsertab.AbstractTab):
         return self._widget.title()
 
     def clear_ssl_errors(self):
-        nam = self._widget.page().networkAccessManager()
-        nam.clear_all_ssl_errors()
+        self.networkaccessmanager().clear_all_ssl_errors()
 
     @pyqtSlot()
     def _on_history_trigger(self):
@@ -668,6 +667,9 @@ class WebKitTab(browsertab.AbstractTab):
 
     def set_html(self, html, base_url):
         self._widget.setHtml(html, base_url)
+
+    def networkaccessmanager(self):
+        return self._widget.page().networkAccessManager()
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

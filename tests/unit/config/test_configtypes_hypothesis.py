@@ -50,8 +50,7 @@ def gen_classes():
 @hypothesis.given(strategies.text())
 @hypothesis.example('\x00')
 def test_configtypes_hypothesis(klass, s):
-    if (klass in [configtypes.File, configtypes.UserStyleSheet] and
-            sys.platform == 'linux' and
+    if (klass == configtypes.File and sys.platform == 'linux' and
             not os.environ.get('DISPLAY', '')):
         pytest.skip("No DISPLAY available")
 

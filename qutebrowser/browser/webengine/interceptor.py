@@ -23,6 +23,7 @@
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
+from qutebrowser.config import config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log
 
@@ -64,3 +65,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
         for header, value in shared.custom_headers():
             info.setHttpHeader(header, value)
+
+        user_agent = config.get('network', 'user-agent')
+        if user_agent is not None:
+            info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))

@@ -23,9 +23,7 @@ import os.path
 import configparser
 import collections
 import shutil
-from unittest import mock
 
-from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 import pytest
 
@@ -33,7 +31,6 @@ import qutebrowser
 from qutebrowser.config import config, configexc, configdata
 from qutebrowser.config.parsers import keyconf
 from qutebrowser.commands import runners
-from qutebrowser.utils import objreg, standarddir
 
 
 class TestConfigParser:
@@ -43,12 +40,12 @@ class TestConfigParser:
     Objects = collections.namedtuple('Objects', ['cp', 'cfg'])
 
     @pytest.fixture
-    def objects(self):
+    def objects(self, tmpdir):
         cp = configparser.ConfigParser(interpolation=None,
                                        comment_prefixes='#')
         cp.optionxform = lambda opt: opt  # be case-insensitive
         cfg = config.ConfigManager()
-        cfg.read(None, None)
+        cfg.read(str(tmpdir), 'qutebrowser.conf')
         return self.Objects(cp=cp, cfg=cfg)
 
     @pytest.mark.parametrize('config, section, option, value', [
@@ -247,7 +244,7 @@ class TestKeyConfigParser:
 
     """Test config.parsers.keyconf.KeyConfigParser."""
 
-    def test_cmd_binding(self, cmdline_test, config_stub):
+    def test_cmd_binding(self, cmdline_test, config_stub, tmpdir):
         """Test various command bindings.
 
         See https://github.com/The-Compiler/qutebrowser/issues/615
@@ -256,7 +253,7 @@ class TestKeyConfigParser:
             cmdline_test: A pytest fixture which provides testcases.
         """
         config_stub.data = {'aliases': []}
-        kcp = keyconf.KeyConfigParser(None, None)
+        kcp = keyconf.KeyConfigParser(str(tmpdir), 'keys.conf')
         kcp._cur_section = 'normal'
         if cmdline_test.valid:
             kcp._read_command(cmdline_test.cmd)
@@ -379,17 +376,17 @@ class TestDefaultConfig:
     """Test validating of the default config."""
 
     @pytest.mark.usefixtures('qapp')
-    def test_default_config(self):
+    def test_default_config(self, tmpdir):
         """Test validating of the default config."""
         conf = config.ConfigManager()
-        conf.read(None, None)
+        conf.read(str(tmpdir), 'qutebrowser.conf')
         conf._validate_all()
 
-    def test_default_key_config(self):
+    def test_default_key_config(self, tmpdir):
         """Test validating of the default key config."""
         # We import qutebrowser.app so the cmdutils.register decorators run.
         import qutebrowser.app  # pylint: disable=unused-variable
-        conf = keyconf.KeyConfigParser(None, None)
+        conf = keyconf.KeyConfigParser(str(tmpdir), 'keys.conf')
         runner = runners.CommandRunner(win_id=0)
         for sectname in configdata.KEY_DATA:
             for cmd in conf.get_bindings_for(sectname).values():
@@ -418,48 +415,3 @@ class TestDefaultConfig:
         shutil.copy(full_path, str(tmpdir / 'qutebrowser.conf'))
         conf = config.ConfigManager()
         conf.read(str(tmpdir), 'qutebrowser.conf')
-
-
-@pytest.mark.integration
-class TestConfigInit:
-
-    """Test initializing of the config."""
-
-    @pytest.fixture(autouse=True)
-    def patch(self, fake_args):
-        objreg.register('app', QObject())
-        objreg.register('save-manager', mock.MagicMock())
-        fake_args.relaxed_config = False
-        old_standarddir_args = standarddir._args
-        yield
-        objreg.delete('app')
-        objreg.delete('save-manager')
-        # registered by config.init()
-        objreg.delete('config')
-        objreg.delete('key-config')
-        objreg.delete('state-config')
-        standarddir._args = old_standarddir_args
-
-    @pytest.fixture
-    def env(self, tmpdir):
-        conf_path = (tmpdir / 'config').ensure(dir=1)
-        data_path = (tmpdir / 'data').ensure(dir=1)
-        cache_path = (tmpdir / 'cache').ensure(dir=1)
-        env = {
-            'XDG_CONFIG_HOME': str(conf_path),
-            'XDG_DATA_HOME': str(data_path),
-            'XDG_CACHE_HOME': str(cache_path),
-        }
-        return env
-
-    def test_config_none(self, monkeypatch, env, fake_args):
-        """Test initializing with config path set to None."""
-        fake_args.confdir = ''
-        fake_args.datadir = ''
-        fake_args.cachedir = ''
-        fake_args.basedir = None
-        for k, v in env.items():
-            monkeypatch.setenv(k, v)
-        standarddir.init(fake_args)
-        config.init()
-        assert not os.listdir(env['XDG_CONFIG_HOME'])

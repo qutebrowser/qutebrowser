@@ -84,6 +84,7 @@ class TabData:
         inspector: The QWebInspector used for this webview.
         viewing_source: Set if we're currently showing a source view.
         override_target: Override for open_target for fake clicks (like hints).
+                         Only used for QtWebKit.
         pinned: Flag to pin the tab
     """
 
@@ -726,6 +727,14 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def set_html(self, html, base_url):
+        raise NotImplementedError
+
+    def networkaccessmanager(self):
+        """Get the QNetworkAccessManager for this tab.
+
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always returns None.
+        """
         raise NotImplementedError
 
     def __repr__(self):

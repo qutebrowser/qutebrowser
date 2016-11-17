@@ -22,7 +22,6 @@
 import re
 import json
 import shlex
-import base64
 import codecs
 import os.path
 import itertools
@@ -859,9 +858,7 @@ class File(BaseType):
         value = os.path.expanduser(value)
         value = os.path.expandvars(value)
         if not os.path.isabs(value):
-            cfgdir = standarddir.config()
-            assert cfgdir is not None
-            value = os.path.join(cfgdir, value)
+            value = os.path.join(standarddir.config(), value)
         return value
 
     def validate(self, value):
@@ -872,12 +869,7 @@ class File(BaseType):
         value = os.path.expandvars(value)
         try:
             if not os.path.isabs(value):
-                cfgdir = standarddir.config()
-                if cfgdir is None:
-                    raise configexc.ValidationError(
-                        value, "must be an absolute path when not using a "
-                        "config directory!")
-                value = os.path.join(cfgdir, value)
+                value = os.path.join(standarddir.config(), value)
                 not_isfile_message = ("must be a valid path relative to the "
                                       "config directory!")
             else:
@@ -1172,48 +1164,6 @@ class Encoding(BaseType):
             raise configexc.ValidationError(value, "is not a valid encoding!")
 
 
-class UserStyleSheet(File):
-
-    """QWebSettings UserStyleSheet."""
-
-    def transform(self, value):
-        if not value:
-            return None
-
-        if standarddir.config() is None:
-            # We can't call super().transform() here as this counts on the
-            # validation previously ensuring that we don't have a relative path
-            # when starting with -c "".
-            path = None
-        else:
-            path = super().transform(value)
-
-        if path is not None and os.path.exists(path):
-            return QUrl.fromLocalFile(path)
-        else:
-            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
-            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        value = os.path.expandvars(value)
-        value = os.path.expanduser(value)
-        try:
-            super().validate(value)
-        except configexc.ValidationError:
-            try:
-                if not os.path.isabs(value):
-                    # probably a CSS, so we don't handle it as filename.
-                    # FIXME We just try if it is encodable, maybe we should
-                    # validate CSS?
-                    # https://github.com/The-Compiler/qutebrowser/issues/115
-                    value.encode('utf-8')
-            except UnicodeEncodeError as e:
-                raise configexc.ValidationError(value, str(e))
-
-
 class AutoSearch(BaseType):
 
     """Whether to start a search when something else than a URL is entered."""
@@ -1476,6 +1426,11 @@ class UserAgent(BaseType):
 
     def validate(self, value):
         self._basic_validation(value)
+        try:
+            value.encode('ascii')
+        except UnicodeEncodeError as e:
+            msg = "User-Agent contains non-ascii characters: {}".format(e)
+            raise configexc.ValidationError(value, msg)
 
     # To update the following list of user agents, run the script 'ua_fetch.py'
     # Vim-protip: Place your cursor below this comment and run

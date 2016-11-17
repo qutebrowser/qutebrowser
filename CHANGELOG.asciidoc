@@ -50,6 +50,8 @@ Added
 - New `cast` userscript to show a video on a Google Chromecast
 - New `:run-with-count` command which replaces the (undocumented) `:count:command` syntax.
 - New `:record-macro` (`q`) and `:run-macro` (`@`) commands for keyboard macros.
+- New `ui -> hide-scrollbar` setting to hide the scrollbar independently of the
+  `user-stylesheet` setting.
 
 Changed
 ~~~~~~~
@@ -143,6 +145,10 @@ Changed
 - Various functionality now works when javascript is disabled with QtWebKit
 - Various commands/settings taking `left`/`right`/`previous` arguments now take
   `prev`/`next`/`last-used` to remove ambiguity.
+- The `ui -> user-stylesheet` setting now only takes filenames, not CSS snippets
+- `ui -> window-title-format` now has a new `{backend} ` replacement
+- `:hint` has a new `--add-history` argument to add the URL to the history for
+  yank/spawn targets.
 
 Deprecated
 ~~~~~~~~~~
@@ -168,6 +174,8 @@ Removed
   thus removed.
 - All `--qt-*` arguments got replaced by `--qt-arg` and `--qt-flag` and thus
   removed.
+- The `-c`/`--confdir`, `--datadir` and `--cachedir` arguments got removed, as
+  `--basedir` should be sufficient.
 
 Fixed
 ~~~~~

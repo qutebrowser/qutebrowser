@@ -124,11 +124,10 @@ Feature: Miscellaneous utility commands exposed to the user.
         Then the page should not be scrolled
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode, not normal." should be shown
 
-    @qtwebengine_createWindow
     Scenario: :repeat-command with mode-switching command
         When I open data/hints/link_blank.html
         And I run :tab-only
-        And I hint with args "all"
+        And I hint with args "all tab-fg"
         And I run :leave-mode
         And I run :repeat-command
         And I run :follow-hint a

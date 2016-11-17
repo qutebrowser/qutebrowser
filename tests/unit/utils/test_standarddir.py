@@ -110,6 +110,7 @@ class TestStandardDir:
         (standarddir.data, 'XDG_DATA_HOME'),
         (standarddir.config, 'XDG_CONFIG_HOME'),
         (standarddir.cache, 'XDG_CACHE_HOME'),
+        (standarddir.runtime, 'XDG_RUNTIME_DIR'),
     ])
     @pytest.mark.linux
     def test_linux_explicit(self, monkeypatch, tmpdir, func, varname):
@@ -163,57 +164,7 @@ DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
 @pytest.mark.usefixtures('reset_standarddir')
 class TestArguments:
 
-    """Tests with confdir/cachedir/datadir arguments."""
-
-    @pytest.fixture(params=[DirArgTest('', None), DirArgTest('foo', 'foo')])
-    def testcase(self, request, tmpdir):
-        """Fixture providing testcases."""
-        if request.param.expected is None:
-            return request.param
-        else:
-            # prepend tmpdir to both
-            arg = str(tmpdir / request.param.arg)
-            return DirArgTest(arg, arg)
-
-    def test_confdir(self, testcase):
-        """Test --confdir."""
-        args = types.SimpleNamespace(confdir=testcase.arg, cachedir=None,
-                                     datadir=None, basedir=None)
-        standarddir.init(args)
-        assert standarddir.config() == testcase.expected
-
-    def test_cachedir(self, testcase):
-        """Test --cachedir."""
-        args = types.SimpleNamespace(confdir=None, cachedir=testcase.arg,
-                                     datadir=None, basedir=None)
-        standarddir.init(args)
-        assert standarddir.cache() == testcase.expected
-
-    def test_datadir(self, testcase):
-        """Test --datadir."""
-        args = types.SimpleNamespace(confdir=None, cachedir=None,
-                                     datadir=testcase.arg, basedir=None)
-        standarddir.init(args)
-        assert standarddir.data() == testcase.expected
-
-    def test_confdir_none(self, mocker):
-        """Test --confdir with None given."""
-        # patch makedirs to a noop so we don't really create a directory
-        mocker.patch('qutebrowser.utils.standarddir.os.makedirs')
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
-                                     basedir=None)
-        standarddir.init(args)
-        assert standarddir.config().split(os.sep)[-1] == 'qute_test'
-
-    def test_runtimedir(self, tmpdir, monkeypatch):
-        """Test runtime dir (which has no args)."""
-        monkeypatch.setattr(
-            'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
-            lambda _typ: str(tmpdir))
-        args = types.SimpleNamespace(confdir=None, cachedir=None, datadir=None,
-                                     basedir=None)
-        standarddir.init(args)
-        assert standarddir.runtime() == str(tmpdir / 'qute_test')
+    """Tests the --basedir argument."""
 
     @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
                                      pytest.mark.linux('runtime')])
@@ -238,13 +189,6 @@ class TestArguments:
 class TestInitCacheDirTag:
 
     """Tests for _init_cachedir_tag."""
-
-    def test_no_cache_dir(self, mocker, monkeypatch):
-        """Smoke test with cache() returning None."""
-        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
-                            lambda: None)
-        mocker.patch('builtins.open', side_effect=AssertionError)
-        standarddir._init_cachedir_tag()
 
     def test_existent_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test with an existent CACHEDIR.TAG."""
@@ -356,3 +300,102 @@ class TestSystemData:
         standarddir.init(fake_args)
         monkeypatch.setattr('sys.platform', "potato")
         assert standarddir.system_data() == standarddir.data()
+
+
+class TestMoveWebEngineData:
+
+    """Test moving QtWebEngine data from an old location."""
+
+    @pytest.fixture(autouse=True)
+    def patch_standardpaths(self, tmpdir, monkeypatch):
+        locations = {
+            QStandardPaths.DataLocation: str(tmpdir / 'data'),
+            QStandardPaths.CacheLocation: str(tmpdir / 'cache'),
+        }
+        monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                            locations.get)
+        monkeypatch.setattr(standarddir, 'data',
+                            lambda: str(tmpdir / 'new_data'))
+        monkeypatch.setattr(standarddir, 'cache',
+                            lambda: str(tmpdir / 'new_cache'))
+
+    @pytest.fixture
+    def files(self, tmpdir):
+        files = collections.namedtuple('Files', ['old_data', 'new_data',
+                                                 'old_cache', 'new_cache'])
+        return files(
+            old_data=tmpdir / 'data' / 'QtWebEngine' / 'Default' / 'datafile',
+            new_data=tmpdir / 'new_data' / 'webengine' / 'datafile',
+            old_cache=(tmpdir / 'cache' / 'QtWebEngine' / 'Default' /
+                       'cachefile'),
+            new_cache=(tmpdir / 'new_cache' / 'webengine' / 'cachefile'),
+        )
+
+    def test_no_webengine_dir(self, caplog):
+        """Nothing should happen without any QtWebEngine directory."""
+        standarddir._move_webengine_data()
+        assert not any(rec.message.startswith('Moving QtWebEngine')
+                       for rec in caplog.records)
+
+    def test_moving_data(self, files):
+        files.old_data.ensure()
+        files.old_cache.ensure()
+
+        standarddir._move_webengine_data()
+
+        assert not files.old_data.exists()
+        assert not files.old_cache.exists()
+        assert files.new_data.exists()
+        assert files.new_cache.exists()
+
+    @pytest.mark.parametrize('what', ['data', 'cache'])
+    def test_already_existing(self, files, caplog, what):
+        files.old_data.ensure()
+        files.old_cache.ensure()
+
+        if what == 'data':
+            files.new_data.ensure()
+        else:
+            files.new_cache.ensure()
+
+        with caplog.at_level(logging.WARNING):
+            standarddir._move_webengine_data()
+
+        record = caplog.records[-1]
+        expected = "Failed to move old QtWebEngine {}".format(what)
+        assert record.message.startswith(expected)
+
+    def test_deleting_empty_dirs(self, monkeypatch, tmpdir):
+        """When we have a qutebrowser/qutebrowser subfolder, clean it up."""
+        old_data = tmpdir / 'data' / 'qutebrowser' / 'qutebrowser'
+        old_cache = tmpdir / 'cache' / 'qutebrowser' / 'qutebrowser'
+        locations = {
+            QStandardPaths.DataLocation: str(old_data),
+            QStandardPaths.CacheLocation: str(old_cache),
+        }
+        monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                            locations.get)
+
+        old_data_file = old_data / 'QtWebEngine' / 'Default' / 'datafile'
+        old_cache_file = old_cache / 'QtWebEngine' / 'Default' / 'cachefile'
+        old_data_file.ensure()
+        old_cache_file.ensure()
+
+        standarddir._move_webengine_data()
+
+        assert not (tmpdir / 'data' / 'qutebrowser' / 'qutebrowser').exists()
+        assert not (tmpdir / 'cache' / 'qutebrowser' / 'qutebrowser').exists()
+
+    def test_deleting_error(self, files, monkeypatch, mocker, caplog):
+        """When there was an error it should be logged."""
+        mock = mocker.Mock(side_effect=OSError('error'))
+        monkeypatch.setattr(standarddir.shutil, 'move', mock)
+        files.old_data.ensure()
+        files.old_cache.ensure()
+
+        with caplog.at_level(logging.ERROR):
+            standarddir._move_webengine_data()
+
+        record = caplog.records[-1]
+        expected = "Failed to move old QtWebEngine data/cache: error"
+        assert record.message == expected
