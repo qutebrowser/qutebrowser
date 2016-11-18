@@ -602,7 +602,7 @@ class HintManager(QObject):
                        star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None):
+              *args, win_id, mode=None, chronicle=False):
         """Start hinting.
 
         Args:
@@ -691,6 +691,7 @@ class HintManager(QObject):
         self._context.target = target
         self._context.rapid = rapid
         self._context.hint_mode = mode
+        self._context.chronicle = chronicle
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
@@ -860,6 +861,8 @@ class HintManager(QObject):
                 return
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
+            if self._context.chronicle:
+                objreg.get('web-history').add_from_tab(url, url, "") 
         else:
             raise ValueError("No suitable handler found!")
 
