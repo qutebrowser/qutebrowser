@@ -611,7 +611,7 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
-            chronicle: Whether to add spawned or yanked linked to the 
+            chronicle: Whether to add spawned or yanked linked to the
                        browsing history.
             group: The element types to hint.
 
@@ -866,7 +866,7 @@ class HintManager(QObject):
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
             if self._context.chronicle:
-                objreg.get('web-history').add_from_tab(url, url, "") 
+                objreg.get('web-history').add_from_tab(url, url, "")
         else:
             raise ValueError("No suitable handler found!")
 
