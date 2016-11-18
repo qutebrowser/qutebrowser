@@ -152,6 +152,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        chronicle: Whether to add yanked or spawned link to the history.
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
@@ -164,6 +165,7 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.rapid = False
+        self.chronicle = False
         self.filterstr = None
         self.args = []
         self.tab = None
@@ -609,6 +611,8 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
+            chronicle: Whether to add spawned or yanked linked to the 
+                       browsing history.
             group: The element types to hint.
 
                 - `all`: All clickable elements.
