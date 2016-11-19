@@ -652,9 +652,10 @@ class FilenamePrompt(_BasePrompt):
 
         diff = -1 if which == 'prev' else 1
         current_row = self._completer.currentRow()
-        next_row = (current_row + diff) % self._completer.completionCount()
-        self._completer.setCurrentRow(next_row)
-        self._completer.complete()
+        if self._completer.completionCount() > 0:
+            next_row = (current_row + diff) % self._completer.completionCount()
+            self._completer.setCurrentRow(next_row)
+            self._completer.complete()
 
     def _allowed_commands(self):
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
