@@ -152,7 +152,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
-        chronicle: Whether to add yanked or spawned link to the history.
+        history: Whether to add yanked or spawned link to the history.
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
@@ -165,7 +165,7 @@ class HintContext:
         self.baseurl = None
         self.to_follow = None
         self.rapid = False
-        self.chronicle = False
+        self.history = False
         self.filterstr = None
         self.args = []
         self.tab = None
@@ -603,15 +603,16 @@ class HintManager(QObject):
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('history', flag="s")
     def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None, chronicle=False):
+              *args, win_id, mode=None, history=False):
         """Start hinting.
 
         Args:
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
-            chronicle: Whether to add spawned or yanked linked to the
+            history: Whether to add spawned or yanked link to the
                        browsing history.
             group: The element types to hint.
 
@@ -695,7 +696,7 @@ class HintManager(QObject):
         self._context.target = target
         self._context.rapid = rapid
         self._context.hint_mode = mode
-        self._context.chronicle = chronicle
+        self._context.history = history
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
@@ -865,8 +866,8 @@ class HintManager(QObject):
                 return
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
-            if self._context.chronicle:
-                objreg.get('web-history').add_from_tab(url, url, "")
+            if self._context.history:
+                objreg.get('web-history').add_url(url, "")
         else:
             raise ValueError("No suitable handler found!")
 
