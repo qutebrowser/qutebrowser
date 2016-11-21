@@ -78,6 +78,13 @@ class WebEngineView(QWebEngineView):
         log.webview.debug("createWindow with type {}, background_tabs "
                           "{}".format(debug_type, background_tabs))
 
+        try:
+            background_tab_wintype = QWebEnginePage.WebBrowserBackgroundTab
+        except AttributeError:
+            # This is unavailable with an older PyQt, but we still might get
+            # this with a newer Qt...
+            background_tab_wintype = 0x0003
+
         if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
             target = usertypes.ClickTarget.window
@@ -92,8 +99,7 @@ class WebEngineView(QWebEngineView):
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
-              wintype == QWebEnginePage.WebBrowserBackgroundTab):
+        elif wintype == background_tab_wintype:
             # Middle-click / Ctrl-Click
             if background_tabs:
                 target = usertypes.ClickTarget.tab_bg
