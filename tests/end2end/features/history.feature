@@ -60,7 +60,7 @@ Feature: Page history
 
     Scenario: History with yanked URL and 'add to history' flag
         When I open data/hints/html/simple.html
-        And I hint with args "--history links yank" and follow a
+        And I hint with args "--addhistory links yank" and follow a
         Then the history file should contain:
             http://localhost:(port)/data/hints/html/simple.html Simple link
             http://localhost:(port)/data/hello.txt
