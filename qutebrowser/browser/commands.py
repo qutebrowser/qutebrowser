@@ -240,7 +240,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def tab_close(self, prev=False, next_=False, opposite=False,
-                    force=False, count=None):
+                  force=False, count=None):
         """Close the current/[count]th tab.
 
         Args:
