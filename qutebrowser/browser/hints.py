@@ -610,8 +610,8 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. This is only possible with
                    targets `tab` (with background-tabs=true), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
-            add_history: Whether to add spawned or yanked link to the
-                       browsing history.
+            add_history: Whether to add the spawned or yanked link to the
+                         browsing history.
             group: The element types to hint.
 
                 - `all`: All clickable elements.

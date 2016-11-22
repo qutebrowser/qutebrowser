@@ -147,6 +147,8 @@ Changed
   `prev`/`next`/`last-used` to remove ambiguity.
 - The `ui -> user-stylesheet` setting now only takes filenames, not CSS snippets
 - `ui -> window-title-format` now has a new `{backend} ` replacement
+- `:hint` has a new `--add-history` argument to add the URL to the history for
+  yank/spawn targets.
 
 Deprecated
 ~~~~~~~~~~
