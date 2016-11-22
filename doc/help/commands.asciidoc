@@ -341,7 +341,8 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--rapid*] [*--mode* 'mode'] ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--rapid*] [*--mode* 'mode'] [*--add-history*]
+     ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
@@ -405,6 +406,8 @@ Start hinting.
  extra words.
  
 
+
+* +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
 
 
 ==== note
