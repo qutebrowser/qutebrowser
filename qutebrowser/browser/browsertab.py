@@ -727,6 +727,14 @@ class AbstractTab(QWidget):
     def set_html(self, html, base_url):
         raise NotImplementedError
 
+    def networkaccessmanager(self):
+        """Get the QNetworkAccessManager for this tab.
+
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always returns None.
+        """
+        raise NotImplementedError
+
     def __repr__(self):
         try:
             url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),

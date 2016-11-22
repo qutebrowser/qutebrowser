@@ -284,15 +284,7 @@ class HintActions:
         else:
             prompt = None
 
-        # FIXME:qtwebengine get a proper API for this
-        # pylint: disable=protected-access
-        try:
-            qnam = elem._elem.webFrame().page().networkAccessManager()
-        except AttributeError:
-            # QtWebEngine
-            qnam = None
-        # pylint: enable=protected-access
-
+        qnam = context.tab.networkaccessmanager()
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)

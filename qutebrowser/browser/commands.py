@@ -1332,16 +1332,7 @@ class CommandDispatcher:
         elif mhtml_:
             self._download_mhtml(dest)
         else:
-            tab = self._current_widget()
-
-            # FIXME:qtwebengine have a proper API for this
-            # pylint: disable=protected-access
-            try:
-                qnam = tab._widget.page().networkAccessManager()
-            except AttributeError:
-                # QtWebEngine
-                qnam = None
-            # pylint: enable=protected-access
+            qnam = self._current_widget().networkaccessmanager()
 
             if dest is None:
                 target = None

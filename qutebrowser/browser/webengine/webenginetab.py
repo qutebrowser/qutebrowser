@@ -574,6 +574,9 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
+    def networkaccessmanager(self):
+        return None
+
     def clear_ssl_errors(self):
         raise browsertab.UnsupportedOperationError
 
