@@ -58,6 +58,13 @@ Feature: Page history
         And I run :history-clear
         Then the history file should be empty
 
+    Scenario: History with yanked URL and 'add to history' flag
+        When I open data/hints/html/simple.html
+        And I hint with args "--add-history links yank" and follow a
+        Then the history file should contain:
+            http://localhost:(port)/data/hints/html/simple.html Simple link
+            http://localhost:(port)/data/hello.txt
+
     ## Bugs
 
     @qtwebengine_skip
