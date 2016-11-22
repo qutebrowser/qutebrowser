@@ -284,10 +284,19 @@ class HintActions:
         else:
             prompt = None
 
+        # FIXME:qtwebengine get a proper API for this
+        # pylint: disable=protected-access
+        try:
+            qnam = elem._elem.webFrame().page().networkAccessManager()
+        except AttributeError:
+            # QtWebEngine
+            qnam = None
+        # pylint: enable=protected-access
+
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
-        download_manager.get(url, prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):
         """Call a userscript from a hint.

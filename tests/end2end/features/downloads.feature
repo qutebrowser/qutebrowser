@@ -100,6 +100,19 @@ Feature: Downloading things from a website.
         And I run :close
         Then qutebrowser should quit
 
+    # https://github.com/The-Compiler/qutebrowser/issues/2134
+    @qtwebengine_skip
+    Scenario: Downloading, then closing a tab
+        When I set storage -> prompt-download-directory to false
+        And I open about:blank
+        And I open data/downloads/issue2134.html in a new tab
+        # This needs to be a download connected to the tabs QNAM
+        And I hint with args "links normal" and follow a
+        And I wait for "fetch: * -> drip" in the log
+        And I run :tab-close
+        And I wait for "Download drip finished" in the log
+        Then the downloaded file drip should contain 128 bytes
+
     ## :download-retry
 
     Scenario: Retrying a failed download
