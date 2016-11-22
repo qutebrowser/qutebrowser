@@ -279,12 +279,10 @@ class HintActions:
         url = elem.resolve_url(context.baseurl)
         if url is None:
             raise HintingError("No suitable link found for this element.")
-        if context.rapid:
-            prompt = False
-        else:
-            prompt = None
 
+        prompt = False if context.rapid else None
         qnam = context.tab.networkaccessmanager()
+
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
