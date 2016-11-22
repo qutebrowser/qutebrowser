@@ -20,6 +20,7 @@
 import pytest_bdd as bdd
 bdd.scenarios('tabs.feature')
 
+
 @bdd.when("I wait for a prompt")
 def wait_for_prompt(quteproc):
     quteproc.wait_for(message='Asking question *')
