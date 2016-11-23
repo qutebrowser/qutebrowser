@@ -255,3 +255,8 @@ Feature: Keyboard input
         And I press the key "a"
         And I wait for "hints: *" in the log
         Then no crash should happen
+
+    Scenario: Cancelling key input
+        When I run :record-macro
+        And I press the key "<Escape>"
+        Then "Leaving mode KeyMode.record_macro (reason: leave current)" should be logged
