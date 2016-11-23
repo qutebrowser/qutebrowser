@@ -657,7 +657,7 @@ def data(readonly=False):
             ('pinned-width',
              SettingValue(typ.Int(minval=10),
                           '43'),
-             "The width of the pinned tab if it's horizontal, in px."),
+             "The width for pinned tabs with a horizontal tabbar, in px."),
 
             ('indicator-width',
              SettingValue(typ.Int(minval=0), '3'),
@@ -690,17 +690,8 @@ def data(readonly=False):
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
                          'id', 'scroll_pos', 'host'], none_ok=True),
                  '{index}'),
-             "The format to use for the pinned tab title."
-             " The following placeholders are defined:\n\n"
-             "* `{perc}`: The percentage as a string like `[10%]`.\n"
-             "* `{perc_raw}`: The raw percentage, e.g. `10`\n"
-             "* `{title}`: The title of the current web page\n"
-             "* `{title_sep}`: The string ` - ` if a title is set, empty "
-             "otherwise.\n"
-             "* `{index}`: The index of this tab.\n"
-             "* `{id}`: The internal tab ID of this tab.\n"
-             "* `{scroll_pos}`: The page scroll position.\n"
-             "* `{host}`: The host of the current web page."),
+             "The format to use for the tab title for pinned tabs."
+             "The same placeholders like for title-format are defined."),
 
             ('title-alignment',
              SettingValue(typ.TextAlignment(), 'left'),
