@@ -745,6 +745,7 @@ class HintManager(QObject):
             self._fire(*visible)
 
     def _apply_auto_follow_timeout(self):
+        """Apply timeout set in auto-follow-timeout."""
         timeout = config.get('hints', 'auto-follow-timeout')
         keyparsers = objreg.get('keyparsers', scope='window',
                                 window=self._win_id)
