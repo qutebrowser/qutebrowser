@@ -397,7 +397,7 @@ This setting is only available with the QtWebKit backend.
 === developer-extras
 Enable extra tools for Web developers.
 
-This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu.
+This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu. For QtWebEngine, see 'qutebrowser --help' instead.
 
 Valid values:
 
@@ -405,6 +405,8 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
+
+This setting is only available with the QtWebKit backend.
 
 [[general-print-element-backgrounds]]
 === print-element-backgrounds

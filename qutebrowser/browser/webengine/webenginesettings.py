@@ -106,10 +106,9 @@ def update_settings(section, option):
         _init_stylesheet(profile)
 
 
-def init(_args):
+def init(args):
     """Initialize the global QWebSettings."""
-    if config.get('general', 'developer-extras'):
-        # FIXME:qtwebengine Make sure we call globalSettings *after* this...
+    if args.enable_webengine_inspector:
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
     profile = QWebEngineProfile.defaultProfile()

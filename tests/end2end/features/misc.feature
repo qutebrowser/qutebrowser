@@ -130,10 +130,16 @@ Feature: Various utility commands.
 
     # :inspect
 
+    @qtwebengine_skip
     Scenario: Inspector without developer extras
         When I set general -> developer-extras to false
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
+
+    @qtwebkit_skip
+    Scenario: Inspector without --enable-webengine-inspector
+        When I run :inspector
+        Then the error "Debugging is not enabled. See 'qutebrowser --help' for details." should be shown
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
@@ -145,6 +151,7 @@ Feature: Various utility commands.
         Then no crash should happen
 
     # Different code path as an inspector got created now
+    @qtwebengine_skip
     Scenario: Inspector without developer extras (after smoke)
         When I set general -> developer-extras to false
         And I run :inspector

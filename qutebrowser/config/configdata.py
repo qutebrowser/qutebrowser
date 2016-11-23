@@ -184,10 +184,12 @@ def data(readonly=False):
              "icons."),
 
             ('developer-extras',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Enable extra tools for Web developers.\n\n"
              "This needs to be enabled for `:inspector` to work and also adds "
-             "an _Inspect_ entry to the context menu."),
+             "an _Inspect_ entry to the context menu. For QtWebEngine, see "
+             "'qutebrowser --help' instead."),
 
             ('print-element-backgrounds',
              SettingValue(typ.Bool(), 'true',

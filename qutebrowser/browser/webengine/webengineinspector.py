@@ -41,13 +41,12 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     def inspect(self, _page):
         """Set up the inspector."""
-        self._check_developer_extras()
         try:
             port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
         except KeyError:
             raise inspector.WebInspectorError(
-                "Debugging is not set up correctly. Did you restart after "
-                "setting developer-extras?")
+                "Debugging is not enabled. See 'qutebrowser --help' for "
+                "details.")
         url = QUrl('http://localhost:{}/'.format(port))
         self._widget.load(url)
         self.show()
