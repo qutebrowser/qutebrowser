@@ -68,10 +68,10 @@ def get_argparser():
                              "EXPERIMENTAL!).", default='webkit')
     parser.add_argument('--enable-webengine-inspector', action='store_true',
                         help="Enable the web inspector for QtWebEngine. Note "
-                        "that this is a SECURITY RISK and you should not visit "
-                        "untrusted websites with the inspector turned on. See "
-                        "https://bugreports.qt.io/browse/QTBUG-50725 for more "
-                        "details.")
+                        "that this is a SECURITY RISK and you should not "
+                        "visit untrusted websites with the inspector turned "
+                        "on. See https://bugreports.qt.io/browse/QTBUG-50725 "
+                        "for more details.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
