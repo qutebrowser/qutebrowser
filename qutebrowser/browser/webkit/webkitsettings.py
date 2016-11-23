@@ -102,7 +102,7 @@ def update_settings(section, option):
     websettings.update_mappings(MAPPINGS, section, option)
 
 
-def init():
+def init(_args):
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()

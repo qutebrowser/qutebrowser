@@ -106,7 +106,7 @@ def update_settings(section, option):
         _init_stylesheet(profile)
 
 
-def init():
+def init(_args):
     """Initialize the global QWebSettings."""
     if config.get('general', 'developer-extras'):
         # FIXME:qtwebengine Make sure we call globalSettings *after* this...

@@ -405,7 +405,7 @@ def _init_modules(args, crash_handler):
     sessions.init(qApp)
 
     log.init.debug("Initializing websettings...")
-    websettings.init()
+    websettings.init(args)
 
     log.init.debug("Initializing adblock...")
     host_blocker = adblock.HostBlocker()
