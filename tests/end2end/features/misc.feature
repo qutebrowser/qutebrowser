@@ -529,10 +529,6 @@ Feature: Various utility commands.
         And I set general -> private-browsing to false
         Then the page should contain the plaintext "Local storage status: not working"
 
-    Scenario: Using 0 as count
-        When I run :scroll down with count 0
-        Then the error "scroll: A zero count is not allowed for this command!" should be shown
-
     @no_xvfb
     Scenario: :window-only
         Given I run :tab-only

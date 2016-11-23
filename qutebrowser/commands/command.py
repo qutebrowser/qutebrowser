@@ -34,14 +34,11 @@ class ArgInfo:
     """Information about an argument."""
 
     def __init__(self, win_id=False, count=False, hide=False, metavar=None,
-                 zero_count=False, flag=None, completion=None, choices=None):
+                 flag=None, completion=None, choices=None):
         if win_id and count:
             raise TypeError("Argument marked as both count/win_id!")
-        if zero_count and not count:
-            raise TypeError("zero_count argument cannot exist without count!")
         self.win_id = win_id
         self.count = count
-        self.zero_count = zero_count
         self.flag = flag
         self.hide = hide
         self.metavar = metavar
@@ -51,7 +48,6 @@ class ArgInfo:
     def __eq__(self, other):
         return (self.win_id == other.win_id and
                 self.count == other.count and
-                self.zero_count == other.zero_count and
                 self.flag == other.flag and
                 self.hide == other.hide and
                 self.metavar == other.metavar and
@@ -61,7 +57,6 @@ class ArgInfo:
     def __repr__(self):
         return utils.get_repr(self, win_id=self.win_id, count=self.count,
                               flag=self.flag, hide=self.hide,
-                              zero_count=self.zero_count,
                               metavar=self.metavar, completion=self.completion,
                               choices=self.choices, constructor=True)
 
@@ -142,7 +137,6 @@ class Command:
         self.opt_args = collections.OrderedDict()
         self.namespace = None
         self._count = None
-        self._zero_count = None
         self.pos_args = []
         self.desc = None
         self.flags_with_args = []
@@ -154,7 +148,7 @@ class Command:
 
         self._inspect_func()
 
-    def _check_prerequisites(self, win_id, count):
+    def _check_prerequisites(self, win_id):
         """Check if the command is permitted to run currently.
 
         Args:
@@ -169,11 +163,6 @@ class Command:
             raise cmdexc.PrerequisitesError(
                 "{}: Only available with {} "
                 "backend.".format(self.name, self.backend.name))
-
-        if count == 0 and not self._zero_count:
-            raise cmdexc.PrerequisitesError(
-                "{}: A zero count is not allowed for this command!"
-                .format(self.name))
 
         if self.deprecated:
             message.warning('{} is deprecated - {}'.format(self.name,
@@ -246,9 +235,6 @@ class Command:
                 assert param.kind != inspect.Parameter.POSITIONAL_ONLY
                 if param.name == 'self':
                     continue
-                arg_info = self.get_arg_info(param)
-                if arg_info.count:
-                    self._zero_count = arg_info.zero_count
                 if self._inspect_special_param(param):
                     continue
                 if (param.kind == inspect.Parameter.KEYWORD_ONLY and
@@ -532,7 +518,7 @@ class Command:
                 e.status, e))
             return
         self._count = count
-        self._check_prerequisites(win_id, count)
+        self._check_prerequisites(win_id)
         posargs, kwargs = self._get_call_args(win_id)
         log.commands.debug('Calling {}'.format(
             debug_utils.format_call(self.handler, posargs, kwargs)))

@@ -255,6 +255,7 @@ Feature: Tab management
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
 
+    Scenario: :tab-focus with invalid negative index
     Scenario: :tab-focus with count 0
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -266,7 +267,6 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-focus with invalid negative index
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
