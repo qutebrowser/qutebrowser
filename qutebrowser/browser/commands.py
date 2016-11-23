@@ -282,7 +282,7 @@ class CommandDispatcher:
 
         tab.data.pinned = not tab.data.pinned
         if tab.data.pinned:
-            index = tabbar.pinned + 1 if index is None else int(index)
+            index = tabbar.pinned_count + 1 if index is None else int(index)
         else:
             index = self._count() if index is None else int(index)
 

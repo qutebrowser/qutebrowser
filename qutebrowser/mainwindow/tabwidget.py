@@ -103,9 +103,9 @@ class TabWidget(QTabWidget):
         bar.update(bar.tabRect(idx))
 
         if pinned:
-            bar.pinned += 1
+            bar.pinned_count += 1
         else:
-            bar.pinned -= 1
+            bar.pinned_count -= 1
 
         bar.refresh()
 
@@ -306,7 +306,7 @@ class TabBar(QTabBar):
         self._auto_hide_timer.timeout.connect(self._tabhide)
         self.setAutoFillBackground(True)
         self.set_colors()
-        self.pinned = 0
+        self.pinned_count = 0
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.on_tab_colors_changed)
@@ -488,28 +488,28 @@ class TabBar(QTabBar):
             try:
                 pinned = self.tab_data(index, 'pinned')
             except KeyError:
-                pass
-            else:
-                if pinned:
-                    size = QSize(tab_width_pinned_conf, height)
-                    qtutils.ensure_valid(size)
-                    return size
+                pinned = False
+
+            if pinned:
+                size = QSize(tab_width_pinned_conf, height)
+                qtutils.ensure_valid(size)
+                return size
 
             # If we *do* have enough space, tabs should occupy the whole window
-            # width. Also taken in consideration the reduced space necessary
-            #for the pinned tabs.
-            #WORKAROUND: During shutdown the self.count goes down,
-            #but the self.pinned not this generates some odd bahavior.
-            #To avoid this we compare self.count against self.pinned.
-            if self.pinned > 0 and self.count() > self.pinned:
-                pinned_width = tab_width_pinned_conf * self.pinned
+            # width. If there is pinned tabs their size will be substracted from
+            # the total window width.
+            # During shutdown the self.count goes down,
+            # but the self.pinned_count not - this generates some odd behavior.
+            # To avoid this we compare self.count against self.pinned_count.
+            if self.pinned_count > 0 and self.count() > self.pinned_count:
+                pinned_width = tab_width_pinned_conf * self.pinned_count
                 no_pinned_width = self.width() - pinned_width
-                width = no_pinned_width / (self.count() - self.pinned)
+                width = no_pinned_width / (self.count() - self.pinned_count)
             else:
                 width = self.width() / self.count()
 
-            ## If width is not divisible by count, add a pixel to some tabs so
-            ## that there is no ugly leftover space.
+            # If width is not divisible by count, add a pixel to some tabs so
+            # that there is no ugly leftover space.
             if index < self.width() % self.count():
                 width += 1
             size = QSize(width, height)
