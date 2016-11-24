@@ -138,8 +138,7 @@ class TestStandardDir:
         assert func() == str(tmpdir.join(*subdirs))
 
     @pytest.mark.linux
-    @pytest.mark.qt_log_ignore(r'^QStandardPaths: XDG_RUNTIME_DIR points to '
-                               r'non-existing path')
+    @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
     def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
