@@ -733,7 +733,7 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['values' ['values' ...]]+
 
 Set an option.
 
@@ -742,7 +742,7 @@ If the option name ends with '?', the value of the option is shown instead. If t
 ==== positional arguments
 * +'section'+: The section where the option is in.
 * +'option'+: The name of the option.
-* +'value'+: The value to set.
+* +'values'+: The value to set, or the values to cycle through.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily.
