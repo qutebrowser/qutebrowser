@@ -409,7 +409,7 @@ def qt_message_handler(msg_type, context, msg):
         "QXcbClipboard: SelectionRequest too old",
         # https://github.com/The-Compiler/qutebrowser/issues/2071
         'QXcbWindow: Unhandled client message: ""',
-        # No idea where this comes from...
+        # https://codereview.qt-project.org/176831
         "QObject::disconnect: Unexpected null parameter",
     ]
     if sys.platform == 'darwin':
