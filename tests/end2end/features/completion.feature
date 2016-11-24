@@ -66,10 +66,6 @@ Feature: Using completion
         When I run :set-cmd-text -s :set colors statusbar.bg
         Then the completion model should be SettingValueCompletionModel
 
-    Scenario: Using value completion multiple times
-        When I run :set-cmd-text -s :set --cycle colors statusbar.bg black
-        Then the completion model should be SettingValueCompletionModel
-
     Scenario: Updating the completion in realtime
         Given I have a fresh instance
         And I set completion -> quick-complete to false
