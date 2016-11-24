@@ -196,6 +196,9 @@ def open_path(quteproc, path):
         if path.endswith(new_tab_suffix):
             path = path[:-len(new_tab_suffix)]
             new_tab = True
+        elif path.endswith(new_bg_tab_suffix):
+            path = path[:-len(new_bg_tab_suffix)]
+            new_bg_tab = True
         elif path.endswith(new_window_suffix):
             path = path[:-len(new_window_suffix)]
             new_window = True
@@ -207,20 +210,6 @@ def open_path(quteproc, path):
             wait = False
         else:
             break
-
-    if path.endswith(new_tab_suffix):
-        path = path[:-len(new_tab_suffix)]
-        new_tab = True
-    elif path.endswith(new_bg_tab_suffix):
-        path = path[:-len(new_bg_tab_suffix)]
-        new_bg_tab = True
-    elif path.endswith(new_window_suffix):
-        path = path[:-len(new_window_suffix)]
-        new_window = True
-
-    if path.endswith(do_not_wait_suffix):
-        path = path[:-len(do_not_wait_suffix)]
-        wait = False
 
     quteproc.open_path(path, new_tab=new_tab, new_bg_tab=new_bg_tab,
                        new_window=new_window, as_url=as_url, wait=wait)

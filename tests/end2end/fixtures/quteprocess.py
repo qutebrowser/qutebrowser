@@ -481,7 +481,7 @@ class QuteProc(testprocess.Process):
         """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path, port=port, https=https)
         self.open_url(url, new_tab=new_tab, new_bg_tab=new_bg_tab,
-                      new_window=new_window, wait=wait)
+                      new_window=new_window, as_url=as_url, wait=wait)
 
     def open_url(self, url, *, new_tab=False, new_bg_tab=False,
                  new_window=False, as_url=False, wait=True):
