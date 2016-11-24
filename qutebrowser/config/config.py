@@ -778,7 +778,7 @@ class ConfigManager(QObject):
     @cmdutils.argument('values', completion=Completion.value)
     @cmdutils.argument('win_id', win_id=True)
     def set_command(self, win_id, section_=None, option=None, *values,
-                    temp=False, print_=False, cycle=False):
+                    temp=False, print_=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -796,7 +796,6 @@ class ConfigManager(QObject):
             values: The value to set, or the values to cycle through.
             temp: Set value temporarily.
             print_: Print the value after setting.
-            cycle: Cycle through multiple provided values.
         """
         if section_ is not None and option is None:
             raise cmdexc.CommandError(
@@ -825,8 +824,6 @@ class ConfigManager(QObject):
                 elif not values:
                     raise cmdexc.CommandError("set: The following arguments "
                                               "are required: value")
-                elif not cycle and len(values) > 1:
-                    raise cmdexc.CommandError("set: Too many values provided")
 
                 layer = 'temp' if temp else 'conf'
                 self._set_next(layer, section_, option, values)
