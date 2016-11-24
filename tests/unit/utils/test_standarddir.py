@@ -90,7 +90,7 @@ class TestWritableLocation:
         monkeypatch.setattr(
             'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
             lambda typ: '')
-        with pytest.raises(ValueError):
+        with pytest.raises(standarddir.EmptyValueError):
             standarddir._writable_location(QStandardPaths.DataLocation)
 
     def test_sep(self, monkeypatch):
@@ -136,6 +136,23 @@ class TestStandardDir:
         for var in ['DATA', 'CONFIG', 'CACHE']:
             monkeypatch.delenv('XDG_{}_HOME'.format(var), raising=False)
         assert func() == str(tmpdir.join(*subdirs))
+
+    @pytest.mark.linux
+    @pytest.mark.qt_log_ignore(r'^QStandardPaths: XDG_RUNTIME_DIR points to '
+                               r'non-existing path')
+    def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
+        """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
+        monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
+        monkeypatch.setenv('TMPDIR', str(tmpdir / 'temp'))
+        assert standarddir.runtime() == str(tmpdir / 'temp' / 'qute_test')
+
+    def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
+        """With an empty tempdir on non-Linux, we should raise."""
+        monkeypatch.setattr(standarddir.sys, 'platform', 'nt')
+        monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                            lambda typ: '')
+        with pytest.raises(standarddir.EmptyValueError):
+            standarddir.runtime()
 
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['qute_test', 'data']),

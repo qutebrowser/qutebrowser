@@ -33,6 +33,11 @@ from qutebrowser.utils import log, qtutils, debug
 _args = None
 
 
+class EmptyValueError(Exception):
+
+    """Error raised when QStandardPaths returns an empty value."""
+
+
 def config():
     """Get a location for configs."""
     typ = QStandardPaths.ConfigLocation
@@ -104,9 +109,18 @@ def runtime():
     else:  # pragma: no cover
         # RuntimeLocation is a weird path on OS X and Windows.
         typ = QStandardPaths.TempLocation
+
     overridden, path = _from_args(typ, _args)
+
     if not overridden:
-        path = _writable_location(typ)
+        try:
+            path = _writable_location(typ)
+        except EmptyValueError:
+            # Fall back to TempLocation when RuntimeLocation is misconfigured
+            if typ == QStandardPaths.TempLocation:
+                raise
+            path = _writable_location(QStandardPaths.TempLocation)
+
         # This is generic, but per-user.
         #
         # For TempLocation:
@@ -128,7 +142,7 @@ def _writable_location(typ):
     typ_str = debug.qenum_key(QStandardPaths, typ)
     log.misc.debug("writable location for {}: {}".format(typ_str, path))
     if not path:
-        raise ValueError("QStandardPaths returned an empty value!")
+        raise EmptyValueError("QStandardPaths returned an empty value!")
     # Qt seems to use '/' as path separator even on Windows...
     path = path.replace('/', os.sep)
     return path

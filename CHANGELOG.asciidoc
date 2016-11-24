@@ -187,6 +187,8 @@ Fixed
 - `:tab-detach` now fails correctly when there's only one tab open.
 - Various small issues with the command completion
 - Fixed hang when using multiple spaces in a row with the URL completion
+- qutebrowser now still starts with an incorrectly configured
+  `$XDG_RUNTIME_DIR`.
 
 v0.8.3
 ------
