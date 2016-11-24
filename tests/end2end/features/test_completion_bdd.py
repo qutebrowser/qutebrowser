@@ -25,5 +25,5 @@ bdd.scenarios('completion.feature')
 @bdd.then(bdd.parsers.parse("the completion model should be {model}"))
 def check_model(quteproc, model):
     """Make sure the completion model was set to something."""
-    pattern = "New completion [^:]*: {}".format(model)
-    quteproc.wait_for(message=re.compile(pattern))
+    pattern = "Setting completion model to {} with pattern *".format(model)
+    quteproc.wait_for(message=pattern)
