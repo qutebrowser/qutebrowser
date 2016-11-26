@@ -524,12 +524,11 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         # If needed, re-open the tab as a workaround for QTBUG-54419.
         # See https://bugreports.qt.io/browse/QTBUG-54419
-        background = self.currentIndex() != idx
-
         if (tab.backend == usertypes.Backend.QtWebEngine and
                 tab.needs_qtbug54419_workaround and url.isValid()):
             log.misc.debug("Doing QTBUG-54419 workaround for {}, "
                            "url {}".format(tab, url))
+            background = self.currentIndex() != idx
             self.setUpdatesEnabled(False)
             try:
                 self.tabopen(url, background=background, idx=idx)
