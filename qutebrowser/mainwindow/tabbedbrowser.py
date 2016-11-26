@@ -519,9 +519,6 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
 
-        if not self.page_title(idx):
-            self.set_page_title(idx, url.toDisplayString())
-
         # If needed, re-open the tab as a workaround for QTBUG-54419.
         # See https://bugreports.qt.io/browse/QTBUG-54419
         if (tab.backend == usertypes.Backend.QtWebEngine and
