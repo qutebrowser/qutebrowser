@@ -527,7 +527,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         background = self.currentIndex() != idx
 
         if (tab.backend == usertypes.Backend.QtWebEngine and
-                tab.needs_qtbug54419_workaround):
+                tab.needs_qtbug54419_workaround and url.isValid()):
             log.misc.debug("Doing QTBUG-54419 workaround for {}, "
                            "url {}".format(tab, url))
             self.setUpdatesEnabled(False)

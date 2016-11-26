@@ -151,6 +151,11 @@ Feature: Using hints
         And I hint with args "all" and follow a
         Then the error "Invalid link clicked - *" should be shown
 
+    Scenario: Clicking an invalid link opening in a new tab
+        When I open data/invalid_link.html
+        And I hint with args "all tab" and follow a
+        Then the error "Invalid link clicked - *" should be shown
+
     Scenario: Hinting inputs without type
         When I open data/hints/input.html
         And I hint with args "inputs" and follow a
