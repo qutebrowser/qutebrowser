@@ -150,6 +150,7 @@ Changed
 - `:hint` has a new `--add-history` argument to add the URL to the history for
   yank/spawn targets.
 - `:set` now cycles through values if more than one argument is given.
+- `:open` now opens `default-page` without an URL even without `-t`/`-b`/`-w` given.
 
 Deprecated
 ~~~~~~~~~~

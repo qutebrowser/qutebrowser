@@ -257,13 +257,10 @@ class CommandDispatcher:
             count: The tab index to open the URL in, or None.
         """
         if url is None:
-            if tab or bg or window:
-                urls = [config.get('general', 'default-page')]
-            else:
-                raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
-                                          "set!")
+            urls = [config.get('general', 'default-page')]
         else:
             urls = self._parse_url_input(url)
+
         for i, cur_url in enumerate(urls):
             if not window and i > 0:
                 tab = False
