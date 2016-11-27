@@ -31,8 +31,6 @@ from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
 from qutebrowser.browser import history
 from qutebrowser.config import sections, value
 
-pytestmark = pytest.mark.skip('Disable until new completion API is complete')
-
 
 @pytest.fixture(autouse=True)
 def init_sql():
@@ -52,6 +50,7 @@ def _check_completions(model, expected):
                 ...
             }
     """
+    # TODO: delete once api conversion complete, use _check_model
     assert model.rowCount() == len(expected)
     for i in range(0, model.rowCount()):
         actual_cat = model.item(i)
@@ -65,6 +64,28 @@ def _check_completions(model, expected):
             misc = actual_cat.child(j, 2)
             actual_item = (name.text(), desc.text(), misc.text())
             assert actual_item in expected_cat
+
+
+def _check_model(model, expected):
+    """Check that a model contains the expected items in any order.
+
+    Args:
+        expected: A list of form
+                  [
+                      (cat, [(name, desc, misc), (name, desc, misc), ...]),
+                      (cat, [(name, desc, misc), (name, desc, misc), ...]),
+                      ...
+                  ]
+    """
+    assert model.rowCount() == len(expected)
+    for i, (expected_title, expected_items) in enumerate(expected):
+        catidx = model.index(i, 0)
+        assert model.data(catidx) == expected_title
+        assert model.rowCount(catidx) == len(expected_items)
+        for j, (name, desc, misc) in enumerate(expected_items):
+            assert model.data(model.index(j, 0, catidx)) == name
+            assert model.data(model.index(j, 1, catidx)) == desc
+            assert model.data(model.index(j, 2, catidx)) == misc
 
 
 def _patch_cmdutils(monkeypatch, stubs, symbol):
@@ -177,6 +198,7 @@ def web_history(stubs, web_history_stub):
     return web_history_stub
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
                             key_config_stub):
     """Test the results of command completion.
@@ -207,6 +229,7 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     """Test the results of command completion.
 
@@ -243,6 +266,7 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
     model = miscmodels.QuickmarkCompletionModel()
@@ -258,6 +282,7 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = miscmodels.BookmarkCompletionModel()
@@ -288,24 +313,25 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    _check_completions(model, {
-        "Quickmarks": [
+    _check_model(model, [
+        ("Quickmarks", [
             ('https://wiki.archlinux.org', 'aw', ''),
             ('https://duckduckgo.com', 'ddg', ''),
             ('https://wikipedia.org', 'wiki', ''),
-        ],
-        "Bookmarks": [
+        ]),
+        ("Bookmarks", [
             ('https://github.com', 'GitHub', ''),
             ('https://python.org', 'Welcome to Python.org', ''),
             ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
-        ],
-        "History": [
-            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+        ]),
+        ("History", [
             ('https://github.com', 'GitHub', '2016-05-01'),
-        ],
-    })
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+        ]),
+    ])
 
 
+@pytest.mark.skip('delete_cur_item not ported for sql')
 def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
                                         web_history, quickmarks, bookmarks,
                                         qtbot):
@@ -313,8 +339,6 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
 
     # delete item (1, 0) -> (bookmarks, 'https://github.com' )
     view = _mock_view_index(model, 1, 0, qtbot)
@@ -324,6 +348,7 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
     assert 'http://qutebrowser.org' in bookmarks.marks
 
 
+@pytest.mark.skip('delete_cur_item not ported for sql')
 def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
                                          web_history, quickmarks, bookmarks,
                                          qtbot):
@@ -331,8 +356,6 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
 
     # delete item (0, 1) -> (quickmarks, 'ddg' )
     view = _mock_view_index(model, 0, 1, qtbot)
@@ -342,6 +365,7 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     assert 'wiki' in quickmarks.marks
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
     model = miscmodels.SessionCompletionModel()
@@ -353,6 +377,7 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].tabs = [
@@ -379,6 +404,7 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
                                win_registry, tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
@@ -402,6 +428,7 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
@@ -420,6 +447,7 @@ def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
                                    config_stub):
     module = 'qutebrowser.completion.models.configmodel'
@@ -440,6 +468,7 @@ def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
                                              config_stub):
     module = 'qutebrowser.completion.models.configmodel'
@@ -458,6 +487,7 @@ def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
                                   config_stub):
     module = 'qutebrowser.completion.models.configmodel'
@@ -479,6 +509,7 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
     })
 
 
+@pytest.mark.skip('Disable until new completion API is complete')
 def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
                          key_config_stub):
     """Test the results of keybinding command completion.
