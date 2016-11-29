@@ -32,7 +32,7 @@ import email.generator
 import email.encoders
 import email.mime.multipart
 import email.message
-from quopri import encodestring
+import quopri
 
 from PyQt5.QtCore import QUrl
 
@@ -142,15 +142,15 @@ def _check_rel(element):
 def _encode_quopri_mhtml(msg):
     """Encode the message's payload in quoted-printable.
 
-       Substitute for quopri's default 'encode_quopri' method, which needlessly
-       encodes all spaces and tabs, instead of only those at the end on the
-       line.
+    Substitute for quopri's default 'encode_quopri' method, which needlessly
+    encodes all spaces and tabs, instead of only those at the end on the
+    line.
 
     Args:
         msg: Email message to quote.
     """
     orig = msg.get_payload(decode=True)
-    encdata = encodestring(orig, quotetabs=False)
+    encdata = quopri.encodestring(orig, quotetabs=False)
     msg.set_payload(encdata)
     msg['Content-Transfer-Encoding'] = 'quoted-printable'
 
