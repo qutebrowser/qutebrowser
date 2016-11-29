@@ -139,7 +139,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def value(self):
-        """Get the value attribute for this element."""
+        """Get the value attribute for this element, or None."""
         raise NotImplementedError
 
     def set_value(self, value):

@@ -1484,6 +1484,10 @@ class CommandDispatcher:
             return
 
         text = elem.value()
+        if text is None:
+            message.error("Could not get text from the focused element.")
+            return
+
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))

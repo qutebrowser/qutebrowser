@@ -91,7 +91,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         return self._js_dict['outer_xml']
 
     def value(self):
-        return self._js_dict['value']
+        return self._js_dict.get('value', None)
 
     def set_value(self, value):
         js_code = javascript.assemble('webelem', 'set_value', self._id, value)
