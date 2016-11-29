@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
-from qutebrowser.utils import qtutils, objreg, utils, usertypes
+from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
 
 
@@ -607,6 +607,10 @@ class TabBarStyle(QCommonStyle):
             widget: QWidget
         """
         layouts = self._tab_layout(opt)
+        if layouts is None:
+            log.misc.warning("Could not get layouts for tab!")
+            return
+
         if element == QStyle.CE_TabBarTab:
             # We override this so we can control TabBarTabShape/TabBarTabLabel.
             self.drawControl(QStyle.CE_TabBarTabShape, opt, p, widget)
@@ -692,8 +696,11 @@ class TabBarStyle(QCommonStyle):
         indicator_padding = config.get('tabs', 'indicator-padding')
 
         text_rect = QRect(opt.rect)
+        if not text_rect.isValid():
+            # This happens sometimes according to crash reports, but no idea
+            # why...
+            return None
 
-        qtutils.ensure_valid(text_rect)
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
 
