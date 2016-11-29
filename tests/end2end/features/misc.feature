@@ -701,3 +701,9 @@ Feature: Various utility commands.
         And I wait for the prompt "Really quit?"
         And I run :prompt-accept no
         Then the closing of window 0 should be cancelled
+
+	Scenario: Skipping confirmation when exiting on a signal
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+		When qutebrowser receives the signal SIGINT
+		Then qutebrowser should quit

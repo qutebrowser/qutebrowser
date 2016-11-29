@@ -21,6 +21,7 @@
 
 import os
 import re
+import signal
 import sys
 import time
 import json
@@ -379,6 +380,16 @@ def clear_ssl_errors(request, quteproc):
         quteproc.start()
     else:
         quteproc.send_cmd(':debug-clear-ssl-errors')
+
+
+@bdd.when(bdd.parsers.parse('qutebrowser receives the signal {signame}'))
+def send_signal_to_quteproc(signame, quteproc):
+    signum = getattr(signal, signame)
+    if hasattr(quteproc.proc, 'processId'):
+        pid = quteproc.proc.processId()
+    else:
+        pid = quteproc.proc.pid()
+    os.kill(pid, signum)
 
 
 ## Then
