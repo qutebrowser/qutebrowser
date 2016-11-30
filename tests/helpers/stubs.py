@@ -586,7 +586,7 @@ class TabbedBrowserStub(QObject):
         del self.tabs[idx]
 
     def tabBar(self):
-        return QTabBar(self._qtabbar)
+        return self._qtabbar
 
 
 class ApplicationStub(QObject):

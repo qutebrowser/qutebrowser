@@ -1031,14 +1031,10 @@ class CommandDispatcher:
         cur_idx = self._current_index()
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        self._tabbed_browser.setUpdatesEnabled(False)
-        try:
-            color = self._tabbed_browser.tab_indicator_color(cur_idx)
-            self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
-            self._set_current_index(new_idx)
-            self._tabbed_browser.set_tab_indicator_color(new_idx, color)
-        finally:
-            self._tabbed_browser.setUpdatesEnabled(True)
+        color = self._tabbed_browser.tab_indicator_color(cur_idx)
+        self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
+        self._set_current_index(new_idx)
+        self._tabbed_browser.set_tab_indicator_color(new_idx, color)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
