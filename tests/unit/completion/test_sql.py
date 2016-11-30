@@ -81,7 +81,7 @@ def _check_model(model, expected):
             assert model.data(model.index(j, 2, catidx)) == misc
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def init():
     sql.init()
     yield

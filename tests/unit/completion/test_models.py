@@ -34,7 +34,7 @@ from qutebrowser.config import sections, value
 pytestmark = pytest.mark.skip('Disable until new completion API is complete')
 
 
-@pytest.yield_fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def init_sql():
     sql.init()
     yield
