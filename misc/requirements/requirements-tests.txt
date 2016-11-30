@@ -5,6 +5,7 @@ CherryPy==8.1.2
 click==6.6
 coverage==4.2
 decorator==4.0.10
+EasyProcess==0.2.3
 Flask==0.11.1
 glob2==0.5
 httpbin==0.5.0
@@ -29,6 +30,7 @@ pytest-rerunfailures==2.1.0
 pytest-travis-fold==1.2.0
 pytest-warnings==0.2.0
 pytest-xvfb==1.0.0
+PyVirtualDisplay==0.2.1
 six==1.10.0
 vulture==0.11
 Werkzeug==0.11.11
