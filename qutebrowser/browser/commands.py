@@ -1028,17 +1028,13 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx + 1))
 
-        tab = self._current_widget()
         cur_idx = self._current_index()
-        icon = self._tabbed_browser.tabIcon(cur_idx)
-        label = self._tabbed_browser.page_title(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.setUpdatesEnabled(False)
         try:
             color = self._tabbed_browser.tab_indicator_color(cur_idx)
-            self._tabbed_browser.removeTab(cur_idx)
-            self._tabbed_browser.insertTab(new_idx, tab, icon, label)
+            self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
             self._set_current_index(new_idx)
             self._tabbed_browser.set_tab_indicator_color(new_idx, color)
         finally:
