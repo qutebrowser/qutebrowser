@@ -35,8 +35,8 @@ pytestmark = pytest.mark.skip('Disable until new completion API is complete')
 
 
 @pytest.yield_fixture(autouse=True)
-def init_sql(cache_tmpdir):
-    sql.init(str(cache_tmpdir / 'completions.db'))
+def init_sql():
+    sql.init()
     yield
     sql.close()
 

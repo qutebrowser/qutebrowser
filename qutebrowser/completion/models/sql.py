@@ -34,16 +34,17 @@ from qutebrowser.utils import usertypes, log
 Role = usertypes.enum('Role', ['sort'], start=Qt.UserRole, is_int=True)
 
 
-def init(path):
+def init():
     """Initialize the SQL completion module.
 
     Args:
         path: Path to the completion database.
     """
     database = QSqlDatabase.addDatabase('QSQLITE')
-    database.setDatabaseName(path)
+    # In-memory database, see https://sqlite.org/inmemorydb.html
+    database.setDatabaseName(':memory:')
     if not database.open():
-        raise SqlException("Failed to open {}".format(path))
+        raise SqlException("Failed to open in-memory sqlite database")
 
 
 def close():
@@ -141,7 +142,6 @@ class SqlCompletionModel(QAbstractItemModel):
 
         Return: A new CompletionCategory.
         """
-        _run_query("DROP TABLE IF EXISTS {}".format(name))
         _run_query("CREATE TABLE {} (name varchar, desc varchar, misc varchar,"
                    "sort int, PRIMARY KEY ({}))"
                    .format(name, primary_key))

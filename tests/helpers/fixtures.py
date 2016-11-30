@@ -465,19 +465,6 @@ def data_tmpdir(monkeypatch, tmpdir):
 
 
 @pytest.fixture
-def cache_tmpdir(monkeypatch, tmpdir):
-    """Set tmpdir/cache as the cachedir.
-
-    Use this to avoid creating a 'real' cache dir (~/.cache).
-    """
-    datadir = tmpdir / 'data'
-    path = str(datadir)
-    os.mkdir(path)
-    monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: path)
-    return datadir
-
-
-@pytest.fixture
 def redirect_webengine_data(data_tmpdir, monkeypatch):
     """Set XDG_DATA_HOME and HOME to a temp location.
 

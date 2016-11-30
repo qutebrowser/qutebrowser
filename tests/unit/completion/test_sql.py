@@ -82,8 +82,8 @@ def _check_model(model, expected):
 
 
 @pytest.yield_fixture(autouse=True)
-def init(cache_tmpdir):
-    sql.init(str(cache_tmpdir / 'completions.db'))
+def init():
+    sql.init()
     yield
     sql.close()
 

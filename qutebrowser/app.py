@@ -429,7 +429,7 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing completions...")
     completionmodels.init()
-    sql.init(os.path.join(standarddir.cache(), "completion.db"))
+    sql.init()
 
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
