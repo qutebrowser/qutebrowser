@@ -27,7 +27,7 @@ from unittest import mock
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget
+from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, history
 from qutebrowser.config import configexc
@@ -571,6 +571,7 @@ class TabbedBrowserStub(QObject):
         super().__init__(parent)
         self.tabs = []
         self.shutting_down = False
+        self._qtabbar = QTabBar()
 
     def count(self):
         return len(self.tabs)
@@ -583,6 +584,9 @@ class TabbedBrowserStub(QObject):
 
     def on_tab_close_requested(self, idx):
         del self.tabs[idx]
+
+    def tabBar(self):
+        return self._qtabbar
 
 
 class ApplicationStub(QObject):
