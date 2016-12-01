@@ -32,6 +32,7 @@ import email.generator
 import email.encoders
 import email.mime.multipart
 import email.message
+import quopri
 
 from PyQt5.QtCore import QUrl
 
@@ -138,6 +139,22 @@ def _check_rel(element):
     return any(rel in rels for rel in must_have)
 
 
+def _encode_quopri_mhtml(msg):
+    """Encode the message's payload in quoted-printable.
+
+    Substitute for quopri's default 'encode_quopri' method, which needlessly
+    encodes all spaces and tabs, instead of only those at the end on the
+    line.
+
+    Args:
+        msg: Email message to quote.
+    """
+    orig = msg.get_payload(decode=True)
+    encdata = quopri.encodestring(orig, quotetabs=False)
+    msg.set_payload(encdata)
+    msg['Content-Transfer-Encoding'] = 'quoted-printable'
+
+
 MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
@@ -146,7 +163,7 @@ E_BASE64 = email.encoders.encode_base64
 
 
 # Encode the file using MIME quoted-printable encoding.
-E_QUOPRI = email.encoders.encode_quopri
+E_QUOPRI = _encode_quopri_mhtml
 
 
 class MHTMLWriter:
