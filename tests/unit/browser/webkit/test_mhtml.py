@@ -283,6 +283,28 @@ def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
     assert urls == expected_urls
 
 
+def test_quoted_printable_spaces(checker):
+    content = b' ' * 100
+    writer = mhtml.MHTMLWriter(root_content=content,
+                               content_location='localhost',
+                               content_type='text/plain')
+    writer.write_to(checker.fp)
+    checker.expect("""
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
+
+        -----=_qute-UUID
+        Content-Location: localhost
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
+
+        {}=
+        {}=20
+        -----=_qute-UUID--
+        """.format(' ' * 75, ' ' * 24))
+
+
 class TestNoCloseBytesIO:
 
     def test_fake_close(self):
