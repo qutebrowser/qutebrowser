@@ -172,6 +172,7 @@ Contributors, sorted by the number of commits in descending order:
 * Austin Anderson
 * Jimmy
 * Niklas Haas
+* Maciej Wołczyk
 * Spreadyy
 * Alexey "Averrin" Nabrodov
 * nanjekyejoannah
@@ -181,7 +182,6 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Clayton Craft
 * Peter Vilim
-* Maciej Wołczyk
 * knaggita
 * Oliver Caldwell
 * Julian Weigt

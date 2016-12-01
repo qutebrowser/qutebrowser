@@ -160,6 +160,7 @@ class TabCompletionModel(base.BaseCompletionModel):
                 tab.title_changed.connect(self.rebuild)
                 tab.shutting_down.connect(self.delayed_rebuild)
             tabbed_browser.new_tab.connect(self.on_new_tab)
+            tabbed_browser.tabBar().tabMoved.connect(self.rebuild)
         objreg.get("app").new_window.connect(self.on_new_window)
         self.rebuild()
 
