@@ -181,6 +181,7 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Clayton Craft
 * Peter Vilim
+* Maciej Wołczyk
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
@@ -188,7 +189,6 @@ Contributors, sorted by the number of commits in descending order:
 * Jonas Schürmann
 * error800
 * Michael Hoang
-* Maciej Wołczyk
 * Liam BEGUIN
 * Julie Engel
 * skinnay
