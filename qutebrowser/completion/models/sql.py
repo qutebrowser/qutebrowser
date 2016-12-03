@@ -142,12 +142,14 @@ class SqlCompletionModel(QAbstractItemModel):
 
         Return: A new CompletionCategory.
         """
+        # Prefix the name with the class to avoid conflicts with other models
+        tablename = '{}_{}'.format(type(self).__name__, name)
         _run_query("CREATE TABLE {} (name varchar, desc varchar, misc varchar,"
                    "sort int, PRIMARY KEY ({}))"
-                   .format(name, primary_key))
+                   .format(tablename, primary_key))
         database = QSqlDatabase.database('completions')
         cat = CompletionCategory(parent=self, db=database)
-        cat.setTable(name)
+        cat.setTable(tablename)
         cat.setEditStrategy(QSqlTableModel.OnFieldChange)
         if sort_by:
             cat.setSort(cat.fieldIndex(sort_by), sort_order)
@@ -173,7 +175,10 @@ class SqlCompletionModel(QAbstractItemModel):
             return
         if not index.parent().isValid():
             if role == Qt.DisplayRole and index.column() == 0:
-                return self._categories[index.row()].tableName()
+                # strip the unique prefix 'classname_'
+                tablename = self._categories[index.row()].tableName()
+                classname = type(self).__name__
+                return tablename[len(classname) + 1:]
         else:
             table = self._categories[index.parent().row()]
             if role == Qt.DisplayRole:
