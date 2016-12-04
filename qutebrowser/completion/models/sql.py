@@ -52,14 +52,22 @@ def close():
     QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
 
 
-def _run_query(querystr):
-    """Run the given SQL query string on the database."""
+def _run_query(querystr, *values):
+    """Run the given SQL query string on the database.
+
+    Args:
+        values: positional parameter bindings.
+    """
     log.completion.debug('Running SQL query: "{}"'.format(querystr))
     database = QSqlDatabase.database('completions')
     query = QSqlQuery(database)
-    if not query.exec_(querystr):
-        raise SqlException('Failed to exec query "{}": "{}"'
-                           .format(querystr, query.lastError().text()))
+    query.prepare(querystr)
+    for val in values:
+        query.addBindValue(val)
+    log.completion.debug('Query bindings: {}'.format(query.boundValues()))
+    if not query.exec_():
+        raise SqlException('Failed to exec query "{}": "{}"'.format(
+                           query.lastQuery(), query.lastError().text()))
 
 
 class CompletionCategory(QSqlTableModel):
@@ -96,8 +104,9 @@ class CompletionCategory(QSqlTableModel):
             key: The primary key value of the item to remove.
         """
         field = self.primaryKey().fieldName(0)
-        _run_query("DELETE FROM {} where {} = '{}'"
-                   .format(self.tableName(), field, key))
+        _run_query("DELETE FROM {} where {} = ?"
+                   .format(self.tableName(), field),
+                   key)
         self.select()
 
 
