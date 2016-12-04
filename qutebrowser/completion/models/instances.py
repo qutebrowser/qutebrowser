@@ -26,6 +26,7 @@ Module attributes:
 """
 
 import functools
+import asyncio
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.utils import objreg, usertypes, log, debug
@@ -33,6 +34,7 @@ from qutebrowser.config import configdata, config
 
 
 _instances = {}
+_read_history_done = asyncio.Event()
 
 
 def _init_command_completion():
@@ -52,6 +54,7 @@ def _init_helptopic_completion():
 def _init_url_completion():
     """Initialize the URL completion model."""
     log.completion.debug("Initializing URL completion.")
+    _read_history_done.wait()
     with debug.log_time(log.completion, 'URL completion init'):
         model = urlmodel.UrlCompletionModel()
         _instances[usertypes.Completion.url] = model
@@ -184,8 +187,7 @@ def init():
         functools.partial(update, [usertypes.Completion.sessions]))
 
     history = objreg.get('web-history')
-    history.async_read_done.connect(
-        functools.partial(update, [usertypes.Completion.url]))
+    history.async_read_done.connect(_read_history_done.set)
 
     keyconf = objreg.get('key-config')
     keyconf.changed.connect(
