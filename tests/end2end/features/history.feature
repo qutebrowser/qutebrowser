@@ -3,7 +3,8 @@ Feature: Page history
     Make sure the global page history is saved correctly.
 
     Background:
-        Given I run :history-clear
+        Given I open about:blank
+        And I run :history-clear
 
     Scenario: Simple history saving
         When I open data/numbers/1.txt
@@ -49,7 +50,8 @@ Feature: Page history
             http://localhost:(port)/status/404 Error loading page: http://localhost:(port)/status/404
 
     Scenario: History with invalid URL
-        When I open data/javascript/window_open.html
+        When I run :tab-only
+        And I open data/javascript/window_open.html
         And I run :click-element id open-invalid
         Then "Changing title for idx 1 to 'about:blank'" should be logged
 
