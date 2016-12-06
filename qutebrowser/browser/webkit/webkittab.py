@@ -605,7 +605,6 @@ class WebKitTab(browsertab.AbstractTab):
         self.elements = WebKitElements(self)
         self._set_widget(widget)
         self._connect_signals()
-        self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
 
     def _install_event_filter(self):
