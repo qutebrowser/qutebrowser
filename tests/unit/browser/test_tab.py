@@ -85,6 +85,12 @@ def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     objreg.delete('mode-manager', scope='window', window=0)
 
 
+class Zoom(browsertab.AbstractZoom):
+
+    def _set_factor_internal(self, _factor):
+        pass
+
+
 class Tab(browsertab.AbstractTab):
 
     # pylint: disable=abstract-method
@@ -97,7 +103,7 @@ class Tab(browsertab.AbstractTab):
         self.caret = browsertab.AbstractCaret(win_id=self.win_id,
                                               mode_manager=mode_manager,
                                               tab=self, parent=self)
-        self.zoom = browsertab.AbstractZoom(win_id=self.win_id)
+        self.zoom = Zoom(win_id=self.win_id)
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
         self.elements = browsertab.AbstractElements(self)
