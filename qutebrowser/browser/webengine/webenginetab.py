@@ -566,12 +566,14 @@ class WebEngineTab(browsertab.AbstractTab):
             log.stub('on Qt < 5.7')
             return QIcon()
 
-    def set_html(self, html, base_url):
+    def set_html(self, html, base_url=None):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:
         # Warning: The content will be percent encoded before being sent to the
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
+        if base_url is None:
+            base_url = QUrl()
         self._widget.setHtml(html, base_url)
 
     def networkaccessmanager(self):
