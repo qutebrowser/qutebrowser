@@ -90,6 +90,9 @@ class Zoom(browsertab.AbstractZoom):
     def _set_factor_internal(self, _factor):
         pass
 
+    def factor(self):
+        assert False
+
 
 class Tab(browsertab.AbstractTab):
 
