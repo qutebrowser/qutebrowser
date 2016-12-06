@@ -72,3 +72,26 @@ def test_fix_urls():
 ])
 def test_remove_prefix(path, expected):
     assert pdfjs._remove_prefix(path) == expected
+
+
+@pytest.mark.parametrize('html, expected', [
+    ('<html><h1>No pdfjs!</h1></html>', False),
+    ('''
+    <html>
+    <head>
+    <script src="/pdf.js"></script>
+    <script src="/viewer.js"></script>
+    </head>
+    <body>
+    <div class="pdfViewer" id="viewer"></div>
+    </body>
+    </html>
+    ''', True),
+])
+def test_is_pdfjs_page(qtbot, html, expected):
+    # Skip only this test
+    qt_widgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    view = qt_widgets.QWebView()
+    qtbot.add_widget(view)
+    view.setHtml(html)
+    assert pdfjs.is_pdfjs_page(view) == expected

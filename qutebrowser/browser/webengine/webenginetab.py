@@ -376,10 +376,12 @@ class WebEngineZoom(browsertab.AbstractZoom):
 
     """QtWebEngine implementations related to zooming."""
 
-    def _set_factor_internal(self, factor):
+    def _set_factor_internal(self, factor, *, smart=False):
+        if smart:
+            raise browsertab.SmartZoomException
         self._widget.setZoomFactor(factor)
 
-    def factor(self):
+    def factor(self, *, smart=False):
         return self._widget.zoomFactor()
 
 

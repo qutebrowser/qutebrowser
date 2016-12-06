@@ -31,7 +31,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, pdfjs
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.browser.webkit.network import proxy, webkitqutescheme
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
@@ -358,11 +358,23 @@ class WebKitZoom(browsertab.AbstractZoom):
 
     """QtWebKit implementations related to zooming."""
 
-    def _set_factor_internal(self, factor):
-        self._widget.setZoomFactor(factor)
+    def _set_factor_internal(self, factor, *, smart=False):
+        widget = self._widget
+        if smart and pdfjs.is_pdfjs_page(widget):
+            cmd = pdfjs.set_zoom_script(factor)
+            widget.page().mainFrame().evaluateJavaScript(cmd)
+        elif smart:
+            raise browsertab.SmartZoomException
+        else:
+            widget.setZoomFactor(factor)
 
-    def factor(self):
-        return self._widget.zoomFactor()
+    def factor(self, *, smart=False):
+        widget = self._widget
+        if smart and pdfjs.is_pdfjs_page(widget):
+            cmd = pdfjs.get_zoom_script()
+            return widget.page().mainFrame().evaluateJavaScript(cmd)
+        else:
+            return widget.zoomFactor()
 
 
 class WebKitScroller(browsertab.AbstractScroller):
