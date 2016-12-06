@@ -114,9 +114,10 @@ def get_argparser():
     debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt. "
                        "For example, you can do "
                        "`--qt-arg geometry 650x555+200+300` to set the window "
-                       "geometry.", nargs=2, metavar=('NAME', 'VALUE'))
+                       "geometry.", nargs=2, metavar=('NAME', 'VALUE'),
+                       action='append')
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
-                       nargs=1)
+                       nargs=1, action='append')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command

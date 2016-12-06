@@ -112,6 +112,12 @@ class TestGetQtArgs:
         # Qt argument with value
         (['--qt-arg', 'stylesheet', 'foo'],
          [sys.argv[0], '-stylesheet', 'foo']),
+        # --qt-arg given twice
+        (['--qt-arg', 'stylesheet', 'foo', '--qt-arg', 'geometry', 'bar'],
+         [sys.argv[0], '-stylesheet', 'foo', '-geometry', 'bar']),
+        # --qt-flag given twice
+        (['--qt-flag', 'foo', '--qt-flag', 'bar'],
+         [sys.argv[0], '-foo', '-bar']),
     ])
     def test_qt_args(self, args, expected, parser):
         """Test commandline with no Qt arguments given."""

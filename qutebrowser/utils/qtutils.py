@@ -129,11 +129,14 @@ def get_args(namespace):
         The argv list to be passed to Qt.
     """
     argv = [sys.argv[0]]
+
     if namespace.qt_flag is not None:
-        argv.append('-' + namespace.qt_flag[0])
+        argv += ['-' + flag[0] for flag in namespace.qt_flag]
+
     if namespace.qt_arg is not None:
-        argv.append('-' + namespace.qt_arg[0])
-        argv.append(namespace.qt_arg[1])
+        for name, value in namespace.qt_arg:
+            argv += ['-' + name, value]
+
     return argv
 
 
