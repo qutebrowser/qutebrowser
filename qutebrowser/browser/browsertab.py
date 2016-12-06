@@ -215,6 +215,9 @@ class AbstractZoom(QObject):
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
 
+    def _set_factor_internal(self, factor):
+        raise NotImplementedError
+
     def set_factor(self, factor, *, fuzzyval=True):
         """Zoom to a given zoom factor.
 
