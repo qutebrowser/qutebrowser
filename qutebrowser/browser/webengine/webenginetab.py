@@ -37,7 +37,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            webenginedownloads)
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               objreg)
+                               objreg, jinja)
 
 
 _qute_scheme_handler = None
@@ -604,9 +604,18 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
         # FIXME:qtwebengine support .netrc
-        shared.authentication_required(url, authenticator,
-                                       abort_on=[self.shutting_down,
-                                                 self.load_started])
+        answer = shared.authentication_required(
+            url, authenticator, abort_on=[self.shutting_down,
+                                          self.load_started])
+        if answer is None:
+            # WORKAROUND for
+            # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
+            url_string = url.toDisplayString()
+            error_page = jinja.render(
+                'error.html',
+                title="Error loading page: {}".format(url_string),
+                url=url_string, error="Authentication required", icon='')
+            self.set_html(error_page)
 
     def _connect_signals(self):
         view = self._widget

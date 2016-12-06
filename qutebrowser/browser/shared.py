@@ -66,6 +66,7 @@ def authentication_required(url, authenticator, abort_on):
     if answer is not None:
         authenticator.setUser(answer.user)
         authenticator.setPassword(answer.password)
+    return answer
 
 
 def javascript_confirm(url, js_msg, abort_on):
