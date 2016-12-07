@@ -34,7 +34,7 @@ def setup(qapp, key_config_stub):
 class TestFileCompletion:
 
     @pytest.fixture
-    def get_prompt(self, qtbot):
+    def get_prompt(self, qtbot, config_stub):
         """Get a function to display a prompt with a path."""
         def _get_prompt_func(path):
             question = usertypes.Question()
@@ -48,6 +48,7 @@ class TestFileCompletion:
             assert prompt._lineedit.text() == path
 
             return prompt
+        config_stub.data = {'ui': {'prompt-filebrowser': 'true'}}
         return _get_prompt_func
 
     @pytest.mark.parametrize('steps, where, subfolder', [
