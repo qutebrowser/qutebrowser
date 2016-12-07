@@ -346,7 +346,8 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
-    def tabopen(self, url=None, background=None, explicit=False, idx=None):
+    def tabopen(self, url=None, background=None, explicit=False, idx=None, *,
+                ignore_tabs_are_windows=False):
         """Open a new tab with a given URL.
 
         Inner logic for open-tab and open-tab-bg.
@@ -363,6 +364,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                             the current.
                           - Explicitly opened tabs are at the very right.
             idx: The index where the new tab should be opened.
+            ignore_tabs_are_windows: If given, never open a new window, even
+                                     with tabs-are-windows set.
 
         Return:
             The opened WebView instance.
@@ -373,7 +376,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                           "explicit {}, idx {}".format(
                               url, background, explicit, idx))
 
-        if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
+        if (config.get('tabs', 'tabs-are-windows') and self.count() > 0 and
+                not ignore_tabs_are_windows):
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow()
             window.show()
@@ -528,7 +532,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             background = self.currentIndex() != idx
             self.setUpdatesEnabled(False)
             try:
-                self.tabopen(url, background=background, idx=idx)
+                self.tabopen(url, background=background, idx=idx,
+                             ignore_tabs_are_windows=True)
                 self.close_tab(tab, add_undo=False)
             finally:
                 self.setUpdatesEnabled(True)

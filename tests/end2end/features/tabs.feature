@@ -973,6 +973,8 @@ Feature: Tab management
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
 
+    # Other
+
     Scenario: Using :tab-next after closing last tab (#1448)
         When I set tabs -> last-close to close
         And I run :tab-only
@@ -986,3 +988,18 @@ Feature: Tab management
         And I run :tab-close ;; tab-prev
         Then qutebrowser should quit
         And no crash should happen
+
+    Scenario: Opening link with tabs-are-windows set (#2162)
+        When I set tabs -> tabs-are-windows to true
+        And I open data/hints/html/simple.html
+        And I hint with args "all tab-fg" and follow a
+        And I wait until data/hello.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/hints/html/simple.html
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/hello.txt
