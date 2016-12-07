@@ -56,6 +56,7 @@
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
 |<<ui-prompt-radius,prompt-radius>>|The rounding radius for the edges of prompts.
+|<<ui-prompt-filebrowser,prompt-filebrowser>>|Show a filebrowser in upload/download prompts.
 |==============
 
 .Quick reference for section ``network''
@@ -728,6 +729,17 @@ Default: empty
 The rounding radius for the edges of prompts.
 
 Default: +pass:[8]+
+
+[[ui-prompt-filebrowser]]
+=== prompt-filebrowser
+Show a filebrowser in upload/download prompts.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 == network
 Settings related to the network.
