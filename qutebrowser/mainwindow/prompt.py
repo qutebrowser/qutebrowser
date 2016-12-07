@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import style
+from qutebrowser.config import style, config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
@@ -564,7 +564,9 @@ class FilenamePrompt(_BasePrompt):
 
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        if config.get('ui', 'prompt-filebrowser'):
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -624,7 +626,12 @@ class FilenamePrompt(_BasePrompt):
         self._file_model = QFileSystemModel(self)
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
-        self._vbox.addWidget(self._file_view)
+
+        if config.get('ui', 'prompt-filebrowser'):
+            self._vbox.addWidget(self._file_view)
+        else:
+            self._file_view.hide()
+
         # Only show name
         self._file_view.setHeaderHidden(True)
         for col in range(1, 4):

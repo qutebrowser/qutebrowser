@@ -392,6 +392,10 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '8'),
              "The rounding radius for the edges of prompts."),
 
+            ('prompt-filebrowser',
+             SettingValue(typ.Bool(), 'true'),
+             "Show a filebrowser in upload/download prompts."),
+
             readonly=readonly
         )),
 
