@@ -71,8 +71,9 @@ def log_signals(obj):
                 if name != 'destroyed':
                     signal = getattr(obj, name)
                     try:
-                        signal.connect(functools.partial(log_slot, obj, signal))
-                    except TypeError:
+                        signal.connect(functools.partial(
+                            log_slot, obj, signal))
+                    except TypeError:  # pragma: no cover
                         pass
 
     if inspect.isclass(obj):
