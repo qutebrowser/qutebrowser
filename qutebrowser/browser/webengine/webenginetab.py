@@ -472,6 +472,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._init_js()
         self._child_event_filter = None
         self.needs_qtbug54419_workaround = False
+        self._saved_zoom = None
 
     def _init_js(self):
         js_code = '\n'.join([
@@ -503,7 +504,15 @@ class WebEngineTab(browsertab.AbstractTab):
             parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
+    @pyqtSlot()
+    def _restore_zoom(self):
+        if self._saved_zoom is None:
+            return
+        self.zoom.set_factor(self._saved_zoom)
+        self._saved_zoom = None
+
     def openurl(self, url):
+        self._saved_zoom = self.zoom.factor()
         self._openurl_prepare(url)
         self._widget.load(url)
 
@@ -620,16 +629,19 @@ class WebEngineTab(browsertab.AbstractTab):
     def _connect_signals(self):
         view = self._widget
         page = view.page()
+
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
         page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
         page.loadFinished.connect(self._on_history_trigger)
-        view.titleChanged.connect(self.title_changed)
-        view.urlChanged.connect(self._on_url_changed)
+        page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
+
+        view.titleChanged.connect(self.title_changed)
+        view.urlChanged.connect(self._on_url_changed)
         try:
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:
