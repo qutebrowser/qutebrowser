@@ -70,7 +70,10 @@ def log_signals(obj):
                 name = bytes(meta_method.name()).decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
-                    signal.connect(functools.partial(log_slot, obj, signal))
+                    try:
+                        signal.connect(functools.partial(log_slot, obj, signal))
+                    except TypeError:
+                        pass
 
     if inspect.isclass(obj):
         old_init = obj.__init__
