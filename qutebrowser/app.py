@@ -34,7 +34,7 @@ import tokenize
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, QEvent, pyqtSignal)
+                          QObject, QEvent, Qt, pyqtSignal)
 try:
     import hunter
 except ImportError:
@@ -69,6 +69,14 @@ def run(args):
 
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
+
+    # Enable HighDPI
+    assert QApplication.instance() is None
+    try:
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    except AttributeError:
+        # Qt < 5.6
+        pass
 
     global qApp
     qApp = Application(args)
