@@ -113,6 +113,11 @@ Feature: Downloading things from a website.
         And I wait for "Download drip finished" in the log
         Then the downloaded file drip should contain 128 bytes
 
+    Scenario: Downloading a file with spaces
+        When I open data/downloads/download with spaces.bin without waiting
+        And I wait until the download is finished
+        Then the downloaded file download with spaces.bin should exist
+
     ## :download-retry
 
     Scenario: Retrying a failed download

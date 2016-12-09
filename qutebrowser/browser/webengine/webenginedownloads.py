@@ -21,6 +21,7 @@
 
 import re
 import os.path
+import urllib
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt
@@ -135,6 +136,7 @@ def _get_suggested_filename(path):
     """
     filename = os.path.basename(path)
     filename = re.sub(r'\([0-9]+\)$', '', filename)
+    filename = urllib.parse.unquote(filename)
     return filename
 
 
