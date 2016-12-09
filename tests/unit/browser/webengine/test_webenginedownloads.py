@@ -21,6 +21,8 @@ import os.path
 
 import pytest
 
+pytest.importorskip('PyQt5.QtWebEngineWidgets')
+
 from qutebrowser.browser.webengine import webenginedownloads
 
 
