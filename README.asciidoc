@@ -197,6 +197,7 @@ Contributors, sorted by the number of commits in descending order:
 * Peter Rice
 * Ismail S
 * Halfwit
+* Fritz Reichwald
 * David Vogt
 * Claire Cavanaugh
 * rikn00
@@ -207,7 +208,6 @@ Contributors, sorted by the number of commits in descending order:
 * Michael Ilsaas
 * Martin Zimmermann
 * Jussi Timperi
-* Fritz Reichwald
 * Brian Jackson
 * thuck
 * sbinix
