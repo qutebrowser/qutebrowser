@@ -525,7 +525,7 @@ class AbstractDownloadItem(QObject):
         # if we want to use the default
         override = config.get('general', 'default-open-dispatcher')
 
-        # precedence order: supplied cmdline > default-open-dispatcher > openUrl
+        # precedence order: cmdline > default-open-dispatcher > openUrl
 
         if cmdline is None and not override:
             log.downloads.debug("Opening {} with the system application"
