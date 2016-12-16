@@ -512,8 +512,8 @@ class AbstractDownloadItem(QObject):
         Args:
             cmdline: The command to use as string. A `{}` is expanded to the
                      filename. None means to use the system's default
-                     application. If no `{}` is found, the filename is appended
-                     to the cmdline.
+                     application or `default-open-dispatcher` if set. If no
+                     `{}` is found, the filename is appended to the cmdline.
         """
         assert self.successful
         filename = self._get_open_filename()
@@ -521,12 +521,21 @@ class AbstractDownloadItem(QObject):
             log.downloads.error("No filename to open the download!")
             return
 
-        if cmdline is None:
+        # the default program to open downloads with - will be empty string
+        # if we want to use the default
+        override = config.get('general', 'default-open-dispatcher')
+
+        # precedence order: supplied cmdline > default-open-dispatcher > openUrl
+
+        if cmdline is None and not override:
             log.downloads.debug("Opening {} with the system application"
                                 .format(filename))
             url = QUrl.fromLocalFile(filename)
             QDesktopServices.openUrl(url)
             return
+
+        if cmdline is None and override:
+            cmdline = override
 
         cmd, *args = shlex.split(cmdline)
         args = [arg.replace('{}', filename) for arg in args]
