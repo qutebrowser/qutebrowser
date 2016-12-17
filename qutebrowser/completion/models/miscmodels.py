@@ -190,42 +190,18 @@ class TabCompletionModel(base.BaseCompletionModel):
         make sure we handled background loads too ... but iterating over a
         few/few dozen/few hundred tabs doesn't take very long at all.
         """
-        window_count = 0
+        self.clear()
         for win_id in objreg.window_registry:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            if not tabbed_browser.shutting_down:
-                window_count += 1
-
-        if window_count < self.rowCount():
-            self.removeRows(window_count, self.rowCount() - window_count)
-
-        for i, win_id in enumerate(objreg.window_registry):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             if tabbed_browser.shutting_down:
                 continue
-            if i >= self.rowCount():
-                c = self.new_category("{}".format(win_id))
-            else:
-                c = self.item(i, 0)
-                c.setData("{}".format(win_id), Qt.DisplayRole)
-            if tabbed_browser.count() < c.rowCount():
-                c.removeRows(tabbed_browser.count(),
-                             c.rowCount() - tabbed_browser.count())
+            c = self.new_category("{}".format(win_id))
             for idx in range(tabbed_browser.count()):
                 tab = tabbed_browser.widget(idx)
-                if idx >= c.rowCount():
-                    self.new_item(c, "{}/{}".format(win_id, idx + 1),
-                                  tab.url().toDisplayString(),
-                                  tabbed_browser.page_title(idx))
-                else:
-                    c.child(idx, 0).setData("{}/{}".format(win_id, idx + 1),
-                                            Qt.DisplayRole)
-                    c.child(idx, 1).setData(tab.url().toDisplayString(),
-                                            Qt.DisplayRole)
-                    c.child(idx, 2).setData(tabbed_browser.page_title(idx),
-                                            Qt.DisplayRole)
+                self.new_item(c, "{}/{}".format(win_id, idx + 1),
+                              tab.url().toDisplayString(),
+                              tabbed_browser.page_title(idx))
 
     def delete_cur_item(self, completion):
         """Delete the selected item.
