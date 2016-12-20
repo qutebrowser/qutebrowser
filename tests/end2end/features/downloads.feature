@@ -424,6 +424,20 @@ Feature: Downloading things from a website.
         And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/download2.bin"
 
+    # https://github.com/The-Compiler/qutebrowser/issues/2173
+
+    Scenario: Remembering the temporary download directory (issue 2173)
+        When I set storage -> prompt-download-directory to true
+        And I set storage -> remember-download-directory to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*"
+        And I run :prompt-accept (tmpdir)
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*"
+        And I directly open the download
+        And I open data/downloads/download.bin without waiting
+        Then the download prompt should be shown with "(tmpdir)/download.bin"
+
     # Overwriting files
 
     Scenario: Not overwriting an existing file
