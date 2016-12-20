@@ -564,13 +564,16 @@ class AbstractDownloadItem(QObject):
         """Set a temporary file when opening the download."""
         raise NotImplementedError
 
-    def _set_filename(self, filename, *, force_overwrite=False):
+    def _set_filename(self, filename, *, force_overwrite=False,
+                      remember_directory=True):
         """Set the filename to save the download to.
 
         Args:
             filename: The full filename to save the download to.
                       None: special value to stop the download.
             force_overwrite: Force overwriting existing files.
+            remember_directory: If True, remember the directory for future
+                                downloads.
         """
         global last_used_directory
         filename = os.path.expanduser(filename)
@@ -600,7 +603,8 @@ class AbstractDownloadItem(QObject):
                                                   os.path.expanduser('~'))
 
         self.basename = os.path.basename(self._filename)
-        last_used_directory = os.path.dirname(self._filename)
+        if remember_directory:
+            last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(filename))
         if force_overwrite:
