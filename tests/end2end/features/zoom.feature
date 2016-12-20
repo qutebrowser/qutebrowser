@@ -86,6 +86,8 @@ Feature: Zooming in and out
         Then the message "Zoom level: 120%" should be shown
         And the zoom should be 120%
 
+    # https://github.com/The-Compiler/qutebrowser/issues/2183
+    @qtwebengine_flaky
     Scenario: Setting a default zoom
         When I set ui -> default-zoom to 200%
         And I open data/hello.txt in a new tab
