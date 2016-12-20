@@ -344,13 +344,6 @@ Feature: Downloading things from a website.
         And I run :download-open
         Then "Opening *download.bin* with [*python*]" should be logged
 
-    Scenario: Opening a download with default-open-dispatcher set to cat
-        When I set general -> default-open-dispatcher to cat
-        And I open data/downloads/download.bin without waiting
-        And I wait until the download is finished
-        And I run :download-open
-        Then "Opening *download.bin* with [*cat*]" should be logged
-
     Scenario: Opening a download with default-open-dispatcher set and override
         When I set general -> default-open-dispatcher to cat
         And I open data/downloads/download.bin without waiting
