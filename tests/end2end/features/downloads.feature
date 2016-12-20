@@ -337,6 +337,20 @@ Feature: Downloading things from a website.
         And I open the download with a placeholder
         Then "Opening *download.bin* with [*python*]" should be logged
 
+    Scenario: Opening a download with default-open-dispatcher set
+        When I set general -> default-open-dispatcher to python {} -c "import sys; print(sys.argv[1])"
+        And I open data/downloads/download.bin without waiting
+        And I wait until the download is finished
+        And I open the download with no args
+        Then "Opening *download.bin* with [*python*]" should be logged
+
+    Scenario: Opening a download with default-open-dispatcher set to cat
+        When I set general -> default-open-dispatcher to cat
+        And I open data/downloads/download.bin without waiting
+        And I wait until the download is finished
+        And I open the download with no args
+        Then "Opening *download.bin* with [*cat*]" should be logged
+
     Scenario: Opening a download which does not exist
         When I run :download-open with count 42
         Then the error "There's no download 42!" should be shown
