@@ -338,18 +338,25 @@ Feature: Downloading things from a website.
         Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download with default-open-dispatcher set
-        When I set general -> default-open-dispatcher to python {} -c "import sys; print(sys.argv[1])"
+        When I set a test python default-open-dispatcher
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
-        And I open the download with no args
+        And I run :download-open
         Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download with default-open-dispatcher set to cat
         When I set general -> default-open-dispatcher to cat
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
-        And I open the download with no args
+        And I run :download-open
         Then "Opening *download.bin* with [*cat*]" should be logged
+
+    Scenario: Opening a download with default-open-dispatcher set and override
+        When I set general -> default-open-dispatcher to cat
+        And I open data/downloads/download.bin without waiting
+        And I wait until the download is finished
+        And I open the download
+        Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download which does not exist
         When I run :download-open with count 42

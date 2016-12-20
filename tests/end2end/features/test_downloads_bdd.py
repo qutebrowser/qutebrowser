@@ -44,6 +44,7 @@ def temporary_download_dir(quteproc, tmpdir):
     unwritable.ensure(dir=True)
     unwritable.chmod(0)
 
+
 @bdd.given("I clean old downloads")
 def clean_old_downloads(quteproc):
     quteproc.send_cmd(':download-cancel --all')
@@ -100,16 +101,18 @@ def download_prompt(tmpdir, quteproc, path):
     quteproc.send_cmd(':leave-mode')
 
 
+@bdd.when("I set a test python default-open-dispatcher")
+def default_open_dispatcher_python(quteproc, tmpdir):
+    cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
+        shlex.quote(sys.executable))
+    quteproc.set_setting('general', 'default-open-dispatcher', cmd)
+
+
 @bdd.when("I open the download")
 def download_open(quteproc):
     cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
         shlex.quote(sys.executable))
     quteproc.send_cmd(':download-open {}'.format(cmd))
-
-
-@bdd.when("I open the download with no args")
-def download_open_plain(quteproc):
-    quteproc.send_cmd(':download-open')
 
 
 @bdd.when("I open the download with a placeholder")
