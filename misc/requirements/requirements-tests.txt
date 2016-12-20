@@ -9,7 +9,7 @@ EasyProcess==0.2.3
 Flask==0.11.1
 glob2==0.5
 httpbin==0.5.0
-hypothesis==3.6.0
+hypothesis==3.6.1
 itsdangerous==0.24
 # Jinja2==2.8
 Mako==1.0.6
