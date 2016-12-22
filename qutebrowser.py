@@ -27,4 +27,3 @@ import sys
 
 if __name__ == '__main__':
     sys.exit(qutebrowser.qutebrowser.main())
-
