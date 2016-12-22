@@ -133,7 +133,7 @@ except ImportError:
     QtWebEngineWidgets = None
 
 
-@pytest.mark.skipif(QT_VERSION_STR == "5.7.0" and
+@pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and
                     QtWebEngineWidgets is not None and
                     sys.platform == "linux",
                     reason="Segfaults when run with QtWebEngine tests on Linux")
