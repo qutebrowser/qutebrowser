@@ -196,6 +196,7 @@ Contributors, sorted by the number of commits in descending order:
 * Tomasz Kramkowski
 * Samuel Walladge
 * Peter Rice
+* Nikolay Amiantov
 * Ismail S
 * Halfwit
 * Fritz Reichwald
