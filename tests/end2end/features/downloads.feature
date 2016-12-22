@@ -428,6 +428,7 @@ Feature: Downloading things from a website.
 
     Scenario: Remembering the temporary download directory (issue 2173)
         When I set storage -> prompt-download-directory to true
+        And I set completion -> download-path-suggestion to both
         And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
