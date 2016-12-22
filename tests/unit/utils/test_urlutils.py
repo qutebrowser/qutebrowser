@@ -740,7 +740,6 @@ def test_data_url():
     assert url == QUrl('data:text/plain;base64,Zm9v')
 
 
-
 class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [

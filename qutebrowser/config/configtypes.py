@@ -1030,7 +1030,6 @@ class Proxy(BaseType):
             return
         elif value in self.valid_values:
             return
-        url = QUrl(value)
 
         try:
             self.transform(value)
