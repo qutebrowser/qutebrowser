@@ -11,6 +11,7 @@
 |<<general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
 |<<general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
 |<<general-yank-ignored-url-parameters,yank-ignored-url-parameters>>|The URL parameters to strip with :yank url, separated by commas.
+|<<general-default-open-dispatcher,default-open-dispatcher>>|The default program used to open downloads. Set to an empty string to use the default internal handler.
 |<<general-default-page,default-page>>|The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
 |<<general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
 |<<general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
@@ -330,6 +331,14 @@ Default: +pass:[https://start.duckduckgo.com]+
 The URL parameters to strip with :yank url, separated by commas.
 
 Default: +pass:[ref,utm_source,utm_medium,utm_campaign,utm_term,utm_content]+
+
+[[general-default-open-dispatcher]]
+=== default-open-dispatcher
+The default program used to open downloads. Set to an empty string to use the default internal handler.
+
+Any {} in the string will be expanded to the filename, else the filename will be appended.
+
+Default: empty
 
 [[general-default-page]]
 === default-page

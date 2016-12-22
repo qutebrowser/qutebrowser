@@ -52,6 +52,8 @@ Added
 - New `:record-macro` (`q`) and `:run-macro` (`@`) commands for keyboard macros.
 - New `ui -> hide-scrollbar` setting to hide the scrollbar independently of the
   `user-stylesheet` setting.
+- New `general -> default-open-dispatcher` setting to configure what to open
+  downloads with (instead of e.g. `xdg-open` on Linux).
 
 Changed
 ~~~~~~~

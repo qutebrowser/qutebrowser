@@ -147,6 +147,13 @@ def data(readonly=False):
             "The URL parameters to strip with :yank url, separated by "
             "commas."),
 
+            ('default-open-dispatcher',
+             SettingValue(typ.String(none_ok=True), ''),
+            "The default program used to open downloads. Set to an empty "
+            "string to use the default internal handler.\n\n"
+            "Any {} in the string will be expanded to the filename, else "
+            "the filename will be appended."),
+
             ('default-page',
              SettingValue(typ.FuzzyUrl(), '${startpage}'),
              "The page to open if :open -t/-b/-w is used without URL. Use "
