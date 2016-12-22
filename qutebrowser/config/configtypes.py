@@ -28,6 +28,7 @@ import itertools
 import collections
 import warnings
 import datetime
+import functools
 
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
@@ -37,6 +38,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils
+from qutebrowser.browser.webkit.network import pac
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -1014,14 +1016,36 @@ class ShellCommand(BaseType):
             return shlex.split(value)
 
 
+def proxy_from_url(typ, url):
+    """Create a QNetworkProxy from QUrl and a proxy type.
+
+    Args:
+        typ: QNetworkProxy::ProxyType.
+        url: URL of a proxy (possibly with credentials).
+
+    Return:
+        New QNetworkProxy.
+    """
+    proxy = QNetworkProxy(typ, url.host())
+    if url.port() != -1:
+        proxy.setPort(url.port())
+    if url.userName():
+        proxy.setUser(url.userName())
+    if url.password():
+        proxy.setPassword(url.password())
+    return proxy
+
+
 class Proxy(BaseType):
 
     """A proxy URL or special value."""
 
     PROXY_TYPES = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
+        'http': functools.partial(proxy_from_url, QNetworkProxy.HttpProxy),
+        'pac+http': pac.PACFetcher,
+        'pac+https': pac.PACFetcher,
+        'socks': functools.partial(proxy_from_url, QNetworkProxy.Socks5Proxy),
+        'socks5': functools.partial(proxy_from_url, QNetworkProxy.Socks5Proxy),
     }
 
     def __init__(self, none_ok=False):
@@ -1053,6 +1077,7 @@ class Proxy(BaseType):
         out.append(('socks://', 'SOCKS proxy URL'))
         out.append(('socks://localhost:9050/', 'Tor via SOCKS'))
         out.append(('http://localhost:8080/', 'Local HTTP proxy'))
+        out.append(('pac+https://example.com/proxy.pac', 'Proxy autoconfiguration file URL'))
         return out
 
     def transform(self, value):
@@ -1063,15 +1088,7 @@ class Proxy(BaseType):
         elif value == 'none':
             return QNetworkProxy(QNetworkProxy.NoProxy)
         url = QUrl(value)
-        typ = self.PROXY_TYPES[url.scheme()]
-        proxy = QNetworkProxy(typ, url.host())
-        if url.port() != -1:
-            proxy.setPort(url.port())
-        if url.userName():
-            proxy.setUser(url.userName())
-        if url.password():
-            proxy.setPassword(url.password())
-        return proxy
+        return self.PROXY_TYPES[url.scheme()](url)
 
 
 class SearchEngineName(BaseType):
