@@ -28,17 +28,14 @@ import itertools
 import collections
 import warnings
 import datetime
-import functools
 
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtNetwork import QNetworkProxy
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils
-from qutebrowser.browser.webkit.network import pac
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -1016,37 +1013,9 @@ class ShellCommand(BaseType):
             return shlex.split(value)
 
 
-def proxy_from_url(typ, url):
-    """Create a QNetworkProxy from QUrl and a proxy type.
-
-    Args:
-        typ: QNetworkProxy::ProxyType.
-        url: URL of a proxy (possibly with credentials).
-
-    Return:
-        New QNetworkProxy.
-    """
-    proxy = QNetworkProxy(typ, url.host())
-    if url.port() != -1:
-        proxy.setPort(url.port())
-    if url.userName():
-        proxy.setUser(url.userName())
-    if url.password():
-        proxy.setPassword(url.password())
-    return proxy
-
-
 class Proxy(BaseType):
 
     """A proxy URL or special value."""
-
-    PROXY_TYPES = {
-        'http': functools.partial(proxy_from_url, QNetworkProxy.HttpProxy),
-        'pac+http': pac.PACFetcher,
-        'pac+https': pac.PACFetcher,
-        'socks': functools.partial(proxy_from_url, QNetworkProxy.Socks5Proxy),
-        'socks5': functools.partial(proxy_from_url, QNetworkProxy.Socks5Proxy),
-    }
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
@@ -1055,19 +1024,18 @@ class Proxy(BaseType):
             ('none', "Don't use any proxy"))
 
     def validate(self, value):
+        from qutebrowser.utils import urlutils
         self._basic_validation(value)
         if not value:
             return
         elif value in self.valid_values:
             return
         url = QUrl(value)
-        if not url.isValid():
-            raise configexc.ValidationError(
-                value, "invalid url, {}".format(url.errorString()))
-        elif url.scheme() not in self.PROXY_TYPES:
-            raise configexc.ValidationError(value, "must be a proxy URL "
-                                            "(http://... or socks://...) or "
-                                            "system/none!")
+
+        try:
+            self.transform(value)
+        except (urlutils.InvalidUrlError, urlutils.InvalidProxyTypeError) as e:
+            raise configexc.ValidationError(value, e)
 
     def complete(self):
         out = []
@@ -1081,14 +1049,17 @@ class Proxy(BaseType):
         return out
 
     def transform(self, value):
+        from qutebrowser.utils import urlutils
         if not value:
             return None
         elif value == 'system':
             return SYSTEM_PROXY
-        elif value == 'none':
-            return QNetworkProxy(QNetworkProxy.NoProxy)
-        url = QUrl(value)
-        return self.PROXY_TYPES[url.scheme()](url)
+
+        if value == 'none':
+            url = QUrl('direct://')
+        else:
+            url = QUrl(value)
+        return urlutils.proxy_from_url(url)
 
 
 class SearchEngineName(BaseType):

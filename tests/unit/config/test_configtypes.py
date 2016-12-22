@@ -59,16 +59,6 @@ class Font(QFont):
         return f
 
 
-class NetworkProxy(QNetworkProxy):
-
-    """A QNetworkProxy with a nicer repr()."""
-
-    def __repr__(self):
-        return utils.get_repr(self, type=self.type(), hostName=self.hostName(),
-                              port=self.port(), user=self.user(),
-                              password=self.password())
-
-
 class RegexEq:
 
     """A class to compare regex objects."""
@@ -1490,10 +1480,7 @@ class TestProxy:
         'system',
         'none',
         'http://user:pass@example.com:2323/',
-        'socks://user:pass@example.com:2323/',
-        'socks5://user:pass@example.com:2323/',
         'pac+http://example.com/proxy.pac',
-        'pac+https://example.com/proxy.pac',
     ])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
@@ -1519,27 +1506,18 @@ class TestProxy:
     @pytest.mark.parametrize('val, expected', [
         ('', None),
         ('system', configtypes.SYSTEM_PROXY),
-        ('none', NetworkProxy(QNetworkProxy.NoProxy)),
+        ('none', QNetworkProxy(QNetworkProxy.NoProxy)),
         ('socks://example.com/',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
-        ('socks5://example.com',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
-        ('socks5://example.com:2342',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
-        ('socks5://foo@example.com',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
-        ('socks5://foo:bar@example.com',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
-                         'bar')),
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
         ('socks5://foo:bar@example.com:2323',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323, 'foo',
-                         'bar')),
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                          'foo', 'bar')),
     ])
     def test_transform(self, klass, val, expected):
         """Test transform with an empty value."""
         actual = klass().transform(val)
         if isinstance(actual, QNetworkProxy):
-            actual = NetworkProxy(actual)
+            actual = QNetworkProxy(actual)
         assert actual == expected
 
 
