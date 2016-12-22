@@ -32,7 +32,7 @@ from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 from qutebrowser.config import config, configexc
 from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
-from qutebrowser.browser.webkit.network import pac
+from qutebrowser.browser.network import pac
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs

@@ -27,7 +27,7 @@ from PyQt5.QtCore import QUrl, QT_VERSION_STR
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
                              QHostAddress)
 
-from qutebrowser.browser.webkit.network import pac
+from qutebrowser.browser.network import pac
 
 
 pytestmark = pytest.mark.usefixtures('qapp')

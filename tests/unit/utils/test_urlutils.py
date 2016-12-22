@@ -28,7 +28,7 @@ from PyQt5.QtNetwork import QNetworkProxy
 import pytest
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.browser.webkit.network import pac
+from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
 
 

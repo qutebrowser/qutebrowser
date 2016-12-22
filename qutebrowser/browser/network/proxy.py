@@ -24,7 +24,7 @@ from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.utils import objreg
-from qutebrowser.browser.webkit.network import pac
+from qutebrowser.browser.network import pac
 
 
 def init():
