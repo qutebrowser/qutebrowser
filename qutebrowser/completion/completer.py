@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import usertypes, log, utils
-from qutebrowser.completion.models import instances, sortfilter
+from qutebrowser.completion.models import instances, sortfilter, sql
 
 
 class Completer(QObject):
@@ -88,6 +88,9 @@ class Completer(QObject):
 
         if model is None:
             return None
+        if isinstance(model, sql.SqlCompletionModel):
+            # TODO: remove branch once all models use sql
+            return model
         else:
             return sortfilter.CompletionFilterModel(source=model, parent=self)
 
@@ -110,7 +113,12 @@ class Completer(QObject):
         if not before_cursor:
             # '|' or 'set|'
             model = instances.get(usertypes.Completion.command)
-            return sortfilter.CompletionFilterModel(source=model, parent=self)
+            if isinstance(model, sql.SqlCompletionModel):
+                # TODO: remove branch once all models use sql
+                return model
+            else:
+                return sortfilter.CompletionFilterModel(source=model,
+                                                        parent=self)
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]
         except KeyError:

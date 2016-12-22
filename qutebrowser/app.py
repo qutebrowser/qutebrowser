@@ -42,7 +42,7 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion.models import instances as completionmodels
+from qutebrowser.completion.models import instances as completionmodels, sql
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
@@ -387,8 +387,7 @@ def _init_modules(args, crash_handler):
     networkmanager.init()
 
     log.init.debug("Initializing readline-bridge...")
-    readline_bridge = readline.ReadlineBridge()
-    objreg.register('readline-bridge', readline_bridge)
+    objreg.register('readline-bridge', readline.ReadlineBridge())
 
     log.init.debug("Initializing config...")
     config.init(qApp)
@@ -413,12 +412,10 @@ def _init_modules(args, crash_handler):
     objreg.register('host-blocker', host_blocker)
 
     log.init.debug("Initializing quickmarks...")
-    quickmark_manager = urlmarks.QuickmarkManager(qApp)
-    objreg.register('quickmark-manager', quickmark_manager)
+    objreg.register('quickmark-manager', urlmarks.QuickmarkManager(qApp))
 
     log.init.debug("Initializing bookmarks...")
-    bookmark_manager = urlmarks.BookmarkManager(qApp)
-    objreg.register('bookmark-manager', bookmark_manager)
+    objreg.register('bookmark-manager', urlmarks.BookmarkManager(qApp))
 
     log.init.debug("Initializing cookies...")
     cookie_jar = cookies.CookieJar(qApp)
@@ -432,6 +429,7 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing completions...")
     completionmodels.init()
+    sql.init()
 
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):

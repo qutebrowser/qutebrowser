@@ -278,8 +278,15 @@ class CompletionView(QTreeView):
 
             if sel_model is not None:
                 sel_model.deleteLater()
-            if old_model is not None:
-                old_model.deleteLater()
+        else:
+            # TODO: special case for SQL -- the model should not be deleted
+            if self.selectionModel() is not None:
+                self.selectionModel().deleteLater()
+            # Toggling through None seems necessary to update the view.
+            self.setModel(None)
+            self.setModel(model)
+            model.set_pattern('')
+            self._active = True
 
         if (config.get('completion', 'show') == 'always' and
                 model.count() > 0):
