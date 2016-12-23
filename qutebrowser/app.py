@@ -53,7 +53,7 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects)
+                              crashsignal, earlyinit, objects, sql)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir, error, debug)
@@ -422,6 +422,9 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing config...")
     config.init(qApp)
     save_manager.init_autosave()
+
+    log.init.debug("Initializing sql...")
+    sql.init()
 
     log.init.debug("Initializing web history...")
     history.init(qApp)
