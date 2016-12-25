@@ -50,6 +50,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._quickmark_cat = self.new_category("Quickmarks")
         self._bookmark_cat = self.new_category("Bookmarks")
         self._history_cat = self.new_category("History")
+        self._searchengine_cat = self.new_category("Searchengines")
 
         quickmark_manager = objreg.get('quickmark-manager')
         quickmarks = quickmark_manager.marks.items()
@@ -75,6 +76,10 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 self._add_history_entry(entry)
         self._history.add_completion_item.connect(self.on_history_item_added)
         self._history.cleared.connect(self.on_history_cleared)
+
+        for se_name, se_url in config.section('searchengines').items():
+            self.new_item(self._searchengine_cat, se_name, se_url)
+        objreg.get('config').changed.connect(self.on_searchengines_changed)
 
         objreg.get('config').changed.connect(self.reformat_timestamps)
 
@@ -190,3 +195,10 @@ class UrlCompletionModel(base.BaseCompletionModel):
             qtutils.ensure_valid(sibling)
             name = sibling.data()
             quickmark_manager.delete(name)
+
+    @config.change_filter('searchengines')
+    def on_searchengines_changed(self):
+        """Reload searchengines if the config section was changed."""
+        self._searchengine_cat.removeRows(0, self._searchengine_cat.rowCount())
+        for se_name, se_url in config.section('searchengines').items():
+            self.new_item(self._searchengine_cat, se_name, se_url)
