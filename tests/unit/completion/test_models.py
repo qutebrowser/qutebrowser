@@ -310,6 +310,40 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         ],
     })
 
+def test_url_completion_add_searchengine(qtmodeltester, config_stub, web_history, quickmarks,
+                        bookmarks, searchengines):
+    """Test adding searchengine to config."""
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': 2}
+
+    model = urlmodel.UrlCompletionModel()
+    
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    config_stub.set('searchengines', 'newEntry', 'http://www.example.org/?q={}')
+    _check_completions(model, {
+        "Quickmarks": [
+            ('https://wiki.archlinux.org', 'aw', ''),
+            ('https://duckduckgo.com', 'ddg', ''),
+            ('https://wikipedia.org', 'wiki', ''),
+        ],
+        "Bookmarks": [
+            ('https://github.com', 'GitHub', ''),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+        ],
+        "History": [
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+            ('https://github.com', 'GitHub', '2016-05-01'),
+        ],
+        "Searchengines": [
+            ('test', 'http://www.example.org/?q={}', ''),
+            ('test-with-dash', 'http://www.example.org/?q={}', ''),
+            ('newEntry', 'http://www.example.org/?q={}', ''),
+        ],
+    })
+
 
 def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
                                         web_history, quickmarks, bookmarks,
