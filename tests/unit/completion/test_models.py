@@ -310,18 +310,20 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         ],
     })
 
-def test_url_completion_add_searchengine(qtmodeltester, config_stub, web_history, quickmarks,
-                        bookmarks, searchengines):
+def test_url_completion_add_searchengine(qtmodeltester, config_stub,
+                                         web_history, quickmarks, bookmarks,
+                                         searchengines):
     """Test adding searchengine to config."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
 
     model = urlmodel.UrlCompletionModel()
-    
+
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    config_stub.set('searchengines', 'newEntry', 'http://www.example.org/?q={}')
+    config_stub.set('searchengines', 'newEntry',
+                    'http://www.example.org/?q={}')
     _check_completions(model, {
         "Quickmarks": [
             ('https://wiki.archlinux.org', 'aw', ''),
