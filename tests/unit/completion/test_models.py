@@ -167,6 +167,16 @@ def web_history(stubs, web_history_stub):
     return web_history_stub
 
 
+@pytest.fixture
+def searchengines(config_stub):
+    """Pre-populate the config with some searchentries."""
+    config_stub.data['searchengines'] = collections.OrderedDict([
+        ('test', 'http://www.example.org/?q={}'),
+        ('test-with-dash', 'http://www.example.org/?q={}'),
+    ])
+    return config_stub
+
+
 def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
                             key_config_stub):
     """Test the results of command completion.
@@ -264,17 +274,18 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
 
 def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
-                        bookmarks):
+                        bookmarks, searchengines):
     """Test the results of url completion.
 
     Verify that:
-        - quickmarks, bookmarks, and urls are included
+        - quickmarks, bookmarks, searchengines and urls are included
         - no more than 'web-history-max-items' history entries are included
         - the most recent entries are included
     """
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
     model = urlmodel.UrlCompletionModel()
+
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -293,12 +304,16 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
             ('https://github.com', 'GitHub', '2016-05-01'),
         ],
+        "Searchengines": [
+            ('test', 'http://www.example.org/?q={}', ''),
+            ('test-with-dash', 'http://www.example.org/?q={}', ''),
+        ],
     })
 
 
 def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
                                         web_history, quickmarks, bookmarks,
-                                        qtbot):
+                                        searchengines, qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
@@ -316,7 +331,7 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
 
 def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
                                          web_history, quickmarks, bookmarks,
-                                         qtbot):
+                                         searchengines, qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 2}
