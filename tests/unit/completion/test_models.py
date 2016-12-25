@@ -310,6 +310,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         ],
     })
 
+
 def test_url_completion_add_searchengine(qtmodeltester, config_stub,
                                          web_history, quickmarks, bookmarks,
                                          searchengines):
