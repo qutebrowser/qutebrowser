@@ -23,6 +23,7 @@ import os
 import os.path
 import traceback
 import mimetypes
+import html
 
 import jinja2
 import jinja2.exceptions
@@ -31,7 +32,7 @@ from qutebrowser.utils import utils, urlutils, log
 
 from PyQt5.QtCore import QUrl
 
-html_fallback = '''<!DOCTYPE html>
+html_fallback = """<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
@@ -57,8 +58,8 @@ html_fallback = '''<!DOCTYPE html>
 				<img style="width: 100%; display: block; max-width: 256px;" src="{{ data_url("img/broken_qutebrowser_logo.png") }}" />
 			</td>
 			<td style="padding-left: 40px;">
-        <p><span style="font-size:120%;color:red">The error.html template could not be found!<br>Please check your qutebrowser installation</span><br>'''
-html_fallback2 = '''</p>
+        <p><span style="font-size:120%;color:red">The error.html template could not be found!<br>Please check your qutebrowser installation</span><br>
+%ERROR%</p>
 				<h1>Unable to load page</h1>
 				Error while opening {{ url }}: <br>
 				<p id="error-message-text" style="color: #a31a1a;">{{ error }}</p><br><br>
@@ -73,7 +74,7 @@ html_fallback2 = '''</p>
 </div>
     </body>
 </html>
-'''
+"""
 
 class Loader(jinja2.BaseLoader):
 
@@ -91,7 +92,8 @@ class Loader(jinja2.BaseLoader):
         try:
             source = utils.read_file(path)
         except OSError as e:
-            source = html_fallback + str(e) + html_fallback2;
+            source = html_fallback.replace("%ERROR%", html.escape(str(e)))
+            log.misc.error("The error.html template could not be found" + path)
         # Currently we don't implement auto-reloading, so we always return True
         # for up-to-date.
         return source, path, lambda: True
