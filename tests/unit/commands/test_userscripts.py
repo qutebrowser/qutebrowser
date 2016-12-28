@@ -227,6 +227,24 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):
     assert caplog.records[0].message.startswith(expected)
 
 
+def test_unicode_error(caplog, qtbot, py_proc, runner):
+    cmd, args = py_proc(r"""
+        import os
+        with open(os.environ['QUTE_FIFO'], 'wb') as f:
+            f.write(b'\x80')
+    """)
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(runner.finished, timeout=10000):
+            runner.prepare_run(cmd, *args)
+            runner.store_text('')
+            runner.store_html('')
+
+    assert len(caplog.records) == 1
+    expected = ("Invalid unicode in userscript output: 'utf-8' codec can't "
+                "decode byte 0x80 in position 0: invalid start byte")
+    assert caplog.records[0].message == expected
+
+
 def test_unsupported(monkeypatch, tabbed_browser_stubs):
     monkeypatch.setattr(userscripts.os, 'name', 'toaster')
     with pytest.raises(userscripts.UnsupportedError) as excinfo:
