@@ -58,7 +58,7 @@ html_fallback = """<!DOCTYPE html>
 	    <img style="width: 100%; display: block; max-width: 256px;" src="{{ data_url("img/broken_qutebrowser_logo.png") }}" />
 	  </td>
 	  <td style="padding-left: 40px;">
-	    <p><span style="font-size:120%;color:red">The error.html template could not be found!<br>Please check your qutebrowser installation</span><br>
+	    <p><span style="font-size:120%;color:red">The %FILE% template could not be found!<br>Please check your qutebrowser installation</span><br>
 	      %ERROR%</p>
 	  </td>
 	</tr>
@@ -85,7 +85,9 @@ class Loader(jinja2.BaseLoader):
             source = utils.read_file(path)
         except OSError as e:
             source = html_fallback.replace("%ERROR%", html.escape(str(e)))
-            log.misc.error("The error.html template could not be found at " + path)
+            source = source.replace("%FILE%", html.escape(template))
+            log.misc.error("The {} template could not be found at {}".format(
+                template, path))
         # Currently we don't implement auto-reloading, so we always return True
         # for up-to-date.
         return source, path, lambda: True
