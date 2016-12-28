@@ -69,8 +69,9 @@ class _QtFIFOReader(QObject):
             for line in self._fifo:
                 self.got_line.emit(line.rstrip('\r\n'))
                 self._notifier.setEnabled(True)
-        except UnicodeDecodeError:
-            log.misc.error("Invalid unicode in userscript output")
+        except UnicodeDecodeError as e:
+            log.misc.error("Invalid unicode in userscript output: {}"
+                           .format(e))
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
