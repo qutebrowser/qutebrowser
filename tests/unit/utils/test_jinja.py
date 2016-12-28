@@ -24,7 +24,6 @@ import os.path
 
 import pytest
 import logging
-import jinja2
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, jinja
@@ -105,11 +104,14 @@ def test_data_url():
     assert data == 'data:text/plain;base64,Zm9v'  # 'foo'
 
 
-def test_not_found():
+def test_not_found(caplog):
     """Test with a template which does not exist."""
-    with pytest.raises(jinja2.TemplateNotFound) as excinfo:
-        jinja.render('does_not_exist.html')
-    assert str(excinfo.value) == 'does_not_exist.html'
+    with caplog.at_level(logging.ERROR):
+        data = jinja.render('does_not_exist.html')
+    assert "The does_not_exist.html template could not be found!" in data
+
+    assert caplog.records[0].msg.startswith("The does_not_exist.html template"
+                                            " could not be loaded from")
 
 
 def test_utf8():

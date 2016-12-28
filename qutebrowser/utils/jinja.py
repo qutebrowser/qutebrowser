@@ -23,6 +23,7 @@ import os
 import os.path
 import traceback
 import mimetypes
+import html
 
 import jinja2
 import jinja2.exceptions
@@ -30,6 +31,24 @@ import jinja2.exceptions
 from qutebrowser.utils import utils, urlutils, log
 
 from PyQt5.QtCore import QUrl
+
+html_fallback = """
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Error while loading template</title>
+  </head>
+  <body>
+    <p><span style="font-size:120%;color:red">
+    The %FILE% template could not be found!<br>
+    Please check your qutebrowser installation
+      </span><br>
+      %ERROR%
+    </p>
+  </body>
+</html>
+"""
 
 
 class Loader(jinja2.BaseLoader):
@@ -47,8 +66,11 @@ class Loader(jinja2.BaseLoader):
         path = os.path.join(self._subdir, template)
         try:
             source = utils.read_file(path)
-        except OSError:
-            raise jinja2.TemplateNotFound(template)
+        except OSError as e:
+            source = html_fallback.replace("%ERROR%", html.escape(str(e)))
+            source = source.replace("%FILE%", html.escape(template))
+            log.misc.exception("The {} template could not be loaded from {}"
+                               .format(template, path))
         # Currently we don't implement auto-reloading, so we always return True
         # for up-to-date.
         return source, path, lambda: True
