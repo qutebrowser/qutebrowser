@@ -65,9 +65,12 @@ class _QtFIFOReader(QObject):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
         self._notifier.setEnabled(False)
-        for line in self._fifo:
-            self.got_line.emit(line.rstrip('\r\n'))
-        self._notifier.setEnabled(True)
+        try:
+            for line in self._fifo:
+                self.got_line.emit(line.rstrip('\r\n'))
+                self._notifier.setEnabled(True)
+        except UnicodeDecodeError:
+            log.misc.error("Invalid unicode in userscript output")
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
