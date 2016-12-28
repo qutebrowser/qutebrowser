@@ -170,8 +170,8 @@ Contributors, sorted by the number of commits in descending order:
 * Nathan Isom
 * Thorsten Wißmann
 * Austin Anderson
-* Jimmy
 * Fritz Reichwald
+* Jimmy
 * Niklas Haas
 * Maciej Wołczyk
 * Spreadyy
