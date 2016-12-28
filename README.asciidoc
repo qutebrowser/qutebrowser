@@ -172,6 +172,7 @@ Contributors, sorted by the number of commits in descending order:
 * Austin Anderson
 * Jimmy
 * Niklas Haas
+* Fritz Reichwald
 * Maciej Wołczyk
 * Spreadyy
 * Alexey "Averrin" Nabrodov
@@ -191,7 +192,6 @@ Contributors, sorted by the number of commits in descending order:
 * Michael Hoang
 * Liam BEGUIN
 * Julie Engel
-* Fritz Reichwald
 * skinnay
 * Zach-Button
 * Tomasz Kramkowski
