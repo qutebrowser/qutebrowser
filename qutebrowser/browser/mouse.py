@@ -127,6 +127,12 @@ class MouseEventFilter(QObject):
             message.info("Zoom level: {}%".format(perc))
             self._tab.zoom.set_factor(factor)
 
+        if e.modifiers() & Qt.ShiftModifier:
+            if e.anglelta().y() < 0:
+                self._tab.scroll.left()
+            else:
+                self._tab.scroll.right()
+
         return False
 
     def _handle_context_menu(self, _e):
