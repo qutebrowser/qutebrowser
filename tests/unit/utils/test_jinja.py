@@ -24,7 +24,6 @@ import os.path
 
 import pytest
 import logging
-import jinja2
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, jinja

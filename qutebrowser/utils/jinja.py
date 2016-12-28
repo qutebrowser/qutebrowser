@@ -41,14 +41,15 @@ html_fallback = """
   </head>
   <body>
     <p><span style="font-size:120%;color:red">
-	The %FILE% template could not be found!<br>
-	Please check your qutebrowser installation
+    The %FILE% template could not be found!<br>
+    Please check your qutebrowser installation
       </span><br>
       %ERROR%
     </p>
   </body>
 </html>
 """
+
 
 class Loader(jinja2.BaseLoader):
 
