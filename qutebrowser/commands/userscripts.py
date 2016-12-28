@@ -293,6 +293,9 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
                     self.got_cmd.emit(line.rstrip())
         except OSError:
             log.procs.exception("Failed to read command file!")
+        except UnicodeDecodeError as e:
+            log.misc.error("Invalid unicode in userscript output: {}"
+                           .format(e))
 
         super()._cleanup()
         self.finished.emit()
