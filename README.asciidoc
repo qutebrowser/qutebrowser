@@ -171,8 +171,8 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Austin Anderson
 * Jimmy
-* Niklas Haas
 * Fritz Reichwald
+* Niklas Haas
 * Maciej Wołczyk
 * Spreadyy
 * Alexey "Averrin" Nabrodov
@@ -235,7 +235,6 @@ Contributors, sorted by the number of commits in descending order:
 * Marcelo Santos
 * Joel Bradshaw
 * Jean-Louis Fuchs
-* Fritz V155 Reichwald
 * Franz Fellner
 * Eric Drechsel
 * zwarag
