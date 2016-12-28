@@ -191,6 +191,7 @@ Contributors, sorted by the number of commits in descending order:
 * Michael Hoang
 * Liam BEGUIN
 * Julie Engel
+* Fritz Reichwald
 * skinnay
 * Zach-Button
 * Tomasz Kramkowski
@@ -199,7 +200,6 @@ Contributors, sorted by the number of commits in descending order:
 * Nikolay Amiantov
 * Ismail S
 * Halfwit
-* Fritz Reichwald
 * David Vogt
 * Claire Cavanaugh
 * rikn00

@@ -65,9 +65,13 @@ class _QtFIFOReader(QObject):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
         self._notifier.setEnabled(False)
-        for line in self._fifo:
-            self.got_line.emit(line.rstrip('\r\n'))
-        self._notifier.setEnabled(True)
+        try:
+            for line in self._fifo:
+                self.got_line.emit(line.rstrip('\r\n'))
+                self._notifier.setEnabled(True)
+        except UnicodeDecodeError as e:
+            log.misc.error("Invalid unicode in userscript output: {}"
+                           .format(e))
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
@@ -289,6 +293,9 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
                     self.got_cmd.emit(line.rstrip())
         except OSError:
             log.procs.exception("Failed to read command file!")
+        except UnicodeDecodeError as e:
+            log.misc.error("Invalid unicode in userscript output: {}"
+                           .format(e))
 
         super()._cleanup()
         self.finished.emit()
