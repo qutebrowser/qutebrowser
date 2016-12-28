@@ -195,6 +195,8 @@ Fixed
 - Fixed hang when using multiple spaces in a row with the URL completion
 - qutebrowser now still starts with an incorrectly configured
   `$XDG_RUNTIME_DIR`.
+- Fixed crash when a userscript writes invalid unicode data to the FIFO
+- Fixed crash when a included HTML was not found
 
 v0.8.3
 ------
