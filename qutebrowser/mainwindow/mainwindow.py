@@ -238,13 +238,25 @@ class MainWindow(QWidget):
         height_padding = 20
         status_position = config.get('ui', 'status-position')
         if status_position == 'bottom':
-            top = self.height() - self.status.height() - size_hint.height()
+            if self.status.isVisible():
+                status_height = self.status.height()
+                bottom = self.status.geometry().top()
+            else:
+                status_height = 0
+                bottom = self.height()
+            top = self.height() - status_height - size_hint.height()
             top = qtutils.check_overflow(top, 'int', fatal=False)
             topleft = QPoint(left, max(height_padding, top))
-            bottomright = QPoint(left + width, self.status.geometry().top())
+            bottomright = QPoint(left + width, bottom)
         elif status_position == 'top':
-            topleft = QPoint(left, self.status.geometry().bottom())
-            bottom = self.status.height() + size_hint.height()
+            if self.status.isVisible():
+                status_height = self.status.height()
+                top = self.status.geometry().bottom()
+            else:
+                status_height = 0
+                top = 0
+            topleft = QPoint(left, top)
+            bottom = status_height + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
             bottomright = QPoint(left + width,
                                  min(self.height() - height_padding, bottom))
