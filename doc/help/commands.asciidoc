@@ -319,7 +319,12 @@ How many pages to go forward.
 
 [[fullscreen]]
 === fullscreen
+Syntax: +:fullscreen [*--leave*]+
+
 Toggle fullscreen mode.
+
+==== optional arguments
+* +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
 
 [[help]]
 === help

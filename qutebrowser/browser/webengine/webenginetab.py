@@ -79,6 +79,17 @@ _JS_WORLD_MAP = {
 }
 
 
+class WebEngineAction(browsertab.AbstractAction):
+
+    """QtWebKit implementations related to web actions."""
+
+    def _action(self, action):
+        self._widget.triggerPageAction(action)
+
+    def exit_fullscreen(self):
+        self._action(QWebEnginePage.ExitFullScreen)
+
+
 class WebEnginePrinting(browsertab.AbstractPrinting):
 
     """QtWebEngine implementations related to printing."""
@@ -473,6 +484,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(self)
+        self.action = WebEngineAction()
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -640,6 +652,12 @@ class WebEngineTab(browsertab.AbstractTab):
                     url=url_string, error="Authentication required", icon='')
                 self.set_html(error_page)
 
+    @pyqtSlot('QWebEngineFullScreenRequest')
+    def _on_fullscreen_requested(self, request):
+        # FIXME:qtwebengine do we want a setting to disallow this?
+        request.accept()
+        self.fullscreen_requested.emit(request.toggleOn())
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -653,6 +671,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
+        page.fullScreenRequested.connect(self._on_fullscreen_requested)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)

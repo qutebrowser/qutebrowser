@@ -456,12 +456,23 @@ class MainWindow(QWidget):
         tabs.cur_url_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
+        tabs.page_fullscreen_requested.connect(
+            self._on_page_fullscreen_requested)
+        tabs.page_fullscreen_requested.connect(
+            status.on_page_fullscreen_requested)
 
         # command input / completion
         mode_manager.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
+
+    @pyqtSlot(bool)
+    def _on_page_fullscreen_requested(self, on):
+        if on:
+            self.showFullScreen()
+        else:
+            self.showNormal()
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
@@ -473,14 +484,6 @@ class MainWindow(QWidget):
         Extend close() so we can register it as a command.
         """
         super().close()
-
-    @cmdutils.register(instance='main-window', scope='window')
-    def fullscreen(self):
-        """Toggle fullscreen mode."""
-        if self.isFullScreen():
-            self.showNormal()
-        else:
-            self.showFullScreen()
 
     def resizeEvent(self, e):
         """Extend resizewindow's resizeEvent to adjust completion.

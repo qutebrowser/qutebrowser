@@ -46,6 +46,8 @@ class StatusBar(QWidget):
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _win_id: The window ID the statusbar is associated with.
+        _page_fullscreen: Whether the webpage (e.g. a video) is shown
+                          fullscreen.
 
     Class attributes:
         _prompt_active: If we're currently in prompt-mode.
@@ -143,6 +145,7 @@ class StatusBar(QWidget):
 
         self._win_id = win_id
         self._option = None
+        self._page_fullscreen = False
 
         self._hbox = QHBoxLayout(self)
         self.set_hbox_padding()
@@ -193,7 +196,7 @@ class StatusBar(QWidget):
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
         hide = config.get('ui', 'hide-statusbar')
-        if hide:
+        if hide or self._page_fullscreen:
             self.hide()
         else:
             self.show()
@@ -305,6 +308,11 @@ class StatusBar(QWidget):
                         usertypes.KeyMode.prompt,
                         usertypes.KeyMode.yesno]:
             self.set_mode_active(old_mode, False)
+
+    @pyqtSlot(bool)
+    def on_page_fullscreen_requested(self, on):
+        self._page_fullscreen = on
+        self.maybe_hide()
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

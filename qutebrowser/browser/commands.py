@@ -2069,3 +2069,24 @@ class CommandDispatcher:
         """
         if bg or tab or window or url != old_url:
             self.openurl(url=url, bg=bg, tab=tab, window=window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def fullscreen(self, leave=False):
+        """Toggle fullscreen mode.
+
+        Args:
+            leave: Only leave fullscreen if it was entered by the page.
+        """
+        if leave:
+            tab = self._current_widget()
+            try:
+                tab.action.exit_fullscreen()
+            except browsertab.UnsupportedOperationError:
+                pass
+            return
+
+        window = self._tabbed_browser.window()
+        if window.isFullScreen():
+            window.showNormal()
+        else:
+            window.showFullScreen()

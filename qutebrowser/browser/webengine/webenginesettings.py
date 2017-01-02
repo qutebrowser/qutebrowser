@@ -164,6 +164,8 @@ def init(args):
     # https://bugreports.qt.io/browse/QTBUG-58650
     PersistentCookiePolicy().set(config.get('content', 'cookies-store'))
 
+    Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
+
     websettings.init_mappings(MAPPINGS)
     objreg.get('config').changed.connect(update_settings)
 

@@ -281,9 +281,9 @@ class TestKeyConfigParser:
             ('download-page', 'download'),
             ('cancel-download', 'download-cancel'),
 
-            ('search ""', 'clear-keychain ;; search'),
-            ("search ''", 'clear-keychain ;; search'),
-            ("search", 'clear-keychain ;; search'),
+            ('search ""', 'clear-keychain ;; search ;; fullscreen --leave'),
+            ("search ''", 'clear-keychain ;; search ;; fullscreen --leave'),
+            ("search", 'clear-keychain ;; search ;; fullscreen --leave'),
             ("search ;; foobar", None),
             ('search "foo"', None),
 
@@ -305,11 +305,16 @@ class TestKeyConfigParser:
             ('scroll 0 0', 'scroll-px 0 0'),
             ('scroll 23 42', 'scroll-px 23 42'),
 
-            ('search ;; clear-keychain', 'clear-keychain ;; search'),
-            ('search;;clear-keychain', 'clear-keychain ;; search'),
+            ('search ;; clear-keychain',
+                'clear-keychain ;; search ;; fullscreen --leave'),
+            ('search;;clear-keychain',
+                'clear-keychain ;; search ;; fullscreen --leave'),
             ('search;;foo', None),
-            ('clear-keychain ;; leave-mode', 'leave-mode'),
+            ('clear-keychain ;; search',
+                'clear-keychain ;; search ;; fullscreen --leave'),
             ('leave-mode ;; foo', None),
+            ('search ;; clear-keychain',
+                'clear-keychain ;; search ;; fullscreen --leave'),
 
             ('download-remove --all', 'download-clear'),
 

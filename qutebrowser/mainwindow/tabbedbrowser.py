@@ -98,6 +98,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    page_fullscreen_requested = pyqtSignal(bool)
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
@@ -199,6 +200,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             functools.partial(self.on_window_close_requested, tab))
         tab.new_tab_requested.connect(self.tabopen)
         tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
+        tab.fullscreen_requested.connect(self.page_fullscreen_requested)
+        tab.fullscreen_requested.connect(
+            self.tabBar().on_page_fullscreen_requested)
 
     def current_url(self):
         """Get the URL of the current tab.

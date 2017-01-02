@@ -52,6 +52,14 @@ def init():
     objreg.register('js-bridge', js_bridge)
 
 
+class WebKitAction(browsertab.AbstractAction):
+
+    """QtWebKit implementations related to web actions."""
+
+    def exit_fullscreen(self):
+        raise browsertab.UnsupportedOperationError
+
+
 class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""
@@ -610,6 +618,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(self)
+        self.action = WebKitAction()
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit

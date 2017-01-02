@@ -110,6 +110,7 @@ class Tab(browsertab.AbstractTab):
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
         self.elements = browsertab.AbstractElements(self)
+        self.action = browsertab.AbstractAction()
 
     def _install_event_filter(self):
         pass

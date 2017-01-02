@@ -259,6 +259,8 @@ class TabBar(QTabBar):
     Attributes:
         vertical: When the tab bar is currently vertical.
         win_id: The window ID this TabBar belongs to.
+        _page_fullscreen: Whether the webpage (e.g. a video) is shown
+                          fullscreen.
     """
 
     def __init__(self, win_id, parent=None):
@@ -269,6 +271,7 @@ class TabBar(QTabBar):
         config_obj = objreg.get('config')
         config_obj.changed.connect(self.set_font)
         self.vertical = False
+        self._page_fullscreen = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
         self._auto_hide_timer.setInterval(
@@ -296,20 +299,24 @@ class TabBar(QTabBar):
         self._auto_hide_timer.setInterval(
             config.get('tabs', 'show-switching-delay'))
 
+    @pyqtSlot(bool)
+    def on_page_fullscreen_requested(self, on):
+        self._page_fullscreen = on
+        self._tabhide()
+
     def on_change(self):
         """Show tab bar when current tab got changed."""
         show = config.get('tabs', 'show')
-        if show == 'switching':
+        if show == 'switching' or self._page_fullscreen:
             self.show()
             self._auto_hide_timer.start()
 
     def _tabhide(self):
         """Hide the tab bar if needed."""
         show = config.get('tabs', 'show')
-        show_never = show == 'never'
-        switching = show == 'switching'
-        multiple = show == 'multiple'
-        if show_never or (multiple and self.count() == 1) or switching:
+        if (show in ['never', 'switching'] or
+                (show == 'multiple' and self.count() == 1) or
+                self._page_fullscreen):
             self.hide()
         else:
             self.show()
