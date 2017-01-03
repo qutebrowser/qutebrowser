@@ -49,6 +49,13 @@ def _init_helptopic_completion():
     _instances[usertypes.Completion.helptopic] = model
 
 
+def _init_undo_stack_completion():
+    """Initialize the undo_stack completion model."""
+    log.completion.debug("Initializing undo_stack completion.")
+    model = miscmodels.UndoStackCompletionModel()
+    _instances[usertypes.Completion.undo_stack] = model
+
+
 def _init_url_completion():
     """Initialize the URL completion model."""
     log.completion.debug("Initializing URL completion.")
@@ -133,6 +140,7 @@ INITIALIZERS = {
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
     usertypes.Completion.bind: _init_bind_completion,
+    usertypes.Completion.undo_stack: _init_undo_stack_completion,
 }
 
 

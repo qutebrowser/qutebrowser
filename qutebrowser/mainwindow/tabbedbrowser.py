@@ -281,7 +281,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.removeTab(idx)
         tab.deleteLater()
 
-    def undo(self):
+    def undo(self, skip_count=0):
         """Undo removing of a tab."""
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.get('tabs', 'last-close')
@@ -301,7 +301,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        url, history_data, idx = self._undo_stack.pop()
+        url, history_data, idx = self._undo_stack.pop(len(self._undo_stack) - 1 - skip_count)
 
         if use_current_tab:
             self.openurl(url, newtab=False)

@@ -112,6 +112,52 @@ class BookmarkCompletionModel(base.BaseCompletionModel):
         for bm_url, bm_title in bookmarks:
             self.new_item(cat, bm_url, bm_title)
 
+class UndoStackCompletionModel(base.BaseCompletionModel):
+
+    """A CompletionModel filled with all undo_stack entries of the last focused window."""
+
+    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # pylint: disable=abstract-method
+    
+    COLUMN_WIDTHS = (6, 94, 0)
+    DUMB_SORT = Qt.DescendingOrder
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+        for win_id in objreg.window_registry:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.new_tab.connect(self.on_new_tab)
+        
+        objreg.get("app").new_window.connect(self.on_new_window)
+        objreg.get("app").mainwindow_focus_changed.connect(self.rebuild)
+        self.rebuild()
+
+    def on_new_window(self, window):
+        """Add hooks to new windows."""
+        window.tabbed_browser.new_tab.connect(self.on_new_tab)
+        
+    @pyqtSlot(browsertab.AbstractTab)
+    def on_new_tab(self, tab):
+        """Add hooks to new tabs."""
+        tab.shutting_down.connect(self.delayed_rebuild)
+        self.rebuild()
+    
+    @pyqtSlot()
+    def delayed_rebuild(self):
+        """Fire a rebuild indirectly so widgets get a chance to update."""
+        QTimer.singleShot(0, self.rebuild)
+
+    @pyqtSlot()
+    def rebuild(self):
+        self.removeRows(0, self.rowCount())
+
+        cat = self.new_category('Stack')
+        tabbed_browser = objreg.last_focused_window().tabbed_browser
+        for u_index, u_entry in enumerate(tabbed_browser._undo_stack[::-1]):
+            self.new_item(cat, '{}'.format(u_index), u_entry.url.toDisplayString())
+
 
 class SessionCompletionModel(base.BaseCompletionModel):
 
