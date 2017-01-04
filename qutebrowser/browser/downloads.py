@@ -20,7 +20,6 @@
 """Shared QtWebKit/QtWebEngine code for downloads."""
 
 import sys
-import shlex
 import html
 import os.path
 import collections
@@ -30,13 +29,11 @@ import tempfile
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QUrl, QModelIndex,
                           QTimer, QAbstractListModel)
-from PyQt5.QtGui import QDesktopServices
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils)
-from qutebrowser.misc import guiprocess
 
 
 ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
@@ -532,31 +529,7 @@ class AbstractDownloadItem(QObject):
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-
-        # the default program to open downloads with - will be empty string
-        # if we want to use the default
-        override = config.get('general', 'default-open-dispatcher')
-
-        # precedence order: cmdline > default-open-dispatcher > openUrl
-
-        if cmdline is None and not override:
-            log.downloads.debug("Opening {} with the system application"
-                                .format(filename))
-            url = QUrl.fromLocalFile(filename)
-            QDesktopServices.openUrl(url)
-            return
-
-        if cmdline is None and override:
-            cmdline = override
-
-        cmd, *args = shlex.split(cmdline)
-        args = [arg.replace('{}', filename) for arg in args]
-        if '{}' not in cmdline:
-            args.append(filename)
-        log.downloads.debug("Opening {} with {}"
-                            .format(filename, [cmd] + args))
-        proc = guiprocess.GUIProcess(what='download')
-        proc.start_detached(cmd, args)
+        utils.open_file(filename, cmdline)
 
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""

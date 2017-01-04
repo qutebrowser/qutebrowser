@@ -35,12 +35,10 @@ import email.message
 import quopri
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QDesktopServices
 
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
-from qutebrowser.config import config
 
 _File = collections.namedtuple('_File',
                                ['content', 'content_type', 'content_location',
@@ -490,31 +488,7 @@ class _Downloader:
         message.info("Page saved as {}".format(self.target))
 
         if isinstance(self.target, downloads.OpenFileDownloadTarget):
-            filename = fobj.name
-            # the default program to open downloads with - will be empty string
-            # if we want to use the default
-            override = config.get('general', 'default-open-dispatcher')
-            cmdline = self.target.cmdline
-
-            # precedence order: cmdline > default-open-dispatcher > openUrl
-            if cmdline is None and not override:
-                log.downloads.debug("Opening {} with the system application"
-                                    .format(filename))
-                url = QUrl.fromLocalFile(filename)
-                QDesktopServices.openUrl(url)
-                return
-
-            if cmdline is None and override:
-                cmdline = override
-
-            cmd, *args = shlex.split(cmdline)
-            args = [arg.replace('{}', filename) for arg in args]
-            if '{}' not in cmdline:
-                args.append(filename)
-            log.downloads.debug("Opening {} with {}"
-                                .format(filename, [cmd] + args))
-            proc = guiprocess.GUIProcess(what='download')
-            proc.start_detached(cmd, args)
+            utils.open_file(fobj.name, self.target.cmdline)
 
     def _collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
