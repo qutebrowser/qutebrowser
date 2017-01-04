@@ -35,10 +35,12 @@ import email.message
 import quopri
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QDesktopServices
 
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
+from qutebrowser.config import config
 
 _File = collections.namedtuple('_File',
                                ['content', 'content_type', 'content_location',
@@ -242,7 +244,7 @@ class _Downloader:
 
     Attributes:
         tab: The AbstractTab which contains the website that will be saved.
-        dest: Destination filename.
+        target: DownloadTarget where the file should be downloaded to.
         writer: The MHTMLWriter object which is used to save the page.
         loaded_urls: A set of QUrls of finished asset downloads.
         pending_downloads: A set of unfinished (url, DownloadItem) tuples.
@@ -252,9 +254,9 @@ class _Downloader:
         _win_id: The window this downloader belongs to.
     """
 
-    def __init__(self, tab, dest):
+    def __init__(self, tab, target):
         self.tab = tab
-        self.dest = dest
+        self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
         self.pending_downloads = set()
@@ -462,14 +464,57 @@ class _Downloader:
             return
         self._finished_file = True
         log.downloads.debug("All assets downloaded, ready to finish off!")
+
+        if isinstance(self.target, downloads.FileDownloadTarget):
+            fobj = open(self.target.filename, 'wb')
+        elif isinstance(self.target, downloads.FileObjDownloadTarget):
+            fobj = self.target.fileobj
+        elif isinstance(self.target, downloads.OpenFileDownloadTarget):
+            try:
+                fobj = downloads.temp_download_manager.get_tmpfile(
+                    self.tab.title() + '.mht')
+            except OSError as exc:
+                msg = "Download error: {}".format(exc)
+                message.error(msg)
+                return
+        else:
+            raise ValueError("Invalid DownloadTarget given")
+
         try:
-            with open(self.dest, 'wb') as file_output:
-                self.writer.write_to(file_output)
+            with fobj:
+                self.writer.write_to(fobj)
         except OSError as error:
             message.error("Could not save file: {}".format(error))
             return
         log.downloads.debug("File successfully written.")
-        message.info("Page saved as {}".format(self.dest))
+        message.info("Page saved as {}".format(self.target))
+
+        if isinstance(self.target, downloads.OpenFileDownloadTarget):
+            filename = fobj.name
+            # the default program to open downloads with - will be empty string
+            # if we want to use the default
+            override = config.get('general', 'default-open-dispatcher')
+            cmdline = self.target.cmdline
+
+            # precedence order: cmdline > default-open-dispatcher > openUrl
+            if cmdline is None and not override:
+                log.downloads.debug("Opening {} with the system application"
+                                    .format(filename))
+                url = QUrl.fromLocalFile(filename)
+                QDesktopServices.openUrl(url)
+                return
+
+            if cmdline is None and override:
+                cmdline = override
+
+            cmd, *args = shlex.split(cmdline)
+            args = [arg.replace('{}', filename) for arg in args]
+            if '{}' not in cmdline:
+                args.append(filename)
+            log.downloads.debug("Opening {} with {}"
+                                .format(filename, [cmd] + args))
+            proc = guiprocess.GUIProcess(what='download')
+            proc.start_detached(cmd, args)
 
     def _collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
@@ -501,26 +546,29 @@ class _NoCloseBytesIO(io.BytesIO):
         super().close()
 
 
-def _start_download(dest, tab):
+def _start_download(target, tab):
     """Start downloading the current page and all assets to an MHTML file.
 
     This will overwrite dest if it already exists.
 
     Args:
-        dest: The filename where the resulting file should be saved.
+        target: The DownloadTarget where the resulting file should be saved.
         tab: Specify the tab whose page should be loaded.
     """
-    loader = _Downloader(tab, dest)
+    loader = _Downloader(tab, target)
     loader.run()
 
 
-def start_download_checked(dest, tab):
+def start_download_checked(target, tab):
     """First check if dest is already a file, then start the download.
 
     Args:
-        dest: The filename where the resulting file should be saved.
+        target: The DownloadTarget where the resulting file should be saved.
         tab: Specify the tab whose page should be loaded.
     """
+    if not isinstance(target, downloads.FileDownloadTarget):
+        _start_download(target, tab)
+        return
     # The default name is 'page title.mht'
     title = tab.title()
     default_name = utils.sanitize_filename(title + '.mht')
@@ -528,7 +576,7 @@ def start_download_checked(dest, tab):
     # Remove characters which cannot be expressed in the file system encoding
     encoding = sys.getfilesystemencoding()
     default_name = utils.force_encoding(default_name, encoding)
-    dest = utils.force_encoding(dest, encoding)
+    dest = utils.force_encoding(target.filename, encoding)
 
     dest = os.path.expanduser(dest)
 
@@ -549,8 +597,9 @@ def start_download_checked(dest, tab):
         message.error("Directory {} does not exist.".format(folder))
         return
 
+    target = downloads.FileDownloadTarget(path)
     if not os.path.isfile(path):
-        _start_download(path, tab=tab)
+        _start_download(target, tab=tab)
         return
 
     q = usertypes.Question()
@@ -560,5 +609,5 @@ def start_download_checked(dest, tab):
         html.escape(path))
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(
-        _start_download, path, tab=tab))
+        _start_download, target, tab=tab))
     message.global_bridge.ask(q, blocking=False)

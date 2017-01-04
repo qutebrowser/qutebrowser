@@ -158,7 +158,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
         html.escape(url.toDisplayString()))
-    q.mode = usertypes.PromptMode.text
+    q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
     return q
@@ -197,6 +197,9 @@ class FileDownloadTarget(_DownloadTarget):
     def suggested_filename(self):
         return os.path.basename(self.filename)
 
+    def __str__(self):
+        return self.filename
+
 
 class FileObjDownloadTarget(_DownloadTarget):
 
@@ -216,6 +219,12 @@ class FileObjDownloadTarget(_DownloadTarget):
         except AttributeError:
             raise NoFilenameError
 
+    def __str__(self):
+        try:
+            return 'file object at {}'.format(self.fileobj.name)
+        except AttributeError:
+            return 'anonymous file object'
+
 
 class OpenFileDownloadTarget(_DownloadTarget):
 
@@ -233,6 +242,9 @@ class OpenFileDownloadTarget(_DownloadTarget):
 
     def suggested_filename(self):
         raise NoFilenameError
+
+    def __str__(self):
+        return 'temporary file'
 
 
 class DownloadItemStats(QObject):
@@ -780,7 +792,6 @@ class AbstractDownloadManager(QObject):
 
     def _init_filename_question(self, question, download):
         """Set up an existing filename question with a download."""
-        question.mode = usertypes.PromptMode.download
         question.answered.connect(download.set_target)
         question.cancelled.connect(download.cancel)
         download.cancelled.connect(question.abort)

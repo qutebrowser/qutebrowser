@@ -1302,26 +1302,21 @@ class CommandDispatcher:
         # FIXME:qtwebengine do this with the QtWebEngine download manager?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
+        target = None
+        if dest is not None:
+            target = downloads.FileDownloadTarget(dest)
+
         if url:
             if mhtml_:
                 raise cmdexc.CommandError("Can only download the current page"
                                           " as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            if dest is None:
-                target = None
-            else:
-                target = downloads.FileDownloadTarget(dest)
             download_manager.get(url, target=target)
         elif mhtml_:
             self._download_mhtml(dest)
         else:
             qnam = self._current_widget().networkaccessmanager()
-
-            if dest is None:
-                target = None
-            else:
-                target = downloads.FileDownloadTarget(dest)
             download_manager.get(self._current_url(), qnam=qnam, target=target)
 
     def _download_mhtml(self, dest=None):
@@ -1334,22 +1329,23 @@ class CommandDispatcher:
         if tab.backend == usertypes.Backend.QtWebEngine:
             raise cmdexc.CommandError("Download --mhtml is not implemented "
                                       "with QtWebEngine yet")
-
-        if dest is None:
-            suggested_fn = self._current_title() + ".mht"
-            suggested_fn = utils.sanitize_filename(suggested_fn)
-
-            filename = downloads.immediate_download_path()
-            if filename is not None:
-                mhtml.start_download_checked(filename, tab=tab)
-            else:
-                question = downloads.get_filename_question(
-                    suggested_filename=suggested_fn, url=tab.url(), parent=tab)
-                question.answered.connect(functools.partial(
-                    mhtml.start_download_checked, tab=tab))
-                message.global_bridge.ask(question, blocking=False)
-        else:
+        if dest is not None:
             mhtml.start_download_checked(dest, tab=tab)
+            return
+
+        suggested_fn = self._current_title() + ".mht"
+        suggested_fn = utils.sanitize_filename(suggested_fn)
+
+        filename = downloads.immediate_download_path()
+        if filename is not None:
+            target = downloads.FileDownloadTarget(filename)
+            mhtml.start_download_checked(target, tab=tab)
+        else:
+            question = downloads.get_filename_question(
+                suggested_filename=suggested_fn, url=tab.url(), parent=tab)
+            question.answered.connect(functools.partial(
+                mhtml.start_download_checked, tab=tab))
+            message.global_bridge.ask(question, blocking=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
