@@ -96,7 +96,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
                           .format(sys.executable))
     quteproc_new.wait_for(category='downloads',
                           message='Download ä-issue908.bin finished')
-    quteproc_new.wait_for(category='downloads',
+    quteproc_new.wait_for(category='misc',
                           message='Opening * with [*python*]')
 
     assert len(tmpdir.listdir()) == 1

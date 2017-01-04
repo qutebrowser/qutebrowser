@@ -208,11 +208,11 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I open html
         And I run :download --mhtml
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.text: 2> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept
         And I wait for "File successfully written." in the log
         And I run :download --mhtml
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.text: 2> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> already exists. Overwrite?' title='Overwrite existing file?'>, *" in the log
         And I run :prompt-accept yes

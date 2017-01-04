@@ -855,7 +855,7 @@ def open_file(filename, cmdline=None):
 
     if cmdline is None and not override:
         log.misc.debug("Opening {} with the system application"
-                            .format(filename))
+                       .format(filename))
         url = QUrl.fromLocalFile(filename)
         QDesktopServices.openUrl(url)
         return

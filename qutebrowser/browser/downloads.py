@@ -27,7 +27,7 @@ import functools
 import tempfile
 
 import sip
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QUrl, QModelIndex,
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel)
 
 from qutebrowser.commands import cmdexc, cmdutils
