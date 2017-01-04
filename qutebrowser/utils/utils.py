@@ -38,8 +38,6 @@ import pkg_resources
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log
-from qutebrowser.misc import guiprocess
-from qutebrowser.config import config
 
 
 fake_clipboard = None
@@ -844,6 +842,11 @@ def open_file(filename, cmdline=None):
                  or `default-open-dispatcher` if set. If no `{}` is found, the
                  filename is appended to the cmdline.
     """
+    # Import late to avoid circular imports:
+    # utils -> config -> configdata -> configtypes -> cmdutils -> command ->
+    # utils
+    from qutebrowser.misc import guiprocess
+    from qutebrowser.config import config
     # the default program to open downloads with - will be empty string
     # if we want to use the default
     override = config.get('general', 'default-open-dispatcher')
