@@ -1314,23 +1314,23 @@ class CommandDispatcher:
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, target=target)
         elif mhtml_:
-            self._download_mhtml(dest)
+            self._download_mhtml(target)
         else:
             qnam = self._current_widget().networkaccessmanager()
             download_manager.get(self._current_url(), qnam=qnam, target=target)
 
-    def _download_mhtml(self, dest=None):
+    def _download_mhtml(self, target=None):
         """Download the current page as an MHTML file, including all assets.
 
         Args:
-            dest: The file path to write the download to.
+            target: The download target for the file.
         """
         tab = self._current_widget()
         if tab.backend == usertypes.Backend.QtWebEngine:
             raise cmdexc.CommandError("Download --mhtml is not implemented "
                                       "with QtWebEngine yet")
-        if dest is not None:
-            mhtml.start_download_checked(dest, tab=tab)
+        if target is not None:
+            mhtml.start_download_checked(target, tab=tab)
             return
 
         suggested_fn = self._current_title() + ".mht"

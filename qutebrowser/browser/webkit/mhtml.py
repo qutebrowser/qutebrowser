@@ -476,7 +476,8 @@ class _Downloader:
                 message.error(msg)
                 return
         else:
-            raise ValueError("Invalid DownloadTarget given")
+            raise ValueError("Invalid DownloadTarget given: {!r}"
+                             .format(self.target))
 
         try:
             with fobj:
