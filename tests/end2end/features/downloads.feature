@@ -219,6 +219,15 @@ Feature: Downloading things from a website.
         And I wait for "File successfully written." in the log
         Then no crash should happen
 
+    @qtwebengine_todo: :download --mhtml is not implemented yet
+    Scenario: Opening a mhtml download directly
+        When I set storage -> prompt-download-directory to true
+        And I open html
+        And I run :download --mhtml
+        And I wait for the download prompt for "*"
+        And I directly open the download
+        Then "Opening *.mht* with [*python*]" should be logged
+
     ## :download-cancel
 
     Scenario: Cancelling a download
