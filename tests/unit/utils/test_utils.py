@@ -989,6 +989,9 @@ def test_random_port():
 
 class TestOpenFile:
 
+    def __init__(self):
+        self.open_url_called = False
+
     def test_cmdline_without_argument(self, caplog, config_stub):
         config_stub.data = {'general': {'default-open-dispatcher': ''}}
         cmdline = '{} -c pass'.format(sys.executable)
@@ -1015,7 +1018,6 @@ class TestOpenFile:
 
     def test_system_default_application(self, caplog, config_stub,
                                         monkeypatch):
-        self.open_url_called = False
         config_stub.data = {'general': {'default-open-dispatcher': ''}}
         monkeypatch.setattr('PyQt5.QtGui.QDesktopServices.openUrl',
                             self.mock_open_url)
