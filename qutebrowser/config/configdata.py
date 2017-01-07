@@ -1543,7 +1543,7 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('normal', collections.OrderedDict([
-        ('clear-keychain ;; search', ['<Escape>']),
+        ('clear-keychain ;; search', ['<Escape>', '<Ctrl-[>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url:pretty}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
