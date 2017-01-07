@@ -17,6 +17,23 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * The connection for web elements between Python and Javascript works like
+ * this:
+ *
+ * - Python calls into Javascript and invokes a function to find elements (like
+ *   find_all, focus_element, element_at_pos or element_by_id).
+ * - Javascript gets the requested element, and calls serialize_elem on it.
+ * - serialize_elem saves the javascript element object in "elements", gets some
+ *   attributes from the element, and assigns an ID (index into 'elements') to
+ *   it.
+ * - Python gets this information and constructs a Python wrapper object with
+ *   the information it got right away, and the ID.
+ * - When Python wants to modify an element, it calls javascript again with the
+ *   element ID.
+ * - Javascript gets the element from the elements array, and modifies it.
+ */
+
 "use strict";
 
 window._qutebrowser.webelem = (function() {
