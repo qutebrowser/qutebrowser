@@ -37,3 +37,4 @@ rules:
      no-warning-comments: "off"
      max-len: ["error", {"ignoreUrls": true}]
      capitalized-comments: "off"
+     prefer-destructuring: "off"
