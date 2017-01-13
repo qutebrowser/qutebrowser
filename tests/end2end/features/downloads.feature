@@ -118,6 +118,14 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
+    @qtwebkit_skip
+    Scenario: Downloading a file with evil content-disposition header
+        # Content-Disposition: download; filename=..%2Ffoo
+        When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
+        And I wait until the download is finished
+        Then the downloaded file ../foo should not exist
+        And the downloaded file foo should exist
+
     ## :download-retry
 
     Scenario: Retrying a failed download

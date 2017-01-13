@@ -32,6 +32,7 @@ from qutebrowser.browser.webengine import webenginedownloads
     ('foo(a)', 'foo(a)'),
     ('foo1', 'foo1'),
     ('foo%20bar', 'foo bar'),
+    ('foo%2Fbar', 'bar'),
 ])
 def test_get_suggested_filename(path, expected):
     assert webenginedownloads._get_suggested_filename(path) == expected
