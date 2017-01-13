@@ -14,14 +14,23 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.10.0
--------
+v0.10.0 (unreleased)
+--------------------
 
 Changed
 ~~~~~~~
 
 - Scrolling with the scrollwheel while holding shift now scrolls sideways
 
+
+v0.9.1
+------
+
+Fixed
+~~~~~
+
+- Prevent websites from downloading files to a location outside of the download
+  folder with QtWebEngine.
 
 v0.9.0
 ------
