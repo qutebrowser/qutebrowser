@@ -726,7 +726,7 @@ class Quitter:
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
         objreg.get('signal-handler').deactivate()
-        objreg.get('session-manager').session_delete('_autosave', force=True)
+        objreg.get('session-manager').delete('_autosave')
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
