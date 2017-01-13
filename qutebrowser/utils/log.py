@@ -209,7 +209,7 @@ def _init_py_warnings():
                             category=DeprecationWarning,
                             message='Flags not at the start of the expression')
     # https://github.com/pallets/jinja/issues/646
-    warnings.filterwarnings('ignore', module='jinja2\..*',
+    warnings.filterwarnings('ignore', module=r'jinja2\..*',
                             category=DeprecationWarning,
                             message='invalid escape sequence')
     # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
