@@ -184,7 +184,7 @@ Feature: Downloading things from a website.
         Then the error "Can only download the current page as mhtml." should be shown
 
     Scenario: :download with a directory which doesn't exist
-        When I run :download --dest (tmpdir)/somedir/filename http://localhost:(port)/
+        When I run :download --dest (tmpdir)/downloads/somedir/filename http://localhost:(port)/
         Then the error "Download error: No such file or directory" should be shown
 
     ## mhtml downloads
@@ -402,7 +402,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to path
         And I open data/downloads/download.bin without waiting
-        Then the download prompt should be shown with "(tmpdir)/"
+        Then the download prompt should be shown with "(tmpdir)/downloads/"
 
     Scenario: completion -> download-path-suggestion = filename
         When I set storage -> prompt-download-directory to true
@@ -414,7 +414,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
         And I open data/downloads/download.bin without waiting
-        Then the download prompt should be shown with "(tmpdir)/download.bin"
+        Then the download prompt should be shown with "(tmpdir)/downloads/download.bin"
 
     ## storage -> remember-download-directory
 
@@ -424,19 +424,19 @@ Feature: Downloading things from a website.
         And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*/download.bin"
-        And I run :prompt-accept (tmpdir)(dirsep)subdir
+        And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
         And I open data/downloads/download2.bin without waiting
-        Then the download prompt should be shown with "(tmpdir)/subdir/download2.bin"
+        Then the download prompt should be shown with "(tmpdir)/downloads/subdir/download2.bin"
 
     Scenario: Not remembering the last download directory
         When I set storage -> prompt-download-directory to true
         And I set completion -> download-path-suggestion to both
         And I set storage -> remember-download-directory to false
         And I open data/downloads/download.bin without waiting
-        And I wait for the download prompt for "(tmpdir)/download.bin"
-        And I run :prompt-accept (tmpdir)(dirsep)subdir
+        And I wait for the download prompt for "(tmpdir)/downloads/download.bin"
+        And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
         And I open data/downloads/download2.bin without waiting
-        Then the download prompt should be shown with "(tmpdir)/download2.bin"
+        Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
 
     # https://github.com/The-Compiler/qutebrowser/issues/2173
 
@@ -446,12 +446,12 @@ Feature: Downloading things from a website.
         And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
-        And I run :prompt-accept (tmpdir)
+        And I run :prompt-accept (tmpdir)/downloads
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
         And I directly open the download
         And I open data/downloads/download.bin without waiting
-        Then the download prompt should be shown with "(tmpdir)/download.bin"
+        Then the download prompt should be shown with "(tmpdir)/downloads/download.bin"
 
     # Overwriting files
 
@@ -520,7 +520,7 @@ Feature: Downloading things from a website.
     @posix
     Scenario: Downloading to unwritable destination
         When I set storage -> prompt-download-directory to false
-        And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/unwritable
+        And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
         Then the error "Download error: Permission denied" should be shown
 
     Scenario: Downloading 20MB file
