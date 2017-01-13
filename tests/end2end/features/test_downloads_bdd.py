@@ -32,15 +32,17 @@ PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
 
 @bdd.given("I set up a temporary download dir")
 def temporary_download_dir(quteproc, tmpdir):
+    download_dir = tmpdir / 'downloads'
+    download_dir.ensure(dir=True)
     quteproc.set_setting('storage', 'prompt-download-directory', 'false')
     quteproc.set_setting('storage', 'remember-download-directory', 'false')
-    quteproc.set_setting('storage', 'download-directory', str(tmpdir))
-    (tmpdir / 'subdir').ensure(dir=True)
+    quteproc.set_setting('storage', 'download-directory', str(download_dir))
+    (download_dir / 'subdir').ensure(dir=True)
     try:
-        os.mkfifo(str(tmpdir / 'fifo'))
+        os.mkfifo(str(download_dir / 'fifo'))
     except AttributeError:
         pass
-    unwritable = tmpdir / 'unwritable'
+    unwritable = download_dir / 'unwritable'
     unwritable.ensure(dir=True)
     unwritable.chmod(0)
 
@@ -76,20 +78,20 @@ def download_ssl_page(quteproc, ssl_server):
 
 @bdd.then(bdd.parsers.parse("The downloaded file {filename} should not exist"))
 def download_should_not_exist(filename, tmpdir):
-    path = tmpdir / filename
+    path = tmpdir / 'downloads' / filename
     assert not path.check()
 
 
 @bdd.then(bdd.parsers.parse("The downloaded file {filename} should exist"))
 def download_should_exist(filename, tmpdir):
-    path = tmpdir / filename
+    path = tmpdir / 'downloads' / filename
     assert path.check()
 
 
 @bdd.then(bdd.parsers.parse("The downloaded file {filename} should contain "
                             "{size} bytes"))
 def download_size(filename, size, tmpdir):
-    path = tmpdir / filename
+    path = tmpdir / 'downloads' / filename
     assert path.size() == int(size)
 
 
@@ -130,9 +132,11 @@ def download_open_with_prompt(quteproc):
 
 @bdd.when(bdd.parsers.parse("I delete the downloaded file {filename}"))
 def delete_file(tmpdir, filename):
-    (tmpdir / filename).remove()
+    (tmpdir / 'downloads' / filename).remove()
 
 
 @bdd.then("the FIFO should still be a FIFO")
 def fifo_should_be_fifo(tmpdir):
-    assert tmpdir.exists() and not os.path.isfile(str(tmpdir / 'fifo'))
+    download_dir = tmpdir / 'downloads'
+    assert download_dir.exists()
+    assert not os.path.isfile(str(download_dir / 'fifo'))
