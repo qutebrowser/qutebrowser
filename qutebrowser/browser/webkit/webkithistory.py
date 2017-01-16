@@ -48,7 +48,7 @@ class WebHistoryInterface(QWebHistoryInterface):
         Return:
             True if the url is in the history, False otherwise.
         """
-        return url_string in self._history.history_dict
+        return url_string in self._history
 
 
 def init(history):

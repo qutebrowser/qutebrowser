@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
                                usertypes, message)
-from qutebrowser.misc import lineparser, objects
+from qutebrowser.misc import lineparser, objects, sql
 
 
 class Entry:
@@ -103,19 +103,16 @@ class Entry:
         return cls(atime, url, title, redirect=redirect)
 
 
-class WebHistory(QObject):
+class WebHistory(sql.SqlTable):
 
     """The global history of visited pages.
 
     This is a little more complex as you'd expect so the history can be read
     from disk async while new history is already arriving.
 
-    self.history_dict is the main place where the history is stored, in an
-    OrderedDict (sorted by time) of URL strings mapped to Entry objects.
-
     While reading from disk is still ongoing, the history is saved in
-    self._temp_history instead, and then appended to self.history_dict once
-    that's fully populated.
+    self._temp_history instead, and then inserted into the sql table once
+    the async read completes.
 
     All history which is new in this session (rather than read from disk from a
     previous browsing session) is also stored in self._new_history.
@@ -123,51 +120,33 @@ class WebHistory(QObject):
     disk, so we can always append to the existing data.
 
     Attributes:
-        history_dict: An OrderedDict of URLs read from the on-disk history.
         _lineparser: The AppendLineParser used to save the history.
         _new_history: A list of Entry items of the current session.
         _saved_count: How many HistoryEntries have been written to disk.
         _initial_read_started: Whether async_read was called.
         _initial_read_done: Whether async_read has completed.
-        _temp_history: OrderedDict of temporary history entries before
-                       async_read was called.
+        _temp_history: List of history entries from before async_read finished.
 
     Signals:
-        add_completion_item: Emitted before a new Entry is added.
-                             Used to sync with the completion.
-                             arg: The new Entry.
-        item_added: Emitted after a new Entry is added.
-                    Used to tell the savemanager that the history is dirty.
-                    arg: The new Entry.
         cleared: Emitted after the history is cleared.
     """
 
-    add_completion_item = pyqtSignal(Entry)
-    item_added = pyqtSignal(Entry)
     cleared = pyqtSignal()
     async_read_done = pyqtSignal()
 
     def __init__(self, hist_dir, hist_name, parent=None):
-        super().__init__(parent)
+        super().__init__("History", ['url', 'title', 'atime', 'redirect'],
+                         primary_key='url', parent=parent)
         self._initial_read_started = False
         self._initial_read_done = False
         self._lineparser = lineparser.AppendLineParser(hist_dir, hist_name,
                                                        parent=self)
-        self.history_dict = collections.OrderedDict()
-        self._temp_history = collections.OrderedDict()
+        self._temp_history = []
         self._new_history = []
         self._saved_count = 0
-        objreg.get('save-manager').add_saveable(
-            'history', self.save, self.item_added)
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
-
-    def __iter__(self):
-        return iter(self.history_dict.values())
-
-    def __len__(self):
-        return len(self.history_dict)
 
     def async_read(self):
         """Read the initial history."""
@@ -200,21 +179,18 @@ class WebHistory(QObject):
 
         self._initial_read_done = True
         self.async_read_done.emit()
+        objreg.get('save-manager').add_saveable(
+            'history', self.save, self.changed)
 
-        for entry in self._temp_history.values():
+        for entry in self._temp_history:
             self._add_entry(entry)
             self._new_history.append(entry)
-            if not entry.redirect:
-                self.add_completion_item.emit(entry)
         self._temp_history.clear()
 
-    def _add_entry(self, entry, target=None):
-        """Add an entry to self.history_dict or another given OrderedDict."""
-        if target is None:
-            target = self.history_dict
-        url_str = entry.url_str()
-        target[url_str] = entry
-        target.move_to_end(url_str)
+    def _add_entry(self, entry):
+        """Add an entry to the in-memory database."""
+        self.insert(entry.url_str(), entry.title, entry.atime, entry.redirect,
+                    replace=True)
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -247,7 +223,7 @@ class WebHistory(QObject):
 
     def _do_clear(self):
         self._lineparser.clear()
-        self.history_dict.clear()
+        self.delete_all()
         self._temp_history.clear()
         self._new_history.clear()
         self._saved_count = 0
@@ -291,11 +267,8 @@ class WebHistory(QObject):
         if self._initial_read_done:
             self._add_entry(entry)
             self._new_history.append(entry)
-            self.item_added.emit(entry)
-            if not entry.redirect:
-                self.add_completion_item.emit(entry)
         else:
-            self._add_entry(entry, target=self._temp_history)
+            self._temp_history.append(entry)
 
 
 def init(parent=None):

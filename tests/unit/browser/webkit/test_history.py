@@ -27,24 +27,33 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg, urlutils, usertypes
+from qutebrowser.utils import objreg, urlutils
+from qutebrowser.misc import sql
 
 
-class FakeWebHistory:
-
-    """A fake WebHistory object."""
-
-    def __init__(self, history_dict):
-        self.history_dict = history_dict
+@pytest.fixture(autouse=True)
+def prerequisites(config_stub, fake_save_manager):
+    """Make sure everything is ready to initialize a WebHistory."""
+    config_stub.data = {'general': {'private-browsing': False}}
+    sql.init()
+    yield
+    sql.close()
 
 
 @pytest.fixture()
-def hist(tmpdir, fake_save_manager):
+def hist(tmpdir):
     return history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
 
 
-def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog,
+def test_register_saveable(monkeypatch, qtbot, tmpdir, caplog,
                           fake_save_manager):
+    (tmpdir / 'filled-history').write('12345 http://example.com/ title')
+    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
+    list(hist.async_read())
+    assert fake_save_manager.add_saveable.called
+
+
+def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
     (tmpdir / 'filled-history').write('\n'.join([
         '12345 http://example.com/ title',
         '67890 http://example.com/',
@@ -55,42 +64,30 @@ def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog,
     with pytest.raises(StopIteration):
         next(hist.async_read())
     expected = "Ignoring async_read() because reading is started."
-    assert len(caplog.records) == 1
-    assert caplog.records[0].msg == expected
+    assert expected in (record.msg for record in caplog.records)
 
 
 @pytest.mark.parametrize('redirect', [True, False])
 def test_adding_item_during_async_read(qtbot, hist, redirect):
     """Check what happens when adding URL while reading the history."""
-    url = QUrl('http://www.example.com/')
+    url = 'http://www.example.com/'
+    hist.add_url(QUrl(url), redirect=redirect, atime=12345)
 
-    with qtbot.assertNotEmitted(hist.add_completion_item), \
-            qtbot.assertNotEmitted(hist.item_added):
-        hist.add_url(url, redirect=redirect, atime=12345)
-
-    if redirect:
-        with qtbot.assertNotEmitted(hist.add_completion_item):
-            with qtbot.waitSignal(hist.async_read_done):
-                list(hist.async_read())
-    else:
-        with qtbot.waitSignals([hist.add_completion_item,
-                                hist.async_read_done], order='strict'):
-            list(hist.async_read())
+    with qtbot.waitSignal(hist.async_read_done):
+        list(hist.async_read())
 
     assert not hist._temp_history
-
-    expected = history.Entry(url=url, atime=12345, redirect=redirect, title="")
-    assert list(hist.history_dict.values()) == [expected]
+    assert list(hist) == [(url, '', 12345, redirect)]
 
 
 def test_iter(hist):
     list(hist.async_read())
 
-    url = QUrl('http://www.example.com/')
+    urlstr = 'http://www.example.com/'
+    url = QUrl(urlstr)
     hist.add_url(url, atime=12345)
 
-    entry = history.Entry(url=url, atime=12345, redirect=False, title="")
-    assert list(hist) == [entry]
+    assert list(hist) == [(urlstr, '', 12345, False)]
 
 
 def test_len(hist):
@@ -110,38 +107,39 @@ def test_len(hist):
     ' ',
     '',
 ])
-def test_read(hist, tmpdir, line):
+def test_read(tmpdir, line):
     (tmpdir / 'filled-history').write(line + '\n')
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     list(hist.async_read())
 
 
-def test_updated_entries(hist, tmpdir):
+def test_updated_entries(tmpdir):
     (tmpdir / 'filled-history').write('12345 http://example.com/\n'
                                       '67890 http://example.com/\n')
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     list(hist.async_read())
 
-    assert hist.history_dict['http://example.com/'].atime == 67890
+    assert hist['http://example.com/'] == ('http://example.com/', '', 67890,
+                                           False)
     hist.add_url(QUrl('http://example.com/'), atime=99999)
-    assert hist.history_dict['http://example.com/'].atime == 99999
+    assert hist['http://example.com/'] == ('http://example.com/', '', 99999,
+                                           False)
 
 
-def test_invalid_read(hist, tmpdir, caplog):
+def test_invalid_read(tmpdir, caplog):
     (tmpdir / 'filled-history').write('foobar\n12345 http://example.com/')
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     with caplog.at_level(logging.WARNING):
         list(hist.async_read())
 
-    entries = list(hist.history_dict.values())
+    entries = list(hist)
 
     assert len(entries) == 1
-    assert len(caplog.records) == 1
     msg = "Invalid history entry 'foobar': 2 or 3 fields expected!"
-    assert caplog.records[0].msg == msg
+    assert msg in (rec.msg for rec in caplog.records)
 
 
-def test_get_recent(hist, tmpdir):
+def test_get_recent(tmpdir):
     (tmpdir / 'filled-history').write('12345 http://example.com/')
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     list(hist.async_read())
@@ -154,7 +152,7 @@ def test_get_recent(hist, tmpdir):
     assert lines == expected
 
 
-def test_save(hist, tmpdir):
+def test_save(tmpdir):
     hist_file = tmpdir / 'filled-history'
     hist_file.write('12345 http://example.com/\n')
 
@@ -177,7 +175,7 @@ def test_save(hist, tmpdir):
     assert lines == expected
 
 
-def test_clear(qtbot, hist, tmpdir):
+def test_clear(qtbot, tmpdir):
     hist_file = tmpdir / 'filled-history'
     hist_file.write('12345 http://example.com/\n')
 
@@ -190,7 +188,6 @@ def test_clear(qtbot, hist, tmpdir):
         hist._do_clear()
 
     assert not hist_file.read()
-    assert not hist.history_dict
     assert not hist._new_history
 
     hist.add_url(QUrl('http://www.the-compiler.org/'), atime=67890)
@@ -204,24 +201,17 @@ def test_add_item(qtbot, hist):
     list(hist.async_read())
     url = 'http://www.example.com/'
 
-    with qtbot.waitSignals([hist.add_completion_item, hist.item_added],
-                           order='strict'):
-        hist.add_url(QUrl(url), atime=12345, title="the title")
+    hist.add_url(QUrl(url), atime=12345, title="the title")
 
-    entry = history.Entry(url=QUrl(url), redirect=False, atime=12345,
-                          title="the title")
-    assert hist.history_dict[url] == entry
+    assert hist[url] == (url, 'the title', 12345, False)
 
 
 def test_add_item_redirect(qtbot, hist):
     list(hist.async_read())
     url = 'http://www.example.com/'
-    with qtbot.assertNotEmitted(hist.add_completion_item):
-        with qtbot.waitSignal(hist.item_added):
-            hist.add_url(QUrl(url), redirect=True, atime=12345)
+    hist.add_url(QUrl(url), redirect=True, atime=12345)
 
-    entry = history.Entry(url=QUrl(url), redirect=True, atime=12345, title="")
-    assert hist.history_dict[url] == entry
+    assert hist[url] == (url, '', 12345, True)
 
 
 def test_add_item_redirect_update(qtbot, tmpdir, fake_save_manager):
@@ -233,12 +223,9 @@ def test_add_item_redirect_update(qtbot, tmpdir, fake_save_manager):
     hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
     list(hist.async_read())
 
-    with qtbot.assertNotEmitted(hist.add_completion_item):
-        with qtbot.waitSignal(hist.item_added):
-            hist.add_url(QUrl(url), redirect=True, atime=67890)
+    hist.add_url(QUrl(url), redirect=True, atime=67890)
 
-    entry = history.Entry(url=QUrl(url), redirect=True, atime=67890, title="")
-    assert hist.history_dict[url] == entry
+    assert hist[url] == (url, '', 67890, True)
 
 
 @pytest.mark.parametrize('line, expected', [
@@ -333,8 +320,7 @@ def hist_interface():
     entry = history.Entry(atime=0, url=QUrl('http://www.example.com/'),
                           title='example')
     history_dict = {'http://www.example.com/': entry}
-    fake_hist = FakeWebHistory(history_dict)
-    interface = webkithistory.WebHistoryInterface(fake_hist)
+    interface = webkithistory.WebHistoryInterface(history_dict)
     QWebHistoryInterface.setDefaultInterface(interface)
     yield
     QWebHistoryInterface.setDefaultInterface(None)
@@ -349,7 +335,7 @@ def test_history_interface(qtbot, webview, hist_interface):
 
 @pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
                                      usertypes.Backend.QtWebKit])
-def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager):
+def test_init(backend, qapp, tmpdir, monkeypatch):
     if backend == usertypes.Backend.QtWebKit:
         pytest.importorskip('PyQt5.QtWebKitWidgets')
     else:
@@ -379,5 +365,4 @@ def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager):
         # before (so we need to test webengine before webkit)
         assert default_interface is None
 
-    assert fake_save_manager.add_saveable.called
     objreg.delete('web-history')
