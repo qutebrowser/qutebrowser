@@ -3,7 +3,7 @@
 beautifulsoup4==4.5.3
 CherryPy==8.9.1
 click==6.7
-coverage==4.3.2
+coverage==4.3.4
 decorator==4.0.11
 EasyProcess==0.2.3
 Flask==0.12
