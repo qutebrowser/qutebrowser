@@ -299,9 +299,20 @@ def check_libraries(args):
     else:
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
 
+    from qutebrowser.utils import log
+
     for name, text in modules.items():
         try:
-            importlib.import_module(name)
+            # https://github.com/pallets/jinja/pull/628
+            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
+            # https://github.com/pallets/jinja/issues/646
+            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
+            messages = ['invalid escape sequence',
+                        'Flags not at the start of the expression']
+            with log.ignore_py_warnings(
+                    category=DeprecationWarning,
+                    message=r'({})'.format('|'.join(messages))):
+                importlib.import_module(name)
         except ImportError as e:
             _die(text, e)
 
