@@ -454,7 +454,7 @@ Feature: Downloading things from a website.
         And I set storage -> remember-download-directory to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
-        And I run :prompt-accept (tmpdir)/downloads
+        And I run :prompt-accept (tmpdir)(dirsep)downloads
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
         And I directly open the download
