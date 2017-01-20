@@ -31,7 +31,7 @@ import threading
 
 from httpbin.core import app
 from httpbin.structures import CaseInsensitiveDict
-import cheroot.wsgi
+import cherrypy.wsgiserver
 import flask
 
 
@@ -135,7 +135,7 @@ def log_request(response):
     return response
 
 
-class WSGIServer(cheroot.wsgi.WSGIServer):
+class WSGIServer(cherrypy.wsgiserver.CherryPyWSGIServer):
 
     """A custom WSGIServer that prints a line on stderr when it's ready.
 
