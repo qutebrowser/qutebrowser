@@ -642,3 +642,9 @@ Feature: Various utility commands.
         And I run :command-accept
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
+
+    ## Modes blacklisted for :enter-mode
+
+    Scenario: Trying to enter command mode with :enter-mode
+        When I run :enter-mode command
+        Then the error "Mode command can't be entered manually!" should be shown
