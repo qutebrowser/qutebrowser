@@ -260,3 +260,19 @@ Feature: Keyboard input
         When I run :record-macro
         And I press the key "<Escape>"
         Then "Leaving mode KeyMode.record_macro (reason: leave current)" should be logged
+
+    Scenario: Ignoring non-register keys
+        Given I open data/scroll/simple.html
+        And I run :tab-only
+        When I run :scroll down with count 2
+        And I wait until the scroll position changed
+        And I run :record-macro
+        And I press the key "<Menu>"
+        And I press the key "c"
+        And I run :scroll up
+        And I wait until the scroll position changed
+        And I run :record-macro
+        And I run :run-macro
+        And I press the key "c"
+        And I wait until the scroll position changed to 0/0
+        Then the page should not be scrolled
