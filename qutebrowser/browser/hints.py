@@ -236,6 +236,7 @@ class HintActions:
                utils.supports_selection())
 
         urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+        urlstr = urlstr.lstrip('mailto:')
         utils.set_clipboard(urlstr, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(

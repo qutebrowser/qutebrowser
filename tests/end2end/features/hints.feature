@@ -110,6 +110,12 @@ Feature: Using hints
         And I hint with args "links yank-primary" and follow a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
 
+    Scenario: Yanking email address to clipboard
+        When I run :debug-set-fake-clipboard
+        And I open data/email_address.html
+        And I hint with args "links yank" and follow a
+        Then the clipboard should contain "nobody"
+
     Scenario: Rapid hinting
         When I open data/hints/rapid.html in a new tab
         And I run :tab-only
