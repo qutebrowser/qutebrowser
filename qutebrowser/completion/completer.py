@@ -73,8 +73,8 @@ class Completer(QObject):
             A completion model or None.
         """
         model = completion(*pos_args)
-        if model is None:
-            return None
+        if model is None or hasattr(model, 'set_pattern'):
+            return model
         else:
             return sortfilter.CompletionFilterModel(source=model, parent=self)
 
