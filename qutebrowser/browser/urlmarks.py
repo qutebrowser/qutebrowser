@@ -31,12 +31,12 @@ import os.path
 import functools
 import collections
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)
 from qutebrowser.commands import cmdutils
-from qutebrowser.misc import lineparser
+from qutebrowser.misc import lineparser, sql
 
 
 class Error(Exception):
@@ -53,13 +53,6 @@ class InvalidUrlError(Error):
     pass
 
 
-class DoesNotExistError(Error):
-
-    """Exception emitted when a given URL does not exist."""
-
-    pass
-
-
 class AlreadyExistsError(Error):
 
     """Exception emitted when a given URL does already exist."""
@@ -67,29 +60,18 @@ class AlreadyExistsError(Error):
     pass
 
 
-class UrlMarkManager(QObject):
+class UrlMarkManager(sql.SqlTable):
 
     """Base class for BookmarkManager and QuickmarkManager.
 
     Attributes:
         marks: An OrderedDict of all quickmarks/bookmarks.
         _lineparser: The LineParser used for the marks
-
-    Signals:
-        changed: Emitted when anything changed.
-        added: Emitted when a new quickmark/bookmark was added.
-        removed: Emitted when an existing quickmark/bookmark was removed.
     """
 
-    changed = pyqtSignal()
-    added = pyqtSignal(str, str)
-    removed = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        """Initialize and read quickmarks."""
-        super().__init__(parent)
-
-        self.marks = collections.OrderedDict()
+    def __init__(self, name, fields, primary_key, parent=None):
+        """Initialize and read marks."""
+        super().__init__(name, fields, primary_key, parent)
 
         self._init_lineparser()
         for line in self._lineparser:
@@ -110,31 +92,20 @@ class UrlMarkManager(QObject):
 
     def save(self):
         """Save the marks to disk."""
-        self._lineparser.data = [' '.join(tpl) for tpl in self.marks.items()]
+        self._lineparser.data = [' '.join(tpl) for tpl in self]
         self._lineparser.save()
-
-    def delete(self, key):
-        """Delete a quickmark/bookmark.
-
-        Args:
-            key: The key to delete (name for quickmarks, URL for bookmarks.)
-        """
-        del self.marks[key]
-        self.changed.emit()
-        self.removed.emit(key)
 
 
 class QuickmarkManager(UrlMarkManager):
 
     """Manager for quickmarks.
 
-    The primary key for quickmarks is their *name*, this means:
-
-        - self.marks maps names to URLs.
-        - changed gets emitted with the name as first argument and the URL as
-          second argument.
-        - removed gets emitted with the name as argument.
+    The primary key for quickmarks is their *name*.
     """
+
+    def __init__(self, parent=None):
+        super().__init__('Quickmarks', ['name', 'url'], primary_key='name',
+                         parent=parent)
 
     def _init_lineparser(self):
         self._lineparser = lineparser.LineParser(
@@ -151,7 +122,7 @@ class QuickmarkManager(UrlMarkManager):
         except ValueError:
             message.error("Invalid quickmark '{}'".format(line))
         else:
-            self.marks[key] = url
+            self.insert(key, url)
 
     def prompt_save(self, url):
         """Prompt for a new quickmark name to be added and add it.
@@ -191,41 +162,30 @@ class QuickmarkManager(UrlMarkManager):
 
         def set_mark():
             """Really set the quickmark."""
-            self.marks[name] = url
-            self.changed.emit()
-            self.added.emit(name, url)
+            self.insert(name, url)
             log.misc.debug("Added quickmark {} for {}".format(name, url))
 
-        if name in self.marks:
+        if name in self:
             message.confirm_async(
                 title="Override existing quickmark?",
                 yes_action=set_mark, default=True)
         else:
             set_mark()
 
-    def get_by_qurl(self, url):
-        """Look up a quickmark by QUrl, returning its name.
-
-        Takes O(n) time, where n is the number of quickmarks.
-        Use a name instead where possible.
-        """
+    def delete_by_qurl(self, url):
+        """Look up a quickmark by QUrl, returning its name."""
         qtutils.ensure_valid(url)
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-
         try:
-            index = list(self.marks.values()).index(urlstr)
-            key = list(self.marks.keys())[index]
-        except ValueError:
-            raise DoesNotExistError(
-                "Quickmark for '{}' not found!".format(urlstr))
-        return key
+            self.delete(urlstr, field='url')
+        except KeyError:
+            raise KeyError("Quickmark for '{}' not found!".format(urlstr))
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
-        if name not in self.marks:
-            raise DoesNotExistError(
-                "Quickmark '{}' does not exist!".format(name))
-        urlstr = self.marks[name]
+        if name not in self:
+            raise KeyError("Quickmark '{}' does not exist!".format(name))
+        urlstr = self[name]
         try:
             url = urlutils.fuzzy_url(urlstr, do_search=False)
         except urlutils.InvalidUrlError as e:
@@ -238,13 +198,12 @@ class BookmarkManager(UrlMarkManager):
 
     """Manager for bookmarks.
 
-    The primary key for bookmarks is their *url*, this means:
-
-        - self.marks maps URLs to titles.
-        - changed gets emitted with the URL as first argument and the title as
-          second argument.
-        - removed gets emitted with the URL as argument.
+    The primary key for bookmarks is their *url*.
     """
+
+    def __init__(self, parent=None):
+        super().__init__('Bookmarks', ['url', 'title'], primary_key='url',
+                         parent=parent)
 
     def _init_lineparser(self):
         bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
@@ -262,10 +221,9 @@ class BookmarkManager(UrlMarkManager):
 
     def _parse_line(self, line):
         parts = line.split(maxsplit=1)
-        if len(parts) == 2:
-            self.marks[parts[0]] = parts[1]
-        elif len(parts) == 1:
-            self.marks[parts[0]] = ''
+        urlstr = parts[0]
+        title = parts[1] if len(parts) == 2 else ''
+        self.insert(urlstr, title)
 
     def add(self, url, title, *, toggle=False):
         """Add a new bookmark.
@@ -286,14 +244,12 @@ class BookmarkManager(UrlMarkManager):
 
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
 
-        if urlstr in self.marks:
+        if urlstr in self:
             if toggle:
-                del self.marks[urlstr]
+                self.delete(urlstr)
                 return False
             else:
                 raise AlreadyExistsError("Bookmark already exists!")
         else:
-            self.marks[urlstr] = title
-            self.changed.emit()
-            self.added.emit(title, urlstr)
+            self.insert(urlstr, title)
             return True
