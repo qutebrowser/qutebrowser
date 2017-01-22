@@ -4,7 +4,7 @@ coverage
 Flask
 httpbin
 hypothesis
-pytest!=3.0.5
+pytest
 pytest-bdd
 pytest-catchlog
 pytest-cov
@@ -20,6 +20,5 @@ pytest-xvfb
 vulture
 
 #@ ignore: Jinja2, MarkupSafe
-#@ filter: pytest != 3.0.5
 # https://github.com/cherrypy/cheroot/pull/2
 #@ filter: CherryPy < 9.0.0
