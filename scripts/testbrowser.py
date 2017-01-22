@@ -23,7 +23,7 @@
 import sys
 import argparse
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QDataStream, QIODevice, QByteArray
 from PyQt5.QtWidgets import QApplication
 
 try:
@@ -47,6 +47,15 @@ def parse_args():
         parser.add_argument('--webengine', help='Use QtWebEngine',
                             default=False, action='store_true')
     return parser.parse_args()
+
+
+def dump_history(wv):
+    ba = QByteArray()
+    ds = QDataStream(ba, QIODevice.ReadWrite)
+    ds << wv.history()
+    ds2 = QDataStream(ba)
+    assert ds2.readInt() == 3
+    print(ds2.readQVariantMap())
 
 
 if __name__ == '__main__':
@@ -73,6 +82,7 @@ if __name__ == '__main__':
     wv.loadStarted.connect(lambda: print("Loading started"))
     wv.loadProgress.connect(lambda p: print("Loading progress: {}%".format(p)))
     wv.loadFinished.connect(lambda: print("Loading finished"))
+    wv.loadFinished.connect(lambda: dump_history(wv))
 
     if args.plugins and not using_webengine:
         from PyQt5.QtWebKit import QWebSettings
