@@ -1,5 +1,5 @@
 beautifulsoup4
-CherryPy<9.0.0
+cheroot
 coverage
 Flask
 httpbin
@@ -20,5 +20,3 @@ pytest-xvfb
 vulture
 
 #@ ignore: Jinja2, MarkupSafe
-# https://github.com/cherrypy/cheroot/pull/2
-#@ filter: CherryPy < 9.0.0
