@@ -815,7 +815,7 @@ def data(readonly=False):
              "are not affected by this setting."),
 
             ('webgl',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'true'),
              "Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is "
              "required for this setting."),
 
