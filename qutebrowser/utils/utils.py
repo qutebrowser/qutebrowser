@@ -20,15 +20,16 @@
 """Other utilities which don't fit anywhere else."""
 
 import io
+import re
 import sys
 import enum
 import json
-import os.path
-import collections
-import functools
-import contextlib
-import itertools
 import socket
+import os.path
+import functools
+import itertools
+import contextlib
+import collections
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard
@@ -450,7 +451,7 @@ class KeyInfo:
         if self.modifiers is None:
             modifiers = None
         else:
-            #modifiers = qflags_key(Qt, self.modifiers)
+            # modifiers = qflags_key(Qt, self.modifiers)
             modifiers = hex(int(self.modifiers))
         return get_repr(self, constructor=True, key=qenum_key(Qt, self.key),
                         modifiers=modifiers, text=self.text)
@@ -825,3 +826,99 @@ def random_port():
     port = sock.getsockname()[1]
     sock.close()
     return port
+
+
+class X11GeometryStringParser(object):
+    """Parse a standard X11 geometry string.
+
+    Most X programs accept a command line argument of the form −−geometry
+    WIDTHxHEIGHT+XOFF+YOFF (where WIDTH, HEIGHT, XOFF, and YOFF are numbers)
+    for specifying a preferred size and location for this application's main
+    window
+
+    The full specification
+
+    https://www.x.org/releases/X11R7.7/doc/man/man7/X.7.xhtml#heading7
+    """
+    TOKENIZE_ERROR = "Geometry string contains an invalid character"
+    LEN_ERROR = "Geometry string must contain at least WIDTHxHEIGHT"
+    MUL_ERROR = "Geometry string must have a 'x' at column %d, found %s: %s"
+    NUM_ERROR = "Geometry string must have a number at column %d, found %s: %s"
+
+    Token = collections.namedtuple(
+        'Token', ['kind', 'value', 'column']
+    )
+    Geometry = collections.namedtuple(
+        'Geometry', ['width', 'height', 'xinv', 'xoff', 'yinv', 'yoff']
+    )
+
+    def tokenize(self, string):
+        """Tokenize a geometry string."""
+        token_specification = [
+            ('MUL', r'x'),      # Multiplication symbol 'x'
+            ('NUMBER', r'[+-]?\d+(\.\d*)?'),  # Integer or decimal number
+            ('INVOFF', r'-'),   # Indicate a inverse offset
+                                #    left hand -> right hand
+                                #    top -> buttom
+            ('INVALID', r'.'),  # Match the rest, which is invalid
+        ]
+        tok_regex = '|'.join(
+            '(?P<%s>%s)' % pair for pair in token_specification
+        )
+        line_start = 0
+        for mo in re.finditer(tok_regex, string):
+            kind = mo.lastgroup
+            value = mo.group(kind)
+            column = mo.start() - line_start
+            if kind == 'INVALID':
+                raise ValueError("%s '%s' at column %d" % (
+                    self.TOKENIZE_ERROR, value, column + 1
+                ))
+            yield self.Token(kind, value, column)
+
+    def parse(self, string):
+        """Parse the geometry string."""
+        tokens = list(self.tokenize(string))
+        offset = 0
+        if len(tokens) < 3:
+            raise ValueError(self.LEN_ERROR)
+        width = tokens[0]
+        mul = tokens[1]
+        if mul.kind != 'MUL':
+            raise ValueError(self.MUL_ERROR % (
+                mul.column + 1, mul.kind, mul.value
+            ))
+        height = tokens[2]
+        numbers = [width, height]
+        xinv = False
+        xoff = self.Token('NUMBER', '0', 0)
+        yinv = False
+        yoff = self.Token('NUMBER', '0', 0)
+        # The next tokens aren't mandatory
+        try:
+            xinv = tokens[3].kind == 'INVOFF'
+            if xinv:
+                offset += 1
+            xoff = tokens[3 + offset]
+            numbers.append(xoff)
+            yinv = tokens[4 + offset].kind == 'INVOFF'
+            if yinv:
+                offset += 1
+            yoff = tokens[4 + offset]
+            numbers.append(yoff)
+        except IndexError:
+            pass
+        # Check if all the expected number tokens are correct
+        for number in numbers:
+            if number.kind != 'NUMBER':
+                raise ValueError(self.NUM_ERROR % (
+                    number.column + 1, number.kind, number.value
+                ))
+        return self.Geometry(
+            width=int(width.value),
+            height=int(height.value),
+            xinv=xinv,
+            xoff=int(xoff.value),
+            yinv=yinv,
+            yoff=int(yoff.value),
+        )
