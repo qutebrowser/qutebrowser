@@ -381,7 +381,9 @@ class QuteProc(testprocess.Process):
         settings = [
             ('ui', 'message-timeout', '0'),
             ('general', 'auto-save-interval', '0'),
-            ('general', 'new-instance-open-target.window', 'last-opened')
+            ('general', 'new-instance-open-target.window', 'last-opened'),
+            # https://github.com/The-Compiler/qutebrowser/issues/2250
+            ('content', 'webgl', 'false'),
         ]
         if not self.request.config.webengine:
             settings.append(('network', 'ssl-strict', 'false'))
