@@ -279,6 +279,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             urlutils.invalid_url_error(tab.url(), "saving tab")
         tab.shutdown()
         self.removeTab(idx)
+        tab.layout().unwrap()
         tab.deleteLater()
 
     def undo(self):

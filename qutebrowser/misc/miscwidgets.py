@@ -260,3 +260,7 @@ class WrapperLayout(QLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
+
+    def unwrap(self):
+        self._widget.setParent(None)
+        self._widget.deleteLater()
