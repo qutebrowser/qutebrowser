@@ -115,8 +115,7 @@ class Tab(browsertab.AbstractTab):
         pass
 
 
-@pytest.mark.skipif(PYQT_VERSION < 0x050600,
-                    reason='Causes segfaults, see #1638')
+@pytest.mark.xfail(run=False, reason='Causes segfaults, see #1638')
 def test_tab(qtbot, view, config_stub, tab_registry, mode_manager):
     tab_w = Tab(win_id=0, mode_manager=mode_manager)
     qtbot.add_widget(tab_w)
