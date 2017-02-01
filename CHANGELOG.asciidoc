@@ -21,7 +21,15 @@ Changed
 ~~~~~~~
 
 - Scrolling with the scrollwheel while holding shift now scrolls sideways
+- New way of clicking hints with which solves various small issues
 
+Fixed
+-----
+
+- Worked around a segfault with Qt 5.8 when closing a window
+- Worked around a segfault with Qt 5.8 when closing a tab with a search active
+- Fixed various mouse actions (like automatically entering insert mode) not working with Qt 5.8
+- Fixed hints sometimes not working with Qt 5.8
 
 v0.9.1
 ------
