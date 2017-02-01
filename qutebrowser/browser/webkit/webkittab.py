@@ -590,8 +590,6 @@ class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
-    WIDGET_CLASS = webview.WebView
-
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
                          parent=parent)
@@ -717,5 +715,5 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
 
-    def _event_target(self):
+    def event_target(self):
         return self._widget

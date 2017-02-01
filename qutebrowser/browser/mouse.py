@@ -64,8 +64,6 @@ class MouseEventFilter(QObject):
     """Handle mouse events on a tab.
 
     Attributes:
-        _widget_class: The class of the main widget getting the events.
-                       All other events are ignored.
         _tab: The browsertab object this filter is installed on.
         _handlers: A dict of handler functions for the handled events.
         _ignore_wheel_event: Whether to ignore the next wheelEvent.
@@ -73,9 +71,8 @@ class MouseEventFilter(QObject):
                                       done when the mouse is released.
     """
 
-    def __init__(self, tab, *, widget_class, parent=None):
+    def __init__(self, tab, *, parent=None):
         super().__init__(parent)
-        self._widget_class = widget_class
         self._tab = tab
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
@@ -207,9 +204,7 @@ class MouseEventFilter(QObject):
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        if not isinstance(obj, self._widget_class):
-            log.mouse.debug("Ignoring {} to {} which is not an instance of "
-                            "{}".format(event.__class__.__name__, obj,
-                                        self._widget_class))
+        if obj is not self._tab.event_target():
+            log.mouse.debug("Ignoring {} to {}".format(event.__class__.__name__, obj))
             return False
         return self._handlers[evtype](event)

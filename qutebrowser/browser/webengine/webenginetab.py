@@ -452,8 +452,6 @@ class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
 
-    WIDGET_CLASS = QOpenGLWidget
-
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
                          parent=parent)
@@ -654,5 +652,5 @@ class WebEngineTab(browsertab.AbstractTab):
         except AttributeError:
             log.stub('contentsSizeChanged, on Qt < 5.7')
 
-    def _event_target(self):
+    def event_target(self):
         return self._widget.focusProxy()

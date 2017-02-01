@@ -486,10 +486,6 @@ class AbstractTab(QWidget):
 
     We use this to unify QWebView and QWebEngineView.
 
-    Class attributes:
-        WIDGET_CLASS: The class of the main widget recieving events.
-                      Needs to be overridden by subclasses.
-
     Attributes:
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
@@ -523,8 +519,6 @@ class AbstractTab(QWidget):
     contents_size_changed = pyqtSignal(QSizeF)
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
 
-    WIDGET_CLASS = None
-
     def __init__(self, win_id, mode_manager, parent=None):
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
@@ -553,7 +547,7 @@ class AbstractTab(QWidget):
         self._mode_manager = mode_manager
         self._load_status = usertypes.LoadStatus.none
         self._mouse_event_filter = mouse.MouseEventFilter(
-            self, widget_class=self.WIDGET_CLASS, parent=self)
+            self, parent=self)
         self.backend = None
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
@@ -588,7 +582,7 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val.name)
 
-    def _event_target(self):
+    def event_target(self):
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
@@ -603,7 +597,7 @@ class AbstractTab(QWidget):
         if getattr(evt, 'posted', False):
             raise AssertionError("Can't re-use an event which was already "
                                  "posted!")
-        recipient = self._event_target()
+        recipient = self.event_target()
         evt.posted = True
         QApplication.postEvent(recipient, evt)
 
