@@ -196,13 +196,17 @@ class QuteProc(testprocess.Process):
         start_okay_message_load = (
             "load status for <qutebrowser.browser.* tab_id=0 "
             "url='about:blank'>: LoadStatus.success")
-        start_okay_message_focus = (
+        start_okay_messages_focus = [
+            # QtWebKit
             "Focus object changed: "
-            "<qutebrowser.browser.* tab_id=0 url='about:blank'>")
-        # With QtWebEngine the QOpenGLWidget has the actual focus
-        start_okay_message_focus_qtwe = (
-            "Focus object changed: <PyQt5.QtWidgets.QOpenGLWidget object at *>"
-        )
+            "<qutebrowser.browser.* tab_id=0 url='about:blank'>",
+            # QtWebEngine
+            "Focus object changed: "
+            "<PyQt5.QtWidgets.QOpenGLWidget object at *>",
+            # QtWebEngine with Qt >= 5.8
+            "Focus object changed: "
+            "<PyQt5.QtGui.QWindow object at *>",
+        ]
 
         if (log_line.category == 'ipc' and
                 log_line.message.startswith("Listening as ")):
@@ -213,13 +217,8 @@ class QuteProc(testprocess.Process):
             if not self._load_ready:
                 log_line.waited_for = True
             self._is_ready('load')
-        elif (log_line.category == 'misc' and
-              testutils.pattern_match(pattern=start_okay_message_focus,
-                                      value=log_line.message)):
-            self._is_ready('focus')
-        elif (log_line.category == 'misc' and
-              testutils.pattern_match(pattern=start_okay_message_focus_qtwe,
-                                      value=log_line.message)):
+        elif log_line.category == 'misc' and any(testutils.pattern_match(
+                pattern=pattern, value=log_line.message) for pattern in start_okay_messages_focus):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and
