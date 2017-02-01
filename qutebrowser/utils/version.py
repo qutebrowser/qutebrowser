@@ -210,7 +210,8 @@ def _pdfjs_version():
     else:
         pdfjs_file = pdfjs_file.decode('utf-8')
         version_re = re.compile(
-            r"^ *(PDFJS\.version|var pdfjsVersion) = '([^']+)';$", re.MULTILINE)
+            r"^ *(PDFJS\.version|var pdfjsVersion) = '([^']+)';$",
+            re.MULTILINE)
 
         match = version_re.search(pdfjs_file)
         if not match:
