@@ -304,7 +304,7 @@ Feature: Various utility commands.
 
     # pdfjs support
 
-    @qtwebengine_todo: pdfjs is not implemented yet
+    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
         When I set content -> enable-pdfjs to true
@@ -318,7 +318,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_todo: pdfjs is not implemented yet
+    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
@@ -396,6 +396,7 @@ Feature: Various utility commands.
         And I wait for "Entering mode KeyMode.prompt *" in the log
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
+        And I run :leave-mode
         Then no crash should happen
 
     ## Custom headers
