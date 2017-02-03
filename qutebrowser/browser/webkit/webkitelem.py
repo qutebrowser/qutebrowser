@@ -297,6 +297,20 @@ class WebKitElement(webelem.AbstractWebElement):
                 break
             elem = elem._parent()  # pylint: disable=protected-access
 
+    def _click_editable(self):
+        self._elem.evaluateJavaScript('this.focus();')
+
+    def _click_js(self, click_target):
+        if self.get('target') == '_blank':
+            # QtWebKit does nothing in this case for some reason...
+            self._click_fake_event(click_target)
+        else:
+            self._elem.evaluateJavaScript('this.click();')
+
+    def _click_fake_event(self, click_target):
+        self._tab.data.override_target = click_target
+        super()._click_fake_event(click_target)
+
 
 def get_child_frames(startframe):
     """Get all children recursively of a given QWebFrame.

@@ -22,9 +22,10 @@
 
 """QtWebEngine specific part of the web element API."""
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt, QPoint
+from PyQt5.QtGui import QMouseEvent
 
-from qutebrowser.utils import log, javascript
+from qutebrowser.utils import log, javascript, usertypes
 from qutebrowser.browser import webelem
 
 
@@ -148,4 +149,18 @@ class WebEngineElement(webelem.AbstractWebElement):
     def remove_blank_target(self):
         js_code = javascript.assemble('webelem', 'remove_blank_target',
             self._id)
+        self._tab.run_js_async(js_code)
+
+    def _click_editable(self):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
+        ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
+                         QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
+                         Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
+        self._tab.send_event(ev)
+        # This actually "clicks" the element by calling focus() on it in JS.
+        js_code = javascript.assemble('webelem', 'focus', self._id)
+        self._tab.run_js_async(js_code)
+
+    def _click_js(self, _click_target):
+        js_code = javascript.assemble('webelem', 'click', self._id)
         self._tab.run_js_async(js_code)

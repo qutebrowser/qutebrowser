@@ -41,8 +41,8 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
     quteproc.open_path(url_path)
 
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
-    quteproc.send_cmd(':click-element id {}'.format(elem_id))
-    quteproc.wait_for(message='Clicked editable element!')
+    quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
     if source == 'keypress':
@@ -62,10 +62,8 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
     quteproc.wait_for_js('contents: {}'.format(input_text))
 
     quteproc.send_cmd(':leave-mode')
-    quteproc.send_cmd(':hint all')
-    quteproc.wait_for(message='hints: *')
-    quteproc.send_cmd(':follow-hint a')
-    quteproc.wait_for(message='Clicked editable element!')
+    quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':enter-mode caret')
     quteproc.send_cmd(':toggle-selection')
     quteproc.send_cmd(':move-to-prev-word')

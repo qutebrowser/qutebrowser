@@ -9,17 +9,6 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/159412291
-    @qtwebengine_flaky
-    Scenario: Following a link after scrolling down
-        When I open data/scroll/simple.html
-        And I run :hint links normal
-        And I wait for "hints: *" in the log
-        And I run :scroll-page 0 1
-        And I wait until the scroll position changed
-        And I run :follow-hint a
-        Then the error "Element position is out of view!" should be shown
-
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.
@@ -159,7 +148,7 @@ Feature: Using hints
     Scenario: Hinting inputs without type
         When I open data/hints/input.html
         And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen
@@ -167,7 +156,7 @@ Feature: Using hints
     Scenario: Hinting with ACE editor
         When I open data/hints/ace/ace.html
         And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen

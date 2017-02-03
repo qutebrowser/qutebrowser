@@ -33,7 +33,8 @@ from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer
 from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, utils, qtutils
+from qutebrowser.keyinput import modeman
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
 Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
@@ -322,14 +323,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
             raise Error("Element position is out of view!")
         return pos
 
-    def click(self, click_target):
-        """Simulate a click on the element."""
-        # FIXME:qtwebengine do we need this?
-        # self._widget.setFocus()
-
-        # For QtWebKit
-        self._tab.data.override_target = click_target
-
+    def _click_fake_event(self, click_target):
+        """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
         log.webelem.debug("Sending fake click to {!r} at position {} with "
@@ -363,6 +358,70 @@ class AbstractWebElement(collections.abc.MutableMapping):
             if self.is_text_input() and self.is_editable():
                 self._tab.caret.move_to_end_of_document()
         QTimer.singleShot(0, after_click)
+
+    def _click_editable(self):
+        """Fake a click on an editable input field."""
+        raise NotImplementedError
+
+    def _click_js(self, click_target):
+        """Fake a click by using the JS .click() method."""
+        raise NotImplementedError
+
+    def _click_href(self, click_target):
+        """Fake a click on an element with a href by opening the link."""
+        baseurl = self._tab.url()
+        url = self.resolve_url(baseurl)
+        if url is None:
+            self._click_fake_event(click_target)
+            return
+
+        if click_target in [usertypes.ClickTarget.tab,
+                            usertypes.ClickTarget.tab_bg]:
+            background = click_target == usertypes.ClickTarget.tab_bg
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._tab.win_id)
+            tabbed_browser.tabopen(url, background=background)
+        elif click_target == usertypes.ClickTarget.window:
+            from qutebrowser.mainwindow import mainwindow
+            window = mainwindow.MainWindow()
+            window.show()
+            window.tabbed_browser.tabopen(url)
+        else:
+            raise ValueError("Unknown ClickTarget {}".format(click_target))
+
+    def click(self, click_target, *, force_event=False):
+        """Simulate a click on the element.
+
+        Args:
+            click_target: An usertypes.ClickTarget member, what kind of click
+                          to simulate.
+            force_event: Force generating a fake mouse event.
+        """
+        if force_event:
+            self._click_fake_event(click_target)
+            return
+
+        href_tags = ['a', 'area', 'link']
+        if click_target == usertypes.ClickTarget.normal:
+            if self.tag_name() in href_tags:
+                log.webelem.debug("Clicking via JS click()")
+                self._click_js(click_target)
+            elif self.is_editable(strict=True):
+                log.webelem.debug("Clicking via JS focus()")
+                self._click_editable()
+                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                              'clicking input')
+            else:
+                self._click_fake_event(click_target)
+        elif click_target in [usertypes.ClickTarget.tab,
+                              usertypes.ClickTarget.tab_bg,
+                              usertypes.ClickTarget.window]:
+            if self.tag_name() in href_tags:
+                self._click_href(click_target)
+            else:
+                self._click_fake_event(click_target)
+        else:
+            raise ValueError("Unknown ClickTarget {}".format(click_target))
 
     def hover(self):
         """Simulate a mouse hover over the element."""

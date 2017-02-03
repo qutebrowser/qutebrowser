@@ -191,5 +191,15 @@ window._qutebrowser.webelem = (function() {
         }
     };
 
+    funcs.click = function(id) {
+        var elem = elements[id];
+        elem.click();
+    };
+
+    funcs.focus = function(id) {
+        var elem = elements[id];
+        elem.focus();
+    };
+
     return funcs;
 })();

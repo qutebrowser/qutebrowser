@@ -574,7 +574,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element by ID
         When I open data/click_element.html
         And I run :click-element id qute-input
-        Then "Clicked editable element!" should be logged
+        Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
 
     Scenario: Clicking an element with tab target
         When I open data/click_element.html
@@ -584,14 +584,6 @@ Feature: Various utility commands.
         And the following tabs should be open:
             - data/click_element.html
             - data/hello.txt (active)
-
-    @qtwebengine_flaky
-    Scenario: Clicking an element which is out of view
-        When I open data/scroll/simple.html
-        And I run :scroll-page 0 1
-        And I wait until the scroll position changed
-        And I run :click-element id link
-        Then the error "Element position is out of view!" should be shown
 
     ## :command-history-{prev,next}
 

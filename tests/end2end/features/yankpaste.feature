@@ -252,7 +252,7 @@ Feature: Yanking and pasting.
         When I set general -> log-javascript-console to info
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :insert-text Hello world
         # Compare
         Then the javascript message "textarea contents: Hello world" should be logged
@@ -263,7 +263,7 @@ Feature: Yanking and pasting.
         And I set content -> allow-javascript to false
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :insert-text Hello world
         And I wait for "Inserting text into element *" in the log
         And I run :jseval console.log("textarea contents: " + document.getElementById('qute-textarea').value);
@@ -278,7 +278,7 @@ Feature: Yanking and pasting.
         And I open data/paste_primary.html
         And I set the text field to "one two three four"
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Move to the beginning and two characters to the right
         And I press the keys "<Home>"
         And I press the key "<Right>"
@@ -292,7 +292,7 @@ Feature: Yanking and pasting.
         When I set general -> log-javascript-console to info
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Paste and undo
         And I run :insert-text This text should be undone
         And I wait for the javascript message "textarea contents: This text should be undone"

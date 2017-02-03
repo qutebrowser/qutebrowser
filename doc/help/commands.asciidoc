@@ -1036,7 +1036,7 @@ Clear the currently entered key chain.
 
 [[click-element]]
 === click-element
-Syntax: +:click-element [*--target* 'target'] 'filter' 'value'+
+Syntax: +:click-element [*--target* 'target'] [*--force-event*] 'filter' 'value'+
 
 Click the element matching the given filter.
 
@@ -1049,6 +1049,7 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 
 ==== optional arguments
 * +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
+* +*-f*+, +*--force-event*+: Force generating a fake click event.
 
 [[command-accept]]
 === command-accept

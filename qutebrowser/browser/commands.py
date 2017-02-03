@@ -1545,7 +1545,8 @@ class CommandDispatcher:
     @cmdutils.argument('filter_', choices=['id'])
     def click_element(self, filter_: str, value, *,
                       target: usertypes.ClickTarget=
-                      usertypes.ClickTarget.normal):
+                      usertypes.ClickTarget.normal,
+                      force_event=False):
         """Click the element matching the given filter.
 
         The given filter needs to result in exactly one element, otherwise, an
@@ -1556,6 +1557,7 @@ class CommandDispatcher:
                      id: Get an element based on its ID.
             value: The value to filter for.
             target: How to open the clicked element (normal/tab/tab-bg/window).
+            force_event: Force generating a fake click event.
         """
         tab = self._current_widget()
 
@@ -1565,7 +1567,7 @@ class CommandDispatcher:
                 message.error("No element found with id {}!".format(value))
                 return
             try:
-                elem.click(target)
+                elem.click(target, force_event=force_event)
             except webelem.Error as e:
                 message.error(str(e))
                 return

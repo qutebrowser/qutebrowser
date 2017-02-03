@@ -62,7 +62,7 @@ Feature: Opening external editors
         When I set up a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :open-editor
         And I wait for "Read back: foobar" in the log
         And I run :click-element id qute-button
@@ -72,7 +72,7 @@ Feature: Opening external editors
         When I set up a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
         And I run :open-editor
@@ -84,7 +84,7 @@ Feature: Opening external editors
         When I set up a fake editor returning "foobar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         And I wait for "Leaving mode KeyMode.insert (reason: leave current)" in the log
         And I run :enter-mode caret
@@ -99,7 +99,7 @@ Feature: Opening external editors
         When I set up a fake editor replacing "foo" by "bar"
         And I open data/editor.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :insert-text foo
         And I wait for "Inserting text into element *" in the log
         And I run :open-editor
