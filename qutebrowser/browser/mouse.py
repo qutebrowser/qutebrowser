@@ -208,6 +208,7 @@ class MouseEventFilter(QObject):
         if evtype not in self._handlers:
             return False
         if obj is not self._tab.event_target():
-            log.mouse.debug("Ignoring {} to {}".format(event.__class__.__name__, obj))
+            log.mouse.debug("Ignoring {} to {}".format(event.__class__.__name__,
+                                                       obj))
             return False
         return self._handlers[evtype](event)

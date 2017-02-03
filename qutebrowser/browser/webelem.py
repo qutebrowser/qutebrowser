@@ -393,7 +393,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Simulate a click on the element.
 
         Args:
-            click_target: An usertypes.ClickTarget member, what kind of click
+            click_target: A usertypes.ClickTarget member, what kind of click
                           to simulate.
             force_event: Force generating a fake mouse event.
         """

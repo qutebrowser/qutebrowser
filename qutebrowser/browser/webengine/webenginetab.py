@@ -27,7 +27,7 @@ import functools
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
 from PyQt5.QtGui import QKeyEvent, QIcon
 # pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWidgets import QOpenGLWidget, QApplication
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
                                       QWebEngineProfile)
 # pylint: enable=no-name-in-module,import-error,useless-suppression

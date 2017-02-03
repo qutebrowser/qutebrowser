@@ -218,7 +218,8 @@ class QuteProc(testprocess.Process):
                 log_line.waited_for = True
             self._is_ready('load')
         elif log_line.category == 'misc' and any(testutils.pattern_match(
-                pattern=pattern, value=log_line.message) for pattern in start_okay_messages_focus):
+                pattern=pattern, value=log_line.message) for pattern in
+                start_okay_messages_focus):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and
