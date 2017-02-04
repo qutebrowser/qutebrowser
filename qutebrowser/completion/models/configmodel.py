@@ -30,7 +30,7 @@ class SettingSectionCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with settings sections."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     COLUMN_WIDTHS = (20, 70, 10)
@@ -52,7 +52,7 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
         _section: The config section this model shows.
     """
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     COLUMN_WIDTHS = (20, 70, 10)
@@ -108,7 +108,7 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
         _option: The config option this model shows.
     """
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     COLUMN_WIDTHS = (20, 70, 10)

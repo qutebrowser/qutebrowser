@@ -233,7 +233,7 @@ def _init_misc():
     # doesn't overwrite our config.
     #
     # This fixes one of the corruption issues here:
-    # https://github.com/The-Compiler/qutebrowser/issues/515
+    # https://github.com/qutebrowser/qutebrowser/issues/515
 
     path = os.path.join(standarddir.config(), 'qsettings')
     for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:

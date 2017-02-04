@@ -270,7 +270,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # There are some good reasons why a URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
             # this.
-            # [1] https://github.com/The-Compiler/qutebrowser/issues/163
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
             pass
         else:
             # We display a warnings for URLs which are not empty but invalid -

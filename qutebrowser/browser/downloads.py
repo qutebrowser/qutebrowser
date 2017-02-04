@@ -125,7 +125,7 @@ def create_full_filename(basename, filename):
         The full absolute path, or None if filename creation was not possible.
     """
     # Remove chars which can't be encoded in the filename encoding.
-    # See https://github.com/The-Compiler/qutebrowser/issues/427
+    # See https://github.com/qutebrowser/qutebrowser/issues/427
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
     basename = utils.force_encoding(basename, encoding)
@@ -741,7 +741,7 @@ class AbstractDownloadManager(QObject):
     def _remove_item(self, download):
         """Remove a given download."""
         if sip.isdeleted(self):
-            # https://github.com/The-Compiler/qutebrowser/issues/1242
+            # https://github.com/qutebrowser/qutebrowser/issues/1242
             return
         try:
             idx = self.downloads.index(download)

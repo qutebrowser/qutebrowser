@@ -406,9 +406,9 @@ def qt_message_handler(msg_type, context, msg):
         # When enabling debugging with QtWebEngine
         "Remote debugging server started successfully. Try pointing a "
             "Chromium-based browser to ",
-        # https://github.com/The-Compiler/qutebrowser/issues/1287
+        # https://github.com/qutebrowser/qutebrowser/issues/1287
         "QXcbClipboard: SelectionRequest too old",
-        # https://github.com/The-Compiler/qutebrowser/issues/2071
+        # https://github.com/qutebrowser/qutebrowser/issues/2071
         'QXcbWindow: Unhandled client message: ""',
         # https://codereview.qt-project.org/176831
         "QObject::disconnect: Unexpected null parameter",
@@ -551,7 +551,7 @@ class RAMHandler(logging.Handler):
 
         FIXME: We should do all the HTML formatter via jinja2.
         (probably obsolete when moving to a widget for logging,
-        https://github.com/The-Compiler/qutebrowser/issues/34
+        https://github.com/qutebrowser/qutebrowser/issues/34
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
         lines = []

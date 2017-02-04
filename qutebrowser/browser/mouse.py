@@ -114,7 +114,7 @@ class MouseEventFilter(QObject):
             e: The QWheelEvent.
         """
         if self._ignore_wheel_event:
-            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            # See https://github.com/qutebrowser/qutebrowser/issues/395
             self._ignore_wheel_event = False
             return True
 

@@ -194,7 +194,7 @@ Feature: Saving and loading sessions
             url: http://localhost:*/data/numbers/3.txt
             zoom: 1.0
 
-  # https://github.com/The-Compiler/qutebrowser/issues/879
+  # https://github.com/qutebrowser/qutebrowser/issues/879
 
   Scenario: Saving a session with a page using history.replaceState()
     When I open data/sessions/history_replace_state.html without waiting

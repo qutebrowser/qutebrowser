@@ -534,7 +534,7 @@ class Quitter:
             if not os.path.isdir(cwd):
                 # Probably running from a python egg. Let's fallback to
                 # cwd=None and see if that works out.
-                # See https://github.com/The-Compiler/qutebrowser/issues/323
+                # See https://github.com/qutebrowser/qutebrowser/issues/323
                 cwd = None
 
         # Add all open pages so they get reopened.

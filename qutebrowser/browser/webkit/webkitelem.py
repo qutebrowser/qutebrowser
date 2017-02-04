@@ -162,7 +162,7 @@ class WebKitElement(webelem.AbstractWebElement):
             # On e.g. Void Linux with musl libc, the stack size is too small
             # for jsc, and running JS will fail. If that happens, fall back to
             # the Python implementation.
-            # https://github.com/The-Compiler/qutebrowser/issues/1641
+            # https://github.com/qutebrowser/qutebrowser/issues/1641
             return None
 
         text = utils.compact_text(self._elem.toOuterXml(), 500)
@@ -216,7 +216,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
+        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.

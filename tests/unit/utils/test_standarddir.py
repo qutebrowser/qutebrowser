@@ -271,7 +271,7 @@ class TestCreatingDir:
     def test_exists_race_condition(self, mocker, tmpdir, typ):
         """Make sure there can't be a TOCTOU issue when creating the file.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/942.
+        See https://github.com/qutebrowser/qutebrowser/issues/942.
         """
         (tmpdir / typ).ensure(dir=True)
 

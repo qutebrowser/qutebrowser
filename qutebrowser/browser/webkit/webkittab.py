@@ -677,7 +677,7 @@ class WebKitTab(browsertab.AbstractTab):
 
         While Qt has a bool "ok" attribute for loadFinished, it always is True
         when using error pages... See
-        https://github.com/The-Compiler/qutebrowser/issues/84
+        https://github.com/qutebrowser/qutebrowser/issues/84
         """
         self._on_load_finished(not self._widget.page().error_occurred)
 
@@ -690,8 +690,8 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_frame_created(self, frame):
         """Connect the contentsSizeChanged signal of each frame."""
         # FIXME:qtwebengine those could theoretically regress:
-        # https://github.com/The-Compiler/qutebrowser/issues/152
-        # https://github.com/The-Compiler/qutebrowser/issues/263
+        # https://github.com/qutebrowser/qutebrowser/issues/152
+        # https://github.com/qutebrowser/qutebrowser/issues/263
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
 
     @pyqtSlot(QSize)

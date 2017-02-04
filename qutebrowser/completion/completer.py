@@ -239,7 +239,7 @@ class Completer(QObject):
             # This is a search or gibberish, so we don't need to complete
             # anything (yet)
             # FIXME complete searches
-            # https://github.com/The-Compiler/qutebrowser/issues/32
+            # https://github.com/qutebrowser/qutebrowser/issues/32
             completion.set_model(None)
             return
 

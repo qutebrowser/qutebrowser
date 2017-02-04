@@ -69,7 +69,7 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
                 '(like Debian/Ubuntu), so you need to start without '
                 '--backend webengine there.'),
             ('QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/The-Compiler/qutebrowser/issues/1692'),
+                'https://github.com/qutebrowser/qutebrowser/issues/1692'),
         ]
     else:
         lines = ['<b>If you installed a qutebrowser package for your '

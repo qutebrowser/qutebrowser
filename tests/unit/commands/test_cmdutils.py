@@ -307,7 +307,7 @@ class TestRegister:
             fun(*args, **kwargs)
 
     def test_choices_no_annotation(self):
-        # https://github.com/The-Compiler/qutebrowser/issues/1871
+        # https://github.com/qutebrowser/qutebrowser/issues/1871
         @cmdutils.register()
         @cmdutils.argument('arg', choices=['foo', 'bar'])
         def fun(arg):
@@ -321,7 +321,7 @@ class TestRegister:
             cmd._get_call_args(win_id=0)
 
     def test_choices_no_annotation_kwonly(self):
-        # https://github.com/The-Compiler/qutebrowser/issues/1871
+        # https://github.com/qutebrowser/qutebrowser/issues/1871
         @cmdutils.register()
         @cmdutils.argument('arg', choices=['foo', 'bar'])
         def fun(*, arg='foo'):
@@ -350,7 +350,7 @@ class TestRegister:
             cmd.get_pos_arg_info(2)
 
     def test_keyword_only_without_default(self):
-        # https://github.com/The-Compiler/qutebrowser/issues/1872
+        # https://github.com/qutebrowser/qutebrowser/issues/1872
         def fun(*, target):
             """Blah."""
             pass
@@ -363,7 +363,7 @@ class TestRegister:
         assert str(excinfo.value) == expected
 
     def test_typed_keyword_only_without_default(self):
-        # https://github.com/The-Compiler/qutebrowser/issues/1872
+        # https://github.com/qutebrowser/qutebrowser/issues/1872
         def fun(*, target: int):
             """Blah."""
             pass

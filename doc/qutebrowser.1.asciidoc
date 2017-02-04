@@ -127,7 +127,7 @@ defaults.
 
 == BUGS
 Bugs are tracked in the Github issue tracker at 
-https://github.com/The-Compiler/qutebrowser/issues.
+https://github.com/qutebrowser/qutebrowser/issues.
 
 If you found a bug, use the built-in ':report' command to create a bug report
 with all information needed.
@@ -160,7 +160,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
 * IRC: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
 http://freenode.net/[Freenode]
-* Github: https://github.com/The-Compiler/qutebrowser
+* Github: https://github.com/qutebrowser/qutebrowser
 
 == AUTHOR
 *qutebrowser* was written by Florian Bruhin. All contributors can be found in

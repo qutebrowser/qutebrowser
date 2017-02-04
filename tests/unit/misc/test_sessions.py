@@ -353,7 +353,7 @@ class TestLoadTab:
         if in_main_data:
             # This information got saved in the main data instead of saving it
             # per item - make sure the old format can still be read
-            # https://github.com/The-Compiler/qutebrowser/issues/728
+            # https://github.com/qutebrowser/qutebrowser/issues/728
             d = {'history': [item], key: val}
         else:
             item[key] = val

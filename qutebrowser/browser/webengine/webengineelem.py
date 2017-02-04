@@ -110,7 +110,7 @@ class WebEngineElement(webelem.AbstractWebElement):
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
+        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.

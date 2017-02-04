@@ -133,7 +133,7 @@ def pytest_collection_modifyitems(config, items):
         if item.get_marker('issue2183'):
             item.add_marker(pytest.mark.xfail(
                 config.webengine and qtutils.version_check('5.7.1'),
-                reason='https://github.com/The-Compiler/qutebrowser/issues/'
+                reason='https://github.com/qutebrowser/qutebrowser/issues/'
                        '2183'))
 
         if deselected:

@@ -36,7 +36,7 @@ from qutebrowser.browser.network import pac
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
-# https://github.com/The-Compiler/qutebrowser/issues/108
+# https://github.com/qutebrowser/qutebrowser/issues/108
 
 
 class InvalidUrlError(ValueError):
@@ -297,7 +297,7 @@ def qurl_from_user_input(urlstr):
     WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
-    https://github.com/The-Compiler/qutebrowser/issues/109
+    https://github.com/qutebrowser/qutebrowser/issues/109
 
     Args:
         urlstr: The URL as string.

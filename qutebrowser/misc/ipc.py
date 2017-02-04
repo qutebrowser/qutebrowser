@@ -222,7 +222,7 @@ class IPCServer(QObject):
             try:
                 os.chmod(self._server.fullServerName(), 0o700)
             except FileNotFoundError:
-                # https://github.com/The-Compiler/qutebrowser/issues/1530
+                # https://github.com/qutebrowser/qutebrowser/issues/1530
                 # The server doesn't actually exist even if ok was reported as
                 # True, so report this as an error.
                 raise ListenError(self._server)

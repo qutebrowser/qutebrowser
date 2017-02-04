@@ -443,7 +443,7 @@ class TestHandleConnection:
 def connected_socket(qtbot, qlocalsocket, ipc_server):
     if sys.platform == 'darwin':
         pytest.skip("Skipping connected_socket test - "
-                    "https://github.com/The-Compiler/qutebrowser/issues/1045")
+                    "https://github.com/qutebrowser/qutebrowser/issues/1045")
     ipc_server.listen()
     with qtbot.waitSignal(ipc_server._server.newConnection):
         qlocalsocket.connectToServer('qute-test')
@@ -577,7 +577,7 @@ class TestSendToRunningInstance:
         assert str(excinfo.value) == msg
 
 
-@pytest.mark.not_osx(reason="https://github.com/The-Compiler/qutebrowser/"
+@pytest.mark.not_osx(reason="https://github.com/qutebrowser/qutebrowser/"
                             "issues/975")
 def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     ipc_server._timer.setInterval(100)
@@ -831,7 +831,7 @@ class TestSendOrListen:
 @pytest.mark.windows
 @pytest.mark.osx
 def test_long_username(monkeypatch):
-    """See https://github.com/The-Compiler/qutebrowser/issues/888."""
+    """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
     monkeypatch.setattr('qutebrowser.misc.ipc.standarddir.getpass.getuser',

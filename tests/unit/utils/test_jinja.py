@@ -120,7 +120,7 @@ def test_utf8():
     This was an attempt to get a failing test case for #127 but it seems
     the issue is elsewhere.
 
-    https://github.com/The-Compiler/qutebrowser/issues/127
+    https://github.com/qutebrowser/qutebrowser/issues/127
     """
     data = jinja.render('test.html', var='\u2603')
     assert data == "Hello \u2603"

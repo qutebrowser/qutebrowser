@@ -72,8 +72,8 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
-    https://github.com/The-Compiler/qutebrowser/issues/908
-    https://github.com/The-Compiler/qutebrowser/issues/1726
+    https://github.com/qutebrowser/qutebrowser/issues/908
+    https://github.com/qutebrowser/qutebrowser/issues/1726
     """
     if request.config.webengine:
         pytest.skip("Downloads are not implemented with QtWebEngine yet")
@@ -108,8 +108,8 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
                                  tmpdir, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
-    https://github.com/The-Compiler/qutebrowser/issues/866
-    https://github.com/The-Compiler/qutebrowser/issues/1269
+    https://github.com/qutebrowser/qutebrowser/issues/866
+    https://github.com/qutebrowser/qutebrowser/issues/1269
     """
     if request.config.webengine:
         pytest.skip("Downloads are not implemented with QtWebEngine yet")

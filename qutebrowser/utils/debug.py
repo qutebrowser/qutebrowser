@@ -137,7 +137,7 @@ def qflags_key(base, value, add_base=False, klass=None):
     Note: Passing a combined value (such as Qt.AlignCenter) will get the names
     for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
 
-    https://github.com/The-Compiler/qutebrowser/issues/42
+    https://github.com/qutebrowser/qutebrowser/issues/42
 
     Args:
         base: The object the flags are in, e.g. QtCore.Qt

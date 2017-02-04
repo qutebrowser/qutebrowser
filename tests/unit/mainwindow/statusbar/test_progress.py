@@ -77,8 +77,8 @@ def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
 def test_progress_affecting_statusbar_height(fake_statusbar, progress_widget):
     """Make sure the statusbar stays the same height when progress is shown.
 
-    https://github.com/The-Compiler/qutebrowser/issues/886
-    https://github.com/The-Compiler/qutebrowser/pull/890
+    https://github.com/qutebrowser/qutebrowser/issues/886
+    https://github.com/qutebrowser/qutebrowser/pull/890
     """
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height
@@ -92,7 +92,7 @@ def test_progress_affecting_statusbar_height(fake_statusbar, progress_widget):
 def test_progress_big_statusbar(qtbot, fake_statusbar, progress_widget):
     """Make sure the progress bar is small with a big statusbar.
 
-    https://github.com/The-Compiler/qutebrowser/commit/46d1760798b730852e2207e2cdc05a9308e44f80
+    https://github.com/qutebrowser/qutebrowser/commit/46d1760798b730852e2207e2cdc05a9308e44f80
     """
     fake_statusbar.hbox.addWidget(progress_widget)
     progress_widget.show()

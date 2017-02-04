@@ -136,7 +136,7 @@ class TestConfigParser:
 
         This is done during interpolation in later Python 3.4 versions.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/968
+        See https://github.com/qutebrowser/qutebrowser/issues/968
         """
         assert objects.cfg.get('general', 'blabla', fallback='blub') == 'blub'
 
@@ -247,7 +247,7 @@ class TestKeyConfigParser:
     def test_cmd_binding(self, cmdline_test, config_stub, tmpdir):
         """Test various command bindings.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/615
+        See https://github.com/qutebrowser/qutebrowser/issues/615
 
         Args:
             cmdline_test: A pytest fixture which provides testcases.

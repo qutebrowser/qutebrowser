@@ -161,7 +161,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
+        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.
@@ -312,7 +312,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # Click the center of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
         # is hidden behind other elements
-        # https://github.com/The-Compiler/qutebrowser/issues/1005
+        # https://github.com/qutebrowser/qutebrowser/issues/1005
         rect = self.rect_on_view()
         if rect.width() > rect.height():
             rect.setWidth(rect.height())

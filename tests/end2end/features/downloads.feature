@@ -100,7 +100,7 @@ Feature: Downloading things from a website.
         And I run :close
         Then qutebrowser should quit
 
-    # https://github.com/The-Compiler/qutebrowser/issues/2134
+    # https://github.com/qutebrowser/qutebrowser/issues/2134
     @qtwebengine_skip
     Scenario: Downloading, then closing a tab
         When I set storage -> prompt-download-directory to false
@@ -270,7 +270,7 @@ Feature: Downloading things from a website.
         Then "cancelled" should be logged
         And "cancelled" should be logged
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1535
+    # https://github.com/qutebrowser/qutebrowser/issues/1535
     @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Cancelling an MHTML download (issue 1535)
         When I open data/downloads/issue1535.html
@@ -392,7 +392,7 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then "Opening *download.bin* with [*python*]" should be logged
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1728
+    # https://github.com/qutebrowser/qutebrowser/issues/1728
 
     Scenario: Cancelling a download that should be opened
         When I set storage -> prompt-download-directory to true
@@ -402,7 +402,7 @@ Feature: Downloading things from a website.
         And I run :download-cancel
         Then "* finished but not successful, not opening!" should be logged
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1725
+    # https://github.com/qutebrowser/qutebrowser/issues/1725
 
     Scenario: Directly open a download with a very long filename
         When I set storage -> prompt-download-directory to true
@@ -455,7 +455,7 @@ Feature: Downloading things from a website.
         And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
 
-    # https://github.com/The-Compiler/qutebrowser/issues/2173
+    # https://github.com/qutebrowser/qutebrowser/issues/2173
 
     Scenario: Remembering the temporary download directory (issue 2173)
         When I set storage -> prompt-download-directory to true

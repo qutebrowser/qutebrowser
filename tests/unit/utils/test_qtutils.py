@@ -512,7 +512,7 @@ class TestSavefileOpen:
     def test_line_endings(self, tmpdir):
         """Make sure line endings are translated correctly.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/309
+        See https://github.com/qutebrowser/qutebrowser/issues/309
         """
         filename = tmpdir / 'foo'
         with qtutils.savefile_open(str(filename)) as f:

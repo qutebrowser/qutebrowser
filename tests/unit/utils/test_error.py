@@ -67,7 +67,7 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
 
 
 # This happens on Xvfb for some reason
-# See https://github.com/The-Compiler/qutebrowser/issues/984
+# See https://github.com/qutebrowser/qutebrowser/issues/984
 @pytest.mark.qt_log_ignore(r'^QXcbConnection: XCB error: 8 \(BadMatch\), '
                            r'sequence: \d+, resource id: \d+, major code: 42 '
                            r'\(SetInputFocus\), minor code: 0$',

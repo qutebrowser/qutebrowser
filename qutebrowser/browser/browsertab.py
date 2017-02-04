@@ -182,7 +182,7 @@ class AbstractZoom(QObject):
         # # FIXME:qtwebengine is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
         # # when the WebView is destroyed on older PyQt versions.
-        # # See https://github.com/The-Compiler/qutebrowser/issues/390
+        # # See https://github.com/qutebrowser/qutebrowser/issues/390
         # self.destroyed.connect(functools.partial(
         #     cfg.changed.disconnect, self.init_neighborlist))
 

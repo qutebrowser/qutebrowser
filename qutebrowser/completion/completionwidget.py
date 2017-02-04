@@ -134,7 +134,7 @@ class CompletionView(QTreeView):
         self.setUniformRowHeights(True)
         self.hide()
         # FIXME set elidemode
-        # https://github.com/The-Compiler/qutebrowser/issues/118
+        # https://github.com/qutebrowser/qutebrowser/issues/118
 
     def __repr__(self):
         return utils.get_repr(self)

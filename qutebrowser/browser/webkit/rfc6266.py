@@ -117,7 +117,7 @@ class Language(str):
     """A language-tag (RFC 5646, Section 2.1).
 
     FIXME: This grammar is not 100% correct yet.
-    https://github.com/The-Compiler/qutebrowser/issues/105
+    https://github.com/qutebrowser/qutebrowser/issues/105
     """
 
     grammar = re.compile('[A-Za-z0-9-]+')
@@ -132,7 +132,7 @@ class ValueChars(str):
     """A value of an attribute.
 
     FIXME: Can we merge this with Value?
-    https://github.com/The-Compiler/qutebrowser/issues/105
+    https://github.com/qutebrowser/qutebrowser/issues/105
     """
 
     grammar = re.compile('({}|{})*'.format(attr_char_re, hex_digit_re))

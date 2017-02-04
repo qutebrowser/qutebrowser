@@ -162,7 +162,7 @@ def test_fail_return():
         res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
 
 
-# See https://github.com/The-Compiler/qutebrowser/pull/1891#issuecomment-259222615
+# See https://github.com/qutebrowser/qutebrowser/pull/1891#issuecomment-259222615
 
 try:
     from PyQt5 import QtWebEngineWidgets

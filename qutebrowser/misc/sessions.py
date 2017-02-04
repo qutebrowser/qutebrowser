@@ -167,7 +167,7 @@ class SessionManager(QObject):
         if item.title():
             data['title'] = item.title()
         else:
-            # https://github.com/The-Compiler/qutebrowser/issues/879
+            # https://github.com/qutebrowser/qutebrowser/issues/879
             if tab.history.current_idx() == idx:
                 data['title'] = tab.title()
             else:
@@ -306,7 +306,7 @@ class SessionManager(QObject):
             if 'zoom' in data:
                 # The zoom was accidentally stored in 'data' instead of per-tab
                 # earlier.
-                # See https://github.com/The-Compiler/qutebrowser/issues/728
+                # See https://github.com/qutebrowser/qutebrowser/issues/728
                 user_data['zoom'] = data['zoom']
             elif 'zoom' in histentry:
                 user_data['zoom'] = histentry['zoom']
@@ -314,7 +314,7 @@ class SessionManager(QObject):
             if 'scroll-pos' in data:
                 # The scroll position was accidentally stored in 'data' instead
                 # of per-tab earlier.
-                # See https://github.com/The-Compiler/qutebrowser/issues/728
+                # See https://github.com/qutebrowser/qutebrowser/issues/728
                 pos = data['scroll-pos']
                 user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
             elif 'scroll-pos' in histentry:

@@ -381,7 +381,7 @@ Feature: Various utility commands.
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/504
+    ## https://github.com/qutebrowser/qutebrowser/issues/504
 
     Scenario: Focusing download widget via Tab
         When I open about:blank
@@ -490,13 +490,13 @@ Feature: Various utility commands.
         Then qute://log?level=error should be loaded
         And the page should contain the plaintext "No messages to show."
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1523
+    ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
         When I run :set-cmd-text -s :--
         Then no crash should happen
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1386
+    ## https://github.com/qutebrowser/qutebrowser/issues/1386
 
     Scenario: Partial commandline matching with startup command
         When I run :message-i "Hello World" (invalid command)
@@ -510,7 +510,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1219
+    ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
     @qtwebengine_todo: private browsing is not implemented yet
     Scenario: Sharing cookies with private browsing
@@ -521,7 +521,7 @@ Feature: Various utility commands.
         And I set general -> private-browsing to false
         Then the cookie qute-test should be set to 42
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1742
+    ## https://github.com/qutebrowser/qutebrowser/issues/1742
 
     @qtwebengine_todo: private browsing is not implemented yet
     Scenario: Private browsing is activated in QtWebKit without restart

@@ -59,7 +59,7 @@ class WebView(QWebView):
         super().__init__(parent)
         if sys.platform == 'darwin' and qtutils.version_check('5.4'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
-            # See https://github.com/The-Compiler/qutebrowser/issues/462
+            # See https://github.com/qutebrowser/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
         # FIXME:qtwebengine this is only used to set the zoom factor from
         # the QWebPage - we should get rid of it somehow (signals?)

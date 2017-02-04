@@ -29,7 +29,7 @@ from qutebrowser.misc import readline
 
 
 # Some functions aren't 100% readline compatible:
-# https://github.com/The-Compiler/qutebrowser/issues/678
+# https://github.com/qutebrowser/qutebrowser/issues/678
 # Those are marked with fixme and have another value marked with '# wrong'
 # which marks the current behavior.
 

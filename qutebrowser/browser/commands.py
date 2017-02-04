@@ -652,7 +652,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         if not tab.url().isValid():
-            # See https://github.com/The-Compiler/qutebrowser/issues/701
+            # See https://github.com/qutebrowser/qutebrowser/issues/701
             return
 
         if bottom_navigate is not None and tab.scroller.at_bottom():
@@ -833,7 +833,7 @@ class CommandDispatcher:
         """
         if self._count() == 0:
             # Running :tab-prev after last tab was closed
-            # See https://github.com/The-Compiler/qutebrowser/issues/1448
+            # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
         newidx = self._current_index() - count
         if newidx >= 0:
@@ -853,7 +853,7 @@ class CommandDispatcher:
         """
         if self._count() == 0:
             # Running :tab-next after last tab was closed
-            # See https://github.com/The-Compiler/qutebrowser/issues/1448
+            # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
         newidx = self._current_index() + count
         if newidx < self._count():

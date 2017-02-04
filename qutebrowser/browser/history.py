@@ -88,7 +88,7 @@ class Entry:
         if not url.isValid():
             raise ValueError("Invalid URL: {}".format(url.errorString()))
 
-        # https://github.com/The-Compiler/qutebrowser/issues/670
+        # https://github.com/qutebrowser/qutebrowser/issues/670
         atime = atime.lstrip('\0')
 
         if '-' in atime:

@@ -54,7 +54,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
     # FIXME this is horribly slow when resizing.
     # We should probably cache something in _get_textdoc or so, but as soon as
     # we implement eliding that cache probably isn't worth much anymore...
-    # https://github.com/The-Compiler/qutebrowser/issues/121
+    # https://github.com/qutebrowser/qutebrowser/issues/121
 
     def __init__(self, parent=None):
         self._painter = None
@@ -173,7 +173,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         """
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
-        # https://github.com/The-Compiler/qutebrowser/issues/118
+        # https://github.com/qutebrowser/qutebrowser/issues/118
         text_option = QTextOption()
         if self._opt.features & QStyleOptionViewItem.WrapText:
             text_option.setWrapMode(QTextOption.WordWrap)

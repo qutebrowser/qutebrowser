@@ -353,7 +353,7 @@ Feature: Prompts
               "user": "user4"
             }
 
-    # https://github.com/The-Compiler/qutebrowser/issues/2156
+    # https://github.com/qutebrowser/qutebrowser/issues/2156
     @qtwebkit_skip
     Scenario: Cancellling webpage authentification with QtWebEngine
         When I open basic-auth/user5/password5 without waiting
@@ -460,7 +460,7 @@ Feature: Prompts
         And I run :prompt-accept prompt-in-command-mode
         Then "Added quickmark prompt-in-command-mode for *" should be logged
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1093
+    # https://github.com/qutebrowser/qutebrowser/issues/1093
     @qtwebengine_skip: QtWebEngine doesn't open the second page/prompt
     Scenario: Keyboard focus with multiple auth prompts
         When I open basic-auth/user5/password5 without waiting
@@ -486,8 +486,8 @@ Feature: Prompts
               "user": "user6"
             }
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1249#issuecomment-175205531
-    # https://github.com/The-Compiler/qutebrowser/pull/2054#issuecomment-258285544
+    # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
+    # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Interrupting SSL prompt during a notification prompt
         When I set content -> notifications to ask
