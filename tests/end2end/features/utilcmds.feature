@@ -30,24 +30,28 @@ Feature: Miscellaneous utility commands exposed to the user.
     ## :repeat
 
     Scenario: :repeat simple
-        When I run :repeat 5 scroll-px 10 0
-        And I wait until the scroll position changed to 50/0
-        # Then already covered by above And
+        When I run :repeat 2 message-info repeat-test
+        Then the message "repeat-test" should be shown
+        And the message "repeat-test" should be shown
 
     Scenario: :repeat zero times
-        When I run :repeat 0 scroll-px 10 0
-        And I wait 0.01s
-        Then the page should not be scrolled
+        When I run :repeat 0 message-error "repeat-test 2"
+        # If we have an error, the test will fail
+        Then no crash should happen
 
     ## :run-with-count
 
     Scenario: :run-with-count
-        When I run :run-with-count 2 scroll down
-        Then "command called: scroll ['down'] (count=2)" should be logged
+        When I run :run-with-count 2 message-info "run-with-count test"
+        Then the message "run-with-count test" should be shown
+        And the message "run-with-count test" should be shown
 
     Scenario: :run-with-count with count
-        When I run :run-with-count 2 scroll down with count 3
-        Then "command called: scroll ['down'] (count=6)" should be logged
+        When I run :run-with-count 2 message-info "run-with-count test 2" with count 2
+        Then the message "run-with-count test 2" should be shown
+        And the message "run-with-count test 2" should be shown
+        And the message "run-with-count test 2" should be shown
+        And the message "run-with-count test 2" should be shown
 
     ## :message-*
 
