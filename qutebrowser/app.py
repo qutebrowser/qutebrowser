@@ -376,6 +376,7 @@ def _init_modules(args, crash_handler):
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
     """
+    # pylint: disable=too-many-statements
     log.init.debug("Initializing prompts...")
     prompt.init()
 
