@@ -1349,7 +1349,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
-        """Show the source of the current page."""
+        """Show the source of the current page in a new tab."""
         # pylint: disable=no-member
         # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/491/
         tab = self._current_widget()
