@@ -101,7 +101,7 @@ class HintLabel(QLabel):
             unmatched: The part of the text which was not typed yet.
         """
         if (config.get('hints', 'uppercase') and
-                self._context.hint_mode == 'letter'):
+                self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
         else:
