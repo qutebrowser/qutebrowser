@@ -241,6 +241,7 @@ Contributors, sorted by the number of commits in descending order:
 * xd1le
 * rsteube
 * rmortens
+* pkill9
 * oniondreams
 * issue
 * haxwithaxe

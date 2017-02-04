@@ -419,6 +419,8 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     env['QUTE_CONFIG_DIR'] = standarddir.config()
     env['QUTE_DATA_DIR'] = standarddir.data()
     env['QUTE_DOWNLOAD_DIR'] = downloads.download_dir()
+    env['QUTE_COMMANDLINE_TEXT'] = objreg.get('status-command', scope='window',
+                                              window=win_id).text()
 
     cmd_path = os.path.expanduser(cmd)
 
