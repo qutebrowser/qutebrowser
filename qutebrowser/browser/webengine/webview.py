@@ -73,8 +73,10 @@ class WebEngineView(QWebEngineView):
             The new QWebEngineView object.
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
+        background_tabs = config.get('tabs', 'background-tabs')
 
-        log.webview.debug("createWindow with type {}".format(debug_type))
+        log.webview.debug("createWindow with type {}, background_tabs "
+                          "{}".format(debug_type, background_tabs))
 
         try:
             background_tab_wintype = QWebEnginePage.WebBrowserBackgroundTab
@@ -83,22 +85,30 @@ class WebEngineView(QWebEngineView):
             # this with a newer Qt...
             background_tab_wintype = 0x0003
 
-        click_target = {
+        if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
-            QWebEnginePage.WebBrowserWindow: usertypes.ClickTarget.window,
-            # ?
-            QWebEnginePage.WebDialog: usertypes.ClickTarget.tab,
-            # Middle-click / Ctrl-Click with Shift
-            QWebEnginePage.WebBrowserTab: usertypes.ClickTarget.tab_bg,
-            # Middle-click / Ctrl-Click
-            background_tab_wintype: usertypes.ClickTarget.tab,
-        }
-
-        if wintype == QWebEnginePage.WebDialog:
+            target = usertypes.ClickTarget.window
+        elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
+            target = usertypes.ClickTarget.tab
+        elif wintype == QWebEnginePage.WebBrowserTab:
+            # Middle-click / Ctrl-Click with Shift
+            # FIXME:qtwebengine this also affects target=_blank links...
+            if background_tabs:
+                target = usertypes.ClickTarget.tab
+            else:
+                target = usertypes.ClickTarget.tab_bg
+        elif wintype == background_tab_wintype:
+            # Middle-click / Ctrl-Click
+            if background_tabs:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
+        else:
+            raise ValueError("Invalid wintype {}".format(debug_type))
 
-        tab = shared.get_tab(self._win_id, click_target[wintype])
+        tab = shared.get_tab(self._win_id, target)
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
         vercheck = qtutils.version_check
