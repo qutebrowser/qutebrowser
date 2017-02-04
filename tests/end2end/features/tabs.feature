@@ -917,6 +917,7 @@ Feature: Tab management
         And I run :buffer "99/1"
         Then the error "There's no window with id 99!" should be shown
 
+    @qtwebengine_flaky
     Scenario: :buffer with matching window index
         Given I have a fresh instance
         When I open data/title.html

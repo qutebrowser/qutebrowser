@@ -99,29 +99,24 @@ Feature: Miscellaneous utility commands exposed to the user.
     ## :repeat-command
 
     Scenario: :repeat-command
-        When I run :scroll down
+        When I run :message-info test1
         And I run :repeat-command
-        And I run :scroll up
-        Then the page should be scrolled vertically
+        Then the message "test1" should be shown
+        And the message "test1" should be shown
 
     Scenario: :repeat-command with count
-        When I run :scroll down with count 3
-        And I wait until the scroll position changed
-        And I run :scroll up
-        And I wait until the scroll position changed
+        When I run :message-info test2
         And I run :repeat-command with count 2
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
+        Then the message "test2" should be shown
+        And the message "test2" should be shown
+        And the message "test2" should be shown
 
     Scenario: :repeat-command with not-normal command inbetween
-        When I run :scroll down with count 3
-        And I wait until the scroll position changed
-        And I run :scroll up
-        And I wait until the scroll position changed
+        When I run :message-info test3
         And I run :prompt-accept
-        And I run :repeat-command with count 2
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
+        And I run :repeat-command
+        Then the message "test3" should be shown
+        And the message "test3" should be shown
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode, not normal." should be shown
 
     Scenario: :repeat-command with mode-switching command
