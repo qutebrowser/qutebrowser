@@ -755,7 +755,7 @@ class CommandDispatcher:
             perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -770,7 +770,7 @@ class CommandDispatcher:
             perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -794,7 +794,7 @@ class CommandDispatcher:
             tab.zoom.set_factor(float(level) / 100)
         except ValueError:
             raise cmdexc.CommandError("Can't zoom {}%!".format(level))
-        message.info("Zoom level: {}%".format(level))
+        message.info("Zoom level: {}%".format(level), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, prev=False, next_=False):

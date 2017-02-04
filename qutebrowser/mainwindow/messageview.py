@@ -31,8 +31,9 @@ class Message(QLabel):
 
     """A single error/warning/info message."""
 
-    def __init__(self, level, text, parent=None):
+    def __init__(self, level, text, replace, parent=None):
         super().__init__(text, parent)
+        self.replace = replace
         self.setAttribute(Qt.WA_StyledBackground, True)
         stylesheet = """
             padding-top: 2px;
@@ -111,13 +112,17 @@ class MessageView(QWidget):
         self.hide()
         self._clear_timer.stop()
 
-    @pyqtSlot(usertypes.MessageLevel, str)
-    def show_message(self, level, text):
+    @pyqtSlot(usertypes.MessageLevel, str, bool)
+    def show_message(self, level, text, replace=False):
         """Show the given message with the given MessageLevel."""
         if text == self._last_text:
             return
 
-        widget = Message(level, text, parent=self)
+        if replace and self._messages and self._messages[-1].replace:
+            old = self._messages.pop()
+            old.hide()
+
+        widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)
         widget.show()
         self._clear_timer.start()

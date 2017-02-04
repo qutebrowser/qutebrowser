@@ -46,12 +46,13 @@ def _log_stack(typ, stack):
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
-def error(message, *, stack=None):
+def error(message, *, stack=None, replace=False):
     """Convenience function to display an error message in the statusbar.
 
     Args:
         message: The message to show
         stack: The stack trace to show.
+        replace: Replace existing messages with replace=True
     """
     if stack is None:
         stack = traceback.format_stack()
@@ -60,20 +61,33 @@ def error(message, *, stack=None):
         typ = 'error (from exception)'
     _log_stack(typ, stack)
     log.message.error(message)
-    global_bridge.show_message.emit(usertypes.MessageLevel.error, message)
+    global_bridge.show_message.emit(usertypes.MessageLevel.error, message,
+                                    replace)
 
 
-def warning(message):
-    """Convenience function to display a warning message in the statusbar."""
+def warning(message, *, replace=False):
+    """Convenience function to display a warning message in the statusbar.
+
+    Args:
+        message: The message to show
+        replace: Replace existing messages with replace=True
+    """
     _log_stack('warning', traceback.format_stack())
     log.message.warning(message)
-    global_bridge.show_message.emit(usertypes.MessageLevel.warning, message)
+    global_bridge.show_message.emit(usertypes.MessageLevel.warning, message,
+                                    replace)
 
 
-def info(message):
-    """Convenience function to display an info message in the statusbar."""
+def info(message, *, replace=False):
+    """Convenience function to display an info message in the statusbar.
+
+    Args:
+        message: The message to show
+        replace: Replace existing messages with replace=True
+    """
     log.message.info(message)
-    global_bridge.show_message.emit(usertypes.MessageLevel.info, message)
+    global_bridge.show_message.emit(usertypes.MessageLevel.info, message,
+                                    replace)
 
 
 def _build_question(title, text=None, *, mode, default=None, abort_on=()):
@@ -163,6 +177,8 @@ class GlobalMessageBridge(QObject):
         show_message: Show a message
                       arg 0: A MessageLevel member
                       arg 1: The text to show
+                      arg 2: Whether to replace other messages with
+                             replace=True.
         prompt_done: Emitted when a prompt was answered somewhere.
         ask_question: Ask a question to the user.
                       arg 0: The Question object to ask.
@@ -173,7 +189,7 @@ class GlobalMessageBridge(QObject):
         mode_left: Emitted when a keymode was left in any window.
     """
 
-    show_message = pyqtSignal(usertypes.MessageLevel, str)
+    show_message = pyqtSignal(usertypes.MessageLevel, str, bool)
     prompt_done = pyqtSignal(usertypes.KeyMode)
     ask_question = pyqtSignal(usertypes.Question, bool)
     mode_left = pyqtSignal(usertypes.KeyMode)

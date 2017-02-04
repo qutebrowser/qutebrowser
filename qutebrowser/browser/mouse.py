@@ -124,7 +124,7 @@ class MouseEventFilter(QObject):
             if factor < 0:
                 return False
             perc = int(100 * factor)
-            message.info("Zoom level: {}%".format(perc))
+            message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
         elif e.modifiers() & Qt.ShiftModifier:
             if e.angleDelta().y() > 0:
