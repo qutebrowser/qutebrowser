@@ -21,6 +21,7 @@
 
 import os
 import re
+import signal
 import sys
 import time
 import json
@@ -289,6 +290,17 @@ def wait_for_message(quteproc, httpbin, category, message):
     expect_message(quteproc, httpbin, category, message)
 
 
+@bdd.when(bdd.parsers.re(r'I wait for the prompt "(?P<prompt>.*)"'))
+def wait_for_prompt(quteproc, prompt):
+    """Wait for a given prompt prompt."""
+    quteproc.log_summary('Waiting for prompt "{}"'.format(prompt))
+    pattern = re.compile(r'Asking question .* text=.* title=\'{}\'.*'.format(
+        re.escape(prompt)))
+
+    line = quteproc.wait_for(message=pattern)
+    line.expected = True
+
+
 @bdd.when(bdd.parsers.parse("I wait {delay}s"))
 def wait_time(quteproc, delay):
     """Sleep for the given delay."""
@@ -368,6 +380,16 @@ def clear_ssl_errors(request, quteproc):
         quteproc.start()
     else:
         quteproc.send_cmd(':debug-clear-ssl-errors')
+
+
+@bdd.when(bdd.parsers.parse('qutebrowser receives the signal {signame}'))
+def send_signal_to_quteproc(signame, quteproc):
+    signum = getattr(signal, signame)
+    if hasattr(quteproc.proc, 'processId'):
+        pid = quteproc.proc.processId()
+    else:
+        pid = quteproc.proc.pid()
+    os.kill(pid, signum)
 
 
 ## Then
@@ -574,6 +596,15 @@ def clipboard_contains_multiline(quteproc, httpbin, content):
 @bdd.then("qutebrowser should quit")
 def should_quit(qtbot, quteproc):
     quteproc.wait_for_quit()
+
+
+@bdd.then(bdd.parsers.re(r'the closing of window (?P<win_id>.*) '
+                         r'should be cancelled'))
+def should_cancel_close(quteproc, win_id):
+    """Verify that closing of a window has been cancelled."""
+    message = 'Cancelling closing of window {}'.format(win_id)
+    line = quteproc.wait_for(message=message)
+    line.expected = True
 
 
 def _get_scroll_values(quteproc):

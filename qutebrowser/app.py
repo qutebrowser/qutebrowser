@@ -633,6 +633,17 @@ class Quitter:
                             closing.
             restart: If we're planning to restart.
         """
+        # if status is greater than 128, we're shutting down on a signal, so
+        # no prompt is generated
+        # if shutdown was called because the last window was closed, we already
+        # have user confirmation
+        if status <= 128 and not last_window:
+            reasons = mainwindow.get_all_windows_close_prompt_reasons()
+            last_win_id = objreg.last_focused_window().win_id
+            if not mainwindow.has_close_confirmation(last_win_id, reasons):
+                log.destroy.debug("Cancelling shutdown: confirmation negative")
+                return
+
         if self._shutting_down:
             return
         self._shutting_down = True

@@ -298,7 +298,11 @@ class Process(QObject):
     def terminate(self):
         """Clean up and shut down the process."""
         self.proc.terminate()
-        self.proc.waitForFinished()
+        if not self.proc.waitForFinished():
+            if self.is_running():
+                # if waitForFinished returns false and the process is still
+                # running we have a timeout
+                pytest.fail('timeout while terminating test process')
 
     def is_running(self):
         """Check if the process is currently running."""

@@ -331,7 +331,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for the prompt "Save file to:"
         And I run :leave-mode
         Then no crash should happen
 
@@ -635,3 +635,68 @@ Feature: Various utility commands.
         And I run :command-accept
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
+
+    ## :run-with-count
+
+    Scenario: :run-with-count
+        When I run :run-with-count 2 scroll down
+        Then "command called: scroll ['down'] (count=2)" should be logged
+
+    Scenario: :run-with-count with count
+        When I run :run-with-count 2 scroll down with count 3
+        Then "command called: scroll ['down'] (count=6)" should be logged
+
+    ## shutdown sequences
+
+    Scenario: Exiting qutebrowser via :quit command
+        Given I have a fresh instance
+        When I run :quit
+        Then qutebrowser should quit
+
+    Scenario: Exiting qutebrowser via :q alias
+        Given I have a fresh instance
+        When I run :q
+        Then qutebrowser should quit
+
+    Scenario: Exiting qutebrowser via :quit command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :quit
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept yes
+        Then qutebrowser should quit
+
+    Scenario: Abort exiting qutebrowser via :quit command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :quit
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept no
+        Then "Cancelling shutdown: confirmation negative" should be logged
+
+    Scenario: Exiting qutebrowser via :close on last window
+        Given I have a fresh instance
+        When I run :close
+        Then qutebrowser should quit
+
+    Scenario: Exiting qutebrowser via :close command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :close
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept yes
+        Then qutebrowser should quit
+
+    Scenario: Abort exiting qutebrowser via :close command with confirmation
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+        When I run :close
+        And I wait for the prompt "Really quit?"
+        And I run :prompt-accept no
+        Then the closing of window 0 should be cancelled
+
+	Scenario: Skipping confirmation when exiting on a signal
+        Given I have a fresh instance
+        And I set ui -> confirm-quit to always
+		When qutebrowser receives the signal SIGINT
+		Then qutebrowser should quit
