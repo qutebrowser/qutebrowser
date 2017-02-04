@@ -27,6 +27,8 @@ import logging
 import functools
 import collections
 import socket
+import re
+import shlex
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QClipboard
@@ -984,3 +986,53 @@ def test_random_port():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(('localhost', port))
     sock.close()
+
+
+class TestOpenFile:
+
+    @pytest.mark.not_frozen
+    def test_cmdline_without_argument(self, caplog, config_stub):
+        config_stub.data = {'general': {'default-open-dispatcher': ''}}
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass'.format(executable)
+        utils.open_file('/foo/bar', cmdline)
+        result = caplog.records[0].message
+        assert re.match(
+            r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
+
+    @pytest.mark.not_frozen
+    def test_cmdline_with_argument(self, caplog, config_stub):
+        config_stub.data = {'general': {'default-open-dispatcher': ''}}
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass {{}} raboof'.format(executable)
+        utils.open_file('/foo/bar', cmdline)
+        result = caplog.records[0].message
+        assert re.match(
+            r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
+
+    @pytest.mark.not_frozen
+    def test_setting_override(self, caplog, config_stub):
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass'.format(executable)
+        config_stub.data = {'general': {'default-open-dispatcher': cmdline}}
+        utils.open_file('/foo/bar')
+        result = caplog.records[0].message
+        assert re.match(
+            r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
+
+    def test_system_default_application(self, caplog, config_stub,
+                                        monkeypatch):
+        # pylint: disable=attribute-defined-outside-init
+        self.open_url_called = False
+        config_stub.data = {'general': {'default-open-dispatcher': ''}}
+        monkeypatch.setattr('PyQt5.QtGui.QDesktopServices.openUrl',
+                            self.mock_open_url)
+        utils.open_file('/foo/bar')
+        result = caplog.records[0].message
+        assert re.match(
+            r"Opening /foo/bar with the system application", result)
+        assert self.open_url_called
+
+    def mock_open_url(self, url):
+        # pylint: disable=attribute-defined-outside-init
+        self.open_url_called = True
