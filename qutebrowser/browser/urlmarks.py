@@ -90,7 +90,6 @@ class UrlMarkManager(QObject):
         super().__init__(parent)
 
         self.marks = collections.OrderedDict()
-
         self._init_lineparser()
         for line in self._lineparser:
             if not line.strip():
@@ -136,12 +135,37 @@ class QuickmarkManager(UrlMarkManager):
         - removed gets emitted with the name as argument.
     """
 
+    def _quickmark_directory(self):
+        """Return the directory containing the quickmarks.
+
+        For quickmarks are data, return by default the standard data
+        directory. In order not to break the compatibility with an older
+        behavior, if quickmarks are found in the standard configuration
+        directory, return this directory instead. Finally, if there is no data
+        directory, fallback on the configuration directory.
+        """
+        config_dir = standarddir.config()
+        data_dir = standarddir.data()
+        if (
+                data_dir is None or (
+                    config_dir is not None and
+                    # there already exist quickmarks in the configdir
+                    os.path.isfile(
+                        os.path.join(config_dir, 'quickmarks')
+                    )
+                )
+        ):
+            result = config_dir
+        else:
+            result = data_dir
+        return result
+
     def _init_lineparser(self):
         self._lineparser = lineparser.LineParser(
-            standarddir.config(), 'quickmarks', parent=self)
+            self._quickmark_directory(), 'quickmarks', parent=self)
 
     def _init_savemanager(self, save_manager):
-        filename = os.path.join(standarddir.config(), 'quickmarks')
+        filename = os.path.join(self._quickmark_directory(), 'quickmarks')
         save_manager.add_saveable('quickmark-manager', self.save, self.changed,
                                   filename=filename)
 
@@ -235,7 +259,6 @@ class QuickmarkManager(UrlMarkManager):
 
 
 class BookmarkManager(UrlMarkManager):
-
     """Manager for bookmarks.
 
     The primary key for bookmarks is their *url*, this means:
@@ -246,17 +269,39 @@ class BookmarkManager(UrlMarkManager):
         - removed gets emitted with the URL as argument.
     """
 
+    def _bookmarks_directory(self):
+        """Return the directory containing the bookmarks.
+
+        For bookmarks are data, return by default a folder inside the standard
+        data directory. In order not to break the compatibility with an older
+        behavior, if bookmarks are found in the standard configuration
+        directory, return this directory instead. Finally, if there is no data
+        directory, fallback on the configuration directory.
+        """
+        config_dir = standarddir.config()
+        data_dir = standarddir.data()
+        if (
+                data_dir is None or (
+                    config_dir is not None and
+                    # config dir already has some bookmarks
+                    os.path.isdir(os.path.join(config_dir, 'bookmarks'))
+                )
+        ):
+            result = os.path.join(config_dir, 'bookmarks')
+        else:
+            result = os.path.join(data_dir, 'bookmarks')
+        return result
+
     def _init_lineparser(self):
-        bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
+        bookmarks_directory = self._bookmarks_directory()
         if not os.path.isdir(bookmarks_directory):
             os.makedirs(bookmarks_directory)
 
-        bookmarks_subdir = os.path.join('bookmarks', 'urls')
         self._lineparser = lineparser.LineParser(
-            standarddir.config(), bookmarks_subdir, parent=self)
+            bookmarks_directory, "urls", parent=self)
 
     def _init_savemanager(self, save_manager):
-        filename = os.path.join(standarddir.config(), 'bookmarks', 'urls')
+        filename = os.path.join(self._bookmarks_directory(), "urls")
         save_manager.add_saveable('bookmark-manager', self.save, self.changed,
                                   filename=filename)
 

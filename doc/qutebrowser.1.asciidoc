@@ -115,8 +115,8 @@ show it.
 == FILES
 
 - '~/.config/qutebrowser/qutebrowser.conf': Main config file.
-- '~/.config/qutebrowser/quickmarks': Saved quickmarks.
 - '~/.config/qutebrowser/keys.conf': Defined key bindings.
+- '~/.local/share/qutebrowser/quickmarks': Saved quickmarks.
 - '~/.local/share/qutebrowser/': Various state information.
 - '~/.cache/qutebrowser/': Temporary data.
 
@@ -126,7 +126,7 @@ environment, the directories configured there are used instead of the above
 defaults.
 
 == BUGS
-Bugs are tracked in the Github issue tracker at 
+Bugs are tracked in the Github issue tracker at
 https://github.com/The-Compiler/qutebrowser/issues.
 
 If you found a bug, use the built-in ':report' command to create a bug report
