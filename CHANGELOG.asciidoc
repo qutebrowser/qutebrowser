@@ -41,6 +41,7 @@ Fixed
 - `:record-macro` (`q`) now doesn't try to record macros for special keys without a text.
 - Fixed PAC (proxy autoconfig) not working with QtWebKit
 - `:download --mhtml` now uses the new file dialog
+- Insert mode now gets entered correctly with a non-100% zoom
 
 v0.9.1
 ------

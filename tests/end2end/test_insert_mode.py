@@ -35,12 +35,15 @@ import pytest
     ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser',
      'true'),
 ])
-def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
+@pytest.mark.parametrize('zoom', [100, 125])
+def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
                      quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
 
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
+    quteproc.send_cmd(':zoom {}'.format(zoom))
+
     quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
     quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':debug-set-fake-clipboard')
