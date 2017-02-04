@@ -36,6 +36,7 @@ Fixed
 - Worked around a segfault with Qt 5.8 when closing a tab with a search active
 - Fixed various mouse actions (like automatically entering insert mode) not working with Qt 5.8
 - Fixed hints sometimes not working with Qt 5.8
+- `:enter-mode` now refuses to enter modes which can't be entered manually (which caused crashes).
 
 v0.9.1
 ------
