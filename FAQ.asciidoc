@@ -112,6 +112,18 @@ How do I use qutebrowser with mutt?::
     text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
 ----
 
+What is the difference between bookmarks and quickmarks?::
+    Bookmarks will always use the title of the website as their name, but with quickmarks
+    you can set your own title.
++
+For example, if you bookmark multiple food recipe websites and use `:open`, 
+you have to type the title or address of the website.
++
+When using quickmark, you can give them all names, like
+`foodrecipes1`, `foodrecipes2` and so on. When you type 
+`:open foodrecipes`, you will see a list of all the food recipe sites,
+without having to remember the exact website title or address.
+
 == Troubleshooting
 
 Configuration not saved after modifying config.::
