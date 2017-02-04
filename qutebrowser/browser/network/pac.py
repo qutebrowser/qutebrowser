@@ -126,7 +126,7 @@ class _PACContext(QObject):
         return QHostAddress(QHostAddress.LocalHost).toString()
 
 
-class PACResolver(object):
+class PACResolver:
 
     """Evaluate PAC script files and resolve proxies."""
 
