@@ -235,7 +235,10 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+        flags = QUrl.FullyEncoded | QUrl.RemovePassword
+        if url.scheme() == 'mailto':
+            flags |= QUrl.RemoveScheme
+        urlstr = url.toString(flags)
         utils.set_clipboard(urlstr, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(
