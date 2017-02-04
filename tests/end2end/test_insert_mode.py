@@ -64,9 +64,12 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
     quteproc.send_cmd(':leave-mode')
     quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
     quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
-    quteproc.send_cmd(':enter-mode caret')
-    quteproc.send_cmd(':toggle-selection')
-    quteproc.send_cmd(':move-to-prev-word')
+
+    if not request.config.webengine:
+        quteproc.send_cmd(':enter-mode caret')
+        quteproc.send_cmd(':toggle-selection')
+        quteproc.send_cmd(':move-to-prev-word')
+
     quteproc.send_cmd(':yank selection')
 
     expected_message = '{} chars yanked to clipboard'.format(len(input_text))
@@ -91,11 +94,3 @@ def test_auto_leave_insert_mode(quteproc):
     # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')
     quteproc.wait_for(message='Clicked non-editable element!')
-    quteproc.send_cmd(':enter-mode caret')
-    quteproc.send_cmd(':paste-primary')
-
-    expected_message = ('paste-primary: This command is only allowed in '
-                        'insert mode, not caret.')
-    quteproc.mark_expected(category='message',
-                           loglevel=logging.ERROR,
-                           message=expected_message)
