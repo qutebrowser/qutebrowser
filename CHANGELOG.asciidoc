@@ -27,6 +27,7 @@ Changed
 
 - Scrolling with the scrollwheel while holding shift now scrolls sideways
 - New way of clicking hints with which solves various small issues
+- When yanking a mailto: link via hints, the mailto: prefix is now stripped
 
 Fixed
 -----
