@@ -35,7 +35,7 @@ import pytest
     ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser',
      'true'),
 ])
-@pytest.mark.parametrize('zoom', [100, 125])
+@pytest.mark.parametrize('zoom', [100, 125, 250])
 def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
                      quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
@@ -88,6 +88,7 @@ def test_auto_leave_insert_mode(quteproc):
     quteproc.open_path(url_path)
 
     quteproc.set_setting('input', 'auto-leave-insert-mode', 'true')
+    quteproc.send_cmd(':zoom 100')
 
     quteproc.press_keys('abcd')
 

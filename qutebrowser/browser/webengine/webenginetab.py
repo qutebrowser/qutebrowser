@@ -442,6 +442,7 @@ class WebEngineElements(browsertab.AbstractElements):
     def find_at_pos(self, pos, callback):
         assert pos.x() >= 0
         assert pos.y() >= 0
+        pos /= self._tab.zoom.factor()
         js_code = javascript.assemble('webelem', 'element_at_pos',
                                       pos.x(), pos.y())
         js_cb = functools.partial(self._js_cb_single, callback)

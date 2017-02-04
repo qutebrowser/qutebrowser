@@ -95,8 +95,7 @@ class MouseEventFilter(QObject):
         self._ignore_wheel_event = True
 
         if e.button() != Qt.NoButton:
-            zoom = self._tab.zoom.factor()
-            self._tab.elements.find_at_pos(e.pos() / zoom,
+            self._tab.elements.find_at_pos(e.pos(),
                                            self._mousepress_insertmode_cb)
 
         return False
