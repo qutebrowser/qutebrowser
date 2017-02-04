@@ -898,7 +898,7 @@ Re-open a closed tab (optionally skipping [count] closed tabs).
 
 [[view-source]]
 === view-source
-Show the source of the current page.
+Show the source of the current page in a new tab.
 
 [[window-only]]
 === window-only

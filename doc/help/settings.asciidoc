@@ -1666,7 +1666,7 @@ Mode to use for hints.
 
 Valid values:
 
- * +number+: Use numeric hints.
+ * +number+: Use numeric hints. (In this mode you can also type letters form the hinted element to filter and reduce the number of elements that are hinted.)
  * +letter+: Use the chars in the hints -> chars setting.
  * +word+: Use hints words based on the html elements and the extra words.
 
