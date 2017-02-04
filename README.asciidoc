@@ -213,6 +213,7 @@ Contributors, sorted by the number of commits in descending order:
 * Brian Jackson
 * thuck
 * sbinix
+* rsteube
 * neeasade
 * jnphilipp
 * Tobias Patzl
@@ -239,7 +240,6 @@ Contributors, sorted by the number of commits in descending order:
 * Eric Drechsel
 * zwarag
 * xd1le
-* rsteube
 * rmortens
 * pkill9
 * oniondreams
