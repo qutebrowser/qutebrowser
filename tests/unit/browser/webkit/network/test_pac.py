@@ -125,7 +125,7 @@ def test_invalid_port():
         res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
 
 
-@pytest.mark.parametrize(string, ["", "{"])
+@pytest.mark.parametrize('string', ["", "{"])
 def test_wrong_pac_string(string):
     with pytest.raises(pac.EvalProxyError):
         pac.PACResolver(string)
