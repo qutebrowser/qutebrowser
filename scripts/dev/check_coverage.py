@@ -267,7 +267,7 @@ def main_check():
         print()
         print("To debug this, run 'tox -e py35-cov' (or py34-cov) locally and "
               "check htmlcov/index.html")
-        print("or check https://codecov.io/github/The-Compiler/qutebrowser")
+        print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 
     if 'CI' in os.environ:

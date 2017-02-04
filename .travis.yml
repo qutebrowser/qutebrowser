@@ -50,7 +50,7 @@ matrix:
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/build/The-Compiler/qutebrowser/.cache
+    - $HOME/build/qutebrowser/qutebrowser/.cache
 
 before_install:
   # We need to do this so we pick up the system-wide python properly
