@@ -30,7 +30,7 @@ import socket
 import re
 import shlex
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
 
@@ -1020,19 +1020,12 @@ class TestOpenFile:
         assert re.match(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
-    def test_system_default_application(self, caplog, config_stub,
-                                        monkeypatch):
-        # pylint: disable=attribute-defined-outside-init
-        self.open_url_called = False
+    def test_system_default_application(self, caplog, config_stub, mocker):
         config_stub.data = {'general': {'default-open-dispatcher': ''}}
-        monkeypatch.setattr('PyQt5.QtGui.QDesktopServices.openUrl',
-                            self.mock_open_url)
+        m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+                         new_callable=mocker.Mock)
         utils.open_file('/foo/bar')
         result = caplog.records[0].message
         assert re.match(
             r"Opening /foo/bar with the system application", result)
-        assert self.open_url_called
-
-    def mock_open_url(self, url):
-        # pylint: disable=attribute-defined-outside-init
-        self.open_url_called = True
+        m.assert_called_with(QUrl('file:///foo/bar'))
