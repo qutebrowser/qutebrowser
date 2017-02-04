@@ -39,6 +39,7 @@ Fixed
 - `:enter-mode` now refuses to enter modes which can't be entered manually (which caused crashes).
 - `:record-macro` (`q`) now doesn't try to record macros for special keys without a text.
 - Fixed PAC (proxy autoconfig) not working with QtWebKit
+- `:download --mhtml` now uses the new file dialog
 
 v0.9.1
 ------

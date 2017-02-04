@@ -20,7 +20,6 @@
 """Shared QtWebKit/QtWebEngine code for downloads."""
 
 import sys
-import shlex
 import html
 import os.path
 import collections
@@ -28,15 +27,13 @@ import functools
 import tempfile
 
 import sip
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QUrl, QModelIndex,
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel)
-from PyQt5.QtGui import QDesktopServices
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils)
-from qutebrowser.misc import guiprocess
 
 
 ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
@@ -158,7 +155,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
         html.escape(url.toDisplayString()))
-    q.mode = usertypes.PromptMode.text
+    q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
     return q
@@ -197,6 +194,9 @@ class FileDownloadTarget(_DownloadTarget):
     def suggested_filename(self):
         return os.path.basename(self.filename)
 
+    def __str__(self):
+        return self.filename
+
 
 class FileObjDownloadTarget(_DownloadTarget):
 
@@ -216,6 +216,12 @@ class FileObjDownloadTarget(_DownloadTarget):
         except AttributeError:
             raise NoFilenameError
 
+    def __str__(self):
+        try:
+            return 'file object at {}'.format(self.fileobj.name)
+        except AttributeError:
+            return 'anonymous file object'
+
 
 class OpenFileDownloadTarget(_DownloadTarget):
 
@@ -233,6 +239,9 @@ class OpenFileDownloadTarget(_DownloadTarget):
 
     def suggested_filename(self):
         raise NoFilenameError
+
+    def __str__(self):
+        return 'temporary file'
 
 
 class DownloadItemStats(QObject):
@@ -520,31 +529,7 @@ class AbstractDownloadItem(QObject):
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-
-        # the default program to open downloads with - will be empty string
-        # if we want to use the default
-        override = config.get('general', 'default-open-dispatcher')
-
-        # precedence order: cmdline > default-open-dispatcher > openUrl
-
-        if cmdline is None and not override:
-            log.downloads.debug("Opening {} with the system application"
-                                .format(filename))
-            url = QUrl.fromLocalFile(filename)
-            QDesktopServices.openUrl(url)
-            return
-
-        if cmdline is None and override:
-            cmdline = override
-
-        cmd, *args = shlex.split(cmdline)
-        args = [arg.replace('{}', filename) for arg in args]
-        if '{}' not in cmdline:
-            args.append(filename)
-        log.downloads.debug("Opening {} with {}"
-                            .format(filename, [cmd] + args))
-        proc = guiprocess.GUIProcess(what='download')
-        proc.start_detached(cmd, args)
+        utils.open_file(filename, cmdline)
 
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""
@@ -780,7 +765,6 @@ class AbstractDownloadManager(QObject):
 
     def _init_filename_question(self, question, download):
         """Set up an existing filename question with a download."""
-        question.mode = usertypes.PromptMode.download
         question.answered.connect(download.set_target)
         question.cancelled.connect(download.cancel)
         download.cancelled.connect(question.abort)
