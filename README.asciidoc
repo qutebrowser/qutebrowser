@@ -187,6 +187,7 @@ Contributors, sorted by the number of commits in descending order:
 * Oliver Caldwell
 * Julian Weigt
 * Sebastian Frysztak
+* Nikolay Amiantov
 * Jonas Schürmann
 * error800
 * Michael Hoang
@@ -197,7 +198,6 @@ Contributors, sorted by the number of commits in descending order:
 * Tomasz Kramkowski
 * Samuel Walladge
 * Peter Rice
-* Nikolay Amiantov
 * Ismail S
 * Halfwit
 * David Vogt

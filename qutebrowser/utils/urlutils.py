@@ -614,7 +614,7 @@ def proxy_from_url(url):
 
     scheme = url.scheme()
     if scheme in ['pac+http', 'pac+https']:
-        return pac.PACFetcher
+        return pac.PACFetcher(url)
 
     types = {
         'http': QNetworkProxy.HttpProxy,

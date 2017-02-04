@@ -125,6 +125,43 @@ def test_invalid_port():
         res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
 
 
+@pytest.mark.parametrize(string, ["", "{"])
+def test_wrong_pac_string(string):
+    with pytest.raises(pac.EvalProxyError):
+        pac.PACResolver(string)
+
+
+@pytest.mark.parametrize("value", [
+    "",
+    "DIRECT FOO",
+    "PROXY",
+    "SOCKS",
+    "FOOBAR",
+])
+def test_fail_parse(value):
+    test_str_f = """
+        function FindProxyForURL(domain, host) {{
+            return "{}";
+        }}
+    """
+
+    res = pac.PACResolver(test_str_f.format(value))
+    with pytest.raises(pac.ParseProxyError):
+        res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
+
+
+def test_fail_return():
+    test_str = """
+        function FindProxyForURL(domain, host) {
+            return null;
+        }
+    """
+
+    res = pac.PACResolver(test_str)
+    with pytest.raises(pac.EvalProxyError):
+        res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
+
+
 # See https://github.com/The-Compiler/qutebrowser/pull/1891#issuecomment-259222615
 
 try:
