@@ -21,6 +21,7 @@ Added
 -----
 
 - Userscripts now have a new `$QUTE_COMMANDLINE_TEXT` environment variable, containing the current commandline contents.
+- New `ripbang` userscript to create a searchengine from a duckduckgo bang
 
 Changed
 ~~~~~~~
