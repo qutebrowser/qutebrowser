@@ -42,8 +42,10 @@ def init():
     """Initialize QtWebKit-specific modules."""
     qapp = QApplication.instance()
 
-    log.init.debug("Initializing proxy...")
-    proxy.init()
+    if not qtutils.version_check('5.8'):
+        # Otherwise we initialize it globally in app.py
+        log.init.debug("Initializing proxy...")
+        proxy.init()
 
     log.init.debug("Initializing js-bridge...")
     js_bridge = webkitqutescheme.JSBridge(qapp)

@@ -35,7 +35,7 @@ from qutebrowser.config import configtypes as typ
 from qutebrowser.config import sections as sect
 from qutebrowser.config.value import SettingValue
 from qutebrowser.utils.qtutils import MAXVALS
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, qtutils
 
 
 FIRST_COMMENT = r"""
@@ -433,7 +433,8 @@ def data(readonly=False):
 
             ('proxy',
              SettingValue(typ.Proxy(), 'system',
-                          backends=[usertypes.Backend.QtWebKit]),
+                          backends=(None if qtutils.version_check('5.8')
+                                    else [usertypes.Backend.QtWebKit])),
              "The proxy to use.\n\n"
              "In addition to the listed values, you can use a `socks://...` "
              "or `http://...` URL."),
