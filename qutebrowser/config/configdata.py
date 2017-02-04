@@ -437,7 +437,9 @@ def data(readonly=False):
                                     else [usertypes.Backend.QtWebKit])),
              "The proxy to use.\n\n"
              "In addition to the listed values, you can use a `socks://...` "
-             "or `http://...` URL."),
+             "or `http://...` URL.\n\n"
+             "This setting only works with Qt 5.8 or newer when using the "
+             "QtWebEngine backend."),
 
             ('proxy-dns-requests',
              SettingValue(typ.Bool(), 'true',
