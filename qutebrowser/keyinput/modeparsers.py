@@ -294,11 +294,11 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         if super().handle(e):
             return True
 
-        if utils.keyevent_to_string(e) is None:
-            # this is a modifier key, let it pass and keep going
-            return False
-
         key = e.text()
+
+        if key == '' or utils.keyevent_to_string(e) is None:
+            # this is not a proper register key, let it pass and keep going
+            return False
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
