@@ -265,6 +265,10 @@ class ModeManager(QObject):
             m = usertypes.KeyMode[mode]
         except KeyError:
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
+        if m in [usertypes.KeyMode.hint, usertypes.KeyMode.command,
+                 usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
+            raise cmdexc.CommandError(
+                "Mode {} can't be entered manually!".format(mode))
         self.enter(m, 'command')
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
