@@ -390,7 +390,8 @@ def _generate_setting_section(f, sectname, sect):
         else:
             f.write("Default: empty\n")
 
-        if option.backends is None:
+        if (option.backends is None or
+                (sectname, optname) == ('network', 'proxy')):
             pass
         elif option.backends == [usertypes.Backend.QtWebKit]:
             f.write("\nThis setting is only available with the QtWebKit "
