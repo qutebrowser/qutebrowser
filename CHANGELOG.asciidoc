@@ -48,6 +48,7 @@ Fixed
 - Font validation is now more permissive in the config, allowing e.g. "Terminus
   (TTF)" as font name.
 - Crash reports are now re-enabled when using QtWebEngine
+- Fixed crashes when closing tabs while hinting
 
 v0.9.1
 ------
