@@ -405,17 +405,17 @@ class ExceptionCrashDialog(_CrashDialog):
         _pages: A list of lists of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
         _exc: An exception tuple (type, value, traceback)
-        _objects: A list of all QObjects as string.
+        _qobjects: A list of all QObjects as string.
     """
 
-    def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
+    def __init__(self, debug, pages, cmdhist, exc, qobjects, parent=None):
         self._chk_log = None
         self._chk_restore = None
         super().__init__(debug, parent)
         self._pages = pages
         self._cmdhist = cmdhist
         self._exc = exc
-        self._objects = objects
+        self._qobjects = qobjects
         self.setModal(True)
         self._set_crash_info()
 
@@ -462,7 +462,7 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Commandline args", ' '.join(sys.argv[1:])),
                 ("Open Pages", '\n\n'.join('\n'.join(e) for e in self._pages)),
                 ("Command history", '\n'.join(self._cmdhist)),
-                ("Objects", self._objects),
+                ("Objects", self._qobjects),
             ]
             try:
                 self._crash_info.append(
@@ -550,15 +550,15 @@ class ReportDialog(_CrashDialog):
     Attributes:
         _pages: A list of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
-        _objects: A list of all QObjects as string.
+        _qobjects: A list of all QObjects as string.
     """
 
-    def __init__(self, pages, cmdhist, objects, parent=None):
+    def __init__(self, pages, cmdhist, qobjects, parent=None):
         super().__init__(False, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._pages = pages
         self._cmdhist = cmdhist
-        self._objects = objects
+        self._qobjects = qobjects
         self._set_crash_info()
 
     def _init_text(self):
@@ -579,7 +579,7 @@ class ReportDialog(_CrashDialog):
             ("Commandline args", ' '.join(sys.argv[1:])),
             ("Open Pages", '\n\n'.join('\n'.join(e) for e in self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
-            ("Objects", self._objects),
+            ("Objects", self._qobjects),
         ]
         try:
             self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
@@ -615,14 +615,14 @@ class ReportErrorDialog(QDialog):
         vbox.addLayout(hbox)
 
 
-def dump_exception_info(exc, pages, cmdhist, objects):
+def dump_exception_info(exc, pages, cmdhist, qobjects):
     """Dump exception info to stderr.
 
     Args:
         exc: An exception tuple (type, value, traceback)
         pages: A list of lists of the open pages (URLs as strings)
         cmdhist: A list with the command history (as strings)
-        objects: A list of all QObjects as string.
+        qobjects: A list of all QObjects as string.
     """
     print(file=sys.stderr)
     print("\n\n===== Handling exception with --no-err-windows... =====\n\n",
@@ -647,7 +647,7 @@ def dump_exception_info(exc, pages, cmdhist, objects):
     print("\n---- Command history ----", file=sys.stderr)
     print('\n'.join(cmdhist), file=sys.stderr)
     print("\n---- Objects ----", file=sys.stderr)
-    print(objects, file=sys.stderr)
+    print(qobjects, file=sys.stderr)
     print("\n---- Environment ----", file=sys.stderr)
     try:
         print(_get_environment_vars(), file=sys.stderr)

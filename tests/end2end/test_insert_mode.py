@@ -19,9 +19,6 @@
 
 """Test insert mode settings on html files."""
 
-import logging
-import json
-
 import pytest
 
 
