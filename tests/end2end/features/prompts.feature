@@ -353,15 +353,6 @@ Feature: Prompts
               "user": "user4"
             }
 
-    # https://github.com/qutebrowser/qutebrowser/issues/2156
-    @qtwebkit_skip
-    Scenario: Cancellling webpage authentification with QtWebEngine
-        When I open basic-auth/user5/password5 without waiting
-        And I wait for a prompt
-        And I run :leave-mode
-        And I wait for "Changing title for idx * to 'Error loading page: *'" in the log
-        Then the page should contain the plaintext "Authentication required"
-
     @qtwebengine_skip
     Scenario: Cancellling webpage authentification with QtWebKit
         When I open basic-auth/user6/password6 without waiting
