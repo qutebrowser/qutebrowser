@@ -214,10 +214,18 @@ class SessionManager(QObject):
             data['history'].append(item_data)
         return data
 
-    def _save_all(self):
+    def _save_all(self, only_active_window = False):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
-        for win_id in objreg.window_registry:
+        winlist = objreg.window_registry
+        if only_active_window:
+            active_window = QApplication.instance().activeWindow()
+            winlist = [getattr(active_window, 'win_id', None)]
+            if winlist[0] is None:
+                # Fall back to all windows
+                winlist = objreg.window_registry
+
+        for win_id in winlist:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             main_window = objreg.get('main-window', scope='window',
@@ -255,7 +263,8 @@ class SessionManager(QObject):
                     name = 'default'
         return name
 
-    def save(self, name, last_window=False, load_next_time=False):
+    def save(self, name, last_window=False, load_next_time=False,
+                   only_active_window=False):
         """Save a named session.
 
         Args:
@@ -278,7 +287,7 @@ class SessionManager(QObject):
                 log.sessions.error("last_window_session is None while saving!")
                 return
         else:
-            data = self._save_all()
+            data = self._save_all(only_active_window = only_active_window)
         log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
@@ -418,7 +427,7 @@ class SessionManager(QObject):
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     def session_save(self, name: str=default, current=False, quiet=False,
-                     force=False):
+                     force=False, only_active_window=False):
         """Save a session.
 
         Args:
@@ -439,7 +448,7 @@ class SessionManager(QObject):
             name = self._current
             assert not name.startswith('_')
         try:
-            name = self.save(name)
+            name = self.save(name, only_active_window = only_active_window)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))
