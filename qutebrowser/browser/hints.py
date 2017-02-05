@@ -753,6 +753,9 @@ class HintManager(QObject):
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
+        if self._context is None:
+            log.hints.debug("Got key without context!")
+            return
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
         for string, label in self._context.labels.items():
             try:
