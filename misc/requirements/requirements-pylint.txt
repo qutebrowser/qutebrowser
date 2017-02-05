@@ -4,11 +4,10 @@ astroid==1.4.9
 github3.py==0.9.6
 isort==4.2.5
 lazy-object-proxy==1.2.2
-mccabe==0.5.3
+mccabe==0.6.1
 pylint==1.6.5
 ./scripts/dev/pylint_checkers
-requests==2.12.5
-six==1.10.0
+requests==2.13.0
 uritemplate==3.0.0
 uritemplate.py==3.0.2
 wrapt==1.10.8

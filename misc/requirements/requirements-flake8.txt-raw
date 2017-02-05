@@ -15,7 +15,9 @@ pydocstyle
 pyflakes
 
 # Pinned to 2.0.0 otherwise
-pycodestyle==2.2.0
+pycodestyle==2.3.1
+# Pinned to 0.5.3 otherwise
+mccabe==0.6.1
 
 # Waiting until flake8-putty updated
 #@ filter: flake8 < 3.0.0
