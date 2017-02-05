@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block style %}
+table { border: 1px solid grey; border-collapse: collapse; width: 100%;}
+th, td { border: 1px solid grey; padding: 0px 5px; max-width: 50%;}
+td.url, td.title { word-break: break-all; }
+td.time { white-space: nowrap; }
+th { background: lightgrey; }
+{% endblock %}
+
+{% block content %}
+
+<table>
+    <tr>
+        <th style="width: 40%"><h3>Title</h3></th>
+        <th><h3>URL</h3></th>
+        <th><h3>Time visited</h3></th>
+    </tr>
+    {% for url, title, time in history %}
+    <tr>
+        <td class="title">{{title}}</td>
+        <td class="url"><a href="{{url}}">{{url}}</a></td>
+        <td class="time">{{time}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
