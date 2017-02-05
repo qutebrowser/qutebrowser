@@ -26,7 +26,6 @@ from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.config import configtypes
-from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
 
 

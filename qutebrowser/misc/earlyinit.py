@@ -246,7 +246,7 @@ def get_backend(args):
     import qutebrowser.utils.usertypes yet.
     """
     try:
-        import PyQt5.QtWebKit
+        import PyQt5.QtWebKit  # pylint: disable=unused-variable
         webkit_available = True
     except ImportError:
         webkit_available = False

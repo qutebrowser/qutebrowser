@@ -104,6 +104,8 @@ PERFECT_FILES = [
         'qutebrowser/misc/keyhintwidget.py'),
     ('tests/unit/misc/test_pastebin.py',
         'qutebrowser/misc/pastebin.py'),
+    (None,
+        'qutebrowser/misc/objects.py')
 
     (None,
         'qutebrowser/mainwindow/statusbar/keystring.py'),

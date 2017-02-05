@@ -20,7 +20,7 @@
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, utils, debug, objreg, usertypes
+from qutebrowser.utils import log, utils, debug, usertypes
 from qutebrowser.misc import objects
 
 UNSET = object()
