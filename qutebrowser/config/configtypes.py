@@ -741,9 +741,9 @@ class Font(BaseType):
                 ) |
                 # size (<float>pt | <int>px)
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
-            )\                         # size/weight/style are space-separated
-        )*                             # 0-inf size/weight/style tags
-        (?P<family>[A-Za-z0-9, "-]*)$  # mandatory font family""", re.VERBOSE)
+            )\           # size/weight/style are space-separated
+        )*               # 0-inf size/weight/style tags
+        (?P<family>.+)$  # mandatory font family""", re.VERBOSE)
 
     def validate(self, value):
         self._basic_validation(value)

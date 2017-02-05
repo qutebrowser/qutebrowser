@@ -978,6 +978,8 @@ class TestFont:
         'inconsolatazi4':
             FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
                      'inconsolatazi4'),
+        'Terminus (TTF)':
+            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1, 'Terminus (TTF)'),
         '10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
@@ -1042,7 +1044,7 @@ class TestFont:
         font_xfail('green'),
         font_xfail('10pt'),
         font_xfail('10pt ""'),
-        '%',
+        '',
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
@@ -1102,7 +1104,6 @@ class TestFontFamily:
         'normal bold 10pt "Foobar Neue"',
         'bold italic 10pt "Foobar Neue"',
         '',  # with none_ok=False
-        '%',
     ]
 
     @pytest.fixture

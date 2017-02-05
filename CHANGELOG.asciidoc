@@ -44,6 +44,8 @@ Fixed
 - `:download --mhtml` now uses the new file dialog
 - Insert mode now gets entered correctly with a non-100% zoom
 - Word hints are now upper-cased correctly when hints -> uppercase is true
+- Font validation is now more permissive in the config, allowing e.g. "Terminus
+  (TTF)" as font name.
 
 v0.9.1
 ------
