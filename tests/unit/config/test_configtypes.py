@@ -979,7 +979,8 @@ class TestFont:
             FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
                      'inconsolatazi4'),
         'Terminus (TTF)':
-            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1, 'Terminus (TTF)'),
+            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+                     'Terminus (TTF)'),
         '10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':

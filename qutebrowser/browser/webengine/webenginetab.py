@@ -622,6 +622,7 @@ class WebEngineTab(browsertab.AbstractTab):
                                           self.load_started])
         if answer is None:
             try:
+                # pylint: disable=no-member
                 sip.assign(authenticator, QAuthenticator())
             except NameError:
                 # WORKAROUND for
