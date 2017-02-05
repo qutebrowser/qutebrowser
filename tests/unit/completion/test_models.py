@@ -305,8 +305,8 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
             ('https://github.com', 'GitHub', '2016-05-01'),
         ],
         "Searchengines": [
-            ('test', 'http://www.example.org/?q={}', ''),
-            ('test-with-dash', 'http://www.example.org/?q={}', ''),
+            ('test ', 'http://www.example.org/?q={}', ''),
+            ('test-with-dash ', 'http://www.example.org/?q={}', ''),
         ],
     })
 
@@ -341,9 +341,9 @@ def test_url_completion_add_searchengine(qtmodeltester, config_stub,
             ('https://github.com', 'GitHub', '2016-05-01'),
         ],
         "Searchengines": [
-            ('test', 'http://www.example.org/?q={}', ''),
-            ('test-with-dash', 'http://www.example.org/?q={}', ''),
-            ('newEntry', 'http://www.example.org/?q={}', ''),
+            ('test ', 'http://www.example.org/?q={}', ''),
+            ('test-with-dash ', 'http://www.example.org/?q={}', ''),
+            ('newEntry ', 'http://www.example.org/?q={}', ''),
         ],
     })
 
