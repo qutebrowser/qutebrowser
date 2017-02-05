@@ -35,9 +35,9 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QDialogButtonBox, QMessageBox, QApplication)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg
+from qutebrowser.utils import version, log, utils, objreg, usertypes
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin)
+                              pastebin, objects)
 from qutebrowser.config import config
 
 
@@ -82,7 +82,9 @@ def get_fatal_crash_dialog(debug, data):
     ignored_frames = ['qt_mainloop', 'paintEvent']
     errtype, frame = parse_fatal_stacktrace(data)
 
-    if errtype == 'Segmentation fault' and frame in ignored_frames:
+    if (errtype == 'Segmentation fault' and
+            frame in ignored_frames and
+            objects.backend == usertypes.Backend.QtWebKit):
         title = "qutebrowser was restarted after a fatal crash!"
         text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
                 "Unfortunately, this crash occurred in Qt (the library "
