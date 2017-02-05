@@ -30,7 +30,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import downloads
-from qutebrowser.utils import debug, usertypes, message, log
+from qutebrowser.utils import debug, usertypes, message, log, qtutils
 
 
 class DownloadItem(downloads.AbstractDownloadItem):
