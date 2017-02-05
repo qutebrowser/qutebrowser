@@ -78,7 +78,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._history.cleared.connect(self.on_history_cleared)
 
         for se_name, se_url in sorted(config.section('searchengines').items()):
-            self.new_item(self._searchengine_cat, se_name, se_url)
+            self.new_item(self._searchengine_cat, se_name + ' ', se_url)
         objreg.get('config').changed.connect(self.on_searchengines_changed)
 
         objreg.get('config').changed.connect(self.reformat_timestamps)
@@ -201,4 +201,4 @@ class UrlCompletionModel(base.BaseCompletionModel):
         """Reload searchengines if the config section was changed."""
         self._searchengine_cat.removeRows(0, self._searchengine_cat.rowCount())
         for se_name, se_url in sorted(config.section('searchengines').items()):
-            self.new_item(self._searchengine_cat, se_name, se_url)
+            self.new_item(self._searchengine_cat, se_name + ' ', se_url)
