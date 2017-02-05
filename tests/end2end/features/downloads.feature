@@ -560,7 +560,7 @@ Feature: Downloading things from a website.
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 
-    @qtwebengine_todo: pdfjs is not implemented yet
+    @qtwebengine_todo: pdfjs is not implemented yet @qtwebkit_ng_xfail: https://github.com/annulen/webkit/issues/428
     Scenario: Downloading via pdfjs
         Given pdfjs is available
         When I set storage -> prompt-download-directory to false

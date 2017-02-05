@@ -16,6 +16,7 @@ Feature: Javascript stuff
         And I run :click-element id close-normal
         Then "Focus object changed: *" should be logged
 
+    @qtwebkit_ng_skip
     Scenario: Opening/closing a modal window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
