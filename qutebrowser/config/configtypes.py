@@ -749,7 +749,7 @@ class Font(BaseType):
         self._basic_validation(value)
         if not value:
             return
-        elif not self.font_regex.match(value):
+        elif not self.font_regex.match(value):  # pragma: no cover
             raise configexc.ValidationError(value, "must be a valid font")
 
 
@@ -762,7 +762,7 @@ class FontFamily(Font):
         if not value:
             return
         match = self.font_regex.match(value)
-        if not match:
+        if not match:  # pragma: no cover
             raise configexc.ValidationError(value, "must be a valid font")
         for group in 'style', 'weight', 'namedweight', 'size':
             if match.group(group):
