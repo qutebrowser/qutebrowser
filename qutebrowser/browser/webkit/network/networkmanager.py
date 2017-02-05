@@ -211,7 +211,8 @@ class NetworkManager(QNetworkAccessManager):
             request.deleteLater()
         self.shutting_down.emit()
 
-    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
+    # No @pyqtSlot here, see
+    # https://github.com/qutebrowser/qutebrowser/issues/2213
     def on_ssl_errors(self, reply, errors):  # pragma: no mccabe
         """Decide if SSL errors should be ignored or not.
 

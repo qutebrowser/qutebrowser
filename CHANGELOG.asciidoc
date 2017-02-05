@@ -49,6 +49,7 @@ Fixed
   (TTF)" as font name.
 - Crash reports are now re-enabled when using QtWebEngine
 - Fixed crashes when closing tabs while hinting
+- Fixed starting on newer PyQt/sip versions with LibreSSL
 
 v0.9.1
 ------
