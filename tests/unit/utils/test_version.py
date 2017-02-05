@@ -33,7 +33,7 @@ import textwrap
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version
+from qutebrowser.utils import version, usertypes
 from qutebrowser.browser import pdfjs
 
 
@@ -671,6 +671,8 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
                          stubs.FakeQApplication(instance=None)),
+        'objects.backend': (usertypes.Backend.QtWebKit if with_webkit
+                            else usertypes.Backend.QtWebEngine),
     }
 
     for attr, val in patches.items():
@@ -682,8 +684,9 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
     template = textwrap.dedent("""
-        qutebrowser vVERSION
-        {git_commit}
+        qutebrowser vVERSION{git_commit}
+        Backend: {backend}
+
         PYTHON IMPLEMENTATION: PYTHON VERSION
         Qt: {qt}
         PyQt: PYQT VERSION
@@ -705,13 +708,14 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
     """.lstrip('\n'))
 
     substitutions = {
-        'git_commit': 'Git commit: GIT COMMIT\n' if git_commit else '',
+        'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
         'style': '\nStyle: STYLE' if style else '',
         'qt': ('QT VERSION' if equal_qt else
                'QT RUNTIME VERSION (compiled QT VERSION)'),
         'frozen': str(frozen),
         'import_path': import_path,
-        'webkit': 'WEBKIT VERSION' if with_webkit else 'no'
+        'webkit': 'WEBKIT VERSION' if with_webkit else 'no',
+        'backend': 'QtWebKit' if with_webkit else 'QtWebEngine',
     }
 
     expected = template.rstrip('\n').format(**substitutions)

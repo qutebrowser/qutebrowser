@@ -39,6 +39,7 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir
+from qutebrowser.misc import objects
 from qutebrowser.browser import pdfjs
 
 
@@ -229,6 +230,7 @@ def version():
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
+    lines.append("Backend: {}".format(objects.backend.name))
 
     if qVersion() != QT_VERSION_STR:
         qt_version = 'Qt: {} (compiled {})'.format(qVersion(), QT_VERSION_STR)
