@@ -27,6 +27,7 @@ from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import (log, utils, message, docutils, objreg,
                                usertypes, typing)
 from qutebrowser.utils import debug as debug_utils
+from qutebrowser.misc import objects
 
 
 class ArgInfo:
@@ -158,8 +159,7 @@ class Command:
                                   window=win_id)
         self.validate_mode(mode_manager.mode)
 
-        used_backend = usertypes.arg2backend[objreg.get('args').backend]
-        if self.backend is not None and used_backend != self.backend:
+        if self.backend is not None and objects.backend != self.backend:
             raise cmdexc.PrerequisitesError(
                 "{}: Only available with {} "
                 "backend.".format(self.name, self.backend.name))

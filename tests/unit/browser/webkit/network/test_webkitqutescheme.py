@@ -22,6 +22,7 @@ import logging
 
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.utils import usertypes
 from qutebrowser.browser import pdfjs, qutescheme
 # pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
@@ -42,8 +43,9 @@ class TestPDFJSHandler:
                             get_pdfjs_res)
 
     @pytest.fixture(autouse=True)
-    def patch_args(self, fake_args):
-        fake_args.backend = 'webkit'
+    def patch_backend(self, monkeypatch):
+        monkeypatch.setattr(qutescheme.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
 
     def test_existing_resource(self):
         """Test with a resource that exists."""

@@ -239,7 +239,27 @@ def check_pyqt_core():
         sys.exit(1)
 
 
-def check_qt_version(args):
+def get_backend(args):
+    """Find out what backend to use based on available libraries.
+
+    Note this function returns the backend as a string so we don't have to
+    import qutebrowser.utils.usertypes yet.
+    """
+    try:
+        import PyQt5.QtWebKit
+        webkit_available = True
+    except ImportError:
+        webkit_available = False
+
+    if args.backend is not None:
+        return args.backend
+    elif webkit_available:
+        return 'webkit'
+    else:
+        return 'webengine'
+
+
+def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import qVersion
     from qutebrowser.utils import qtutils
@@ -247,8 +267,8 @@ def check_qt_version(args):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
         _die(text)
-    elif args.backend == 'webengine' and qtutils.version_check('5.6.0',
-                                                               operator.lt):
+    elif backend == 'webengine' and qtutils.version_check('5.6.0',
+                                                          operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.6.0 are required for "
                 "QtWebEngine support, but {} is installed.".format(qVersion()))
         _die(text)
@@ -267,7 +287,7 @@ def check_ssl_support():
         _die(text)
 
 
-def check_libraries(args):
+def check_libraries(backend):
     """Check if all needed Python libraries are installed."""
     modules = {
         'pkg_resources':
@@ -293,10 +313,11 @@ def check_libraries(args):
                                  "or Install via pip.",
                          pip="PyYAML"),
     }
-    if args.backend == 'webengine':
+    if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
     else:
+        assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
 
     from qutebrowser.utils import log
@@ -345,6 +366,17 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
+def set_backend(backend):
+    """Set the objects.backend global to the given backend (as string)."""
+    from qutebrowser.misc import objects
+    from qutebrowser.utils import usertypes
+    backends = {
+        'webkit': usertypes.Backend.QtWebKit,
+        'webengine': usertypes.Backend.QtWebEngine,
+    }
+    objects.backend = backends[backend]
+
+
 def earlyinit(args):
     """Do all needed early initialization.
 
@@ -367,8 +399,10 @@ def earlyinit(args):
     fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
-    check_qt_version(args)
+    backend = get_backend(args)
+    check_qt_version(backend)
     remove_inputhook()
-    check_libraries(args)
+    check_libraries(backend)
     check_ssl_support()
     check_optimize_flag()
+    set_backend(backend)

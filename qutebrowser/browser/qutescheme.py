@@ -28,7 +28,8 @@ import urllib.parse
 
 import qutebrowser
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, usertypes)
+                               objreg)
+from qutebrowser.misc import objects
 
 
 pyeval_output = ":pyeval was never called"
@@ -89,8 +90,7 @@ class add_handler:  # pylint: disable=invalid-name
         return function
 
     def wrapper(self, *args, **kwargs):
-        used_backend = usertypes.arg2backend[objreg.get('args').backend]
-        if self._backend is not None and used_backend != self._backend:
+        if self._backend is not None and objects.backend != self._backend:
             return self.wrong_backend_handler(*args, **kwargs)
         else:
             return self._function(*args, **kwargs)

@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
-from qutebrowser.misc import miscwidgets
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
 
 
@@ -45,7 +45,7 @@ def create(win_id, parent=None):
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
     mode_manager = modeman.instance(win_id)
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         tab_class = webenginetab.WebEngineTab
     else:
@@ -54,9 +54,9 @@ def create(win_id, parent=None):
     return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
 
 
-def init(args):
+def init():
     """Initialize backend-specific modules."""
-    if args.backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
     else:

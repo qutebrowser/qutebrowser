@@ -446,19 +446,20 @@ class TestArgument:
 class TestRun:
 
     @pytest.fixture(autouse=True)
-    def patching(self, mode_manager, fake_args):
-        fake_args.backend = 'webkit'
+    def patch_backend(self, mode_manager, monkeypatch):
+        monkeypatch.setattr(command.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
 
     @pytest.mark.parametrize('backend, used, ok', [
-        (usertypes.Backend.QtWebEngine, 'webengine', True),
-        (usertypes.Backend.QtWebEngine, 'webkit', False),
-        (usertypes.Backend.QtWebKit, 'webengine', False),
-        (usertypes.Backend.QtWebKit, 'webkit', True),
-        (None, 'webengine', True),
-        (None, 'webkit', True),
+        (usertypes.Backend.QtWebEngine, usertypes.Backend.QtWebEngine, True),
+        (usertypes.Backend.QtWebEngine, usertypes.Backend.QtWebKit, False),
+        (usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine, False),
+        (usertypes.Backend.QtWebKit, usertypes.Backend.QtWebKit, True),
+        (None, usertypes.Backend.QtWebEngine, True),
+        (None, usertypes.Backend.QtWebKit, True),
     ])
-    def test_backend(self, fake_args, backend, used, ok):
-        fake_args.backend = used
+    def test_backend(self, monkeypatch, backend, used, ok):
+        monkeypatch.setattr(command.objects, 'backend', used)
         cmd = _get_cmd(backend=backend)
         if ok:
             cmd.run(win_id=0)
@@ -471,7 +472,7 @@ class TestRun:
         cmd = _get_cmd()
         cmd.run(win_id=0)
 
-    def test_instance_unavailable_with_backend(self, fake_args):
+    def test_instance_unavailable_with_backend(self, monkeypatch):
         """Test what happens when a backend doesn't have an objreg object.
 
         For example, QtWebEngine doesn't have 'hintmanager' registered. We make
@@ -484,7 +485,8 @@ class TestRun:
             """Blah."""
             pass
 
-        fake_args.backend = 'webkit'
+        monkeypatch.setattr(command.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
         cmd = cmdutils.cmd_dict['fun']
         with pytest.raises(cmdexc.PrerequisitesError) as excinfo:
             cmd.run(win_id=0)

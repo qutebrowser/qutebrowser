@@ -446,7 +446,7 @@ def _init_modules(args, crash_handler):
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
     # Init backend-specific stuff
-    browsertab.init(args)
+    browsertab.init()
 
 
 def _init_late_modules(args):

@@ -21,10 +21,13 @@
 
 import pytest
 
-from qutebrowser.mainwindow import tabwidget
-from qutebrowser.config import configtypes
 from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor
 from PyQt5.QtCore import Qt
+
+from qutebrowser.mainwindow import tabwidget
+from qutebrowser.config import configtypes
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
 class TestTabWidget:
@@ -56,10 +59,12 @@ class TestTabWidget:
     }
 
     @pytest.fixture
-    def widget(self, qtbot, config_stub):
+    def widget(self, qtbot, monkeypatch, config_stub):
         config_stub.data = self.CONFIG
         w = tabwidget.TabWidget(0)
         qtbot.addWidget(w)
+        monkeypatch.setattr(tabwidget.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
         return w
 
     def test_small_icon_doesnt_crash(self, widget, qtbot, fake_web_tab):

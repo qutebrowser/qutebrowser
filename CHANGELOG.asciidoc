@@ -30,6 +30,7 @@ Changed
 - New way of clicking hints with which solves various small issues
 - When yanking a mailto: link via hints, the mailto: prefix is now stripped
 - Zoom level messages are now not stacked on top of each other anymore.
+- qutebrowser now automatically uses QtWebEngine if QtWebKit is unavailable
 
 Fixed
 -----

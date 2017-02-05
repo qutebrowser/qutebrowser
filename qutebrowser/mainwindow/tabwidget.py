@@ -29,6 +29,7 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
+from qutebrowser.misc import objects
 
 
 PixelMetrics = usertypes.enum('PixelMetrics', ['icon_padding'],
@@ -124,7 +125,7 @@ class TabWidget(QTabWidget):
         fields['title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
-        fields['backend'] = objreg.get('args').backend
+        fields['backend'] = objects.backend.name
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())

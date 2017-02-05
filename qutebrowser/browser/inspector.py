@@ -24,8 +24,8 @@ import binascii
 
 from PyQt5.QtWidgets import QWidget
 
-from qutebrowser.utils import log, objreg
-from qutebrowser.misc import miscwidgets
+from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.misc import miscwidgets, objects
 
 
 def create(parent=None):
@@ -36,7 +36,7 @@ def create(parent=None):
     """
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
         return webengineinspector.WebEngineInspector(parent)
     else:

@@ -43,6 +43,7 @@ from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
                                qtutils, error, usertypes)
+from qutebrowser.misc import objects
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -882,10 +883,9 @@ class ConfigManager(QObject):
                 # Will be handled later in .setv()
                 pass
             else:
-                backend = usertypes.arg2backend[objreg.get('args').backend]
                 if (allowed_backends is not None and
-                        backend not in allowed_backends):
-                    raise configexc.BackendError(backend)
+                        objects.backend not in allowed_backends):
+                    raise configexc.BackendError(objects.backend)
         else:
             interpolated = None
 

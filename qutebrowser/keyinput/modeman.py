@@ -28,6 +28,7 @@ from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.misc import objects
 
 
 class KeyEvent:
@@ -266,13 +267,12 @@ class ModeManager(QObject):
         except KeyError:
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
 
-        backend = usertypes.arg2backend[objreg.get('args').backend]
         if m in [usertypes.KeyMode.hint, usertypes.KeyMode.command,
                  usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
             raise cmdexc.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
         elif (m == usertypes.KeyMode.caret and
-              backend == usertypes.Backend.QtWebEngine):
+              objects.backend == usertypes.Backend.QtWebEngine):
             raise cmdexc.CommandError("Caret mode is not supported with "
                                       "QtWebEngine yet.")
 

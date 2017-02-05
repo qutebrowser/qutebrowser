@@ -28,7 +28,7 @@ from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
                                usertypes)
 from qutebrowser.config import config
-from qutebrowser.misc import lineparser
+from qutebrowser.misc import lineparser, objects
 
 
 class Entry:
@@ -293,7 +293,6 @@ def init(parent=None):
                          parent=parent)
     objreg.register('web-history', history)
 
-    used_backend = usertypes.arg2backend[objreg.get('args').backend]
-    if used_backend == usertypes.Backend.QtWebKit:
+    if objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkithistory
         webkithistory.init(history)
