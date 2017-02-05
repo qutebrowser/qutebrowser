@@ -89,7 +89,7 @@ def get_info(pid):
 def is_qutebrowser_dump(parsed):
     """Check if the given Line is a qutebrowser dump."""
     basename = os.path.basename(parsed.exe)
-    if basename in ['python', 'python3', 'python3.4', 'python3.5']:
+    if basename == 'python' or basename.startswith('python3'):
         info = get_info(parsed.pid)
         try:
             cmdline = info['Command Line']
