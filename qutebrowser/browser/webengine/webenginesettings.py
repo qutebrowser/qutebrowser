@@ -98,6 +98,13 @@ def _init_stylesheet(profile):
     profile.scripts().insert(script)
 
 
+def _init_profile(profile):
+    """Initialize settings set on the QWebEngineProfile."""
+    profile.setCachePath(os.path.join(standarddir.cache(), 'webengine'))
+    profile.setPersistentStoragePath(
+        os.path.join(standarddir.data(), 'webengine'))
+
+
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, section, option)
@@ -112,9 +119,7 @@ def init(args):
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
     profile = QWebEngineProfile.defaultProfile()
-    profile.setCachePath(os.path.join(standarddir.cache(), 'webengine'))
-    profile.setPersistentStoragePath(
-        os.path.join(standarddir.data(), 'webengine'))
+    _init_profile(profile)
     _init_stylesheet(profile)
 
     websettings.init_mappings(MAPPINGS)
