@@ -76,7 +76,7 @@ class WebKitPrinting(browsertab.AbstractPrinting):
         printer.setOutputFileName(filename)
         self.to_printer(printer)
 
-    def to_printer(self, printer, callback):
+    def to_printer(self, printer, callback=None):
         self._widget.print(printer)
         # Can't find out whether there was an error...
         if callback is not None:
