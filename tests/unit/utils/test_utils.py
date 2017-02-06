@@ -1032,4 +1032,4 @@ class TestOpenFile:
 
 
 def test_unused():
-    unused(None)
+    utils.unused(None)
