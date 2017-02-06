@@ -27,7 +27,7 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg, urlutils
+from qutebrowser.utils import objreg, urlutils, usertypes
 from qutebrowser.misc import sql
 
 
