@@ -153,9 +153,8 @@ window._qutebrowser.webelem = (function() {
 
     funcs.insert_text = function(id, text) {
         var elem = elements[id];
-        var event = document.createEvent("TextEvent");
-        event.initTextEvent("textInput", true, true, null, text);
-        elem.dispatchEvent(event);
+        elem.focus();
+        document.execCommand("insertText", false, text);
     };
 
     funcs.element_at_pos = function(x, y) {

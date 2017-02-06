@@ -95,7 +95,6 @@ Feature: Opening external editors
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
-    @issue2183
     Scenario: Spawning an editor with existing text
         When I set up a fake editor replacing "foo" by "bar"
         And I open data/editor.html

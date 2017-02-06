@@ -247,7 +247,6 @@ Feature: Yanking and pasting.
 
     #### :insert-text
 
-    @issue2183
     Scenario: Inserting text into an empty text field
         When I set general -> log-javascript-console to info
         And I open data/paste_primary.html
@@ -257,7 +256,6 @@ Feature: Yanking and pasting.
         # Compare
         Then the javascript message "textarea contents: Hello world" should be logged
 
-    @issue2183
     Scenario: Inserting text into an empty text field with javascript disabled
         When I set general -> log-javascript-console to info
         And I set content -> allow-javascript to false
@@ -272,7 +270,6 @@ Feature: Yanking and pasting.
         # Compare
         Then the javascript message "textarea contents: Hello world" should be logged
 
-    @issue2183
     Scenario: Inserting text into a text field at specific position
         When I set general -> log-javascript-console to info
         And I open data/paste_primary.html
@@ -287,7 +284,7 @@ Feature: Yanking and pasting.
         # Compare
         Then the javascript message "textarea contents: onHello worlde two three four" should be logged
 
-    @qtwebengine_osx_xfail @issue2183
+    @qtwebengine_osx_xfail
     Scenario: Inserting text into a text field with undo
         When I set general -> log-javascript-console to info
         And I open data/paste_primary.html

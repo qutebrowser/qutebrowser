@@ -130,11 +130,6 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skipif(
                 PYQT_VERSION <= js_prompt_pyqt_version,
                 reason='JS prompts are not supported with this PyQt version'))
-        if item.get_marker('issue2183'):
-            item.add_marker(pytest.mark.xfail(
-                config.webengine and qtutils.version_check('5.7.1'),
-                reason='https://github.com/qutebrowser/qutebrowser/issues/'
-                       '2183'))
 
         if deselected:
             deselected_items.append(item)
