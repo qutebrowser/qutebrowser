@@ -89,15 +89,21 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
                 "Printing to PDF is unsupported with QtWebEngine on Qt < 5.7")
 
     def check_printer_support(self):
+        if not hasattr(self._widget.page(), 'print'):
+            raise browsertab.WebTabError(
+                "Printing is unsupported with QtWebEngine on Qt < 5.8")
+
+    def check_preview_support(self):
         raise browsertab.WebTabError(
-            "Printing is unsupported with QtWebEngine")
+            "Print previews are unsupported with QtWebEngine")
 
     def to_pdf(self, filename):
         self._widget.page().printToPdf(filename)
 
-    def to_printer(self, printer):
-        # Should never be called
-        assert False
+    def to_printer(self, printer, callback=None):
+        if callback is None:
+            callback = lambda _ok: None
+        self._widget.page().print(printer, callback)
 
 
 class WebEngineSearch(browsertab.AbstractSearch):

@@ -370,16 +370,23 @@ class CommandDispatcher:
                 tab.printing.check_pdf_support()
             else:
                 tab.printing.check_printer_support()
+            if preview:
+                tab.printing.check_preview_support()
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)
 
         if preview:
+            def print_callback(ok):
+                if not ok:
+                    message.error("Printing failed!")
+
             diag = QPrintPreviewDialog()
             diag.setAttribute(Qt.WA_DeleteOnClose)
             diag.setWindowFlags(diag.windowFlags() |
                                 Qt.WindowMaximizeButtonHint |
                                 Qt.WindowMinimizeButtonHint)
-            diag.paintRequested.connect(tab.printing.to_printer)
+            diag.paintRequested.connect(functools.partial(
+                tab.printing.to_printer, callback=print_callback))
             diag.exec_()
         elif pdf:
             pdf = os.path.expanduser(pdf)
@@ -389,9 +396,14 @@ class CommandDispatcher:
             tab.printing.to_pdf(pdf)
             log.misc.debug("Print to file: {}".format(pdf))
         else:
+            def print_callback(ok):
+                if not ok:
+                    message.error("Printing failed!")
+                diag.deleteLater()
+
             diag = QPrintDialog()
-            diag.setAttribute(Qt.WA_DeleteOnClose)
-            diag.open(lambda: tab.printing.to_printer(diag.printer()))
+            diag.open(lambda:
+                      tab.printing.to_printer(diag.printer(), print_callback))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):

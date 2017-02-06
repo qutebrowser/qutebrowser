@@ -107,10 +107,20 @@ class AbstractPrinting:
     def check_printer_support(self):
         raise NotImplementedError
 
+    def check_preview_support(self):
+        raise NotImplementedError
+
     def to_pdf(self, filename):
         raise NotImplementedError
 
-    def to_printer(self, printer):
+    def to_printer(self, printer, callback=None):
+        """Print the tab.
+
+        Args:
+            printer: The QPrinter to print to.
+            callback: Called with a boolean
+                      (True if printing succeeded, False otherwise)
+        """
         raise NotImplementedError
 
 
