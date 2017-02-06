@@ -100,3 +100,26 @@ class TestWrapperLayout:
     def test_wrapped(self, container):
         assert container.wrapped.parent() is container
         assert container.focusProxy() is container.wrapped
+
+
+class TestFullscreenNotification:
+
+    @pytest.mark.parametrize('bindings, text', [
+        ({'<escape>': 'fullscreen --leave'},
+            "Press Escape to exit fullscreen."),
+        ({'<escape>': 'fullscreen'}, "Page is now fullscreen."),
+        ({'a': 'fullscreen --leave'}, "Press a to exit fullscreen."),
+        ({}, "Page is now fullscreen."),
+    ])
+    def test_text(self, qtbot, key_config_stub, bindings, text):
+        key_config_stub.set_bindings_for('normal', bindings)
+        w = miscwidgets.FullscreenNotification()
+        qtbot.add_widget(w)
+        assert w.text() == text
+
+    def test_timeout(self, qtbot, key_config_stub):
+        key_config_stub.set_bindings_for('normal', {})
+        w = miscwidgets.FullscreenNotification()
+        qtbot.add_widget(w)
+        with qtbot.waitSignal(w.destroyed):
+            w.set_timeout(1)

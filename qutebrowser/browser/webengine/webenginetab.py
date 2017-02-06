@@ -38,6 +38,7 @@ from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            webenginedownloads)
+from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                objreg, jinja)
 
@@ -654,9 +655,13 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
-        # FIXME:qtwebengine do we want a setting to disallow this?
         request.accept()
-        self.fullscreen_requested.emit(request.toggleOn())
+        on = request.toggleOn()
+        self.fullscreen_requested.emit(on)
+        if on:
+            notification = miscwidgets.FullscreenNotification(self)
+            notification.show()
+            notification.set_timeout(3000)
 
     def _connect_signals(self):
         view = self._widget
