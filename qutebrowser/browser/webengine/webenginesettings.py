@@ -185,7 +185,6 @@ def shutdown():
 # - AutoLoadIconsForPage (5.7)
 # - TouchIconsEnabled (5.7)
 # - FocusOnNavigationEnabled (5.8)
-# - PrintElementBackgrounds (5.8)
 # - AllowRunningInsecureContent (5.8)
 #
 # Missing QtWebEngine fonts:
@@ -287,4 +286,11 @@ try:
     MAPPINGS['content']['webgl'] = Attribute(QWebEngineSettings.WebGLEnabled)
 except AttributeError:
     # Added in Qt 5.7
+    pass
+
+try:
+    MAPPINGS['general']['print-element-backgrounds'] = Attribute(
+        QWebEngineSettings.PrintElementBackgrounds)
+except AttributeError:
+    # Added in Qt 5.8
     pass

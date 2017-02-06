@@ -365,6 +365,8 @@ def generate_commands(filename):
 
 def _generate_setting_section(f, sectname, sect):
     """Generate documentation for a single section."""
+    version_dependent_options = [('network', 'proxy'),
+                                 ('general', 'print-element-backgrounds')]
     for optname, option in sect.items():
         f.write("\n")
         f.write('[[{}-{}]]'.format(sectname, optname) + "\n")
@@ -391,7 +393,7 @@ def _generate_setting_section(f, sectname, sect):
             f.write("Default: empty\n")
 
         if (option.backends is None or
-                (sectname, optname) == ('network', 'proxy')):
+                (sectname, optname) in version_dependent_options):
             pass
         elif option.backends == [usertypes.Backend.QtWebKit]:
             f.write("\nThis setting is only available with the QtWebKit "
