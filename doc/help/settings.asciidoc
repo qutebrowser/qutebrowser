@@ -148,7 +148,7 @@
 |<<storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
 |<<storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
 |<<storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
-|<<storage-cache-size,cache-size>>|Size of the HTTP network cache.
+|<<storage-cache-size,cache-size>>|Size of the HTTP network cache. Empty to use the default value.
 |==============
 
 .Quick reference for section ``content''
@@ -1383,9 +1383,9 @@ Default: +pass:[true]+
 
 [[storage-cache-size]]
 === cache-size
-Size of the HTTP network cache.
+Size of the HTTP network cache. Empty to use the default value.
 
-Default: +pass:[52428800]+
+Default: empty
 
 == content
 Loaded plugins/scripts and allowed actions.

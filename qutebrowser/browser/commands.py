@@ -351,11 +351,11 @@ class CommandDispatcher:
 
     def _print_preview(self, tab):
         """Show a print preview."""
-        tab.printing.check_preview_support()
         def print_callback(ok):
             if not ok:
                 message.error("Printing failed!")
 
+        tab.printing.check_preview_support()
         diag = QPrintPreviewDialog()
         diag.setAttribute(Qt.WA_DeleteOnClose)
         diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
@@ -365,8 +365,8 @@ class CommandDispatcher:
         diag.exec_()
 
     def _print_pdf(self, tab, filename):
-        tab.printing.check_pdf_support()
         """Print to the given PDF file."""
+        tab.printing.check_pdf_support()
         filename = os.path.expanduser(filename)
         directory = os.path.dirname(filename)
         if directory and not os.path.exists(directory):
