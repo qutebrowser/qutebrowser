@@ -25,6 +25,7 @@ Added
 - link:https://github.com/annulen/webkit/wiki[QtWebKit Reloaded] (also called QtWebKit-NG) is now supported.
 - Printing support for QtWebEngine with Qt >= 5.8
 - Proxy support for QtWebEngine with Qt >= 5.8
+- Support for the `content -> cookies-store`  option with QtWebEngine
 
 Changed
 ~~~~~~~

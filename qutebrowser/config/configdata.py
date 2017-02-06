@@ -891,9 +891,9 @@ def data(readonly=False):
              "Control which cookies to accept."),
 
             ('cookies-store',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Whether to store cookies."),
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to store cookies. Note this option needs a restart with "
+             "QtWebEngine."),
 
             ('host-block-lists',
              SettingValue(

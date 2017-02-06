@@ -172,7 +172,7 @@
 |<<content-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
 |<<content-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<content-cookies-accept,cookies-accept>>|Control which cookies to accept.
-|<<content-cookies-store,cookies-store>>|Whether to store cookies.
+|<<content-cookies-store,cookies-store>>|Whether to store cookies. Note this option needs a restart with QtWebEngine.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
 |<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
@@ -1594,7 +1594,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content-cookies-store]]
 === cookies-store
-Whether to store cookies.
+Whether to store cookies. Note this option needs a restart with QtWebEngine.
 
 Valid values:
 
@@ -1602,8 +1602,6 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content-host-block-lists]]
 === host-block-lists

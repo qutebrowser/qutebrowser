@@ -32,7 +32,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
-from qutebrowser.config import websettings
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import objreg, utils, standarddir, javascript
 
 
@@ -63,6 +63,21 @@ class StaticSetter(websettings.StaticSetter):
     """A setting set via static QWebEngineSettings getter/setter methods."""
 
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
+
+
+class PersistentCookiePolicy(websettings.Base):
+
+    """The cookies -> store setting is different from other settings."""
+
+    def get(self, settings=None):
+        return config.get('content', 'cookies-store')
+
+    def _set(self, value, settings=None):
+        utils.unused(settings)
+        QWebEngineProfile.defaultProfile().setPersistentCookiesPolicy(
+            QWebEngineProfile.AllowPersistentCookies if value else
+            QWebEngineProfile.NoPersistentCookies
+        )
 
 
 def _init_stylesheet(profile):
@@ -121,6 +136,9 @@ def init(args):
     profile = QWebEngineProfile.defaultProfile()
     _init_profile(profile)
     _init_stylesheet(profile)
+    # We need to do this here as a WORKAROUND for
+    # https://bugreports.qt.io/browse/QTBUG-58650
+    PersistentCookiePolicy().set(config.get('content', 'cookies-store'))
 
     websettings.init_mappings(MAPPINGS)
     objreg.get('config').changed.connect(update_settings)
@@ -169,6 +187,9 @@ MAPPINGS = {
             Attribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':
             Attribute(QWebEngineSettings.LocalContentCanAccessFileUrls),
+        # https://bugreports.qt.io/browse/QTBUG-58650
+        # 'cookies-store':
+        #     PersistentCookiePolicy(),
     },
     'input': {
         'spatial-navigation':
