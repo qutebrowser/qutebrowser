@@ -215,7 +215,7 @@ def data(readonly=False):
             ('site-specific-quirks',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
-             "Enable workarounds for broken sites."),
+             "Enable QtWebKit workarounds for broken sites."),
 
             ('default-encoding',
              SettingValue(typ.String(none_ok=True), ''),

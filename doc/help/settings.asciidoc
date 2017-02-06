@@ -22,7 +22,7 @@
 |<<general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
 |<<general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
 |<<general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
-|<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
+|<<general-site-specific-quirks,site-specific-quirks>>|Enable QtWebKit workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
 |<<general-new-instance-open-target.window,new-instance-open-target.window>>|Which window to choose when opening links as new tabs.
@@ -446,7 +446,7 @@ Default: +pass:[false]+
 
 [[general-site-specific-quirks]]
 === site-specific-quirks
-Enable workarounds for broken sites.
+Enable QtWebKit workarounds for broken sites.
 
 Valid values:
 
