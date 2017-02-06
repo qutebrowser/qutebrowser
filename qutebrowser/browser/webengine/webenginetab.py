@@ -700,7 +700,7 @@ class WebEngineTab(browsertab.AbstractTab):
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
         view.renderProcessTerminated.connect(
-             self._on_render_process_terminated)
+            self._on_render_process_terminated)
         try:
             view.iconChanged.connect(self.icon_changed)
         except AttributeError:

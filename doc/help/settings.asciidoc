@@ -421,6 +421,7 @@ This setting is only available with the QtWebKit backend.
 [[general-print-element-backgrounds]]
 === print-element-backgrounds
 Whether the background color and images are also drawn when the page is printed.
+This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
 
 Valid values:
 
@@ -428,8 +429,6 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[general-xss-auditing]]
 === xss-auditing
