@@ -470,7 +470,7 @@ class _Downloader:
         elif isinstance(self.target, downloads.OpenFileDownloadTarget):
             try:
                 fobj = downloads.temp_download_manager.get_tmpfile(
-                    self.tab.title() + '.mht')
+                    self.tab.title() + '.mhtml')
             except OSError as exc:
                 msg = "Download error: {}".format(exc)
                 message.error(msg)
@@ -544,9 +544,9 @@ def start_download_checked(target, tab):
     if not isinstance(target, downloads.FileDownloadTarget):
         _start_download(target, tab)
         return
-    # The default name is 'page title.mht'
+    # The default name is 'page title.mhtml'
     title = tab.title()
-    default_name = utils.sanitize_filename(title + '.mht')
+    default_name = utils.sanitize_filename(title + '.mhtml')
 
     # Remove characters which cannot be expressed in the file system encoding
     encoding = sys.getfilesystemencoding()
