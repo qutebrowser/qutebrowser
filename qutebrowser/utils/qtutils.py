@@ -91,6 +91,16 @@ def version_check(version, op=operator.ge):
               pkg_resources.parse_version(version))
 
 
+def is_qtwebkit_ng(version):
+    """Check if the given version is  QtWebKit-NG.
+
+    This is typically used as is_webkit_ng(qWebKitVersion) but we don't want to
+    have QtWebKit imports in here.
+    """
+    return (pkg_resources.parse_version(version) >
+            pkg_resources.parse_version('538.1'))
+
+
 def check_overflow(arg, ctype, fatal=True):
     """Check if the given argument is in bounds for the given type.
 

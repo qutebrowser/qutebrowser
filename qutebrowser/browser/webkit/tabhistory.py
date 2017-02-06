@@ -21,12 +21,9 @@
 
 
 from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
+from PyQt5.QtWebKit import qWebKitVersion
 
 from qutebrowser.utils import qtutils
-
-
-HISTORY_STREAM_VERSION = 2
-BACK_FORWARD_TREE_VERSION = 2
 
 
 def _encode_url(url):
@@ -35,7 +32,54 @@ def _encode_url(url):
     return data.decode('ascii')
 
 
-def _serialize_item(i, item, stream):
+def _serialize_ng(items, current_idx, stream):
+    # {'currentItemIndex': 0,
+    #  'history': [{'children': [],
+    #               'documentSequenceNumber': 1485030525573123,
+    #               'documentState': [],
+    #               'formContentType': '',
+    #               'itemSequenceNumber': 1485030525573122,
+    #               'originalURLString': 'about:blank',
+    #               'pageScaleFactor': 0.0,
+    #               'referrer': '',
+    #               'scrollPosition': {'x': 0, 'y': 0},
+    #               'target': '',
+    #               'title': '',
+    #               'urlString': 'about:blank'}]}
+    data = {'currentItemIndex': current_idx, 'history': []}
+    for item in items:
+        data['history'].append(_serialize_item_ng(item))
+
+    stream.writeInt(3)  # history stream version
+    stream.writeQVariantMap(data)
+
+
+def _serialize_item_ng(item):
+    data = {
+        'originalURLString': item.original_url.toString(QUrl.FullyEncoded),
+        'scrollPosition': {'x': 0, 'y': 0},
+        'title': item.title,
+        'urlString': item.url.toString(QUrl.FullyEncoded),
+    }
+    try:
+        data['scrollPosition']['x'] = item.user_data['scroll-pos'].x()
+        data['scrollPosition']['y'] = item.user_data['scroll-pos'].y()
+    except (KeyError, TypeError):
+        pass
+    return data
+
+
+def _serialize_old(items, current_idx, stream):
+    ### Source/WebKit/qt/Api/qwebhistory.cpp operator<<
+    stream.writeInt(2)  # history stream version
+    stream.writeInt(len(items))
+    stream.writeInt(current_idx)
+
+    for i, item in enumerate(items):
+        _serialize_item_old(i, item, stream)
+
+
+def _serialize_item_old(i, item, stream):
     """Serialize a single WebHistoryItem into a QDataStream.
 
     Args:
@@ -53,7 +97,7 @@ def _serialize_item(i, item, stream):
 
     ### Source/WebCore/history/HistoryItem.cpp decodeBackForwardTree
     ## backForwardTreeEncodingVersion
-    stream.writeUInt32(BACK_FORWARD_TREE_VERSION)
+    stream.writeUInt32(2)
     ## size (recursion stack)
     stream.writeUInt64(0)
     ## node->m_documentSequenceNumber
@@ -137,14 +181,12 @@ def serialize(items):
     else:
         current_idx = 0
 
-    ### Source/WebKit/qt/Api/qwebhistory.cpp operator<<
-    stream.writeInt(HISTORY_STREAM_VERSION)
-    stream.writeInt(len(items))
-    stream.writeInt(current_idx)
+    if qtutils.is_qtwebkit_ng(qWebKitVersion()):
+        _serialize_ng(items, current_idx, stream)
+    else:
+        _serialize_old(items, current_idx, stream)
 
-    for i, item in enumerate(items):
-        _serialize_item(i, item, stream)
-        user_data.append(item.user_data)
+    user_data += [item.user_data for item in items]
 
     stream.device().reset()
     qtutils.check_qdatastream(stream)

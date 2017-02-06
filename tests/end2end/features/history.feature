@@ -69,7 +69,7 @@ Feature: Page history
 
     ## Bugs
 
-    @qtwebengine_skip
+    @qtwebengine_skip @qtwebkit_ng_skip
     Scenario: Opening a valid URL which turns out invalid
         When I set general -> auto-search to true
         And I run :open http://foo%40bar@baz
