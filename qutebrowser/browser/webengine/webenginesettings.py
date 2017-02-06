@@ -180,24 +180,18 @@ def shutdown():
 
 
 # Missing QtWebEngine attributes:
-# - ErrorPageEnabled (should not be exposed, but set)
-# - FullScreenSupportEnabled
-# - ScreenCaptureEnabled
-# - Accelerated2dCanvasEnabled
-# - AutoLoadIconsForPage
-# - TouchIconsEnabled
+# - ScreenCaptureEnabled (5.7)
+# - Accelerated2dCanvasEnabled (5.7)
+# - AutoLoadIconsForPage (5.7)
+# - TouchIconsEnabled (5.7)
+# - FocusOnNavigationEnabled (5.8)
+# - PrintElementBackgrounds (5.8)
+# - AllowRunningInsecureContent (5.8)
 #
 # Missing QtWebEngine fonts:
 # - FantasyFont
-# - PictographFont
-#
-# TODO settings on profile:
-# - httpCacheMaximumSize
-# - persistentCookiesPolicy
-# - offTheRecord
-#
-# TODO settings elsewhere:
-# - proxy
+# - PictographFont (5.7)
+
 
 MAPPINGS = {
     'content': {
