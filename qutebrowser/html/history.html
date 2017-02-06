@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block style %}
+body {
+    background: #fefefe;
+    font-family: sans-serif;
+    margin: 0 auto;
+    max-width: 1440px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+h1 {
+    color: #444;
+    font-weight: normal;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td {
+    max-width: 50%;
+    padding: 2px 5px;
+    text-align: left;
+}
+
+td.title {
+    word-break: break-all;
+}
+
+td.time {
+    color: #555;
+    white-space: nowrap;
+}
+
+a {
+    text-decoration: none;
+    color: #2562dc
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+tr:nth-child(odd) {
+    background-color: #f8f8f8;
+}
+
+.date {
+    color: #888;
+    font-size: 14pt;
+    padding-left: 25px;
+}
+
+.pagination-link {
+    display: inline-block;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding-right: 10px;
+}
+
+.pagination-link > a {
+    color: #333;
+    font-weight: bold;
+}
+
+{% endblock %}
+
+{% block content %}
+
+<h1>Browsing history <span class="date">{{curr_date}}</span></h1>
+
+<table>
+    <tbody>
+    {% for url, title, time in history %}
+        <tr>
+            <td class="title"><a href="{{url}}">{{title}}</a></td>
+            <td class="time">{{time}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<span class="pagination-link"><a href="qute://history/?date={{prev_date}}">Previous</a></span>
+<span class="pagination-link"><a href="qute://history/?date={{next_date}}">Next</a></span>
+
+{% endblock %}

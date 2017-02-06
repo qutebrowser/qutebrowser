@@ -24,6 +24,7 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import datetime
 import urllib.parse
 
 import qutebrowser
@@ -155,6 +156,69 @@ def qute_bookmarks(_url):
                         title='Bookmarks',
                         bookmarks=bookmarks,
                         quickmarks=quickmarks)
+    return 'text/html', html
+
+
+@add_handler('history')
+def qute_history(url):
+    """Handler for qute:history. Display history."""
+
+    # Get current date from query parameter, if not given choose today.
+    curr_date = datetime.date.today()
+    try:
+        for query in url.query().split("&"):
+            kv = query.split("=", 2)
+            if kv[0] == "date":
+                curr_date = datetime.datetime.strptime(kv[1], "%Y-%m-%d")
+                break
+    except Exception:
+        log.misc.debug("Invalid query string passed to qute://history")
+
+    ONE_DAY = datetime.timedelta(days=1)
+    next_date = curr_date + ONE_DAY
+    prev_date = curr_date - ONE_DAY
+
+    def history_iter():
+        for item in objreg.get('web-history').history_dict.values():
+            # Convert timestamp
+            item_date = None
+            try:
+                item_date = datetime.datetime.fromtimestamp(item.atime)
+            except Exception:
+                log.misc.error("Invalid timestamp {}.".format(item.atime))
+                continue
+
+            display_url = item.url.toDisplayString()
+
+            # Skip items not on curr_date
+            # Skip redirects and items without title
+            # Skip qute:// links
+            has_no_title = len(item.title) <= 0
+            is_internal = display_url.startswith("qute://")
+            is_redirect = item.redirect
+            is_not_today = (
+                item_date.year != curr_date.year or
+                item_date.month != curr_date.month or
+                item_date.day != curr_date.day
+            )
+            if (is_redirect or is_internal or has_no_title or is_not_today):
+                continue
+
+            display_atime = item_date.strftime("%X")
+            yield (display_url, item.title, display_atime)
+
+    history = [item for item in history_iter()]
+    try:
+        history = reversed(history)
+    except TypeError:  # Python < 3.5
+        history = reversed(list(history))
+
+    html = jinja.render('history.html',
+                        title='History',
+                        history=history,
+                        curr_date=curr_date.strftime("%a, %d %B %Y"),
+                        next_date=next_date.strftime("%Y-%m-%d"),
+                        prev_date=prev_date.strftime("%Y-%m-%d"))
     return 'text/html', html
 
 
