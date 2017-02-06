@@ -82,6 +82,23 @@ def download_dir(tmpdir):
     return DownloadDir(tmpdir)
 
 
+def _test_mhtml_requests(test_dir, test_path, httpbin):
+    with open(os.path.join(test_dir, 'requests'), encoding='utf-8') as f:
+        expected_requests = []
+        for line in f:
+            if line.startswith('#'):
+                continue
+            path = '/{}/{}'.format(test_path, line.strip())
+            expected_requests.append(httpbin.ExpectedRequest('GET', path))
+
+    actual_requests = httpbin.get_requests()
+    # Requests are not hashable, we need to convert to ExpectedRequests
+    actual_requests = [httpbin.ExpectedRequest.from_request(req)
+                       for req in actual_requests]
+    assert (collections.Counter(actual_requests) ==
+            collections.Counter(expected_requests))
+
+
 @pytest.mark.parametrize('test_name', collect_tests())
 def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
     quteproc.set_setting('storage', 'download-directory',
@@ -113,20 +130,5 @@ def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
     expected_file = os.path.join(test_dir, filename)
     download_dir.compare_mhtml(expected_file)
 
-    if request.config.webengine:
-        return
-
-    with open(os.path.join(test_dir, 'requests'), encoding='utf-8') as f:
-        expected_requests = []
-        for line in f:
-            if line.startswith('#'):
-                continue
-            path = '/{}/{}'.format(test_path, line.strip())
-            expected_requests.append(httpbin.ExpectedRequest('GET', path))
-
-    actual_requests = httpbin.get_requests()
-    # Requests are not hashable, we need to convert to ExpectedRequests
-    actual_requests = [httpbin.ExpectedRequest.from_request(req)
-                       for req in actual_requests]
-    assert (collections.Counter(actual_requests) ==
-            collections.Counter(expected_requests))
+    if not request.config.webengine:
+        _test_mhtml_requests(test_dir, test_path, httpbin)
