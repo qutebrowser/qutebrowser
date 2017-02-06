@@ -25,7 +25,7 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject)
+                          QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
@@ -184,7 +184,7 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
-            loop.exec_()
+            loop.exec_(QEventLoop.ExcludeSocketNotifiers)
             log.prompt.debug("Ending loop.exec_() for {}".format(question))
 
             log.prompt.debug("Restoring old question {}".format(old_question))
