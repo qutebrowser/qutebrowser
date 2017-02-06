@@ -26,7 +26,6 @@ Module attributes:
 
 import os
 
-from PyQt5.QtNetwork import QNetworkCookie
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
@@ -172,11 +171,8 @@ def init(args):
 
 
 def shutdown():
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58675
-    # This forces Chromium to flush its cookie store but doesn't actually
-    # delete anything.
-    cookie = QNetworkCookie()
-    QWebEngineProfile.defaultProfile().cookieStore().deleteCookie(cookie)
+    # FIXME:qtwebengine do we need to do something for a clean shutdown here?
+    pass
 
 
 # Missing QtWebEngine attributes:
