@@ -48,6 +48,13 @@ class DiskCache(QNetworkDiskCache):
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
 
+    def _set_cache_size(self):
+        """Set the cache size based on the config."""
+        size = config.get('storage', 'cache-size')
+        if size is None:
+            size = 1024 * 1024 * 50  # default from QNetworkDiskCachePrivate
+        self.setMaximumCacheSize(size)
+
     def _maybe_activate(self):
         """Activate/deactivate the cache based on the config."""
         if config.get('general', 'private-browsing'):
@@ -55,13 +62,13 @@ class DiskCache(QNetworkDiskCache):
         else:
             self._activated = True
             self.setCacheDirectory(os.path.join(self._cache_dir, 'http'))
-            self.setMaximumCacheSize(config.get('storage', 'cache-size'))
+            self._set_cache_size()
 
     @pyqtSlot(str, str)
     def on_config_changed(self, section, option):
         """Update cache size/activated if the config was changed."""
         if (section, option) == ('storage', 'cache-size'):
-            self.setMaximumCacheSize(config.get('storage', 'cache-size'))
+            self._set_cache_size()
         elif (section, option) == ('general',  # pragma: no branch
                                    'private-browsing'):
             self._maybe_activate()

@@ -443,6 +443,7 @@ class ConfigManager(QObject):
                 'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
                 '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
             }),
+        ('contents', 'cache-size'): _get_value_transformer({'52428800': ''}),
     }
 
     changed = pyqtSignal(str, str)

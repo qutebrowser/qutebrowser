@@ -65,16 +65,40 @@ class StaticSetter(websettings.StaticSetter):
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
-class PersistentCookiePolicy(websettings.Base):
+class ProfileSetter(websettings.Base):
+
+    """A setting set on the QWebEngineProfile."""
+
+    def __init__(self, getter, setter):
+        super().__init__()
+        profile = QWebEngineProfile.defaultProfile()
+        self._getter = getattr(profile, getter)
+        self._setter = getattr(profile, setter)
+
+    def get(self, settings=None):
+        utils.unused(settings)
+        return self._getter()
+
+    def _set(self, value, settings=None):
+        utils.unused(settings)
+        self._setter(value)
+
+
+class PersistentCookiePolicy(ProfileSetter):
 
     """The cookies -> store setting is different from other settings."""
 
+    def __init__(self):
+        super().__init__(getter='persistentCookiesPolicy',
+                         setter='setPersistentCookiesPolicy')
+
     def get(self, settings=None):
+        utils.unused(settings)
         return config.get('content', 'cookies-store')
 
     def _set(self, value, settings=None):
         utils.unused(settings)
-        QWebEngineProfile.defaultProfile().setPersistentCookiesPolicy(
+        self._setter(
             QWebEngineProfile.AllowPersistentCookies if value else
             QWebEngineProfile.NoPersistentCookies
         )
@@ -246,6 +270,9 @@ MAPPINGS = {
     'storage': {
         'local-storage':
             Attribute(QWebEngineSettings.LocalStorageEnabled),
+        'cache-size':
+            ProfileSetter(getter='httpCacheMaximumSize',
+                          setter='setHttpCacheMaximumSize')
     },
     'general': {
         'xss-auditing':

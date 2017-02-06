@@ -795,9 +795,9 @@ def data(readonly=False):
              "enabled."),
 
             ('cache-size',
-             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int64']),
-                          '52428800'),
-             "Size of the HTTP network cache."),
+             SettingValue(typ.Int(none_ok=True, minval=0,
+                                  maxval=MAXVALS['int64']), ''),
+             "Size of the HTTP network cache. Empty to use the default value."),
 
             readonly=readonly
         )),

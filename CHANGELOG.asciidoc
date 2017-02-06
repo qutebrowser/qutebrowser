@@ -26,6 +26,7 @@ Added
 - Printing support for QtWebEngine with Qt >= 5.8
 - Proxy support for QtWebEngine with Qt >= 5.8
 - Support for the `content -> cookies-store`  option with QtWebEngine
+- Support for the `storage -> cache-size` option with QtWebEngine
 
 Changed
 ~~~~~~~
