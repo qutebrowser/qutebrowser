@@ -371,7 +371,7 @@ class CommandDispatcher:
         directory = os.path.dirname(filename)
         if directory and not os.path.exists(directory):
             os.mkdir(directory)
-        tab.printing.to_filename(filename)
+        tab.printing.to_pdf(filename)
         log.misc.debug("Print to file: {}".format(filename))
 
     def _print(self, tab):
