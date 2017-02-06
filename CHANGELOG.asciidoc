@@ -24,6 +24,7 @@ Added
 - New `ripbang` userscript to create a searchengine from a duckduckgo bang
 - link:https://github.com/annulen/webkit/wiki[QtWebKit Reloaded] (also called QtWebKit-NG) is now supported.
 - Printing support for QtWebEngine with Qt >= 5.8
+- Proxy support for QtWebEngine with Qt >= 5.8
 
 Changed
 ~~~~~~~
@@ -45,7 +46,7 @@ Fixed
 - `:record-macro` (`q`) now doesn't try to record macros for special keys without a text.
 - Fixed PAC (proxy autoconfig) not working with QtWebKit
 - `:download --mhtml` now uses the new file dialog
-- Insert mode now gets entered correctly with a non-100% zoom
+- Insert mode now gets entered correctly with a non-100% zoom with QtWebEngine
 - Word hints are now upper-cased correctly when hints -> uppercase is true
 - Font validation is now more permissive in the config, allowing e.g. "Terminus
   (TTF)" as font name.
