@@ -23,6 +23,7 @@ import os
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
+from PyQt5.QtGui import QPalette
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -31,7 +32,7 @@ from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import (log, debug, usertypes, qtutils, jinja, urlutils,
-                               message)
+                               message, objreg)
 
 
 class WebEngineView(QWebEngineView):
@@ -42,7 +43,10 @@ class WebEngineView(QWebEngineView):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
-        self.setPage(WebEnginePage(parent=self))
+
+        theme_color = self.style().standardPalette().color(QPalette.Base)
+        page = WebEnginePage(theme_color=theme_color, parent=self)
+        self.setPage(page)
 
     def shutdown(self):
         self.page().shutdown()
@@ -127,6 +131,7 @@ class WebEnginePage(QWebEnginePage):
 
     Attributes:
         _is_shutting_down: Whether the page is currently shutting down.
+        _theme_color: The theme background color.
 
     Signals:
         certificate_error: Emitted on certificate errors.
@@ -136,11 +141,21 @@ class WebEnginePage(QWebEnginePage):
     certificate_error = pyqtSignal()
     shutting_down = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, theme_color, parent=None):
         super().__init__(parent)
         self._is_shutting_down = False
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
+        self._theme_color = theme_color
+        self._set_bg_color()
+        objreg.get('config').changed.connect(self._set_bg_color)
+
+    @config.change_filter('colors', 'webpage.bg')
+    def _set_bg_color(self):
+        col = config.get('colors', 'webpage.bg')
+        if col is None:
+            col = self._theme_color
+        self.setBackgroundColor(col)
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):

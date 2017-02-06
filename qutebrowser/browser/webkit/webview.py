@@ -108,11 +108,7 @@ class WebView(QWebView):
 
     @config.change_filter('colors', 'webpage.bg')
     def _set_bg_color(self):
-        """Set the webpage background color as configured.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
+        """Set the webpage background color as configured."""
         col = config.get('colors', 'webpage.bg')
         palette = self.palette()
         if col is None:

@@ -27,6 +27,7 @@ Added
 - Proxy support for QtWebEngine with Qt >= 5.8
 - Support for the `content -> cookies-store`  option with QtWebEngine
 - Support for the `storage -> cache-size` option with QtWebEngine
+- Support for the `colors -> webpage.bg` option with QtWebEngine
 - Support for the HTML5 fullscreen API (e.g. youtube videos) with QtWebEngine
 
 Changed

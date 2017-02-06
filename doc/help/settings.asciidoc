@@ -2151,8 +2151,6 @@ Background color for webpages if unset (or empty to use the theme's color)
 
 Default: +pass:[white]+
 
-This setting is only available with the QtWebKit backend.
-
 [[colors-keyhint.fg]]
 === keyhint.fg
 Text color for the keyhint widget.
