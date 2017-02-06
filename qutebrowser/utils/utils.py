@@ -871,3 +871,8 @@ def open_file(filename, cmdline=None):
                    .format(filename, [cmd] + args))
     proc = guiprocess.GUIProcess(what='open-file')
     proc.start_detached(cmd, args)
+
+
+def unused(_arg):
+    """Function which does nothing to avoid pylint complaining."""
+    pass

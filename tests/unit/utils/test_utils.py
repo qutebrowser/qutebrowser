@@ -1029,3 +1029,7 @@ class TestOpenFile:
         assert re.match(
             r"Opening /foo/bar with the system application", result)
         m.assert_called_with(QUrl('file:///foo/bar'))
+
+
+def test_unused():
+    unused(None)
