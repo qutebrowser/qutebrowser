@@ -27,10 +27,6 @@ import collections
 import pytest
 
 
-pytestmark = pytest.mark.qtwebengine_todo("mhtml downloads are not "
-                                          "implemented")
-
-
 def collect_tests():
     basedir = os.path.dirname(__file__)
     datadir = os.path.join(basedir, 'data', 'downloads', 'mhtml')
@@ -40,10 +36,15 @@ def collect_tests():
 
 def normalize_line(line):
     line = line.rstrip('\n')
-    line = re.sub('boundary="---=_qute-[0-9a-f-]+"',
+    line = re.sub('boundary="-+(=_qute|MultipartBoundary)-[0-9a-zA-Z-]+"',
                   'boundary="---=_qute-UUID"', line)
-    line = re.sub('^-----=_qute-[0-9a-f-]+$', '-----=_qute-UUID', line)
+    line = re.sub('^-+(=_qute|MultipartBoundary)-[0-9a-zA-Z-]+$',
+                  '-----=_qute-UUID', line)
     line = re.sub(r'localhost:\d{1,5}', 'localhost:(port)', line)
+    if line.startswith('Date: '):
+        line = 'Date: today'
+    if line.startswith('Content-ID: '):
+        line = 'Content-ID: 42'
 
     # Depending on Python's mimetypes module/the system's mime files, .js
     # files could be either identified as x-javascript or just javascript
@@ -82,7 +83,7 @@ def download_dir(tmpdir):
 
 
 @pytest.mark.parametrize('test_name', collect_tests())
-def test_mhtml(test_name, download_dir, quteproc, httpbin):
+def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
     quteproc.set_setting('storage', 'download-directory',
                          download_dir.location)
     quteproc.set_setting('storage', 'prompt-download-directory', 'false')
@@ -104,12 +105,16 @@ def test_mhtml(test_name, download_dir, quteproc, httpbin):
     # Discard all requests that were necessary to display the page
     httpbin.clear_data()
     quteproc.send_cmd(':download --mhtml --dest "{}"'.format(download_dest))
-    quteproc.wait_for(category='downloads', module='mhtml',
-                      function='_finish_file',
+    quteproc.wait_for(category='downloads',
                       message='File successfully written.')
 
-    expected_file = os.path.join(test_dir, '{}.mht'.format(test_name))
+    suffix = '-webengine' if request.config.webengine else ''
+    filename = '{}{}.mht'.format(test_name, suffix)
+    expected_file = os.path.join(test_dir, filename)
     download_dir.compare_mhtml(expected_file)
+
+    if request.config.webengine:
+        return
 
     with open(os.path.join(test_dir, 'requests'), encoding='utf-8') as f:
         expected_requests = []

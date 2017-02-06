@@ -27,9 +27,9 @@ import collections
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
-from qutebrowser.utils import message, usertypes, log, urlutils
+from qutebrowser.utils import message, usertypes, log, urlutils, utils
 from qutebrowser.browser import downloads
-from qutebrowser.browser.webkit import http
+from qutebrowser.browser.webkit import http, mhtml
 from qutebrowser.browser.webkit.network import networkmanager
 
 
@@ -381,6 +381,27 @@ class DownloadManager(downloads.AbstractDownloadManager):
             return
         req = QNetworkRequest(url)
         return self.get_request(req, **kwargs)
+
+    def get_mhtml(self, tab, target):
+        """Download the given tab as mhtml to the given DownloadTarget."""
+        assert tab.backend == usertypes.Backend.QtWebKit
+
+        if target is not None:
+            mhtml.start_download_checked(target, tab=tab)
+            return
+
+        suggested_fn = utils.sanitize_filename(tab.title() + ".mhtml")
+
+        filename = downloads.immediate_download_path()
+        if filename is not None:
+            target = downloads.FileDownloadTarget(filename)
+            mhtml.start_download_checked(target, tab=tab)
+        else:
+            question = downloads.get_filename_question(
+                suggested_filename=suggested_fn, url=tab.url(), parent=tab)
+            question.answered.connect(functools.partial(
+                mhtml.start_download_checked, tab=tab))
+            message.global_bridge.ask(question, blocking=False)
 
     def get_request(self, request, *, target=None, **kwargs):
         """Start a download with a QNetworkRequest.
