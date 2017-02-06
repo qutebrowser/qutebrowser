@@ -40,7 +40,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginedownloads)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               objreg, jinja)
+                               objreg, jinja, message)
 
 
 _qute_scheme_handler = None
@@ -663,6 +663,21 @@ class WebEngineTab(browsertab.AbstractTab):
             notification.show()
             notification.set_timeout(3000)
 
+    @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
+    def _on_render_process_terminated(self, status, exitcode):
+        """Show an error when the renderer process terminated."""
+        if status == QWebEnginePage.NormalTerminationStatus:
+            pass
+        elif status == QWebEnginePage.AbnormalTerminationStatus:
+            message.error("Renderer process exited with status {}".format(
+                exitcode))
+        elif status == QWebEnginePage.CrashedTerminationStatus:
+            message.error("Renderer process crashed")
+        elif status == QWebEnginePage.KilledTerminationStatus:
+            message.error("Renderer process was killed")
+        else:
+            raise ValueError("Invalid status {}".format(status))
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -677,17 +692,19 @@ class WebEngineTab(browsertab.AbstractTab):
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
         page.fullScreenRequested.connect(self._on_fullscreen_requested)
-
-        view.titleChanged.connect(self.title_changed)
-        view.urlChanged.connect(self._on_url_changed)
-        try:
-            view.iconChanged.connect(self.icon_changed)
-        except AttributeError:
-            log.stub('iconChanged, on Qt < 5.7')
         try:
             page.contentsSizeChanged.connect(self.contents_size_changed)
         except AttributeError:
             log.stub('contentsSizeChanged, on Qt < 5.7')
+
+        view.titleChanged.connect(self.title_changed)
+        view.urlChanged.connect(self._on_url_changed)
+        view.renderProcessTerminated.connect(
+             self._on_render_process_terminated)
+        try:
+            view.iconChanged.connect(self.icon_changed)
+        except AttributeError:
+            log.stub('iconChanged, on Qt < 5.7')
 
     def event_target(self):
         return self._widget.focusProxy()
