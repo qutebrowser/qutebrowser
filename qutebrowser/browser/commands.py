@@ -349,6 +349,43 @@ class CommandDispatcher:
         if tab is not None:
             tab.stop()
 
+    def _print_preview(self, tab):
+        """Show a print preview."""
+        tab.printing.check_preview_support()
+        def print_callback(ok):
+            if not ok:
+                message.error("Printing failed!")
+
+        diag = QPrintPreviewDialog()
+        diag.setAttribute(Qt.WA_DeleteOnClose)
+        diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
+                            Qt.WindowMinimizeButtonHint)
+        diag.paintRequested.connect(functools.partial(
+            tab.printing.to_printer, callback=print_callback))
+        diag.exec_()
+
+    def _print_pdf(self, tab, filename):
+        tab.printing.check_pdf_support()
+        """Print to the given PDF file."""
+        filename = os.path.expanduser(filename)
+        directory = os.path.dirname(filename)
+        if directory and not os.path.exists(directory):
+            os.mkdir(directory)
+        tab.printing.to_filename(filename)
+        log.misc.debug("Print to file: {}".format(filename))
+
+    def _print(self, tab):
+        """Print with a QPrintDialog."""
+        def print_callback(ok):
+            """Called when printing finished."""
+            if not ok:
+                message.error("Printing failed!")
+            diag.deleteLater()
+
+        diag = QPrintDialog()
+        diag.open(lambda: tab.printing.to_printer(diag.printer(),
+                                                  print_callback))
+
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
@@ -376,34 +413,11 @@ class CommandDispatcher:
             raise cmdexc.CommandError(e)
 
         if preview:
-            def print_callback(ok):
-                if not ok:
-                    message.error("Printing failed!")
-
-            diag = QPrintPreviewDialog()
-            diag.setAttribute(Qt.WA_DeleteOnClose)
-            diag.setWindowFlags(diag.windowFlags() |
-                                Qt.WindowMaximizeButtonHint |
-                                Qt.WindowMinimizeButtonHint)
-            diag.paintRequested.connect(functools.partial(
-                tab.printing.to_printer, callback=print_callback))
-            diag.exec_()
+            self._print_preview(tab)
         elif pdf:
-            pdf = os.path.expanduser(pdf)
-            directory = os.path.dirname(pdf)
-            if directory and not os.path.exists(directory):
-                os.mkdir(directory)
-            tab.printing.to_pdf(pdf)
-            log.misc.debug("Print to file: {}".format(pdf))
+            self._print_pdf(tab, pdf)
         else:
-            def print_callback(ok):
-                if not ok:
-                    message.error("Printing failed!")
-                diag.deleteLater()
-
-            diag = QPrintDialog()
-            diag.open(lambda:
-                      tab.printing.to_printer(diag.printer(), print_callback))
+            self._print(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
