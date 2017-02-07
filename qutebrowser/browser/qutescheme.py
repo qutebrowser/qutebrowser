@@ -185,15 +185,19 @@ def qute_history(url):
                 continue
 
             # Skip items not on curr_date
-            # Skip redirects and items without title
+            # Skip redirects
             # Skip qute:// links
             is_internal = item.url.scheme() == 'qute'
             is_not_today = item_atime.date() != curr_date
-            if item.redirect or is_internal or not item.title or is_not_today:
+            if item.redirect or is_internal or is_not_today:
                 continue
 
+            # Use item's url as title if there's no title.
+            item_url = item.url.toDisplayString()
+            item_title = item.title if item.title else item_url
             display_atime = item_atime.strftime("%X")
-            yield (item.url.toDisplayString(), item.title, display_atime)
+
+            yield (item_url, item_title, display_atime)
 
     try:
         history = reversed(history_iter())
