@@ -165,11 +165,13 @@ def qute_bookmarks(_url):
 def qute_history(url):
     """Handler for qute:history. Display history."""
     # Get current date from query parameter, if not given choose today.
-    url_query_date = QUrlQuery(url).queryItemValue("date")
-    if url_query_date:
-        curr_date = datetime.datetime.strptime(url_query_date, "%Y-%m-%d").date()
-    else:
-        curr_date = datetime.date.today()
+    curr_date = datetime.date.today()
+    try:
+        query_date = QUrlQuery(url).queryItemValue("date")
+        if query_date:
+            curr_date = datetime.datetime.strptime(query_date, "%Y-%m-%d").date()
+    except ValueError:
+        log.misc.error("Invalid date passed to qute:history: {}.".format(query_date))
 
     one_day = datetime.timedelta(days=1)
     next_date = curr_date + one_day
