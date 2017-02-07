@@ -95,6 +95,13 @@ def download_size(filename, size, tmpdir):
     assert path.size() == int(size)
 
 
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should contain "
+                            "{text}"))
+def download_contents(filename, text, tmpdir):
+    path = tmpdir / 'downloads' / filename
+    assert text in path.read()
+
+
 @bdd.then(bdd.parsers.parse('The download prompt should be shown with '
                             '"{path}"'))
 def download_prompt(tmpdir, quteproc, path):

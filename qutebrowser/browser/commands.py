@@ -1332,18 +1332,22 @@ class CommandDispatcher:
         if dest is not None:
             target = downloads.FileDownloadTarget(dest)
 
+        tab = self._current_widget()
+        user_agent = tab.user_agent()
+
         if url:
             if mhtml_:
                 raise cmdexc.CommandError("Can only download the current page"
                                           " as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            download_manager.get(url, target=target)
+            download_manager.get(url, user_agent=user_agent, target=target)
         elif mhtml_:
             self._download_mhtml(target)
         else:
-            qnam = self._current_widget().networkaccessmanager()
-            download_manager.get(self._current_url(), qnam=qnam, target=target)
+            qnam = tab.networkaccessmanager()
+            download_manager.get(self._current_url(), user_agent=user_agent,
+                                 qnam=qnam, target=target)
 
     def _download_mhtml(self, target=None):
         """Download the current page as an MHTML file, including all assets.

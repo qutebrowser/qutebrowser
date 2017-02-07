@@ -762,6 +762,14 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
+    def user_agent(self):
+        """Get the user agent for this tab.
+
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always returns None.
+        """
+        raise NotImplementedError
+
     def __repr__(self):
         try:
             url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),

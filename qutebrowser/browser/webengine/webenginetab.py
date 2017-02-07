@@ -611,6 +611,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def networkaccessmanager(self):
         return None
 
+    def user_agent(self):
+        return None
+
     def clear_ssl_errors(self):
         raise browsertab.UnsupportedOperationError
 

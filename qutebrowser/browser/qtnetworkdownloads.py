@@ -366,11 +366,12 @@ class DownloadManager(downloads.AbstractDownloadManager):
             win_id, None, self)
 
     @pyqtSlot('QUrl')
-    def get(self, url, **kwargs):
+    def get(self, url, *, user_agent=None, **kwargs):
         """Start a download with a link URL.
 
         Args:
             url: The URL to get, as QUrl
+            user_agent: The UA to set for the request, or None.
             **kwargs: passed to get_request().
 
         Return:
@@ -380,6 +381,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
             urlutils.invalid_url_error(url, "start download")
             return
         req = QNetworkRequest(url)
+        if user_agent is not None:
+            req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
         return self.get_request(req, **kwargs)
 
     def get_request(self, request, *, target=None, **kwargs):

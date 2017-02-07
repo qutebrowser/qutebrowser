@@ -287,11 +287,13 @@ class HintActions:
 
         prompt = False if context.rapid else None
         qnam = context.tab.networkaccessmanager()
+        user_agent = context.tab.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
-        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, user_agent=user_agent,
+                             prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):
         """Call a userscript from a hint.
