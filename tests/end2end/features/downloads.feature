@@ -599,6 +599,7 @@ Feature: Downloading things from a website.
         When I set hints -> mode to number
         And I open /
         And I run :hint links download
-        And I press the keys "use"  # user-agent
+        And I press the keys "us"  # user-agent
+        And I run :follow-hint 0
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
