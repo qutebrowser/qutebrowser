@@ -90,6 +90,15 @@ class WebEngineAction(browsertab.AbstractAction):
     def exit_fullscreen(self):
         self._action(QWebEnginePage.ExitFullScreen)
 
+    def check_save_page_supported(self):
+        if not hasattr(QWebEnginePage, 'SavePage'):
+            raise browsertab.UnsupportedOperationError(
+                "Saving as mhtml is unsupported with Qt < 5.7")
+
+    def save_page(self):
+        """Save the current page."""
+        self._action(QWebEnginePage.SavePage)
+
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
 

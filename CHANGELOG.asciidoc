@@ -30,6 +30,7 @@ Added
 - Support for the `colors -> webpage.bg` option with QtWebEngine
 - Support for the HTML5 fullscreen API (e.g. youtube videos) with QtWebEngine
 - Support for the `general -> print-element-backgrounds` option with QtWebEngine on Qt >= 5.8
+- Support for `:download --mhtml` with QtWebEngine
 
 Changed
 ~~~~~~~

@@ -47,6 +47,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
         qt_item.downloadProgress.connect(self.stats.on_download_progress)
         qt_item.stateChanged.connect(self._on_state_changed)
 
+    def _is_page_download(self):
+        """Check if this item is a page (i.e. mhtml) download."""
+        try:
+            return (self._qt_item.savePageFormat() !=
+                    QWebEngineDownloadItem.UnknownSaveFormat)
+        except AttributeError:
+            # Added in Qt 5.7
+            return False
+
     @pyqtSlot(QWebEngineDownloadItem.DownloadState)
     def _on_state_changed(self, state):
         state_name = debug.qenum_key(QWebEngineDownloadItem, state)
@@ -59,6 +68,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
             pass
         elif state == QWebEngineDownloadItem.DownloadCompleted:
             log.downloads.debug("Download {} finished".format(self.basename))
+            if self._is_page_download():
+                # Same logging as QtWebKit mhtml downloads.
+                log.downloads.debug("File successfully written.")
             self.successful = True
             self.done = True
             self.finished.emit()
@@ -148,7 +160,15 @@ def _get_suggested_filename(path):
 
 class DownloadManager(downloads.AbstractDownloadManager):
 
-    """Manager for currently running downloads."""
+    """Manager for currently running downloads.
+
+    Attributes:
+        _mhtml_target: DownloadTarget for the next MHTML download.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._mhtml_target = None
 
     def install(self, profile):
         """Set up the download manager on a QWebEngineProfile."""
@@ -163,6 +183,11 @@ class DownloadManager(downloads.AbstractDownloadManager):
         download = DownloadItem(qt_item)
         self._init_item(download, auto_remove=False,
                         suggested_filename=suggested_filename)
+
+        if self._mhtml_target is not None:
+            download.set_target(self._mhtml_target)
+            self._mhtml_target = None
+            return
 
         filename = downloads.immediate_download_path()
         if filename is not None:
@@ -180,3 +205,13 @@ class DownloadManager(downloads.AbstractDownloadManager):
         message.global_bridge.ask(question, blocking=True)
         # The filename is set via the question.answered signal, connected in
         # _init_filename_question.
+
+    def get_mhtml(self, tab, target):
+        """Download the given tab as mhtml to the given target."""
+        assert tab.backend == usertypes.Backend.QtWebEngine
+        # Raises browsertab.UnsupportedOperationError on older Qt versions
+        # but we let the caller handle that.
+        tab.action.check_save_page_supported()
+        assert self._mhtml_target is None, self._mhtml_target
+        self._mhtml_target = target
+        tab.action.save_page()
