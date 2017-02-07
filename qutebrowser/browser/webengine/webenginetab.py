@@ -678,6 +678,11 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
+        if (status == QWebEnginePage.AbnormalTerminationStatus and
+                exitcode == 256):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58697
+            status = QWebEnginePage.CrashedTerminationStatus
+
         if status == QWebEnginePage.NormalTerminationStatus:
             pass
         elif status == QWebEnginePage.AbnormalTerminationStatus:
