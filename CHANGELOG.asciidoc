@@ -59,7 +59,7 @@ Fixed
 - Crash reports are now re-enabled when using QtWebEngine
 - Fixed crashes when closing tabs while hinting
 - Fixed starting on newer PyQt/sip versions with LibreSSL
-- When downloading files with QtWebKit, an User-Agent header is set when possible.
+- When downloading files with QtWebKit, a User-Agent header is set when possible.
 
 v0.9.1
 ------
