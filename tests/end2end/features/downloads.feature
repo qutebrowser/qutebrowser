@@ -197,44 +197,42 @@ Feature: Downloading things from a website.
 
     ## mhtml downloads
 
-    @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Downloading as mhtml is available
-        When I open html
+        When I open data/title.html
         And I run :download --mhtml
         And I wait for "File successfully written." in the log
-        Then no crash should happen
+        Then the downloaded file Test title.mhtml should exist
 
-    @qtwebengine_todo: :download --mhtml is not implemented yet
+    @qtwebengine_skip: QtWebEngine refuses to load this
     Scenario: Downloading as mhtml with non-ASCII headers
         When I open response-headers?Content-Type=text%2Fpl%C3%A4in
-        And I run :download --mhtml --dest mhtml-response-headers.mht
+        And I run :download --mhtml --dest mhtml-response-headers.mhtml
         And I wait for "File successfully written." in the log
-        Then no crash should happen
+        Then the downloaded file mhtml-response-headers.mhtml should exist
 
-    @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Overwriting existing mhtml file
         When I set storage -> prompt-download-directory to true
-        And I open html
+        And I open data/title.html
         And I run :download --mhtml
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept
         And I wait for "File successfully written." in the log
         And I run :download --mhtml
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/html</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> already exists. Overwrite?' title='Overwrite existing file?'>, *" in the log
         And I run :prompt-accept yes
         And I wait for "File successfully written." in the log
         Then no crash should happen
+        Then the downloaded file Test title.mhtml should exist
 
-    @qtwebengine_todo: :download --mhtml is not implemented yet
     Scenario: Opening a mhtml download directly
         When I set storage -> prompt-download-directory to true
         And I open html
         And I run :download --mhtml
         And I wait for the download prompt for "*"
         And I directly open the download
-        Then "Opening *.mht* with [*python*]" should be logged
+        Then "Opening *.mhtml* with [*python*]" should be logged
 
     ## :download-cancel
 

@@ -32,7 +32,7 @@ serif;
        =20
         <!-- don't parse non-CSS styles -->
         <style rel=3D"stylesheet" type=3D"text/qss">
-        @import "actually-it's-css";
+        @import "not-css.qss";
         </style>
        =20
         <!-- make sure icons are included -->

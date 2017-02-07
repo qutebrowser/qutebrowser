@@ -59,6 +59,10 @@ class WebKitAction(browsertab.AbstractAction):
     def exit_fullscreen(self):
         raise browsertab.UnsupportedOperationError
 
+    def save_page(self):
+        """Save the current page."""
+        raise browsertab.UnsupportedOperationError
+
 
 class WebKitPrinting(browsertab.AbstractPrinting):
 

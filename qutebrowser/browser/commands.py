@@ -44,12 +44,6 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
-try:
-    from qutebrowser.browser.webkit import mhtml
-except ImportError:
-    # Failing imports on QtWebEngine, only used in QtWebKit commands.
-    # FIXME:qtwebengine don't import this anymore at all
-    pass
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
@@ -1343,39 +1337,20 @@ class CommandDispatcher:
             urlutils.raise_cmdexc_if_invalid(url)
             download_manager.get(url, user_agent=user_agent, target=target)
         elif mhtml_:
-            self._download_mhtml(target)
+            tab = self._current_widget()
+            if tab.backend == usertypes.Backend.QtWebEngine:
+                webengine_download_manager = objreg.get(
+                    'webengine-download-manager')
+                try:
+                    webengine_download_manager.get_mhtml(tab, target)
+                except browsertab.UnsupportedOperationError as e:
+                    raise cmdexc.CommandError(e)
+            else:
+                download_manager.get_mhtml(tab, target)
         else:
             qnam = tab.networkaccessmanager()
             download_manager.get(self._current_url(), user_agent=user_agent,
                                  qnam=qnam, target=target)
-
-    def _download_mhtml(self, target=None):
-        """Download the current page as an MHTML file, including all assets.
-
-        Args:
-            target: The download target for the file.
-        """
-        tab = self._current_widget()
-        if tab.backend == usertypes.Backend.QtWebEngine:
-            raise cmdexc.CommandError("Download --mhtml is not implemented "
-                                      "with QtWebEngine yet")
-        if target is not None:
-            mhtml.start_download_checked(target, tab=tab)
-            return
-
-        suggested_fn = self._current_title() + ".mht"
-        suggested_fn = utils.sanitize_filename(suggested_fn)
-
-        filename = downloads.immediate_download_path()
-        if filename is not None:
-            target = downloads.FileDownloadTarget(filename)
-            mhtml.start_download_checked(target, tab=tab)
-        else:
-            question = downloads.get_filename_question(
-                suggested_filename=suggested_fn, url=tab.url(), parent=tab)
-            question.answered.connect(functools.partial(
-                mhtml.start_download_checked, tab=tab))
-            message.global_bridge.ask(question, blocking=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):

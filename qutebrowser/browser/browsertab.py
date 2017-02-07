@@ -105,6 +105,10 @@ class AbstractAction:
         """Exit the fullscreen mode."""
         raise NotImplementedError
 
+    def save_page(self):
+        """Save the current page."""
+        raise NotImplementedError
+
 
 class AbstractPrinting:
 
