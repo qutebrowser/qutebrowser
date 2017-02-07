@@ -319,6 +319,7 @@ def check_libraries(backend):
     else:
         assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
+        modules['PyQt5.QtWebKitWidgets'] = _missing_str("PyQt5.QtWebKitWidgets")
 
     from qutebrowser.utils import log
 
