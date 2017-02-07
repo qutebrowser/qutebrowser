@@ -111,7 +111,7 @@ Feature: Downloading things from a website.
         And I wait for "fetch: * -> drip" in the log
         And I run :tab-close
         And I wait for "Download drip finished" in the log
-        Then the downloaded file drip should contain 128 bytes
+        Then the downloaded file drip should be 128 bytes big
 
     Scenario: Downloading a file with spaces
         When I open data/downloads/download with spaces.bin without waiting
@@ -477,7 +477,7 @@ Feature: Downloading things from a website.
         And I run :download http://localhost:(port)/data/downloads/download2.bin --dest download.bin
         And I wait for "Entering mode KeyMode.yesno *" in the log
         And I run :prompt-accept no
-        Then the downloaded file download.bin should contain 1 bytes
+        Then the downloaded file download.bin should be 1 bytes big
 
     Scenario: Overwriting an existing file
         When I set storage -> prompt-download-directory to false
@@ -487,7 +487,7 @@ Feature: Downloading things from a website.
         And I wait for "Entering mode KeyMode.yesno *" in the log
         And I run :prompt-accept yes
         And I wait until the download is finished
-        Then the downloaded file download.bin should contain 2 bytes
+        Then the downloaded file download.bin should be 2 bytes big
 
     @linux
     Scenario: Not overwriting a special file
@@ -542,7 +542,7 @@ Feature: Downloading things from a website.
         When I set storage -> prompt-download-directory to false
         And I run :download http://localhost:(port)/custom/twenty-mb
         And I wait until the download is finished
-        Then the downloaded file twenty-mb should contain 20971520 bytes
+        Then the downloaded file twenty-mb should be 20971520 bytes big
 
     Scenario: Downloading 20MB file with late prompt confirmation
         When I set storage -> prompt-download-directory to true
@@ -550,7 +550,7 @@ Feature: Downloading things from a website.
         And I wait 1s
         And I run :prompt-accept
         And I wait until the download is finished
-        Then the downloaded file twenty-mb should contain 20971520 bytes
+        Then the downloaded file twenty-mb should be 20971520 bytes big
 
     Scenario: Downloading invalid URL
         When I set storage -> prompt-download-directory to false

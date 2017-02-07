@@ -88,8 +88,8 @@ def download_should_exist(filename, tmpdir):
     assert path.check()
 
 
-@bdd.then(bdd.parsers.parse("The downloaded file {filename} should contain "
-                            "{size} bytes"))
+@bdd.then(bdd.parsers.parse("The downloaded file {filename} should be "
+                            "{size} bytes big"))
 def download_size(filename, size, tmpdir):
     path = tmpdir / 'downloads' / filename
     assert path.size() == int(size)
