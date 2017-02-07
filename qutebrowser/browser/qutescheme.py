@@ -27,6 +27,8 @@ Module attributes:
 import datetime
 import urllib.parse
 
+from PyQt5.QtCore import QUrlQuery
+
 import qutebrowser
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
@@ -162,17 +164,12 @@ def qute_bookmarks(_url):
 @add_handler('history')
 def qute_history(url):
     """Handler for qute:history. Display history."""
-
     # Get current date from query parameter, if not given choose today.
-    curr_date = datetime.date.today()
-    try:
-        for query in url.query().split("&"):
-            kv = query.split("=", 2)
-            if kv[0] == "date":
-                curr_date = datetime.datetime.strptime(kv[1], "%Y-%m-%d")
-                break
-    except Exception:
-        log.misc.debug("Invalid query string passed to qute://history")
+    url_query_date = QUrlQuery(url).queryItemValue("date")
+    if url_query_date:
+        curr_date = datetime.datetime.strptime(url_query_date, "%Y-%m-%d")
+    else:
+        curr_date = datetime.date.today()
 
     ONE_DAY = datetime.timedelta(days=1)
     next_date = curr_date + ONE_DAY
