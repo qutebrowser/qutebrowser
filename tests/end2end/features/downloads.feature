@@ -210,6 +210,7 @@ Feature: Downloading things from a website.
         And I wait for "File successfully written." in the log
         Then the downloaded file mhtml-response-headers.mhtml should exist
 
+    @qtwebengine_skip: https://github.com/qutebrowser/qutebrowser/issues/2288
     Scenario: Overwriting existing mhtml file
         When I set storage -> prompt-download-directory to true
         And I open data/title.html
