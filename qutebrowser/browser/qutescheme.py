@@ -169,9 +169,10 @@ def qute_history(url):
     try:
         query_date = QUrlQuery(url).queryItemValue("date")
         if query_date:
-            curr_date = datetime.datetime.strptime(query_date, "%Y-%m-%d").date()
+            curr_date = datetime.datetime.strptime(query_date, "%Y-%m-%d")
+            curr_date = curr_date.date()
     except ValueError:
-        log.misc.error("Invalid date passed to qute:history: {}.".format(query_date))
+        log.misc.error("Invalid date passed to qute:history: " + query_date)
 
     one_day = datetime.timedelta(days=1)
     next_date = curr_date + one_day
@@ -201,10 +202,7 @@ def qute_history(url):
 
             yield (item_url, item_title, display_atime)
 
-    try:
-        history = reversed(history_iter())
-    except TypeError:  # Python < 3.5
-        history = reversed(list(history_iter()))
+    history = reversed(list(history_iter()))
 
     html = jinja.render('history.html',
                         title='History',
