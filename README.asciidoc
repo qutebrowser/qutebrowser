@@ -7,7 +7,7 @@ qutebrowser
 ===========
 
 // QUTE_WEB_HIDE
-image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.*
+image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
 
 image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/COPYING"]
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
@@ -20,7 +20,7 @@ link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[bl
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
-on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
+on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
@@ -99,7 +99,7 @@ The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4 or newer
 * http://qt.io/[Qt] 5.2.0 or newer (5.5.1 recommended)
-* QtWebKit
+* QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG) or QtWebEngine
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
 (5.5.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]

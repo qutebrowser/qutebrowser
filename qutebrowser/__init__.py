@@ -19,7 +19,7 @@
 
 # pylint: disable=line-too-long
 
-"""A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."""
+"""A keyboard-driven, vim-like browser based on PyQt5."""
 
 import os.path
 
@@ -30,6 +30,6 @@ __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
 __version_info__ = (0, 9, 1)
 __version__ = '.'.join(str(e) for e in __version_info__)
-__description__ = "A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit."
+__description__ = "A keyboard-driven, vim-like browser based on PyQt5."
 
 basedir = os.path.dirname(os.path.realpath(__file__))
