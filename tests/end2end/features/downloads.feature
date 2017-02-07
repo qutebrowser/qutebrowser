@@ -596,8 +596,9 @@ Feature: Downloading things from a website.
 
     @qtwebengine_skip: We can't get the UA from the page there
     Scenario: user-agent when using hints
-        When I open /
+        When I set hints -> mode to number
+        And I open /
         And I run :hint links download
-        And I run :follow-hint d
+        And I press the keys "use"  # user-agent
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
