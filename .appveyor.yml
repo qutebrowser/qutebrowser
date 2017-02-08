@@ -7,6 +7,9 @@ environment:
     PYTHONUNBUFFERED: 1
     matrix:
     - TESTENV: py34
+    - TESTENV: py35-pyqt56
+    - TESTENV: py35-pyqt571
+    - TESTENV: py36-pyqt571
     - TESTENV: unittests-frozen
     - TESTENV: pylint
 
