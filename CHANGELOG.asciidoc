@@ -60,6 +60,7 @@ Fixed
 - Fixed crashes when closing tabs while hinting
 - Fixed starting on newer PyQt/sip versions with LibreSSL
 - When downloading files with QtWebKit, a User-Agent header is set when possible.
+- Fixed showing of keybindings in the :help completion
 
 v0.9.1
 ------

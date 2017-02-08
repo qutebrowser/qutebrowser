@@ -53,6 +53,8 @@ class HelpCompletionModel(base.BaseCompletionModel):
     # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
+    COLUMN_WIDTHS = (20, 60, 20)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._init_commands()
