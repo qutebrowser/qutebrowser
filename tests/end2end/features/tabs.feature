@@ -605,6 +605,7 @@ Feature: Tab management
                   title: Test title
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
+    @qtwebkit_skip
     Scenario: Cloning a tab with a special URL
         When I open chrome://gpu
         And I run :tab-clone
@@ -766,6 +767,7 @@ Feature: Tab management
             - data/numbers/3.txt
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
+    @qtwebkit_skip
     Scenario: Undoing a tab with a special URL
         Given I have a fresh instance
         When I open data/numbers/1.txt
