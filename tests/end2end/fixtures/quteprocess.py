@@ -297,7 +297,8 @@ class QuteProc(testprocess.Process):
         URLs like about:... and qute:... are handled specially and returned
         verbatim.
         """
-        if path.startswith('about:') or path.startswith('qute:'):
+        special_schemes = ['about:', 'qute:', 'chrome:']
+        if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:
             httpbin = self.request.getfixturevalue('httpbin')
