@@ -62,6 +62,7 @@ Fixed
 - When downloading files with QtWebKit, a User-Agent header is set when possible.
 - Fixed showing of keybindings in the :help completion
 - Worked around a segfault when opening a URL after a QtWebEngine renderer process crash
+- Using :undo or :tab-clone with a view-source:// or chrome:// tab is now prevented, as it segfaults
 
 v0.9.1
 ------

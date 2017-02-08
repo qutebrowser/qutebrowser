@@ -427,6 +427,11 @@ class CommandDispatcher:
         cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
         cur_title = self._tabbed_browser.page_title(self._current_index())
+        try:
+            history = curtab.history.serialize()
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)
+
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs-are-windows being set)
         if window:
@@ -437,13 +442,15 @@ class CommandDispatcher:
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
         idx = new_tabbed_browser.indexOf(newtab)
+
         new_tabbed_browser.set_page_title(idx, cur_title)
         if config.get('tabs', 'show-favicons'):
             new_tabbed_browser.setTabIcon(idx, curtab.icon())
             if config.get('tabs', 'tabs-are-windows'):
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
+
         newtab.data.keep_icon = True
-        newtab.history.deserialize(curtab.history.serialize())
+        newtab.history.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
         return newtab
 

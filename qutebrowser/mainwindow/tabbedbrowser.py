@@ -268,9 +268,12 @@ class TabbedBrowser(tabwidget.TabWidget):
                              window=self._win_id):
             objreg.delete('last-focused-tab', scope='window',
                           window=self._win_id)
-        if tab.url().isValid():
-            history_data = tab.history.serialize()
-            if add_undo:
+        if tab.url().isValid() and add_undo:
+            try:
+                history_data = tab.history.serialize()
+            except browsertab.WebTabError:
+                pass  # special URL
+            else:
                 entry = UndoEntry(tab.url(), history_data, idx)
                 self._undo_stack.append(entry)
         elif tab.url().isEmpty():
