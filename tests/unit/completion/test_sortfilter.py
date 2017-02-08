@@ -151,80 +151,46 @@ def test_count(tree, expected):
     assert filter_model.count() == expected
 
 
-@pytest.mark.parametrize('pattern, dumb_sort, filter_cols, before, after', [
-    ('foo', None, [0],
+@pytest.mark.parametrize('pattern, filter_cols, before, after', [
+    ('foo', [0],
      [[('foo', '', ''), ('bar', '', '')]],
      [[('foo', '', '')]]),
 
-    ('foo', None, [0],
+    ('foo', [0],
      [[('foob', '', ''), ('fooc', '', ''), ('fooa', '', '')]],
      [[('fooa', '', ''), ('foob', '', ''), ('fooc', '', '')]]),
 
-    ('foo', None, [0],
+    ('foo', [0],
      [[('foo', '', '')], [('bar', '', '')]],
      [[('foo', '', '')], []]),
 
     # prefer foobar as it starts with the pattern
-    ('foo', None, [0],
+    ('foo', [0],
      [[('barfoo', '', ''), ('foobar', '', '')]],
      [[('foobar', '', ''), ('barfoo', '', '')]]),
 
     # however, don't rearrange categories
-    ('foo', None, [0],
+    ('foo', [0],
      [[('barfoo', '', '')], [('foobar', '', '')]],
      [[('barfoo', '', '')], [('foobar', '', '')]]),
 
-    ('foo', None, [1],
+    ('foo', [1],
      [[('foo', 'bar', ''), ('bar', 'foo', '')]],
      [[('bar', 'foo', '')]]),
 
-    ('foo', None, [0, 1],
+    ('foo', [0, 1],
      [[('foo', 'bar', ''), ('bar', 'foo', ''), ('bar', 'bar', '')]],
      [[('foo', 'bar', ''), ('bar', 'foo', '')]]),
 
-    ('foo', None, [0, 1, 2],
+    ('foo', [0, 1, 2],
      [[('foo', '', ''), ('bar', '')]],
      [[('foo', '', '')]]),
-
-    # the fourth column is the sort role, which overrides data-based sorting
-    ('', None, [0],
-     [[('two', '', '', 2), ('one', '', '', 1), ('three', '', '', 3)]],
-     [[('one', '', ''), ('two', '', ''), ('three', '', '')]]),
-
-    ('', Qt.AscendingOrder, [0],
-     [[('two', '', '', 2), ('one', '', '', 1), ('three', '', '', 3)]],
-     [[('one', '', ''), ('two', '', ''), ('three', '', '')]]),
-
-    ('', Qt.DescendingOrder, [0],
-     [[('two', '', '', 2), ('one', '', '', 1), ('three', '', '', 3)]],
-     [[('three', '', ''), ('two', '', ''), ('one', '', '')]]),
 ])
-def test_set_pattern(pattern, dumb_sort, filter_cols, before, after):
+def test_set_pattern(pattern, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
     model = _create_model(before)
-    model.dumb_sort = dumb_sort
     model.columns_to_filter = filter_cols
     filter_model = sortfilter.CompletionFilterModel(model)
     filter_model.set_pattern(pattern)
     actual = _extract_model_data(filter_model)
     assert actual == after
-
-
-def test_sort():
-    """Ensure that a sort argument passed to sort overrides DUMB_SORT.
-
-    While test_set_pattern above covers most of the sorting logic, this
-    particular case is easier to test separately.
-    """
-    model = _create_model([[('B', '', '', 1),
-                            ('C', '', '', 2),
-                            ('A', '', '', 0)]])
-    filter_model = sortfilter.CompletionFilterModel(model)
-
-    filter_model.sort(0, Qt.AscendingOrder)
-    actual = _extract_model_data(filter_model)
-    assert actual == [[('A', '', ''), ('B', '', ''), ('C', '', '')]]
-
-    filter_model.sort(0, Qt.DescendingOrder)
-    actual = _extract_model_data(filter_model)
-    assert actual == [[('C', '', ''), ('B', '', ''), ('A', '', '')]]

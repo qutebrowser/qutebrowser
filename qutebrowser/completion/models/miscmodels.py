@@ -119,7 +119,6 @@ def buffer():
 
     model = base.CompletionModel(
         column_widths=(6, 40, 54),
-        dumb_sort=Qt.DescendingOrder,
         delete_cur_item=delete_buffer,
         columns_to_filter=[idx_column, url_column, text_column])
 

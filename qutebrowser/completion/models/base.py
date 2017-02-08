@@ -29,10 +29,6 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from qutebrowser.utils import usertypes
 
 
-Role = usertypes.enum('Role', ['sort', 'userdata'], start=Qt.UserRole,
-                      is_int=True)
-
-
 class CompletionModel(QStandardItemModel):
 
     """A simple QStandardItemModel adopted for completions.
@@ -42,37 +38,30 @@ class CompletionModel(QStandardItemModel):
 
     Attributes:
         column_widths: The width percentages of the columns used in the
-                       completion view.
-        dumb_sort: the dumb sorting used by the model
     """
 
-    def __init__(self, dumb_sort=None, column_widths=(30, 70, 0),
-                 columns_to_filter=None, delete_cur_item=None, parent=None):
+    def __init__(self, column_widths=(30, 70, 0), columns_to_filter=None,
+                 delete_cur_item=None, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)
         self.columns_to_filter = columns_to_filter or [0]
-        self.dumb_sort = dumb_sort
         self.column_widths = column_widths
         self.delete_cur_item = delete_cur_item
 
-    def new_category(self, name, sort=None):
+    def new_category(self, name):
         """Add a new category to the model.
 
         Args:
             name: The name of the category to add.
-            sort: The value to use for the sort role.
 
         Return:
             The created QStandardItem.
         """
         cat = QStandardItem(name)
-        if sort is not None:
-            cat.setData(sort, Role.sort)
         self.appendRow(cat)
         return cat
 
-    def new_item(self, cat, name, desc='', misc=None, sort=None,
-                 userdata=None):
+    def new_item(self, cat, name, desc='', misc=None):
         """Add a new item to a category.
 
         Args:
@@ -80,8 +69,6 @@ class CompletionModel(QStandardItemModel):
             name: The name of the item.
             desc: The description of the item.
             misc: Misc text to display.
-            sort: Data for the sort role (int).
-            userdata: User data to be added for the first column.
 
         Return:
             A (nameitem, descitem, miscitem) tuple.
@@ -98,11 +85,6 @@ class CompletionModel(QStandardItemModel):
             miscitem = QStandardItem(misc)
 
         cat.appendRow([nameitem, descitem, miscitem])
-        if sort is not None:
-            nameitem.setData(sort, Role.sort)
-        if userdata is not None:
-            nameitem.setData(userdata, Role.userdata)
-        return nameitem, descitem, miscitem
 
     def flags(self, index):
         """Return the item flags for index.

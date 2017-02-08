@@ -67,7 +67,7 @@ def value(sectname, optname):
         optname: The name of the config option this model shows.
     """
     model = base.CompletionModel(column_widths=(20, 70, 10))
-    cur_cat = model.new_category("Current/Default", sort=0)
+    cur_cat = model.new_category("Current/Default")
     try:
         val = config.get(sectname, optname, raw=True) or '""'
     except (configexc.NoSectionError, configexc.NoOptionError):
@@ -85,7 +85,7 @@ def value(sectname, optname):
         # Different type for each value (KeyValue)
         vals = configdata.DATA[sectname][optname].typ.complete()
     if vals is not None:
-        cat = model.new_category("Completions", sort=1)
+        cat = model.new_category("Completions")
         for (val, desc) in vals:
             model.new_item(cat, val, desc)
     return model

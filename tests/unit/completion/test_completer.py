@@ -37,7 +37,6 @@ class FakeCompletionModel(QStandardItemModel):
         super().__init__(parent)
         self.kind = kind
         self.pos_args = [*pos_args]
-        self.dumb_sort = None
 
 
 class CompletionWidgetStub(QObject):

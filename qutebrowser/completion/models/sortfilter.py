@@ -33,14 +33,13 @@ from qutebrowser.completion.models import base as completion
 
 class CompletionFilterModel(QSortFilterProxyModel):
 
-    """Subclass of QSortFilterProxyModel with custom sorting/filtering.
+    """Subclass of QSortFilterProxyModel with custom filtering.
 
     Attributes:
         pattern: The pattern to filter with.
         srcmodel: The current source model.
                    Kept as attribute because calling `sourceModel` takes quite
                    a long time for some reason.
-        _sort_order: The order to use for sorting if using dumb_sort.
     """
 
     def __init__(self, source, parent=None):
@@ -49,20 +48,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self.srcmodel = source
         self.pattern = ''
         self.pattern_re = None
-
-        dumb_sort = self.srcmodel.dumb_sort
-        if dumb_sort is None:
-            # pylint: disable=invalid-name
-            self.lessThan = self.intelligentLessThan
-            self._sort_order = Qt.AscendingOrder
-        else:
-            self.setSortRole(completion.Role.sort)
-            self._sort_order = dumb_sort
+        self.lessThan = self.intelligentLessThan
+        #self._sort_order = self.srcmodel.sort_order or Qt.AscendingOrder
 
     def set_pattern(self, val):
         """Setter for pattern.
-
-        Invalidates the filter and re-sorts the model.
 
         Args:
             val: The value to set.
@@ -163,12 +153,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
         qtutils.ensure_valid(lindex)
         qtutils.ensure_valid(rindex)
 
-        left_sort = self.srcmodel.data(lindex, role=completion.Role.sort)
-        right_sort = self.srcmodel.data(rindex, role=completion.Role.sort)
-
-        if left_sort is not None and right_sort is not None:
-            return left_sort < right_sort
-
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
 
@@ -183,9 +167,3 @@ class CompletionFilterModel(QSortFilterProxyModel):
             return False
         else:
             return left < right
-
-    def sort(self, column, order=None):
-        """Extend sort to respect self._sort_order if no order was given."""
-        if order is None:
-            order = self._sort_order
-        super().sort(column, order)
