@@ -21,8 +21,23 @@ matrix:
     - os: linux
       env: DOCKER=ubuntu-xenial
       services: docker
+    - os: linux
+      language: python
+      python: 3.5
+      env: TESTENV=py35-pyqt56
+    - os: linux
+      language: python
+      python: 3.5
+      env: TESTENV=py35-pyqt571
+    - os: linux
+      language: python
+      python: 3.6
+      env: TESTENV=py36-pyqt571
     - os: osx
       env: TESTENV=py36 OSX=elcapitan
+      osx_image: xcode7.3
+    - os: osx
+      env: TESTENV=py36-pyqt571 OSX=elcapitan
       osx_image: xcode7.3
     # https://github.com/qutebrowser/qutebrowser/issues/2013
     # - os: osx
