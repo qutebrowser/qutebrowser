@@ -540,8 +540,8 @@ class AbstractTab(QWidget):
         fullscreen_requested: Fullscreen display was requested by the page.
                               arg: True if fullscreen should be turned on,
                                    False if it should be turned off.
-        renderer_process_terminated: Emitted when the underlying renderer process
-                                     terminated.
+        renderer_process_terminated: Emitted when the underlying renderer
+                                     process terminated.
                                      arg 0: A TerminationStatus member.
                                      arg 1: The exit code.
     """
