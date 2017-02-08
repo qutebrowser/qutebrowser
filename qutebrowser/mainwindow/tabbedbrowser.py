@@ -250,12 +250,13 @@ class TabbedBrowser(tabwidget.TabWidget):
                 url = config.get('general', 'default-page')
                 self.openurl(url, newtab=True)
 
-    def _remove_tab(self, tab, *, add_undo=True):
+    def _remove_tab(self, tab, *, add_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
+            crashed: Whether we're closing a tab with crashed renderer process.
         """
         idx = self.indexOf(tab)
         if idx == -1:
@@ -285,8 +286,10 @@ class TabbedBrowser(tabwidget.TabWidget):
             urlutils.invalid_url_error(tab.url(), "saving tab")
         tab.shutdown()
         self.removeTab(idx)
-        tab.layout().unwrap()
-        tab.deleteLater()
+        if not crashed:
+            # WORKAROUND for a segfault when we delete the crashed tab.
+            # see https://bugreports.qt.io/browse/QTBUG-58698
+            tab.layout().unwrap()
 
     def undo(self):
         """Undo removing of a tab."""
@@ -670,6 +673,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             message.error("Renderer process was killed")
         else:
             raise ValueError("Invalid status {}".format(status))
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+        # FIXME:qtwebengine can we disable this with Qt 5.8.1?
+        self._remove_tab(tab, crashed=True)
+        if self.count() == 0:
+            self.tabopen(QUrl('about:blank'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

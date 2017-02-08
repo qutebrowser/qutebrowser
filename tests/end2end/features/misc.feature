@@ -653,3 +653,16 @@ Feature: Various utility commands.
     Scenario: Renderer kill
         When I run :open -t chrome://kill
         Then the error "Renderer process was killed" should be shown
+
+    # https://github.com/qutebrowser/qutebrowser/issues/2290
+    @qtwebkit_skip @no_invalid_lines
+    Scenario: Navigating to URL after renderer process is gone
+        When I run :tab-only
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :open chrome://kill
+        And I wait for "Renderer process was killed" in the log
+        And I open data/numbers/3.txt
+        Then no crash should happen
+        And the following tabs should be open:
+            - data/numbers/3.txt (active)
