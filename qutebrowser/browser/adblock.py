@@ -219,7 +219,7 @@ class HostBlocker:
         try:
             f = get_fileobj(byte_io)
         except (OSError, UnicodeDecodeError, zipfile.BadZipFile,
-                zipfile.LargeZipFile) as e:
+                zipfile.LargeZipFile, LookupError) as e:
             message.error("adblock: Error while reading {}: {} - {}".format(
                 byte_io.name, e.__class__.__name__, e))
             return
