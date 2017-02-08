@@ -38,7 +38,7 @@ except ImportError:  # pragma: no cover
     qWebKitVersion = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir
+from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.browser import pdfjs
 
@@ -230,7 +230,13 @@ def version():
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
-    lines.append("Backend: {}".format(objects.backend.name))
+
+    backend = objects.backend.name
+    if (qWebKitVersion is not None and
+            objects.backend == usertypes.Backend.QtWebKit and
+            qtutils.is_qtwebkit_ng(qWebKitVersion())):
+        backend = 'QtWebKit-NG'
+    lines.append("Backend: {}".format(backend))
 
     if qVersion() != QT_VERSION_STR:
         qt_version = 'Qt: {} (compiled {})'.format(qVersion(), QT_VERSION_STR)
