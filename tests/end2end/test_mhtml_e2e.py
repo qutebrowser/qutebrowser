@@ -69,6 +69,9 @@ class DownloadDir:
         with open(str(files[0]), 'r', encoding='utf-8') as f:
             return f.readlines()
 
+    def sanity_check_mhtml(self):
+        assert 'Content-Type: multipart/related' in '\n'.join(self.read_file())
+
     def compare_mhtml(self, filename):
         with open(filename, 'r', encoding='utf-8') as f:
             expected_data = [normalize_line(line) for line in f]
@@ -128,7 +131,10 @@ def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
     suffix = '-webengine' if request.config.webengine else ''
     filename = '{}{}.mht'.format(test_name, suffix)
     expected_file = os.path.join(test_dir, filename)
-    download_dir.compare_mhtml(expected_file)
+    if os.path.exists(expected_file):
+        download_dir.compare_mhtml(expected_file)
+    else:
+        download_dir.sanity_check_mhtml()
 
     if not request.config.webengine:
         _test_mhtml_requests(test_dir, test_path, httpbin)
