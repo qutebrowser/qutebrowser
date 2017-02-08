@@ -614,6 +614,12 @@ class TabBarStyle(QCommonStyle):
             p: QPainter
             widget: QWidget
         """
+        if element not in [QStyle.CE_TabBarTab, QStyle.CE_TabBarTabShape,
+                           QStyle.CE_TabBarTabLabel]:
+            # Let the real style draw it.
+            self._style.drawControl(element, opt, p, widget)
+            return
+
         layouts = self._tab_layout(opt)
         if layouts is None:
             log.misc.warning("Could not get layouts for tab!")
@@ -638,9 +644,7 @@ class TabBarStyle(QCommonStyle):
                                      opt.state & QStyle.State_Enabled,
                                      opt.text, QPalette.WindowText)
         else:
-            # For any other elements we just delegate the work to our real
-            # style.
-            self._style.drawControl(element, opt, p, widget)
+            raise ValueError("Invalid element {!r}".format(element))
 
     def pixelMetric(self, metric, option=None, widget=None):
         """Override pixelMetric to not shift the selected tab.
