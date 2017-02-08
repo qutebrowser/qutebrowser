@@ -90,7 +90,7 @@ def _get_version_tag(tag):
     version = match.group('version')
 
     if package == 'qt':
-        return pytest.mark.skipif(qtutils.version_check(version, op),
+        return pytest.mark.skipif(not qtutils.version_check(version, op),
                                   reason='Needs ' + tag)
     elif package == 'pyqt':
         major, minor, patch = [int(e) for e in version.split('.')]
