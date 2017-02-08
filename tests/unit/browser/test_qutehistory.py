@@ -31,6 +31,16 @@ class TestHistoryHandler:
     @pytest.fixture(autouse=True)
     def fake_objects(self, fake_save_manager):
         """ Create fake web-history with history for three different days """
+        try:
+            original_save_manager = objreg.get('save-manager')
+        except KeyError:
+            original_save_manager = None
+
+        try:
+            original_web_history = objreg.get('web-history')
+        except KeyError:
+            original_web_history = None
+
         temp_dir = tempfile.TemporaryDirectory()
         fake_web_history = history.WebHistory(temp_dir.name, 'fake-history')
         objreg.register('web-history', fake_web_history, update=True)
@@ -54,6 +64,18 @@ class TestHistoryHandler:
         web_history._add_entry(tomorrow)
         web_history._add_entry(yesterday)
         web_history.save()
+
+        yield
+
+        if original_save_manager:
+            objreg.register('save-manager', original_save_manager, update=True)
+        else:
+            objreg.delete('save-manager')
+
+        if original_web_history:
+            objreg.register('web-history', original_web_history, update=True)
+        else:
+            objreg.delete('web-history')
 
     def test_history_without_query(self):
         """ Test qute://history shows today's history when it has no query """
