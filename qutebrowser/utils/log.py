@@ -401,6 +401,8 @@ def qt_message_handler(msg_type, context, msg):
             "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
         # Installing Qt from the installer may cause it looking for SSL3 which
         # may not be available on the system
+        "QSslSocket: cannot resolve SSLv2_client_method",
+        "QSslSocket: cannot resolve SSLv2_server_method",
         "QSslSocket: cannot resolve SSLv3_client_method",
         "QSslSocket: cannot resolve SSLv3_server_method",
         # When enabling debugging with QtWebEngine
