@@ -95,12 +95,11 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     brew --version
 
     brew_install python3
-    [[ $TESTENV != *-pyqt* ]] && brew_install qt5 pyqt5
+    [[ $TESTENV != *-pyqt* ]] && brew_install qt5 pyqt5 && check_pyqt
 
     pip_install -r misc/requirements/requirements-tox.txt
     pip --version
     tox --version
-    check_pyqt
     exit 0
 fi
 
