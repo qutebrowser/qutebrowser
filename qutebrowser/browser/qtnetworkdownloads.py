@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.utils import message, usertypes, log, urlutils, utils
 from qutebrowser.browser import downloads
-from qutebrowser.browser.webkit import http, mhtml
+from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 
 
@@ -388,6 +388,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def get_mhtml(self, tab, target):
         """Download the given tab as mhtml to the given DownloadTarget."""
         assert tab.backend == usertypes.Backend.QtWebKit
+        from qutebrowser.browser.webkit import mhtml
 
         if target is not None:
             mhtml.start_download_checked(target, tab=tab)
