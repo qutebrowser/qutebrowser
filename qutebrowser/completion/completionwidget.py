@@ -150,10 +150,15 @@ class CompletionView(QTreeView):
         """Resize the completion columns based on column_widths."""
         width = self.size().width()
         pixel_widths = [(width * perc // 100) for perc in self._column_widths]
+
         if self.verticalScrollBar().isVisible():
-            pixel_widths[-1] -= self.style().pixelMetric(
-                QStyle.PM_ScrollBarExtent) + 5
+            delta = self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
+            if pixel_widths[-1] > delta:
+                pixel_widths[-1] -= delta
+            else:
+                pixel_widths[-2] -= delta
         for i, w in enumerate(pixel_widths):
+            assert w >= 0, i
             self.setColumnWidth(i, w)
 
     def _next_idx(self, upwards):
