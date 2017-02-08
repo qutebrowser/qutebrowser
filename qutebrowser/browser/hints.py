@@ -572,6 +572,10 @@ class HintManager(QObject):
 
     def _start_cb(self, elems):
         """Initialize the elements and labels based on the context set."""
+        if self._context is None:
+            log.hints.debug("In _start_cb without context!")
+            return
+
         if elems is None:
             message.error("There was an error while getting hint elements")
             return
