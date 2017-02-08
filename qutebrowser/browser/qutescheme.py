@@ -172,7 +172,7 @@ def qute_history(url):
             curr_date = datetime.datetime.strptime(query_date, "%Y-%m-%d")
             curr_date = curr_date.date()
     except ValueError:
-        log.misc.error("Invalid date passed to qute:history: " + query_date)
+        log.misc.debug("Invalid date passed to qute:history: " + query_date)
 
     one_day = datetime.timedelta(days=1)
     next_date = curr_date + one_day
@@ -184,7 +184,7 @@ def qute_history(url):
             try:
                 item_atime = datetime.datetime.fromtimestamp(item.atime)
             except (ValueError, OSError, OverflowError):
-                log.misc.error("Invalid timestamp {}.".format(item.atime))
+                log.misc.debug("Invalid timestamp {}.".format(item.atime))
                 continue
 
             # Skip items not on curr_date
