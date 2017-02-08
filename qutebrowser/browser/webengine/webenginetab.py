@@ -40,7 +40,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginedownloads)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               objreg, jinja, message)
+                               objreg, jinja)
 
 
 _qute_scheme_handler = None
@@ -683,17 +683,17 @@ class WebEngineTab(browsertab.AbstractTab):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58697
             status = QWebEnginePage.CrashedTerminationStatus
 
-        if status == QWebEnginePage.NormalTerminationStatus:
-            pass
-        elif status == QWebEnginePage.AbnormalTerminationStatus:
-            message.error("Renderer process exited with status {}".format(
-                exitcode))
-        elif status == QWebEnginePage.CrashedTerminationStatus:
-            message.error("Renderer process crashed")
-        elif status == QWebEnginePage.KilledTerminationStatus:
-            message.error("Renderer process was killed")
-        else:
-            raise ValueError("Invalid status {}".format(status))
+        status_map = {
+            QWebEnginePage.NormalTerminationStatus:
+                browsertab.TerminationStatus.normal,
+            QWebEnginePage.AbnormalTerminationStatus:
+                browsertab.TerminationStatus.abnormal,
+            QWebEnginePage.CrashedTerminationStatus:
+                browsertab.TerminationStatus.crashed,
+            QWebEnginePage.KilledTerminationStatus:
+                browsertab.TerminationStatus.killed,
+        }
+        self.renderer_process_terminated.emit(status_map[status], exitcode)
 
     def _connect_signals(self):
         view = self._widget

@@ -74,6 +74,14 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
+TerminationStatus = usertypes.enum('TerminationStatus', [
+    'normal',
+    'abnormal',  # non-zero exit status
+    'crashed',   # e.g. segfault
+    'killed'
+])
+
+
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -532,6 +540,10 @@ class AbstractTab(QWidget):
         fullscreen_requested: Fullscreen display was requested by the page.
                               arg: True if fullscreen should be turned on,
                                    False if it should be turned off.
+        renderer_process_terminated: Emitted when the underlying renderer process
+                                     terminated.
+                                     arg 0: A TerminationStatus member.
+                                     arg 1: The exit code.
     """
 
     window_close_requested = pyqtSignal()
@@ -548,6 +560,7 @@ class AbstractTab(QWidget):
     contents_size_changed = pyqtSignal(QSizeF)
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
     fullscreen_requested = pyqtSignal(bool)
+    renderer_process_terminated = pyqtSignal(TerminationStatus, int)
 
     def __init__(self, win_id, mode_manager, parent=None):
         self.win_id = win_id

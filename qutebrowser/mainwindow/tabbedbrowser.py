@@ -198,6 +198,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             functools.partial(self.on_load_started, tab))
         tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
+        tab.renderer_process_terminated.connect(
+            functools.partial(self._on_renderer_process_terminated, tab))
         tab.new_tab_requested.connect(self.tabopen)
         tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
         tab.fullscreen_requested.connect(self.page_fullscreen_requested)
@@ -654,6 +656,20 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         self.update_window_title()
         self.update_tab_title(idx)
+
+    def _on_renderer_process_terminated(self, tab, status, code):
+        """Show an error when a renderer process terminated."""
+        if status == browsertab.TerminationStatus.normal:
+            pass
+        elif status == browsertab.TerminationStatus.abnormal:
+            message.error("Renderer process exited with status {}".format(
+                code))
+        elif status == browsertab.TerminationStatus.crashed:
+            message.error("Renderer process crashed")
+        elif status == browsertab.TerminationStatus.killed:
+            message.error("Renderer process was killed")
+        else:
+            raise ValueError("Invalid status {}".format(status))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
