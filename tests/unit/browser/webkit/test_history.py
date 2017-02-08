@@ -383,8 +383,10 @@ def test_history_interface(qtbot, webview, hist_interface):
 @pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
                                      usertypes.Backend.QtWebKit])
 def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager):
-    if backend == 'webkit':
+    if backend == usertypes.Backend.QtWebKit:
         pytest.importorskip('PyQt5.QtWebKitWidgets')
+    else:
+        assert backend == usertypes.Backend.QtWebEngine
 
     monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
     monkeypatch.setattr(history.objects, 'backend', backend)
