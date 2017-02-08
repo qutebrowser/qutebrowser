@@ -660,7 +660,7 @@ class WebEngineTab(browsertab.AbstractTab):
             try:
                 # pylint: disable=no-member
                 sip.assign(authenticator, QAuthenticator())
-            except NameError:
+            except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
                 url_string = url.toDisplayString()
