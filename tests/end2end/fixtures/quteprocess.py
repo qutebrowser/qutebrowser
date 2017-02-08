@@ -246,6 +246,7 @@ class QuteProc(testprocess.Process):
             elif (is_ignored_qt_message(line) or
                   is_ignored_lowlevel_message(line) or
                   self.request.node.get_marker('no_invalid_lines')):
+                self._log("IGNORED: {}".format(line))
                 return None
             else:
                 raise
