@@ -116,8 +116,6 @@ def pytest_collection_modifyitems(config, items):
                                        'test_conftest.py']
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
-            elif os.environ.get('QUTE_BDD_WEBENGINE', ''):
-                deselected = True
 
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
