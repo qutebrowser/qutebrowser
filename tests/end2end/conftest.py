@@ -69,7 +69,7 @@ def _get_version_tag(tag):
     version_re = re.compile(r"""
         (?P<package>qt|pyqt)
         (?P<operator>==|>|>=|<|<=|!=)
-        (?P<version>\d+\.\d+\.\d+)
+        (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
 
     match = version_re.match(tag)
