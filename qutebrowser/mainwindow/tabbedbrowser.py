@@ -268,7 +268,19 @@ class TabbedBrowser(tabwidget.TabWidget):
                              window=self._win_id):
             objreg.delete('last-focused-tab', scope='window',
                           window=self._win_id)
-        if tab.url().isValid() and add_undo:
+
+        if tab.url().isEmpty():
+            # There are some good reasons why a URL could be empty
+            # (target="_blank" with a download, see [1]), so we silently ignore
+            # this.
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
+            pass
+        elif not tab.url().isValid():
+            # We display a warning for URLs which are not empty but invalid -
+            # but we don't return here because we want the tab to close either
+            # way.
+            urlutils.invalid_url_error(tab.url(), "saving tab")
+        elif add_undo:
             try:
                 history_data = tab.history.serialize()
             except browsertab.WebTabError:
@@ -276,17 +288,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             else:
                 entry = UndoEntry(tab.url(), history_data, idx)
                 self._undo_stack.append(entry)
-        elif tab.url().isEmpty():
-            # There are some good reasons why a URL could be empty
-            # (target="_blank" with a download, see [1]), so we silently ignore
-            # this.
-            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
-            pass
-        else:
-            # We display a warnings for URLs which are not empty but invalid -
-            # but we don't return here because we want the tab to close either
-            # way.
-            urlutils.invalid_url_error(tab.url(), "saving tab")
+
         tab.shutdown()
         self.removeTab(idx)
         if not crashed:
