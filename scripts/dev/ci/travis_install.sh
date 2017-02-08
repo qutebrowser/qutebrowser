@@ -93,13 +93,12 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     sudo -H python get-pip.py
 
     brew --version
-
-    brew_install python3
-    [[ $TESTENV != *-pyqt* ]] && brew_install qt5 pyqt5 && check_pyqt
+    brew_install python3 qt5 pyqt5
 
     pip_install -r misc/requirements/requirements-tox.txt
     pip --version
     tox --version
+    check_pyqt
     exit 0
 fi
 
