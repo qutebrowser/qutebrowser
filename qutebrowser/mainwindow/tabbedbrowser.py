@@ -293,6 +293,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # WORKAROUND for a segfault when we delete the crashed tab.
             # see https://bugreports.qt.io/browse/QTBUG-58698
             tab.layout().unwrap()
+            tab.deleteLater()
 
     def undo(self):
         """Undo removing of a tab."""
