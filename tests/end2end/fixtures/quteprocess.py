@@ -244,7 +244,8 @@ class QuteProc(testprocess.Process):
             if not line.strip():
                 return None
             elif (is_ignored_qt_message(line) or
-                  is_ignored_lowlevel_message(line)):
+                  is_ignored_lowlevel_message(line) or
+                  self.request.node.get_marker('no_invalid_lines')):
                 return None
             else:
                 raise

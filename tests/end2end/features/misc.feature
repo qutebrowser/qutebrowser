@@ -641,3 +641,15 @@ Feature: Various utility commands.
     Scenario: Trying to enter command mode with :enter-mode
         When I run :enter-mode command
         Then the error "Mode command can't be entered manually!" should be shown
+
+    ## Renderer crashes
+
+    @qtwebkit_skip @no_invalid_lines
+    Scenario: Renderer crash
+        When I run :open -t chrome://crash
+        Then the error "Renderer process crashed" should be shown
+
+    @qtwebkit_skip @no_invalid_lines
+    Scenario: Renderer kill
+        When I run :open -t chrome://kill
+        Then the error "Renderer process was killed" should be shown
