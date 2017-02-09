@@ -83,9 +83,9 @@ tr:nth-child(odd) {
     </tbody>
 </table>
 
-<span class="pagination-link"><a href="qute://history/?date={{prev_date.strftime("%Y-%m-%d")}}">Previous</a></span>
+<span class="pagination-link"><a href="qute://history/?date={{prev_date.strftime("%Y-%m-%d")}}" rel="prev">Previous</a></span>
 {% if today >= next_date %}
-<span class="pagination-link"><a href="qute://history/?date={{next_date.strftime("%Y-%m-%d")}}">Next</a></span>
+<span class="pagination-link"><a href="qute://history/?date={{next_date.strftime("%Y-%m-%d")}}" rel="next">Next</a></span>
 {% endif %}
 
 {% endblock %}
