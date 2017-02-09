@@ -24,6 +24,8 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import sys
+import time
 import datetime
 import urllib.parse
 
@@ -178,14 +180,32 @@ def qute_history(url):
     next_date = curr_date + one_day
     prev_date = curr_date - one_day
 
-    def history_iter():
-        for item in objreg.get('web-history').history_dict.values():
+    def history_iter(reverse):
+        today_timestamp = time.mktime(datetime.date.today().timetuple())
+        history = objreg.get('web-history').history_dict.values()
+        if reverse:
+            history = reversed(history)
+
+        for item in history:
+            # If we can't apply the reverse performance trick below,
+            # at least continue as early as possible with old items.
+            # This gets us down from 550ms to 123ms with 500k old items on my
+            # machine.
+            if item.atime < today_timestamp and not reverse:
+                continue
+
             # Convert timestamp
             try:
                 item_atime = datetime.datetime.fromtimestamp(item.atime)
             except (ValueError, OSError, OverflowError):
                 log.misc.debug("Invalid timestamp {}.".format(item.atime))
                 continue
+
+            if reverse and item_atime.date() < curr_date:
+                # If we could reverse the history in-place, and this entry is
+                # older than today, only older entries will follow, so we can
+                # abort here.
+                return
 
             # Skip items not on curr_date
             # Skip redirects
@@ -202,7 +222,16 @@ def qute_history(url):
 
             yield (item_url, item_title, display_atime)
 
-    history = reversed(list(history_iter()))
+    if sys.hexversion >= 0x03050000:
+        # On Python >= 3.5 we can reverse the ordereddict in-place and thus
+        # apply an additional performance improvement in history_iter.
+        # On my machine, this gets us down from 550ms to 72us with 500k old
+        # items.
+        history = list(history_iter(reverse=True))
+    else:
+        # On Python 3.4, we can't do that, so we'd need to copy the entire
+        # history to a list. There, filter first and then reverse it here.
+        history = reversed(list(history_iter(reverse=False)))
 
     html = jinja.render('history.html',
                         title='History',
