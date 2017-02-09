@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import collections
 
 from PyQt5.QtCore import QUrl
 import pytest
@@ -26,40 +27,45 @@ from qutebrowser.browser import history, qutescheme
 from qutebrowser.utils import objreg
 
 
+Dates = collections.namedtuple('Dates', ['yesterday', 'today', 'tomorrow'])
+
+
 class TestHistoryHandler:
 
     """Test the qute://history endpoint."""
 
     @pytest.fixture
+    def dates(self):
+        one_day = datetime.timedelta(days=1)
+        today = datetime.datetime.today()
+        tomorrow = today + one_day
+        yesterday = today - one_day
+        return Dates(yesterday, today, tomorrow)
+
+    @pytest.fixture
+    def entries(self, dates):
+        today = history.Entry(atime=str(dates.today.timestamp()),
+            url=QUrl('www.today.com'), title='today')
+        tomorrow = history.Entry(atime=str(dates.tomorrow.timestamp()),
+            url=QUrl('www.tomorrow.com'), title='tomorrow')
+        yesterday = history.Entry(atime=str(dates.yesterday.timestamp()),
+            url=QUrl('www.yesterday.com'), title='yesterday')
+        return Dates(yesterday, today, tomorrow)
+
+    @pytest.fixture
     def fake_web_history(self, fake_save_manager, tmpdir):
         """Create a fake web-history and register it into objreg."""
-        fake_web_history = history.WebHistory(tmpdir.dirname, 'fake-history')
-        objreg.register('web-history', fake_web_history)
-
-        yield fake_web_history
-
+        web_history = history.WebHistory(tmpdir.dirname, 'fake-history')
+        objreg.register('web-history', web_history)
+        yield web_history
         objreg.delete('web-history')
 
     @pytest.fixture(autouse=True)
-    def generate_fake_history(self, fake_web_history):
+    def fake_history(self, fake_web_history, entries):
         """Create fake history for three different days."""
-        # pylint: disable=attribute-defined-outside-init
-        one_day = datetime.timedelta(days=1)
-        self.curr_date = datetime.datetime.today()
-        self.next_date = self.curr_date + one_day
-        self.prev_date = self.curr_date - one_day
-
-        today = history.Entry(atime=str(self.curr_date.timestamp()),
-            url=QUrl('www.today.com'), title='today')
-        tomorrow = history.Entry(atime=str(self.next_date.timestamp()),
-            url=QUrl('www.tomorrow.com'), title='tomorrow')
-        yesterday = history.Entry(atime=str(self.prev_date.timestamp()),
-            url=QUrl('www.yesterday.com'), title='yesterday')
-
-        fake_web_history = objreg.get('web-history')
-        fake_web_history._add_entry(today)
-        fake_web_history._add_entry(tomorrow)
-        fake_web_history._add_entry(yesterday)
+        fake_web_history._add_entry(entries.yesterday)
+        fake_web_history._add_entry(entries.today)
+        fake_web_history._add_entry(entries.tomorrow)
         fake_web_history.save()
 
     def test_history_without_query(self):
@@ -85,31 +91,31 @@ class TestHistoryHandler:
         assert "tomorrow" not in data
         assert "yesterday" not in data
 
-    def test_history_yesterday(self):
+    def test_history_yesterday(self, dates):
         """Ensure qute://history shows history for yesterday."""
         url = QUrl("qute://history?date=" +
-                self.prev_date.strftime("%Y-%m-%d"))
+                dates.yesterday.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "today" not in data
         assert "tomorrow" not in data
         assert "yesterday" in data
 
-    def test_history_tomorrow(self):
+    def test_history_tomorrow(self, dates):
         """Ensure qute://history shows history for tomorrow."""
         url = QUrl("qute://history?date=" +
-                self.next_date.strftime("%Y-%m-%d"))
+                dates.tomorrow.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "today" not in data
         assert "tomorrow" in data
         assert "yesterday" not in data
 
-    def test_no_next_link_to_future(self):
+    def test_no_next_link_to_future(self, dates):
         """Ensure there's no next link pointing to the future."""
         url = QUrl("qute://history")
         _mimetype, data = qutescheme.qute_history(url)
         assert "Next" not in data
 
         url = QUrl("qute://history?date=" +
-                self.next_date.strftime("%Y-%m-%d"))
+                dates.tomorrow.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "Next" not in data
