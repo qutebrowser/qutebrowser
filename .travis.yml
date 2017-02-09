@@ -13,7 +13,7 @@ matrix:
       env: DOCKER=archlinux
       services: docker
     - os: linux
-      env: DOCKER=archlinux QUTE_BDD_WEBENGINE=true
+      env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
     - os: linux
       env: DOCKER=archlinux-ng
