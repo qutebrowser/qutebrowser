@@ -43,6 +43,7 @@ class TestHistoryHandler:
     @pytest.fixture(autouse=True)
     def generate_fake_history(self, fake_web_history):
         """Create fake history for three different days."""
+        # pylint: disable=attribute-defined-outside-init
         one_day = datetime.timedelta(days=1)
         self.curr_date = datetime.datetime.today()
         self.next_date = self.curr_date + one_day
@@ -62,14 +63,14 @@ class TestHistoryHandler:
         fake_web_history.save()
 
     def test_history_without_query(self):
-        """Ensure qute://history shows today's history when it has no query."""
+        """Ensure qute://history shows today's history without any query."""
         _mimetype, data = qutescheme.qute_history(QUrl("qute://history"))
         key = "<span class=\"date\">{}</span>".format(
             datetime.date.today().strftime("%a, %d %B %Y"))
         assert key in data
 
     def test_history_with_bad_query(self):
-        """Ensure qute://history shows today's history when given bad query."""
+        """Ensure qute://history shows today's history with bad query."""
         url = QUrl("qute://history?date=204-blaah")
         _mimetype, data = qutescheme.qute_history(url)
         key = "<span class=\"date\">{}</span>".format(
@@ -86,7 +87,8 @@ class TestHistoryHandler:
 
     def test_history_yesterday(self):
         """Ensure qute://history shows history for yesterday."""
-        url = QUrl("qute://history?date=" + self.prev_date.strftime("%Y-%m-%d"))
+        url = QUrl("qute://history?date=" +
+                self.prev_date.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "today" not in data
         assert "tomorrow" not in data
@@ -94,7 +96,8 @@ class TestHistoryHandler:
 
     def test_history_tomorrow(self):
         """Ensure qute://history shows history for tomorrow."""
-        url = QUrl("qute://history?date=" + self.next_date.strftime("%Y-%m-%d"))
+        url = QUrl("qute://history?date=" +
+                self.next_date.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "today" not in data
         assert "tomorrow" in data
@@ -106,6 +109,7 @@ class TestHistoryHandler:
         _mimetype, data = qutescheme.qute_history(url)
         assert "Next" not in data
 
-        url = QUrl("qute://history?date=" + self.next_date.strftime("%Y-%m-%d"))
+        url = QUrl("qute://history?date=" +
+                self.next_date.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "Next" not in data
