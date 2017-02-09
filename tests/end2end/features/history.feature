@@ -4,7 +4,7 @@ Feature: Page history
 
     Background:
         Given I open about:blank
-        And I run :history-clear
+        And I run :history-clear --force
 
     Scenario: Simple history saving
         When I open data/numbers/1.txt
@@ -57,7 +57,14 @@ Feature: Page history
 
     Scenario: Clearing history
         When I open data/title.html
+        And I run :history-clear --force
+        Then the history file should be empty
+
+    Scenario: Clearing history with confirmation
+        When I open data/title.html
         And I run :history-clear
+        And I wait for "Asking question <* title='Clear all browsing history?'>, *" in the log
+        And I run :prompt-accept yes
         Then the history file should be empty
 
     Scenario: History with yanked URL and 'add to history' flag

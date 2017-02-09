@@ -420,9 +420,14 @@ Start hinting.
 
 [[history-clear]]
 === history-clear
+Syntax: +:history-clear [*--force*]+
+
 Clear all browsing history.
 
 Note this only clears the global history (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies, the back/forward history of a tab, cache or other persistent data.
+
+==== optional arguments
+* +*-f*+, +*--force*+: Don't ask for confirmation.
 
 [[home]]
 === home
