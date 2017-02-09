@@ -119,3 +119,21 @@ class TestHistoryHandler:
                 dates.tomorrow.strftime("%Y-%m-%d"))
         _mimetype, data = qutescheme.qute_history(url)
         assert "Next" not in data
+
+    def test_qute_history_benchmark(self, dates, entries, fake_web_history,
+                                    benchmark):
+        for i in range(100000):
+            entry = history.Entry(
+                atime=str(dates.yesterday.timestamp()),
+                url=QUrl('www.yesterday.com/{}'.format(i)),
+                title='yesterday')
+            fake_web_history._add_entry(entry)
+        fake_web_history._add_entry(entries.today)
+        fake_web_history._add_entry(entries.tomorrow)
+
+        url = QUrl("qute://history")
+        _mimetype, data = benchmark(qutescheme.qute_history, url)
+
+        assert "today" in data
+        assert "tomorrow" not in data
+        assert "yesterday" not in data
