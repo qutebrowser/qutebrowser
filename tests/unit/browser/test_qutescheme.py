@@ -31,25 +31,20 @@ class TestHistoryHandler:
 
     """Test the qute://history endpoint."""
 
-    @pytest.fixture(autouse=True)
-    def fake_objects(self, fake_save_manager):
-        """Create fake web-history with history for three different days."""
-        try:
-            original_save_manager = objreg.get('save-manager')
-        except KeyError:
-            original_save_manager = None
-
-        try:
-            original_web_history = objreg.get('web-history')
-        except KeyError:
-            original_web_history = None
-
+    @pytest.fixture
+    def fake_web_history(self, fake_save_manager):
+        """Create a fake web-history and register it into objreg."""
         temp_dir = tempfile.TemporaryDirectory()
         fake_web_history = history.WebHistory(temp_dir.name, 'fake-history')
-        objreg.register('web-history', fake_web_history, update=True)
-        objreg.register('save-manager', fake_save_manager, update=True)
+        objreg.register('web-history', fake_web_history)
 
-        # Add fake history items for different days
+        yield fake_web_history
+
+        objreg.delete('web-history')
+
+    @pytest.fixture(autouse=True)
+    def generate_fake_history(self, fake_web_history):
+        """Create fake history for three different days."""
         one_day = datetime.timedelta(days=1)
         self.curr_date = datetime.datetime.today()
         self.next_date = self.curr_date + one_day
@@ -62,23 +57,11 @@ class TestHistoryHandler:
         yesterday = history.Entry(atime=str(self.prev_date.timestamp()),
             url=QUrl('www.yesterday.com'), title='yesterday')
 
-        web_history = objreg.get('web-history')
-        web_history._add_entry(today)
-        web_history._add_entry(tomorrow)
-        web_history._add_entry(yesterday)
-        web_history.save()
-
-        yield
-
-        if original_save_manager:
-            objreg.register('save-manager', original_save_manager, update=True)
-        else:
-            objreg.delete('save-manager')
-
-        if original_web_history:
-            objreg.register('web-history', original_web_history, update=True)
-        else:
-            objreg.delete('web-history')
+        fake_web_history = objreg.get('web-history')
+        fake_web_history._add_entry(today)
+        fake_web_history._add_entry(tomorrow)
+        fake_web_history._add_entry(yesterday)
+        fake_web_history.save()
 
     def test_history_without_query(self):
         """Ensure qute://history shows today's history when it has no query."""
