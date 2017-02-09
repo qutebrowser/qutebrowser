@@ -220,7 +220,7 @@ def test_clear(qtbot, hist, tmpdir):
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
     with qtbot.waitSignal(hist.cleared):
-        hist.clear()
+        hist._do_clear()
 
     assert not hist_file.read()
     assert not hist.history_dict
