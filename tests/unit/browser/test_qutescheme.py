@@ -99,3 +99,13 @@ class TestHistoryHandler:
         assert "today" not in data
         assert "tomorrow" in data
         assert "yesterday" not in data
+
+    def test_no_next_link_to_future(self):
+        """Ensure there's no next link pointing to the future."""
+        url = QUrl("qute://history")
+        _mimetype, data = qutescheme.qute_history(url)
+        assert "Next" not in data
+
+        url = QUrl("qute://history?date=" + self.next_date.strftime("%Y-%m-%d"))
+        _mimetype, data = qutescheme.qute_history(url)
+        assert "Next" not in data

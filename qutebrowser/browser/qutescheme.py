@@ -207,9 +207,10 @@ def qute_history(url):
     html = jinja.render('history.html',
                         title='History',
                         history=history,
-                        curr_date=curr_date.strftime("%a, %d %B %Y"),
-                        next_date=next_date.strftime("%Y-%m-%d"),
-                        prev_date=prev_date.strftime("%Y-%m-%d"))
+                        curr_date=curr_date,
+                        next_date=next_date,
+                        prev_date=prev_date,
+                        today=datetime.date.today())
     return 'text/html', html
 
 
