@@ -18,7 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import tempfile
 
 from PyQt5.QtCore import QUrl
 import pytest
@@ -32,10 +31,9 @@ class TestHistoryHandler:
     """Test the qute://history endpoint."""
 
     @pytest.fixture
-    def fake_web_history(self, fake_save_manager):
+    def fake_web_history(self, fake_save_manager, tmpdir):
         """Create a fake web-history and register it into objreg."""
-        temp_dir = tempfile.TemporaryDirectory()
-        fake_web_history = history.WebHistory(temp_dir.name, 'fake-history')
+        fake_web_history = history.WebHistory(tmpdir.dirname, 'fake-history')
         objreg.register('web-history', fake_web_history)
 
         yield fake_web_history
