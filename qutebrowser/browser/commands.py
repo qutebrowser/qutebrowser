@@ -1396,6 +1396,19 @@ class CommandDispatcher:
 
         tab.dump_async(callback, plain=plain)
 
+    @cmdutils.register(instance='command-dispatcher', name='history',
+                       scope='window')
+    def show_history(self, tab=True, bg=False, window=False):
+        r"""Show browsing history
+
+        Args:
+            tab: Open in a new tab.
+            bg: Open in a background tab.
+            window: Open in a new window.
+        """
+        url = QUrl('qute://history/')
+        self._open(url, tab, bg, window)
+
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')
     @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)

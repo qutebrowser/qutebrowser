@@ -290,6 +290,24 @@ Feature: Various utility commands.
             - about:blank
             - qute://help/index.html (active)
 
+    # :history
+
+    Scenario: :history without arguments
+        When I run :tab-only
+        And I run :history
+        And I wait until qute://history/ is loaded
+        Then the following tabs should be open:
+            - qute://history/ (active)
+
+    Scenario: :history with -t
+        When I open about:blank
+        And I run :tab-only
+        And I run :history -t
+        And I wait until qute://history/ is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - qute://history/ (active)
+
     # :home
 
     Scenario: :home with single page
