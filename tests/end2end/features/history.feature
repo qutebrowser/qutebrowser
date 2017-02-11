@@ -74,6 +74,13 @@ Feature: Page history
             http://localhost:(port)/data/hints/html/simple.html Simple link
             http://localhost:(port)/data/hello.txt
 
+    Scenario: Listing history
+        When I open data/numbers/3.txt
+        And I open data/numbers/4.txt
+        And I open qute:history
+        Then the page should contain the plaintext "3.txt"
+        Then the page should contain the plaintext "4.txt"
+
     ## Bugs
 
     @qtwebengine_skip @qtwebkit_ng_skip
