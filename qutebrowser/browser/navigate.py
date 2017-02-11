@@ -72,7 +72,7 @@ def _find_prevnext(prev, elems):
     # First check for <link rel="prev(ious)|next">
     rel_values = ('prev', 'previous') if prev else ('next')
     for e in elems:
-        if e.tag_name() != 'link' or 'rel' not in e:
+        if e.tag_name() not in ['link', 'a'] or 'rel' not in e:
             continue
         if e['rel'] in rel_values:
             log.hints.debug("Found {!r} with rel={}".format(e, e['rel']))

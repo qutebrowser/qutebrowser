@@ -65,6 +65,7 @@ Fixed
 - Fixed showing of keybindings in the :help completion
 - Worked around a segfault when opening a URL after a QtWebEngine renderer process crash
 - Using :undo or :tab-clone with a view-source:// or chrome:// tab is now prevented, as it segfaults
+- `:navigate prev/next` now detects `rel` attributes on `<a>` elements
 
 v0.9.1
 ------
