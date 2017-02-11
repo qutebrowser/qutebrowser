@@ -252,9 +252,6 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     """QtWebEngine implementations related to scrolling."""
 
-    # FIXME:qtwebengine
-    # using stuff here with a big count/argument causes memory leaks and hangs
-
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
         self._pos_perc = (0, 0)
@@ -271,8 +268,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             self._pos_perc = (None, None)
 
     def _key_press(self, key, count=1):
-        # FIXME:qtwebengine Abort scrolling if the minimum/maximum was reached.
-        for _ in range(count):
+        for _ in range(min(count, 5000)):
             press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
             release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
                                     0, 0, 0)

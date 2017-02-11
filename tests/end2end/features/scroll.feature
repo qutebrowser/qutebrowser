@@ -142,7 +142,6 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    @qtwebengine_skip: Causes memory leak...
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
         And I wait until the scroll position changed

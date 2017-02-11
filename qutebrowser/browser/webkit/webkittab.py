@@ -443,7 +443,7 @@ class WebKitScroller(browsertab.AbstractScroller):
         # FIXME:qtwebengine needed?
         # self._widget.setFocus()
 
-        for _ in range(count):
+        for _ in range(min(count, 5000)):
             press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
             release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
                                     0, 0, 0)
