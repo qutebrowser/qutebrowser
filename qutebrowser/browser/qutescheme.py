@@ -163,7 +163,7 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
-@add_handler('history')
+@add_handler('history')  # noqa
 def qute_history(url):
     """Handler for qute:history. Display history."""
     # Get current date from query parameter, if not given choose today.
@@ -181,6 +181,7 @@ def qute_history(url):
     prev_date = curr_date - one_day
 
     def history_iter(reverse):
+        """Iterate through the history and get the items we're interested in."""
         curr_timestamp = time.mktime(curr_date.timetuple())
         history = objreg.get('web-history').history_dict.values()
         if reverse:

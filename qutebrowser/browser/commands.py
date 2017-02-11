@@ -1408,10 +1408,9 @@ class CommandDispatcher:
 
         tab.dump_async(callback, plain=plain)
 
-    @cmdutils.register(instance='command-dispatcher', name='history',
-                       scope='window')
-    def show_history(self, tab=True, bg=False, window=False):
-        r"""Show browsing history
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def history(self, tab=True, bg=False, window=False):
+        """Show browsing history.
 
         Args:
             tab: Open in a new tab.
