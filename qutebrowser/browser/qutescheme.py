@@ -181,7 +181,7 @@ def qute_history(url):
     prev_date = curr_date - one_day
 
     def history_iter(reverse):
-        today_timestamp = time.mktime(datetime.date.today().timetuple())
+        curr_timestamp = time.mktime(curr_date.timetuple())
         history = objreg.get('web-history').history_dict.values()
         if reverse:
             history = reversed(history)
@@ -191,7 +191,7 @@ def qute_history(url):
             # at least continue as early as possible with old items.
             # This gets us down from 550ms to 123ms with 500k old items on my
             # machine.
-            if item.atime < today_timestamp and not reverse:
+            if item.atime < curr_timestamp and not reverse:
                 continue
 
             # Convert timestamp
