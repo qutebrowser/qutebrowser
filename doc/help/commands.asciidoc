@@ -44,6 +44,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
+|<<history,history>>|Show browsing history
 |<<history-clear,history-clear>>|Clear all browsing history.
 |<<home,home>>|Open main startpage in current tab.
 |<<insert-text,insert-text>>|Insert text at cursor position.
@@ -417,6 +418,17 @@ Start hinting.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[history]]
+=== history
+Syntax: +:history [*--tab*] [*--bg*] [*--window*]+
+
+Show browsing history
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
 
 [[history-clear]]
 === history-clear
