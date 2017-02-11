@@ -181,7 +181,7 @@ def qute_history(url):
     prev_date = curr_date - one_day
 
     def history_iter(reverse):
-        """Iterate through the history and get the items we're interested in."""
+        """Iterate through the history and get items we're interested in."""
         curr_timestamp = time.mktime(curr_date.timetuple())
         history = objreg.get('web-history').history_dict.values()
         if reverse:
