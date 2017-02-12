@@ -20,9 +20,8 @@
 """Simple history which gets written to disk."""
 
 import time
-import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,

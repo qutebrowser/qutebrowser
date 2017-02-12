@@ -25,10 +25,9 @@ Contains:
 
 import re
 
-from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 
 from qutebrowser.utils import log, qtutils, debug
-from qutebrowser.completion.models import base as completion
 
 
 class CompletionFilterModel(QSortFilterProxyModel):
@@ -48,8 +47,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
         self.srcmodel = source
         self.pattern = ''
         self.pattern_re = None
-        self.lessThan = self.intelligentLessThan
-        #self._sort_order = self.srcmodel.sort_order or Qt.AscendingOrder
 
     def set_pattern(self, val):
         """Setter for pattern.
@@ -137,7 +134,7 @@ class CompletionFilterModel(QSortFilterProxyModel):
                 return True
         return False
 
-    def intelligentLessThan(self, lindex, rindex):
+    def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
         Prefers all items which start with self.pattern. Other than that, uses

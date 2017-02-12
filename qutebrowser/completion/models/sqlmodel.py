@@ -22,9 +22,9 @@
 import re
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
-from PyQt5.QtSql import QSqlTableModel, QSqlDatabase, QSqlQuery
+from PyQt5.QtSql import QSqlTableModel, QSqlDatabase
 
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import log
 
 
 class SqlCompletionModel(QAbstractItemModel):

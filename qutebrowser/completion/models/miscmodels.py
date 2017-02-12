@@ -19,8 +19,6 @@
 
 """Functions that return miscellaneous completion models."""
 
-from PyQt5.QtCore import Qt
-
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils

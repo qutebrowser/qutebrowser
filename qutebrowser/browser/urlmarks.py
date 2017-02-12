@@ -29,9 +29,8 @@ import os
 import html
 import os.path
 import functools
-import collections
 
-from PyQt5.QtCore import QUrl, QObject
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)

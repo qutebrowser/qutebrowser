@@ -26,8 +26,6 @@ Module attributes:
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
-from qutebrowser.utils import usertypes
-
 
 class CompletionModel(QStandardItemModel):
 

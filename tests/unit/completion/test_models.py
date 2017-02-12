@@ -26,9 +26,8 @@ import pytest
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QTreeView
 
-from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
-                                           sortfilter)
 from qutebrowser.browser import history
+from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
 from qutebrowser.misc import sql
 
@@ -544,14 +543,13 @@ def test_url_completion_benchmark(benchmark, config_stub,
         for e in entries[0:1000])
 
     def bench():
-        model = urlmodel.UrlCompletionModel()
-        filtermodel = sortfilter.CompletionFilterModel(model)
-        filtermodel.set_pattern('')
-        filtermodel.set_pattern('e')
-        filtermodel.set_pattern('ex')
-        filtermodel.set_pattern('ex ')
-        filtermodel.set_pattern('ex 1')
-        filtermodel.set_pattern('ex 12')
-        filtermodel.set_pattern('ex 123')
+        model = urlmodel.url()
+        model.set_pattern('')
+        model.set_pattern('e')
+        model.set_pattern('ex')
+        model.set_pattern('ex ')
+        model.set_pattern('ex 1')
+        model.set_pattern('ex 12')
+        model.set_pattern('ex 123')
 
     benchmark(bench)

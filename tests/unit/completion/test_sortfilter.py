@@ -21,8 +21,6 @@
 
 import pytest
 
-from PyQt5.QtCore import Qt
-
 from qutebrowser.completion.models import base, sortfilter
 
 

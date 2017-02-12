@@ -27,7 +27,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import log, utils, qtutils, message
+from qutebrowser.utils import log, utils, qtutils, message, usertypes
 from qutebrowser.completion.models import miscmodels
 
 

@@ -74,7 +74,7 @@ def test_delete(qtbot):
     assert list(table) == [('one', 1, False), ('nine', 9, False)]
     with qtbot.waitSignal(table.changed):
         table.delete(False, field='lucky')
-    assert not list(table) == [('thirteen', 13, True)]
+    assert not list(table)
 
 
 def test_len():

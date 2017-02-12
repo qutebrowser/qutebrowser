@@ -21,6 +21,7 @@
 
 from qutebrowser.completion.models import sqlmodel
 
+
 def url():
     """A model which combines bookmarks, quickmarks and web history URLs.
 
