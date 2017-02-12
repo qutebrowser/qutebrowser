@@ -26,6 +26,7 @@ from PyQt5.QtGui import QStandardItem, QColor
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import base, sortfilter
+from qutebrowser.commands import cmdexc
 
 
 @pytest.fixture
@@ -67,6 +68,16 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     view = completionwidget.CompletionView(win_id=0)
     qtbot.addWidget(view)
     return view
+
+
+@pytest.fixture
+def simplemodel(completionview):
+    """A filter model wrapped around a completion model with one item."""
+    model = base.CompletionModel()
+    cat = QStandardItem()
+    cat.appendRow(QStandardItem('foo'))
+    model.appendRow(cat)
+    return sortfilter.CompletionFilterModel(model, parent=completionview)
 
 
 def test_set_model(completionview):
@@ -218,3 +229,29 @@ def test_completion_show(show, rows, quick_complete, completionview,
     completionview.set_model(None)
     completionview.completion_item_focus('next')
     assert not completionview.isVisible()
+
+
+def test_completion_item_del(completionview, simplemodel):
+    """Test that completion_item_del invokes delete_cur_item in the model."""
+    simplemodel.srcmodel.delete_cur_item = unittest.mock.Mock()
+    completionview.set_model(simplemodel)
+    completionview.completion_item_focus('next')
+    completionview.completion_item_del()
+    assert simplemodel.srcmodel.delete_cur_item.called
+
+
+def test_completion_item_del_no_selection(completionview, simplemodel):
+    """Test that completion_item_del with no selected index."""
+    simplemodel.srcmodel.delete_cur_item = unittest.mock.Mock()
+    completionview.set_model(simplemodel)
+    with pytest.raises(cmdexc.CommandError):
+        completionview.completion_item_del()
+    assert not simplemodel.srcmodel.delete_cur_item.called
+
+
+def test_completion_item_del_no_func(completionview, simplemodel):
+    """Test completion_item_del with no delete_cur_item in the model."""
+    completionview.set_model(simplemodel)
+    completionview.completion_item_focus('next')
+    with pytest.raises(cmdexc.CommandError):
+        completionview.completion_item_del()
