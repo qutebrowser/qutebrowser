@@ -53,6 +53,13 @@ class InvalidUrlError(Error):
     pass
 
 
+class DoesNotExistError(Error):
+
+    """Exception emitted when a given URL does not exist."""
+
+    pass
+
+
 class AlreadyExistsError(Error):
 
     """Exception emitted when a given URL does already exist."""
@@ -179,12 +186,14 @@ class QuickmarkManager(UrlMarkManager):
         try:
             self.delete(urlstr, field='url')
         except KeyError:
-            raise KeyError("Quickmark for '{}' not found!".format(urlstr))
+            raise DoesNotExistError("Quickmark for '{}' not found!"
+                                    .format(urlstr))
 
     def get(self, name):
         """Get the URL of the quickmark named name as a QUrl."""
         if name not in self:
-            raise KeyError("Quickmark '{}' does not exist!".format(name))
+            raise DoesNotExistError("Quickmark '{}' does not exist!"
+                                    .format(name))
         urlstr = self[name]
         try:
             url = urlutils.fuzzy_url(urlstr, do_search=False)

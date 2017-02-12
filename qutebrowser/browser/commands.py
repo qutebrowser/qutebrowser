@@ -1261,7 +1261,7 @@ class CommandDispatcher:
             url = self._current_url()
             try:
                 quickmark_manager.delete_by_qurl(url)
-            except KeyError as e:
+            except urlmarks.DoesNotExistError as e:
                 raise cmdexc.CommandError(str(e))
         else:
             try:
