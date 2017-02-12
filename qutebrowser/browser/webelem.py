@@ -403,7 +403,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         href_tags = ['a', 'area', 'link']
         if click_target == usertypes.ClickTarget.normal:
-            if self.tag_name() in href_tags:
+            if self.tag_name() in href_tags and self.get('target') != '_blank':
                 log.webelem.debug("Clicking via JS click()")
                 self._click_js(click_target)
             elif self.is_editable(strict=True):
