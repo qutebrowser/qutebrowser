@@ -32,12 +32,9 @@ from qutebrowser.misc import sql
 
 
 @pytest.fixture(autouse=True)
-def prerequisites(config_stub, fake_save_manager):
+def prerequisites(config_stub, fake_save_manager, init_sql):
     """Make sure everything is ready to initialize a WebHistory."""
     config_stub.data = {'general': {'private-browsing': False}}
-    sql.init()
-    yield
-    sql.close()
 
 
 @pytest.fixture()

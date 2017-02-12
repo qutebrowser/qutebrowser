@@ -26,11 +26,7 @@ from qutebrowser.misc import sql
 from qutebrowser.completion.models import sqlmodel
 
 
-@pytest.fixture(autouse=True)
-def init():
-    sql.init()
-    yield
-    sql.close()
+pytestmark = pytest.mark.usefixtures('init_sql')
 
 
 def _check_model(model, expected):

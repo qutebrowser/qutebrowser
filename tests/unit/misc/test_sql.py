@@ -23,11 +23,7 @@ import pytest
 from qutebrowser.misc import sql
 
 
-@pytest.fixture(autouse=True)
-def init():
-    sql.init()
-    yield
-    sql.close()
+pytestmark = pytest.mark.usefixtures('init_sql')
 
 
 def test_init():

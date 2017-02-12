@@ -41,7 +41,7 @@ import helpers.stubs as stubsmod
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
-from qutebrowser.misc import savemanager
+from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
 
 from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QEvent, QSize, Qt, QObject
@@ -237,33 +237,6 @@ def host_blocker_stub(stubs):
     objreg.register('host-blocker', stub)
     yield stub
     objreg.delete('host-blocker')
-
-
-@pytest.fixture
-def quickmark_manager_stub(stubs):
-    """Fixture which provides a fake quickmark manager object."""
-    stub = stubs.QuickmarkManagerStub()
-    objreg.register('quickmark-manager', stub)
-    yield stub
-    objreg.delete('quickmark-manager')
-
-
-@pytest.fixture
-def bookmark_manager_stub(stubs):
-    """Fixture which provides a fake bookmark manager object."""
-    stub = stubs.BookmarkManagerStub()
-    objreg.register('bookmark-manager', stub)
-    yield stub
-    objreg.delete('bookmark-manager')
-
-
-@pytest.fixture
-def web_history_stub(stubs):
-    """Fixture which provides a fake web-history object."""
-    stub = stubs.WebHistoryStub()
-    objreg.register('web-history', stub)
-    yield stub
-    objreg.delete('web-history')
 
 
 @pytest.fixture
@@ -482,3 +455,11 @@ def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:
         yield py.path.local(tdir)  # pylint: disable=no-member
+
+
+@pytest.fixture()
+def init_sql():
+    """Initialize the SQL module, and shut it down after the test."""
+    sql.init()
+    yield
+    sql.close()
