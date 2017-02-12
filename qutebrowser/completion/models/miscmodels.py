@@ -22,7 +22,7 @@
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils
-from qutebrowser.completion.models import base
+from qutebrowser.completion.models import base, sqlmodel
 
 
 def command():
@@ -64,20 +64,16 @@ def helptopic():
 def quickmark():
     """A CompletionModel filled with all quickmarks."""
     model = base.CompletionModel()
-    cat = model.new_category("Quickmarks")
-    quickmarks = objreg.get('quickmark-manager').marks.items()
-    for qm_name, qm_url in quickmarks:
-        model.new_item(cat, qm_name, qm_url)
+    model = sqlmodel.SqlCompletionModel(column_widths=(30, 70, 0))
+    model.new_category('Quickmarks')
     return model
 
 
 def bookmark():
     """A CompletionModel filled with all bookmarks."""
     model = base.CompletionModel()
-    cat = model.new_category("Bookmarks")
-    bookmarks = objreg.get('bookmark-manager').marks.items()
-    for bm_url, bm_title in bookmarks:
-        model.new_item(cat, bm_url, bm_title)
+    model = sqlmodel.SqlCompletionModel(column_widths=(30, 70, 0))
+    model.new_category('Bookmarks')
     return model
 
 

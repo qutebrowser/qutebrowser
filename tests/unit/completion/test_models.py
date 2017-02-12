@@ -228,7 +228,6 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     })
 
 
-@pytest.mark.skip
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
     model = miscmodels.quickmark()
@@ -237,14 +236,13 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
 
     _check_completions(model, {
         "Quickmarks": [
-            ('aw', 'https://wiki.archlinux.org', ''),
-            ('ddg', 'https://duckduckgo.com', ''),
-            ('wiki', 'https://wikipedia.org', ''),
+            ('aw', 'https://wiki.archlinux.org', None),
+            ('ddg', 'https://duckduckgo.com', None),
+            ('wiki', 'https://wikipedia.org', None),
         ]
     })
 
 
-@pytest.mark.skip
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = miscmodels.bookmark()
@@ -253,9 +251,9 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', ''),
-            ('https://python.org', 'Welcome to Python.org', ''),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+            ('https://github.com', 'GitHub', None),
+            ('https://python.org', 'Welcome to Python.org', None),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ]
     })
 
