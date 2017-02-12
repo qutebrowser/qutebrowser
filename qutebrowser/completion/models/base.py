@@ -79,10 +79,7 @@ class CompletionModel(QStandardItemModel):
 
         nameitem = QStandardItem(name)
         descitem = QStandardItem(desc)
-        if misc is None:
-            miscitem = QStandardItem()
-        else:
-            miscitem = QStandardItem(misc)
+        miscitem = QStandardItem(misc)
 
         cat.appendRow([nameitem, descitem, miscitem])
 
