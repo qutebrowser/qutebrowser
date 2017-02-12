@@ -59,15 +59,16 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
         webengine: Whether this is checking the QtWebEngine package
     """
     blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
-              "could not be imported! Maybe it's not installed?".format(name)]
+              "could not be imported! Maybe it's not installed?".format(name),
+              "<b>The error encountered was:</b><br />%ERROR%"]
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
     if webengine:
         lines = [
             ('Note QtWebEngine is not available for some distributions '
-                '(like Debian/Ubuntu), so you need to start without '
-                '--backend webengine there.'),
+                '(like Ubuntu), so you need to start without --backend '
+                'webengine there.'),
             ('QtWebEngine is currently unsupported with the OS X .app, see '
                 'https://github.com/qutebrowser/qutebrowser/issues/1692'),
         ]
@@ -107,7 +108,7 @@ def _die(message, exception=None):
         print("Exiting because of --no-err-windows.", file=sys.stderr)
     else:
         if exception is not None:
-            message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
+            message = message.replace('%ERROR%', str(exception))
         msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
                              message)
         msgbox.setTextFormat(Qt.RichText)
@@ -226,7 +227,7 @@ def check_pyqt_core():
         text = text.replace('<b>', '')
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
-        text += '\n\nError: {}'.format(e)
+        text = text.replace('%ERROR%', str(e))
         if tkinter and '--no-err-windows' not in sys.argv:
             root = tkinter.Tk()
             root.withdraw()
