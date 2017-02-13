@@ -78,7 +78,8 @@ TerminationStatus = usertypes.enum('TerminationStatus', [
     'normal',
     'abnormal',  # non-zero exit status
     'crashed',   # e.g. segfault
-    'killed'
+    'killed',
+    'unknown',
 ])
 
 

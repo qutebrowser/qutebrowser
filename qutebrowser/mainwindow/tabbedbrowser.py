@@ -677,6 +677,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             message.error("Renderer process crashed")
         elif status == browsertab.TerminationStatus.killed:
             message.error("Renderer process was killed")
+        elif status == browsertab.TerminationStatus.unknown:
+            message.error("Renderer process did not start")
         else:
             raise ValueError("Invalid status {}".format(status))
 
