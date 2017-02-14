@@ -52,8 +52,7 @@ class SqlCompletionCategory(QSqlQueryModel):
         self.set_pattern('%')
 
     def set_pattern(self, pattern):
-        # TODO: kill star-args for run_query
-        query = sql.run_query(self._querystr, *[pattern for _ in self._fields])
+        query = sql.run_query(self._querystr, [pattern for _ in self._fields])
         self.setQuery(query)
 
 

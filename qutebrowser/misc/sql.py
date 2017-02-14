@@ -39,17 +39,17 @@ def close():
     QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
 
 
-def run_query(querystr, *values):
+def run_query(querystr, values=None):
     """Run the given SQL query string on the database.
 
     Args:
-        values: positional parameter bindings.
+        values: A list of positional parameter bindings.
     """
     log.completion.debug('Running SQL query: "{}"'.format(querystr))
     database = QSqlDatabase.database()
     query = QSqlQuery(database)
     query.prepare(querystr)
-    for val in values:
+    for val in values or []:
         query.addBindValue(val)
     log.completion.debug('Query bindings: {}'.format(query.boundValues()))
     if not query.exec_():
@@ -102,7 +102,7 @@ class SqlTable(QObject):
             key: Primary key value to search for.
         """
         query = run_query("SELECT * FROM {} where {} = ?"
-                           .format(self._name, self._primary_key), key)
+                           .format(self._name, self._primary_key), [key])
         return query.next()
 
     def __len__(self):
@@ -118,7 +118,7 @@ class SqlTable(QObject):
             key: Primary key value to fetch.
         """
         result = run_query("SELECT * FROM {} where {} = ?"
-                            .format(self._name, self._primary_key), key)
+                            .format(self._name, self._primary_key), [key])
         result.next()
         rec = result.record()
         return tuple(rec.value(i) for i in range(rec.count()))
@@ -135,22 +135,22 @@ class SqlTable(QObject):
         """
         field = field or self._primary_key
         query = run_query("DELETE FROM {} where {} = ?"
-                           .format(self._name, field), value)
+                           .format(self._name, field), [value])
         if not query.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
-    def insert(self, *values, replace=False):
+    def insert(self, values, replace=False):
         """Append a row to the table.
 
         Args:
-            values: Values in the order fields were given on table creation.
+            values: A list of values to insert.
             replace: If true, allow inserting over an existing primary key.
         """
         cmd = "REPLACE" if replace else "INSERT"
         paramstr = ','.join(['?'] * len(values))
         run_query("{} INTO {} values({})"
-                   .format(cmd, self._name, paramstr), *values)
+                   .format(cmd, self._name, paramstr), values)
         self.changed.emit()
 
     def delete_all(self):

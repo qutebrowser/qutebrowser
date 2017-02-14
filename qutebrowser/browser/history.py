@@ -188,8 +188,8 @@ class WebHistory(sql.SqlTable):
 
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
-        self.insert(entry.url_str(), entry.title, entry.atime, entry.redirect,
-                    replace=True)
+        self.insert([entry.url_str(), entry.title, entry.atime,
+                     entry.redirect], replace=True)
 
     def get_recent(self):
         """Get the most recent history entries."""

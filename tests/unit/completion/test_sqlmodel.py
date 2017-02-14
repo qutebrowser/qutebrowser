@@ -67,7 +67,7 @@ def test_count(rowcounts, expected):
         name = 'Foo' + str(i)
         table = sql.SqlTable(name, ['a'], primary_key='a')
         for rownum in range(rowcount):
-            table.insert(rownum)
+            table.insert([rownum])
         model.new_category(name)
     assert model.count() == expected
 
@@ -104,7 +104,7 @@ def test_count(rowcounts, expected):
 def test_sorting(sort_by, sort_order, data, expected):
     table = sql.SqlTable('Foo', ['a', 'b', 'c'], primary_key='a')
     for row in data:
-        table.insert(*row)
+        table.insert(row)
     model = sqlmodel.SqlCompletionModel()
     model.new_category('Foo', sort_by=sort_by, sort_order=sort_order)
     _check_model(model, [('Foo', expected)])
@@ -166,7 +166,7 @@ def test_set_pattern(pattern, filter_cols, before, after):
     for name, rows in before:
         table = sql.SqlTable(name, ['a', 'b', 'c'], primary_key='a')
         for row in rows:
-            table.insert(*row)
+            table.insert(row)
         model.new_category(name)
     model.set_pattern(pattern)
     _check_model(model, after)
@@ -197,7 +197,7 @@ def test_first_last_item(data, first, last):
     for name, rows in data:
         table = sql.SqlTable(name, ['a'], primary_key='a')
         for row in rows:
-            table.insert(row)
+            table.insert([row])
         model.new_category(name)
     assert model.data(model.first_item()) == first
     assert model.data(model.last_item()) == last

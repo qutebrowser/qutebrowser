@@ -128,7 +128,7 @@ class QuickmarkManager(UrlMarkManager):
         except ValueError:
             message.error("Invalid quickmark '{}'".format(line))
         else:
-            self.insert(key, url)
+            self.insert([key, url])
 
     def prompt_save(self, url):
         """Prompt for a new quickmark name to be added and add it.
@@ -168,7 +168,7 @@ class QuickmarkManager(UrlMarkManager):
 
         def set_mark():
             """Really set the quickmark."""
-            self.insert(name, url)
+            self.insert([name, url])
             log.misc.debug("Added quickmark {} for {}".format(name, url))
 
         if name in self:
@@ -231,7 +231,7 @@ class BookmarkManager(UrlMarkManager):
         parts = line.split(maxsplit=1)
         urlstr = parts[0]
         title = parts[1] if len(parts) == 2 else ''
-        self.insert(urlstr, title)
+        self.insert([urlstr, title])
 
     def add(self, url, title, *, toggle=False):
         """Add a new bookmark.
@@ -259,5 +259,5 @@ class BookmarkManager(UrlMarkManager):
             else:
                 raise AlreadyExistsError("Bookmark already exists!")
         else:
-            self.insert(urlstr, title)
+            self.insert([urlstr, title])
             return True

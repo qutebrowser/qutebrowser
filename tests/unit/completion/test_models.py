@@ -135,18 +135,18 @@ def _mock_view_index(model, category_idx, child_idx, qtbot):
 def quickmarks(init_sql):
     """Pre-populate the quickmark database."""
     table = sql.SqlTable('Quickmarks', ['name', 'url'], primary_key='name')
-    table.insert('aw', 'https://wiki.archlinux.org')
-    table.insert('ddg', 'https://duckduckgo.com')
-    table.insert('wiki', 'https://wikipedia.org')
+    table.insert(['aw', 'https://wiki.archlinux.org'])
+    table.insert(['ddg', 'https://duckduckgo.com'])
+    table.insert(['wiki', 'https://wikipedia.org'])
 
 
 @pytest.fixture
 def bookmarks(init_sql):
     """Pre-populate the bookmark database."""
     table = sql.SqlTable('Bookmarks', ['url', 'title'], primary_key='url')
-    table.insert('https://github.com', 'GitHub')
-    table.insert('https://python.org', 'Welcome to Python.org')
-    table.insert('http://qutebrowser.org', 'qutebrowser | qutebrowser')
+    table.insert(['https://github.com', 'GitHub'])
+    table.insert(['https://python.org', 'Welcome to Python.org'])
+    table.insert(['http://qutebrowser.org', 'qutebrowser | qutebrowser'])
 
 
 @pytest.fixture
@@ -154,12 +154,12 @@ def web_history(stubs, init_sql):
     """Pre-populate the web-history database."""
     table = sql.SqlTable("History", ['url', 'title', 'atime', 'redirect'],
                          primary_key='url')
-    table.insert('http://qutebrowser.org', 'qutebrowser',
-                 datetime(2015, 9, 5).timestamp(), False)
-    table.insert('https://python.org', 'Welcome to Python.org',
-                 datetime(2016, 3, 8).timestamp(), False)
-    table.insert('https://github.com', 'https://github.com',
-                 datetime(2016, 5, 1).timestamp(), False)
+    table.insert(['http://qutebrowser.org', 'qutebrowser',
+                  datetime(2015, 9, 5).timestamp(), False])
+    table.insert(['https://python.org', 'Welcome to Python.org',
+                  datetime(2016, 3, 8).timestamp(), False])
+    table.insert(['https://github.com', 'https://github.com',
+                  datetime(2016, 5, 1).timestamp(), False])
 
 
 def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
