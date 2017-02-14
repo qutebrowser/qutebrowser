@@ -202,6 +202,7 @@ def test_first_last_item(data, first, last):
     assert model.data(model.first_item()) == first
     assert model.data(model.last_item()) == last
 
+
 def test_limit():
     table = sql.SqlTable('test_limit', ['a'], primary_key='a')
     for i in range(5):

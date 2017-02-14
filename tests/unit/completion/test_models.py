@@ -268,8 +268,8 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         - the most recent entries are included
     """
     # TODO: time formatting and item limiting
-    #config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-    #                                  'web-history-max-items': 2}
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': 2}
     model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -303,8 +303,6 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
              datetime(2015, 9, 5).timestamp()),
             ('https://python.org', 'Welcome to Python.org',
              datetime(2016, 3, 8).timestamp()),
-            ('https://github.com', 'https://github.com',
-             datetime(2016, 5, 1).timestamp()),
         ],
     })
 

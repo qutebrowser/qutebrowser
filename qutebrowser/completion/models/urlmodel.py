@@ -20,6 +20,7 @@
 """Function to return the url completion model for the `open` command."""
 
 from qutebrowser.completion.models import sqlmodel
+from qutebrowser.config import config
 
 
 def url():
@@ -32,7 +33,8 @@ def url():
 
     model = sqlmodel.SqlCompletionModel(column_widths=(40, 50, 10),
                                         columns_to_filter=[urlcol, textcol])
-    model.new_category('History')
+    model.new_category('History',
+                       limit=config.get('completion', 'web-history-max-items'))
     model.new_category('Quickmarks')
     model.new_category('Bookmarks')
     return model
