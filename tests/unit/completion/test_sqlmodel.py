@@ -155,16 +155,19 @@ def test_sorting(sort_by, sort_order, data, expected):
     ('_', [0],
      [('A', [('a_b', '', ''), ('__a', '', ''), ('abc', '', '')])],
      [('A', [('a_b', '', ''), ('__a', '', '')])]),
+
+    ("can't", [0],
+     [('A', [("can't touch this", '', ''), ('a', '', '')])],
+     [('A', [("can't touch this", '', '')])]),
 ])
 def test_set_pattern(pattern, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
-    model = sqlmodel.SqlCompletionModel()
+    model = sqlmodel.SqlCompletionModel(columns_to_filter=filter_cols)
     for name, rows in before:
         table = sql.SqlTable(name, ['a', 'b', 'c'], primary_key='a')
         for row in rows:
             table.insert(*row)
         model.new_category(name)
-    model.columns_to_filter = filter_cols
     model.set_pattern(pattern)
     _check_model(model, after)
 
@@ -198,3 +201,11 @@ def test_first_last_item(data, first, last):
         model.new_category(name)
     assert model.data(model.first_item()) == first
     assert model.data(model.last_item()) == last
+
+def test_limit():
+    table = sql.SqlTable('test_limit', ['a'], primary_key='a')
+    for i in range(5):
+        table.insert([i])
+    model = sqlmodel.SqlCompletionModel()
+    model.new_category('test_limit', limit=3)
+    assert model.count() == 3

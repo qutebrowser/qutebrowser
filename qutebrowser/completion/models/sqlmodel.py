@@ -22,9 +22,39 @@
 import re
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
-from PyQt5.QtSql import QSqlTableModel, QSqlDatabase
+from PyQt5.QtSql import QSqlQuery, QSqlQueryModel, QSqlDatabase
 
 from qutebrowser.utils import log
+from qutebrowser.misc import sql
+
+
+class SqlCompletionCategory(QSqlQueryModel):
+    def __init__(self, name, sort_by, sort_order, limit, columns_to_filter,
+                 parent=None):
+        super().__init__(parent=parent)
+        self.tablename = name
+
+        query = sql.run_query('select * from {} limit 1'.format(name))
+        self._fields = [query.record().fieldName(i) for i in columns_to_filter]
+
+        querystr = 'select * from {} where '.format(self.tablename)
+        querystr += ' or '.join('{} like ?'.format(f) for f in self._fields)
+        querystr += " escape '\\'"
+
+        if sort_by:
+            sortstr = 'asc' if sort_order == Qt.AscendingOrder else 'desc'
+            querystr += ' order by {} {}'.format(sort_by, sortstr)
+
+        if limit:
+            querystr += ' limit {}'.format(limit)
+
+        self._querystr = querystr
+        self.set_pattern('%')
+
+    def set_pattern(self, pattern):
+        # TODO: kill star-args for run_query
+        query = sql.run_query(self._querystr, *[pattern for _ in self._fields])
+        self.setQuery(query)
 
 
 class SqlCompletionModel(QAbstractItemModel):
@@ -58,7 +88,7 @@ class SqlCompletionModel(QAbstractItemModel):
         self.srcmodel = self  # TODO: dummy for compat with old API
         self.pattern = ''
 
-    def new_category(self, name, sort_by=None, sort_order=Qt.AscendingOrder):
+    def new_category(self, name, sort_by=None, sort_order=None, limit=None):
         """Create a new completion category and add it to this model.
 
         Args:
@@ -68,14 +98,10 @@ class SqlCompletionModel(QAbstractItemModel):
 
         Return: A new CompletionCategory.
         """
-        database = QSqlDatabase.database()
-        cat = QSqlTableModel(parent=self, db=database)
-        cat.setTable(name)
-        if sort_by:
-            cat.setSort(cat.fieldIndex(sort_by), sort_order)
-        cat.select()
+        cat = SqlCompletionCategory(name, parent=self, sort_by=sort_by,
+                                    sort_order=sort_order, limit=limit,
+                                    columns_to_filter=self.columns_to_filter)
         self._categories.append(cat)
-        return cat
 
     def delete_cur_item(self, completion):
         """Delete the selected item."""
@@ -95,7 +121,7 @@ class SqlCompletionModel(QAbstractItemModel):
             return
         if not index.parent().isValid():
             if index.column() == 0:
-                return self._categories[index.row()].tableName()
+                return self._categories[index.row()].tablename
         else:
             table = self._categories[index.parent().row()]
             idx = table.index(index.row(), index.column())
@@ -177,6 +203,7 @@ class SqlCompletionModel(QAbstractItemModel):
         Args:
             pattern: The filter pattern to set.
         """
+        log.completion.debug("Setting completion pattern '{}'".format(pattern))
         # TODO: should pattern be saved in the view layer instead?
         self.pattern = pattern
         # escape to treat a user input % or _ as a literal, not a wildcard
@@ -184,14 +211,9 @@ class SqlCompletionModel(QAbstractItemModel):
         pattern = pattern.replace('_', '\\_')
         # treat spaces as wildcards to match any of the typed words
         pattern = re.sub(r' +', '%', pattern)
-        for t in self._categories:
-            fields = (t.record().fieldName(i) for i in self.columns_to_filter)
-            query = ' or '.join("{} like '%{}%' escape '\\'"
-                                .format(field, pattern)
-                                for field in fields)
-            log.completion.debug("Setting filter = '{}' for table '{}'"
-                                 .format(query, t.tableName()))
-            t.setFilter(query)
+        pattern = '%{}%'.format(pattern)
+        for cat in self._categories:
+            cat.set_pattern(pattern)
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""

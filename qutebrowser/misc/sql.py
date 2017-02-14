@@ -39,7 +39,7 @@ def close():
     QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
 
 
-def _run_query(querystr, *values):
+def run_query(querystr, *values):
     """Run the given SQL query string on the database.
 
     Args:
@@ -85,12 +85,12 @@ class SqlTable(QObject):
         super().__init__(parent)
         self._name = name
         self._primary_key = primary_key
-        _run_query("CREATE TABLE {} ({}, PRIMARY KEY ({}))"
+        run_query("CREATE TABLE {} ({}, PRIMARY KEY ({}))"
                    .format(name, ','.join(fields), primary_key))
 
     def __iter__(self):
         """Iterate rows in the table."""
-        result = _run_query("SELECT * FROM {}".format(self._name))
+        result = run_query("SELECT * FROM {}".format(self._name))
         while result.next():
             rec = result.record()
             yield tuple(rec.value(i) for i in range(rec.count()))
@@ -101,13 +101,13 @@ class SqlTable(QObject):
         Args:
             key: Primary key value to search for.
         """
-        query = _run_query("SELECT * FROM {} where {} = ?"
+        query = run_query("SELECT * FROM {} where {} = ?"
                            .format(self._name, self._primary_key), key)
         return query.next()
 
     def __len__(self):
         """Return the count of rows in the table."""
-        result = _run_query("SELECT count(*) FROM {}".format(self._name))
+        result = run_query("SELECT count(*) FROM {}".format(self._name))
         result.next()
         return result.value(0)
 
@@ -117,7 +117,7 @@ class SqlTable(QObject):
         Args:
             key: Primary key value to fetch.
         """
-        result = _run_query("SELECT * FROM {} where {} = ?"
+        result = run_query("SELECT * FROM {} where {} = ?"
                             .format(self._name, self._primary_key), key)
         result.next()
         rec = result.record()
@@ -134,7 +134,7 @@ class SqlTable(QObject):
             The number of rows deleted.
         """
         field = field or self._primary_key
-        query = _run_query("DELETE FROM {} where {} = ?"
+        query = run_query("DELETE FROM {} where {} = ?"
                            .format(self._name, field), value)
         if not query.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
@@ -149,13 +149,13 @@ class SqlTable(QObject):
         """
         cmd = "REPLACE" if replace else "INSERT"
         paramstr = ','.join(['?'] * len(values))
-        _run_query("{} INTO {} values({})"
+        run_query("{} INTO {} values({})"
                    .format(cmd, self._name, paramstr), *values)
         self.changed.emit()
 
     def delete_all(self):
         """Remove all row from the table."""
-        _run_query("DELETE FROM {}".format(self._name))
+        run_query("DELETE FROM {}".format(self._name))
         self.changed.emit()
 
 
