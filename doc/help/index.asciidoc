@@ -28,6 +28,8 @@ The following documentation is currently available:
 * link:settings.html[Documentation of available settings]
 * link:index.html[The page you're currently on]
 
+If you want to rebuild the website, run `./scripts/asciidoc2html.py --website <outputdir>`.
+
 Getting help
 ------------
 
