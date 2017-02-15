@@ -29,7 +29,7 @@ from qutebrowser.misc import sql
 
 
 class SqlCompletionCategory(QSqlQueryModel):
-    def __init__(self, name, sort_by, sort_order, limit, select,
+    def __init__(self, name, sort_by, sort_order, limit, select, where,
                  columns_to_filter, parent=None):
         super().__init__(parent=parent)
         self.tablename = name
@@ -37,9 +37,12 @@ class SqlCompletionCategory(QSqlQueryModel):
         query = sql.run_query('select * from {} limit 1'.format(name))
         self._fields = [query.record().fieldName(i) for i in columns_to_filter]
 
-        querystr = 'select {} from {} where '.format(select, name)
-        querystr += ' or '.join('{} like ?'.format(f) for f in self._fields)
-        querystr += " escape '\\'"
+        querystr = 'select {} from {} where ('.format(select, name)
+        querystr += ' or '.join("{} like ? escape '\\'".format(f)
+                                for f in self._fields)
+        querystr += ')'
+        if where:
+            querystr += ' and ' + where
 
         if sort_by:
             sortstr = 'asc' if sort_order == Qt.AscendingOrder else 'desc'
@@ -87,13 +90,14 @@ class SqlCompletionModel(QAbstractItemModel):
         self.srcmodel = self  # TODO: dummy for compat with old API
         self.pattern = ''
 
-    def new_category(self, name, select='*', sort_by=None,
+    def new_category(self, name, select='*', where=None, sort_by=None,
                      sort_order=None, limit=None):
         """Create a new completion category and add it to this model.
 
         Args:
             name: Name of category, and the table in the database.
             select: A custom result column expression for the select statement.
+            where: An optional clause to filter out some rows.
             sort_by: The name of the field to sort by, or None for no sorting.
             sort_order: Sorting order, if sort_by is non-None.
             limit: Maximum row count to return on a query.
@@ -102,7 +106,7 @@ class SqlCompletionModel(QAbstractItemModel):
         """
         cat = SqlCompletionCategory(name, parent=self, sort_by=sort_by,
                                     sort_order=sort_order, limit=limit,
-                                    select=select,
+                                    select=select, where=where,
                                     columns_to_filter=self.columns_to_filter)
         self._categories.append(cat)
 

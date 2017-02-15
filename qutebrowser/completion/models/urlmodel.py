@@ -38,7 +38,8 @@ def url():
     select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
     model.new_category('History',
                        limit=limit,
-                       select='url, title, {}'.format(select_time))
+                       select='url, title, {}'.format(select_time),
+                       where='not redirect')
     model.new_category('Quickmarks', select='url, name')
     model.new_category('Bookmarks')
     return model

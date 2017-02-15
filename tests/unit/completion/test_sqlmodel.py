@@ -156,6 +156,10 @@ def test_sorting(sort_by, sort_order, data, expected):
      [('A', [('a_b', '', ''), ('__a', '', ''), ('abc', '', '')])],
      [('A', [('a_b', '', ''), ('__a', '', '')])]),
 
+    ('%', [0, 1],
+     [('A', [('\\foo', '\\bar', '')])],
+     [('A', [])]),
+
     ("can't", [0],
      [('A', [("can't touch this", '', ''), ('a', '', '')])],
      [('A', [("can't touch this", '', '')])]),
@@ -218,3 +222,12 @@ def test_select():
     model = sqlmodel.SqlCompletionModel()
     model.new_category('test_select', select='b, c, a')
     _check_model(model, [('test_select', [('bar', 'baz', 'foo')])])
+
+
+def test_where():
+    table = sql.SqlTable('test_where', ['a', 'b', 'c'], primary_key='a')
+    table.insert(['foo', 'bar', False])
+    table.insert(['baz', 'biz', True])
+    model = sqlmodel.SqlCompletionModel()
+    model.new_category('test_where', where='not c')
+    _check_model(model, [('test_where', [('foo', 'bar', False)])])

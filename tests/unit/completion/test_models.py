@@ -154,6 +154,8 @@ def web_history(stubs, init_sql):
     """Pre-populate the web-history database."""
     table = sql.SqlTable("History", ['url', 'title', 'atime', 'redirect'],
                          primary_key='url')
+    table.insert(['http://some-redirect.example.com', 'redirect',
+                  datetime(2016, 9, 5).timestamp(), True])
     table.insert(['http://qutebrowser.org', 'qutebrowser',
                   datetime(2015, 9, 5).timestamp(), False])
     table.insert(['https://python.org', 'Welcome to Python.org',
@@ -266,6 +268,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         - quickmarks, bookmarks, and urls are included
         - no more than 'web-history-max-items' items are included (TODO)
         - the most recent entries are included
+        - redirect entries are not included
     """
     # TODO: time formatting and item limiting
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
