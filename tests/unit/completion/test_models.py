@@ -30,6 +30,7 @@ from qutebrowser.browser import history
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
 from qutebrowser.misc import sql
+from qutebrowser.utils import objreg
 
 
 def _check_completions(model, expected):
@@ -115,7 +116,7 @@ def _patch_config_section_desc(monkeypatch, stubs, symbol):
     monkeypatch.setattr(symbol, section_desc)
 
 
-def _mock_view_index(model, category_idx, child_idx, qtbot):
+def _mock_view_index(model, category_num, child_num, qtbot):
     """Create a tree view from a model and set the current index.
 
     Args:
@@ -126,8 +127,9 @@ def _mock_view_index(model, category_idx, child_idx, qtbot):
     view = QTreeView()
     qtbot.add_widget(view)
     view.setModel(model)
-    idx = model.indexFromItem(model.item(category_idx).child(child_idx))
-    view.setCurrentIndex(idx)
+    parent = model.index(category_num, 0)
+    child = model.index(child_num, 0, parent=parent)
+    view.setCurrentIndex(child)
     return view
 
 
@@ -138,6 +140,9 @@ def quickmarks(init_sql):
     table.insert(['aw', 'https://wiki.archlinux.org'])
     table.insert(['ddg', 'https://duckduckgo.com'])
     table.insert(['wiki', 'https://wikipedia.org'])
+    objreg.register('quickmark-manager', table)
+    yield table
+    objreg.delete('quickmark-manager')
 
 
 @pytest.fixture
@@ -147,6 +152,9 @@ def bookmarks(init_sql):
     table.insert(['https://github.com', 'GitHub'])
     table.insert(['https://python.org', 'Welcome to Python.org'])
     table.insert(['http://qutebrowser.org', 'qutebrowser | qutebrowser'])
+    objreg.register('bookmark-manager', table)
+    yield table
+    objreg.delete('bookmark-manager')
 
 
 @pytest.fixture
@@ -295,7 +303,6 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     })
 
 
-@pytest.mark.skip
 def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
                                         web_history, quickmarks, bookmarks,
                                         qtbot):
@@ -309,12 +316,11 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
     # delete item (1, 0) -> (bookmarks, 'https://github.com' )
     view = _mock_view_index(model, 1, 0, qtbot)
     model.delete_cur_item(view)
-    assert 'https://github.com' not in bookmarks.marks
-    assert 'https://python.org' in bookmarks.marks
-    assert 'http://qutebrowser.org' in bookmarks.marks
+    assert 'https://github.com' not in bookmarks
+    assert 'https://python.org' in bookmarks
+    assert 'http://qutebrowser.org' in bookmarks
 
 
-@pytest.mark.skip
 def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
                                          web_history, quickmarks, bookmarks,
                                          qtbot):
@@ -328,9 +334,9 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     # delete item (0, 1) -> (quickmarks, 'ddg' )
     view = _mock_view_index(model, 0, 1, qtbot)
     model.delete_cur_item(view)
-    assert 'aw' in quickmarks.marks
-    assert 'ddg' not in quickmarks.marks
-    assert 'wiki' in quickmarks.marks
+    assert 'aw' in quickmarks
+    assert 'ddg' not in quickmarks
+    assert 'wiki' in quickmarks
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):

@@ -82,13 +82,14 @@ class SqlCompletionModel(QAbstractItemModel):
     """
 
     def __init__(self, column_widths=(30, 70, 0), columns_to_filter=None,
-                 parent=None):
+                 delete_cur_item=None, parent=None):
         super().__init__(parent)
         self.columns_to_filter = columns_to_filter or [0]
         self.column_widths = column_widths
         self._categories = []
         self.srcmodel = self  # TODO: dummy for compat with old API
         self.pattern = ''
+        self.delete_cur_item = delete_cur_item
 
     def new_category(self, name, select='*', where=None, sort_by=None,
                      sort_order=None, limit=None):
@@ -109,10 +110,6 @@ class SqlCompletionModel(QAbstractItemModel):
                                     select=select, where=where,
                                     columns_to_filter=self.columns_to_filter)
         self._categories.append(cat)
-
-    def delete_cur_item(self, completion):
-        """Delete the selected item."""
-        raise NotImplementedError
 
     def data(self, index, role=Qt.DisplayRole):
         """Return the item data for index.

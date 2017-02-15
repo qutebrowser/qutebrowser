@@ -21,6 +21,39 @@
 
 from qutebrowser.completion.models import sqlmodel
 from qutebrowser.config import config
+from qutebrowser.utils import qtutils, log, objreg
+
+
+_URLCOL = 0
+_TEXTCOL = 1
+
+
+def _delete_url(completion):
+    """Delete the selected item.
+
+    Args:
+        completion: The Completion object to use.
+    """
+    index = completion.currentIndex()
+    qtutils.ensure_valid(index)
+    category = index.parent()
+    index = category.child(index.row(), _URLCOL)
+    catname = category.data()
+    url = index.data()
+    qtutils.ensure_valid(category)
+
+    if catname == 'Bookmarks':
+        log.completion.debug('Deleting bookmark {}'.format(url))
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmark_manager.delete(url)
+    else:
+        assert catname == 'Quickmarks', 'Unknown category {}'.format(catname)
+        quickmark_manager = objreg.get('quickmark-manager')
+        sibling = index.sibling(index.row(), _TEXTCOL)
+        qtutils.ensure_valid(sibling)
+        name = sibling.data()
+        log.completion.debug('Deleting quickmark {}'.format(name))
+        quickmark_manager.delete(name)
 
 
 def url():
@@ -28,18 +61,16 @@ def url():
 
     Used for the `open` command.
     """
-    urlcol = 0
-    textcol = 1
-
     model = sqlmodel.SqlCompletionModel(column_widths=(40, 50, 10),
-                                        columns_to_filter=[urlcol, textcol])
+                                        columns_to_filter=[_URLCOL, _TEXTCOL],
+                                        delete_cur_item=_delete_url)
     limit = config.get('completion', 'web-history-max-items')
     timefmt = config.get('completion', 'timestamp-format')
     select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
+    model.new_category('Quickmarks', select='url, name')
+    model.new_category('Bookmarks')
     model.new_category('History',
                        limit=limit,
                        select='url, title, {}'.format(select_time),
                        where='not redirect')
-    model.new_category('Quickmarks', select='url, name')
-    model.new_category('Bookmarks')
     return model
