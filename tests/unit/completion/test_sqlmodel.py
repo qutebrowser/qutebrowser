@@ -232,6 +232,7 @@ def test_where():
     model.new_category('test_where', where='not c')
     _check_model(model, [('test_where', [('foo', 'bar', False)])])
 
+
 def test_entry():
     table = sql.SqlTable('test_entry', ['a', 'b', 'c'], primary_key='a')
     assert hasattr(table.Entry, 'a')

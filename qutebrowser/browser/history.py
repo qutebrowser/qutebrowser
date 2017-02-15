@@ -36,7 +36,7 @@ class Entry:
     Attributes:
         atime: The time the page was accessed.
         url: The URL which was accessed as QUrl.
-        redirect: If True, don't save this entry to disk
+        redirect: If True, don't show this entry in completion
     """
 
     def __init__(self, atime, url, title, redirect=False):

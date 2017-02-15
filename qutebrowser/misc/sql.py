@@ -65,6 +65,7 @@ class SqlTable(QObject):
     """Interface to a sql table.
 
     Attributes:
+        Entry: The class wrapping row data from this table.
         _name: Name of the SQL table this wraps.
         _primary_key: The primary key of the table.
 
@@ -87,8 +88,9 @@ class SqlTable(QObject):
         super().__init__(parent)
         self._name = name
         self._primary_key = primary_key
-        run_query("CREATE TABLE {} ({}, PRIMARY KEY ({}))"
-                   .format(name, ','.join(fields), primary_key))
+        run_query("CREATE TABLE {} ({}, PRIMARY KEY ({}))".format(
+            name, ','.join(fields), primary_key))
+        # pylint: disable=invalid-name
         self.Entry = collections.namedtuple(name + '_Entry', fields)
 
     def __iter__(self):
@@ -104,8 +106,8 @@ class SqlTable(QObject):
         Args:
             key: Primary key value to search for.
         """
-        query = run_query("SELECT * FROM {} where {} = ?"
-                           .format(self._name, self._primary_key), [key])
+        query = run_query("SELECT * FROM {} where {} = ?".format(
+            self._name, self._primary_key), [key])
         return query.next()
 
     def __len__(self):
@@ -120,8 +122,8 @@ class SqlTable(QObject):
         Args:
             key: Primary key value to fetch.
         """
-        result = run_query("SELECT * FROM {} where {} = ?"
-                            .format(self._name, self._primary_key), [key])
+        result = run_query("SELECT * FROM {} where {} = ?".format(
+            self._name, self._primary_key), [key])
         result.next()
         rec = result.record()
         return self.Entry(*[rec.value(i) for i in range(rec.count())])
@@ -137,8 +139,8 @@ class SqlTable(QObject):
             The number of rows deleted.
         """
         field = field or self._primary_key
-        query = run_query("DELETE FROM {} where {} = ?"
-                           .format(self._name, field), [value])
+        query = run_query("DELETE FROM {} where {} = ?".format(
+            self._name, field), [value])
         if not query.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
@@ -152,8 +154,8 @@ class SqlTable(QObject):
         """
         cmd = "REPLACE" if replace else "INSERT"
         paramstr = ','.join(['?'] * len(values))
-        run_query("{} INTO {} values({})"
-                   .format(cmd, self._name, paramstr), values)
+        run_query("{} INTO {} values({})".format(cmd, self._name, paramstr),
+            values)
         self.changed.emit()
 
     def delete_all(self):

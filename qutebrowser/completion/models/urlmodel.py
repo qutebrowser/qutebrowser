@@ -39,13 +39,13 @@ def _delete_url(completion):
     category = index.parent()
     index = category.child(index.row(), _URLCOL)
     catname = category.data()
-    url = index.data()
     qtutils.ensure_valid(category)
 
     if catname == 'Bookmarks':
-        log.completion.debug('Deleting bookmark {}'.format(url))
+        urlstr = index.data()
+        log.completion.debug('Deleting bookmark {}'.format(urlstr))
         bookmark_manager = objreg.get('bookmark-manager')
-        bookmark_manager.delete(url)
+        bookmark_manager.delete(urlstr)
     else:
         assert catname == 'Quickmarks', 'Unknown category {}'.format(catname)
         quickmark_manager = objreg.get('quickmark-manager')

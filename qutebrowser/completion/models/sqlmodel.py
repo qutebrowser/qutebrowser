@@ -22,13 +22,13 @@
 import re
 
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
-from PyQt5.QtSql import QSqlQuery, QSqlQueryModel, QSqlDatabase
+from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.utils import log
 from qutebrowser.misc import sql
 
 
-class SqlCompletionCategory(QSqlQueryModel):
+class _SqlCompletionCategory(QSqlQueryModel):
     def __init__(self, name, sort_by, sort_order, limit, select, where,
                  columns_to_filter, parent=None):
         super().__init__(parent=parent)
@@ -105,10 +105,10 @@ class SqlCompletionModel(QAbstractItemModel):
 
         Return: A new CompletionCategory.
         """
-        cat = SqlCompletionCategory(name, parent=self, sort_by=sort_by,
-                                    sort_order=sort_order, limit=limit,
-                                    select=select, where=where,
-                                    columns_to_filter=self.columns_to_filter)
+        cat = _SqlCompletionCategory(name, parent=self, sort_by=sort_by,
+                                     sort_order=sort_order, limit=limit,
+                                     select=select, where=where,
+                                     columns_to_filter=self.columns_to_filter)
         self._categories.append(cat)
 
     def data(self, index, role=Qt.DisplayRole):
