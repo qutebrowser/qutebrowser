@@ -193,7 +193,7 @@ class QuickmarkManager(UrlMarkManager):
         if name not in self:
             raise DoesNotExistError("Quickmark '{}' does not exist!"
                                     .format(name))
-        urlstr = self[name]
+        urlstr = self[name].url
         try:
             url = urlutils.fuzzy_url(urlstr, do_search=False)
         except urlutils.InvalidUrlError as e:

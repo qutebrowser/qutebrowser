@@ -24,6 +24,8 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQuery
 
 from qutebrowser.utils import log
 
+import collections
+
 
 def init():
     """Initialize the SQL database connection."""
@@ -87,13 +89,14 @@ class SqlTable(QObject):
         self._primary_key = primary_key
         run_query("CREATE TABLE {} ({}, PRIMARY KEY ({}))"
                    .format(name, ','.join(fields), primary_key))
+        self.Entry = collections.namedtuple(name + '_Entry', fields)
 
     def __iter__(self):
         """Iterate rows in the table."""
         result = run_query("SELECT * FROM {}".format(self._name))
         while result.next():
             rec = result.record()
-            yield tuple(rec.value(i) for i in range(rec.count()))
+            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
 
     def __contains__(self, key):
         """Return whether the table contains the matching item.
@@ -121,7 +124,7 @@ class SqlTable(QObject):
                             .format(self._name, self._primary_key), [key])
         result.next()
         rec = result.record()
-        return tuple(rec.value(i) for i in range(rec.count()))
+        return self.Entry(*[rec.value(i) for i in range(rec.count())])
 
     def delete(self, value, field=None):
         """Remove all rows for which `field` equals `value`.
