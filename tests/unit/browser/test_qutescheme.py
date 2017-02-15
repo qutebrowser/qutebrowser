@@ -96,7 +96,7 @@ class TestHistoryHandler:
         return items
 
     @pytest.fixture
-    def fake_web_history(self, fake_save_manager, tmpdir):
+    def fake_web_history(self, fake_save_manager, tmpdir, init_sql):
         """Create a fake web-history and register it into objreg."""
         web_history = history.WebHistory(tmpdir.dirname, 'fake-history')
         objreg.register('web-history', web_history)

@@ -198,7 +198,7 @@ def history_data(start_time):  # noqa
         Arguments:
             reverse -- whether to reverse the history_dict before iterating.
         """
-        history = objreg.get('web-history').history_dict.values()
+        history = list(objreg.get('web-history'))
         if reverse:
             history = reversed(history)
 
