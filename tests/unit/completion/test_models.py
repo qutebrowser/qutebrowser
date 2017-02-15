@@ -275,34 +275,19 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        # TODO: rearrange columns so address comes first
-        #"Quickmarks": [
-        #    ('https://wiki.archlinux.org', 'aw', None),
-        #    ('https://duckduckgo.com', 'ddg', None),
-        #    ('https://wikipedia.org', 'wiki', None),
-        #],
         "Quickmarks": [
-            ('aw', 'https://wiki.archlinux.org', None),
-            ('ddg', 'https://duckduckgo.com', None),
-            ('wiki', 'https://wikipedia.org', None),
+            ('https://wiki.archlinux.org', 'aw', None),
+            ('https://duckduckgo.com', 'ddg', None),
+            ('https://wikipedia.org', 'wiki', None),
         ],
         "Bookmarks": [
             ('https://github.com', 'GitHub', None),
             ('https://python.org', 'Welcome to Python.org', None),
             ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ],
-        # TODO: time formatting and item limiting
-        #"History": [
-        #    ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
-        #    ('https://github.com', 'GitHub', '2016-05-01'),
-        #    ('http://qutebrowser.org', 'qutebrowser | qutebrowser',
-        #     '2015-09-05', False)
-        #],
         "History": [
-            ('http://qutebrowser.org', 'qutebrowser',
-             datetime(2015, 9, 5).timestamp()),
-            ('https://python.org', 'Welcome to Python.org',
-             datetime(2016, 3, 8).timestamp()),
+            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
         ],
     })
 

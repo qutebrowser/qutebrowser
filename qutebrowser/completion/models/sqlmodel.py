@@ -29,15 +29,15 @@ from qutebrowser.misc import sql
 
 
 class SqlCompletionCategory(QSqlQueryModel):
-    def __init__(self, name, sort_by, sort_order, limit, columns_to_filter,
-                 parent=None):
+    def __init__(self, name, sort_by, sort_order, limit, select,
+                 columns_to_filter, parent=None):
         super().__init__(parent=parent)
         self.tablename = name
 
         query = sql.run_query('select * from {} limit 1'.format(name))
         self._fields = [query.record().fieldName(i) for i in columns_to_filter]
 
-        querystr = 'select * from {} where '.format(self.tablename)
+        querystr = 'select {} from {} where '.format(select, name)
         querystr += ' or '.join('{} like ?'.format(f) for f in self._fields)
         querystr += " escape '\\'"
 
@@ -87,18 +87,22 @@ class SqlCompletionModel(QAbstractItemModel):
         self.srcmodel = self  # TODO: dummy for compat with old API
         self.pattern = ''
 
-    def new_category(self, name, sort_by=None, sort_order=None, limit=None):
+    def new_category(self, name, select='*', sort_by=None,
+                     sort_order=None, limit=None):
         """Create a new completion category and add it to this model.
 
         Args:
             name: Name of category, and the table in the database.
+            select: A custom result column expression for the select statement.
             sort_by: The name of the field to sort by, or None for no sorting.
             sort_order: Sorting order, if sort_by is non-None.
+            limit: Maximum row count to return on a query.
 
         Return: A new CompletionCategory.
         """
         cat = SqlCompletionCategory(name, parent=self, sort_by=sort_by,
                                     sort_order=sort_order, limit=limit,
+                                    select=select,
                                     columns_to_filter=self.columns_to_filter)
         self._categories.append(cat)
 

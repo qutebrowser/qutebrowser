@@ -33,8 +33,12 @@ def url():
 
     model = sqlmodel.SqlCompletionModel(column_widths=(40, 50, 10),
                                         columns_to_filter=[urlcol, textcol])
+    limit = config.get('completion', 'web-history-max-items')
+    timefmt = config.get('completion', 'timestamp-format')
+    select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
     model.new_category('History',
-                       limit=config.get('completion', 'web-history-max-items'))
-    model.new_category('Quickmarks')
+                       limit=limit,
+                       select='url, title, {}'.format(select_time))
+    model.new_category('Quickmarks', select='url, name')
     model.new_category('Bookmarks')
     return model

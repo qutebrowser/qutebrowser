@@ -210,3 +210,11 @@ def test_limit():
     model = sqlmodel.SqlCompletionModel()
     model.new_category('test_limit', limit=3)
     assert model.count() == 3
+
+
+def test_select():
+    table = sql.SqlTable('test_select', ['a', 'b', 'c'], primary_key='a')
+    table.insert(['foo', 'bar', 'baz'])
+    model = sqlmodel.SqlCompletionModel()
+    model.new_category('test_select', select='b, c, a')
+    _check_model(model, [('test_select', [('bar', 'baz', 'foo')])])
