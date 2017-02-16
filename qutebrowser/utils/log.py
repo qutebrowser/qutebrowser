@@ -141,6 +141,7 @@ sessions = logging.getLogger('sessions')
 webelem = logging.getLogger('webelem')
 prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
+sql = logging.getLogger('sql')
 
 
 ram_handler = None

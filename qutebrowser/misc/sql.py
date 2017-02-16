@@ -47,13 +47,13 @@ def run_query(querystr, values=None):
     Args:
         values: A list of positional parameter bindings.
     """
-    log.completion.debug('Running SQL query: "{}"'.format(querystr))
+    log.sql.debug('Running SQL query: "{}"'.format(querystr))
     database = QSqlDatabase.database()
     query = QSqlQuery(database)
     query.prepare(querystr)
     for val in values or []:
         query.addBindValue(val)
-    log.completion.debug('Query bindings: {}'.format(query.boundValues()))
+    log.sql.debug('Query bindings: {}'.format(query.boundValues()))
     if not query.exec_():
         raise SqlException('Failed to exec query "{}": "{}"'.format(
                            querystr, query.lastError().text()))

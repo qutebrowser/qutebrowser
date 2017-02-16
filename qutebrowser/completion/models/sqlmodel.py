@@ -91,6 +91,19 @@ class SqlCompletionModel(QAbstractItemModel):
         self.pattern = ''
         self.delete_cur_item = delete_cur_item
 
+    def _cat_from_idx(self, index):
+        """Return the category pointed to by the given index.
+
+        Args:
+            idx: A QModelIndex
+        Returns:
+            A _SqlCompletionCategory if the index points at one, else None
+        """
+        # items hold an index to the parent category in their internalPointer
+        # categories have an empty internalPointer
+        if index.isValid() and not index.internalPointer():
+            return self._categories[index.row()]
+
     def new_category(self, name, select='*', where=None, sort_by=None,
                      sort_order=None, limit=None):
         """Create a new completion category and add it to this model.
@@ -184,16 +197,30 @@ class SqlCompletionModel(QAbstractItemModel):
         if not parent.isValid():
             # top-level
             return len(self._categories)
-        elif parent.internalPointer() or parent.column() != 0:
+        cat = self._cat_from_idx(parent)
+        if not cat or parent.column() != 0:
             # item or nonzero category column (only first col has children)
             return 0
         else:
             # category
-            return self._categories[parent.row()].rowCount()
+            return cat.rowCount()
 
     def columnCount(self, parent=QModelIndex()):
         # pylint: disable=unused-argument
         return 3
+
+    def canFetchMore(self, parent):
+        """Override to forward the call to the tables."""
+        cat = self._cat_from_idx(parent)
+        if cat:
+            return cat.canFetchMore()
+        return False
+
+    def fetchMore(self, parent):
+        """Override to forward the call to the tables."""
+        cat = self._cat_from_idx(parent)
+        if cat:
+            cat.fetchMore()
 
     def count(self):
         """Return the count of non-category items."""
