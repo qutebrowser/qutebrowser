@@ -362,3 +362,6 @@ def test_init(backend, qapp, tmpdir, monkeypatch):
         assert default_interface is None
 
     objreg.delete('web-history')
+    if backend == usertypes.Backend.QtWebKit:
+        # prevent interference with future tests
+        QWebHistoryInterface.setDefaultInterface(None)
