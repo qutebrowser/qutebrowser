@@ -194,6 +194,7 @@ class SqlCompletionModel(QAbstractItemModel):
         return self.createIndex(row, 0, None)
 
     def rowCount(self, parent=QModelIndex()):
+        """Override QAbstractItemModel::rowCount."""
         if not parent.isValid():
             # top-level
             return len(self._categories)
@@ -206,6 +207,7 @@ class SqlCompletionModel(QAbstractItemModel):
             return cat.rowCount()
 
     def columnCount(self, parent=QModelIndex()):
+        """Override QAbstractItemModel::columnCount."""
         # pylint: disable=unused-argument
         return 3
 
