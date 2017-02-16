@@ -168,7 +168,7 @@ class QuickmarkManager(UrlMarkManager):
 
         def set_mark():
             """Really set the quickmark."""
-            self.insert([name, url])
+            self.insert([name, url], replace=True)
             log.misc.debug("Added quickmark {} for {}".format(name, url))
 
         if name in self:
