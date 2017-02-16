@@ -97,6 +97,7 @@ class Completer(QObject):
         if not before_cursor:
             # '|' or 'set|'
             model = miscmodels.command()
+            log.completion.debug('Starting command completion')
             return sortfilter.CompletionFilterModel(source=model, parent=self)
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]
@@ -113,6 +114,8 @@ class Completer(QObject):
         if completion is None:
             return None
         model = self._get_completion_model(completion, before_cursor[1:])
+        log.completion.debug('Starting {} completion'
+                             .format(completion.__name__))
         return model
 
     def _quote(self, s):
@@ -237,11 +240,7 @@ class Completer(QObject):
 
         pattern = pattern.strip("'\"")
         model = self._get_new_completion(before_cursor, pattern)
-
-        log.completion.debug("Setting completion model to {} with pattern '{}'"
-            .format(model.srcmodel.__class__.__name__ if model else 'None',
-                    pattern))
-
+        log.completion.debug("Setting pattern to '{}'".format(pattern))
         completion.set_model(model, pattern)
 
     def _change_completed_part(self, newtext, before, after, immediate=False):
