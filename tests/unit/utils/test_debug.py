@@ -244,7 +244,7 @@ class TestGetAllObjects:
         def __repr__(self):
             return '<{}>'.format(self._name)
 
-    def test_get_all_objects(self, stubs, monkeypatch):
+    def test_get_all_objects(self, stubs, monkeypatch, init_sql):
         # pylint: disable=unused-variable
         widgets = [self.Object('Widget 1'), self.Object('Widget 2')]
         app = stubs.FakeQApplication(all_widgets=widgets)
