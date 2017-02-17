@@ -117,7 +117,7 @@ case $TESTENV in
         check_pyqt
         ;;
     py3*-pyqt*)
-        apt_install xvfb libpython3.4-dev geoclue
+        apt_install xvfb geoclue
         ;;
     pylint|vulture)
         apt_install $pyqt_pkgs libpython3.4-dev
