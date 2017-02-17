@@ -539,6 +539,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
 
+        if not self.page_title(idx):
+            self.set_page_title(idx, url.toDisplayString())
+
     @pyqtSlot(browsertab.AbstractTab, QIcon)
     def on_icon_changed(self, tab, icon):
         """Set the icon of a tab.
