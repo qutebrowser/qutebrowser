@@ -18,7 +18,6 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    @qtwebengine_skip: Opens in background
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
         And I hint with args "links normal" and follow a

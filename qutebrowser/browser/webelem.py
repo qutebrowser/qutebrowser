@@ -403,7 +403,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         href_tags = ['a', 'area', 'link']
         if click_target == usertypes.ClickTarget.normal:
-            if self.tag_name() in href_tags and self.get('target') != '_blank':
+            if self.tag_name() in href_tags and self.get('target') == '_blank':
+                log.webelem.debug("target _blank -> Clicking via href")
+                # FIXME:qtwebengine Should we use tab_bg here with
+                # background-tabs set?
+                self._click_href(usertypes.ClickTarget.tab)
+            elif self.tag_name() in href_tags:
                 log.webelem.debug("Clicking via JS click()")
                 self._click_js(click_target)
             elif self.is_editable(strict=True):
