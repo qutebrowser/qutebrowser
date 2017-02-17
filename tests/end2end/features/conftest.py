@@ -536,6 +536,9 @@ def check_open_tabs(quteproc, request, tabs):
     assert len(session['windows']) == 1
     assert len(session['windows'][0]['tabs']) == len(tabs)
 
+    # If we don't have (active) anywhere, don't check it
+    has_active = any(line.endswith(active_suffix) for line in tabs)
+
     for i, line in enumerate(tabs):
         line = line.strip()
         assert line.startswith('- ')
@@ -551,7 +554,7 @@ def check_open_tabs(quteproc, request, tabs):
         assert session_tab['history'][-1]['url'] == quteproc.path_to_url(path)
         if active:
             assert session_tab['active']
-        else:
+        elif has_active:
             assert 'active' not in session_tab
 
 
