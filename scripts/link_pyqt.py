@@ -154,6 +154,15 @@ def link_pyqt(executable, venv_path):
         copy_or_link(path, dest)
 
 
+def patch_pypi_pyqt(venv_path):
+    executable = get_venv_executable(venv_path)
+    pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5.QtCore'))
+    qt_conf = os.path.join(pyqt_dir, 'Qt', 'libexec', 'qt.conf')
+    with open(qt_conf, 'w', encoding='utf-8') as f:
+        f.write('[Paths]\n')
+        f.write('Prefix = ..\n')
+
+
 def copy_or_link(source, dest):
     """Copy or symlink source to dest."""
     if os.name == 'nt':
@@ -177,11 +186,15 @@ def remove(filename):
         os.unlink(filename)
 
 
+def get_venv_executable(path):
+    """Get the Python executable in a virtualenv."""
+    subdir = 'Scripts' if os.name == 'nt' else 'bin'
+    return os.path.join(path, subdir, 'python')
+
+
 def get_venv_lib_path(path):
     """Get the library path of a virtualenv."""
-    subdir = 'Scripts' if os.name == 'nt' else 'bin'
-    executable = os.path.join(path, subdir, 'python')
-    return run_py(executable,
+    return run_py(get_venv_executable(path),
                   'from distutils.sysconfig import get_python_lib',
                   'print(get_python_lib())')
 
@@ -200,15 +213,19 @@ def main():
     parser.add_argument('path', help="Base path to the venv.")
     parser.add_argument('--tox', help="Add when called via tox.",
                         action='store_true')
+    parser.add_argument('--pypi', help="Patch a PyPI-installed PyQt 5.6",
+                        action='store_true')
     args = parser.parse_args()
 
-    if args.tox:
-        executable = get_tox_syspython(args.path)
+    if args.pypi:
+        patch_pypi_pyqt(args.path)
     else:
-        executable = sys.executable
-
-    venv_path = get_venv_lib_path(args.path)
-    link_pyqt(executable, venv_path)
+        if args.tox:
+            executable = get_tox_syspython(args.path)
+        else:
+            executable = sys.executable
+        venv_path = get_venv_lib_path(args.path)
+        link_pyqt(executable, venv_path)
 
 
 if __name__ == '__main__':
