@@ -176,16 +176,16 @@ def shutdown():
 
 
 # Missing QtWebEngine attributes:
-# - ScreenCaptureEnabled (5.7)
-# - Accelerated2dCanvasEnabled (5.7)
-# - AutoLoadIconsForPage (5.7)
-# - TouchIconsEnabled (5.7)
+# - ScreenCaptureEnabled
+# - Accelerated2dCanvasEnabled
+# - AutoLoadIconsForPage
+# - TouchIconsEnabled
 # - FocusOnNavigationEnabled (5.8)
 # - AllowRunningInsecureContent (5.8)
 #
 # Missing QtWebEngine fonts:
 # - FantasyFont
-# - PictographFont (5.7)
+# - PictographFont
 
 
 MAPPINGS = {
@@ -209,6 +209,8 @@ MAPPINGS = {
         # https://bugreports.qt.io/browse/QTBUG-58650
         # 'cookies-store':
         #     PersistentCookiePolicy(),
+        'webgl':
+            Attribute(QWebEngineSettings.WebGLEnabled),
     },
     'input': {
         'spatial-navigation':
@@ -277,12 +279,6 @@ MAPPINGS = {
                    setter=QWebEngineSettings.setDefaultTextEncoding),
     }
 }
-
-try:
-    MAPPINGS['content']['webgl'] = Attribute(QWebEngineSettings.WebGLEnabled)
-except AttributeError:
-    # Added in Qt 5.7
-    pass
 
 try:
     MAPPINGS['general']['print-element-backgrounds'] = Attribute(

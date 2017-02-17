@@ -71,7 +71,7 @@ class WebEngineView(QWebEngineView):
                          A window without decoration.
                      QWebEnginePage::WebBrowserBackgroundTab:
                          A web browser tab without hiding the current visible
-                         WebEngineView. (Added in Qt 5.7)
+                         WebEngineView.
 
         Return:
             The new QWebEngineView object.
@@ -81,13 +81,6 @@ class WebEngineView(QWebEngineView):
 
         log.webview.debug("createWindow with type {}, background_tabs "
                           "{}".format(debug_type, background_tabs))
-
-        try:
-            background_tab_wintype = QWebEnginePage.WebBrowserBackgroundTab
-        except AttributeError:
-            # This is unavailable with an older PyQt, but we still might get
-            # this with a newer Qt...
-            background_tab_wintype = 0x0003
 
         if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
@@ -103,7 +96,7 @@ class WebEngineView(QWebEngineView):
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif wintype == background_tab_wintype:
+        elif wintype == QWebEnginePage.WebBrowserBackgroundTab:
             # Middle-click / Ctrl-Click
             if background_tabs:
                 target = usertypes.ClickTarget.tab_bg
@@ -113,15 +106,6 @@ class WebEngineView(QWebEngineView):
             raise ValueError("Invalid wintype {}".format(debug_type))
 
         tab = shared.get_tab(self._win_id, target)
-
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
-        vercheck = qtutils.version_check
-        qtbug54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                            qtutils.version_check('5.7.1') or
-                            os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
-        if not qtbug54419_fixed:
-            tab.needs_qtbug54419_workaround = True
-
         return tab._widget  # pylint: disable=protected-access
 
 
@@ -261,20 +245,16 @@ class WebEnginePage(QWebEnginePage):
         except shared.CallSuper:
             return super().javaScriptConfirm(url, js_msg)
 
-    if PYQT_VERSION > 0x050700:
-        # WORKAROUND
-        # Can't override javaScriptPrompt with older PyQt versions
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
-        def javaScriptPrompt(self, url, js_msg, default):
-            """Override javaScriptPrompt to use qutebrowser prompts."""
-            if self._is_shutting_down:
-                return (False, "")
-            try:
-                return shared.javascript_prompt(url, js_msg, default,
-                                                abort_on=[self.loadStarted,
-                                                          self.shutting_down])
-            except shared.CallSuper:
-                return super().javaScriptPrompt(url, js_msg, default)
+    def javaScriptPrompt(self, url, js_msg, default):
+        """Override javaScriptPrompt to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return (False, "")
+        try:
+            return shared.javascript_prompt(url, js_msg, default,
+                                            abort_on=[self.loadStarted,
+                                                        self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptPrompt(url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""

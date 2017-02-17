@@ -23,10 +23,6 @@ matrix:
       services: docker
     - os: linux
       language: python
-      python: 3.5
-      env: TESTENV=py35-pyqt56
-    - os: linux
-      language: python
       python: 3.6
       env: TESTENV=py36-pyqt571
     - os: linux

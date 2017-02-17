@@ -49,12 +49,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
-        try:
-            return (self._qt_item.savePageFormat() !=
-                    QWebEngineDownloadItem.UnknownSaveFormat)
-        except AttributeError:
-            # Added in Qt 5.7
-            return False
+        return (self._qt_item.savePageFormat() !=
+                QWebEngineDownloadItem.UnknownSaveFormat)
 
     @pyqtSlot(QWebEngineDownloadItem.DownloadState)
     def _on_state_changed(self, state):
@@ -209,9 +205,6 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def get_mhtml(self, tab, target):
         """Download the given tab as mhtml to the given target."""
         assert tab.backend == usertypes.Backend.QtWebEngine
-        # Raises browsertab.UnsupportedOperationError on older Qt versions
-        # but we let the caller handle that.
-        tab.action.check_save_page_supported()
         assert self._mhtml_target is None, self._mhtml_target
         self._mhtml_target = target
         tab.action.save_page()

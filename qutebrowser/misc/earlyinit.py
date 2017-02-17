@@ -262,15 +262,16 @@ def get_backend(args):
 
 def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
-    from PyQt5.QtCore import qVersion
+    from PyQt5.QtCore import qVersion, PYQT_VERSION
     from qutebrowser.utils import qtutils
     if qtutils.version_check('5.2.0', operator.lt):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
                 "installed.".format(qVersion()))
         _die(text)
-    elif backend == 'webengine' and qtutils.version_check('5.6.0',
-                                                          operator.lt):
-        text = ("Fatal error: Qt and PyQt >= 5.6.0 are required for "
+    elif (backend == 'webengine' and (
+            qtutils.version_check('5.7.0', operator.lt) or
+            PYQT_VERSION < 0x050701)):
+        text = ("Fatal error: Qt and PyQt >= 5.7.1 are required for "
                 "QtWebEngine support, but {} is installed.".format(qVersion()))
         _die(text)
 

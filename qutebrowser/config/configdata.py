@@ -823,8 +823,7 @@ def data(readonly=False):
 
             ('webgl',
              SettingValue(typ.Bool(), 'true'),
-             "Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is "
-             "required for this setting."),
+             "Enables or disables WebGL."),
 
             ('css-regions',
              SettingValue(typ.Bool(), 'true',

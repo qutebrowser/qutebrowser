@@ -120,13 +120,9 @@ def pytest_collection_modifyitems(config, items):
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
             item.add_marker(pytest.mark.xfail(run=False))
-        if item.get_marker('js_prompt'):
-            if config.webengine:
-                js_prompt_pyqt_version = 0x050700
-            else:
-                js_prompt_pyqt_version = 0x050300
+        if item.get_marker('js_prompt') and not config.webengine:
             item.add_marker(pytest.mark.skipif(
-                PYQT_VERSION <= js_prompt_pyqt_version,
+                PYQT_VERSION <= 0x050300,
                 reason='JS prompts are not supported with this PyQt version'))
 
         if deselected:

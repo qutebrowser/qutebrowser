@@ -80,7 +80,7 @@ Feature: Various utility commands.
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
 
-    @qtwebkit_skip @pyqt>=5.7.0
+    @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
         When I set general -> log-javascript-console to info
         And I open data/misc/jseval.html
@@ -88,14 +88,14 @@ Feature: Various utility commands.
         Then the javascript message "Hello from the page!" should not be logged
         And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
 
-    @qtwebkit_skip @pyqt>=5.7.0
+    @qtwebkit_skip
     Scenario: :jseval using the main world
         When I set general -> log-javascript-console to info
         And I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
 
-    @qtwebkit_skip @pyqt>=5.7.0
+    @qtwebkit_skip
     Scenario: :jseval using the main world as name
         When I set general -> log-javascript-console to info
         And I open data/misc/jseval.html

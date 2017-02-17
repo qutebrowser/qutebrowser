@@ -334,9 +334,6 @@ class QuteProc(testprocess.Process):
             # pylint: disable=no-name-in-module,useless-suppression
             from PyQt5.QtWebEngineWidgets import QWebEnginePage
             # pylint: enable=no-name-in-module,useless-suppression
-            if not hasattr(QWebEnginePage, 'scrollPositionChanged'):
-                # Qt < 5.7
-                pytest.skip("QWebEnginePage.scrollPositionChanged missing")
         if x is None and y is None:
             point = 'PyQt5.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':
