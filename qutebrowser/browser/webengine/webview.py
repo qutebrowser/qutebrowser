@@ -251,7 +251,7 @@ class WebEnginePage(QWebEnginePage):
         try:
             return shared.javascript_prompt(url, js_msg, default,
                                             abort_on=[self.loadStarted,
-                                                        self.shutting_down])
+                                                      self.shutting_down])
         except shared.CallSuper:
             return super().javaScriptPrompt(url, js_msg, default)
 
