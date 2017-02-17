@@ -211,7 +211,7 @@ class TestSelectorsAndFilters:
         assert self.TESTS
 
     @pytest.mark.parametrize('group, val, matching', TESTS)
-    def test_selectors(self, webframe, init_sql, group, val, matching):
+    def test_selectors(self, webframe, group, val, matching):
         webframe.setHtml('<html><body>{}</body></html>'.format(val))
         # Make sure setting HTML succeeded and there's a new element
         assert len(webframe.findAllElements('*')) == 3
