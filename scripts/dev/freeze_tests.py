@@ -55,7 +55,8 @@ def get_build_exe_options():
     opts = freeze.get_build_exe_options(skip_html=True)
     opts['includes'] += pytest.freeze_includes()
     opts['includes'] += ['unittest.mock', 'PyQt5.QtTest', 'hypothesis', 'bs4',
-                         'httpbin', 'jinja2.ext', 'cheroot', 'pstats', 'queue']
+                         'httpbin', 'jinja2.ext', 'cheroot', 'pstats', 'queue',
+                         'pytest-benchmark']
 
     httpbin_dir = os.path.dirname(httpbin.__file__)
     opts['include_files'] += [

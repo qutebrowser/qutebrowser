@@ -166,6 +166,7 @@ PERFECT_FILES = [
 WHITELISTED_FILES = [
     'qutebrowser/browser/webkit/webkitinspector.py',
     'qutebrowser/keyinput/macros.py',
+    'qutebrowser/browser/webkit/webkitelem.py',
 ]
 
 

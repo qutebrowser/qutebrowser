@@ -25,7 +25,9 @@
 from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QApplication
+# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.utils import log, javascript
 from qutebrowser.browser import webelem
