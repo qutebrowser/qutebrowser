@@ -397,6 +397,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
                           to simulate.
             force_event: Force generating a fake mouse event.
         """
+        log.webelem.debug("Clicking {!r} with click_target {}, force_event {}"
+                          .format(self, click_target, force_event))
+
         if force_event:
             self._click_fake_event(click_target)
             return
