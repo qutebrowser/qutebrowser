@@ -20,7 +20,7 @@
 """QtWebKit specific part of the web element API."""
 
 from PyQt5.QtCore import QRect
-from PyQt5.QtWebKit import QWebElement
+from PyQt5.QtWebKit import QWebElement, QWebSettings
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript
@@ -301,11 +301,12 @@ class WebKitElement(webelem.AbstractWebElement):
         self._elem.evaluateJavaScript('this.focus();')
 
     def _click_js(self, click_target):
-        if self.get('target') == '_blank':
-            # QtWebKit does nothing in this case for some reason...
-            self._click_fake_event(click_target)
-        else:
-            self._elem.evaluateJavaScript('this.click();')
+        settings = QWebSettings.globalSettings()
+        attribute = QWebSettings.JavascriptCanOpenWindows
+        could_open_windows = settings.testAttribute(attribute)
+        settings.setAttribute(attribute, True)
+        self._elem.evaluateJavaScript('this.click();')
+        settings.setAttribute(attribute, could_open_windows)
 
     def _click_fake_event(self, click_target):
         self._tab.data.override_target = click_target
