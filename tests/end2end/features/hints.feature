@@ -1,5 +1,9 @@
 Feature: Using hints
 
+    # https://bugreports.qt.io/browse/QTBUG-58381
+    Background:
+        Given I clean up open tabs
+
     Scenario: Using :follow-hint outside of hint mode (issue 1105)
         When I run :follow-hint
         Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
@@ -24,11 +28,10 @@ Feature: Using hints
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link_blank.html
-            - data/hello.txt (active)
+            - data/hello.txt
 
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
-        And I run :tab-close
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
