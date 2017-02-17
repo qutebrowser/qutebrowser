@@ -45,6 +45,7 @@ import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
+from qutebrowser.config.parsers import keyconf
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -421,6 +422,10 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing config...")
     config.init(qApp)
+    save_manager.init_autosave()
+
+    log.init.debug("Initializing keys...")
+    keyconf.init(qApp)
     save_manager.init_autosave()
 
     log.init.debug("Initializing sql...")

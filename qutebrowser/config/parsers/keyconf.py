@@ -22,13 +22,44 @@
 import collections
 import os.path
 import itertools
+import sys
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import log, utils, qtutils, message, usertypes
+from qutebrowser.utils import (log, utils, qtutils, message, usertypes, objreg,
+                               standarddir, error)
 from qutebrowser.completion.models import miscmodels
+
+
+def init(parent=None):
+    """Read and save keybindings.
+
+    Args:
+        parent: The parent to use for the KeyConfigParser.
+    """
+    args = objreg.get('args')
+    try:
+        key_config = KeyConfigParser(standarddir.config(), 'keys.conf',
+                                     args.relaxed_config, parent=parent)
+    except (KeyConfigError, UnicodeDecodeError) as e:
+        log.init.exception(e)
+        errstr = "Error while reading key config:\n"
+        if e.lineno is not None:
+            errstr += "In line {}: ".format(e.lineno)
+        error.handle_fatal_exc(e, args, "Error while reading key config!",
+                               pre_text=errstr)
+        # We didn't really initialize much so far, so we just quit hard.
+        sys.exit(usertypes.Exit.err_key_config)
+    else:
+        objreg.register('key-config', key_config)
+        save_manager = objreg.get('save-manager')
+        filename = os.path.join(standarddir.config(), 'keys.conf')
+        save_manager.add_saveable(
+            'key-config', key_config.save, key_config.config_dirty,
+            config_opt=('general', 'auto-save-config'), filename=filename,
+            dirty=key_config.is_dirty)
 
 
 class KeyConfigError(Exception):

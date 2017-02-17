@@ -249,7 +249,6 @@ def init(parent=None):
         parent: The parent to pass to QObjects which get initialized.
     """
     _init_main_config(parent)
-    _init_key_config(parent)
     _init_misc()
 
 
