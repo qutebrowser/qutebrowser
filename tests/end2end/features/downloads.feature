@@ -197,6 +197,7 @@ Feature: Downloading things from a website.
 
     ## mhtml downloads
 
+    @qt>=5.8
     Scenario: Downloading as mhtml is available
         When I open data/title.html
         And I run :download --mhtml
@@ -226,6 +227,7 @@ Feature: Downloading things from a website.
         And I wait for "File successfully written." in the log
         Then the downloaded file Test title.mhtml should exist
 
+    @qt>=5.8
     Scenario: Opening a mhtml download directly
         When I set storage -> prompt-download-directory to true
         And I open html
