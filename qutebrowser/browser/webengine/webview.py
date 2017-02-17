@@ -19,10 +19,9 @@
 
 """The main browser widget for QtWebEngine."""
 
-import os
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtGui import QPalette
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
@@ -31,8 +30,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import (log, debug, usertypes, qtutils, jinja, urlutils,
-                               message, objreg)
+from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
+                               objreg)
 
 
 class WebEngineView(QWebEngineView):

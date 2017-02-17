@@ -330,10 +330,6 @@ class QuteProc(testprocess.Process):
         if (x is None and y is not None) or (y is None and x is not None):
             raise ValueError("Either both x/y or neither must be given!")
 
-        if self.request.config.webengine:
-            # pylint: disable=no-name-in-module,useless-suppression
-            from PyQt5.QtWebEngineWidgets import QWebEnginePage
-            # pylint: enable=no-name-in-module,useless-suppression
         if x is None and y is None:
             point = 'PyQt5.QtCore.QPoint(*, *)'  # not counting 0/0 here
         elif x == '0' and y == '0':

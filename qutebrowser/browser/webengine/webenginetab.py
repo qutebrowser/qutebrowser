@@ -26,7 +26,7 @@ import functools
 
 import sip
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
-from PyQt5.QtGui import QKeyEvent, QIcon
+from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWidgets import QApplication
