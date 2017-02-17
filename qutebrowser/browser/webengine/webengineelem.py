@@ -147,6 +147,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         return QRect()
 
     def remove_blank_target(self):
+        if self._js_dict['attributes'].get('target') == '_blank':
+            self._js_dict['attributes']['target'] = '_top'
         js_code = javascript.assemble('webelem', 'remove_blank_target',
             self._id)
         self._tab.run_js_async(js_code)
