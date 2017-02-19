@@ -187,6 +187,7 @@ Contributors, sorted by the number of commits in descending order:
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
+* Tomasz Kramkowski
 * Sebastian Frysztak
 * Nikolay Amiantov
 * Jonas Schürmann
@@ -196,7 +197,6 @@ Contributors, sorted by the number of commits in descending order:
 * Julie Engel
 * skinnay
 * Zach-Button
-* Tomasz Kramkowski
 * Samuel Walladge
 * Peter Rice
 * Ismail S
