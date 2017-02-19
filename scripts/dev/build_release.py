@@ -92,7 +92,10 @@ def smoke_test(executable):
 
 
 def patch_osx_app():
-    """Patch .app for https://github.com/pyinstaller/pyinstaller/issues/2276"""
+    """Patch .app to copy missing data and link some libs.
+
+    See https://github.com/pyinstaller/pyinstaller/issues/2276
+    """
     app_path = os.path.join('dist', 'qutebrowser.app')
     qtwe_core_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'python3.6',
                                  'site-packages', 'PyQt5', 'Qt', 'lib',
@@ -113,7 +116,8 @@ def patch_osx_app():
                 'QtGui', 'QtWebChannel', 'QtPositioning']:
         dest = os.path.join(app_path, lib + '.framework', 'Versions', '5')
         os.makedirs(dest)
-        os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents', 'MacOS', lib),
+        os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
+                                'MacOS', lib),
                    os.path.join(dest, lib))
 
 
