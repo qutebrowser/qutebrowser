@@ -541,6 +541,12 @@ Setting up a Windows Development Environment
 
 Note that the `flake8` tox env might not run due to encoding errors despite having LANG/LC_* set correctly.
 
+Rebuilding the website
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to rebuild the website, run `./scripts/asciidoc2html.py --website <outputdir>`.
+
+
 Style conventions
 -----------------
 
