@@ -676,6 +676,7 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
                             else usertypes.Backend.QtWebEngine),
         'qtutils.is_qtwebkit_ng': (lambda v:
                                    True if with_webkit == 'ng' else False),
+        'QLibraryInfo.location': (lambda _loc: 'QT PATH')
     }
 
     for attr, val in patches.items():
@@ -703,6 +704,7 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         Platform: PLATFORM, ARCHITECTURE
         Frozen: {frozen}
         Imported from {import_path}
+        Qt library executable path: QT PATH, data path: QT PATH
         OS INFO 1
         OS INFO 2
 

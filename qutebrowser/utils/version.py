@@ -28,7 +28,8 @@ import subprocess
 import importlib
 import collections
 
-from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
+from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
+                          QLibraryInfo)
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
 
@@ -278,6 +279,10 @@ def version():
                                   platform.architecture()[0]),
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
+        "Qt library executable path: {}, data path: {}".format(
+            QLibraryInfo.location(QLibraryInfo.LibraryExecutablesPath),
+            QLibraryInfo.location(QLibraryInfo.DataPath)
+        )
     ]
     lines += _os_info()
 
