@@ -359,7 +359,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
                 self._tab.caret.move_to_end_of_document()
         QTimer.singleShot(0, after_click)
 
-    def _click_editable(self):
+    def _click_editable(self, click_target):
         """Fake a click on an editable input field."""
         raise NotImplementedError
 
@@ -411,7 +411,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
                 self._click_js(click_target)
             elif self.is_editable(strict=True):
                 log.webelem.debug("Clicking via JS focus()")
-                self._click_editable()
+                self._click_editable(click_target)
                 modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
                               'clicking input')
             else:

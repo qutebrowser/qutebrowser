@@ -157,7 +157,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             self._id)
         self._tab.run_js_async(js_code)
 
-    def _click_editable(self):
+    def _click_editable(self, click_target):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
         # pylint doesn't know about Qt.MouseEventSynthesizedBySystem
         # because it was added in Qt 5.6, but we can be sure we use that with

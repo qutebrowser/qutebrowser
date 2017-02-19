@@ -297,7 +297,7 @@ class WebKitElement(webelem.AbstractWebElement):
                 break
             elem = elem._parent()  # pylint: disable=protected-access
 
-    def _click_editable(self):
+    def _click_editable(self, click_target):
         ok = self._elem.evaluateJavaScript('this.focus(); true;')
         if not ok:
             log.webelem.debug("Failed to focus via JS, falling back to event")
