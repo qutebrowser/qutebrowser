@@ -298,15 +298,21 @@ class WebKitElement(webelem.AbstractWebElement):
             elem = elem._parent()  # pylint: disable=protected-access
 
     def _click_editable(self):
-        self._elem.evaluateJavaScript('this.focus();')
+        ok = self._elem.evaluateJavaScript('this.focus(); true;')
+        if not ok:
+            log.webelem.debug("Failed to focus via JS, falling back to event")
+            self._click_fake_event(click_target)
 
     def _click_js(self, click_target):
         settings = QWebSettings.globalSettings()
         attribute = QWebSettings.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)
-        self._elem.evaluateJavaScript('this.click();')
+        ok = self._elem.evaluateJavaScript('this.click(); true;')
         settings.setAttribute(attribute, could_open_windows)
+        if not ok:
+            log.webelem.debug("Failed to click via JS, falling back to event")
+            self._click_fake_event(click_target)
 
     def _click_fake_event(self, click_target):
         self._tab.data.override_target = click_target
