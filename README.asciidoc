@@ -190,11 +190,11 @@ Contributors, sorted by the number of commits in descending order:
 * Tomasz Kramkowski
 * Sebastian Frysztak
 * Nikolay Amiantov
+* Julie Engel
 * Jonas Schürmann
 * error800
 * Michael Hoang
 * Liam BEGUIN
-* Julie Engel
 * skinnay
 * Zach-Button
 * Samuel Walladge
