@@ -316,7 +316,7 @@ class HintActions:
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
                                   env=env)
-        except userscripts.UnsupportedError as e:
+        except userscripts.Error as e:
             raise HintingError(str(e))
 
     def spawn(self, url, context):

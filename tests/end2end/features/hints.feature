@@ -81,6 +81,11 @@ Feature: Using hints
         And I hint with args "all userscript (testdata)/userscripts/echo_hint_text" and follow a
         Then the message "Follow me!" should be shown
 
+    Scenario: Using :hint userscript with a script which doesn't exist
+        When I open data/hints/html/simple.html
+        And I hint with args "all userscript (testdata)/does_not_exist" and follow a
+        Then the error "Userscript '*' not found" should be shown
+
     Scenario: Yanking to clipboard
         When I run :debug-set-fake-clipboard
         And I open data/hints/html/simple.html
