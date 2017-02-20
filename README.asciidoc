@@ -211,6 +211,7 @@ Contributors, sorted by the number of commits in descending order:
 * Michael Ilsaas
 * Martin Zimmermann
 * Jussi Timperi
+* Cosmin Popescu
 * Brian Jackson
 * thuck
 * sbinix
