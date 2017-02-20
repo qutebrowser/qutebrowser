@@ -121,5 +121,6 @@ def test_delete_all(qtbot):
         table.delete_all()
     assert list(table) == []
 
+
 def test_version():
     assert isinstance(sql.version(), str)

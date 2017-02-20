@@ -28,7 +28,6 @@ import os.path
 import collections
 import functools
 import contextlib
-import itertools
 import socket
 import shlex
 
