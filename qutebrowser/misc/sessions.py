@@ -34,7 +34,6 @@ except ImportError:  # pragma: no cover
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message, utils)
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.mainwindow import mainwindow
 from qutebrowser.config import config
 
 
@@ -346,6 +345,7 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
+        from qutebrowser.mainwindow import mainwindow
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
