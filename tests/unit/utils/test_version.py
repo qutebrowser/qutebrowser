@@ -834,6 +834,7 @@ def test_version_output(git_commit, frozen, style, with_webkit,
         'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'sql.version': lambda: 'SQLITE VERSION',
     }
 
     substitutions = {
@@ -892,6 +893,7 @@ def test_version_output(git_commit, frozen, style, with_webkit,
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
+        sqlite: SQLITE VERSION
         SSL: SSL VERSION
         {style}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}

@@ -120,3 +120,6 @@ def test_delete_all(qtbot):
     with qtbot.waitSignal(table.changed):
         table.delete_all()
     assert list(table) == []
+
+def test_version():
+    assert isinstance(sql.version(), str)

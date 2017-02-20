@@ -45,7 +45,7 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
-from qutebrowser.misc import objects, earlyinit
+from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 
 
@@ -326,6 +326,10 @@ def version():
     lines += _module_versions()
 
     lines += ['pdf.js: {}'.format(_pdfjs_version())]
+
+    sql.init()
+    lines += ['sqlite: {}'.format(sql.version())]
+    sql.close()
 
     lines += [
         'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),

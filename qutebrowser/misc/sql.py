@@ -41,6 +41,13 @@ def close():
     QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
 
 
+def version():
+    """Return the sqlite version string."""
+    result = run_query("select sqlite_version()")
+    result.next()
+    return result.record().value(0)
+
+
 def run_query(querystr, values=None):
     """Run the given SQL query string on the database.
 
