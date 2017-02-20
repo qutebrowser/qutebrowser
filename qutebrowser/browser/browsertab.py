@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
-from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import mouse, hints
 
 
@@ -684,12 +684,17 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
+        sess_manager = objreg.get('session-manager')
+        try:
+            sess_manager.save('_autosave')
+        except sessions.SessionError as e:
+            log.sessions.error("Failed to save autosave session: {}".format(e))
+
         if ok and not self._has_ssl_errors:
             if self.url().scheme() == 'https':
                 self._set_load_status(usertypes.LoadStatus.success_https)
             else:
                 self._set_load_status(usertypes.LoadStatus.success)
-
         elif ok:
             self._set_load_status(usertypes.LoadStatus.warn)
         else:

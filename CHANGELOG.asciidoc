@@ -32,6 +32,7 @@ Added
 - Support for the `general -> print-element-backgrounds` option with QtWebEngine on Qt >= 5.8
 - Support for `:download --mhtml` with QtWebEngine
 - New `qute:history` URL and `:history` command to show the browsing history.
+- Open tabs are now auto-saved on each successful load and restored in case of a crash.
 
 Changed
 ~~~~~~~
