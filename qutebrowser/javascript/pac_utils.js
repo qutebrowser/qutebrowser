@@ -78,7 +78,7 @@ function isInNet(ipaddr, pattern, maskstr) {
 }
 
 function isPlainHostName(host) {
-    return (host.search('\\\\.') == -1);
+    return (host.search('\\.') == -1);
 }
 
 function isResolvable(host) {
