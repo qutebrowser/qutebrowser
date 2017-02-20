@@ -685,10 +685,7 @@ class AbstractTab(QWidget):
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
         sess_manager = objreg.get('session-manager')
-        try:
-            sess_manager.save('_autosave')
-        except sessions.SessionError as e:
-            log.sessions.error("Failed to save autosave session: {}".format(e))
+        sess_manager.save_autosave()
 
         if ok and not self._has_ssl_errors:
             if self.url().scheme() == 'https':

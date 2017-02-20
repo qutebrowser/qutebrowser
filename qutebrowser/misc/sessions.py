@@ -292,6 +292,21 @@ class SessionManager(QObject):
             state_config['general']['session'] = name
         return name
 
+    def save_autosave(self):
+        """Save the autosave session."""
+        try:
+            self.save('_autosave')
+        except SessionError as e:
+            log.sessions.error("Failed to save autosave session: {}".format(e))
+
+    def delete_autosave(self):
+        """Delete the autosave session."""
+        try:
+            self.delete('_autosave')
+        except SessionError as e:
+            log.sessions.error("Failed to delete autosave session: {}"
+                               .format(e))
+
     def save_last_window_session(self):
         """Temporarily save the session for the last closed window."""
         self._last_window_session = self._save_all()
