@@ -19,8 +19,9 @@
 
 """Functions that return config-related completion models."""
 
-from qutebrowser.config import config, configdata, configexc
+from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import base
+from qutebrowser.utils import objreg
 
 
 def section():
@@ -54,6 +55,7 @@ def option(sectname):
             desc = ""
         else:
             desc = desc.splitlines()[0]
+        config = objreg.get('config')
         val = config.get(sectname, name, raw=True)
         model.new_item(cat, name, desc, val)
     return model
@@ -68,6 +70,7 @@ def value(sectname, optname):
     """
     model = base.CompletionModel(column_widths=(20, 70, 10))
     cur_cat = model.new_category("Current/Default")
+    config = objreg.get('config')
     try:
         val = config.get(sectname, optname, raw=True) or '""'
     except (configexc.NoSectionError, configexc.NoOptionError):
