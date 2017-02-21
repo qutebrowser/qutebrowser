@@ -71,6 +71,10 @@ def is_ignored_lowlevel_message(message):
         # Started appearing with Qt 5.8...
         # http://patchwork.sourceware.org/patch/10255/
         return True
+    elif ("CreatePlatformSocket() returned an error, errno=97: Address family "
+          "not supported by protocol" in message):
+        # Makes tests fail on Quantumcross' machine
+        return True
     return False
 
 
