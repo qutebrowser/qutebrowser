@@ -156,6 +156,11 @@ def qute_bookmarks(_url):
     quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
                         key=lambda x: x[0])  # Sort by name
 
+    # bookmark title is url if bookmark has no title
+    for i, item in enumerate(bookmarks):
+        if not item[1]:
+            bookmarks[i] = (item[0], item[0])
+
     html = jinja.render('bookmarks.html',
                         title='Bookmarks',
                         bookmarks=bookmarks,
