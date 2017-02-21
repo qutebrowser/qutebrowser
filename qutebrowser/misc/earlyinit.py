@@ -270,7 +270,7 @@ def check_qt_version(backend):
                 "PyQt {} is installed.".format(qVersion(), PYQT_VERSION_STR))
         _die(text)
     elif (backend == 'webengine' and (
-            qtutils.version_check('5.7.0', operator.lt) or
+            qtutils.version_check('5.7.1', operator.lt) or
             PYQT_VERSION < 0x050700)):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
                 "QtWebEngine support, but Qt {} / PyQt {} is installed."
