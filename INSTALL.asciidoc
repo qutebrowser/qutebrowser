@@ -272,28 +272,20 @@ qutebrowser from source.
 
 ==== Homebrew
 
-Homebrew's builds of Qt and PyQt no longer include QtWebKit, so it is necessary 
-to build from source. The build takes several hours on an average laptop.
+----
+$ brew install qt5
+$ pip3 install qutebrowser
+----
+
+Homebrew's builds of Qt and PyQt no longer include QtWebKit - if you need
+QtWebKit support, it is necessary to build from source. The build takes several
+hours on an average laptop.
 
 ----
 $ brew install qt5 --with-qtwebkit
 $ brew install -s pyqt5
-
-$ pip3.5 install qutebrowser
+$ pip3 install qutebrowser
 ----
-
-==== MacPorts
-
-For MacPorts, run:
-
-----
-$ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
-$ sudo pip3.4 install qutebrowser
-----
-
-The preferences for qutebrowser are stored in
-`~/Library/Preferences/qutebrowser`, the application data is stored in
-`~/Library/Application Support/qutebrowser`.
 
 Packagers
 ---------
