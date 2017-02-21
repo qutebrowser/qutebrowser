@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
-from qutebrowser.misc import miscwidgets, objects, sessions
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
 
 
