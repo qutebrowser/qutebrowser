@@ -36,9 +36,10 @@ class CompletionModel(QStandardItemModel):
 
     Attributes:
         column_widths: The width percentages of the columns used in the
+                       completion view.
     """
 
-    def __init__(self, column_widths=(30, 70, 0), columns_to_filter=None,
+    def __init__(self, *, column_widths=(30, 70, 0), columns_to_filter=None,
                  delete_cur_item=None, parent=None):
         super().__init__(parent)
         self.setColumnCount(3)

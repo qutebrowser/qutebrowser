@@ -457,7 +457,7 @@ def short_tmpdir():
         yield py.path.local(tdir)  # pylint: disable=no-member
 
 
-@pytest.fixture()
+@pytest.fixture
 def init_sql():
     """Initialize the SQL module, and shut it down after the test."""
     sql.init()

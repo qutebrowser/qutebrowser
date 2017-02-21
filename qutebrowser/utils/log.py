@@ -94,7 +94,7 @@ LOGGER_NAMES = [
     'commands', 'signals', 'downloads',
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
-    'webelem', 'prompt', 'network'
+    'webelem', 'prompt', 'network', 'sql'
 ]
 
 

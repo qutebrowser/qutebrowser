@@ -104,10 +104,7 @@ class UrlMarkManager(sql.SqlTable):
 
 class QuickmarkManager(UrlMarkManager):
 
-    """Manager for quickmarks.
-
-    The primary key for quickmarks is their *name*.
-    """
+    """Manager for quickmarks."""
 
     def __init__(self, parent=None):
         super().__init__('Quickmarks', ['name', 'url'], primary_key='name',
@@ -179,7 +176,7 @@ class QuickmarkManager(UrlMarkManager):
             set_mark()
 
     def delete_by_qurl(self, url):
-        """Look up a quickmark by QUrl, returning its name."""
+        """Delete a quickmark by QUrl (as opposed to by name)."""
         qtutils.ensure_valid(url)
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         try:
@@ -204,10 +201,7 @@ class QuickmarkManager(UrlMarkManager):
 
 class BookmarkManager(UrlMarkManager):
 
-    """Manager for bookmarks.
-
-    The primary key for bookmarks is their *url*.
-    """
+    """Manager for bookmarks."""
 
     def __init__(self, parent=None):
         super().__init__('Bookmarks', ['url', 'title'], primary_key='url',

@@ -193,21 +193,15 @@ def test_clear(qtbot, tmpdir):
     assert lines == ['67890 http://www.the-compiler.org/']
 
 
-def test_add_item(qtbot, hist):
+@pytest.mark.parametrize('item', [
+    ('http://www.example.com', 12346, 'the title', False),
+    ('http://www.example.com', 12346, 'the title', True)
+])
+def test_add_item(qtbot, hist, item):
     list(hist.async_read())
-    url = 'http://www.example.com/'
-
-    hist.add_url(QUrl(url), atime=12345, title="the title")
-
-    assert hist[url] == (url, 'the title', 12345, False)
-
-
-def test_add_item_redirect(qtbot, hist):
-    list(hist.async_read())
-    url = 'http://www.example.com/'
-    hist.add_url(QUrl(url), redirect=True, atime=12345)
-
-    assert hist[url] == (url, '', 12345, True)
+    (url, atime, title, redirect) = item
+    hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
+    assert hist[url] == (url, title, atime, redirect)
 
 
 def test_add_item_redirect_update(qtbot, tmpdir, fake_save_manager):
@@ -329,9 +323,23 @@ def test_history_interface(qtbot, webview, hist_interface):
         webview.load(url)
 
 
+@pytest.fixture
+def cleanup_init():
+    yield
+    # prevent test_init from leaking state
+    hist = objreg.get('web-history')
+    hist.setParent(None)
+    objreg.delete('web-history')
+    try:
+        from PyQt5.QtWebKit import QWebHistoryInterface
+        QWebHistoryInterface.setDefaultInterface(None)
+    except:
+        pass
+
+
 @pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
                                      usertypes.Backend.QtWebKit])
-def test_init(backend, qapp, tmpdir, monkeypatch):
+def test_init(backend, qapp, tmpdir, monkeypatch, cleanup_init):
     if backend == usertypes.Backend.QtWebKit:
         pytest.importorskip('PyQt5.QtWebKitWidgets')
     else:
@@ -360,9 +368,3 @@ def test_init(backend, qapp, tmpdir, monkeypatch):
         # For this to work, nothing can ever have called setDefaultInterface
         # before (so we need to test webengine before webkit)
         assert default_interface is None
-
-    # prevent interference with future tests
-    objreg.delete('web-history')
-    hist.setParent(None)
-    if backend == usertypes.Backend.QtWebKit:
-        QWebHistoryInterface.setDefaultInterface(None)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -102,7 +102,7 @@ def test_contains():
     assert 'thirteen' in table
 
 
-def test_index():
+def test_getitem():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'], primary_key='name')
     table.insert(['one', 1, False])
     table.insert(['nine', 9, False])

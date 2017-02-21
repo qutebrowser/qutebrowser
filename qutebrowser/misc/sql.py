@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -27,13 +27,21 @@ from qutebrowser.utils import log
 import collections
 
 
+class SqlException(Exception):
+
+    """Raised on an error interacting with the SQL database."""
+
+    pass
+
+
 def init():
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     # In-memory database, see https://sqlite.org/inmemorydb.html
     database.setDatabaseName(':memory:')
     if not database.open():
-        raise SqlException("Failed to open in-memory sqlite database")
+        raise SqlException("Failed to open in-memory sqlite database: {}"
+                           .format(database.lastError().text()))
 
 
 def close():
@@ -169,10 +177,3 @@ class SqlTable(QObject):
         """Remove all row from the table."""
         run_query("DELETE FROM {}".format(self._name))
         self.changed.emit()
-
-
-class SqlException(Exception):
-
-    """Raised on an error interacting with the SQL database."""
-
-    pass

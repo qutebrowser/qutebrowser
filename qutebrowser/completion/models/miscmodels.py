@@ -130,11 +130,11 @@ def buffer():
     return model
 
 
-def bind(_):
+def bind(_key):
     """A CompletionModel filled with all bindable commands and descriptions.
 
     Args:
-        _: the key being bound.
+        _key: the key being bound.
     """
     # TODO: offer a 'Current binding' completion based on the key.
     model = base.CompletionModel(column_widths=(20, 60, 20))

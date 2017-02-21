@@ -426,7 +426,6 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing keys...")
     keyconf.init(qApp)
-    save_manager.init_autosave()
 
     log.init.debug("Initializing sql...")
     sql.init()

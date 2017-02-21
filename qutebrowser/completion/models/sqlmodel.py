@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -24,12 +24,14 @@ import re
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 from PyQt5.QtSql import QSqlQueryModel
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtutils
 from qutebrowser.misc import sql
 
 
 class _SqlCompletionCategory(QSqlQueryModel):
-    def __init__(self, name, sort_by, sort_order, limit, select, where,
+    """Wraps a SqlQuery for use as a completion category."""
+
+    def __init__(self, name, *, sort_by, sort_order, limit, select, where,
                  columns_to_filter, parent=None):
         super().__init__(parent=parent)
         self.tablename = name
@@ -38,6 +40,8 @@ class _SqlCompletionCategory(QSqlQueryModel):
         self._fields = [query.record().fieldName(i) for i in columns_to_filter]
 
         querystr = 'select {} from {} where ('.format(select, name)
+        # the incoming pattern will have literal % and _ escaped with '\'
+        # we need to tell sql to treat '\' as an escape character
         querystr += ' or '.join("{} like ? escape '\\'".format(f)
                                 for f in self._fields)
         querystr += ')'
@@ -45,6 +49,7 @@ class _SqlCompletionCategory(QSqlQueryModel):
             querystr += ' and ' + where
 
         if sort_by:
+            assert sort_order is not None
             sortstr = 'asc' if sort_order == Qt.AscendingOrder else 'desc'
             querystr += ' order by {} {}'.format(sort_by, sortstr)
 
@@ -69,19 +74,15 @@ class SqlCompletionModel(QAbstractItemModel):
     Top level indices represent categories, each of which is backed by a single
     table. Child indices represent rows of those tables.
 
-    Class Attributes:
-        COLUMN_WIDTHS: The width percentages of the columns used in the
-                       completion view.
-
     Attributes:
         column_widths: The width percentages of the columns used in the
-                        completion view.
+                       completion view.
         columns_to_filter: A list of indices of columns to apply the filter to.
         pattern: Current filter pattern, used for highlighting.
         _categories: The category tables.
     """
 
-    def __init__(self, column_widths=(30, 70, 0), columns_to_filter=None,
+    def __init__(self, *, column_widths=(30, 70, 0), columns_to_filter=None,
                  delete_cur_item=None, parent=None):
         super().__init__(parent)
         self.columns_to_filter = columns_to_filter or [0]
@@ -103,8 +104,9 @@ class SqlCompletionModel(QAbstractItemModel):
         # categories have an empty internalPointer
         if index.isValid() and not index.internalPointer():
             return self._categories[index.row()]
+        return None
 
-    def new_category(self, name, select='*', where=None, sort_by=None,
+    def new_category(self, name, *, select='*', where=None, sort_by=None,
                      sort_order=None, limit=None):
         """Create a new completion category and add it to this model.
 
@@ -135,7 +137,7 @@ class SqlCompletionModel(QAbstractItemModel):
         Return: The item data, or None on an invalid index.
         """
         if not index.isValid() or role != Qt.DisplayRole:
-            return
+            return None
         if not index.parent().isValid():
             if index.column() == 0:
                 return self._categories[index.row()].tablename
@@ -152,7 +154,7 @@ class SqlCompletionModel(QAbstractItemModel):
         Return: The item flags, or Qt.NoItemFlags on error.
         """
         if not index.isValid():
-            return
+            return Qt.NoItemFlags
         if index.parent().isValid():
             # item
             return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
@@ -253,7 +255,9 @@ class SqlCompletionModel(QAbstractItemModel):
         for row, table in enumerate(self._categories):
             if table.rowCount() > 0:
                 parent = self.index(row, 0)
-                return self.index(0, 0, parent)
+                index = self.index(0, 0, parent)
+                qtutils.ensure_valid(index)
+                return index
         return QModelIndex()
 
     def last_item(self):
@@ -262,7 +266,9 @@ class SqlCompletionModel(QAbstractItemModel):
             childcount = table.rowCount()
             if childcount > 0:
                 parent = self.index(row, 0)
-                return self.index(childcount - 1, 0, parent)
+                index = self.index(childcount - 1, 0, parent)
+                qtutils.ensure_valid(index)
+                return index
         return QModelIndex()
 
 
