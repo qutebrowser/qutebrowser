@@ -73,31 +73,31 @@ def test_count(rowcounts, expected):
 
 
 @pytest.mark.parametrize('sort_by, sort_order, data, expected', [
-    (None, Qt.AscendingOrder,
+    (None, 'asc',
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')],
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')]),
 
-    ('a', Qt.AscendingOrder,
+    ('a', 'asc',
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')],
      [('A', 'F', 'C'), ('B', 'C', 'D'), ('C', 'A', 'G')]),
 
-    ('a', Qt.DescendingOrder,
+    ('a', 'desc',
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')],
      [('C', 'A', 'G'), ('B', 'C', 'D'), ('A', 'F', 'C')]),
 
-    ('b', Qt.AscendingOrder,
+    ('b', 'asc',
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')],
      [('C', 'A', 'G'), ('B', 'C', 'D'), ('A', 'F', 'C')]),
 
-    ('b', Qt.DescendingOrder,
+    ('b', 'desc',
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')],
      [('A', 'F', 'C'), ('B', 'C', 'D'), ('C', 'A', 'G')]),
 
-    ('c', Qt.AscendingOrder,
+    ('c', 'asc',
      [('B', 'C', 2), ('A', 'F', 0), ('C', 'A', 1)],
      [('A', 'F', 0), ('C', 'A', 1), ('B', 'C', 2)]),
 
-    ('c', Qt.DescendingOrder,
+    ('c', 'desc',
      [('B', 'C', 2), ('A', 'F', 0), ('C', 'A', 1)],
      [('B', 'C', 2), ('C', 'A', 1), ('A', 'F', 0)]),
 ])

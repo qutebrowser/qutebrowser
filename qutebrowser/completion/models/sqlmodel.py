@@ -49,9 +49,8 @@ class _SqlCompletionCategory(QSqlQueryModel):
             querystr += ' and ' + where
 
         if sort_by:
-            assert sort_order is not None
-            sortstr = 'asc' if sort_order == Qt.AscendingOrder else 'desc'
-            querystr += ' order by {} {}'.format(sort_by, sortstr)
+            assert sort_order == 'asc' or sort_order == 'desc'
+            querystr += ' order by {} {}'.format(sort_by, sort_order)
 
         if limit:
             querystr += ' limit {}'.format(limit)
@@ -115,7 +114,7 @@ class SqlCompletionModel(QAbstractItemModel):
             select: A custom result column expression for the select statement.
             where: An optional clause to filter out some rows.
             sort_by: The name of the field to sort by, or None for no sorting.
-            sort_order: Sorting order, if sort_by is non-None.
+            sort_order: Either 'asc' or 'desc', if sort_by is non-None
             limit: Maximum row count to return on a query.
 
         Return: A new CompletionCategory.

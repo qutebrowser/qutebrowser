@@ -70,7 +70,7 @@ def url():
     model.new_category('Quickmarks', select='url, name')
     model.new_category('Bookmarks')
     model.new_category('History',
-                       limit=limit,
+                       limit=limit, sort_order='desc', sort_by='atime',
                        select='url, title, {}'.format(select_time),
                        where='not redirect')
     return model
