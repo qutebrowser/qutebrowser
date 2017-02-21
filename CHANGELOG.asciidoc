@@ -37,7 +37,7 @@ Added
 Changed
 ~~~~~~~
 
-- PyQt/Qt 5.7.1 is now required for the QtWebEngine backend
+- PyQt 5.7/Qt 5.7.1 is now required for the QtWebEngine backend
 - Scrolling with the scrollwheel while holding shift now scrolls sideways
 - New way of clicking hints with which solves various small issues
 - When yanking a mailto: link via hints, the mailto: prefix is now stripped

@@ -244,16 +244,20 @@ class WebEnginePage(QWebEnginePage):
         except shared.CallSuper:
             return super().javaScriptConfirm(url, js_msg)
 
-    def javaScriptPrompt(self, url, js_msg, default):
-        """Override javaScriptPrompt to use qutebrowser prompts."""
-        if self._is_shutting_down:
-            return (False, "")
-        try:
-            return shared.javascript_prompt(url, js_msg, default,
-                                            abort_on=[self.loadStarted,
-                                                      self.shutting_down])
-        except shared.CallSuper:
-            return super().javaScriptPrompt(url, js_msg, default)
+    if PYQT_VERSION > 0x050700:
+        # WORKAROUND
+        # Can't override javaScriptPrompt with older PyQt versions
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
+        def javaScriptPrompt(self, url, js_msg, default):
+            """Override javaScriptPrompt to use qutebrowser prompts."""
+            if self._is_shutting_down:
+                return (False, "")
+            try:
+                return shared.javascript_prompt(url, js_msg, default,
+                                                abort_on=[self.loadStarted,
+                                                          self.shutting_down])
+            except shared.CallSuper:
+                return super().javaScriptPrompt(url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""
