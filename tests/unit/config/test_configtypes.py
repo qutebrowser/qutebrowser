@@ -1483,6 +1483,7 @@ class TestProxy:
         'none',
         'http://user:pass@example.com:2323/',
         'pac+http://example.com/proxy.pac',
+        'pac+file:///tmp/proxy.pac'
     ])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
