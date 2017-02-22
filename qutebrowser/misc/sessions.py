@@ -436,6 +436,7 @@ class SessionManager(QObject):
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
+            only_active_window: Saves only tabs of the currently active window.
         """
         if (name is not default and
                 name.startswith('_') and  # pylint: disable=no-member

@@ -723,7 +723,8 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
+             ['name']+
 
 Save a session.
 
