@@ -214,16 +214,13 @@ class SessionManager(QObject):
             data['history'].append(item_data)
         return data
 
-    def _save_all(self, only_active_window = False):
+    def _save_all(self, *, only_window=None):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
-        winlist = objreg.window_registry
-        if only_active_window:
-            active_window = QApplication.instance().activeWindow()
-            winlist = [getattr(active_window, 'win_id', None)]
-            if winlist[0] is None:
-                # Fall back to all windows
-                winlist = objreg.window_registry
+        if only_window is not None:
+            winlist = [only_window]
+        else:
+            winlist = objreg.window_registry
 
         for win_id in winlist:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -264,7 +261,7 @@ class SessionManager(QObject):
         return name
 
     def save(self, name, last_window=False, load_next_time=False,
-                   only_active_window=False):
+                   only_window=None):
         """Save a named session.
 
         Args:
@@ -273,6 +270,7 @@ class SessionManager(QObject):
             last_window: If set, saves the saved self._last_window_session
                          instead of the currently open state.
             load_next_time: If set, prepares this session to be load next time.
+            only_window: If set, only tabs in the specified window is saved.
 
         Return:
             The name of the saved session.
@@ -287,7 +285,7 @@ class SessionManager(QObject):
                 log.sessions.error("last_window_session is None while saving!")
                 return
         else:
-            data = self._save_all(only_active_window = only_active_window)
+            data = self._save_all(only_window=only_window)
         log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
@@ -426,8 +424,9 @@ class SessionManager(QObject):
 
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('win_id', win_id=True)
     def session_save(self, name: str=default, current=False, quiet=False,
-                     force=False, only_active_window=False):
+                     force=False, only_active_window=False, win_id=None):
         """Save a session.
 
         Args:
@@ -449,7 +448,10 @@ class SessionManager(QObject):
             name = self._current
             assert not name.startswith('_')
         try:
-            name = self.save(name, only_active_window = only_active_window)
+            if only_active_window:
+                name = self.save(name, only_window=win_id)
+            else:
+                name = self.save(name)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))

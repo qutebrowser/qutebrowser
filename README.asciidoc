@@ -239,6 +239,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jean-Louis Fuchs
 * Franz Fellner
 * Eric Drechsel
+* Daniel Fiser
 * zwarag
 * xd1le
 * rmortens
@@ -275,7 +276,6 @@ Contributors, sorted by the number of commits in descending order:
 * Dietrich Daroch
 * Derek Sivers
 * Daniel Lu
-* Daniel Fiser
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
