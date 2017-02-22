@@ -45,6 +45,8 @@ Changed
 - qutebrowser now automatically uses QtWebEngine if QtWebKit is unavailable
 - :history-clear now asks for a confirmation, unless it's run with --force.
 - `input -> mouse-zoom-divider` can now be 0 to disable zooming by mouse wheel
+- `network -> proxy` can also be set to `pac+file://...` now to
+  use a local proxy autoconfig file (on QtWebKit)
 
 Fixed
 -----
