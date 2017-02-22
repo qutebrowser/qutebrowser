@@ -261,7 +261,7 @@ class SessionManager(QObject):
         return name
 
     def save(self, name, last_window=False, load_next_time=False,
-                   only_window=None):
+             only_window=None):
         """Save a named session.
 
         Args:
