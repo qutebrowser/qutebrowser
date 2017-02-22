@@ -290,8 +290,7 @@ Feature: Saving and loading sessions
     And I run :session-load window_session_name
     Then the session should look like:
       windows:
-        - active: true
-          tabs:
+        - tabs:
             - history:
               - active: true
                 url: http://localhost:*/data/numbers/5.txt
