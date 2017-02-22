@@ -589,7 +589,7 @@ def data(readonly=False):
              "disables the context menu."),
 
             ('mouse-zoom-divider',
-             SettingValue(typ.Int(minval=1), '512'),
+             SettingValue(typ.Int(minval=0), '512'),
              "How much to divide the mouse wheel movements to translate them "
              "into zoom increments."),
 

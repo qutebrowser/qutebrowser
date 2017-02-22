@@ -44,6 +44,7 @@ Changed
 - Zoom level messages are now not stacked on top of each other anymore.
 - qutebrowser now automatically uses QtWebEngine if QtWebKit is unavailable
 - :history-clear now asks for a confirmation, unless it's run with --force.
+- `input -> mouse-zoom-divider` can now be 0 to disable zooming by mouse wheel
 
 Fixed
 -----
