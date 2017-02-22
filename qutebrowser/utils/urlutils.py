@@ -613,7 +613,7 @@ def proxy_from_url(url):
         raise InvalidUrlError(url)
 
     scheme = url.scheme()
-    if scheme in ['pac+http', 'pac+https']:
+    if scheme in ['pac+http', 'pac+https', 'pac+file']:
         return pac.PACFetcher(url)
 
     types = {
