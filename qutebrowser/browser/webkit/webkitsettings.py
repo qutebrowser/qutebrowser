@@ -26,10 +26,10 @@ Module attributes:
 
 import os.path
 
-from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebKit import QWebSettings, qWebKitVersion
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg, urlutils
+from qutebrowser.utils import standarddir, objreg, urlutils, qtutils, message
 from qutebrowser.browser import shared
 
 
@@ -88,14 +88,20 @@ def _set_user_stylesheet():
     QWebSettings.globalSettings().setUserStyleSheetUrl(url)
 
 
+def _init_private_browsing():
+    if config.get('general', 'private-browsing'):
+        if qtutils.is_qtwebkit_ng(qWebKitVersion()):
+            message.warning("Private browsing is not fully implemented by "
+                            "QtWebKit-NG!")
+        QWebSettings.setIconDatabasePath('')
+    else:
+        QWebSettings.setIconDatabasePath(standarddir.cache())
+
+
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     if (section, option) == ('general', 'private-browsing'):
-        cache_path = standarddir.cache()
-        if config.get('general', 'private-browsing') or cache_path is None:
-            QWebSettings.setIconDatabasePath('')
-        else:
-            QWebSettings.setIconDatabasePath(cache_path)
+        _init_private_browsing()
     elif section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
         _set_user_stylesheet()
 
@@ -106,10 +112,8 @@ def init(_args):
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()
-    if config.get('general', 'private-browsing'):
-        QWebSettings.setIconDatabasePath('')
-    else:
-        QWebSettings.setIconDatabasePath(cache_path)
+
+    _init_private_browsing()
 
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(cache_path, 'application-cache'))
