@@ -70,6 +70,7 @@ class MessageMock:
     def patch(self):
         """Start recording messages."""
         message.global_bridge.show_message.connect(self._record_message)
+        message.global_bridge._connected = True
 
     def unpatch(self):
         """Stop recording messages."""

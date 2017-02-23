@@ -437,6 +437,7 @@ class MainWindow(QWidget):
         # messages
         message.global_bridge.show_message.connect(
             self._messageview.show_message)
+        message.global_bridge.flush()
 
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
