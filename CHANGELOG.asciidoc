@@ -73,6 +73,7 @@ Fixed
 - `:navigate prev/next` now detects `rel` attributes on `<a>` elements, and
   handles multiple `rel` attributes correctly.
 - Fixed a crash when hinting with target `userscript` and spawning a non-existing script
+- Lines in Jupyter notebook now trigger insert mode
 
 v0.9.1
 ------

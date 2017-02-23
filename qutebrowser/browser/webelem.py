@@ -223,18 +223,22 @@ class AbstractWebElement(collections.abc.MutableMapping):
             else:
                 return False
 
-    def _is_editable_div(self):
-        """Check if a div-element is editable.
+    def _is_editable_classes(self):
+        """Check if an element is editable based on its classes.
 
         Return:
             True if the element is editable, False otherwise.
         """
         # Beginnings of div-classes which are actually some kind of editor.
-        div_classes = ('CodeMirror',  # Javascript editor over a textarea
-                       'kix-',        # Google Docs editor
-                       'ace_')        # http://ace.c9.io/
+        classes = {
+            'div': ['CodeMirror',  # Javascript editor over a textarea
+                    'kix-',  # Google Docs editor
+                    'ace_'],  # http://ace.c9.io/
+            'pre': ['CodeMirror'],
+        }
+        relevant_classes = classes[self.tag_name()]
         for klass in self.classes():
-            if any([klass.startswith(e) for e in div_classes]):
+            if any([klass.strip().startswith(e) for e in relevant_classes]):
                 return True
         return False
 
@@ -265,10 +269,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return config.get('input', 'insert-mode-on-plugins') and not strict
         elif tag == 'object':
             return self._is_editable_object() and not strict
-        elif tag == 'div':
-            return self._is_editable_div() and not strict
-        else:
-            return False
+        elif tag in ['div', 'pre']:
+            return self._is_editable_classes() and not strict
+        return False
 
     def is_text_input(self):
         """Check if this element is some kind of text box."""
