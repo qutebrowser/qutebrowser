@@ -53,7 +53,7 @@ th {
     <tbody>
     {% for url, title in bookmarks %}
     <tr>
-        <td class="name"><a href="{{url}}">{{title}}</a></td>
+        <td class="name"><a href="{{url}}">{{title | default(url, true)}}</a></td>
         <td class="url"><a href="{{url}}">{{url}}</a></td>
     </tr>
     {% endfor %}
