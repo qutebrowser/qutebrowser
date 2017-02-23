@@ -25,7 +25,7 @@ import pytest
 from PyQt5.QtGui import QStandardItem, QColor
 
 from qutebrowser.completion import completionwidget
-from qutebrowser.completion.models import base, sortfilter
+from qutebrowser.completion.models import completionmodel
 from qutebrowser.commands import cmdexc
 
 
@@ -72,28 +72,25 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
 
 @pytest.fixture
 def simplemodel(completionview):
-    """A filter model wrapped around a completion model with one item."""
-    model = base.CompletionModel()
-    cat = QStandardItem()
-    cat.appendRow(QStandardItem('foo'))
-    model.appendRow(cat)
-    return sortfilter.CompletionFilterModel(model, parent=completionview)
+    """A completion model with one item."""
+    model = completionmodel.CompletionModel()
+    model.add_list('', [('foo'),])
+    return model
 
 
 def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
-    model = base.CompletionModel()
-    filtermodel = sortfilter.CompletionFilterModel(model)
+    model = completionmodel.CompletionModel()
     for i in range(3):
-        model.appendRow(QStandardItem(str(i)))
-    completionview.set_model(filtermodel)
-    assert completionview.model() is filtermodel
+        model.add_list(str(i), [('foo',)])
+    completionview.set_model(model)
+    assert completionview.model() is model
     for i in range(model.rowCount()):
-        assert completionview.isExpanded(filtermodel.index(i, 0))
+        assert completionview.isExpanded(model.index(i, 0))
 
 
 def test_set_pattern(completionview):
-    model = sortfilter.CompletionFilterModel(base.CompletionModel())
+    model = completionmodel.CompletionModel()
     model.set_pattern = unittest.mock.Mock()
     completionview.set_model(model, 'foo')
     model.set_pattern.assert_called_with('foo')
@@ -159,15 +156,10 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
                   successive movement. None implies no signal should be
                   emitted.
     """
-    model = base.CompletionModel()
+    model = completionmodel.CompletionModel()
     for catdata in tree:
-        cat = QStandardItem()
-        model.appendRow(cat)
-        for name in catdata:
-            cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
-    completionview.set_model(filtermodel)
+        model.add_list('', (x,) for x in  catdata)
+    completionview.set_model(model)
     for entry in expected:
         if entry is None:
             with qtbot.assertNotEmitted(completionview.selection_changed):
@@ -187,10 +179,8 @@ def test_completion_item_focus_no_model(which, completionview, qtbot):
     """
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
-    model = base.CompletionModel()
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
-    completionview.set_model(filtermodel)
+    model = completionmodel.CompletionModel()
+    completionview.set_model(model)
     completionview.set_model(None)
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
@@ -211,16 +201,12 @@ def test_completion_show(show, rows, quick_complete, completionview,
     config_stub.data['completion']['show'] = show
     config_stub.data['completion']['quick-complete'] = quick_complete
 
-    model = base.CompletionModel()
+    model = completionmodel.CompletionModel()
     for name in rows:
-        cat = QStandardItem()
-        model.appendRow(cat)
-        cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
+        model.add_list('', [(name,)])
 
     assert not completionview.isVisible()
-    completionview.set_model(filtermodel)
+    completionview.set_model(model)
     assert completionview.isVisible() == (show == 'always' and len(rows) > 0)
     completionview.completion_item_focus('next')
     expected = (show != 'never' and len(rows) > 0 and

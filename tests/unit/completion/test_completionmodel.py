@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -17,24 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for CompletionFilterModel."""
+"""Tests for CompletionModel."""
 
 import pytest
 
-from qutebrowser.completion.models import listcategory, sortfilter
+from qutebrowser.completion.models import completionmodel, sortfilter
 
 
-# TODO: merge listcategory and sortfilter
-def _create_model(data):
+def _create_model(data, filter_cols=None):
     """Create a completion model populated with the given data.
 
     data: A list of lists, where each sub-list represents a category, each
           tuple in the sub-list represents an item, and each value in the
           tuple represents the item data for that column
+    filter_cols: Columns to filter, or None for default.
     """
-    model = completionmodel.CompletionModel()
+    model = completionmodel.CompletionModel(columns_to_filter=filter_cols)
     for catdata in data:
-        cat = model.add_list(itemdata)
+        model.add_list('', catdata)
     return model
 
 
@@ -57,48 +57,49 @@ def _extract_model_data(model):
     return data
 
 
-@pytest.mark.parametrize('pattern, data, expected', [
-    ('foo', 'barfoobar', True),
-    ('foo bar', 'barfoobar', True),
-    ('foo   bar', 'barfoobar', True),
-    ('foo bar', 'barfoobazbar', True),
-    ('foo   bar', 'barfoobazbar', True),
-    ('foo', 'barFOObar', True),
-    ('Foo', 'barfOObar', True),
-    ('ab', 'aonebtwo', False),
-    ('33', 'l33t', True),
-    ('x', 'blah', False),
-    ('4', 'blah', False),
+@pytest.mark.parametrize('tree, first, last', [
+    ([[('Aa',)]], 'Aa', 'Aa'),
+    ([[('Aa',)], [('Ba',)]], 'Aa', 'Ba'),
+    ([[('Aa',), ('Ab',), ('Ac',)], [('Ba',), ('Bb',)], [('Ca',)]],
+     'Aa', 'Ca'),
+    ([[], [('Ba',)]], 'Ba', 'Ba'),
+    ([[], [], [('Ca',)]], 'Ca', 'Ca'),
+    ([[], [], [('Ca',), ('Cb',)]], 'Ca', 'Cb'),
+    ([[('Aa',)], []], 'Aa', 'Aa'),
+    ([[('Aa',)], []], 'Aa', 'Aa'),
+    ([[('Aa',)], [], []], 'Aa', 'Aa'),
+    ([[('Aa',)], [], [('Ca',)]], 'Aa', 'Ca'),
+    ([[], []], None, None),
 ])
-def test_filter_accepts_row(pattern, data, expected):
-    source_model = completionmodel.CompletionModel()
-    cat = source_model.new_category('test')
-    source_model.new_item(cat, data)
+def test_first_last_item(tree, first, last):
+    """Test that first() and last() return indexes to the first and last items.
 
-    filter_model = sortfilter.CompletionFilterModel(source_model)
-    filter_model.set_pattern(pattern)
-    assert filter_model.rowCount() == 1  # "test" category
-    idx = filter_model.index(0, 0)
-    assert idx.isValid()
+    Args:
+        tree: Each list represents a completion category, with each string
+              being an item under that category.
+        first: text of the first item
+        last: text of the last item
+    """
+    model = _create_model(tree)
+    assert model.data(model.first_item()) == first
+    assert model.data(model.last_item()) == last
 
-    row_count = filter_model.rowCount(idx)
-    assert row_count == (1 if expected else 0)
 
-
-def test_set_source_model():
-    """Ensure setSourceModel sets source_model and clears the pattern."""
-    model1 = base.CompletionModel()
-    model2 = base.CompletionModel()
-    filter_model = sortfilter.CompletionFilterModel(model1)
-    filter_model.set_pattern('foo')
-    # sourceModel() is cached as srcmodel, so make sure both match
-    assert filter_model.srcmodel is model1
-    assert filter_model.sourceModel() is model1
-    assert filter_model.pattern == 'foo'
-    filter_model.setSourceModel(model2)
-    assert filter_model.srcmodel is model2
-    assert filter_model.sourceModel() is model2
-    assert not filter_model.pattern
+@pytest.mark.parametrize('tree, expected', [
+    ([[('Aa',)]], 1),
+    ([[('Aa',)], [('Ba',)]], 2),
+    ([[('Aa',), ('Ab',), ('Ac',)], [('Ba',), ('Bb',)], [('Ca',)]], 6),
+    ([[], [('Ba',)]], 1),
+    ([[], [], [('Ca',)]], 1),
+    ([[], [], [('Ca',), ('Cb',)]], 2),
+    ([[('Aa',)], []], 1),
+    ([[('Aa',)], []], 1),
+    ([[('Aa',)], [], []], 1),
+    ([[('Aa',)], [], [('Ca',)]], 2),
+])
+def test_count(tree, expected):
+    model = _create_model(tree)
+    assert model.count() == expected
 
 
 @pytest.mark.parametrize('pattern, filter_cols, before, after', [
@@ -138,9 +139,8 @@ def test_set_source_model():
 ])
 def test_set_pattern(pattern, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
-    model = _create_model(before)
-    model.columns_to_filter = filter_cols
-    filter_model = sortfilter.CompletionFilterModel(model)
-    filter_model.set_pattern(pattern)
-    actual = _extract_model_data(filter_model)
+    # TODO: just test that it calls the mock on its child categories
+    model = _create_model(before, filter_cols)
+    model.set_pattern(pattern)
+    actual = _extract_model_data(model)
     assert actual == after

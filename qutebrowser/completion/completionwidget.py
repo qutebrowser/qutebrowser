@@ -299,7 +299,7 @@ class CompletionView(QTreeView):
         if pattern is not None:
             model.set_pattern(pattern)
 
-        self._column_widths = model.srcmodel.column_widths
+        self._column_widths = model.column_widths
         self._resize_columns()
         self._maybe_update_geometry()
 
@@ -368,7 +368,7 @@ class CompletionView(QTreeView):
         """Delete the current completion item."""
         if not self.currentIndex().isValid():
             raise cmdexc.CommandError("No item selected!")
-        if self.model().srcmodel.delete_cur_item is None:
+        if self.model().delete_cur_item is None:
             raise cmdexc.CommandError("Cannot delete this item.")
         else:
-            self.model().srcmodel.delete_cur_item(self)
+            self.model().delete_cur_item(self)

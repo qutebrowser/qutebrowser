@@ -228,12 +228,12 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
             (':hide', '', ''),
         ],
         "Settings": [
-            ('general->time', 'Is an illusion.', ''),
-            ('general->volume', 'Goes to 11', ''),
-            ('ui->gesture', 'Waggle your hands to control qutebrowser', ''),
-            ('ui->mind', 'Enable mind-control ui (experimental)', ''),
-            ('ui->voice', 'Whether to respond to voice commands', ''),
-            ('searchengines->DEFAULT', '', ''),
+            ('general->time', 'Is an illusion.', None),
+            ('general->volume', 'Goes to 11', None),
+            ('ui->gesture', 'Waggle your hands to control qutebrowser', None),
+            ('ui->mind', 'Enable mind-control ui (experimental)', None),
+            ('ui->voice', 'Whether to respond to voice commands', None),
+            ('searchengines->DEFAULT', '', None),
         ]
     })
 
@@ -342,7 +342,9 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Sessions": [('default', '', ''), ('1', '', ''), ('2', '', '')]
+        "Sessions": [('default', None, None),
+                     ('1', None, None),
+                     ('2', None, None)]
     })
 
 
@@ -406,9 +408,9 @@ def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
 
     _check_completions(model, {
         "Sections": [
-            ('general', 'General/miscellaneous options.', ''),
-            ('ui', 'General options related to the user interface.', ''),
-            ('searchengines', 'Definitions of search engines ...', ''),
+            ('general', 'General/miscellaneous options.', None),
+            ('ui', 'General options related to the user interface.', None),
+            ('searchengines', 'Definitions of search engines ...', None),
         ]
     })
 
@@ -462,12 +464,12 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
 
     _check_completions(model, {
         "Current/Default": [
-            ('0', 'Current value', ''),
-            ('11', 'Default value', ''),
+            ('0', 'Current value', None),
+            ('11', 'Default value', None),
         ],
         "Completions": [
-            ('0', '', ''),
-            ('11', '', ''),
+            ('0', '', None),
+            ('11', '', None),
         ]
     })
 

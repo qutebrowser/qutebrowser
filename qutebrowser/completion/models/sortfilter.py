@@ -41,12 +41,14 @@ class CompletionFilterModel(QSortFilterProxyModel):
                    a long time for some reason.
     """
 
-    def __init__(self, source, parent=None):
+    def __init__(self, source, columns_to_filter, parent=None):
         super().__init__(parent)
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
         self.pattern_re = None
+        self.columns_to_filter = columns_to_filter
+        self.name = source.name
 
     def set_pattern(self, val):
         """Setter for pattern.
@@ -63,41 +65,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
             self.invalidate()
             sortcol = 0
             self.sort(sortcol)
-
-    def count(self):
-        """Get the count of non-toplevel items currently visible.
-
-        Note this only iterates one level deep, as we only need root items
-        (categories) and children (items) in our model.
-        """
-        count = 0
-        for i in range(self.rowCount()):
-            cat = self.index(i, 0)
-            qtutils.ensure_valid(cat)
-            count += self.rowCount(cat)
-        return count
-
-    def first_item(self):
-        """Return the first item in the model."""
-        for i in range(self.rowCount()):
-            cat = self.index(i, 0)
-            qtutils.ensure_valid(cat)
-            if cat.model().hasChildren(cat):
-                index = self.index(0, 0, cat)
-                qtutils.ensure_valid(index)
-                return index
-        return QModelIndex()
-
-    def last_item(self):
-        """Return the last item in the model."""
-        for i in range(self.rowCount() - 1, -1, -1):
-            cat = self.index(i, 0)
-            qtutils.ensure_valid(cat)
-            if cat.model().hasChildren(cat):
-                index = self.index(self.rowCount(cat) - 1, 0, cat)
-                qtutils.ensure_valid(index)
-                return index
-        return QModelIndex()
 
     def setSourceModel(self, model):
         """Override QSortFilterProxyModel's setSourceModel to clear pattern."""
@@ -119,10 +86,10 @@ class CompletionFilterModel(QSortFilterProxyModel):
             True if self.pattern is contained in item, or if it's a root item
             (category). False in all other cases
         """
-        if parent == QModelIndex() or not self.pattern:
+        if not self.pattern:
             return True
 
-        for col in self.srcmodel.columns_to_filter:
+        for col in self.columns_to_filter:
             idx = self.srcmodel.index(row, col, parent)
             if not idx.isValid():  # pragma: no cover
                 # this is a sanity check not hit by any test case

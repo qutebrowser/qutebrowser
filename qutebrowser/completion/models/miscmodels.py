@@ -22,30 +22,24 @@
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils
-from qutebrowser.completion.models import base, sqlmodel
+from qutebrowser.completion.models import completionmodel
 
 
 def command():
     """A CompletionModel filled with non-hidden commands and descriptions."""
-    model = base.CompletionModel(column_widths=(20, 60, 20))
+    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     cmdlist = _get_cmd_completions(include_aliases=True, include_hidden=False)
-    cat = model.new_category("Commands")
-    for (name, desc, misc) in cmdlist:
-        model.new_item(cat, name, desc, misc)
+    model.add_list("Commands", cmdlist)
     return model
 
 
 def helptopic():
     """A CompletionModel filled with help topics."""
-    model = base.CompletionModel()
+    model = completionmodel.CompletionModel()
 
     cmdlist = _get_cmd_completions(include_aliases=False, include_hidden=True,
                                    prefix=':')
-    cat = model.new_category("Commands")
-    for (name, desc, misc) in cmdlist:
-        model.new_item(cat, name, desc, misc)
-
-    cat = model.new_category("Settings")
+    settings = []
     for sectname, sectdata in configdata.DATA.items():
         for optname in sectdata:
             try:
@@ -57,34 +51,35 @@ def helptopic():
             else:
                 desc = desc.splitlines()[0]
             name = '{}->{}'.format(sectname, optname)
-            model.new_item(cat, name, desc)
+            settings.append((name, desc))
+
+    model.add_list("Commands", cmdlist)
+    model.add_list("Settings", settings)
     return model
 
 
 def quickmark():
     """A CompletionModel filled with all quickmarks."""
-    model = base.CompletionModel()
-    model = sqlmodel.SqlCompletionModel(column_widths=(30, 70, 0))
-    model.new_category('Quickmarks')
+    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
+    model.add_sqltable('Quickmarks')
     return model
 
 
 def bookmark():
     """A CompletionModel filled with all bookmarks."""
-    model = base.CompletionModel()
-    model = sqlmodel.SqlCompletionModel(column_widths=(30, 70, 0))
-    model.new_category('Bookmarks')
+    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
+    model.add_sqltable('Bookmarks')
     return model
 
 
 def session():
     """A CompletionModel filled with session names."""
-    model = base.CompletionModel()
-    cat = model.new_category("Sessions")
+    model = completionmodel.CompletionModel()
     try:
-        for name in objreg.get('session-manager').list_sessions():
-            if not name.startswith('_'):
-                model.new_item(cat, name)
+        manager = objreg.get('session-manager')
+        sessions = ((name,) for name in manager.list_sessions()
+                    if not name.startswith('_'))
+        model.add_list("Sessions", sessions)
     except OSError:
         log.completion.exception("Failed to list sessions!")
     return model
@@ -111,7 +106,7 @@ def buffer():
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
 
-    model = base.CompletionModel(
+    model = completionmodel.CompletionModel(
         column_widths=(6, 40, 54),
         delete_cur_item=delete_buffer,
         columns_to_filter=[idx_column, url_column, text_column])
@@ -121,12 +116,13 @@ def buffer():
                                     window=win_id)
         if tabbed_browser.shutting_down:
             continue
-        c = model.new_category("{}".format(win_id))
+        tabs = []
         for idx in range(tabbed_browser.count()):
             tab = tabbed_browser.widget(idx)
-            model.new_item(c, "{}/{}".format(win_id, idx + 1),
-                           tab.url().toDisplayString(),
-                           tabbed_browser.page_title(idx))
+            tabs.append(("{}/{}".format(win_id, idx + 1),
+                         tab.url().toDisplayString(),
+                         tabbed_browser.page_title(idx)))
+        model.add_list("{}".format(win_id), tabs)
     return model
 
 
@@ -137,11 +133,9 @@ def bind(_key):
         _key: the key being bound.
     """
     # TODO: offer a 'Current binding' completion based on the key.
-    model = base.CompletionModel(column_widths=(20, 60, 20))
+    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
-    cat = model.new_category("Commands")
-    for (name, desc, misc) in cmdlist:
-        model.new_item(cat, name, desc, misc)
+    model.add_list("Commands", cmdlist)
     return model
 
 

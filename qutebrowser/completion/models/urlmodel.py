@@ -19,7 +19,7 @@
 
 """Function to return the url completion model for the `open` command."""
 
-from qutebrowser.completion.models import sqlmodel
+from qutebrowser.completion.models import completionmodel
 from qutebrowser.config import config
 from qutebrowser.utils import qtutils, log, objreg
 
@@ -61,14 +61,16 @@ def url():
 
     Used for the `open` command.
     """
-    model = sqlmodel.SqlCompletionModel(column_widths=(40, 50, 10),
-                                        columns_to_filter=[_URLCOL, _TEXTCOL],
-                                        delete_cur_item=_delete_url)
+    model = completionmodel.CompletionModel(
+        column_widths=(40, 50, 10),
+        columns_to_filter=[_URLCOL, _TEXTCOL],
+        delete_cur_item=_delete_url)
+
     timefmt = config.get('completion', 'timestamp-format')
     select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
-    model.new_category('Quickmarks', select='url, name')
-    model.new_category('Bookmarks')
-    model.new_category('History',
+    model.add_sqltable('Quickmarks', select='url, name')
+    model.add_sqltable('Bookmarks')
+    model.add_sqltable('History',
                        sort_order='desc', sort_by='atime',
                        select='url, title, {}'.format(select_time),
                        where='not redirect')

@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import log, utils
-from qutebrowser.completion.models import sortfilter, miscmodels
+from qutebrowser.completion.models import miscmodels
 
 
 class Completer(QObject):
@@ -62,22 +62,6 @@ class Completer(QObject):
         completion = self.parent()
         return completion.model()
 
-    def _get_completion_model(self, completion, pos_args):
-        """Get a completion model based on an enum member.
-
-        Args:
-            completion: A usertypes.Completion member.
-            pos_args: The positional args entered before the cursor.
-
-        Return:
-            A completion model or None.
-        """
-        model = completion(*pos_args)
-        if model is None or hasattr(model, 'set_pattern'):
-            return model
-        else:
-            return sortfilter.CompletionFilterModel(source=model, parent=self)
-
     def _get_new_completion(self, before_cursor, under_cursor):
         """Get a new completion.
 
@@ -96,9 +80,8 @@ class Completer(QObject):
         log.completion.debug("After removing flags: {}".format(before_cursor))
         if not before_cursor:
             # '|' or 'set|'
-            model = miscmodels.command()
             log.completion.debug('Starting command completion')
-            return sortfilter.CompletionFilterModel(source=model, parent=self)
+            return miscmodels.command()
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]
         except KeyError:
@@ -113,7 +96,8 @@ class Completer(QObject):
             return None
         if completion is None:
             return None
-        model = self._get_completion_model(completion, before_cursor[1:])
+
+        model = completion(*before_cursor[1:])
         log.completion.debug('Starting {} completion'
                              .format(completion.__name__))
         return model

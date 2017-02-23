@@ -20,17 +20,16 @@
 """Functions that return config-related completion models."""
 
 from qutebrowser.config import configdata, configexc
-from qutebrowser.completion.models import base
+from qutebrowser.completion.models import completionmodel
 from qutebrowser.utils import objreg
 
 
 def section():
     """A CompletionModel filled with settings sections."""
-    model = base.CompletionModel(column_widths=(20, 70, 10))
-    cat = model.new_category("Sections")
-    for name in configdata.DATA:
-        desc = configdata.SECTION_DESC[name].splitlines()[0].strip()
-        model.new_item(cat, name, desc)
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
+    sections = ((name, configdata.SECTION_DESC[name].splitlines()[0].strip())
+                for name in configdata.DATA)
+    model.add_list("Sections", sections)
     return model
 
 
@@ -40,12 +39,12 @@ def option(sectname):
     Args:
         sectname: The name of the config section this model shows.
     """
-    model = base.CompletionModel(column_widths=(20, 70, 10))
-    cat = model.new_category(sectname)
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     try:
         sectdata = configdata.DATA[sectname]
     except KeyError:
         return None
+    options = []
     for name in sectdata:
         try:
             desc = sectdata.descriptions[name]
@@ -57,7 +56,8 @@ def option(sectname):
             desc = desc.splitlines()[0]
         config = objreg.get('config')
         val = config.get(sectname, name, raw=True)
-        model.new_item(cat, name, desc, val)
+        options.append((name, desc, val))
+    model.add_list(sectname, options)
     return model
 
 
@@ -68,16 +68,16 @@ def value(sectname, optname):
         sectname: The name of the config section this model shows.
         optname: The name of the config option this model shows.
     """
-    model = base.CompletionModel(column_widths=(20, 70, 10))
-    cur_cat = model.new_category("Current/Default")
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     config = objreg.get('config')
+
     try:
-        val = config.get(sectname, optname, raw=True) or '""'
+        current = config.get(sectname, optname, raw=True) or '""'
     except (configexc.NoSectionError, configexc.NoOptionError):
         return None
-    model.new_item(cur_cat, val, "Current value")
-    default_value = configdata.DATA[sectname][optname].default() or '""'
-    model.new_item(cur_cat, default_value, "Default value")
+
+    default = configdata.DATA[sectname][optname].default() or '""'
+
     if hasattr(configdata.DATA[sectname], 'valtype'):
         # Same type for all values (ValueList)
         vals = configdata.DATA[sectname].valtype.complete()
@@ -87,8 +87,9 @@ def value(sectname, optname):
                              "sections, but {} is not!".format(sectname))
         # Different type for each value (KeyValue)
         vals = configdata.DATA[sectname][optname].typ.complete()
+
+    model.add_list("Current/Default", [(current, "Current value"),
+                                       (default, "Default value")])
     if vals is not None:
-        cat = model.new_category("Completions")
-        for (val, desc) in vals:
-            model.new_item(cat, val, desc)
+        model.add_list("Completions", vals)
     return model
