@@ -414,6 +414,7 @@ class ConfigManager(QObject):
         ('storage', 'offline-storage-default-quota'),
         ('storage', 'offline-web-application-cache-quota'),
         ('content', 'css-regions'),
+        ('completion', 'web-history-max-items'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):

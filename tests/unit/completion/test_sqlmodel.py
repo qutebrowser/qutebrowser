@@ -206,15 +206,6 @@ def test_first_last_item(data, first, last):
     assert model.data(model.last_item()) == last
 
 
-def test_limit():
-    table = sql.SqlTable('test_limit', ['a'], primary_key='a')
-    for i in range(5):
-        table.insert([i])
-    model = sqlmodel.SqlCompletionModel()
-    model.new_category('test_limit', limit=3)
-    assert model.count() == 3
-
-
 def test_select():
     table = sql.SqlTable('test_select', ['a', 'b', 'c'], primary_key='a')
     table.insert(['foo', 'bar', 'baz'])

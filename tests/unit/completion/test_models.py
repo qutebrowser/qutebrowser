@@ -274,13 +274,10 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
 
     Verify that:
         - quickmarks, bookmarks, and urls are included
-        - no more than 'web-history-max-items' items are included (TODO)
-        - the most recent entries are included
+        - entries are sorted by access time
         - redirect entries are not included
     """
-    # TODO: time formatting and item limiting
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 2}
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -299,6 +296,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
     })
 
@@ -307,8 +305,7 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
                                         web_history, quickmarks, bookmarks,
                                         qtbot):
     """Test deleting a bookmark from the url completion model."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 2}
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -325,8 +322,7 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
                                          web_history, quickmarks, bookmarks,
                                          qtbot):
     """Test deleting a bookmark from the url completion model."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 2}
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)

@@ -506,11 +506,6 @@ def data(readonly=False):
              "How many commands to save in the command history.\n\n"
              "0: no history / -1: unlimited"),
 
-            ('web-history-max-items',
-             SettingValue(typ.Int(minval=-1), '1000'),
-             "How many URLs to show in the web history.\n\n"
-             "0: no history / -1: unlimited"),
-
             ('quick-complete',
              SettingValue(typ.Bool(), 'true'),
              "Whether to move on to the next part when there's only one "

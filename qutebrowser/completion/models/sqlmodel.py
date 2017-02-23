@@ -31,7 +31,7 @@ from qutebrowser.misc import sql
 class _SqlCompletionCategory(QSqlQueryModel):
     """Wraps a SqlQuery for use as a completion category."""
 
-    def __init__(self, name, *, sort_by, sort_order, limit, select, where,
+    def __init__(self, name, *, sort_by, sort_order, select, where,
                  columns_to_filter, parent=None):
         super().__init__(parent=parent)
         self.tablename = name
@@ -51,9 +51,6 @@ class _SqlCompletionCategory(QSqlQueryModel):
         if sort_by:
             assert sort_order == 'asc' or sort_order == 'desc'
             querystr += ' order by {} {}'.format(sort_by, sort_order)
-
-        if limit:
-            querystr += ' limit {}'.format(limit)
 
         self._querystr = querystr
         self.set_pattern('%')
@@ -106,7 +103,7 @@ class SqlCompletionModel(QAbstractItemModel):
         return None
 
     def new_category(self, name, *, select='*', where=None, sort_by=None,
-                     sort_order=None, limit=None):
+                     sort_order=None):
         """Create a new completion category and add it to this model.
 
         Args:
@@ -115,12 +112,11 @@ class SqlCompletionModel(QAbstractItemModel):
             where: An optional clause to filter out some rows.
             sort_by: The name of the field to sort by, or None for no sorting.
             sort_order: Either 'asc' or 'desc', if sort_by is non-None
-            limit: Maximum row count to return on a query.
 
         Return: A new CompletionCategory.
         """
         cat = _SqlCompletionCategory(name, parent=self, sort_by=sort_by,
-                                     sort_order=sort_order, limit=limit,
+                                     sort_order=sort_order,
                                      select=select, where=where,
                                      columns_to_filter=self.columns_to_filter)
         self._categories.append(cat)
