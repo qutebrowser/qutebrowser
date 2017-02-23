@@ -26,7 +26,8 @@ import pytest
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QTreeView
 
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
+                                           sortfilter)
 from qutebrowser.browser import history
 from qutebrowser.config import sections, value
 
@@ -498,3 +499,42 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
             ('rock', "Alias for 'roll'", 'ro'),
         ]
     })
+
+
+def test_url_completion_benchmark(benchmark, config_stub,
+                                  quickmark_manager_stub,
+                                  bookmark_manager_stub,
+                                  web_history_stub):
+    """Benchmark url completion."""
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': 1000}
+
+    entries = [history.Entry(
+        atime=i,
+        url=QUrl('http://example.com/{}'.format(i)),
+        title='title{}'.format(i))
+        for i in range(100000)]
+
+    web_history_stub.history_dict = collections.OrderedDict(
+        ((e.url_str(), e) for e in entries))
+
+    quickmark_manager_stub.marks = collections.OrderedDict(
+        (e.title, e.url_str())
+        for e in entries[0:1000])
+
+    bookmark_manager_stub.marks = collections.OrderedDict(
+        (e.url_str(), e.title)
+        for e in entries[0:1000])
+
+    def bench():
+        model = urlmodel.UrlCompletionModel()
+        filtermodel = sortfilter.CompletionFilterModel(model)
+        filtermodel.set_pattern('')
+        filtermodel.set_pattern('e')
+        filtermodel.set_pattern('ex')
+        filtermodel.set_pattern('ex ')
+        filtermodel.set_pattern('ex 1')
+        filtermodel.set_pattern('ex 12')
+        filtermodel.set_pattern('ex 123')
+
+    benchmark(bench)
