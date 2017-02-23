@@ -1,59 +1,30 @@
-{% extends "base.html" %}
+{% extends "styled.html" %}
 
 {% block style %}
-body {
-    background: #fefefe;
-    font-family: sans-serif;
-    margin: 0 auto;
-    max-width: 1280px;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
+{{super()}}
 h1 {
-    color: #444;
-    font-weight: normal;
     margin-bottom: 10px;
-}
-
-a {
-    text-decoration: none;
-    color: #2562dc
-}
-
-a:hover {
-    text-decoration: underline;
 }
 
 .url a {
     color: #444;
 }
 
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
 th {
     text-align: left;
-}
-
-tbody tr:nth-child(odd) {
-    background-color: #f8f8f8;
 }
 
 .qmarks .name {
     padding-left: 5px;
 }
 
-.empty {
+.empty-msg {
     background-color: #f8f8f8;
     color: #444;
     display: inline-block;
     text-align: center;
     width: 100%;
 }
-
 {% endblock %}
 
 {% block content %}
@@ -72,7 +43,7 @@ tbody tr:nth-child(odd) {
     </tbody>
 </table>
 {% else %}
-<span class="empty">You have no quickmarks</span>
+<span class="empty-msg">You have no quickmarks</span>
 {% endif %}
 
 <h1>Bookmarks</h1>
@@ -89,7 +60,7 @@ tbody tr:nth-child(odd) {
     </tbody>
 </table>
 {% else %}
-<span class="empty">You have no bookmarks</span>
+<span class="empty-msg">You have no bookmarks</span>
 {% endif %}
 
 {% endblock %}
