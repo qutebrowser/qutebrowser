@@ -297,7 +297,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
             ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ],
         "History": [
-            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
+            ('https://github.com', 'https://github.com', '2016-05-01'),
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
         ],
     })

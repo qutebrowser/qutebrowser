@@ -20,7 +20,6 @@
 """Tests for the base sql completion model."""
 
 import pytest
-from PyQt5.QtCore import Qt
 
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import sqlmodel
