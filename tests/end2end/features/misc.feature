@@ -530,7 +530,7 @@ Feature: Various utility commands.
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
-    @qtwebengine_todo: private browsing is not implemented yet
+    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_xfail: private browsing is not implemented yet
     Scenario: Sharing cookies with private browsing
         When I set general -> private-browsing to true
         And I open cookies/set?qute-test=42 without waiting
@@ -640,7 +640,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
-    @qtwebengine_todo: private browsing is not implemented yet
+    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_xfail: private browsing is not implemented yet
     Scenario: Calling previous command with private-browsing mode
         When I run :set-cmd-text :message-info blah
         And I run :command-accept
