@@ -251,8 +251,10 @@ class WebKitElement(webelem.AbstractWebElement):
             'opacity': '0',
         }
         for k, v in hidden_attributes.items():
-            if self._elem.styleProperty(k, QWebElement.ComputedStyle) == v:
+            if (self._elem.styleProperty(k, QWebElement.ComputedStyle) == v and
+                    'ace_text-input' not in self.classes()):
                 return False
+
         elem_geometry = self._elem.geometry()
         if not elem_geometry.isValid() and elem_geometry.x() == 0:
             # Most likely an invisible link
