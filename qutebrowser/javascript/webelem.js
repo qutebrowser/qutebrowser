@@ -109,15 +109,17 @@ window._qutebrowser.webelem = (function() {
         }
 
         var style = win.getComputedStyle(elem, null);
-        // FIXME:qtwebengine do we need this <area> handling?
-        // visibility and display style are misleading for area tags and they
-        // get "display: none" by default.
-        // See https://github.com/vimperator/vimperator-labs/issues/236
-        if (elem.nodeName.toLowerCase() !== "area" && (
-                style.getPropertyValue("visibility") !== "visible" ||
+        if (style.getPropertyValue("visibility") !== "visible" ||
                 style.getPropertyValue("display") === "none" ||
-                style.getPropertyValue("opacity") === "0")) {
-            return false;
+                style.getPropertyValue("opacity") === "0") {
+            // FIXME:qtwebengine do we need this <area> handling?
+            // visibility and display style are misleading for area tags and
+            // they get "display: none" by default.
+            // See https://github.com/vimperator/vimperator-labs/issues/236
+            if (elem.nodeName.toLowerCase() !== "area" &&
+                    !elem.classList.contains("ace_text-input")) {
+                return false;
+            }
         }
 
         return true;
