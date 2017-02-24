@@ -248,6 +248,7 @@ class WebKitElement(webelem.AbstractWebElement):
         hidden_attributes = {
             'visibility': 'hidden',
             'display': 'none',
+            'opacity': '0',
         }
         for k, v in hidden_attributes.items():
             if self._elem.styleProperty(k, QWebElement.ComputedStyle) == v:

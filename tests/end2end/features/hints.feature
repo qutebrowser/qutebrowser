@@ -183,6 +183,11 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
+    Scenario: Hinting invisible elements
+        When I open data/hints/invisible.html
+        And I run :hint
+        Then the error "No elements found." should be shown
+
     ### iframes
 
     @qtwebengine_todo: Hinting in iframes is not implemented yet

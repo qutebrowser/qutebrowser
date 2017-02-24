@@ -115,7 +115,8 @@ window._qutebrowser.webelem = (function() {
         // See https://github.com/vimperator/vimperator-labs/issues/236
         if (elem.nodeName.toLowerCase() !== "area" && (
                 style.getPropertyValue("visibility") !== "visible" ||
-                style.getPropertyValue("display") === "none")) {
+                style.getPropertyValue("display") === "none" ||
+                style.getPropertyValue("opacity") === "0")) {
             return false;
         }
 
