@@ -1927,12 +1927,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code, quiet=False, *,
+    def jseval(self, js_code, file=False, quiet=False, *,
                world: typing.Union[usertypes.JsWorld, int]=None):
         """Evaluate a JavaScript string.
 
         Args:
-            js_code: The string to evaluate.
+            js_code: The string/file to evaluate.
+            file: Interpret js-code as a path to a file.
             quiet: Don't show resulting JS object.
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
@@ -1959,6 +1960,13 @@ class CommandDispatcher:
                     if len(out) > 5000:
                         out = out[:5000] + ' [...trimmed...]'
                     message.info(out)
+
+        if file:
+            try:
+                with open(js_code, 'r', encoding='utf-8') as f:
+                    js_code = f.read()
+            except OSError as e:
+                raise cmdexc.CommandError(str(e))
 
         widget = self._current_widget()
         widget.run_js_async(js_code, callback=jseval_cb, world=world)

@@ -102,6 +102,17 @@ Feature: Various utility commands.
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
 
+    Scenario: :jseval --file using a file that exists as js-code
+        When I set general -> log-javascript-console to info
+        And I run :jseval --file (testdata)/misc/jseval_file.js
+        Then the javascript message "Hello from JS!" should be logged
+        And the javascript message "Hello again from JS!" should be logged
+
+    Scenario: :jseval --file using a file that doesn't exist as js-code
+        When I run :jseval --file nonexistentfile
+        Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
+        And "No output or error" should not be logged
+
     # :debug-webaction
 
     Scenario: :debug-webaction with valid value
