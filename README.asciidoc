@@ -226,6 +226,7 @@ Contributors, sorted by the number of commits in descending order:
 * Lucas Hoffmann
 * Link
 * Larry Hynes
+* Kirill A. Shutemov
 * Johannes Altmanninger
 * Jeremy Kaplan
 * Ismail
@@ -265,7 +266,6 @@ Contributors, sorted by the number of commits in descending order:
 * Matthias Lisin
 * Marcel Schilling
 * Lazlow Carmichael
-* Kirill A. Shutemov
 * Kevin Wang
 * Ján Kobezda
 * Johannes Martinsson
