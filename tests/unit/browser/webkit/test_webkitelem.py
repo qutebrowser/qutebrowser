@@ -108,7 +108,12 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     else:
         elem.classes.return_value = []
 
-    style_dict = {'visibility': '', 'display': '', 'foo': 'bar', 'opacity': '100'}
+    style_dict = {
+        'visibility': '',
+        'display': '',
+        'foo': 'bar',
+        'opacity': '100'
+    }
     if style is not None:
         style_dict.update(style)
 
