@@ -465,14 +465,15 @@ Note: Due a bug in Qt, the inspector will show incorrect request headers in the 
 
 [[jseval]]
 === jseval
-Syntax: +:jseval [*--quiet*] [*--world* 'world'] 'js-code'+
+Syntax: +:jseval [*--file*] [*--quiet*] [*--world* 'world'] 'js-code'+
 
 Evaluate a JavaScript string.
 
 ==== positional arguments
-* +'js-code'+: The string to evaluate.
+* +'js-code'+: The string/file to evaluate.
 
 ==== optional arguments
+* +*-f*+, +*--file*+: Interpret js-code as a path to a file.
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 
