@@ -1,29 +1,9 @@
-{% extends "base.html" %}
+{% extends "styled.html" %}
 
 {% block style %}
+{{super()}}
 body {
-    background: #fefefe;
-    font-family: sans-serif;
-    margin: 0 auto;
     max-width: 1440px;
-    padding-left: 20px;
-    padding-right: 20px;
-}
-
-h1 {
-    color: #444;
-    font-weight: normal;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-td {
-    max-width: 50%;
-    padding: 2px 5px;
-    text-align: left;
 }
 
 td.title {
@@ -34,19 +14,6 @@ td.time {
     color: #555;
     text-align: right;
     white-space: nowrap;
-}
-
-a {
-    text-decoration: none;
-    color: #2562dc
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-tr:nth-child(odd) {
-    background-color: #f8f8f8;
 }
 
 .date {
@@ -66,7 +33,6 @@ tr:nth-child(odd) {
     color: #333;
     font-weight: bold;
 }
-
 {% endblock %}
 
 {% block content %}
