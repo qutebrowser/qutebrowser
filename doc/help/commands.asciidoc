@@ -741,7 +741,8 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
+             ['name']+
 
 Save a session.
 
@@ -753,6 +754,7 @@ Save a session.
 * +*-c*+, +*--current*+: Save the current session instead of the default.
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
+* +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
 
 [[set]]
 === set

@@ -243,6 +243,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jean-Louis Fuchs
 * Franz Fellner
 * Eric Drechsel
+* Daniel Fiser
 * zwarag
 * xd1le
 * rmortens
