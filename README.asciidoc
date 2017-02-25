@@ -231,6 +231,7 @@ Contributors, sorted by the number of commits in descending order:
 * Ismail
 * Edgar Hipp
 * Daryl Finlay
+* pkill9
 * arza
 * adam
 * Samir Benmendil
@@ -244,7 +245,6 @@ Contributors, sorted by the number of commits in descending order:
 * zwarag
 * xd1le
 * rmortens
-* pkill9
 * oniondreams
 * issue
 * haxwithaxe
