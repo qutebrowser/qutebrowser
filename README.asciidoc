@@ -195,6 +195,7 @@ Contributors, sorted by the number of commits in descending order:
 * error800
 * Michael Hoang
 * Liam BEGUIN
+* Daniel Fiser
 * skinnay
 * Zach-Button
 * Samuel Walladge

@@ -278,6 +278,31 @@ Feature: Saving and loading sessions
     Then "Saved session quiet_session." should not be logged
     And the session quiet_session should exist
 
+  Scenario: Saving session with --only-active-window
+    When I open data/numbers/1.txt
+    And I open data/numbers/2.txt in a new tab
+    And I open data/numbers/3.txt in a new window
+    And I open data/numbers/4.txt in a new tab
+    And I open data/numbers/5.txt in a new tab
+    And I run :session-save --only-active-window window_session_name
+    And I run :window-only
+    And I run :tab-only
+    And I run :session-load window_session_name
+    Then the session should look like:
+      windows:
+        - tabs:
+            - history:
+              - active: true
+                url: http://localhost:*/data/numbers/5.txt
+        - tabs:
+            - history:
+                - url: http://localhost:*/data/numbers/3.txt
+            - history:
+                - url: http://localhost:*/data/numbers/4.txt
+            - history:
+                - active: true
+                  url: http://localhost:*/data/numbers/5.txt
+
   # :session-delete
 
   Scenario: Deleting a directory
