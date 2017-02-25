@@ -34,6 +34,7 @@ Added
 - New `qute:history` URL and `:history` command to show the browsing history.
 - Open tabs are now auto-saved on each successful load and restored in case of a crash.
 - `:jseval` now has a `--file` flag so you can pass a javascript file
+- `:session-save` now has a `--only-active-window` flag to only save the active window.
 
 Changed
 ~~~~~~~
