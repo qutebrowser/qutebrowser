@@ -61,7 +61,7 @@ function convert_addr(ipchars) {
 }
 
 function isInNet(ipaddr, pattern, maskstr) {
-    var test = /^(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})$/
+    var test = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
                .exec(ipaddr);
     if (test == null) {
         ipaddr = dnsResolve(ipaddr);
@@ -78,7 +78,7 @@ function isInNet(ipaddr, pattern, maskstr) {
 }
 
 function isPlainHostName(host) {
-    return (host.search('\\\\.') == -1);
+    return (host.search('\\.') == -1);
 }
 
 function isResolvable(host) {
@@ -92,9 +92,9 @@ function localHostOrDomainIs(host, hostdom) {
 }
 
 function shExpMatch(url, pattern) {
-   pattern = pattern.replace(/\\./g, '\\\\.');
-   pattern = pattern.replace(/\\*/g, '.*');
-   pattern = pattern.replace(/\\?/g, '.');
+   pattern = pattern.replace(/\./g, '\\.');
+   pattern = pattern.replace(/\*/g, '.*');
+   pattern = pattern.replace(/\?/g, '.');
    var newRe = new RegExp('^'+pattern+'$');
    return newRe.test(url);
 }

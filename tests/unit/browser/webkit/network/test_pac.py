@@ -109,6 +109,15 @@ def test_myIpAddress():
     _pac_equality_test("isResolvable(myIpAddress())", "true")
 
 
+@pytest.mark.parametrize("host, expected", [
+    ("example", "true"),
+    ("example.com", "false"),
+    ("www.example.com", "false"),
+])
+def test_isPlainHostName(host, expected):
+    _pac_equality_test("isPlainHostName('{}')".format(host), expected)
+
+
 def test_proxyBindings():
     _pac_equality_test("JSON.stringify(ProxyConfig.bindings)", "'{}'")
 
