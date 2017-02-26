@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
-import collections
+import json
+import time
 
 from PyQt5.QtCore import QUrl
 import pytest
@@ -27,30 +27,26 @@ from qutebrowser.browser import history, qutescheme
 from qutebrowser.utils import objreg
 
 
-Dates = collections.namedtuple('Dates', ['yesterday', 'today', 'tomorrow'])
-
-
 class TestHistoryHandler:
 
     """Test the qute://history endpoint."""
 
     @pytest.fixture
-    def dates(self):
-        one_day = datetime.timedelta(days=1)
-        today = datetime.datetime.today()
-        tomorrow = today + one_day
-        yesterday = today - one_day
-        return Dates(yesterday, today, tomorrow)
+    def entries(self):
+        """Create fake history entries."""
+        # create 12 history items spaced 6 hours apart, starting from now
+        entry_count = 12
+        interval = 6 * 60 * 60
+        self.now = time.time()
 
-    @pytest.fixture
-    def entries(self, dates):
-        today = history.Entry(atime=str(dates.today.timestamp()),
-            url=QUrl('www.today.com'), title='today')
-        tomorrow = history.Entry(atime=str(dates.tomorrow.timestamp()),
-            url=QUrl('www.tomorrow.com'), title='tomorrow')
-        yesterday = history.Entry(atime=str(dates.yesterday.timestamp()),
-            url=QUrl('www.yesterday.com'), title='yesterday')
-        return Dates(yesterday, today, tomorrow)
+        items = []
+        for i in range(entry_count):
+            entry_atime = int(self.now - i * interval)
+            entry = history.Entry(atime=str(entry_atime),
+                url=QUrl("www.x.com/" + str(i)), title="Page " + str(i))
+            items.insert(0, entry)
+
+        return items
 
     @pytest.fixture
     def fake_web_history(self, fake_save_manager, tmpdir):
@@ -62,78 +58,38 @@ class TestHistoryHandler:
 
     @pytest.fixture(autouse=True)
     def fake_history(self, fake_web_history, entries):
-        """Create fake history for three different days."""
-        fake_web_history._add_entry(entries.yesterday)
-        fake_web_history._add_entry(entries.today)
-        fake_web_history._add_entry(entries.tomorrow)
+        """Create fake history."""
+        for item in entries:
+            fake_web_history._add_entry(item)
         fake_web_history.save()
 
-    def test_history_without_query(self):
-        """Ensure qute://history shows today's history without any query."""
-        _mimetype, data = qutescheme.qute_history(QUrl("qute://history"))
-        key = "<span class=\"date\">{}</span>".format(
-            datetime.date.today().strftime("%a, %d %B %Y"))
-        assert key in data
-
-    def test_history_with_bad_query(self):
-        """Ensure qute://history shows today's history with bad query."""
-        url = QUrl("qute://history?date=204-blaah")
+    @pytest.mark.parametrize("start_time_offset, expected_item_count", [
+        (0, 4),
+        (24*60*60, 4),
+        (48*60*60, 4),
+        (72*60*60, 0)
+    ])
+    def test_qutehistory_data(self, start_time_offset, expected_item_count):
+        """Ensure qute://history/data returns correct items."""
+        start_time = int(self.now) - start_time_offset
+        url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
-        key = "<span class=\"date\">{}</span>".format(
-            datetime.date.today().strftime("%a, %d %B %Y"))
-        assert key in data
+        items = json.loads(data)
 
-    def test_history_today(self):
-        """Ensure qute://history shows history for today."""
-        url = QUrl("qute://history")
-        _mimetype, data = qutescheme.qute_history(url)
-        assert "today" in data
-        assert "tomorrow" not in data
-        assert "yesterday" not in data
+        assert len(items) == expected_item_count
 
-    def test_history_yesterday(self, dates):
-        """Ensure qute://history shows history for yesterday."""
-        url = QUrl("qute://history?date=" +
-                dates.yesterday.strftime("%Y-%m-%d"))
-        _mimetype, data = qutescheme.qute_history(url)
-        assert "today" not in data
-        assert "tomorrow" not in data
-        assert "yesterday" in data
+        end_time = start_time - 24*60*60
+        for item in items:
+            assert item['time'] <= start_time
+            assert item['time'] > end_time
 
-    def test_history_tomorrow(self, dates):
-        """Ensure qute://history shows history for tomorrow."""
-        url = QUrl("qute://history?date=" +
-                dates.tomorrow.strftime("%Y-%m-%d"))
-        _mimetype, data = qutescheme.qute_history(url)
-        assert "today" not in data
-        assert "tomorrow" in data
-        assert "yesterday" not in data
-
-    def test_no_next_link_to_future(self, dates):
-        """Ensure there's no next link pointing to the future."""
-        url = QUrl("qute://history")
-        _mimetype, data = qutescheme.qute_history(url)
-        assert "Next" not in data
-
-        url = QUrl("qute://history?date=" +
-                dates.tomorrow.strftime("%Y-%m-%d"))
-        _mimetype, data = qutescheme.qute_history(url)
-        assert "Next" not in data
-
-    def test_qute_history_benchmark(self, dates, entries, fake_web_history,
-                                    benchmark):
-        for i in range(100000):
+    def test_qute_history_benchmark(self, fake_web_history, benchmark):
+        for t in range(100000):  # one history per second
             entry = history.Entry(
-                atime=str(dates.yesterday.timestamp()),
-                url=QUrl('www.yesterday.com/{}'.format(i)),
-                title='yesterday')
+                atime=str(self.now - t),
+                url=QUrl('www.x.com/{}'.format(t)),
+                title='x at {}'.format(t))
             fake_web_history._add_entry(entry)
-        fake_web_history._add_entry(entries.today)
-        fake_web_history._add_entry(entries.tomorrow)
 
-        url = QUrl("qute://history")
+        url = QUrl("qute://history/data?start_time={}".format(self.now))
         _mimetype, data = benchmark(qutescheme.qute_history, url)
-
-        assert "today" in data
-        assert "tomorrow" not in data
-        assert "yesterday" not in data

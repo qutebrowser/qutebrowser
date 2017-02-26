@@ -24,12 +24,12 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import json
 import sys
 import time
-import datetime
 import urllib.parse
 
-from PyQt5.QtCore import QUrlQuery
+from PyQt5.QtCore import QUrl, QUrlQuery
 
 import qutebrowser
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
@@ -165,83 +165,77 @@ def qute_bookmarks(_url):
 
 @add_handler('history')  # noqa
 def qute_history(url):
-    """Handler for qute:history. Display history."""
-    # Get current date from query parameter, if not given choose today.
-    curr_date = datetime.date.today()
-    try:
-        query_date = QUrlQuery(url).queryItemValue("date")
-        if query_date:
-            curr_date = datetime.datetime.strptime(query_date, "%Y-%m-%d")
-            curr_date = curr_date.date()
-    except ValueError:
-        log.misc.debug("Invalid date passed to qute:history: " + query_date)
+    """Handler for qute:history. Display and serve history."""
+    def history_iter(start_time, reverse=False):
+        """Iterate through the history and get items we're interested.
 
-    one_day = datetime.timedelta(days=1)
-    next_date = curr_date + one_day
-    prev_date = curr_date - one_day
-
-    def history_iter(reverse):
-        """Iterate through the history and get items we're interested in."""
-        curr_timestamp = time.mktime(curr_date.timetuple())
+        Keyword arguments:
+        reverse -- whether to reverse the history_dict before iterating.
+        start_time -- select history starting from this timestamp.
+        """
         history = objreg.get('web-history').history_dict.values()
         if reverse:
             history = reversed(history)
 
+        end_time = start_time - 86400.0  # end is 24hrs earlier than start
+
         for item in history:
-            # If we can't apply the reverse performance trick below,
-            # at least continue as early as possible with old items.
-            # This gets us down from 550ms to 123ms with 500k old items on my
-            # machine.
-            if item.atime < curr_timestamp and not reverse:
-                continue
+            # Abort/continue as early as possible
+            item_newer = item.atime > start_time
+            item_older = item.atime < end_time
+            if reverse:
+                # history_dict is reversed, we are going back in history.
+                # so:
+                #     abort if item is older than start_time+24hr
+                #     skip if item is newer than start
+                if item_older:
+                    return
+                if item_newer:
+                    continue
+            else:
+                # history_dict is not reversed, we are going forward in history.
+                # so:
+                #     abort if item is newer than start_time
+                #     skip if item is older than start_time+24hrs
+                if item_older:
+                    continue
+                if item_newer:
+                    return
 
-            # Convert timestamp
-            try:
-                item_atime = datetime.datetime.fromtimestamp(item.atime)
-            except (ValueError, OSError, OverflowError):
-                log.misc.debug("Invalid timestamp {}.".format(item.atime))
-                continue
-
-            if reverse and item_atime.date() < curr_date:
-                # If we could reverse the history in-place, and this entry is
-                # older than today, only older entries will follow, so we can
-                # abort here.
-                return
-
-            # Skip items not on curr_date
+            # Skip items not within start_time and end_time
             # Skip redirects
             # Skip qute:// links
+            is_in_window = item.atime > end_time and item.atime <= start_time
             is_internal = item.url.scheme() == 'qute'
-            is_not_today = item_atime.date() != curr_date
-            if item.redirect or is_internal or is_not_today:
+            if item.redirect or is_internal or not is_in_window:
                 continue
 
             # Use item's url as title if there's no title.
             item_url = item.url.toDisplayString()
             item_title = item.title if item.title else item_url
-            display_atime = item_atime.strftime("%X")
+            item_time = int(item.atime)
 
-            yield (item_url, item_title, display_atime)
+            yield {"url": item_url, "title": item_title, "time": item_time}
 
-    if sys.hexversion >= 0x03050000:
-        # On Python >= 3.5 we can reverse the ordereddict in-place and thus
-        # apply an additional performance improvement in history_iter.
-        # On my machine, this gets us down from 550ms to 72us with 500k old
-        # items.
-        history = list(history_iter(reverse=True))
+    if QUrl(url).path() == '/data':
+        # Use start_time in query or current time.
+        start_time = QUrlQuery(url).queryItemValue("start_time")
+        start_time = float(start_time) if start_time else time.time()
+
+        if sys.hexversion >= 0x03050000:
+            # On Python >= 3.5 we can reverse the ordereddict in-place and thus
+            # apply an additional performance improvement in history_iter.
+            # On my machine, this gets us down from 550ms to 72us with 500k old
+            # items.
+            history = list(history_iter(start_time, reverse=True))
+        else:
+            # On Python 3.4, we can't do that, so we'd need to copy the entire
+            # history to a list. There, filter first and then reverse it here.
+            history = reversed(list(history_iter(start_time, reverse=False)))
+
+        return 'text/html', json.dumps(history)
     else:
-        # On Python 3.4, we can't do that, so we'd need to copy the entire
-        # history to a list. There, filter first and then reverse it here.
-        history = reversed(list(history_iter(reverse=False)))
-
-    html = jinja.render('history.html',
-                        title='History',
-                        history=history,
-                        curr_date=curr_date,
-                        next_date=next_date,
-                        prev_date=prev_date,
-                        today=datetime.date.today())
-    return 'text/html', html
+        return 'text/html', jinja.render('history.html', title='History')
 
 
 @add_handler('pyeval')
