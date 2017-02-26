@@ -227,13 +227,13 @@ def qute_history(url):
             # apply an additional performance improvement in history_iter.
             # On my machine, this gets us down from 550ms to 72us with 500k old
             # items.
-            history = list(history_iter(start_time, reverse=True))
+            history = history_iter(start_time, reverse=True)
         else:
             # On Python 3.4, we can't do that, so we'd need to copy the entire
             # history to a list. There, filter first and then reverse it here.
             history = reversed(list(history_iter(start_time, reverse=False)))
 
-        return 'text/html', json.dumps(history)
+        return 'text/html', json.dumps(list(history))
     else:
         return 'text/html', jinja.render('history.html', title='History')
 
