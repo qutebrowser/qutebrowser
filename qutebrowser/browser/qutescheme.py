@@ -216,8 +216,11 @@ def qute_history(url):
 
     if url.path() == '/data':
         # Use start_time in query or current time.
-        start_time = QUrlQuery(url).queryItemValue("start_time")
-        start_time = float(start_time) if start_time else time.time()
+        try:
+            start_time = QUrlQuery(url).queryItemValue("start_time")
+            start_time = float(start_time) if start_time else time.time()
+        except ValueError as e:
+            raise QuteSchemeError("Query parameter start_time is invalid", e)
 
         if sys.hexversion >= 0x03050000:
             # On Python >= 3.5 we can reverse the ordereddict in-place and thus
