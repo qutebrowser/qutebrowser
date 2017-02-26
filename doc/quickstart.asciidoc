@@ -31,7 +31,7 @@ image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding c
 * Run `:adblock-update` to download adblock lists and activate adblocking.
 * If you just cloned the repository, you'll need to run
 `scripts/asciidoc2html.py` to generate the documentation.
-* Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it.
+* Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it. (Currently not available with the QtWebEngine backend and on the OS X build - use the `:set` command instead)
 * Subscribe to
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist] or
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[the announce-only mailinglist].
