@@ -169,20 +169,20 @@ def qute_history(url):
     def history_iter(start_time, reverse=False):
         """Iterate through the history and get items we're interested.
 
-        Keyword arguments:
-        reverse -- whether to reverse the history_dict before iterating.
-        start_time -- select history starting from this timestamp.
+        Arguments:
+            reverse -- whether to reverse the history_dict before iterating.
+            start_time -- select history starting from this timestamp.
         """
         history = objreg.get('web-history').history_dict.values()
         if reverse:
             history = reversed(history)
 
-        end_time = start_time - 86400.0  # end is 24hrs earlier than start
+        end_time = start_time - 24*60*60  # end is 24hrs earlier than start
 
         for item in history:
             # Abort/continue as early as possible
             item_newer = item.atime > start_time
-            item_older = item.atime < end_time
+            item_older = item.atime <= end_time
             if reverse:
                 # history_dict is reversed, we are going back in history.
                 # so:
@@ -202,12 +202,9 @@ def qute_history(url):
                 if item_newer:
                     return
 
-            # Skip items not within start_time and end_time
             # Skip redirects
             # Skip qute:// links
-            is_in_window = item.atime > end_time and item.atime <= start_time
-            is_internal = item.url.scheme() == 'qute'
-            if item.redirect or is_internal or not is_in_window:
+            if item.redirect or item.url.scheme() == 'qute':
                 continue
 
             # Use item's url as title if there's no title.
@@ -217,7 +214,7 @@ def qute_history(url):
 
             yield {"url": item_url, "title": item_title, "time": item_time}
 
-    if QUrl(url).path() == '/data':
+    if url.path() == '/data':
         # Use start_time in query or current time.
         start_time = QUrlQuery(url).queryItemValue("start_time")
         start_time = float(start_time) if start_time else time.time()

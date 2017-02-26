@@ -92,4 +92,4 @@ class TestHistoryHandler:
             fake_web_history._add_entry(entry)
 
         url = QUrl("qute://history/data?start_time={}".format(self.now))
-        _mimetype, data = benchmark(qutescheme.qute_history, url)
+        _mimetype, _data = benchmark(qutescheme.qute_history, url)
