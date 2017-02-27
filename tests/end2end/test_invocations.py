@@ -185,3 +185,17 @@ def test_version(request):
     output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
 
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
+
+
+def test_qt_arg(request, quteproc_new, tmpdir):
+    """Test --qt-arg."""
+    args = (_base_args(request.config) +
+            ['--qt-arg', 'stylesheet', str(tmpdir / 'does-not-exist')])
+    quteproc_new.start(args)
+
+    msg = 'QCss::Parser - Failed to load file  "*does-not-exist"'
+    line = quteproc_new.wait_for(message=msg)
+    line.expected = True
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
