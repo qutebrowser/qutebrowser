@@ -2001,11 +2001,6 @@ class CommandDispatcher:
                 QApplication.postEvent(window, press_event)
                 QApplication.postEvent(window, release_event)
             else:
-                try:
-                    tab = objreg.get('tab', scope='tab', tab='current')
-                except objreg.RegistryUnavailableError:
-                    raise cmdexc.CommandError("No focused webview!")
-
                 tab = self._current_widget()
                 tab.send_event(press_event)
                 tab.send_event(release_event)
