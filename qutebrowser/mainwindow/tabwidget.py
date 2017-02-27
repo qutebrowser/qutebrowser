@@ -681,6 +681,9 @@ class TabBarStyle(QCommonStyle):
         """
         if sr == QStyle.SE_TabBarTabText:
             layouts = self._tab_layout(opt)
+            if layouts is None:
+                log.misc.warning("Could not get layouts for tab!")
+                return QRect()
             return layouts.text
         elif sr == QStyle.SE_TabWidgetTabBar:
             # Need to use super() because we also use super() to render
