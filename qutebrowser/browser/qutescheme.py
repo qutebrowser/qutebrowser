@@ -179,8 +179,17 @@ def qute_history(url):
 
         end_time = start_time - 24*60*60  # end is 24hrs earlier than start
 
+        # when history_dict is not reversed, we need to keep track of last item
+        # so that we can yield its atime
+        last_item = None
+
         for item in history:
-            # Abort/continue as early as possible
+            # Skip redirects
+            # Skip qute:// links
+            if item.redirect or item.url.scheme() == 'qute':
+                continue
+
+            # Skip items out of time window
             item_newer = item.atime > start_time
             item_older = item.atime <= end_time
             if reverse:
@@ -189,6 +198,7 @@ def qute_history(url):
                 #     abort if item is older than start_time+24hr
                 #     skip if item is newer than start
                 if item_older:
+                    yield {"next": int(item.atime)}
                     return
                 if item_newer:
                     continue
@@ -198,14 +208,11 @@ def qute_history(url):
                 #     abort if item is newer than start_time
                 #     skip if item is older than start_time+24hrs
                 if item_older:
+                    last_item = item
                     continue
                 if item_newer:
+                    yield {"next": int(last_item.atime)}
                     return
-
-            # Skip redirects
-            # Skip qute:// links
-            if item.redirect or item.url.scheme() == 'qute':
-                continue
 
             # Use item's url as title if there's no title.
             item_url = item.url.toDisplayString()
@@ -213,6 +220,9 @@ def qute_history(url):
             item_time = int(item.atime)
 
             yield {"url": item_url, "title": item_title, "time": item_time}
+
+        # if we reached here, we had reached the end of history
+        yield {"next": -1}
 
     if url.path() == '/data':
         # Use start_time in query or current time.

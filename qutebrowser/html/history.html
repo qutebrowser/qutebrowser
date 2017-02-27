@@ -28,6 +28,19 @@ table {
     text-align: left;
 }
 
+#load {
+    color: #555;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#eof {
+    color: #aaa;
+    margin-bottom: 30px;
+    text-align: center;
+    width: 100%;
+}
+
 .session-separator {
     color: #aaa;
     height: 40px;
@@ -43,6 +56,8 @@ table {
 var global = {
     // The last history item that was seen.
     lastItem: null,
+    // The next time to load
+    nextTime: null,
     // The cutoff interval for session-separator (30 minutes)
     SESSION_CUTOFF: 30*60
 };
@@ -144,14 +159,25 @@ var getJSON = function(url, callback) {
  */
 var loadHistory = function() {
     url = "qute://history/data";
-    if (global.lastItem !== null) {
-        startTime = parseInt(global.lastItem.time) - 1;
+    if (global.nextTime !== null) {
+        startTime = global.nextTime;
         url = "qute://history/data?start_time=" + startTime.toString();
     }
 
     getJSON(url, function(status, history) {
         if (history !== undefined) {
             for (item of history) {
+                if (item.next === -1) {
+                    // Reached end of history
+                    window.onscroll = null;
+                    document.getElementById('eof').style.display = "block"
+                    document.getElementById('load').style.display = "none"
+                    continue;
+                } else if (item.next !== undefined) {
+                    global.nextTime = parseInt(item.next);
+                    continue;
+                }
+
                 atime = new Date(parseInt(item.time)*1000);
                 var session = getSessionNode(atime);
                 var row = makeHistoryRow(item.url, item.title, atime.toLocaleTimeString());
@@ -166,10 +192,11 @@ var loadHistory = function() {
 {% block content %}
 <h1>Browsing history</h1>
 <div id="hist-container"></div>
+<span id="eof" style="display: none">end</span>
+<a href="#" onclick="loadHistory();"id="load">Show more</a>
 <script>
 window.onload = function() {
     loadHistory();
-
     window.onscroll = function(ev) {
         if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
             loadHistory();
