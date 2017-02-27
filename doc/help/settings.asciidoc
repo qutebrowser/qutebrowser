@@ -1524,6 +1524,7 @@ This setting is only available with the QtWebKit backend.
 [[content-javascript-can-access-clipboard]]
 === javascript-can-access-clipboard
 Whether JavaScript programs can read or write to the clipboard.
+With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
 
 Valid values:
 

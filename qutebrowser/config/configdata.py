@@ -860,7 +860,8 @@ def data(readonly=False):
             ('javascript-can-access-clipboard',
              SettingValue(typ.Bool(), 'false'),
              "Whether JavaScript programs can read or write to the "
-             "clipboard."),
+             "clipboard.\nWith QtWebEngine, writing the clipboard as response "
+             "to a user interaction is always allowed."),
 
             ('ignore-javascript-prompt',
              SettingValue(typ.Bool(), 'false'),
