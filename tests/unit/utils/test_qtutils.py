@@ -117,16 +117,16 @@ class TestGetQtArgs:
         # No Qt arguments
         (['--debug'], [sys.argv[0]]),
         # Qt flag
-        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '-reverse']),
+        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '--reverse']),
         # Qt argument with value
         (['--qt-arg', 'stylesheet', 'foo'],
-         [sys.argv[0], '-stylesheet', 'foo']),
+         [sys.argv[0], '--stylesheet', 'foo']),
         # --qt-arg given twice
         (['--qt-arg', 'stylesheet', 'foo', '--qt-arg', 'geometry', 'bar'],
-         [sys.argv[0], '-stylesheet', 'foo', '-geometry', 'bar']),
+         [sys.argv[0], '--stylesheet', 'foo', '--geometry', 'bar']),
         # --qt-flag given twice
         (['--qt-flag', 'foo', '--qt-flag', 'bar'],
-         [sys.argv[0], '-foo', '-bar']),
+         [sys.argv[0], '--foo', '--bar']),
     ])
     def test_qt_args(self, args, expected, parser):
         """Test commandline with no Qt arguments given."""
@@ -139,8 +139,8 @@ class TestGetQtArgs:
                                   '--qt-flag', 'reverse'])
         qt_args = qtutils.get_args(args)
         assert qt_args[0] == sys.argv[0]
-        assert '-reverse' in qt_args
-        assert '-stylesheet' in qt_args
+        assert '--reverse' in qt_args
+        assert '--stylesheet' in qt_args
         assert 'foobar' in qt_args
 
 
