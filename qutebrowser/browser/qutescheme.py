@@ -248,6 +248,19 @@ def qute_history(url):
         return 'text/html', jinja.render('history.html', title='History')
 
 
+@add_handler('javascript')
+def qute_javascript(url):
+    """Handler for qute:javascript.
+
+    Return content of file given as query parameter.
+    """
+    path = url.path()
+    if path:
+        return 'text/html', utils.read_file("javascript" + path, binary=False)
+    else:
+        raise QuteSchemeError("No file specified", ValueError())
+
+
 @add_handler('pyeval')
 def qute_pyeval(_url):
     """Handler for qute:pyeval."""

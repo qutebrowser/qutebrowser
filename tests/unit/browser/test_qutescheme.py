@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import os
 import time
 
 from PyQt5.QtCore import QUrl
@@ -25,6 +26,49 @@ import pytest
 
 from qutebrowser.browser import history, qutescheme
 from qutebrowser.utils import objreg
+
+
+class TestJavascriptHandler:
+
+    """Test the qute://javascript endpoint."""
+
+    # Tuples of fake JS files and their content.
+    js_files = [
+        ('foo.js', "var a = 'foo';"),
+        ('bar.js', "var a = 'bar';"),
+    ]
+
+    @pytest.fixture(autouse=True)
+    def patch_read_file(self, monkeypatch):
+        """Patch utils.read_file to return few fake JS files."""
+        def _read_file(path, binary=False):
+            """Faked utils.read_file"""
+            assert not binary
+            for filename, content in self.js_files:
+                if path == os.path.join('javascript', filename):
+                    return content
+            raise IOError("File not found {}!".format(path))
+
+        monkeypatch.setattr('qutebrowser.utils.utils.read_file', _read_file)
+
+    @pytest.mark.parametrize("filename, content", js_files)
+    def test_qutejavascript(self, filename, content):
+        url = QUrl("qute://javascript/{}".format(filename))
+        _mimetype, data = qutescheme.qute_javascript(url)
+
+        assert data == content
+
+    def test_qutejavascript_error(self):
+        url = QUrl("qute://javascript/404.js")
+
+        with pytest.raises(IOError):
+            qutescheme.qute_javascript(url)
+
+    def test_qutejavascript_empty_query(self):
+        url = QUrl("qute://javascript")
+
+        with pytest.raises(qutescheme.QuteSchemeError):
+            qutescheme.qute_javascript(url)
 
 
 class TestHistoryHandler:
