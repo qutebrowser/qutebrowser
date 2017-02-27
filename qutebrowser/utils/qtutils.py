@@ -141,11 +141,11 @@ def get_args(namespace):
     argv = [sys.argv[0]]
 
     if namespace.qt_flag is not None:
-        argv += ['-' + flag[0] for flag in namespace.qt_flag]
+        argv += ['--' + flag[0] for flag in namespace.qt_flag]
 
     if namespace.qt_arg is not None:
         for name, value in namespace.qt_arg:
-            argv += ['-' + name, value]
+            argv += ['--' + name, value]
 
     return argv
 
