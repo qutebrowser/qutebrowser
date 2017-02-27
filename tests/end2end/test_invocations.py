@@ -189,8 +189,8 @@ def test_version(request):
 
 def test_qt_arg(request, quteproc_new, tmpdir):
     """Test --qt-arg."""
-    args = (_base_args(request.config) +
-            ['--qt-arg', 'stylesheet', str(tmpdir / 'does-not-exist')])
+    args = (['--temp-basedir', '--qt-arg', 'stylesheet',
+             str(tmpdir / 'does-not-exist')] + _base_args(request.config))
     quteproc_new.start(args)
 
     msg = 'QCss::Parser - Failed to load file  "*does-not-exist"'
