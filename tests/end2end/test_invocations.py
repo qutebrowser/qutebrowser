@@ -28,6 +28,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from end2end.fixtures import quteprocess, testprocess
+from qutebrowser.utils import qtutils
 
 
 def _base_args(config):
@@ -187,6 +188,8 @@ def test_version(request):
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
 
 
+@pytest.mark.skipif(not qtutils.version_check('5.3'),
+                    reason="Does not work on Qt 5.2")
 def test_qt_arg(request, quteproc_new, tmpdir):
     """Test --qt-arg."""
     args = (['--temp-basedir', '--qt-arg', 'stylesheet',
