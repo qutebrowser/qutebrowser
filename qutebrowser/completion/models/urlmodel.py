@@ -66,10 +66,13 @@ def url():
         columns_to_filter=[_URLCOL, _TEXTCOL],
         delete_cur_item=_delete_url)
 
+    quickmarks = objreg.get('quickmark-manager').marks.items()
+    model.add_list('Quickmarks', ((url, name) for (name, url) in quickmarks))
+
+    model.add_list('Bookmarks', objreg.get('bookmark-manager').marks.items())
+
     timefmt = config.get('completion', 'timestamp-format')
     select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
-    model.add_sqltable('Quickmarks', select='url, name')
-    model.add_sqltable('Bookmarks')
     model.add_sqltable('History',
                        sort_order='desc', sort_by='atime',
                        select='url, title, {}'.format(select_time),

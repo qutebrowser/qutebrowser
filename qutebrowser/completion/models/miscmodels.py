@@ -61,14 +61,14 @@ def helptopic():
 def quickmark():
     """A CompletionModel filled with all quickmarks."""
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    model.add_sqltable('Quickmarks')
+    model.add_list('Quickmarks', objreg.get('quickmark-manager').marks.items())
     return model
 
 
 def bookmark():
     """A CompletionModel filled with all bookmarks."""
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    model.add_sqltable('Bookmarks')
+    model.add_list('Bookmarks', objreg.get('bookmark-manager').marks.items())
     return model
 
 
