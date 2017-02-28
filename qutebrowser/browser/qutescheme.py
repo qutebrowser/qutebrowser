@@ -29,7 +29,7 @@ import sys
 import time
 import urllib.parse
 
-from PyQt5.QtCore import QUrl, QUrlQuery
+from PyQt5.QtCore import QUrlQuery
 
 import qutebrowser
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
@@ -203,7 +203,7 @@ def qute_history(url):
                 if item_newer:
                     continue
             else:
-                # history_dict is not reversed, we are going forward in history.
+                # history_dict isn't reversed, we are going forward in history.
                 # so:
                 #     abort if item is newer than start_time
                 #     skip if item is older than start_time+24hrs

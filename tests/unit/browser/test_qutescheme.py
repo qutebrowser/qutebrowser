@@ -42,7 +42,7 @@ class TestJavascriptHandler:
     def patch_read_file(self, monkeypatch):
         """Patch utils.read_file to return few fake JS files."""
         def _read_file(path, binary=False):
-            """Faked utils.read_file"""
+            """Faked utils.read_file."""
             assert not binary
             for filename, content in self.js_files:
                 if path == os.path.join('javascript', filename):
@@ -75,13 +75,15 @@ class TestHistoryHandler:
 
     """Test the qute://history endpoint."""
 
+    # Current time
+    now = time.time()
+
     @pytest.fixture
     def entries(self):
         """Create fake history entries."""
         # create 12 history items spaced 6 hours apart, starting from now
         entry_count = 12
         interval = 6 * 60 * 60
-        self.now = time.time()
 
         items = []
         for i in range(entry_count):
