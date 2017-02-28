@@ -254,6 +254,7 @@ Contributors, sorted by the number of commits in descending order:
 * dylan araps
 * addictedtoflames
 * Xitian9
+* Vasilij Schneidermann
 * Tomas Orsava
 * Tom Janson
 * Tobias Werth
