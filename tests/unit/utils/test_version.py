@@ -638,18 +638,29 @@ class FakeQSslSocket:
         return self._version
 
 
-@pytest.mark.parametrize(['git_commit', 'frozen', 'style',
-                          'equal_qt', 'with_webkit'], [
-    (True, False, True, True, True),  # normal
-    (False, False, True, True, True),  # no git commit
-    (True, True, True, True, True),  # frozen
-    (True, True, False, True, True),  # no style
-    (True, False, True, False, True),  # different Qt
-    (True, False, True, True, False),  # no webkit
-    (True, False, True, True, 'ng'),  # QtWebKit-NG
+@pytest.mark.parametrize('same', [True, False])
+def test_qt_version(monkeypatch, same):
+    if same:
+        qt_version_str = '5.4.0'
+        expected = '5.4.0'
+    else:
+        qt_version_str = '5.3.0'
+        expected = '5.4.0 (compiled 5.3.0)'
+    monkeypatch.setattr(version, 'qVersion', lambda: '5.4.0')
+    monkeypatch.setattr(version, 'QT_VERSION_STR', qt_version_str)
+    assert version.qt_version() == expected
+
+
+@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit'], [
+    (True, False, True, True),  # normal
+    (False, False, True, True),  # no git commit
+    (True, True, True, True),  # frozen
+    (True, True, False, True),  # no style
+    (True, False, True, False),  # no webkit
+    (True, False, True, 'ng'),  # QtWebKit-NG
 ])
-def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
-                        stubs, monkeypatch):
+def test_version_output(git_commit, frozen, style, with_webkit, stubs,
+                        monkeypatch):
     """Test version.version()."""
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
@@ -660,8 +671,7 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         'platform.python_version': lambda: 'PYTHON VERSION',
         'PYQT_VERSION_STR': 'PYQT VERSION',
         'QT_VERSION_STR': 'QT VERSION',
-        'qVersion': (lambda:
-                     'QT VERSION' if equal_qt else 'QT RUNTIME VERSION'),
+        'qVersion': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
         'qWebKitVersion': (lambda: 'WEBKIT VERSION') if with_webkit else None,
@@ -715,8 +725,7 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
     substitutions = {
         'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
         'style': '\nStyle: STYLE' if style else '',
-        'qt': ('QT VERSION' if equal_qt else
-               'QT RUNTIME VERSION (compiled QT VERSION)'),
+        'qt': 'QT VERSION',
         'frozen': str(frozen),
         'import_path': import_path,
         'webkit': 'WEBKIT VERSION' if with_webkit else 'no',

@@ -225,6 +225,14 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
+def qt_version():
+    """Get a Qt version string based on the runtime/compiled versions."""
+    if qVersion() != QT_VERSION_STR:
+        return '{} (compiled {})'.format(qVersion(), QT_VERSION_STR)
+    else:
+        return qVersion()
+
+
 def version():
     """Return a string with various version informations."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
@@ -239,16 +247,11 @@ def version():
         backend = 'QtWebKit-NG'
     lines.append("Backend: {}".format(backend))
 
-    if qVersion() != QT_VERSION_STR:
-        qt_version = 'Qt: {} (compiled {})'.format(qVersion(), QT_VERSION_STR)
-    else:
-        qt_version = 'Qt: {}'.format(qVersion())
-
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        qt_version,
+        'Qt: {}'.format(qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]

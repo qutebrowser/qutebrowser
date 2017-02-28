@@ -42,26 +42,36 @@ from qutebrowser.utils import qtutils
 import overflow_test_cases
 
 
-@pytest.mark.parametrize('qversion, version, op, expected', [
-    ('5.4.0', '5.4.0', operator.ge, True),
-    ('5.4.0', '5.4.0', operator.eq, True),
-    ('5.4.0', '5.4', operator.eq, True),
-    ('5.4.1', '5.4', operator.ge, True),
-    ('5.3.2', '5.4', operator.ge, False),
-    ('5.3.0', '5.3.2', operator.ge, False),
+@pytest.mark.parametrize('qversion, compiled, version, op, expected', [
+    ('5.4.0', None, '5.4.0', operator.ge, True),
+    ('5.4.0', None, '5.4.0', operator.eq, True),
+    ('5.4.0', None, '5.4', operator.eq, True),
+    ('5.4.1', None, '5.4', operator.ge, True),
+    ('5.3.2', None, '5.4', operator.ge, False),
+    ('5.3.0', None, '5.3.2', operator.ge, False),
+    # strict=True
+    ('5.4.0', '5.3.0', '5.4.0', operator.ge, False),
+    ('5.4.0', '5.4.0', '5.4.0', operator.ge, True),
 ])
-def test_version_check(monkeypatch, qversion, version, op, expected):
+def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
     """Test for version_check().
 
     Args:
         monkeypatch: The pytest monkeypatch fixture.
         qversion: The version to set as fake qVersion().
+        compiled: The value for QT_VERSION_STR (set strict=True)
         version: The version to compare with.
         op: The operator to use when comparing.
         expected: The expected result.
     """
     monkeypatch.setattr('qutebrowser.utils.qtutils.qVersion', lambda: qversion)
-    assert qtutils.version_check(version, op) == expected
+    if compiled is not None:
+        monkeypatch.setattr('qutebrowser.utils.qtutils.QT_VERSION_STR', compiled)
+        strict = True
+    else:
+        strict = False
+
+    assert qtutils.version_check(version, op, strict=strict) == expected
 
 
 @pytest.mark.parametrize('version, ng', [

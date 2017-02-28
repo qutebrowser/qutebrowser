@@ -34,7 +34,7 @@ import operator
 import contextlib
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QSaveFile)
+                          QIODevice, QSaveFile, QT_VERSION_STR)
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log
@@ -80,15 +80,19 @@ class QtOSError(OSError):
             self.qt_errno = None
 
 
-def version_check(version, op=operator.ge):
+def version_check(version, op=operator.ge, strict=False):
     """Check if the Qt runtime version is the version supplied or newer.
 
     Args:
         version: The version to check against.
         op: The operator to use for the check.
+        strict: If given, also check the compiled Qt version.
     """
-    return op(pkg_resources.parse_version(qVersion()),
-              pkg_resources.parse_version(version))
+    parsed = pkg_resources.parse_version(version)
+    result = op(pkg_resources.parse_version(qVersion()), parsed)
+    if result and strict:
+        result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
+    return result
 
 
 def is_qtwebkit_ng(version):

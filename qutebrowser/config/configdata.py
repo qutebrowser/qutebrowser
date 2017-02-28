@@ -200,8 +200,9 @@ def data(readonly=False):
 
             ('print-element-backgrounds',
              SettingValue(typ.Bool(), 'true',
-                          backends=(None if qtutils.version_check('5.8')
-                                    else [usertypes.Backend.QtWebKit])),
+                          backends=(
+                              None if qtutils.version_check('5.8', strict=True)
+                              else [usertypes.Backend.QtWebKit])),
              "Whether the background color and images are also drawn when the "
              "page is printed.\n"
              "This setting only works with Qt 5.8 or newer when using the "
