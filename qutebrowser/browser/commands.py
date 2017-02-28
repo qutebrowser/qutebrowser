@@ -1260,15 +1260,13 @@ class CommandDispatcher:
         if name is None:
             url = self._current_url()
             try:
-                quickmark_manager.delete_by_qurl(url)
+                name = quickmark_manager.get_by_qurl(url)
             except urlmarks.DoesNotExistError as e:
                 raise cmdexc.CommandError(str(e))
-        else:
-            try:
-                quickmark_manager.delete(name)
-            except KeyError:
-                raise cmdexc.CommandError(
-                    "Quickmark '{}' not found!".format(name))
+        try:
+            quickmark_manager.delete(name)
+        except KeyError:
+            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None, toggle=False):
