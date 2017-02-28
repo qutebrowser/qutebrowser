@@ -65,16 +65,22 @@ table {
 </noscript>
 <div id="hist-container"></div>
 <span id="eof" style="display: none">end</span>
-<a href="#" onclick="loadHistory();"id="load">Show more</a>
+<a href="#" id="load">Show more</a>
 <script type="text/javascript" src="qute://javascript/history.js"></script>
 <script type="text/javascript">
     window.onload = function() {
-        loadHistory();
+        document.getElementById('load').addEventListener('click', function(ev) {
+            ev.preventDefault();
+            window.loadHistory();
+        });
+
         window.onscroll = function(ev) {
             if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
-                loadHistory();
+                window.loadHistory();
             }
         };
+
+        window.loadHistory();
     };
 </script>
 {% endblock %}
