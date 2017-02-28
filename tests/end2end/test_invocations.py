@@ -19,6 +19,7 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import socket
 import sys
 import logging
 import re
@@ -202,3 +203,19 @@ def test_qt_arg(request, quteproc_new, tmpdir):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_webengine_inspector(request, quteproc_new):
+    if not request.config.webengine:
+        pytest.skip()
+    args = (['--temp-basedir', '--enable-webengine-inspector'] +
+            _base_args(request.config))
+    quteproc_new.start(args)
+    line = quteproc_new.wait_for(
+        message='Remote debugging server started successfully. Try pointing a '
+                'Chromium-based browser to http://127.0.0.1:*')
+    port = int(line.message.split(':')[-1])
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('127.0.0.1', port))
+    s.close()

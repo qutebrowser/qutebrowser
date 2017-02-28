@@ -71,17 +71,18 @@ class ProfileSetter(websettings.Base):
 
     def __init__(self, getter, setter):
         super().__init__()
-        profile = QWebEngineProfile.defaultProfile()
-        self._getter = getattr(profile, getter)
-        self._setter = getattr(profile, setter)
+        self._getter = getter
+        self._setter = setter
 
     def get(self, settings=None):
         utils.unused(settings)
-        return self._getter()
+        getter = getattr(QWebEngineProfile.defaultProfile(), self._getter)
+        return getter()
 
     def _set(self, value, settings=None):
         utils.unused(settings)
-        self._setter(value)
+        setter = getattr(QWebEngineProfile.defaultProfile(), self._setter)
+        setter(value)
 
 
 class PersistentCookiePolicy(ProfileSetter):
@@ -98,7 +99,8 @@ class PersistentCookiePolicy(ProfileSetter):
 
     def _set(self, value, settings=None):
         utils.unused(settings)
-        self._setter(
+        setter = getattr(QWebEngineProfile.defaultProfile(), self._setter)
+        setter(
             QWebEngineProfile.AllowPersistentCookies if value else
             QWebEngineProfile.NoPersistentCookies
         )
