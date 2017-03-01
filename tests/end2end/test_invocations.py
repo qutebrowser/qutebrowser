@@ -219,3 +219,32 @@ def test_webengine_inspector(request, quteproc_new):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(('127.0.0.1', port))
     s.close()
+
+
+@pytest.mark.linux
+def test_webengine_download_suffix(request, quteproc_new, tmpdir):
+    """Make sure QtWebEngine does not add a suffix to downloads."""
+    if not request.config.webengine:
+        pytest.skip()
+
+    download_dir = tmpdir / 'downloads'
+    download_dir.ensure(dir=True)
+
+    (tmpdir / 'user-dirs.dirs').write(
+        'XDG_DOWNLOAD_DIR={}'.format(download_dir))
+    env = {'XDG_CONFIG_HOME': str(tmpdir)}
+    args = (['--temp-basedir'] + _base_args(request.config))
+    quteproc_new.start(args, env=env)
+
+    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc_new.set_setting('storage', 'download-directory', str(download_dir))
+    quteproc_new.open_path('data/downloads/download.bin', wait=False)
+    quteproc_new.wait_for(category='downloads', message='Download * finished')
+    quteproc_new.open_path('data/downloads/download.bin', wait=False)
+    quteproc_new.wait_for(message='Entering mode KeyMode.yesno *')
+    quteproc_new.send_cmd(':prompt-accept yes')
+    quteproc_new.wait_for(category='downloads', message='Download * finished')
+
+    files = download_dir.listdir()
+    assert len(files) == 1
+    assert files[0].basename == 'download.bin'

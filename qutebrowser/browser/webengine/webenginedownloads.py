@@ -144,7 +144,7 @@ def _get_suggested_filename(path):
     See https://bugreports.qt.io/browse/QTBUG-56978
     """
     filename = os.path.basename(path)
-    filename = re.sub(r'\([0-9]+\)$', '', filename)
+    filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
     if not qtutils.version_check('5.8.1'):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
