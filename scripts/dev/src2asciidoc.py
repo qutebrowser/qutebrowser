@@ -438,9 +438,11 @@ def _get_authors():
         'Rahid': 'Maciej Wołczyk',
         'Fritz V155 Reichwald': 'Fritz Reichwald',
     }
+    ignored = ['pyup-bot']
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     authors = [corrections.get(author, author)
-               for author in commits.decode('utf-8').splitlines()]
+               for author in commits.decode('utf-8').splitlines()
+               if author not in ignored]
     cnt = collections.Counter(authors)
     return sorted(cnt, key=lambda k: (cnt[k], k), reverse=True)
 
