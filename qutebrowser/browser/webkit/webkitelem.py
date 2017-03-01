@@ -96,16 +96,6 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def style_property(self, name, *, strategy):
-        self._check_vanished()
-        strategies = {
-            # FIXME:qtwebengine which ones do we actually need?
-            'inline': QWebElement.InlineStyle,
-            'computed': QWebElement.ComputedStyle,
-        }
-        qt_strategy = strategies[strategy]
-        return self._elem.styleProperty(name, qt_strategy)
-
     def classes(self):
         self._check_vanished()
         return self._elem.classes()

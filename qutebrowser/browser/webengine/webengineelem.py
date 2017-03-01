@@ -79,10 +79,6 @@ class WebEngineElement(webelem.AbstractWebElement):
         log.stub()
         return QRect()
 
-    def style_property(self, name, *, strategy):
-        log.stub()
-        return ''
-
     def classes(self):
         """Get a list of classes assigned to this element."""
         return self._js_dict['class_name'].split()

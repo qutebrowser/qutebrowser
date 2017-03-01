@@ -120,10 +120,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def style_property(self, name, *, strategy):
-        """Get the element style resolved with the given strategy."""
-        raise NotImplementedError
-
     def classes(self):
         """Get a list of classes assigned to this element."""
         raise NotImplementedError
