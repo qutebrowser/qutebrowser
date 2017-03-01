@@ -28,6 +28,7 @@ Fixed
 - URLs are now redacted properly (username/password, and path/query for HTTPS) when using Proxy Autoconfig with QtWebKit
 - Fixed the web inspector with QtWebEngine
 - Version checks when starting qutebrowser now also take the Qt version PyQt was compiled against into account
+- Hinting a input now doesn't select existing text anymore with QtWebKit
 
 v0.10.0
 -------

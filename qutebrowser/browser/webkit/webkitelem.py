@@ -302,7 +302,9 @@ class WebKitElement(webelem.AbstractWebElement):
 
     def _click_editable(self, click_target):
         ok = self._elem.evaluateJavaScript('this.focus(); true;')
-        if not ok:
+        if ok:
+            self._move_text_cursor()
+        else:
             log.webelem.debug("Failed to focus via JS, falling back to event")
             self._click_fake_event(click_target)
 
