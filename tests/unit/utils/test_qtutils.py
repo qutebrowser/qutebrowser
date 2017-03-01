@@ -66,7 +66,7 @@ def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
     """
     monkeypatch.setattr('qutebrowser.utils.qtutils.qVersion', lambda: qversion)
     if compiled is not None:
-        monkeypatch.setattr('qutebrowser.utils.qtutils.QT_VERSION_STR', compiled)
+        monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
         strict = True
     else:
         strict = False
