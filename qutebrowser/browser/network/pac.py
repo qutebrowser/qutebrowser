@@ -199,18 +199,23 @@ class PACResolver:
             err = "Cannot resolve FindProxyForURL function, got '{}' instead"
             raise EvalProxyError(err.format(self._resolver.toString()))
 
-    def resolve(self, query):
+    def resolve(self, query, from_file=False):
         """Resolve a proxy via PAC.
 
         Args:
             query: QNetworkProxyQuery.
+            from_file: Whether the proxy info is coming from a file.
 
         Return:
             A list of QNetworkProxy objects in order of preference.
         """
-        string_flags = QUrl.RemoveUserInfo
-        if query.url().scheme() == 'https':
-            string_flags |= QUrl.RemovePath | QUrl.RemoveQuery
+        if from_file:
+            string_flags = QUrl.PrettyDecoded
+        else:
+            string_flags = QUrl.RemoveUserInfo
+            if query.url().scheme() == 'https':
+                string_flags |= QUrl.RemovePath | QUrl.RemoveQuery
+
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
         result_str = result.toString()
@@ -239,6 +244,7 @@ class PACFetcher(QObject):
         assert url.scheme().startswith(pac_prefix)
         url.setScheme(url.scheme()[len(pac_prefix):])
 
+        self._pac_url = url
         self._manager = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._reply = self._manager.get(QNetworkRequest(url))
@@ -295,8 +301,9 @@ class PACFetcher(QObject):
         Return a list of QNetworkProxy objects in order of preference.
         """
         self._wait()
+        from_file = self._pac_url.scheme() == 'file'
         try:
-            return self._pac.resolve(query)
+            return self._pac.resolve(query, from_file=from_file)
         except (EvalProxyError, ParseProxyError) as e:
             log.network.exception("Error in PAC resolution: {}.".format(e))
             # .invalid is guaranteed to be inaccessible in RFC 6761.

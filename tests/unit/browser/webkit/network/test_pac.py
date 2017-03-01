@@ -182,7 +182,16 @@ def test_fail_return():
     ('https://secret@example.com', False),  # user stripped with HTTPS
     ('https://user:secret@example.com', False),  # password stripped with HTTPS
 ])
-def test_secret_url(url, has_secret):
+@pytest.mark.parametrize('from_file', [True, False])
+def test_secret_url(url, has_secret, from_file):
+    """Make sure secret parts in an URL are stripped correctly.
+
+    The following parts are considered secret:
+        - If the PAC info is loaded from a local file, nothing.
+        - If the URL to resolve is a HTTP URL, the username/password.
+        - If the URL to resolve is a HTTPS URL, the username/password, query
+          and path.
+    """
     test_str = """
         function FindProxyForURL(domain, host) {{
             has_secret = domain.indexOf("secret") !== -1;
@@ -194,7 +203,7 @@ def test_secret_url(url, has_secret):
         }}
     """.format('true' if (has_secret or from_file) else 'false')
     res = pac.PACResolver(test_str)
-    res.resolve(QNetworkProxyQuery(QUrl(url)))
+    res.resolve(QNetworkProxyQuery(QUrl(url)), from_file=from_file)
 
 
 # See https://github.com/qutebrowser/qutebrowser/pull/1891#issuecomment-259222615
