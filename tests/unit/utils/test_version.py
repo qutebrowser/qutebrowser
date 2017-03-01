@@ -93,21 +93,18 @@ class TestGitStr:
         mocker.patch('qutebrowser.utils.version.subprocess',
                      side_effect=AssertionError)
         fake = GitStrSubprocessFake()
-        monkeypatch.setattr('qutebrowser.utils.version._git_str_subprocess',
-                            fake.func)
+        monkeypatch.setattr(version, '_git_str_subprocess', fake.func)
         return fake
 
     def test_frozen_ok(self, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and a successful git-commit-id read."""
-        monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
-                            raising=False)
+        monkeypatch.setattr(version.sys, 'frozen', True, raising=False)
         commit_file_mock.return_value = 'deadbeef'
         assert version._git_str() == 'deadbeef'
 
     def test_frozen_oserror(self, caplog, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and OSError when reading git-commit-id."""
-        monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
-                            raising=False)
+        monkeypatch.setattr(version.sys, 'frozen', True, raising=False)
         commit_file_mock.side_effect = OSError
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() is None
@@ -144,7 +141,7 @@ class TestGitStr:
     def test_normal_path_nofile(self, monkeypatch, caplog,
                                 git_str_subprocess_fake, commit_file_mock):
         """Test with undefined __file__ but available git-commit-id."""
-        monkeypatch.delattr('qutebrowser.utils.version.__file__')
+        monkeypatch.delattr(version, '__file__')
         commit_file_mock.return_value = '0deadcode'
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() == '0deadcode'
@@ -304,7 +301,7 @@ def test_release_info(files, expected, caplog, monkeypatch):
         expected: The expected _release_info output.
     """
     fake = ReleaseInfoFake(files)
-    monkeypatch.setattr('qutebrowser.utils.version.glob.glob', fake.glob_fake)
+    monkeypatch.setattr(version.glob, 'glob', fake.glob_fake)
     monkeypatch.setattr(version, 'open', fake.open_fake, raising=False)
     with caplog.at_level(logging.ERROR, 'misc'):
         assert version._release_info() == expected
@@ -325,7 +322,7 @@ def test_path_info(monkeypatch):
     }
 
     for attr, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.standarddir.' + attr, val)
+        monkeypatch.setattr(version.standarddir, attr, val)
 
     pathinfo = version._path_info()
 
@@ -407,7 +404,7 @@ def import_fake(monkeypatch):
     """Fixture to patch imports using ImportFake."""
     fake = ImportFake()
     monkeypatch.setattr('builtins.__import__', fake.fake_import)
-    monkeypatch.setattr('qutebrowser.utils.version.importlib.import_module',
+    monkeypatch.setattr(version.importlib, 'import_module',
                         fake.fake_importlib_import)
     return fake
 
@@ -508,8 +505,8 @@ class TestOsInfo:
 
         No args because osver is set to '' if the OS is linux.
         """
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'linux')
-        monkeypatch.setattr('qutebrowser.utils.version._release_info',
+        monkeypatch.setattr(version.sys, 'platform', 'linux')
+        monkeypatch.setattr(version, '_release_info',
                             lambda: [('releaseinfo', 'Hello World')])
         ret = version._os_info()
         expected = ['OS Version: ', '',
@@ -518,8 +515,8 @@ class TestOsInfo:
 
     def test_windows_fake(self, monkeypatch):
         """Test with a fake Windows."""
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'win32')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.win32_ver',
+        monkeypatch.setattr(version.sys, 'platform', 'win32')
+        monkeypatch.setattr(version.platform, 'win32_ver',
                             lambda: ('eggs', 'bacon', 'ham', 'spam'))
         ret = version._os_info()
         expected = ['OS Version: eggs, bacon, ham, spam']
@@ -537,17 +534,15 @@ class TestOsInfo:
             mac_ver: The tuple to set platform.mac_ver() to.
             mac_ver_str: The expected Mac version string in version._os_info().
         """
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'darwin')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.mac_ver',
-                            lambda: mac_ver)
+        monkeypatch.setattr(version.sys, 'platform', 'darwin')
+        monkeypatch.setattr(version.platform, 'mac_ver', lambda: mac_ver)
         ret = version._os_info()
         expected = ['OS Version: {}'.format(mac_ver_str)]
         assert ret == expected
 
     def test_unknown_fake(self, monkeypatch):
         """Test with a fake unknown sys.platform."""
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform',
-                            'toaster')
+        monkeypatch.setattr(version.sys, 'platform', 'toaster')
         ret = version._os_info()
         expected = ['OS Version: ?']
         assert ret == expected

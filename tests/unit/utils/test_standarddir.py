@@ -48,8 +48,7 @@ def change_qapp_name(qapp):
 @pytest.fixture
 def no_cachedir_tag(monkeypatch):
     """Fixture to prevent writing a CACHEDIR.TAG."""
-    monkeypatch.setattr('qutebrowser.utils.standarddir._init_cachedir_tag',
-                        lambda: None)
+    monkeypatch.setattr(standarddir, '_init_cachedir_tag', lambda: None)
 
 
 @pytest.fixture
@@ -72,10 +71,9 @@ def test_get_fake_windows_equal_dir(data_subdir, config_subdir, expected,
         QStandardPaths.DataLocation: str(tmpdir / data_subdir),
         QStandardPaths.ConfigLocation: str(tmpdir / config_subdir),
     }
-    monkeypatch.setattr('qutebrowser.utils.standarddir.os.name', 'nt')
-    monkeypatch.setattr(
-        'qutebrowser.utils.standarddir.QStandardPaths.writableLocation',
-        locations.get)
+    monkeypatch.setattr(standarddir.os, 'name', 'nt')
+    monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                        locations.get)
     expected = str(tmpdir / expected)
     assert standarddir.data() == expected
 
@@ -95,7 +93,7 @@ class TestWritableLocation:
 
     def test_sep(self, monkeypatch):
         """Make sure the right kind of separator is used."""
-        monkeypatch.setattr('qutebrowser.utils.standarddir.os.sep', '\\')
+        monkeypatch.setattr(standarddir.os, 'sep', '\\')
         loc = standarddir._writable_location(QStandardPaths.DataLocation)
         assert '/' not in loc
         assert '\\' in loc
@@ -208,8 +206,7 @@ class TestInitCacheDirTag:
 
     def test_existent_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test with an existent CACHEDIR.TAG."""
-        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
-                            lambda: str(tmpdir))
+        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
         mocker.patch('builtins.open', side_effect=AssertionError)
         m = mocker.patch('qutebrowser.utils.standarddir.os')
         m.path.join.side_effect = os.path.join
@@ -220,8 +217,7 @@ class TestInitCacheDirTag:
 
     def test_new_cache_dir_tag(self, tmpdir, mocker, monkeypatch):
         """Test creating a new CACHEDIR.TAG."""
-        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
-                            lambda: str(tmpdir))
+        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
         standarddir._init_cachedir_tag()
         assert tmpdir.listdir() == [(tmpdir / 'CACHEDIR.TAG')]
         data = (tmpdir / 'CACHEDIR.TAG').read_text('utf-8')
@@ -234,8 +230,7 @@ class TestInitCacheDirTag:
 
     def test_open_oserror(self, caplog, tmpdir, mocker, monkeypatch):
         """Test creating a new CACHEDIR.TAG."""
-        monkeypatch.setattr('qutebrowser.utils.standarddir.cache',
-                            lambda: str(tmpdir))
+        monkeypatch.setattr(standarddir, 'cache', lambda: str(tmpdir))
         mocker.patch('builtins.open', side_effect=OSError)
         with caplog.at_level(logging.ERROR, 'init'):
             standarddir._init_cachedir_tag()

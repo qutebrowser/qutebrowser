@@ -63,7 +63,7 @@ class CovtestHelper:
             perfect_files = [(None, 'module.py')]
 
         argv = [sys.argv[0]]
-        self._monkeypatch.setattr('scripts.dev.check_coverage.sys.argv', argv)
+        self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
 
         with self._testdir.tmpdir.as_cwd():
             with coverage_file.open(encoding='utf-8') as f:
@@ -72,7 +72,7 @@ class CovtestHelper:
     def check_skipped(self, args, reason):
         """Run check_coverage.py and make sure it's skipped."""
         argv = [sys.argv[0]] + list(args)
-        self._monkeypatch.setattr('scripts.dev.check_coverage.sys.argv', argv)
+        self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
         with pytest.raises(check_coverage.Skipped) as excinfo:
             return check_coverage.check(None, perfect_files=[])
         assert excinfo.value.reason == reason
@@ -179,7 +179,7 @@ def test_skipped_args(covtest, args, reason):
 
 
 def test_skipped_windows(covtest, monkeypatch):
-    monkeypatch.setattr('scripts.dev.check_coverage.sys.platform', 'toaster')
+    monkeypatch.setattr(check_coverage.sys, 'platform', 'toaster')
     covtest.check_skipped([], "on non-Linux system.")
 
 

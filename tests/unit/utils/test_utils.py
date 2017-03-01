@@ -117,7 +117,7 @@ class TestElidingFilenames:
 def freezer(request, monkeypatch):
     if request.param and not getattr(sys, 'frozen', False):
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr('sys.executable', qutebrowser.__file__)
+        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
     elif not request.param and getattr(sys, 'frozen', False):
         # Want to test unfrozen tests, but we are frozen
         pytest.skip("Can't run with sys.frozen = True!")
@@ -161,17 +161,15 @@ class Patcher:
 
     def patch_platform(self, platform='linux'):
         """Patch sys.platform."""
-        self.monkeypatch.setattr('sys.platform', platform)
+        self.monkeypatch.setattr(sys, 'platform', platform)
 
     def patch_exists(self, exists=True):
         """Patch os.path.exists."""
-        self.monkeypatch.setattr('qutebrowser.utils.utils.os.path.exists',
-                                 lambda path: exists)
+        self.monkeypatch.setattr(utils.os.path, 'exists', lambda path: exists)
 
     def patch_version(self, version='5.2.0'):
         """Patch Qt version."""
-        self.monkeypatch.setattr('qutebrowser.utils.utils.qtutils.qVersion',
-                                 lambda: version)
+        self.monkeypatch.setattr(utils.qtutils, 'qVersion', lambda: version)
 
     def patch_file(self, data):
         """Patch open() to return the given data."""
@@ -251,7 +249,7 @@ class TestActuteWarning:
     def test_match_stdout_none(self, monkeypatch, patcher, capsys):
         """Test with a match and stdout being None."""
         patcher.patch_all('foobar\n<dead_actute>\nbaz')
-        monkeypatch.setattr('sys.stdout', None)
+        monkeypatch.setattr(sys, 'stdout', None)
         utils.actute_warning()
 
     def test_unreadable(self, mocker, patcher, capsys, caplog):
@@ -434,7 +432,7 @@ class TestKeyToString:
 
     def test_missing(self, monkeypatch):
         """Test with a missing key."""
-        monkeypatch.delattr('qutebrowser.utils.utils.Qt.Key_Blue')
+        monkeypatch.delattr(utils.Qt, 'Key_Blue')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert utils.key_to_string(Qt.Key_A) == 'A'
@@ -486,7 +484,7 @@ class TestKeyEventToString:
 
     def test_mac(self, monkeypatch, fake_keyevent_factory):
         """Test with a simulated mac."""
-        monkeypatch.setattr('sys.platform', 'darwin')
+        monkeypatch.setattr(sys, 'platform', 'darwin')
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
         assert utils.keyevent_to_string(evt) == 'Meta+A'
 

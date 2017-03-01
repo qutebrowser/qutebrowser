@@ -64,8 +64,7 @@ def completion_widget_stub():
 def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
                   completion_widget_stub):
     """Create the completer used for testing."""
-    monkeypatch.setattr('qutebrowser.completion.completer.QTimer',
-        stubs.InstaTimer)
+    monkeypatch.setattr(completer, 'QTimer', stubs.InstaTimer)
     config_stub.data = {'completion': {'show': 'auto'}}
     return completer.Completer(status_command_stub, 0, completion_widget_stub)
 
@@ -85,8 +84,7 @@ def instances(monkeypatch):
             'editor': FakeCompletionModel(usertypes.Completion.value),
         }
     }
-    monkeypatch.setattr('qutebrowser.completion.completer.instances',
-                        instances)
+    monkeypatch.setattr(completer, 'instances', instances)
 
 
 @pytest.fixture(autouse=True)
@@ -129,7 +127,7 @@ def cmdutils_patch(monkeypatch, stubs):
         'bind': command.Command(name='bind', handler=bind),
         'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
     })
-    monkeypatch.setattr('qutebrowser.completion.completer.cmdutils', cmd_utils)
+    monkeypatch.setattr(completer, 'cmdutils', cmd_utils)
 
 
 def _set_cmd_prompt(cmd, txt):

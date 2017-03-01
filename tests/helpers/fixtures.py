@@ -39,7 +39,7 @@ import py.path  # pylint: disable=no-name-in-module
 
 import helpers.stubs as stubsmod
 from qutebrowser.config import config
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager
 from qutebrowser.keyinput import modeman
@@ -446,7 +446,7 @@ def config_tmpdir(monkeypatch, tmpdir):
     confdir = tmpdir / 'config'
     path = str(confdir)
     os.mkdir(path)
-    monkeypatch.setattr('qutebrowser.utils.standarddir.config', lambda: path)
+    monkeypatch.setattr(standarddir, 'config', lambda: path)
     return confdir
 
 
@@ -459,7 +459,7 @@ def data_tmpdir(monkeypatch, tmpdir):
     datadir = tmpdir / 'data'
     path = str(datadir)
     os.mkdir(path)
-    monkeypatch.setattr('qutebrowser.utils.standarddir.data', lambda: path)
+    monkeypatch.setattr(standarddir, 'data', lambda: path)
     return datadir
 
 

@@ -66,9 +66,8 @@ def patch_read_file(monkeypatch):
         else:
             raise IOError("Invalid path {}!".format(path))
 
-    monkeypatch.setattr('qutebrowser.utils.jinja.utils.read_file', _read_file)
-    monkeypatch.setattr('qutebrowser.utils.jinja.utils.resource_filename',
-                        _resource_filename)
+    monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
+    monkeypatch.setattr(jinja.utils, 'resource_filename', _resource_filename)
 
 
 def test_simple_template():

@@ -796,8 +796,7 @@ class TestCommand:
         cmd_utils = stubs.FakeCmdUtils({
             'cmd1': stubs.FakeCommand(desc="desc 1"),
             'cmd2': stubs.FakeCommand(desc="desc 2")})
-        monkeypatch.setattr('qutebrowser.config.configtypes.cmdutils',
-                            cmd_utils)
+        monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
 
     @pytest.fixture
     def klass(self):

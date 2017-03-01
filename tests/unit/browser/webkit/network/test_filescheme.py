@@ -154,7 +154,7 @@ class TestDirbrowserHtml:
 
     def test_icons(self, monkeypatch):
         """Make sure icon paths are correct file:// URLs."""
-        monkeypatch.setattr('qutebrowser.utils.jinja.utils.resource_filename',
+        monkeypatch.setattr(filescheme.jinja.utils, 'resource_filename',
                             lambda name: '/test path/foo.svg')
 
         html = filescheme.dirbrowser_html(os.getcwd()).decode('utf-8')

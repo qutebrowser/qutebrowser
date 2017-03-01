@@ -672,8 +672,7 @@ class TestRectOnView:
         This is needed for all the tests calling rect_on_view or is_visible.
         """
         config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
-                            config_stub)
+        monkeypatch.setattr(webkitelem, 'config', config_stub)
         return config_stub
 
     @pytest.mark.parametrize('js_rect', [
@@ -800,8 +799,7 @@ class TestIsEditable:
     def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
-                            config_stub)
+        monkeypatch.setattr(webkitelem, 'config', config_stub)
         return config_stub
 
     @pytest.mark.parametrize('tagname, attributes, editable', [

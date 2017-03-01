@@ -64,7 +64,7 @@ def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
         op: The operator to use when comparing.
         expected: The expected result.
     """
-    monkeypatch.setattr('qutebrowser.utils.qtutils.qVersion', lambda: qversion)
+    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
     if compiled is not None:
         monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
         strict = True
@@ -169,8 +169,8 @@ def test_check_print_compat(os_name, qversion, expected, monkeypatch):
         qversion: The fake qVersion() to set.
         expected: The expected return value.
     """
-    monkeypatch.setattr('qutebrowser.utils.qtutils.os.name', os_name)
-    monkeypatch.setattr('qutebrowser.utils.qtutils.qVersion', lambda: qversion)
+    monkeypatch.setattr(qtutils.os, 'name', os_name)
+    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
     assert qtutils.check_print_compat() == expected
 
 

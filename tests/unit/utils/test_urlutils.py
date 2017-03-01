@@ -84,8 +84,7 @@ def fake_dns(monkeypatch):
     fromname_mock will be called without answer being set.
     """
     dns = FakeDNS()
-    monkeypatch.setattr('qutebrowser.utils.urlutils.QHostInfo.fromName',
-                        dns.fromname_mock)
+    monkeypatch.setattr(urlutils.QHostInfo, 'fromName', dns.fromname_mock)
     return dns
 
 
@@ -105,7 +104,7 @@ def urlutils_config_stub(config_stub, monkeypatch):
             'DEFAULT': 'http://www.example.com/?q={}',
         },
     }
-    monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
+    monkeypatch.setattr(urlutils, 'config', config_stub)
     return config_stub
 
 
@@ -225,7 +224,7 @@ class TestFuzzyUrl:
                          caplog):
         """Test with an invalid URL."""
         is_url_mock.return_value = True
-        monkeypatch.setattr('qutebrowser.utils.urlutils.qurl_from_user_input',
+        monkeypatch.setattr(urlutils, 'qurl_from_user_input',
                             lambda url: QUrl())
         with pytest.raises(exception):
             with caplog.at_level(logging.ERROR):

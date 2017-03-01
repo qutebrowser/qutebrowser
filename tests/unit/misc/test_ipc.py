@@ -199,8 +199,7 @@ class TestSocketName:
 
     @pytest.fixture(autouse=True)
     def patch_user(self, monkeypatch):
-        monkeypatch.setattr('qutebrowser.misc.ipc.getpass.getuser',
-                            lambda: 'testusername')
+        monkeypatch.setattr(ipc.getpass, 'getuser', lambda: 'testusername')
 
     @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
     def test_legacy(self, basedir, expected):
@@ -281,7 +280,7 @@ class TestListen:
 
     def test_error(self, ipc_server, monkeypatch):
         """Simulate an error while listening."""
-        monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
+        monkeypatch.setattr(ipc.QLocalServer, 'removeServer',
                             lambda self: True)
         monkeypatch.setattr(ipc_server, '_socketname', None)
         with pytest.raises(ipc.ListenError):
@@ -289,7 +288,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
-        monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
+        monkeypatch.setattr(ipc.QLocalServer, 'removeServer',
                             lambda self: True)
         qlocalserver.listen('qute-test')
         with pytest.raises(ipc.AddressInUseError):
@@ -834,8 +833,7 @@ def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
-    monkeypatch.setattr('qutebrowser.misc.ipc.standarddir.getpass.getuser',
-                        lambda: username)
+    monkeypatch.setattr(ipc.standarddir.getpass, 'getuser', lambda: username)
     name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
     expected_md5 = md5('{}-{}'.format(username, basedir))

@@ -39,8 +39,7 @@ class TestPDFJSHandler:
                 return b'foobar'
             raise pdfjs.PDFJSNotFound(path)
 
-        monkeypatch.setattr('qutebrowser.browser.pdfjs.get_pdfjs_res',
-                            get_pdfjs_res)
+        monkeypatch.setattr(pdfjs, 'get_pdfjs_res', get_pdfjs_res)
 
     @pytest.fixture(autouse=True)
     def patch_backend(self, monkeypatch):

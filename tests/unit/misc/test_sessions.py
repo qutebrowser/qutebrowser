@@ -54,8 +54,7 @@ class TestInit:
 
     @pytest.mark.parametrize('create_dir', [True, False])
     def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):
-        monkeypatch.setattr('qutebrowser.misc.sessions.standarddir.data',
-                            lambda: str(tmpdir))
+        monkeypatch.setattr(sessions.standarddir, 'data', lambda: str(tmpdir))
         session_dir = tmpdir / 'sessions'
         if create_dir:
             session_dir.ensure(dir=True)
@@ -181,7 +180,7 @@ class TestSaveAll:
     def test_no_active_window(self, sess_man, fake_window, stubs,
                               monkeypatch):
         qapp = stubs.FakeQApplication(active_window=None)
-        monkeypatch.setattr('qutebrowser.misc.sessions.QApplication', qapp)
+        monkeypatch.setattr(sessions, 'QApplication', qapp)
         sess_man._save_all()
 
 
@@ -216,7 +215,7 @@ class TestSave:
 
         objreg.register('tabbed-browser', browser, scope='window', window=0)
         qapp = stubs.FakeQApplication(active_window=win)
-        monkeypatch.setattr('qutebrowser.misc.sessions.QApplication', qapp)
+        monkeypatch.setattr(sessions, 'QApplication', qapp)
 
         def set_data(items):
             history = browser.widgets()[0].page().history()
