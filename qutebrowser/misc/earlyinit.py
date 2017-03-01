@@ -262,7 +262,7 @@ def get_backend(args):
 
 def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
-    from PyQt5.QtCore import qVersion, PYQT_VERSION, PYQT_VERSION_STR
+    from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
     from qutebrowser.utils import qtutils, version
     if (qtutils.version_check('5.2.0', operator.lt, strict=True) or
             PYQT_VERSION < 0x050200):
