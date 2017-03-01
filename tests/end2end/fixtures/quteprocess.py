@@ -366,8 +366,7 @@ class QuteProc(testprocess.Process):
             pattern="load status for <* tab_id=* url='*duckduckgo*'>: *",
             value=msg.message)
 
-        is_log_error = (msg.loglevel > logging.INFO and
-                        not msg.message.startswith('STUB:'))
+        is_log_error = msg.loglevel > logging.INFO
         return is_log_error or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
