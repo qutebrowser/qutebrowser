@@ -14,6 +14,21 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.10.1 (unreleased)
+--------------------
+
+Changed
+~~~~~~~
+
+- `--qt-arg` and `--qt-flag` can now also be used to pass arguments to Chromium when using QtWebEngine.
+
+Fixed
+~~~~~
+
+- URLs are now redacted properly (username/password, and path/query for HTTPS) when using Proxy Autoconfig with QtWebKit
+- Fixed the web inspector with QtWebEngine
+- Version checks when starting qutebrowser now also take the Qt version PyQt was compiled against into account
+
 v0.10.0
 -------
 
