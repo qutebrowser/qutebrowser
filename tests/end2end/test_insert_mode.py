@@ -48,12 +48,6 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
     if source == 'keypress':
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
-        if request.config.webengine:
-            pytest.xfail(reason="QtWebEngine TODO: caret mode is not "
-                         "implemented")
-            # Note we actually run the keypress tests with QtWebEngine, as for
-            # some reason it selects all the text when clicking the field the
-            # second time.
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
         quteproc.send_cmd(':insert-text {clipboard}')
     else:

@@ -29,6 +29,7 @@ Fixed
 - Fixed the web inspector with QtWebEngine
 - Version checks when starting qutebrowser now also take the Qt version PyQt was compiled against into account
 - Hinting a input now doesn't select existing text anymore with QtWebKit
+- The cursor now moves to the end when input elements are selected with QtWebEngine
 
 v0.10.0
 -------

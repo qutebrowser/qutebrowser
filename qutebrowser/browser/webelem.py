@@ -328,8 +328,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def _move_text_cursor(self):
         """Move cursor to end after clicking."""
-        if self.is_text_input() and self.is_editable():
-            self._tab.caret.move_to_end_of_document()
+        raise NotImplementedError
 
     def _click_fake_event(self, click_target):
         """Send a fake click event to the element."""

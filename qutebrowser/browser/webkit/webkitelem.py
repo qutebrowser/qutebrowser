@@ -300,6 +300,10 @@ class WebKitElement(webelem.AbstractWebElement):
                 break
             elem = elem._parent()  # pylint: disable=protected-access
 
+    def _move_text_cursor(self):
+        if self.is_text_input() and self.is_editable():
+            self._tab.caret.move_to_end_of_document()
+
     def _click_editable(self, click_target):
         ok = self._elem.evaluateJavaScript('this.focus(); true;')
         if ok:

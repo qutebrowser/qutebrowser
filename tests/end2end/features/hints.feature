@@ -188,7 +188,6 @@ Feature: Using hints
         And I run :hint
         Then the error "No elements found." should be shown
 
-    @qtwebengine_todo: Doesn't move the cursor to the end
     Scenario: Clicking input with existing text
         When I set general -> log-javascript-console to info
         And I open data/hints/input.html

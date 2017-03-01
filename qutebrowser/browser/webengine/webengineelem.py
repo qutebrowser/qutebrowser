@@ -157,6 +157,12 @@ class WebEngineElement(webelem.AbstractWebElement):
             self._id)
         self._tab.run_js_async(js_code)
 
+    def _move_text_cursor(self):
+        if self.is_text_input() and self.is_editable():
+            js_code = javascript.assemble('webelem', 'move_cursor_to_end',
+                self._id)
+            self._tab.run_js_async(js_code)
+
     def _click_editable(self, click_target):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
         # pylint doesn't know about Qt.MouseEventSynthesizedBySystem
@@ -171,6 +177,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         # This actually "clicks" the element by calling focus() on it in JS.
         js_code = javascript.assemble('webelem', 'focus', self._id)
         self._tab.run_js_async(js_code)
+        self._move_text_cursor()
 
     def _click_js(self, _click_target):
         settings = QWebEngineSettings.globalSettings()
