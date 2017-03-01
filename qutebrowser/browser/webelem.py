@@ -326,6 +326,11 @@ class AbstractWebElement(collections.abc.MutableMapping):
             raise Error("Element position is out of view!")
         return pos
 
+    def _move_text_cursor(self):
+        """Move cursor to end after clicking."""
+        if self.is_text_input() and self.is_editable():
+            self._tab.caret.move_to_end_of_document()
+
     def _click_fake_event(self, click_target):
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
@@ -356,11 +361,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         for evt in events:
             self._tab.send_event(evt)
 
-        def after_click():
-            """Move cursor to end after clicking."""
-            if self.is_text_input() and self.is_editable():
-                self._tab.caret.move_to_end_of_document()
-        QTimer.singleShot(0, after_click)
+        QTimer.singleShot(0, self._move_text_cursor)
 
     def _click_editable(self, click_target):
         """Fake a click on an editable input field."""
