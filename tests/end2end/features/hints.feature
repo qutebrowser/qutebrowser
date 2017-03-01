@@ -188,6 +188,8 @@ Feature: Using hints
         And I run :hint
         Then the error "No elements found." should be shown
 
+    # Fails in xvfb on Qt 5.7.1 for some reason
+    @qt>=5.8
     Scenario: Clicking input with existing text
         When I set general -> log-javascript-console to info
         And I open data/hints/input.html
