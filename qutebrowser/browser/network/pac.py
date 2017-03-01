@@ -22,7 +22,7 @@
 import sys
 import functools
 
-from PyQt5.QtCore import (QObject, pyqtSignal, pyqtSlot)
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
                              QNetworkReply, QNetworkAccessManager,
                              QHostAddress)
@@ -208,7 +208,10 @@ class PACResolver:
         Return:
             A list of QNetworkProxy objects in order of preference.
         """
-        result = self._resolver.call([query.url().toString(),
+        string_flags = QUrl.RemoveUserInfo
+        if query.url().scheme() == 'https':
+            string_flags |= QUrl.RemovePath | QUrl.RemoveQuery
+        result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
         result_str = result.toString()
         if not result.isString():

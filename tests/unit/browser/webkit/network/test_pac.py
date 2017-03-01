@@ -171,6 +171,32 @@ def test_fail_return():
         res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
 
 
+@pytest.mark.parametrize('url, has_secret', [
+    ('http://example.com/secret', True),  # path passed with HTTP
+    ('http://example.com?secret=yes', True),  # query passed with HTTP
+    ('http://secret@example.com', False),  # user stripped with HTTP
+    ('http://user:secret@example.com', False),  # password stripped with HTTP
+
+    ('https://example.com/secret', False),  # path stripped with HTTPS
+    ('https://example.com?secret=yes', False),  # query stripped with HTTPS
+    ('https://secret@example.com', False),  # user stripped with HTTPS
+    ('https://user:secret@example.com', False),  # password stripped with HTTPS
+])
+def test_secret_url(url, has_secret):
+    test_str = """
+        function FindProxyForURL(domain, host) {{
+            has_secret = domain.indexOf("secret") !== -1;
+            expected_secret = {};
+            if (has_secret !== expected_secret) {{
+                throw new Error("Expected secret: " + expected_secret + ", found: " + has_secret + " in " + domain);
+            }}
+            return "DIRECT";
+        }}
+    """.format('true' if (has_secret or from_file) else 'false')
+    res = pac.PACResolver(test_str)
+    res.resolve(QNetworkProxyQuery(QUrl(url)))
+
+
 # See https://github.com/qutebrowser/qutebrowser/pull/1891#issuecomment-259222615
 
 try:
