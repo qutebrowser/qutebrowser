@@ -203,5 +203,11 @@ window._qutebrowser.webelem = (function() {
         elem.focus();
     };
 
+    funcs.move_cursor_to_end = function(id) {
+        var elem = elements[id];
+        elem.selectionStart = elem.value.length;
+        elem.selectionEnd = elem.value.length;
+    };
+
     return funcs;
 })();
