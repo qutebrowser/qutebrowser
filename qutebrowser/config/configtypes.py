@@ -694,30 +694,17 @@ class CssColor(BaseType):
 
 class QssColor(CssColor):
 
-    """Base class for a color value.
-
-    Class attributes:
-        color_func_regexes: Valid function regexes.
-    """
-
-    num = r'[0-9]{1,3}%?'
-
-    color_func_regexes = [
-        r'rgb\({num},\s*{num},\s*{num}\)'.format(num=num),
-        r'rgba\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
-        r'hsv\({num},\s*{num},\s*{num}\)'.format(num=num),
-        r'hsva\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
-        r'qlineargradient\(.*\)',
-        r'qradialgradient\(.*\)',
-        r'qconicalgradient\(.*\)',
-    ]
+    """Color used in a Qt stylesheet."""
 
     def validate(self, value):
+        functions = ['rgb', 'rgba', 'hsv', 'hsva', 'qlineargradient',
+                     'qradialgradient', 'qconicalgradient']
         self._basic_validation(value)
         if not value:
             return
-        elif any(re.match(r, value) for r in self.color_func_regexes):
-            # QColor doesn't handle these, so we do the best we can easily
+        elif (any(value.startswith(func + '(') for func in functions) and
+              value.endswith(')')):
+            # QColor doesn't handle these
             pass
         elif QColor.isValidColor(value):
             pass

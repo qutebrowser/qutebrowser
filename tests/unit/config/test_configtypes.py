@@ -879,19 +879,16 @@ class ColorTests:
         ('#12', []),
         ('foobar', []),
         ('42', []),
-        ('rgb(1, 2, 3, 4)', []),
         ('foo(1, 2, 3)', []),
+        ('rgb(1, 2, 3', []),
 
         ('rgb(0, 0, 0)', [configtypes.QssColor]),
         ('rgb(0,0,0)', [configtypes.QssColor]),
         ('-foobar(42)', [configtypes.CssColor]),
 
-        ('rgba(255, 255, 255, 255)', [configtypes.QssColor]),
-        ('rgba(255,255,255,255)', [configtypes.QssColor]),
-        ('hsv(359, 255, 255)', [configtypes.QssColor]),
-        ('hsva(359, 255, 255, 255)', [configtypes.QssColor]),
-        ('hsv(10%, 10%, 10%)', [configtypes.QssColor]),
+        ('rgba(255, 255, 255, 1.0)', [configtypes.QssColor]),
         ('hsv(10%,10%,10%)', [configtypes.QssColor]),
+
         ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, '
          'stop: 0.4 gray, stop:1 green)', [configtypes.QssColor]),
         ('qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
