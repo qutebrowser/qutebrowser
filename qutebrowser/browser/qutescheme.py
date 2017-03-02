@@ -222,7 +222,7 @@ def qute_history(url):
             yield {"url": item_url, "title": item_title, "time": item_time}
 
         # if we reached here, we had reached the end of history
-        yield {"next": -1}
+        yield {"next": int(last_item.atime if last_item else -1)}
 
     if url.path() == '/data':
         # Use start_time in query or current time.
