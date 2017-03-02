@@ -211,7 +211,7 @@ def qute_history(url):
                     last_item = item
                     continue
                 if item_newer:
-                    yield {"next": int(last_item.atime)}
+                    yield {"next": int(last_item.atime if last_item else -1)}
                     return
 
             # Use item's url as title if there's no title.

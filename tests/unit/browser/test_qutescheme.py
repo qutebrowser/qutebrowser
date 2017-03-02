@@ -110,10 +110,10 @@ class TestHistoryHandler:
         fake_web_history.save()
 
     @pytest.mark.parametrize("start_time_offset, expected_item_count", [
-        (0, 5),
-        (24*60*60, 5),
-        (48*60*60, 5),
-        (72*60*60, 1)
+        (0, 4),
+        (24*60*60, 4),
+        (48*60*60, 4),
+        (72*60*60, 0)
     ])
     def test_qutehistory_data(self, start_time_offset, expected_item_count):
         """Ensure qute://history/data returns correct items."""
@@ -121,12 +121,13 @@ class TestHistoryHandler:
         url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
+        items = [item for item in items if 'time' in item]  # skip 'next' item
 
         assert len(items) == expected_item_count
 
         # test times
         end_time = start_time - 24*60*60
-        for item in items[:expected_item_count-1]:
+        for item in items:
             assert item['time'] <= start_time
             assert item['time'] > end_time
 
@@ -142,6 +143,7 @@ class TestHistoryHandler:
         url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
+        items = [item for item in items if 'next' in item]  # 'next' items
 
         if next_time == -1:
             assert items[-1]["next"] == -1
