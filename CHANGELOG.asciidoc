@@ -14,6 +14,15 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.11.0 (unreleased)
+--------------------
+
+Changed
+~~~~~~~
+
+- When using QtWebEngine, the underlying Chromium version is now shown in the
+  version info.
+
 v0.10.1 (unreleased)
 --------------------
 

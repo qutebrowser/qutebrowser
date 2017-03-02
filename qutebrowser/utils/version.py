@@ -38,6 +38,11 @@ try:
 except ImportError:  # pragma: no cover
     qWebKitVersion = None
 
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+except ImportError:  # pragma: no cover
+    QWebEngineProfile = None
+
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
 from qutebrowser.misc import objects
@@ -134,6 +139,7 @@ def _module_versions():
         ('cssutils', ['__version__']),
         ('typing', []),
         ('PyQt5.QtWebEngineWidgets', []),
+        ('PyQt5.QtWebKitWidgets', []),
     ])
     for name, attributes in modules.items():
         try:
@@ -233,6 +239,31 @@ def qt_version():
         return qVersion()
 
 
+def _chromium_version():
+    """Get the Chromium version for QtWebEngine."""
+    if QWebEngineProfile is None:
+        # This should never happen
+        return 'unavailable'
+    profile = QWebEngineProfile()
+    ua = profile.httpUserAgent()
+    match = re.search(r' Chrome/([^ ]*) ', ua)
+    if not match:
+        log.misc.error("Could not get Chromium version from: {}".format(ua))
+        return 'unknown'
+    return match.group(1)
+
+
+def _backend():
+    """Get the backend line with relevant information."""
+    if objects.backend == usertypes.Backend.QtWebKit:
+        return 'QtWebKit{} (WebKit {})'.format(
+            '-NG' if qtutils.is_qtwebkit_ng(qWebKitVersion()) else '',
+            qWebKitVersion())
+    else:
+        assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
+        return 'QtWebEngine (Chromium {})'.format(_chromium_version())
+
+
 def version():
     """Return a string with various version informations."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
@@ -240,12 +271,7 @@ def version():
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
 
-    backend = objects.backend.name
-    if (qWebKitVersion is not None and
-            objects.backend == usertypes.Backend.QtWebKit and
-            qtutils.is_qtwebkit_ng(qWebKitVersion())):
-        backend = 'QtWebKit-NG'
-    lines.append("Backend: {}".format(backend))
+    lines.append("Backend: {}".format(_backend()))
 
     lines += [
         '',
@@ -259,11 +285,6 @@ def version():
     lines += _module_versions()
 
     lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
-    if qWebKitVersion is None:
-        lines.append('Webkit: no')
-    else:
-        lines.append('Webkit: {}'.format(qWebKitVersion()))
 
     lines += [
         'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),

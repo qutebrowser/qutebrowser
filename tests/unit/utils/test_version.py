@@ -359,6 +359,7 @@ class ImportFake:
             'cssutils': True,
             'typing': True,
             'PyQt5.QtWebEngineWidgets': True,
+            'PyQt5.QtWebKitWidgets': True,
         }
         self.version_attribute = '__version__'
         self.version = '1.2.3'
@@ -419,7 +420,8 @@ class TestModuleVersions:
         expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
                     'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
                     'cssutils: 1.2.3', 'typing: yes',
-                    'PyQt5.QtWebEngineWidgets: yes']
+                    'PyQt5.QtWebEngineWidgets: yes',
+                    'PyQt5.QtWebKitWidgets: yes']
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
@@ -442,14 +444,17 @@ class TestModuleVersions:
         ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
                      'jinja2: yes', 'pygments: yes', 'yaml: yes',
                      'cssutils: yes', 'typing: yes',
-                     'PyQt5.QtWebEngineWidgets: yes']),
+                     'PyQt5.QtWebEngineWidgets: yes',
+                     'PyQt5.QtWebKitWidgets: yes']),
         ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
                              'jinja2: yes', 'pygments: yes', 'yaml: yes',
                              'cssutils: yes', 'typing: yes',
-                             'PyQt5.QtWebEngineWidgets: yes']),
+                             'PyQt5.QtWebEngineWidgets: yes',
+                             'PyQt5.QtWebKitWidgets: yes']),
         (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
                 'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes',
-                'PyQt5.QtWebEngineWidgets: yes']),
+                'PyQt5.QtWebEngineWidgets: yes',
+                'PyQt5.QtWebKitWidgets: yes']),
     ])
     def test_version_attribute(self, value, expected, import_fake):
         """Test with a different version attribute.
@@ -646,6 +651,30 @@ def test_qt_version(monkeypatch, same):
     assert version.qt_version() == expected
 
 
+@pytest.mark.parametrize('ua, expected', [
+    (None, 'unavailable'),  # No QWebEngineProfile
+    ('Mozilla/5.0', 'unknown'),
+    ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
+     'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36', '53.0.2785.148'),
+])
+def test_chromium_version(monkeypatch, caplog, ua, expected):
+    if ua is None:
+        monkeypatch.setattr(version, 'QWebEngineProfile', None)
+    else:
+        class FakeWebEngineProfile:
+            def httpUserAgent(self):
+                return ua
+        monkeypatch.setattr(version, 'QWebEngineProfile', FakeWebEngineProfile)
+
+    with caplog.at_level(logging.ERROR):
+        assert version._chromium_version() == expected
+
+
+def test_chromium_version_unpatched(qapp):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    assert version._chromium_version() not in ['', 'unknown', 'unavailable']
+
+
 @pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit'], [
     (True, False, True, True),  # normal
     (False, False, True, True),  # no git commit
@@ -657,6 +686,10 @@ def test_qt_version(monkeypatch, same):
 def test_version_output(git_commit, frozen, style, with_webkit, stubs,
                         monkeypatch):
     """Test version.version()."""
+    class FakeWebEngineProfile:
+        def httpUserAgent(self):
+            return 'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
+
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
@@ -669,7 +702,6 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         'qVersion': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'qWebKitVersion': (lambda: 'WEBKIT VERSION') if with_webkit else None,
         'QSslSocket': FakeQSslSocket('SSL VERSION'),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
@@ -677,12 +709,32 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
                          stubs.FakeQApplication(instance=None)),
-        'objects.backend': (usertypes.Backend.QtWebKit if with_webkit
-                            else usertypes.Backend.QtWebEngine),
-        'qtutils.is_qtwebkit_ng': (lambda v:
-                                   True if with_webkit == 'ng' else False),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH')
     }
+
+    substitutions = {
+        'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
+        'style': '\nStyle: STYLE' if style else '',
+        'qt': 'QT VERSION',
+        'frozen': str(frozen),
+        'import_path': import_path,
+    }
+
+    if with_webkit:
+        patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
+        patches['objects.backend'] = usertypes.Backend.QtWebKit
+        patches['QWebEngineProfile'] = None
+        if with_webkit == 'ng':
+            patches['qtutils.is_qtwebkit_ng'] = lambda v: True
+            substitutions['backend'] = 'QtWebKit-NG (WebKit WEBKIT VERSION)'
+        else:
+            patches['qtutils.is_qtwebkit_ng'] = lambda v: False
+            substitutions['backend'] = 'QtWebKit (WebKit WEBKIT VERSION)'
+    else:
+        patches['qWebKitVersion'] = None
+        patches['objects.backend'] = usertypes.Backend.QtWebEngine
+        patches['QWebEngineProfile'] = FakeWebEngineProfile
+        substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
@@ -703,7 +755,6 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
-        Webkit: {webkit}
         SSL: SSL VERSION
         {style}
         Platform: PLATFORM, ARCHITECTURE
@@ -716,21 +767,6 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         Paths:
         PATH DESC: PATH NAME
     """.lstrip('\n'))
-
-    substitutions = {
-        'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
-        'style': '\nStyle: STYLE' if style else '',
-        'qt': 'QT VERSION',
-        'frozen': str(frozen),
-        'import_path': import_path,
-        'webkit': 'WEBKIT VERSION' if with_webkit else 'no',
-    }
-    backends = {
-        True: 'QtWebKit',
-        False: 'QtWebEngine',
-        'ng': 'QtWebKit-NG',
-    }
-    substitutions['backend'] = backends[with_webkit]
 
     expected = template.rstrip('\n').format(**substitutions)
     assert version.version() == expected
