@@ -75,11 +75,12 @@ class TestHistoryHandler:
 
     """Test the qute://history endpoint."""
 
-    # Current time
-    now = time.time()
+    @pytest.fixture(scope="module")
+    def now(self):
+        return int(time.time())
 
     @pytest.fixture
-    def entries(self):
+    def entries(self, now):
         """Create fake history entries."""
         # create 12 history items spaced 6 hours apart, starting from now
         entry_count = 12
@@ -87,7 +88,7 @@ class TestHistoryHandler:
 
         items = []
         for i in range(entry_count):
-            entry_atime = int(self.now - i * interval)
+            entry_atime = now - i * interval
             entry = history.Entry(atime=str(entry_atime),
                 url=QUrl("www.x.com/" + str(i)), title="Page " + str(i))
             items.insert(0, entry)
@@ -115,9 +116,10 @@ class TestHistoryHandler:
         (48*60*60, 4),
         (72*60*60, 0)
     ])
-    def test_qutehistory_data(self, start_time_offset, expected_item_count):
+    def test_qutehistory_data(self, start_time_offset, expected_item_count,
+            now):
         """Ensure qute://history/data returns correct items."""
-        start_time = int(self.now) - start_time_offset
+        start_time = now - start_time_offset
         url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
@@ -137,26 +139,27 @@ class TestHistoryHandler:
         (48*60*60, -1),
         (72*60*60, -1)
     ])
-    def test_qutehistory_next(self, start_time_offset, next_time):
+    def test_qutehistory_next(self, start_time_offset, next_time, now):
         """Ensure qute://history/data returns correct items."""
-        start_time = int(self.now) - start_time_offset
+        start_time = now - start_time_offset
         url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
         items = [item for item in items if 'next' in item]  # 'next' items
+        assert len(items) == 1
 
         if next_time == -1:
-            assert items[-1]["next"] == -1
+            assert items[0]["next"] == -1
         else:
-            assert items[-1]["next"] == int(self.now) - next_time
+            assert items[0]["next"] == now - next_time
 
-    def test_qute_history_benchmark(self, fake_web_history, benchmark):
+    def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
         for t in range(100000):  # one history per second
             entry = history.Entry(
-                atime=str(self.now - t),
+                atime=str(now - t),
                 url=QUrl('www.x.com/{}'.format(t)),
                 title='x at {}'.format(t))
             fake_web_history._add_entry(entry)
 
-        url = QUrl("qute://history/data?start_time={}".format(self.now))
+        url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, _data = benchmark(qutescheme.qute_history, url)
