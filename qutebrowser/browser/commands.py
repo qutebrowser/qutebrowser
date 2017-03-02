@@ -350,7 +350,7 @@ class CommandDispatcher:
                 message.error("Printing failed!")
 
         tab.printing.check_preview_support()
-        diag = QPrintPreviewDialog()
+        diag = QPrintPreviewDialog(tab)
         diag.setAttribute(Qt.WA_DeleteOnClose)
         diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
                             Qt.WindowMinimizeButtonHint)
@@ -376,7 +376,7 @@ class CommandDispatcher:
                 message.error("Printing failed!")
             diag.deleteLater()
 
-        diag = QPrintDialog()
+        diag = QPrintDialog(tab)
         diag.open(lambda: tab.printing.to_printer(diag.printer(),
                                                   print_callback))
 

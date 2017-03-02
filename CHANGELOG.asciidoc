@@ -31,6 +31,7 @@ Fixed
 - Hinting a input now doesn't select existing text anymore with QtWebKit
 - The cursor now moves to the end when input elements are selected with QtWebEngine
 - Download suffixes like (1) are now correctly stripped with QtWebEngine
+- Crash when trying to print a tab which was closed in the meantime
 
 v0.10.0
 -------
