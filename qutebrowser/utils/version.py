@@ -260,7 +260,8 @@ def _backend():
             '-NG' if qtutils.is_qtwebkit_ng(qWebKitVersion()) else '',
             qWebKitVersion())
     else:
-        assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
+        webengine = usertypes.Backend.QtWebEngine
+        assert objects.backend == webengine, objects.backend
         return 'QtWebEngine (Chromium {})'.format(_chromium_version())
 
 
