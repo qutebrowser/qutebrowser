@@ -237,7 +237,8 @@ def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     quteproc_new.start(args, env=env)
 
     quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
-    quteproc_new.set_setting('storage', 'download-directory', str(download_dir))
+    quteproc_new.set_setting('storage', 'download-directory',
+                             str(download_dir))
     quteproc_new.open_path('data/downloads/download.bin', wait=False)
     quteproc_new.wait_for(category='downloads', message='Download * finished')
     quteproc_new.open_path('data/downloads/download.bin', wait=False)
