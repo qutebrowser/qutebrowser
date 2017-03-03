@@ -20,7 +20,7 @@
 """Functions that return config-related completion models."""
 
 from qutebrowser.config import configdata, configexc
-from qutebrowser.completion.models import completionmodel
+from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.utils import objreg
 
 
@@ -29,7 +29,7 @@ def section():
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     sections = ((name, configdata.SECTION_DESC[name].splitlines()[0].strip())
                 for name in configdata.DATA)
-    model.add_list("Sections", sections)
+    model.add_category(listcategory.ListCategory("Sections", sections))
     return model
 
 
@@ -57,7 +57,7 @@ def option(sectname):
         config = objreg.get('config')
         val = config.get(sectname, name, raw=True)
         options.append((name, desc, val))
-    model.add_list(sectname, options)
+    model.add_category(listcategory.ListCategory(sectname, options))
     return model
 
 
@@ -88,8 +88,9 @@ def value(sectname, optname):
         # Different type for each value (KeyValue)
         vals = configdata.DATA[sectname][optname].typ.complete()
 
-    model.add_list("Current/Default", [(current, "Current value"),
-                                       (default, "Default value")])
+    cur_cat = listcategory.ListCategory("Current/Default",
+        [(current, "Current value"), (default, "Default value")])
+    model.add_category(cur_cat)
     if vals is not None:
-        model.add_list("Completions", vals)
+        model.add_category(listcategory.ListCategory("Completions", vals))
     return model

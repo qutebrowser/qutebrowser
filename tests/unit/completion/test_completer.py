@@ -193,11 +193,10 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
     completer_obj.schedule_completion_update()
     assert completion_widget_stub.set_model.call_count == 1
     args = completion_widget_stub.set_model.call_args[0]
-    # the outer model is just for sorting; srcmodel is the completion model
     if kind is None:
         assert args[0] is None
     else:
-        model = args[0].srcmodel
+        model = args[0]
         assert model.kind == kind
         assert model.pos_args == pos_args
         assert args[1] == pattern

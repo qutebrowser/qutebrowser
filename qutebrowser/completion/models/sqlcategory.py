@@ -29,36 +29,48 @@ from qutebrowser.misc import sql
 class SqlCategory(QSqlQueryModel):
     """Wraps a SqlQuery for use as a completion category."""
 
-    def __init__(self, name, *, sort_by, sort_order, select, where,
-                 columns_to_filter, parent=None):
+    def __init__(self, name, *, sort_by=None, sort_order=None, select='*',
+                 where=None, parent=None):
+        """Create a new completion category backed by a sql table.
+
+        Args:
+            name: Name of category, and the table in the database.
+            select: A custom result column expression for the select statement.
+            where: An optional clause to filter out some rows.
+            sort_by: The name of the field to sort by, or None for no sorting.
+            sort_order: Either 'asc' or 'desc', if sort_by is non-None
+        """
         super().__init__(parent=parent)
         self.name = name
+        self._sort_by = sort_by
+        self._sort_order = sort_order
+        self._select = select
+        self._where = where
+        self.set_pattern('', [0])
 
-        query = sql.run_query('select * from {} limit 1'.format(name))
-        self._fields = [query.record().fieldName(i) for i in columns_to_filter]
+    def set_pattern(self, pattern, columns_to_filter):
+        query = sql.run_query('select * from {} limit 1'.format(self.name))
+        fields = [query.record().fieldName(i) for i in columns_to_filter]
 
-        querystr = 'select {} from {} where ('.format(select, name)
+        querystr = 'select {} from {} where ('.format(self._select, self.name)
         # the incoming pattern will have literal % and _ escaped with '\'
         # we need to tell sql to treat '\' as an escape character
         querystr += ' or '.join("{} like ? escape '\\'".format(f)
-                                for f in self._fields)
+                                for f in fields)
         querystr += ')'
-        if where:
-            querystr += ' and ' + where
+        if self._where:
+            querystr += ' and ' + self._where
 
-        if sort_by:
-            assert sort_order == 'asc' or sort_order == 'desc'
-            querystr += ' order by {} {}'.format(sort_by, sort_order)
+        if self._sort_by:
+            assert self._sort_order in ['asc', 'desc']
+            querystr += ' order by {} {}'.format(self._sort_by,
+                                                 self._sort_order)
 
-        self._querystr = querystr
-        self.set_pattern('')
-
-    def set_pattern(self, pattern):
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
         pattern = pattern.replace('_', '\\_')
         # treat spaces as wildcards to match any of the typed words
         pattern = re.sub(r' +', '%', pattern)
         pattern = '%{}%'.format(pattern)
-        query = sql.run_query(self._querystr, [pattern for _ in self._fields])
+        query = sql.run_query(querystr, [pattern for _ in fields])
         self.setQuery(query)

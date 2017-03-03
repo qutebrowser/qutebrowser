@@ -24,7 +24,6 @@ import re
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils
-from qutebrowser.completion.models import sortfilter, listcategory, sqlcategory
 
 
 class CompletionModel(QAbstractItemModel):
@@ -65,33 +64,8 @@ class CompletionModel(QAbstractItemModel):
             return self._categories[index.row()]
         return None
 
-    def add_list(self, name, items):
-        """Add a list of items as a completion category.
-
-        Args:
-            name: Title of the category.
-            items: List of tuples.
-        """
-        cat = listcategory.ListCategory(name, items, parent=self)
-        filtermodel = sortfilter.CompletionFilterModel(cat,
-                                                       self.columns_to_filter)
-        self._categories.append(filtermodel)
-
-    def add_sqltable(self, name, *, select='*', where=None, sort_by=None,
-                     sort_order=None):
-        """Create a new completion category and add it to this model.
-
-        Args:
-            name: Name of category, and the table in the database.
-            select: A custom result column expression for the select statement.
-            where: An optional clause to filter out some rows.
-            sort_by: The name of the field to sort by, or None for no sorting.
-            sort_order: Either 'asc' or 'desc', if sort_by is non-None
-        """
-        cat = sqlcategory.SqlCategory(name, parent=self, sort_by=sort_by,
-                                      sort_order=sort_order,
-                                      select=select, where=where,
-                                      columns_to_filter=self.columns_to_filter)
+    def add_category(self, cat):
+        """Add a completion category to the model."""
         self._categories.append(cat)
 
     def data(self, index, role=Qt.DisplayRole):
@@ -210,7 +184,7 @@ class CompletionModel(QAbstractItemModel):
         # TODO: should pattern be saved in the view layer instead?
         self.pattern = pattern
         for cat in self._categories:
-            cat.set_pattern(pattern)
+            cat.set_pattern(pattern, self.columns_to_filter)
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""

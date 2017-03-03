@@ -134,27 +134,25 @@ def _mock_view_index(model, category_num, child_num, qtbot):
 
 
 @pytest.fixture
-def quickmarks(init_sql):
-    """Pre-populate the quickmark database."""
-    table = sql.SqlTable('Quickmarks', ['name', 'url'], primary_key='name')
-    table.insert(['aw', 'https://wiki.archlinux.org'])
-    table.insert(['ddg', 'https://duckduckgo.com'])
-    table.insert(['wiki', 'https://wikipedia.org'])
-    objreg.register('quickmark-manager', table)
-    yield table
-    objreg.delete('quickmark-manager')
+def quickmarks(quickmark_manager_stub):
+    """Pre-populate the quickmark-manager stub with some quickmarks."""
+    quickmark_manager_stub.marks = collections.OrderedDict([
+        ('aw', 'https://wiki.archlinux.org'),
+        ('ddg', 'https://duckduckgo.com'),
+        ('wiki', 'https://wikipedia.org'),
+    ])
+    return quickmark_manager_stub
 
 
 @pytest.fixture
-def bookmarks(init_sql):
-    """Pre-populate the bookmark database."""
-    table = sql.SqlTable('Bookmarks', ['url', 'title'], primary_key='url')
-    table.insert(['https://github.com', 'GitHub'])
-    table.insert(['https://python.org', 'Welcome to Python.org'])
-    table.insert(['http://qutebrowser.org', 'qutebrowser | qutebrowser'])
-    objreg.register('bookmark-manager', table)
-    yield table
-    objreg.delete('bookmark-manager')
+def bookmarks(bookmark_manager_stub):
+    """Pre-populate the bookmark-manager stub with some quickmarks."""
+    bookmark_manager_stub.marks = collections.OrderedDict([
+        ('https://github.com', 'GitHub'),
+        ('https://python.org', 'Welcome to Python.org'),
+        ('http://qutebrowser.org', 'qutebrowser | qutebrowser'),
+    ])
+    return bookmark_manager_stub
 
 
 @pytest.fixture
@@ -315,9 +313,9 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
     # delete item (1, 0) -> (bookmarks, 'https://github.com' )
     view = _mock_view_index(model, 1, 0, qtbot)
     model.delete_cur_item(view)
-    assert 'https://github.com' not in bookmarks
-    assert 'https://python.org' in bookmarks
-    assert 'http://qutebrowser.org' in bookmarks
+    assert 'https://github.com' not in bookmarks.marks
+    assert 'https://python.org' in bookmarks.marks
+    assert 'http://qutebrowser.org' in bookmarks.marks
 
 
 def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
@@ -332,9 +330,9 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     # delete item (0, 1) -> (quickmarks, 'ddg' )
     view = _mock_view_index(model, 0, 1, qtbot)
     model.delete_cur_item(view)
-    assert 'aw' in quickmarks
-    assert 'ddg' not in quickmarks
-    assert 'wiki' in quickmarks
+    assert 'aw' in quickmarks.marks
+    assert 'ddg' not in quickmarks.marks
+    assert 'wiki' in quickmarks.marks
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):

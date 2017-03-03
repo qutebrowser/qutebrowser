@@ -19,13 +19,13 @@
 
 """Tests for the CompletionView Object."""
 
-import unittest.mock
+from unittest import mock
 
 import pytest
 from PyQt5.QtGui import QStandardItem, QColor
 
 from qutebrowser.completion import completionwidget
-from qutebrowser.completion.models import completionmodel
+from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.commands import cmdexc
 
 
@@ -70,19 +70,11 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     return view
 
 
-@pytest.fixture
-def simplemodel(completionview):
-    """A completion model with one item."""
-    model = completionmodel.CompletionModel()
-    model.add_list('', [('foo'),])
-    return model
-
-
 def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
     model = completionmodel.CompletionModel()
     for i in range(3):
-        model.add_list(str(i), [('foo',)])
+        cat = listcategory.ListCategory('', [('foo',)])
     completionview.set_model(model)
     assert completionview.model() is model
     for i in range(model.rowCount()):
@@ -91,7 +83,7 @@ def test_set_model(completionview):
 
 def test_set_pattern(completionview):
     model = completionmodel.CompletionModel()
-    model.set_pattern = unittest.mock.Mock()
+    model.set_pattern = mock.Mock()
     completionview.set_model(model, 'foo')
     model.set_pattern.assert_called_with('foo')
 
@@ -158,7 +150,8 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
     """
     model = completionmodel.CompletionModel()
     for catdata in tree:
-        model.add_list('', (x,) for x in  catdata)
+        cat = listcategory.ListCategory('', ((x,) for x in catdata))
+        model.add_category(cat)
     completionview.set_model(model)
     for entry in expected:
         if entry is None:
@@ -203,7 +196,8 @@ def test_completion_show(show, rows, quick_complete, completionview,
 
     model = completionmodel.CompletionModel()
     for name in rows:
-        model.add_list('', [(name,)])
+        cat = listcategory.ListCategory('', [(name,)])
+        model.add_category(cat)
 
     assert not completionview.isVisible()
     completionview.set_model(model)
@@ -217,27 +211,33 @@ def test_completion_show(show, rows, quick_complete, completionview,
     assert not completionview.isVisible()
 
 
-def test_completion_item_del(completionview, simplemodel):
+def test_completion_item_del(completionview):
     """Test that completion_item_del invokes delete_cur_item in the model."""
-    simplemodel.srcmodel.delete_cur_item = unittest.mock.Mock()
-    completionview.set_model(simplemodel)
+    func = mock.Mock()
+    model = completionmodel.CompletionModel(delete_cur_item=func)
+    model.add_category(listcategory.ListCategory('', [('foo',)]))
+    completionview.set_model(model)
     completionview.completion_item_focus('next')
     completionview.completion_item_del()
-    assert simplemodel.srcmodel.delete_cur_item.called
+    assert func.called
 
 
-def test_completion_item_del_no_selection(completionview, simplemodel):
+def test_completion_item_del_no_selection(completionview):
     """Test that completion_item_del with no selected index."""
-    simplemodel.srcmodel.delete_cur_item = unittest.mock.Mock()
-    completionview.set_model(simplemodel)
+    func = mock.Mock()
+    model = completionmodel.CompletionModel(delete_cur_item=func)
+    model.add_category(listcategory.ListCategory('', [('foo',)]))
+    completionview.set_model(model)
     with pytest.raises(cmdexc.CommandError):
         completionview.completion_item_del()
-    assert not simplemodel.srcmodel.delete_cur_item.called
+    assert not func.called
 
 
-def test_completion_item_del_no_func(completionview, simplemodel):
+def test_completion_item_del_no_func(completionview):
     """Test completion_item_del with no delete_cur_item in the model."""
-    completionview.set_model(simplemodel)
+    model = completionmodel.CompletionModel()
+    model.add_category(listcategory.ListCategory('', [('foo',)]))
+    completionview.set_model(model)
     completionview.completion_item_focus('next')
     with pytest.raises(cmdexc.CommandError):
         completionview.completion_item_del()

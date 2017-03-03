@@ -41,7 +41,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
-from qutebrowser.completion.models import sortfilter, urlmodel, miscmodels
+from qutebrowser.completion.models import urlmodel, miscmodels
 
 
 class CommandDispatcher:
@@ -1024,10 +1024,9 @@ class CommandDispatcher:
                 int(part)
         except ValueError:
             model = miscmodels.buffer()
-            sf = sortfilter.CompletionFilterModel(source=model)
-            sf.set_pattern(index)
-            if sf.count() > 0:
-                index = sf.data(sf.first_item())
+            model.set_pattern(index)
+            if model.count() > 0:
+                index = model.data(model.first_item())
                 index_parts = index.split('/', 1)
             else:
                 raise cmdexc.CommandError(

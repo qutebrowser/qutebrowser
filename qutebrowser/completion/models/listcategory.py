@@ -23,44 +23,100 @@ Module attributes:
     Role: An enum of user defined model roles.
 """
 
-from PyQt5.QtCore import Qt
+import re
+
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
+from qutebrowser.utils import qtutils, debug, log
 
-class ListCategory(QStandardItemModel):
+
+class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
     def __init__(self, name, items, parent=None):
         super().__init__(parent)
         self.name = name
-        # self.setColumnCount(3) TODO needed?
-        # TODO: batch insert?
-        # TODO: can I just insert a tuple instead of a list?
+        self.srcmodel = QStandardItemModel(parent=self)
+        self.pattern = ''
+        self.pattern_re = None
         for item in items:
-            self.appendRow([QStandardItem(x) for x in item])
+            self.srcmodel.appendRow([QStandardItem(x) for x in item])
+        self.setSourceModel(self.srcmodel)
 
-    def flags(self, index):
-        """Return the item flags for index.
-
-        Override QAbstractItemModel::flags.
+    def set_pattern(self, val, columns_to_filter):
+        """Setter for pattern.
 
         Args:
-            index: The QModelIndex to get item flags for.
+            val: The value to set.
+        """
+        with debug.log_time(log.completion, 'Setting filter pattern'):
+            self.columns_to_filter = columns_to_filter
+            self.pattern = val
+            val = re.sub(r' +', r' ', val)  # See #1919
+            val = re.escape(val)
+            val = val.replace(r'\ ', '.*')
+            self.pattern_re = re.compile(val, re.IGNORECASE)
+            self.invalidate()
+            sortcol = 0
+            self.sort(sortcol)
+
+    def filterAcceptsRow(self, row, parent):
+        """Custom filter implementation.
+
+        Override QSortFilterProxyModel::filterAcceptsRow.
+
+        Args:
+            row: The row of the item.
+            parent: The parent item QModelIndex.
 
         Return:
-            The item flags, or Qt.NoItemFlags on error.
+            True if self.pattern is contained in item, or if it's a root item
+            (category). False in all other cases
         """
-        if not index.isValid():
-            return
+        if not self.pattern:
+            return True
 
-        if index.parent().isValid():
-            # item
-            return (Qt.ItemIsEnabled | Qt.ItemIsSelectable |
-                    Qt.ItemNeverHasChildren)
+        for col in self.columns_to_filter:
+            idx = self.srcmodel.index(row, col, parent)
+            if not idx.isValid():  # pragma: no cover
+                # this is a sanity check not hit by any test case
+                continue
+            data = self.srcmodel.data(idx)
+            if not data:
+                continue
+            elif self.pattern_re.search(data):
+                return True
+        return False
+
+    def lessThan(self, lindex, rindex):
+        """Custom sorting implementation.
+
+        Prefers all items which start with self.pattern. Other than that, uses
+        normal Python string sorting.
+
+        Args:
+            lindex: The QModelIndex of the left item (*left* < right)
+            rindex: The QModelIndex of the right item (left < *right*)
+
+        Return:
+            True if left < right, else False
+        """
+        qtutils.ensure_valid(lindex)
+        qtutils.ensure_valid(rindex)
+
+        left = self.srcmodel.data(lindex)
+        right = self.srcmodel.data(rindex)
+
+        leftstart = left.startswith(self.pattern)
+        rightstart = right.startswith(self.pattern)
+
+        if leftstart and rightstart:
+            return left < right
+        elif leftstart:
+            return True
+        elif rightstart:
+            return False
         else:
-            # category
-            return Qt.NoItemFlags
-
-    def set_pattern(self, pattern):
-        pass
+            return left < right

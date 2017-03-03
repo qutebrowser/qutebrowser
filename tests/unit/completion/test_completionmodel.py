@@ -19,128 +19,59 @@
 
 """Tests for CompletionModel."""
 
+import sys
 import pytest
+import hypothesis
+from unittest import mock
+from hypothesis import strategies
 
-from qutebrowser.completion.models import completionmodel, sortfilter
-
-
-def _create_model(data, filter_cols=None):
-    """Create a completion model populated with the given data.
-
-    data: A list of lists, where each sub-list represents a category, each
-          tuple in the sub-list represents an item, and each value in the
-          tuple represents the item data for that column
-    filter_cols: Columns to filter, or None for default.
-    """
-    model = completionmodel.CompletionModel(columns_to_filter=filter_cols)
-    for catdata in data:
-        model.add_list('', catdata)
-    return model
+from qutebrowser.completion.models import completionmodel
 
 
-def _extract_model_data(model):
-    """Express a model's data as a list for easier comparison.
-
-    Return: A list of lists, where each sub-list represents a category, each
-            tuple in the sub-list represents an item, and each value in the
-            tuple represents the item data for that column
-    """
-    data = []
-    for i in range(0, model.rowCount()):
-        cat_idx = model.index(i, 0)
-        row = []
-        for j in range(0, model.rowCount(cat_idx)):
-            row.append((model.data(cat_idx.child(j, 0)),
-                        model.data(cat_idx.child(j, 1)),
-                        model.data(cat_idx.child(j, 2))))
-        data.append(row)
-    return data
-
-
-@pytest.mark.parametrize('tree, first, last', [
-    ([[('Aa',)]], 'Aa', 'Aa'),
-    ([[('Aa',)], [('Ba',)]], 'Aa', 'Ba'),
-    ([[('Aa',), ('Ab',), ('Ac',)], [('Ba',), ('Bb',)], [('Ca',)]],
-     'Aa', 'Ca'),
-    ([[], [('Ba',)]], 'Ba', 'Ba'),
-    ([[], [], [('Ca',)]], 'Ca', 'Ca'),
-    ([[], [], [('Ca',), ('Cb',)]], 'Ca', 'Cb'),
-    ([[('Aa',)], []], 'Aa', 'Aa'),
-    ([[('Aa',)], []], 'Aa', 'Aa'),
-    ([[('Aa',)], [], []], 'Aa', 'Aa'),
-    ([[('Aa',)], [], [('Ca',)]], 'Aa', 'Ca'),
-    ([[], []], None, None),
-])
-def test_first_last_item(tree, first, last):
-    """Test that first() and last() return indexes to the first and last items.
-
-    Args:
-        tree: Each list represents a completion category, with each string
-              being an item under that category.
-        first: text of the first item
-        last: text of the last item
-    """
-    model = _create_model(tree)
-    assert model.data(model.first_item()) == first
-    assert model.data(model.last_item()) == last
+@hypothesis.given(strategies.lists(min_size=0, max_size=3,
+    elements=strategies.integers(min_value=0, max_value=2**31)))
+def test_first_last_item(counts):
+    """Test that first() and last() index to the first and last items."""
+    model = completionmodel.CompletionModel()
+    for c in counts:
+        cat = mock.Mock()
+        cat.rowCount = mock.Mock(return_value=c)
+        model.add_category(cat)
+    nonempty = [i for i, rowCount in enumerate(counts) if rowCount > 0]
+    if not nonempty:
+        # with no items, first and last should be an invalid index
+        assert not model.first_item().isValid()
+        assert not model.last_item().isValid()
+    else:
+        first = nonempty[0]
+        last = nonempty[-1]
+        # first item of the first nonempty category
+        assert model.first_item().row() == 0
+        assert model.first_item().parent().row() == first
+        # last item of the last nonempty category
+        assert model.last_item().row() == counts[last] - 1
+        assert model.last_item().parent().row() == last
 
 
-@pytest.mark.parametrize('tree, expected', [
-    ([[('Aa',)]], 1),
-    ([[('Aa',)], [('Ba',)]], 2),
-    ([[('Aa',), ('Ab',), ('Ac',)], [('Ba',), ('Bb',)], [('Ca',)]], 6),
-    ([[], [('Ba',)]], 1),
-    ([[], [], [('Ca',)]], 1),
-    ([[], [], [('Ca',), ('Cb',)]], 2),
-    ([[('Aa',)], []], 1),
-    ([[('Aa',)], []], 1),
-    ([[('Aa',)], [], []], 1),
-    ([[('Aa',)], [], [('Ca',)]], 2),
-])
-def test_count(tree, expected):
-    model = _create_model(tree)
-    assert model.count() == expected
+@hypothesis.given(strategies.lists(elements=strategies.integers(),
+                                   min_size=0, max_size=3))
+def test_count(counts):
+    model = completionmodel.CompletionModel()
+    for c in counts:
+        cat = mock.Mock(spec=['rowCount'])
+        cat.rowCount = mock.Mock(return_value=c)
+        model.add_category(cat)
+    assert model.count() == sum(counts)
 
 
-@pytest.mark.parametrize('pattern, filter_cols, before, after', [
-    ('foo', [0],
-     [[('foo', '', ''), ('bar', '', '')]],
-     [[('foo', '', '')]]),
-
-    ('foo', [0],
-     [[('foob', '', ''), ('fooc', '', ''), ('fooa', '', '')]],
-     [[('fooa', '', ''), ('foob', '', ''), ('fooc', '', '')]]),
-
-    ('foo', [0],
-     [[('foo', '', '')], [('bar', '', '')]],
-     [[('foo', '', '')], []]),
-
-    # prefer foobar as it starts with the pattern
-    ('foo', [0],
-     [[('barfoo', '', ''), ('foobar', '', '')]],
-     [[('foobar', '', ''), ('barfoo', '', '')]]),
-
-    # however, don't rearrange categories
-    ('foo', [0],
-     [[('barfoo', '', '')], [('foobar', '', '')]],
-     [[('barfoo', '', '')], [('foobar', '', '')]]),
-
-    ('foo', [1],
-     [[('foo', 'bar', ''), ('bar', 'foo', '')]],
-     [[('bar', 'foo', '')]]),
-
-    ('foo', [0, 1],
-     [[('foo', 'bar', ''), ('bar', 'foo', ''), ('bar', 'bar', '')]],
-     [[('foo', 'bar', ''), ('bar', 'foo', '')]]),
-
-    ('foo', [0, 1, 2],
-     [[('foo', '', ''), ('bar', '')]],
-     [[('foo', '', '')]]),
-])
-def test_set_pattern(pattern, filter_cols, before, after):
+@hypothesis.given(strategies.text())
+def test_set_pattern(pat):
     """Validate the filtering and sorting results of set_pattern."""
-    # TODO: just test that it calls the mock on its child categories
-    model = _create_model(before, filter_cols)
-    model.set_pattern(pattern)
-    actual = _extract_model_data(model)
-    assert actual == after
+    cols = [1, 2, 3]
+    model = completionmodel.CompletionModel(columns_to_filter=cols)
+    cats = [mock.Mock(spec=['set_pattern'])] * 3
+    for c in cats:
+        c.set_pattern = mock.Mock()
+        model.add_category(c)
+    model.set_pattern(pat)
+    assert all(c.set_pattern.called_with([pat, cols]) for c in cats)

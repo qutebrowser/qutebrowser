@@ -22,14 +22,14 @@
 from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils
-from qutebrowser.completion.models import completionmodel
+from qutebrowser.completion.models import completionmodel, listcategory
 
 
 def command():
     """A CompletionModel filled with non-hidden commands and descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     cmdlist = _get_cmd_completions(include_aliases=True, include_hidden=False)
-    model.add_list("Commands", cmdlist)
+    model.add_category(listcategory.ListCategory("Commands", cmdlist))
     return model
 
 
@@ -53,22 +53,24 @@ def helptopic():
             name = '{}->{}'.format(sectname, optname)
             settings.append((name, desc))
 
-    model.add_list("Commands", cmdlist)
-    model.add_list("Settings", settings)
+    model.add_category(listcategory.ListCategory("Commands", cmdlist))
+    model.add_category(listcategory.ListCategory("Settings", settings))
     return model
 
 
 def quickmark():
     """A CompletionModel filled with all quickmarks."""
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    model.add_list('Quickmarks', objreg.get('quickmark-manager').marks.items())
+    marks = objreg.get('quickmark-manager').marks.items()
+    model.add_category(listcategory.ListCategory('Quickmarks', marks))
     return model
 
 
 def bookmark():
     """A CompletionModel filled with all bookmarks."""
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    model.add_list('Bookmarks', objreg.get('bookmark-manager').marks.items())
+    marks = objreg.get('bookmark-manager').marks.items()
+    model.add_category(listcategory.ListCategory('Bookmarks', marks))
     return model
 
 
@@ -79,7 +81,7 @@ def session():
         manager = objreg.get('session-manager')
         sessions = ((name,) for name in manager.list_sessions()
                     if not name.startswith('_'))
-        model.add_list("Sessions", sessions)
+        model.add_category(listcategory.ListCategory("Sessions", sessions))
     except OSError:
         log.completion.exception("Failed to list sessions!")
     return model
@@ -122,7 +124,8 @@ def buffer():
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
                          tabbed_browser.page_title(idx)))
-        model.add_list("{}".format(win_id), tabs)
+        cat = listcategory.ListCategory("{}".format(win_id), tabs)
+        model.add_category(cat)
     return model
 
 
@@ -135,7 +138,7 @@ def bind(_key):
     # TODO: offer a 'Current binding' completion based on the key.
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
-    model.add_list("Commands", cmdlist)
+    model.add_category(listcategory.ListCategory("Commands", cmdlist))
     return model
 
 

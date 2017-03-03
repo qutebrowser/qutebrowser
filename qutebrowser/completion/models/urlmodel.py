@@ -19,7 +19,8 @@
 
 """Function to return the url completion model for the `open` command."""
 
-from qutebrowser.completion.models import completionmodel
+from qutebrowser.completion.models import (completionmodel, listcategory,
+                                           sqlcategory)
 from qutebrowser.config import config
 from qutebrowser.utils import qtutils, log, objreg
 
@@ -46,8 +47,7 @@ def _delete_url(completion):
         log.completion.debug('Deleting bookmark {}'.format(urlstr))
         bookmark_manager = objreg.get('bookmark-manager')
         bookmark_manager.delete(urlstr)
-    else:
-        assert catname == 'Quickmarks', 'Unknown category {}'.format(catname)
+    elif catname == 'Quickmarks':
         quickmark_manager = objreg.get('quickmark-manager')
         sibling = index.sibling(index.row(), _TEXTCOL)
         qtutils.ensure_valid(sibling)
@@ -66,15 +66,17 @@ def url():
         columns_to_filter=[_URLCOL, _TEXTCOL],
         delete_cur_item=_delete_url)
 
-    quickmarks = objreg.get('quickmark-manager').marks.items()
-    model.add_list('Quickmarks', ((url, name) for (name, url) in quickmarks))
+    quickmarks = ((url, name) for (name, url)
+                  in objreg.get('quickmark-manager').marks.items())
+    bookmarks = objreg.get('bookmark-manager').marks.items()
 
-    model.add_list('Bookmarks', objreg.get('bookmark-manager').marks.items())
+    model.add_category(listcategory.ListCategory('Quickmarks', quickmarks))
+    model.add_category(listcategory.ListCategory('Bookmarks', bookmarks))
 
     timefmt = config.get('completion', 'timestamp-format')
     select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
-    model.add_sqltable('History',
-                       sort_order='desc', sort_by='atime',
-                       select='url, title, {}'.format(select_time),
-                       where='not redirect')
+    hist_cat = sqlcategory.SqlCategory(
+        'History', sort_order='desc', sort_by='atime',
+        select='url, title, {}'.format(select_time), where='not redirect')
+    model.add_category(hist_cat)
     return model

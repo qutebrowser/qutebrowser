@@ -240,6 +240,24 @@ def host_blocker_stub(stubs):
 
 
 @pytest.fixture
+def quickmark_manager_stub(stubs):
+    """Fixture which provides a fake quickmark manager object."""
+    stub = stubs.QuickmarkManagerStub()
+    objreg.register('quickmark-manager', stub)
+    yield stub
+    objreg.delete('quickmark-manager')
+
+
+@pytest.fixture
+def bookmark_manager_stub(stubs):
+    """Fixture which provides a fake bookmark manager object."""
+    stub = stubs.BookmarkManagerStub()
+    objreg.register('bookmark-manager', stub)
+    yield stub
+    objreg.delete('bookmark-manager')
+
+
+@pytest.fixture
 def session_manager_stub(stubs):
     """Fixture which provides a fake web-history object."""
     stub = stubs.SessionManagerStub()
