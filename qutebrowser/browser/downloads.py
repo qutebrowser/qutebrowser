@@ -529,7 +529,11 @@ class AbstractDownloadItem(QObject):
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-        utils.open_file(filename, cmdline)
+        # By using a singleshot timer, we ensure that we return fast. This
+        # is important on systems where process creation takes long, as
+        # otherwise the prompt might hang around and cause bugs
+        # (see issue #2296)
+        QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
 
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""
