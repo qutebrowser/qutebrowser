@@ -27,7 +27,7 @@ import getpass
 import binascii
 import hashlib
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QTimer
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
@@ -281,7 +281,11 @@ class IPCServer(QObject):
         if self._socket is None:
             log.ipc.debug("In on_disconnected with None socket!")
         else:
-            self._socket.deleteLater()
+            # For some reason Qt can still get delayed canReadNotifications
+            # internally, so if we call deleteLater() right away and then call
+            # QApplication::processEvents() somewhere in the code, we can get a
+            # segfault.
+            QTimer.singleShot(500, self._socket.deleteLater)
             self._socket = None
         # Maybe another connection is waiting.
         self.handle_connection()
