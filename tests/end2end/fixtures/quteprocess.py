@@ -209,15 +209,22 @@ class QuteProc(testprocess.Process):
             "load status for <qutebrowser.browser.* tab_id=0 "
             "url='about:blank'>: LoadStatus.success")
         start_okay_messages_focus = [
-            # QtWebKit
+            ## QtWebKit
             "Focus object changed: "
             "<qutebrowser.browser.* tab_id=0 url='about:blank'>",
-            # QtWebEngine
+            # when calling QApplication::sync
+            "Focus object changed: "
+            "<qutebrowser.browser.webkit.webview.WebView tab_id=0 url=''>",
+
+            ## QtWebEngine
             "Focus object changed: "
             "<PyQt5.QtWidgets.QOpenGLWidget object at *>",
-            # QtWebEngine with Qt >= 5.8
+            # with Qt >= 5.8
             "Focus object changed: "
             "<PyQt5.QtGui.QWindow object at *>",
+            # when calling QApplication::sync
+            "Focus object changed: "
+            "<PyQt5.QtWidgets.QWidget object at *>",
         ]
 
         if (log_line.category == 'ipc' and
