@@ -25,6 +25,7 @@ Module attributes:
 """
 
 import json
+import os
 import sys
 import time
 import urllib.parse
@@ -256,7 +257,8 @@ def qute_javascript(url):
     """
     path = url.path()
     if path:
-        return 'text/html', utils.read_file("javascript" + path, binary=False)
+        path = "javascript" + os.sep.join(path.split('/'))
+        return 'text/html', utils.read_file(path, binary=False)
     else:
         raise QuteSchemeError("No file specified", ValueError())
 
