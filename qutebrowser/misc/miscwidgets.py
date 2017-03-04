@@ -19,12 +19,14 @@
 
 """Misc. widgets used at different places."""
 
+import operator
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
                              QStyleOption, QStyle, QLayout, QApplication)
 from PyQt5.QtGui import QValidator, QPainter
 
-from qutebrowser.utils import utils, objreg
+from qutebrowser.utils import utils, objreg, qtutils, log
 from qutebrowser.misc import cmdhistory
 
 
@@ -260,6 +262,15 @@ class WrapperLayout(QLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
+        if (qtutils.version_check('5.8.0', op=operator.eq) and
+                container.window() and
+                container.window().windowHandle() and
+                not container.window().windowHandle().isActive()):
+            log.misc.debug("Calling QApplication::sync...")
+            # WORKAROUND for:
+            # https://bugreports.qt.io/browse/QTBUG-56652
+            # https://codereview.qt-project.org/#/c/176113/5//ALL,unified
+            QApplication.sync()
 
     def unwrap(self):
         self._widget.setParent(None)
