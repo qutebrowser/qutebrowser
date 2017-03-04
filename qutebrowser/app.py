@@ -142,8 +142,7 @@ def init(args, crash_handler):
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)
 
-    QTimer.singleShot(0, functools.partial(_process_args, args))
-    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
+    _process_args(args)
 
     log.init.debug("Initializing eventfilter...")
     event_filter = EventFilter(qApp)
@@ -160,6 +159,8 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
     macros.init()
+
+    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
