@@ -154,7 +154,6 @@ class HostBlocker:
 
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
-
         self._blocked_hosts = set()
 
         self._read_hosts_file(self._config_hosts_file,
@@ -166,7 +165,7 @@ class HostBlocker:
         if not found:
             args = objreg.get('args')
             if (config.get('content', 'host-block-lists') is not None and
-                    args.basedir is None and 
+                    args.basedir is None and
                     config.get('content', 'host-blocking-enabled')):
                 message.info("Run :adblock-update to get adblock lists.")
 
