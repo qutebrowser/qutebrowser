@@ -154,6 +154,9 @@ class HostBlocker:
 
     def read_hosts(self):
         """Read hosts from the existing blocked-hosts file."""
+        if not config.get('content', 'host-blocking-enabled'):
+            return
+
         self._blocked_hosts = set()
 
         self._read_hosts_file(self._config_hosts_file,
