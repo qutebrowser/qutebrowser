@@ -185,6 +185,8 @@ class MainWindow(QWidget):
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
         self._add_overlay(self._keyhint, self._keyhint.update_geometry)
         self._messageview = messageview.MessageView(parent=self)
+        objreg.register('messageview', self._messageview,
+                        scope='window', window=self.win_id)
         self._add_overlay(self._messageview, self._messageview.update_geometry)
 
         self._prompt_container = prompt.PromptContainer(self.win_id, self)
