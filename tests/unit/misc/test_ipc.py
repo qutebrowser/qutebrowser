@@ -101,7 +101,6 @@ class FakeSocket(QObject):
         _error_val: The value returned for error().
         _state_val: The value returned for state().
         _connect_successful: The value returned for waitForConnected().
-        deleted: Set to True if deleteLater() was called.
     """
 
     readyRead = pyqtSignal()
@@ -115,7 +114,6 @@ class FakeSocket(QObject):
         self._data = data
         self._connect_successful = connect_successful
         self.error = stubs.FakeSignal('error', func=self._error)
-        self.deleted = False
 
     def _error(self):
         return self._error_val
@@ -130,9 +128,6 @@ class FakeSocket(QObject):
         firstline, mid, rest = self._data.partition(b'\n')
         self._data = rest
         return firstline + mid
-
-    def deleteLater(self):
-        self.deleted = True
 
     def errorString(self):
         return "Error string"
