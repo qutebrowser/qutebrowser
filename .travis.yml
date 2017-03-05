@@ -73,12 +73,16 @@ before_install:
 
 install:
   - bash scripts/dev/ci/travis_install.sh
+  - ulimit -c unlimited
 
 script:
   - bash scripts/dev/ci/travis_run.sh
 
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
+
+after_failure:
+  - bash scripts/dev/ci/travis_backtrace.sh
 
 notifications:
   webhooks:

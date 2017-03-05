@@ -113,11 +113,11 @@ tox --version
 case $TESTENV in
     py34-cov)
         pip_install -r misc/requirements/requirements-codecov.txt
-        apt_install xvfb $pyqt_pkgs libpython3.4-dev
+        apt_install xvfb $pyqt_pkgs libpython3.4-dev gdb apport
         check_pyqt
         ;;
     py3*-pyqt*)
-        apt_install xvfb geoclue
+        apt_install xvfb geoclue gdb apport
         ;;
     pylint|vulture)
         apt_install $pyqt_pkgs libpython3.4-dev
