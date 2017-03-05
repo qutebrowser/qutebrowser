@@ -165,7 +165,8 @@ class HostBlocker:
         if not found:
             args = objreg.get('args')
             if (config.get('content', 'host-block-lists') is not None and
-                    args.basedir is None):
+                    args.basedir is None and
+                    config.get('content', 'host-blocking-enabled')):
                 message.info("Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker')
