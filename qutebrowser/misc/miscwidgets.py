@@ -26,8 +26,8 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
                              QStyleOption, QStyle, QLayout, QApplication)
 from PyQt5.QtGui import QValidator, QPainter
 
-from qutebrowser.utils import utils, objreg, qtutils, log
-from qutebrowser.misc import cmdhistory
+from qutebrowser.utils import utils, objreg, qtutils, log, usertypes
+from qutebrowser.misc import cmdhistory, objects
 
 
 class MinimalLineEditMixin:
@@ -263,6 +263,7 @@ class WrapperLayout(QLayout):
         container.setFocusProxy(widget)
         widget.setParent(container)
         if (qtutils.version_check('5.8.0', op=operator.eq) and
+                objects.backend == usertypes.Backend.QtWebEngine and
                 container.window() and
                 container.window().windowHandle() and
                 not container.window().windowHandle().isActive()):
