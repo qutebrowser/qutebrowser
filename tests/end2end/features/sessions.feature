@@ -263,8 +263,10 @@ Feature: Saving and loading sessions
     Then the error "No session loaded currently!" should be shown
 
   Scenario: Saving current session after one is loaded
+    When I open data/numbers/1.txt
     When I run :session-save current_session
     And I run :session-load current_session
+    And I wait until data/numbers/1.txt is loaded
     And I run :session-save --current
     Then the message "Saved session current_session." should be shown
 
@@ -288,6 +290,7 @@ Feature: Saving and loading sessions
     And I run :window-only
     And I run :tab-only
     And I run :session-load window_session_name
+    And I wait until data/numbers/5.txt is loaded
     Then the session should look like:
       windows:
         - tabs:
