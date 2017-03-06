@@ -205,8 +205,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
                 print("test", file=sys.{})
                 sys.exit(1)
             """.format(stream)))
-    assert len(caplog.records) == 2
-    assert caplog.records[1].msg == 'Process {}:\ntest'.format(stream)
+    assert caplog.records[-1].msg == 'Process {}:\ntest'.format(stream)
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
