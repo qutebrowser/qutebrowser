@@ -52,6 +52,9 @@ import overflow_test_cases
     # strict=True
     ('5.4.0', '5.3.0', '5.4.0', operator.ge, False),
     ('5.4.0', '5.4.0', '5.4.0', operator.ge, True),
+
+    ('5.4.0', '5.3.0', '5.4.0', operator.lt, True),
+    ('5.4.0', '5.4.0', '5.4.0', operator.lt, False),
 ])
 def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
     """Test for version_check().
