@@ -355,8 +355,8 @@ def test_invalid_utf8_compiled(config_stub, tmpdir, monkeypatch, caplog):
     """Make sure invalid UTF-8 in the compiled file is handled."""
     data_dir = tmpdir / 'data'
     config_dir = tmpdir / 'config'
-    monkeypatch.setattr(adblock.standarddir, 'data', lambda: data_dir)
-    monkeypatch.setattr(adblock.standarddir, 'config', lambda: config_dir)
+    monkeypatch.setattr(adblock.standarddir, 'data', lambda: str(data_dir))
+    monkeypatch.setattr(adblock.standarddir, 'config', lambda: str(config_dir))
 
     config_stub.data = {
         'content': {
