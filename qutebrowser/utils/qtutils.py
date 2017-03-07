@@ -88,9 +88,12 @@ def version_check(version, op=operator.ge, strict=False):
         op: The operator to use for the check.
         strict: If given, also check the compiled Qt version.
     """
+    if strict:
+        assert op in [operator.ge, operator.lt], op
     parsed = pkg_resources.parse_version(version)
     result = op(pkg_resources.parse_version(qVersion()), parsed)
-    if result and strict:
+    if ((strict and op == operator.ge and result) or
+            (strict and op == operator.lt and not result)):
         result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
     return result
 
