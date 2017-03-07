@@ -137,6 +137,12 @@ def message_warning(text):
     message.warning(text)
 
 
+@cmdutils.register(hide=True)
+def clear_messages():
+    """Clear all message notifications."""
+    message.global_bridge.clear_messages.emit()
+
+
 @cmdutils.register(debug=True)
 @cmdutils.argument('typ', choices=['exception', 'segfault'])
 def debug_crash(typ='exception'):

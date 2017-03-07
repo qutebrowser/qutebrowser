@@ -25,7 +25,6 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, objreg
-from qutebrowser.commands import cmdutils
 
 
 class Message(QLabel):
@@ -102,7 +101,6 @@ class MessageView(QWidget):
         self._clear_timer.setInterval(config.get('ui', 'message-timeout'))
 
     @pyqtSlot()
-    @cmdutils.register(instance='messageview', scope="window", hide=True)
     def clear_messages(self):
         """Hide and delete all messages."""
         for widget in self._messages:

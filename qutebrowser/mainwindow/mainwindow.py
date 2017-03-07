@@ -185,8 +185,6 @@ class MainWindow(QWidget):
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
         self._add_overlay(self._keyhint, self._keyhint.update_geometry)
         self._messageview = messageview.MessageView(parent=self)
-        objreg.register('messageview', self._messageview,
-                        scope='window', window=self.win_id)
         self._add_overlay(self._messageview, self._messageview.update_geometry)
 
         self._prompt_container = prompt.PromptContainer(self.win_id, self)
@@ -440,6 +438,8 @@ class MainWindow(QWidget):
         message.global_bridge.show_message.connect(
             self._messageview.show_message)
         message.global_bridge.flush()
+        message.global_bridge.clear_messages.connect(
+            self._messageview.clear_messages)
 
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
