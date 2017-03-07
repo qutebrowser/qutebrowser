@@ -33,6 +33,7 @@ Fixed
 - Download suffixes like (1) are now correctly stripped with QtWebEngine
 - Crash when trying to print a tab which was closed in the meantime
 - Crash when trying to open a file twice on Windows
+- Crash when updating adblock lists with invalid UTF8-chars in them
 
 v0.10.0
 -------
