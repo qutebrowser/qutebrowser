@@ -312,6 +312,68 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
     assert_urls(host_blocker, whitelisted=[])
 
 
+@pytest.mark.parametrize('location', ['content', 'comment'])
+def test_invalid_utf8(config_stub, download_stub, tmpdir, caplog, location):
+    """Make sure invalid UTF-8 is handled correctly.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/2301
+    """
+    blocklist = tmpdir / 'blocklist'
+    if location == 'comment':
+        blocklist.write_binary(b'# nbsp: \xa0\n')
+    else:
+        assert location == 'content'
+        blocklist.write_binary(b'https://www.example.org/\xa0')
+    for url in BLOCKLIST_HOSTS:
+        blocklist.write(url + '\n', mode='a')
+
+    config_stub.data = {
+        'content': {
+            'host-block-lists': [QUrl(str(blocklist))],
+            'host-blocking-enabled': True,
+            'host-blocking-whitelist': None,
+        }
+    }
+    host_blocker = adblock.HostBlocker()
+    host_blocker.adblock_update()
+    finished_signal = host_blocker._in_progress[0].finished
+
+    if location == 'content':
+        with caplog.at_level(logging.ERROR):
+            finished_signal.emit()
+        expected = (r"Failed to decode: "
+                    r"b'https://www.example.org/\xa0localhost\n'")
+        assert caplog.records[-2].message == expected
+    else:
+        finished_signal.emit()
+
+    host_blocker.read_hosts()
+    assert_urls(host_blocker, whitelisted=[])
+
+
+def test_invalid_utf8_compiled(config_stub, tmpdir, monkeypatch, caplog):
+    """Make sure invalid UTF-8 in the compiled file is handled."""
+    data_dir = tmpdir / 'data'
+    config_dir = tmpdir / 'config'
+    monkeypatch.setattr(adblock.standarddir, 'data', lambda: data_dir)
+    monkeypatch.setattr(adblock.standarddir, 'config', lambda: config_dir)
+
+    config_stub.data = {
+        'content': {
+            'host-block-lists': [],
+        }
+    }
+
+    (config_dir / 'blocked-hosts').write_binary(
+        b'https://www.example.org/\xa0')
+    (data_dir / 'blocked-hosts').ensure()
+
+    host_blocker = adblock.HostBlocker()
+    with caplog.at_level(logging.ERROR):
+        host_blocker.read_hosts()
+    assert caplog.records[-1].message == "Failed to read host blocklist!"
+
+
 def test_blocking_with_whitelist(config_stub, basedir, download_stub,
                                  data_tmpdir, tmpdir):
     """Ensure hosts in host-blocking-whitelist are never blocked."""

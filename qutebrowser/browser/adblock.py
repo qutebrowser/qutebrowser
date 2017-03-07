@@ -58,7 +58,7 @@ def get_fileobj(byte_io):
         byte_io = zf.open(filename, mode='r')
     else:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
-    return io.TextIOWrapper(byte_io, encoding='utf-8')
+    return byte_io
 
 
 def is_whitelisted_host(host):
@@ -147,7 +147,7 @@ class HostBlocker:
             with open(filename, 'r', encoding='utf-8') as f:
                 for line in f:
                     target.add(line.strip())
-        except OSError:
+        except (OSError, UnicodeDecodeError):
             log.misc.exception("Failed to read host blocklist!")
 
         return True
@@ -219,13 +219,27 @@ class HostBlocker:
         line_count = 0
         try:
             f = get_fileobj(byte_io)
-        except (OSError, UnicodeDecodeError, zipfile.BadZipFile,
-                zipfile.LargeZipFile, LookupError) as e:
+        except (OSError, zipfile.BadZipFile, zipfile.LargeZipFile,
+                LookupError) as e:
             message.error("adblock: Error while reading {}: {} - {}".format(
                 byte_io.name, e.__class__.__name__, e))
             return
+
         for line in f:
+            if line.startswith(b'#'):
+                # Ignoring comments early so we don't have to care about
+                # encoding errors in them.
+                continue
+
             line_count += 1
+
+            try:
+                line = line.decode('utf-8')
+            except UnicodeDecodeError:
+                log.misc.error("Failed to decode: {!r}".format(line))
+                error_count += 1
+                continue
+
             # Remove comments
             try:
                 hash_idx = line.index('#')
@@ -245,9 +259,11 @@ class HostBlocker:
                 host = parts[1]
             else:
                 error_count += 1
+                log.misc.error("Failed to parse: {!r}".format(line))
                 continue
             if host not in self.WHITELISTED:
                 self._blocked_hosts.add(host)
+
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
             message.error("adblock: {} read errors for {}".format(
