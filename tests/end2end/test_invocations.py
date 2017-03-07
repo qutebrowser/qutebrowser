@@ -249,3 +249,15 @@ def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     files = download_dir.listdir()
     assert len(files) == 1
     assert files[0].basename == 'download.bin'
+
+
+def test_command_on_start(request, quteproc_new):
+    """Make sure passing a command on start works.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/2408
+    """
+    args = (['--temp-basedir'] + _base_args(request.config) +
+            [':quickmark-add https://www.example.com/ example'])
+    quteproc_new.start(args)
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
