@@ -194,6 +194,7 @@ class GlobalMessageBridge(QObject):
     prompt_done = pyqtSignal(usertypes.KeyMode)
     ask_question = pyqtSignal(usertypes.Question, bool)
     mode_left = pyqtSignal(usertypes.KeyMode)
+    clear_messages = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
