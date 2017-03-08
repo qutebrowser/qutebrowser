@@ -1,5 +1,4 @@
 -e git+https://github.com/pyinstaller/pyinstaller.git@develop#egg=PyInstaller
-PyQt5
 
 # remove @commit-id for scm installs
 #@ replace: @.*# @develop#
