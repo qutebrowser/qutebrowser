@@ -23,8 +23,8 @@ Changed
 - When using QtWebEngine, the underlying Chromium version is now shown in the
   version info.
 
-v0.10.1 (unreleased)
---------------------
+v0.10.1
+-------
 
 Changed
 ~~~~~~~
@@ -35,6 +35,7 @@ Fixed
 ~~~~~
 
 - URLs are now redacted properly (username/password, and path/query for HTTPS) when using Proxy Autoconfig with QtWebKit
+- Crash when updating adblock lists with invalid UTF8-chars in them
 - Fixed the web inspector with QtWebEngine
 - Version checks when starting qutebrowser now also take the Qt version PyQt was compiled against into account
 - Hinting a input now doesn't select existing text anymore with QtWebKit
@@ -42,7 +43,6 @@ Fixed
 - Download suffixes like (1) are now correctly stripped with QtWebEngine
 - Crash when trying to print a tab which was closed in the meantime
 - Crash when trying to open a file twice on Windows
-- Crash when updating adblock lists with invalid UTF8-chars in them
 
 v0.10.0
 -------
