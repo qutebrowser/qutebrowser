@@ -82,9 +82,9 @@ def _get_version_tag(tag):
     if package == 'qt':
         op = match.group('operator')
         do_skip = {
-            '==': qtutils.version_check(version, exact=True),
-            '>=': qtutils.version_check(version),
-            '!=': not qtutils.version_check(version, exact=True),
+            '==': not qtutils.version_check(version, exact=True),
+            '>=': not qtutils.version_check(version),
+            '!=': qtutils.version_check(version, exact=True),
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
