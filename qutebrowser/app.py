@@ -133,7 +133,6 @@ def init(args, crash_handler):
     log.init.debug("Starting init...")
     qApp.setQuitOnLastWindowClosed(False)
     _init_icon()
-    utils.actute_warning()
 
     try:
         _init_modules(args, crash_handler)

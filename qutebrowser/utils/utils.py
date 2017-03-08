@@ -158,37 +158,6 @@ def resource_filename(filename):
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
 
 
-def actute_warning():
-    """Display a warning about the dead_actute issue if needed."""
-    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    # Non Linux OS' aren't affected
-    if not sys.platform.startswith('linux'):
-        return
-    # If no compose file exists for some reason, we're not affected
-    if not os.path.exists('/usr/share/X11/locale/en_US.UTF-8/Compose'):
-        return
-    # Qt >= 5.3 doesn't seem to be affected
-    try:
-        if qtutils.version_check('5.3'):
-            return
-    except ValueError:  # pragma: no cover
-        pass
-    try:
-        with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
-                  encoding='utf-8') as f:
-            for line in f:
-                if '<dead_actute>' in line:
-                    if sys.stdout is not None:
-                        sys.stdout.flush()
-                    print("Note: If you got a 'dead_actute' warning above, "
-                          "that is not a bug in qutebrowser! See "
-                          "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
-                          "for details.")
-                    break
-    except OSError:
-        log.init.exception("Failed to read Compose file")
-
-
 def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
     """Get a color which is percent% interpolated between start and end.
 
