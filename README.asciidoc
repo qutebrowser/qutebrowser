@@ -205,6 +205,7 @@ Contributors, sorted by the number of commits in descending order:
 * David Vogt
 * Claire Cavanaugh
 * rikn00
+* pkill9
 * kanikaa1234
 * haitaka
 * Nick Ginther
@@ -234,7 +235,6 @@ Contributors, sorted by the number of commits in descending order:
 * Ismail
 * Edgar Hipp
 * Daryl Finlay
-* pkill9
 * arza
 * adam
 * Samir Benmendil

@@ -17,6 +17,11 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v0.11.0 (unreleased)
 --------------------
 
+Added
+~~~~~
+
+- New `:clear-messages` command to clear shown messages.
+
 Changed
 ~~~~~~~
 

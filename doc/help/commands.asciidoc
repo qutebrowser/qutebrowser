@@ -995,6 +995,7 @@ How many steps to zoom out.
 |==============
 |Command|Description
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
+|<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
@@ -1058,6 +1059,10 @@ How many steps to zoom out.
 [[clear-keychain]]
 === clear-keychain
 Clear the currently entered key chain.
+
+[[clear-messages]]
+=== clear-messages
+Clear all message notifications.
 
 [[click-element]]
 === click-element
