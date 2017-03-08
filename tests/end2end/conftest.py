@@ -68,7 +68,7 @@ def _get_version_tag(tag):
     """
     version_re = re.compile(r"""
         (?P<package>qt|pyqt)
-        (?P<operator>==|>|>=|<|<=|!=)
+        (?P<operator>==|>=|!=)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
 
@@ -76,23 +76,24 @@ def _get_version_tag(tag):
     if not match:
         return None
 
-    operators = {
-        '==': operator.eq,
-        '>': operator.gt,
-        '<': operator.lt,
-        '>=': operator.ge,
-        '<=': operator.le,
-        '!=': operator.ne,
-    }
-
     package = match.group('package')
-    op = operators[match.group('operator')]
     version = match.group('version')
 
     if package == 'qt':
-        return pytest.mark.skipif(not qtutils.version_check(version, op),
-                                  reason='Needs ' + tag)
+        op = match.group('operator')
+        do_skip = {
+            '==': qtutils.version_check(version, exact=True),
+            '>=': qtutils.version_check(version),
+            '!=': not qtutils.version_check(version, exact=True),
+        }
+        return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
+        operators = {
+            '==': operator.eq,
+            '>=': operator.ge,
+            '!=': operator.ne,
+        }
+        op = operators[match.group('operator')]
         major, minor, patch = [int(e) for e in version.split('.')]
         hex_version = (major << 16) | (minor << 8) | patch
         return pytest.mark.skipif(not op(PYQT_VERSION, hex_version),

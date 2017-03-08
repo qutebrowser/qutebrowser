@@ -34,7 +34,6 @@ import sys
 import faulthandler
 import traceback
 import signal
-import operator
 import importlib
 import pkg_resources
 import datetime
@@ -264,14 +263,14 @@ def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
     from qutebrowser.utils import qtutils, version
-    if (qtutils.version_check('5.2.0', operator.lt, strict=True) or
+    if (not qtutils.version_check('5.2.0', strict=True) or
             PYQT_VERSION < 0x050200):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
                 "PyQt {} is installed.".format(version.qt_version(),
                                                PYQT_VERSION_STR))
         _die(text)
     elif (backend == 'webengine' and (
-            qtutils.version_check('5.7.1', operator.lt, strict=True) or
+            not qtutils.version_check('5.7.1', strict=True) or
             PYQT_VERSION < 0x050700)):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
                 "QtWebEngine support, but Qt {} / PyQt {} is installed."

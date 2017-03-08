@@ -169,7 +169,7 @@ def actute_warning():
         return
     # Qt >= 5.3 doesn't seem to be affected
     try:
-        if qtutils.version_check('5.3.0'):
+        if qtutils.version_check('5.3'):
             return
     except ValueError:  # pragma: no cover
         pass

@@ -80,20 +80,22 @@ class QtOSError(OSError):
             self.qt_errno = None
 
 
-def version_check(version, op=operator.ge, strict=False):
+def version_check(version, exact=False, strict=False):
     """Check if the Qt runtime version is the version supplied or newer.
 
     Args:
         version: The version to check against.
-        op: The operator to use for the check.
+        exact: if given, check with == instead of >=
         strict: If given, also check the compiled Qt version.
     """
-    if strict:
-        assert op in [operator.ge, operator.lt], op
+    # Catch code using the old API for this
+    assert exact not in [operator.gt, operator.lt, operator.ge, operator.le,
+                         operator.eq], exact
     parsed = pkg_resources.parse_version(version)
+    op = operator.eq if exact else operator.ge
     result = op(pkg_resources.parse_version(qVersion()), parsed)
-    if ((strict and op == operator.ge and result) or
-            (strict and op == operator.lt and not result)):
+    if strict and result:
+        # v1 ==/>= parsed, now check if v2 ==/>= parsed too.
         result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
     return result
 
@@ -160,7 +162,10 @@ def get_args(namespace):
 def check_print_compat():
     """Check if printing should work in the given Qt version."""
     # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    return not (os.name == 'nt' and version_check('5.3.0', operator.lt))
+    if os.name == 'nt':
+        return version_check('5.3')
+    else:
+        return True
 
 
 def ensure_valid(obj):

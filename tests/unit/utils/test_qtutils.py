@@ -42,21 +42,28 @@ from qutebrowser.utils import qtutils
 import overflow_test_cases
 
 
-@pytest.mark.parametrize('qversion, compiled, version, op, expected', [
-    ('5.4.0', None, '5.4.0', operator.ge, True),
-    ('5.4.0', None, '5.4.0', operator.eq, True),
-    ('5.4.0', None, '5.4', operator.eq, True),
-    ('5.4.1', None, '5.4', operator.ge, True),
-    ('5.3.2', None, '5.4', operator.ge, False),
-    ('5.3.0', None, '5.3.2', operator.ge, False),
-    # strict=True
-    ('5.4.0', '5.3.0', '5.4.0', operator.ge, False),
-    ('5.4.0', '5.4.0', '5.4.0', operator.ge, True),
-
-    ('5.4.0', '5.3.0', '5.4.0', operator.lt, True),
-    ('5.4.0', '5.4.0', '5.4.0', operator.lt, False),
+@pytest.mark.parametrize('qversion, compiled, version, exact, expected', [
+    # equal versions
+    ('5.4.0', None, '5.4.0', False, True),
+    ('5.4.0', None, '5.4.0', True, True),  # exact=True
+    ('5.4.0', None, '5.4', True, True),  # without trailing 0
+    # newer version installed
+    ('5.4.1', None, '5.4', False, True),
+    ('5.4.1', None, '5.4', True, False),  # exact=True
+    # older version installed
+    ('5.3.2', None, '5.4', False, False),
+    ('5.3.0', None, '5.3.2', False, False),
+    ('5.3.0', None, '5.3.2', True, False),  # exact=True
+    # strict
+    ('5.4.0', '5.3.0', '5.4.0', False, False),
+    ('5.4.0', '5.4.0', '5.4.0', False, True),
+    # strict and exact=True
+    ('5.4.0', '5.5.0', '5.4.0', True, False),
+    ('5.5.0', '5.4.0', '5.4.0', True, False),
+    ('5.4.0', '5.4.0', '5.4.0', True, True),
 ])
-def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
+def test_version_check(monkeypatch, qversion, compiled, version, exact,
+                       expected):
     """Test for version_check().
 
     Args:
@@ -64,7 +71,7 @@ def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
         qversion: The version to set as fake qVersion().
         compiled: The value for QT_VERSION_STR (set strict=True)
         version: The version to compare with.
-        op: The operator to use when comparing.
+        exact: Use exact comparing (==)
         expected: The expected result.
     """
     monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
@@ -74,7 +81,7 @@ def test_version_check(monkeypatch, qversion, compiled, version, op, expected):
     else:
         strict = False
 
-    assert qtutils.version_check(version, op, strict=strict) == expected
+    assert qtutils.version_check(version, exact, strict=strict) == expected
 
 
 @pytest.mark.parametrize('version, ng', [
