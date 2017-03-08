@@ -825,6 +825,12 @@ class TestGetSetClipboard:
     def test_get(self):
         assert utils.get_clipboard() == 'mocked clipboard text'
 
+    @pytest.mark.parametrize('selection', [True, False])
+    def test_get_empty(self, clipboard_mock, selection):
+        clipboard_mock.text.return_value = ''
+        with pytest.raises(utils.ClipboardEmptyError):
+            utils.get_clipboard(selection=selection)
+
     def test_get_unsupported_selection(self, clipboard_mock):
         clipboard_mock.supportsSelection.return_value = False
         with pytest.raises(utils.SelectionUnsupportedError):
