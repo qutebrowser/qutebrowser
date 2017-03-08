@@ -22,7 +22,6 @@
 import io
 import os
 import sys
-import operator
 import os.path
 try:
     # pylint: disable=no-name-in-module,useless-suppression
