@@ -58,11 +58,11 @@ class TestJavascriptHandler:
 
         assert data == content
 
-    def test_qutejavascript_error(self):
+    def test_qutejavascript_404(self):
         url = QUrl("qute://javascript/404.js")
 
-        with pytest.raises(OSError):
-            qutescheme.qute_javascript(url)
+        with pytest.raises(qutescheme.QuteSchemeOSError):
+            qutescheme.data_for_url(url)
 
     def test_qutejavascript_empty_query(self):
         url = QUrl("qute://javascript")
