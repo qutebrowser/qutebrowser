@@ -47,7 +47,7 @@ class TestJavascriptHandler:
             for filename, content in self.js_files:
                 if path == os.path.join('javascript', filename):
                     return content
-            raise IOError("File not found {}!".format(path))
+            raise OSError("File not found {}!".format(path))
 
         monkeypatch.setattr('qutebrowser.utils.utils.read_file', _read_file)
 
@@ -61,7 +61,7 @@ class TestJavascriptHandler:
     def test_qutejavascript_error(self):
         url = QUrl("qute://javascript/404.js")
 
-        with pytest.raises(IOError):
+        with pytest.raises(OSError):
             qutescheme.qute_javascript(url)
 
     def test_qutejavascript_empty_query(self):
