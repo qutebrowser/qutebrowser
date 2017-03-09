@@ -152,7 +152,7 @@ window.loadHistory = (function() {
      * @returns {void}
      */
     function receiveHistory(status, history) {
-        if (history === undefined) {
+        if (history === null) {
             return;
         }
 
