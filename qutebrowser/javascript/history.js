@@ -46,8 +46,8 @@ window.loadHistory = (function() {
      */
     function getSessionNode(date) {
         // Find/create table
-        var tableId = "hist-".concat(date.getDate(), date.getMonth(),
-            date.getYear());
+        var tableId = ["hist", date.getDate(), date.getMonth(),
+            date.getYear()].join("-");
         var table = document.getElementById(tableId);
         if (table === null) {
             table = document.createElement("table");
