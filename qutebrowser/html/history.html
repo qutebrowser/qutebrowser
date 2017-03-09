@@ -65,11 +65,13 @@ table {
 </noscript>
 <div id="hist-container"></div>
 <span id="eof" style="display: none">end</span>
-<a href="#" id="load">Show more</a>
+<a href="#" id="load" style="display: none">Show more</a>
 <script type="text/javascript" src="qute://javascript/history.js"></script>
 <script type="text/javascript">
     window.onload = function() {
-        document.getElementById('load').addEventListener('click', function(ev) {
+        var loadLink = document.getElementById('load');
+        loadLink.style.display = null;
+        loadLink.addEventListener('click', function(ev) {
             ev.preventDefault();
             window.loadHistory();
         });
