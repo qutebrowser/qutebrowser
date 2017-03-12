@@ -407,10 +407,6 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Show a filebrowser in upload/download prompts."),
 
-            ('clear-messages-on-click',
-             SettingValue(typ.Bool(), 'false'),
-             "Whether to clear message notifications when they are clicked."),
-
             readonly=readonly
         )),
 
