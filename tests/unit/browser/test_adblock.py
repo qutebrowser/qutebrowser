@@ -342,8 +342,8 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, caplog, location):
         with caplog.at_level(logging.ERROR):
             finished_signal.emit()
         expected = (r"Failed to decode: "
-                    r"b'https://www.example.org/\xa0localhost\n'")
-        assert caplog.records[-2].message == expected
+                    r"b'https://www.example.org/\xa0localhost")
+        assert caplog.records[-2].message.startswith(expected)
     else:
         finished_signal.emit()
 
