@@ -367,7 +367,7 @@ class IPCServer(QObject):
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
         if self._socket is None:  # pragma: no cover
-            log.ipc.error("on_timeout got called with None socket!")
+            log.ipc.debug("on_timeout got called with None socket!")
             return
         log.ipc.error("IPC connection timed out "
                       "(socket 0x{:x}).".format(id(self._socket)))
