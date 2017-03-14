@@ -1438,6 +1438,8 @@ Syntax: +:scroll 'direction'+
 
 Scroll the current tab in the given direction.
 
+Note you can use `:run-with-count` to have a keybinding with a bigger scroll increment.
+
 ==== positional arguments
 * +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).
 

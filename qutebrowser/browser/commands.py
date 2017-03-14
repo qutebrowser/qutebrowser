@@ -595,6 +595,9 @@ class CommandDispatcher:
     def scroll(self, direction: typing.Union[str, int], count=1):
         """Scroll the current tab in the given direction.
 
+        Note you can use `:run-with-count` to have a keybinding with a bigger
+        scroll increment.
+
         Args:
             direction: In which direction to scroll
                        (up/down/left/right/top/bottom).

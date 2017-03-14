@@ -351,7 +351,8 @@ def data(readonly=False):
 
             ('smooth-scrolling',
              SettingValue(typ.Bool(), 'false'),
-             "Whether to enable smooth scrolling for webpages."),
+             "Whether to enable smooth scrolling for web pages. Note smooth "
+             "scrolling does not work with the :scroll-px command."),
 
             ('remove-finished-downloads',
              SettingValue(typ.Int(minval=-1), '-1'),

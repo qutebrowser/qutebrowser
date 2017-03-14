@@ -48,7 +48,7 @@
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
 |<<ui-hide-scrollbar,hide-scrollbar>>|Hide the main scrollbar.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
-|<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
+|<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages. Note smooth scrolling does not work with the :scroll-px command.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Number of milliseconds to wait before removing finished downloads. Will not be removed if value is -1.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
@@ -655,7 +655,7 @@ This setting is only available with the QtWebKit backend.
 
 [[ui-smooth-scrolling]]
 === smooth-scrolling
-Whether to enable smooth scrolling for webpages.
+Whether to enable smooth scrolling for webpages. Note smooth scrolling does not work with the :scroll-px command.
 
 Valid values:
 
