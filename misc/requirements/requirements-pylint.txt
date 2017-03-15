@@ -10,4 +10,4 @@ pylint==1.6.5
 requests==2.13.0
 uritemplate==3.0.0
 uritemplate.py==3.0.2
-wrapt==1.10.8
+wrapt==1.10.10
