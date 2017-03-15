@@ -28,6 +28,12 @@ Changed
 - When using QtWebEngine, the underlying Chromium version is now shown in the
   version info.
 
+Fixed
+~~~~~
+
+- Added a workaround for a black screen with QtWebEngine with some setups
+  (requires PyOpenGL to be installed)
+
 v0.10.1
 -------
 
