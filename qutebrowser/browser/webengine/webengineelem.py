@@ -161,11 +161,11 @@ class WebEngineElement(webelem.AbstractWebElement):
         # pylint doesn't know about Qt.MouseEventSynthesizedBySystem
         # because it was added in Qt 5.6, but we can be sure we use that with
         # QtWebEngine.
-        # pylint: disable=no-member
+        # pylint: disable=no-member,useless-suppression
         ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
                          QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
                          Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
-        # pylint: enable=no-member
+        # pylint: enable=no-member,useless-suppression
         self._tab.send_event(ev)
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')

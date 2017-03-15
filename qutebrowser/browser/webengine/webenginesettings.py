@@ -166,7 +166,7 @@ def init(args):
         # Hide "No OpenGL_accelerate module loaded: ..." message
         logging.getLogger('OpenGL.acceleratesupport').propagate = False
         try:
-            from OpenGL import GL
+            from OpenGL import GL  # pylint: disable=unused-variable
         except ImportError:
             pass
         else:
