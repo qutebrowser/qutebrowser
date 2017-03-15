@@ -17,7 +17,7 @@ Mako==1.0.6
 parse==1.8.0
 parse-type==0.3.4
 py==1.4.32
-pytest==3.0.6
+pytest==3.0.7
 pytest-bdd==2.18.1
 pytest-benchmark==3.0.0
 pytest-catchlog==1.2.2
