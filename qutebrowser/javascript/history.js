@@ -26,9 +26,6 @@ window.loadHistory = (function() {
     // The time to load next.
     var nextTime = null;
 
-    // The cutoff interval for session-separator (30 minutes in milliseconds).
-    var SESSION_CUTOFF = 30 * 60 * 1000;
-
     // The URL to fetch data from.
     var DATA_URL = "qute://history/data";
 
@@ -77,9 +74,10 @@ window.loadHistory = (function() {
         }
 
         // Create session-separator and new tbody if necessary
-        if (tbody.lastChild !== null && lastItemDate !== null) {
+        if (tbody.lastChild !== null && lastItemDate !== null &&
+                window.SESSION_INTERVAL > 0) {
             var interval = lastItemDate.getTime() - date.getTime();
-            if (interval > SESSION_CUTOFF) {
+            if (interval > window.SESSION_INTERVAL) {
                 // Add session-separator
                 var sessionSeparator = document.createElement("td");
                 sessionSeparator.className = "session-separator";

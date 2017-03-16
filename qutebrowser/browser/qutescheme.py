@@ -33,6 +33,7 @@ import urllib.parse
 from PyQt5.QtCore import QUrlQuery
 
 import qutebrowser
+from qutebrowser.config import config
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
 from qutebrowser.misc import objects
@@ -246,7 +247,8 @@ def qute_history(url):
 
         return 'text/html', json.dumps(list(history))
     else:
-        return 'text/html', jinja.render('history.html', title='History')
+        return 'text/html', jinja.render('history.html', title='History',
+                session_interval=config.get('ui', 'history-session-interval'))
 
 
 @add_handler('javascript')
