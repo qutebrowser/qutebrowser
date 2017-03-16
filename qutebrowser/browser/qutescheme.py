@@ -218,7 +218,7 @@ def qute_history(url):
             # Use item's url as title if there's no title.
             item_url = item.url.toDisplayString()
             item_title = item.title if item.title else item_url
-            item_time = int(item.atime)
+            item_time = int(item.atime * 1000)
 
             yield {"url": item_url, "title": item_title, "time": item_time}
 

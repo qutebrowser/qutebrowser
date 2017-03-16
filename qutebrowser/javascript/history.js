@@ -20,14 +20,14 @@
 "use strict";
 
 window.loadHistory = (function() {
-    // The time of last history item.
-    var lastTime = null;
+    // Date of last seen item.
+    var lastItemDate = null;
 
     // The time to load next.
     var nextTime = null;
 
-    // The cutoff interval for session-separator (30 minutes)
-    var SESSION_CUTOFF = 30 * 60;
+    // The cutoff interval for session-separator (30 minutes in milliseconds).
+    var SESSION_CUTOFF = 30 * 60 * 1000;
 
     // The URL to fetch data from.
     var DATA_URL = "qute://history/data";
@@ -77,9 +77,8 @@ window.loadHistory = (function() {
         }
 
         // Create session-separator and new tbody if necessary
-        if (tbody.lastChild !== null && lastTime !== null) {
-            var lastItemDate = new Date(lastTime * 1000);
-            var interval = (lastItemDate.getTime() - date.getTime()) / 1000.00;
+        if (tbody.lastChild !== null && lastItemDate !== null) {
+            var interval = lastItemDate.getTime() - date.getTime();
             if (interval > SESSION_CUTOFF) {
                 // Add session-separator
                 var sessionSeparator = document.createElement("td");
@@ -158,12 +157,11 @@ window.loadHistory = (function() {
 
         for (var i = 0, len = history.length - 1; i < len; i++) {
             var item = history[i];
-            var atime = new Date(item.time * 1000);
-            var session = getSessionNode(atime);
-            var row = makeHistoryRow(item.url, item.title,
-                atime.toLocaleTimeString());
-            session.appendChild(row);
-            lastTime = item.time;
+            var currentItemDate = new Date(item.time);
+            getSessionNode(currentItemDate).appendChild(makeHistoryRow(
+                item.url, item.title, currentItemDate.toLocaleTimeString()
+            ));
+            lastItemDate = currentItemDate;
         }
 
         var next = history[history.length - 1].next;

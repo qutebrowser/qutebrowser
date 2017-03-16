@@ -130,8 +130,8 @@ class TestHistoryHandler:
         # test times
         end_time = start_time - 24*60*60
         for item in items:
-            assert item['time'] <= start_time
-            assert item['time'] > end_time
+            assert item['time'] <= start_time * 1000
+            assert item['time'] > end_time * 1000
 
     @pytest.mark.parametrize("start_time_offset, next_time", [
         (0, 24*60*60),
