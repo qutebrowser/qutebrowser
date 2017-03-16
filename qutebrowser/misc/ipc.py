@@ -37,7 +37,7 @@ from qutebrowser.utils import log, usertypes, error, objreg, standarddir
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
-ATIME_INTERVAL = 60 * 60 * 6 * 1000  # 6 hours
+ATIME_INTERVAL = 60 * 60 * 3 * 1000  # 3 hours
 PROTOCOL_VERSION = 1
 
 
