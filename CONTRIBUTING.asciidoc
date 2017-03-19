@@ -546,6 +546,25 @@ Rebuilding the website
 
 If you want to rebuild the website, run `./scripts/asciidoc2html.py --website <outputdir>`.
 
+Chrome URLs
+~~~~~~~~~~~
+
+Qutebrowser supports several chrome urls.  A short list of them can be found here:
+
+chrome://appcache-internals/
+chrome://blob-internals/
+chrome://gpu/
+chrome://histograms/
+chrome://indexeddb-internals/
+chrome://media-internals/
+chrome://network-errors/
+chrome://serviceworker-internals/
+chrome://webrtc-internals/
+chrome://crash/
+chrome://kill/
+chrome://gpucrash/ 
+chrome://gpuhang/
+
 
 Style conventions
 -----------------
