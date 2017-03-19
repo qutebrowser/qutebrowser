@@ -1,11 +1,12 @@
 beautifulsoup4
-CherryPy
+cheroot
 coverage
 Flask
 httpbin
 hypothesis
 pytest
 pytest-bdd
+pytest-benchmark
 pytest-catchlog
 pytest-cov
 pytest-faulthandler

@@ -3,7 +3,8 @@ Feature: Page history
     Make sure the global page history is saved correctly.
 
     Background:
-        Given I run :history-clear
+        Given I open about:blank
+        And I run :history-clear --force
 
     Scenario: Simple history saving
         When I open data/numbers/1.txt
@@ -49,13 +50,21 @@ Feature: Page history
             http://localhost:(port)/status/404 Error loading page: http://localhost:(port)/status/404
 
     Scenario: History with invalid URL
-        When I open data/javascript/window_open.html
+        When I run :tab-only
+        And I open data/javascript/window_open.html
         And I run :click-element id open-invalid
         Then "Changing title for idx 1 to 'about:blank'" should be logged
 
     Scenario: Clearing history
         When I open data/title.html
+        And I run :history-clear --force
+        Then the history file should be empty
+
+    Scenario: Clearing history with confirmation
+        When I open data/title.html
         And I run :history-clear
+        And I wait for "Asking question <* title='Clear all browsing history?'>, *" in the log
+        And I run :prompt-accept yes
         Then the history file should be empty
 
     Scenario: History with yanked URL and 'add to history' flag
@@ -65,9 +74,16 @@ Feature: Page history
             http://localhost:(port)/data/hints/html/simple.html Simple link
             http://localhost:(port)/data/hello.txt
 
+    Scenario: Listing history
+        When I open data/numbers/3.txt
+        And I open data/numbers/4.txt
+        And I open qute:history
+        Then the page should contain the plaintext "3.txt"
+        Then the page should contain the plaintext "4.txt"
+
     ## Bugs
 
-    @qtwebengine_skip
+    @qtwebengine_skip @qtwebkit_ng_skip
     Scenario: Opening a valid URL which turns out invalid
         When I set general -> auto-search to true
         And I run :open http://foo%40bar@baz

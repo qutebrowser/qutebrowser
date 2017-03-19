@@ -136,7 +136,7 @@ class TestConfigParser:
 
         This is done during interpolation in later Python 3.4 versions.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/968
+        See https://github.com/qutebrowser/qutebrowser/issues/968
         """
         assert objects.cfg.get('general', 'blabla', fallback='blub') == 'blub'
 
@@ -247,7 +247,7 @@ class TestKeyConfigParser:
     def test_cmd_binding(self, cmdline_test, config_stub, tmpdir):
         """Test various command bindings.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/615
+        See https://github.com/qutebrowser/qutebrowser/issues/615
 
         Args:
             cmdline_test: A pytest fixture which provides testcases.
@@ -281,9 +281,9 @@ class TestKeyConfigParser:
             ('download-page', 'download'),
             ('cancel-download', 'download-cancel'),
 
-            ('search ""', 'clear-keychain ;; search'),
-            ("search ''", 'clear-keychain ;; search'),
-            ("search", 'clear-keychain ;; search'),
+            ('search ""', 'clear-keychain ;; search ;; fullscreen --leave'),
+            ("search ''", 'clear-keychain ;; search ;; fullscreen --leave'),
+            ("search", 'clear-keychain ;; search ;; fullscreen --leave'),
             ("search ;; foobar", None),
             ('search "foo"', None),
 
@@ -305,11 +305,16 @@ class TestKeyConfigParser:
             ('scroll 0 0', 'scroll-px 0 0'),
             ('scroll 23 42', 'scroll-px 23 42'),
 
-            ('search ;; clear-keychain', 'clear-keychain ;; search'),
-            ('search;;clear-keychain', 'clear-keychain ;; search'),
+            ('search ;; clear-keychain',
+                'clear-keychain ;; search ;; fullscreen --leave'),
+            ('search;;clear-keychain',
+                'clear-keychain ;; search ;; fullscreen --leave'),
             ('search;;foo', None),
-            ('clear-keychain ;; leave-mode', 'leave-mode'),
+            ('clear-keychain ;; search',
+                'clear-keychain ;; search ;; fullscreen --leave'),
             ('leave-mode ;; foo', None),
+            ('search ;; clear-keychain',
+                'clear-keychain ;; search ;; fullscreen --leave'),
 
             ('download-remove --all', 'download-clear'),
 
@@ -403,7 +408,7 @@ class TestDefaultConfig:
         If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
         and then increment the version.
         """
-        assert qutebrowser.__version__ == '0.8.4'
+        assert qutebrowser.__version__ == '0.10.1'
 
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),

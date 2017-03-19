@@ -6,6 +6,7 @@ exclude = .*,__pycache__,resources.py
 # E501: Line too long
 # E402: module level import not at top of file
 # E266: too many leading '#' for block comment
+# E722: do not use bare except
 # E731: do not assign a lambda expression, use a def
 #       (for pytest's __tracebackhide__)
 # F401: Unused import
@@ -24,7 +25,7 @@ exclude = .*,__pycache__,resources.py
 # D403: First word of the first line should be properly capitalized
 #       (false-positives)
 ignore =
-    E128,E226,E265,E501,E402,E266,E731,
+    E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
     N802,
     P101,P102,P103,

@@ -31,8 +31,10 @@ import pytest_faulthandler
 import pytest_xvfb
 import pytest_rerunfailures
 import pytest_warnings
+import pytest_benchmark.plugin
 
 sys.exit(pytest.main(plugins=[pytestqt.plugin, pytest_mock,
                               pytest_catchlog, pytest_instafail,
                               pytest_faulthandler, pytest_xvfb,
-                              pytest_rerunfailures, pytest_warnings]))
+                              pytest_rerunfailures, pytest_warnings,
+                              pytest_benchmark.plugin]))

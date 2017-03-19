@@ -14,9 +14,10 @@ Feature: Opening pages
                 - active: true
                   url: http://localhost:*/data/numbers/1.txt
 
-    Scenario: :open without URL and no -t/-b/-w
-        When I run :open
-        Then the error "No URL given, but -t/-b/-w is not set!" should be shown
+    Scenario: :open without URL
+        When I set general -> default-page to http://localhost:(port)/data/numbers/11.txt
+        And I run :open
+        Then data/numbers/11.txt should be loaded
 
     Scenario: :open without URL and -t
         When I set general -> default-page to http://localhost:(port)/data/numbers/2.txt

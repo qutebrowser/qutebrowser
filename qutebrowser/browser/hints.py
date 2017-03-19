@@ -101,7 +101,7 @@ class HintLabel(QLabel):
             unmatched: The part of the text which was not typed yet.
         """
         if (config.get('hints', 'uppercase') and
-                self._context.hint_mode == 'letter'):
+                self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
         else:
@@ -235,7 +235,10 @@ class HintActions:
         sel = (context.target == Target.yank_primary and
                utils.supports_selection())
 
-        urlstr = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+        flags = QUrl.FullyEncoded | QUrl.RemovePassword
+        if url.scheme() == 'mailto':
+            flags |= QUrl.RemoveScheme
+        urlstr = url.toString(flags)
         utils.set_clipboard(urlstr, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(
@@ -284,11 +287,13 @@ class HintActions:
 
         prompt = False if context.rapid else None
         qnam = context.tab.networkaccessmanager()
+        user_agent = context.tab.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
-        download_manager.get(url, qnam=qnam, prompt_download_directory=prompt)
+        download_manager.get(url, qnam=qnam, user_agent=user_agent,
+                             prompt_download_directory=prompt)
 
     def call_userscript(self, elem, context):
         """Call a userscript from a hint.
@@ -311,7 +316,7 @@ class HintActions:
         try:
             userscripts.run_async(context.tab, cmd, *args, win_id=self._win_id,
                                   env=env)
-        except userscripts.UnsupportedError as e:
+        except userscripts.Error as e:
             raise HintingError(str(e))
 
     def spawn(self, url, context):
@@ -567,6 +572,10 @@ class HintManager(QObject):
 
     def _start_cb(self, elems):
         """Initialize the elements and labels based on the context set."""
+        if self._context is None:
+            log.hints.debug("In _start_cb without context!")
+            return
+
         if elems is None:
             message.error("There was an error while getting hint elements")
             return
@@ -750,6 +759,9 @@ class HintManager(QObject):
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
+        if self._context is None:
+            log.hints.debug("Got key without context!")
+            return
         log.hints.debug("Handling new keystring: '{}'".format(keystr))
         for string, label in self._context.labels.items():
             try:

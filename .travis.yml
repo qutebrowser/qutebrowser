@@ -13,15 +13,30 @@ matrix:
       env: DOCKER=archlinux
       services: docker
     - os: linux
-      env: DOCKER=archlinux QUTE_BDD_WEBENGINE=true
+      env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
+      services: docker
+    - os: linux
+      env: DOCKER=archlinux-ng
       services: docker
     - os: linux
       env: DOCKER=ubuntu-xenial
       services: docker
+    - os: linux
+      language: python
+      python: 3.6
+      env: TESTENV=py36-pyqt571
+    - os: linux
+      language: python
+      python: 3.5
+      env: TESTENV=py35-pyqt58
+    - os: linux
+      language: python
+      python: 3.6
+      env: TESTENV=py36-pyqt58
     - os: osx
-      env: TESTENV=py35 OSX=elcapitan
+      env: TESTENV=py36 OSX=elcapitan
       osx_image: xcode7.3
-    # https://github.com/The-Compiler/qutebrowser/issues/2013
+    # https://github.com/qutebrowser/qutebrowser/issues/2013
     # - os: osx
     #   env: TESTENV=py35 OSX=yosemite
     #   osx_image: xcode6.4
@@ -43,14 +58,14 @@ matrix:
       env: TESTENV=eslint
   allow_failures:
     - os: osx
-      env: TESTENV=py35 OSX=elcapitan
+      env: TESTENV=py36 OSX=elcapitan
       osx_image: xcode7.3
   fast_finish: true
 
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/build/The-Compiler/qutebrowser/.cache
+    - $HOME/build/qutebrowser/qutebrowser/.cache
 
 before_install:
   # We need to do this so we pick up the system-wide python properly
@@ -58,12 +73,16 @@ before_install:
 
 install:
   - bash scripts/dev/ci/travis_install.sh
+  - ulimit -c unlimited
 
 script:
   - bash scripts/dev/ci/travis_run.sh
 
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
+
+after_failure:
+  - bash scripts/dev/ci/travis_backtrace.sh
 
 notifications:
   webhooks:

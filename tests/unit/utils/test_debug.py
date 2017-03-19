@@ -157,7 +157,7 @@ class TestQFlagsKey:
 
     """Tests for qutebrowser.utils.debug.qflags_key.
 
-    https://github.com/The-Compiler/qutebrowser/issues/42
+    https://github.com/qutebrowser/qutebrowser/issues/42
     """
 
     fixme = pytest.mark.xfail(reason="See issue #42", raises=AssertionError)

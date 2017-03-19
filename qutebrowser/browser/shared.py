@@ -66,6 +66,7 @@ def authentication_required(url, authenticator, abort_on):
     if answer is not None:
         authenticator.setUser(answer.user)
         authenticator.setPassword(answer.password)
+    return answer
 
 
 def javascript_confirm(url, js_msg, abort_on):
@@ -157,7 +158,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         log.webview.debug("ssl-strict is False, only warning about errors")
         for err in errors:
             # FIXME we might want to use warn here (non-fatal error)
-            # https://github.com/The-Compiler/qutebrowser/issues/114
+            # https://github.com/qutebrowser/qutebrowser/issues/114
             message.error('Certificate error: {}'.format(err))
         return True
     elif ssl_strict is True:

@@ -28,6 +28,7 @@ from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.misc import objects
 
 
 class KeyEvent:
@@ -265,6 +266,16 @@ class ModeManager(QObject):
             m = usertypes.KeyMode[mode]
         except KeyError:
             raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
+
+        if m in [usertypes.KeyMode.hint, usertypes.KeyMode.command,
+                 usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
+            raise cmdexc.CommandError(
+                "Mode {} can't be entered manually!".format(mode))
+        elif (m == usertypes.KeyMode.caret and
+              objects.backend == usertypes.Backend.QtWebEngine):
+            raise cmdexc.CommandError("Caret mode is not supported with "
+                                      "QtWebEngine yet.")
+
         self.enter(m, 'command')
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
@@ -288,7 +299,7 @@ class ModeManager(QObject):
         log.modes.debug("Leaving mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         # leaving a mode implies clearing keychain, see
-        # https://github.com/The-Compiler/qutebrowser/issues/1805
+        # https://github.com/qutebrowser/qutebrowser/issues/1805
         self.clear_keychain()
         self.mode = usertypes.KeyMode.normal
         self.left.emit(mode, self.mode, self._win_id)

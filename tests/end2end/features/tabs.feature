@@ -255,17 +255,6 @@ Feature: Tab management
             - data/numbers/2.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-focus with count 0
-        When I open data/numbers/1.txt
-        And I open data/numbers/2.txt in a new tab
-        And I open data/numbers/3.txt in a new tab
-        And I run :tab-focus with count 1
-        And I run :tab-focus with count 0
-        Then the following tabs should be open:
-            - data/numbers/1.txt
-            - data/numbers/2.txt
-            - data/numbers/3.txt (active)
-
     Scenario: :tab-focus with invalid negative index
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -615,6 +604,13 @@ Feature: Tab management
                 - url: http://localhost:*/data/title.html
                   title: Test title
 
+    # https://github.com/qutebrowser/qutebrowser/issues/2289
+    @qtwebkit_skip @qt>=5.8
+    Scenario: Cloning a tab with a special URL
+        When I open chrome://gpu
+        And I run :tab-clone
+        Then the error "Can't serialize special URL!" should be shown
+
     # :tab-detach
 
     Scenario: Detaching a tab
@@ -769,6 +765,18 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
+
+    # https://github.com/qutebrowser/qutebrowser/issues/2289
+    @qtwebkit_skip @qt>=5.8
+    Scenario: Undoing a tab with a special URL
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open chrome://gpu in a new tab
+        And I run :tab-close
+        And I run :undo
+        Then the error "Nothing to undo!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active)
 
     # last-close
 
@@ -928,6 +936,7 @@ Feature: Tab management
         And I run :buffer "99/1"
         Then the error "There's no window with id 99!" should be shown
 
+    @qtwebengine_flaky
     Scenario: :buffer with matching window index
         Given I have a fresh instance
         When I open data/title.html
@@ -984,6 +993,8 @@ Feature: Tab management
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
 
+    # Other
+
     Scenario: Using :tab-next after closing last tab (#1448)
         When I set tabs -> last-close to close
         And I run :tab-only
@@ -997,6 +1008,21 @@ Feature: Tab management
         And I run :tab-close ;; tab-prev
         Then qutebrowser should quit
         And no crash should happen
+
+    Scenario: Opening link with tabs-are-windows set (#2162)
+        When I set tabs -> tabs-are-windows to true
+        And I open data/hints/html/simple.html
+        And I hint with args "all tab-fg" and follow a
+        And I wait until data/hello.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/hints/html/simple.html
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/hello.txt
 
     # :tab-pin
 

@@ -19,9 +19,3 @@
 
 import pytest_bdd as bdd
 bdd.scenarios('set.feature')
-
-
-@bdd.then(bdd.parsers.parse("{section} -> {option} should be {value}"))
-def check_option(quteproc, section, option, value):
-    actual_value = quteproc.get_setting(section, option)
-    assert actual_value == value

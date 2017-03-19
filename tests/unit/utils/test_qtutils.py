@@ -22,7 +22,6 @@
 import io
 import os
 import sys
-import operator
 import os.path
 try:
     # pylint: disable=no-name-in-module,useless-suppression
@@ -42,26 +41,55 @@ from qutebrowser.utils import qtutils
 import overflow_test_cases
 
 
-@pytest.mark.parametrize('qversion, version, op, expected', [
-    ('5.4.0', '5.4.0', operator.ge, True),
-    ('5.4.0', '5.4.0', operator.eq, True),
-    ('5.4.0', '5.4', operator.eq, True),
-    ('5.4.1', '5.4', operator.ge, True),
-    ('5.3.2', '5.4', operator.ge, False),
-    ('5.3.0', '5.3.2', operator.ge, False),
+@pytest.mark.parametrize('qversion, compiled, version, exact, expected', [
+    # equal versions
+    ('5.4.0', None, '5.4.0', False, True),
+    ('5.4.0', None, '5.4.0', True, True),  # exact=True
+    ('5.4.0', None, '5.4', True, True),  # without trailing 0
+    # newer version installed
+    ('5.4.1', None, '5.4', False, True),
+    ('5.4.1', None, '5.4', True, False),  # exact=True
+    # older version installed
+    ('5.3.2', None, '5.4', False, False),
+    ('5.3.0', None, '5.3.2', False, False),
+    ('5.3.0', None, '5.3.2', True, False),  # exact=True
+    # strict
+    ('5.4.0', '5.3.0', '5.4.0', False, False),
+    ('5.4.0', '5.4.0', '5.4.0', False, True),
+    # strict and exact=True
+    ('5.4.0', '5.5.0', '5.4.0', True, False),
+    ('5.5.0', '5.4.0', '5.4.0', True, False),
+    ('5.4.0', '5.4.0', '5.4.0', True, True),
 ])
-def test_version_check(monkeypatch, qversion, version, op, expected):
+def test_version_check(monkeypatch, qversion, compiled, version, exact,
+                       expected):
     """Test for version_check().
 
     Args:
         monkeypatch: The pytest monkeypatch fixture.
         qversion: The version to set as fake qVersion().
+        compiled: The value for QT_VERSION_STR (set strict=True)
         version: The version to compare with.
-        op: The operator to use when comparing.
+        exact: Use exact comparing (==)
         expected: The expected result.
     """
-    monkeypatch.setattr('qutebrowser.utils.qtutils.qVersion', lambda: qversion)
-    assert qtutils.version_check(version, op) == expected
+    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
+    if compiled is not None:
+        monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
+        strict = True
+    else:
+        strict = False
+
+    assert qtutils.version_check(version, exact, strict=strict) == expected
+
+
+@pytest.mark.parametrize('version, ng', [
+    ('537.21', False),  # QtWebKit 5.1
+    ('538.1', False),   # Qt 5.8
+    ('602.1', True)     # QtWebKit-NG TP5
+])
+def test_is_qtwebkit_ng(version, ng):
+    assert qtutils.is_qtwebkit_ng(version) == ng
 
 
 class TestCheckOverflow:
@@ -108,10 +136,16 @@ class TestGetQtArgs:
         # No Qt arguments
         (['--debug'], [sys.argv[0]]),
         # Qt flag
-        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '-reverse']),
+        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '--reverse']),
         # Qt argument with value
         (['--qt-arg', 'stylesheet', 'foo'],
-         [sys.argv[0], '-stylesheet', 'foo']),
+         [sys.argv[0], '--stylesheet', 'foo']),
+        # --qt-arg given twice
+        (['--qt-arg', 'stylesheet', 'foo', '--qt-arg', 'geometry', 'bar'],
+         [sys.argv[0], '--stylesheet', 'foo', '--geometry', 'bar']),
+        # --qt-flag given twice
+        (['--qt-flag', 'foo', '--qt-flag', 'bar'],
+         [sys.argv[0], '--foo', '--bar']),
     ])
     def test_qt_args(self, args, expected, parser):
         """Test commandline with no Qt arguments given."""
@@ -124,8 +158,8 @@ class TestGetQtArgs:
                                   '--qt-flag', 'reverse'])
         qt_args = qtutils.get_args(args)
         assert qt_args[0] == sys.argv[0]
-        assert '-reverse' in qt_args
-        assert '-stylesheet' in qt_args
+        assert '--reverse' in qt_args
+        assert '--stylesheet' in qt_args
         assert 'foobar' in qt_args
 
 
@@ -144,8 +178,8 @@ def test_check_print_compat(os_name, qversion, expected, monkeypatch):
         qversion: The fake qVersion() to set.
         expected: The expected return value.
     """
-    monkeypatch.setattr('qutebrowser.utils.qtutils.os.name', os_name)
-    monkeypatch.setattr('qutebrowser.utils.qtutils.qVersion', lambda: qversion)
+    monkeypatch.setattr(qtutils.os, 'name', os_name)
+    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
     assert qtutils.check_print_compat() == expected
 
 
@@ -506,7 +540,7 @@ class TestSavefileOpen:
     def test_line_endings(self, tmpdir):
         """Make sure line endings are translated correctly.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/309
+        See https://github.com/qutebrowser/qutebrowser/issues/309
         """
         filename = tmpdir / 'foo'
         with qtutils.savefile_open(str(filename)) as f:

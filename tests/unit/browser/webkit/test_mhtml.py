@@ -87,7 +87,7 @@ def test_quoted_printable_umlauts(checker):
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        Die=20s=FC=DFe=20H=FCndin=20l=E4uft=20in=20die=20H=F6hle=20des=20B=E4ren
+        Die s=FC=DFe H=FCndin l=E4uft in die H=F6hle des B=E4ren
         -----=_qute-UUID--
         """)
 
@@ -128,7 +128,7 @@ def test_file_encoded_as_base64(checker):
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        Image=20file=20attached
+        Image file attached
         -----=_qute-UUID
         Content-Location: http://a.example.com/image.png
         MIME-Version: 1.0
@@ -175,56 +175,56 @@ def test_files_appear_sorted(checker):
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        root=20file
+        root file
         -----=_qute-UUID
         Content-Location: http://a.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20a
+        file a
         -----=_qute-UUID
         Content-Location: http://b.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20b
+        file b
         -----=_qute-UUID
         Content-Location: http://g.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20g
+        file g
         -----=_qute-UUID
         Content-Location: http://h.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20h
+        file h
         -----=_qute-UUID
         Content-Location: http://i.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20i
+        file i
         -----=_qute-UUID
         Content-Location: http://t.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20t
+        file t
         -----=_qute-UUID
         Content-Location: http://z.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20z
+        file z
         -----=_qute-UUID--
         """)
 
@@ -251,7 +251,7 @@ def test_empty_content_type(checker):
         Content-Location: http://example.com/file
         Content-Transfer-Encoding: quoted-printable
 
-        file=20content
+        file content
         -----=_qute-UUID--
         """)
 
@@ -281,6 +281,28 @@ def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
     urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()
     assert urls == expected_urls
+
+
+def test_quoted_printable_spaces(checker):
+    content = b' ' * 100
+    writer = mhtml.MHTMLWriter(root_content=content,
+                               content_location='localhost',
+                               content_type='text/plain')
+    writer.write_to(checker.fp)
+    checker.expect("""
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
+
+        -----=_qute-UUID
+        Content-Location: localhost
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
+
+        {}=
+        {}=20
+        -----=_qute-UUID--
+        """.format(' ' * 75, ' ' * 24))
 
 
 class TestNoCloseBytesIO:

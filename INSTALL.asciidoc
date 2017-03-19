@@ -21,11 +21,11 @@ Using the packages
 Install the dependencies via apt-get:
 
 ----
-# apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-sip python3-jinja2 python3-pygments python3-yaml
+# apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python3-sip python3-jinja2 python3-pygments python3-yaml
 ----
 
 Get the qutebrowser package from the
-https://github.com/The-Compiler/qutebrowser/releases[release page] and download
+https://github.com/qutebrowser/qutebrowser/releases[release page] and download
 the https://qutebrowser.org/python3-pypeg2_2.15.2-1_all.deb[PyPEG2 package].
 
 Install the packages:
@@ -56,7 +56,7 @@ Then install the packages like this:
 
 ----
 # apt-get update
-# apt-get install -t experimental python3-pyqt5 python3-pyqt5.qtwebkit python3-sip python3-dev
+# apt-get install -t experimental python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python3-sip python3-dev
 # apt-get install python-tox
 ----
 
@@ -74,7 +74,7 @@ For distributions other than Debian or if you prefer to not use the
 experimental repo:
 
 ----
-# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python-tox python3-sip python3-dev
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python-tox python3-sip python3-dev
 ----
 
 To generate the documentation for the `:help` command, when using the git
@@ -214,7 +214,7 @@ Prebuilt binaries
 ~~~~~~~~~~~~~~~~~
 
 Prebuilt standalone packages and MSI installers
-https://github.com/The-Compiler/qutebrowser/releases[are built] for every
+https://github.com/qutebrowser/qutebrowser/releases[are built] for every
 release.
 
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
@@ -254,7 +254,7 @@ Prebuilt binary
 
 The easiest way to install qutebrowser on OS X is to use the prebuilt `.app`
 files from the
-https://github.com/The-Compiler/qutebrowser/releases[release page].
+https://github.com/qutebrowser/qutebrowser/releases[release page].
 
 This binary is also available through the
 https://caskroom.github.io/[Homebrew Cask] package manager:
@@ -272,28 +272,20 @@ qutebrowser from source.
 
 ==== Homebrew
 
-Homebrew's builds of Qt and PyQt no longer include QtWebKit, so it is necessary 
-to build from source. The build takes several hours on an average laptop.
+----
+$ brew install qt5
+$ pip3 install qutebrowser
+----
+
+Homebrew's builds of Qt and PyQt no longer include QtWebKit - if you need
+QtWebKit support, it is necessary to build from source. The build takes several
+hours on an average laptop.
 
 ----
 $ brew install qt5 --with-qtwebkit
 $ brew install -s pyqt5
-
-$ pip3.5 install qutebrowser
+$ pip3 install qutebrowser
 ----
-
-==== MacPorts
-
-For MacPorts, run:
-
-----
-$ sudo port install python34 py34-jinja2 asciidoc py34-pygments py34-pyqt5
-$ sudo pip3.4 install qutebrowser
-----
-
-The preferences for qutebrowser are stored in
-`~/Library/Preferences/qutebrowser`, the application data is stored in
-`~/Library/Application Support/qutebrowser`.
 
 Packagers
 ---------
@@ -313,7 +305,7 @@ First of all, clone the repository using http://git-scm.org/[git] and switch
 into the repository folder:
 
 ----
-$ git clone https://github.com/The-Compiler/qutebrowser.git
+$ git clone https://github.com/qutebrowser/qutebrowser.git
 $ cd qutebrowser
 ----
 

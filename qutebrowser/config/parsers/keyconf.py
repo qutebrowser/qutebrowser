@@ -280,6 +280,9 @@ class KeyConfigParser(QObject):
         A binding is considered new if both the command is not bound to any key
         yet, and the key isn't used anywhere else in the same section.
         """
+        if utils.is_special_key(keychain):
+            keychain = keychain.lower()
+
         try:
             bindings = self.keybindings[sectname]
         except KeyError:
@@ -432,11 +435,13 @@ class KeyConfigParser(QObject):
     def get_reverse_bindings_for(self, section):
         """Get a dict of commands to a list of bindings for the section."""
         cmd_to_keys = {}
-        for key, cmd in self.get_bindings_for(section).items():
-            cmd_to_keys.setdefault(cmd, [])
-            # put special bindings last
-            if utils.is_special_key(key):
-                cmd_to_keys[cmd].append(key)
-            else:
-                cmd_to_keys[cmd].insert(0, key)
+        for key, full_cmd in self.get_bindings_for(section).items():
+            for cmd in full_cmd.split(';;'):
+                cmd = cmd.strip()
+                cmd_to_keys.setdefault(cmd, [])
+                # put special bindings last
+                if utils.is_special_key(key):
+                    cmd_to_keys[cmd].append(key)
+                else:
+                    cmd_to_keys[cmd].insert(0, key)
         return cmd_to_keys

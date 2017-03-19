@@ -14,12 +14,131 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.9.0 (unreleased)
--------------------
+v0.11.0 (unreleased)
+--------------------
 
 Added
 ~~~~~
 
+- New `:clear-messages` command to clear shown messages.
+
+Changed
+~~~~~~~
+
+- When using QtWebEngine, the underlying Chromium version is now shown in the
+  version info.
+
+Fixed
+~~~~~
+
+- Added a workaround for a black screen with QtWebEngine with some setups
+  (requires PyOpenGL to be installed)
+
+v0.10.1
+-------
+
+Changed
+~~~~~~~
+
+- `--qt-arg` and `--qt-flag` can now also be used to pass arguments to Chromium when using QtWebEngine.
+
+Fixed
+~~~~~
+
+- URLs are now redacted properly (username/password, and path/query for HTTPS) when using Proxy Autoconfig with QtWebKit
+- Crash when updating adblock lists with invalid UTF8-chars in them
+- Fixed the web inspector with QtWebEngine
+- Version checks when starting qutebrowser now also take the Qt version PyQt was compiled against into account
+- Hinting a input now doesn't select existing text anymore with QtWebKit
+- The cursor now moves to the end when input elements are selected with QtWebEngine
+- Download suffixes like (1) are now correctly stripped with QtWebEngine
+- Crash when trying to print a tab which was closed in the meantime
+- Crash when trying to open a file twice on Windows
+
+v0.10.0
+-------
+
+Added
+~~~~~
+
+- Userscripts now have a new `$QUTE_COMMANDLINE_TEXT` environment variable, containing the current commandline contents
+- New `ripbang` userscript to create a searchengine from a duckduckgo bang
+- link:https://github.com/annulen/webkit/wiki[QtWebKit Reloaded] (also called QtWebKit-NG) is now fully supported
+- Various new functionality with the QtWebEngine backend:
+    * Printing support with Qt >= 5.8
+    * Proxy support with Qt >= 5.8
+    * The `general -> print-element-backgrounds` option with Qt >= 5.8
+    * The `content -> cookies-store` option
+    * The `storage -> cache-size` option
+    * The `colors -> webpage.bg` option
+    * The HTML5 fullscreen API (e.g. youtube videos) with QtWebEngine
+    * `:download --mhtml`
+- New `qute:history` URL and `:history` command to show the browsing history
+- Open tabs are now auto-saved on each successful load and restored in case of a crash
+- `:jseval` now has a `--file` flag so you can pass a javascript file
+- `:session-save` now has a `--only-active-window` flag to only save the active window
+- OS X builds are back, and built with QtWebEngine
+
+Changed
+~~~~~~~
+
+- PyQt 5.7/Qt 5.7.1 is now required for the QtWebEngine backend
+- Scrolling with the scrollwheel while holding shift now scrolls sideways
+- New way of clicking hints which solves various small issues
+- When yanking a mailto: link via hints, the mailto: prefix is now stripped
+- Zoom level messages are now not stacked on top of each other anymore
+- qutebrowser now automatically uses QtWebEngine if QtWebKit is unavailable
+- :history-clear now asks for a confirmation, unless it's run with --force.
+- `input -> mouse-zoom-divider` can now be 0 to disable zooming by mouse wheel
+- `network -> proxy` can also be set to `pac+file://...` now to
+  use a local proxy autoconfig file (on QtWebKit)
+
+Fixed
+~~~~~
+
+- Various bugs with Qt 5.8 and QtWebEngine:
+    * Segfault when closing a window
+    * Segfault when closing a tab with a search active
+    * Fixed various mouse actions (like automatically entering insert mode) not working
+    * Fixed hints sometimes not working
+    * Segfault when opening a URL after a QtWebEngine renderer process crash
+- Other QtWebEngine fixes:
+    * Insert mode now gets entered correctly with a non-100% zoom
+    * Crash reports are now re-enabled when using QtWebEngine
+    * Fixed crashes when closing tabs while hinting
+    * Using :undo or :tab-clone with a view-source:// or chrome:// tab is now prevented, as it segfaults
+- `:enter-mode` now refuses to enter modes which can't be entered manually (which caused crashes)
+- `:record-macro` (`q`) now doesn't try to record macros for special keys without a text
+- Fixed PAC (proxy autoconfig) not working with QtWebKit
+- `:download --mhtml` now uses the new file dialog
+- Word hints are now upper-cased correctly when hints -> uppercase is true
+- Font validation is now more permissive in the config, allowing e.g. "Terminus
+  (TTF)" as font name
+- Fixed starting on newer PyQt/sip versions with LibreSSL
+- When downloading files with QtWebKit, a User-Agent header is set when possible
+- Fixed showing of keybindings in the :help completion
+- `:navigate prev/next` now detects `rel` attributes on `<a>` elements, and
+  handles multiple `rel` attributes correctly
+- Fixed a crash when hinting with target `userscript` and spawning a non-existing script
+- Lines in Jupyter notebook now trigger insert mode
+
+v0.9.1
+------
+
+Fixed
+~~~~~
+
+- Prevent websites from downloading files to a location outside of the download
+  folder with QtWebEngine.
+
+v0.9.0
+------
+
+Added
+~~~~~
+
+- *New dependency:* qutebrowser now depends on the Qt QML module, which is
+   packaged separately in some distributions (as Qt Declarative/QML/Quick).
 - New `:rl-backward-kill-word` command which does what `:rl-unix-word-rubout`
   did before v0.8.0.
 - New `:rl-unix-filename-rubout` command which is similar to readline's
@@ -52,6 +171,9 @@ Added
 - New `:record-macro` (`q`) and `:run-macro` (`@`) commands for keyboard macros.
 - New `ui -> hide-scrollbar` setting to hide the scrollbar independently of the
   `user-stylesheet` setting.
+- New `general -> default-open-dispatcher` setting to configure what to open
+  downloads with (instead of e.g. `xdg-open` on Linux).
+- Support for PAC (proxy autoconfig) with QtWebKit
 
 Changed
 ~~~~~~~
@@ -149,6 +271,8 @@ Changed
 - `ui -> window-title-format` now has a new `{backend} ` replacement
 - `:hint` has a new `--add-history` argument to add the URL to the history for
   yank/spawn targets.
+- `:set` now cycles through values if more than one argument is given.
+- `:open` now opens `default-page` without an URL even without `-t`/`-b`/`-w` given.
 
 Deprecated
 ~~~~~~~~~~
@@ -186,6 +310,10 @@ Fixed
 - `:tab-detach` now fails correctly when there's only one tab open.
 - Various small issues with the command completion
 - Fixed hang when using multiple spaces in a row with the URL completion
+- qutebrowser now still starts with an incorrectly configured
+  `$XDG_RUNTIME_DIR`.
+- Fixed crash when a userscript writes invalid unicode data to the FIFO
+- Fixed crash when a included HTML was not found
 
 v0.8.3
 ------
@@ -794,7 +922,7 @@ Fixed
 - Fixed horrible completion performance when the `shrink` option was set.
 - Sessions now store zoom/scroll-position correctly.
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.1[v0.2.1]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.2.1[v0.2.1]
 -----------------------------------------------------------------------
 
 Fixed
@@ -802,7 +930,7 @@ Fixed
 
 - Added missing manpage (doc/qutebrowser.1.asciidoc) to archive.
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.2.0[v0.2.0]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.2.0[v0.2.0]
 -----------------------------------------------------------------------
 
 Added
@@ -945,7 +1073,7 @@ Fixed
 - Add a timeout to pastebin HTTP replies.
 - Various other fixes for small/rare bugs.
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.4[v0.1.4]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.4[v0.1.4]
 -----------------------------------------------------------------------
 
 Changed
@@ -989,7 +1117,7 @@ Security
 * Stop the icon database from being created when private-browsing is set to true.
 * Disable insecure SSL ciphers.
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.3[v0.1.3]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.3[v0.1.3]
 -----------------------------------------------------------------------
 
 Changed
@@ -1023,7 +1151,7 @@ Security
 
 * Fix for HTTP passwords accidentally being written to debug log.
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.2[v0.1.2]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.2[v0.1.2]
 -----------------------------------------------------------------------
 
 Changed
@@ -1055,7 +1183,7 @@ Fixed
 * Fix user-stylesheet setting with an empty value.
 
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1.1[v0.1.1]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.1[v0.1.1]
 -----------------------------------------------------------------------
 
 Added
@@ -1113,7 +1241,7 @@ Fixed
 * Ensure the docs get included in `freeze.py`.
 * Fix crash with `:zoom`.
 
-https://github.com/The-Compiler/qutebrowser/releases/tag/v0.1[v0.1]
+https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1[v0.1]
 -------------------------------------------------------------------
 
 Initial release.

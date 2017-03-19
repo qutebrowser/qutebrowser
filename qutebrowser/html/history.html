@@ -1,0 +1,58 @@
+{% extends "styled.html" %}
+
+{% block style %}
+{{super()}}
+body {
+    max-width: 1440px;
+}
+
+td.title {
+    word-break: break-all;
+}
+
+td.time {
+    color: #555;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.date {
+    color: #888;
+    font-size: 14pt;
+    padding-left: 25px;
+}
+
+.pagination-link {
+    display: inline-block;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding-right: 10px;
+}
+
+.pagination-link > a {
+    color: #333;
+    font-weight: bold;
+}
+{% endblock %}
+
+{% block content %}
+
+<h1>Browsing history <span class="date">{{curr_date.strftime("%a, %d %B %Y")}}</span></h1>
+
+<table>
+    <tbody>
+    {% for url, title, time in history %}
+        <tr>
+            <td class="title"><a href="{{url}}">{{title}}</a></td>
+            <td class="time">{{time}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<span class="pagination-link"><a href="qute://history/?date={{prev_date.strftime("%Y-%m-%d")}}" rel="prev">Previous</a></span>
+{% if today >= next_date %}
+<span class="pagination-link"><a href="qute://history/?date={{next_date.strftime("%Y-%m-%d")}}" rel="next">Next</a></span>
+{% endif %}
+
+{% endblock %}

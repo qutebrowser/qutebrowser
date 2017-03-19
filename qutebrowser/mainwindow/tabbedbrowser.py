@@ -98,6 +98,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    page_fullscreen_requested = pyqtSignal(bool)
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent)
@@ -198,8 +199,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             functools.partial(self.on_load_started, tab))
         tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
+        tab.renderer_process_terminated.connect(
+            functools.partial(self._on_renderer_process_terminated, tab))
         tab.new_tab_requested.connect(self.tabopen)
         tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
+        tab.fullscreen_requested.connect(self.page_fullscreen_requested)
+        tab.fullscreen_requested.connect(
+            self.tabBar().on_page_fullscreen_requested)
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -245,12 +251,13 @@ class TabbedBrowser(tabwidget.TabWidget):
                 url = config.get('general', 'default-page')
                 self.openurl(url, newtab=True)
 
-    def _remove_tab(self, tab, *, add_undo=True):
+    def _remove_tab(self, tab, *, add_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
+            crashed: Whether we're closing a tab with crashed renderer process.
         """
         idx = self.indexOf(tab)
         if idx == -1:
@@ -262,25 +269,34 @@ class TabbedBrowser(tabwidget.TabWidget):
                              window=self._win_id):
             objreg.delete('last-focused-tab', scope='window',
                           window=self._win_id)
-        if tab.url().isValid():
-            history_data = tab.history.serialize()
-            if add_undo:
-                entry = UndoEntry(tab.url(), history_data, idx)
-                self._undo_stack.append(entry)
-        elif tab.url().isEmpty():
+
+        if tab.url().isEmpty():
             # There are some good reasons why a URL could be empty
             # (target="_blank" with a download, see [1]), so we silently ignore
             # this.
-            # [1] https://github.com/The-Compiler/qutebrowser/issues/163
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
             pass
-        else:
-            # We display a warnings for URLs which are not empty but invalid -
+        elif not tab.url().isValid():
+            # We display a warning for URLs which are not empty but invalid -
             # but we don't return here because we want the tab to close either
             # way.
             urlutils.invalid_url_error(tab.url(), "saving tab")
+        elif add_undo:
+            try:
+                history_data = tab.history.serialize()
+            except browsertab.WebTabError:
+                pass  # special URL
+            else:
+                entry = UndoEntry(tab.url(), history_data, idx)
+                self._undo_stack.append(entry)
+
         tab.shutdown()
         self.removeTab(idx)
-        tab.deleteLater()
+        if not crashed:
+            # WORKAROUND for a segfault when we delete the crashed tab.
+            # see https://bugreports.qt.io/browse/QTBUG-58698
+            tab.layout().unwrap()
+            tab.deleteLater()
 
     def undo(self):
         """Undo removing of a tab."""
@@ -347,7 +363,8 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
-    def tabopen(self, url=None, background=None, explicit=False, idx=None):
+    def tabopen(self, url=None, background=None, explicit=False, idx=None, *,
+                ignore_tabs_are_windows=False):
         """Open a new tab with a given URL.
 
         Inner logic for open-tab and open-tab-bg.
@@ -364,6 +381,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                             the current.
                           - Explicitly opened tabs are at the very right.
             idx: The index where the new tab should be opened.
+            ignore_tabs_are_windows: If given, never open a new window, even
+                                     with tabs-are-windows set.
 
         Return:
             The opened WebView instance.
@@ -374,7 +393,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                           "explicit {}, idx {}".format(
                               url, background, explicit, idx))
 
-        if config.get('tabs', 'tabs-are-windows') and self.count() > 0:
+        if (config.get('tabs', 'tabs-are-windows') and self.count() > 0 and
+                not ignore_tabs_are_windows):
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow()
             window.show()
@@ -523,22 +543,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not self.page_title(idx):
             self.set_page_title(idx, url.toDisplayString())
 
-        # If needed, re-open the tab as a workaround for QTBUG-54419.
-        # See https://bugreports.qt.io/browse/QTBUG-54419
-        background = self.currentIndex() != idx
-
-        if (tab.backend == usertypes.Backend.QtWebEngine and
-                tab.needs_qtbug54419_workaround):
-            log.misc.debug("Doing QTBUG-54419 workaround for {}, "
-                           "url {}".format(tab, url))
-            self.setUpdatesEnabled(False)
-            try:
-                self.tabopen(url, background=background, idx=idx)
-                self.close_tab(tab, add_undo=False)
-            finally:
-                self.setUpdatesEnabled(True)
-            tab.needs_qtbug54419_workaround = False
-
     @pyqtSlot(browsertab.AbstractTab, QIcon)
     def on_icon_changed(self, tab, icon):
         """Set the icon of a tab.
@@ -649,6 +653,28 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         self.update_window_title()
         self.update_tab_title(idx)
+
+    def _on_renderer_process_terminated(self, tab, status, code):
+        """Show an error when a renderer process terminated."""
+        if status == browsertab.TerminationStatus.normal:
+            pass
+        elif status == browsertab.TerminationStatus.abnormal:
+            message.error("Renderer process exited with status {}".format(
+                code))
+        elif status == browsertab.TerminationStatus.crashed:
+            message.error("Renderer process crashed")
+        elif status == browsertab.TerminationStatus.killed:
+            message.error("Renderer process was killed")
+        elif status == browsertab.TerminationStatus.unknown:
+            message.error("Renderer process did not start")
+        else:
+            raise ValueError("Invalid status {}".format(status))
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+        # FIXME:qtwebengine can we disable this with Qt 5.8.1?
+        self._remove_tab(tab, crashed=True)
+        if self.count() == 0:
+            self.tabopen(QUrl('about:blank'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

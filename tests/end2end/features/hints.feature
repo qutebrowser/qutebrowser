@@ -1,5 +1,9 @@
 Feature: Using hints
 
+    # https://bugreports.qt.io/browse/QTBUG-58381
+    Background:
+        Given I clean up open tabs
+
     Scenario: Using :follow-hint outside of hint mode (issue 1105)
         When I run :follow-hint
         Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
@@ -8,17 +12,6 @@ Feature: Using hints
         When I open data/hints/html/simple.html
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
-
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/159412291
-    @qtwebengine_flaky
-    Scenario: Following a link after scrolling down
-        When I open data/scroll/simple.html
-        And I run :hint links normal
-        And I wait for "hints: *" in the log
-        And I run :scroll-page 0 1
-        And I wait until the scroll position changed
-        And I run :follow-hint a
-        Then the error "Element position is out of view!" should be shown
 
     ### Opening in current or new tab
 
@@ -29,18 +22,16 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    @qtwebengine_skip: Opens in background
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
         And I hint with args "links normal" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link_blank.html
-            - data/hello.txt (active)
+            - data/hello.txt
 
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
-        And I run :tab-close
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -90,6 +81,11 @@ Feature: Using hints
         And I hint with args "all userscript (testdata)/userscripts/echo_hint_text" and follow a
         Then the message "Follow me!" should be shown
 
+    Scenario: Using :hint userscript with a script which doesn't exist
+        When I open data/hints/html/simple.html
+        And I hint with args "all userscript (testdata)/does_not_exist" and follow a
+        Then the error "Userscript '*' not found" should be shown
+
     Scenario: Yanking to clipboard
         When I run :debug-set-fake-clipboard
         And I open data/hints/html/simple.html
@@ -109,6 +105,12 @@ Feature: Using hints
         And I open data/hints/html/simple.html
         And I hint with args "links yank-primary" and follow a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
+
+    Scenario: Yanking email address to clipboard
+        When I run :debug-set-fake-clipboard
+        And I open data/email_address.html
+        And I hint with args "links yank" and follow a
+        Then the clipboard should contain "nobody"
 
     Scenario: Rapid hinting
         When I open data/hints/rapid.html in a new tab
@@ -151,10 +153,24 @@ Feature: Using hints
         And I hint with args "all" and follow a
         Then the error "Invalid link clicked - *" should be shown
 
+    Scenario: Clicking an invalid link opening in a new tab
+        When I open data/invalid_link.html
+        And I hint with args "all tab" and follow a
+        Then the error "Invalid link clicked - *" should be shown
+
     Scenario: Hinting inputs without type
         When I open data/hints/input.html
         And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen
+
+    # https://github.com/qutebrowser/qutebrowser/issues/1613
+    Scenario: Hinting inputs with padding
+        When I open data/hints/input.html
+        And I hint with args "inputs" and follow s
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen
@@ -162,10 +178,23 @@ Feature: Using hints
     Scenario: Hinting with ACE editor
         When I open data/hints/ace/ace.html
         And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen
+
+    Scenario: Hinting invisible elements
+        When I open data/hints/invisible.html
+        And I run :hint
+        Then the error "No elements found." should be shown
+
+    Scenario: Clicking input with existing text
+        When I set general -> log-javascript-console to info
+        And I open data/hints/input.html
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I run :fake-key new
+        Then the javascript message "contents: existingnew" should be logged
 
     ### iframes
 
@@ -175,7 +204,7 @@ Feature: Using hints
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    ### FIXME currenly skipped, see https://github.com/The-Compiler/qutebrowser/issues/1525
+    ### FIXME currenly skipped, see https://github.com/qutebrowser/qutebrowser/issues/1525
     @xfail_norun
     Scenario: Using :follow-hint inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
@@ -253,7 +282,7 @@ Feature: Using hints
 
     ### Number hint mode
 
-    # https://github.com/The-Compiler/qutebrowser/issues/308
+    # https://github.com/qutebrowser/qutebrowser/issues/308
     Scenario: Renumbering hints when filtering
         When I open data/hints/number.html
         And I set hints -> mode to number
@@ -262,7 +291,7 @@ Feature: Using hints
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/576
+    # https://github.com/qutebrowser/qutebrowser/issues/576
     @qtwebengine_flaky
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
@@ -274,7 +303,7 @@ Feature: Using hints
         Then data/numbers/2.txt should be loaded
         And data/numbers/3.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1186
+    # https://github.com/qutebrowser/qutebrowser/issues/1186
     Scenario: Keeping hints filter when using backspace
         When I open data/hints/issue1186.html
         And I set hints -> mode to number
@@ -285,7 +314,7 @@ Feature: Using hints
         And I run :follow-hint 11
         Then the error "No hint 11!" should be shown
 
-    # https://github.com/The-Compiler/qutebrowser/issues/674#issuecomment-165096744
+    # https://github.com/qutebrowser/qutebrowser/issues/674#issuecomment-165096744
     Scenario: Multi-word matching
         When I open data/hints/number.html
         And I set hints -> mode to number
@@ -302,7 +331,7 @@ Feature: Using hints
         And I hint with args "all" and follow 00
         Then data/numbers/1.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1559
+    # https://github.com/qutebrowser/qutebrowser/issues/1559
     Scenario: Filtering all hints in number mode
         When I open data/hints/number.html
         And I set hints -> mode to number
@@ -311,7 +340,7 @@ Feature: Using hints
         And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
         Then no crash should happen
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1657
+    # https://github.com/qutebrowser/qutebrowser/issues/1657
     Scenario: Using rapid number hinting twice
         When I open data/hints/number.html
         And I set hints -> mode to number

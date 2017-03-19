@@ -238,13 +238,25 @@ class MainWindow(QWidget):
         height_padding = 20
         status_position = config.get('ui', 'status-position')
         if status_position == 'bottom':
-            top = self.height() - self.status.height() - size_hint.height()
+            if self.status.isVisible():
+                status_height = self.status.height()
+                bottom = self.status.geometry().top()
+            else:
+                status_height = 0
+                bottom = self.height()
+            top = self.height() - status_height - size_hint.height()
             top = qtutils.check_overflow(top, 'int', fatal=False)
             topleft = QPoint(left, max(height_padding, top))
-            bottomright = QPoint(left + width, self.status.geometry().top())
+            bottomright = QPoint(left + width, bottom)
         elif status_position == 'top':
-            topleft = QPoint(left, self.status.geometry().bottom())
-            bottom = self.status.height() + size_hint.height()
+            if self.status.isVisible():
+                status_height = self.status.height()
+                top = self.status.geometry().bottom()
+            else:
+                status_height = 0
+                top = 0
+            topleft = QPoint(left, top)
+            bottom = status_height + size_hint.height()
             bottom = qtutils.check_overflow(bottom, 'int', fatal=False)
             bottomright = QPoint(left + width,
                                  min(self.height() - height_padding, bottom))
@@ -425,6 +437,9 @@ class MainWindow(QWidget):
         # messages
         message.global_bridge.show_message.connect(
             self._messageview.show_message)
+        message.global_bridge.flush()
+        message.global_bridge.clear_messages.connect(
+            self._messageview.clear_messages)
 
         message_bridge.s_set_text.connect(status.set_text)
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
@@ -444,12 +459,23 @@ class MainWindow(QWidget):
         tabs.cur_url_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
+        tabs.page_fullscreen_requested.connect(
+            self._on_page_fullscreen_requested)
+        tabs.page_fullscreen_requested.connect(
+            status.on_page_fullscreen_requested)
 
         # command input / completion
         mode_manager.left.connect(tabs.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
+
+    @pyqtSlot(bool)
+    def _on_page_fullscreen_requested(self, on):
+        if on:
+            self.showFullScreen()
+        else:
+            self.showNormal()
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
@@ -461,14 +487,6 @@ class MainWindow(QWidget):
         Extend close() so we can register it as a command.
         """
         super().close()
-
-    @cmdutils.register(instance='main-window', scope='window')
-    def fullscreen(self):
-        """Toggle fullscreen mode."""
-        if self.isFullScreen():
-            self.showNormal()
-        else:
-            self.showFullScreen()
 
     def resizeEvent(self, e):
         """Extend resizewindow's resizeEvent to adjust completion.

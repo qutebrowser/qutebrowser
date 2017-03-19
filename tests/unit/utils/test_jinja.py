@@ -24,7 +24,6 @@ import os.path
 
 import pytest
 import logging
-import jinja2
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, jinja
@@ -67,9 +66,8 @@ def patch_read_file(monkeypatch):
         else:
             raise IOError("Invalid path {}!".format(path))
 
-    monkeypatch.setattr('qutebrowser.utils.jinja.utils.read_file', _read_file)
-    monkeypatch.setattr('qutebrowser.utils.jinja.utils.resource_filename',
-                        _resource_filename)
+    monkeypatch.setattr(jinja.utils, 'read_file', _read_file)
+    monkeypatch.setattr(jinja.utils, 'resource_filename', _resource_filename)
 
 
 def test_simple_template():
@@ -105,11 +103,14 @@ def test_data_url():
     assert data == 'data:text/plain;base64,Zm9v'  # 'foo'
 
 
-def test_not_found():
+def test_not_found(caplog):
     """Test with a template which does not exist."""
-    with pytest.raises(jinja2.TemplateNotFound) as excinfo:
-        jinja.render('does_not_exist.html')
-    assert str(excinfo.value) == 'does_not_exist.html'
+    with caplog.at_level(logging.ERROR):
+        data = jinja.render('does_not_exist.html')
+    assert "The does_not_exist.html template could not be found!" in data
+
+    assert caplog.records[0].msg.startswith("The does_not_exist.html template"
+                                            " could not be loaded from")
 
 
 def test_utf8():
@@ -118,7 +119,7 @@ def test_utf8():
     This was an attempt to get a failing test case for #127 but it seems
     the issue is elsewhere.
 
-    https://github.com/The-Compiler/qutebrowser/issues/127
+    https://github.com/qutebrowser/qutebrowser/issues/127
     """
     data = jinja.render('test.html', var='\u2603')
     assert data == "Hello \u2603"

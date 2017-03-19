@@ -34,7 +34,6 @@ except ImportError:  # pragma: no cover
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message, utils)
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.mainwindow import mainwindow
 from qutebrowser.config import config
 
 
@@ -167,7 +166,7 @@ class SessionManager(QObject):
         if item.title():
             data['title'] = item.title()
         else:
-            # https://github.com/The-Compiler/qutebrowser/issues/879
+            # https://github.com/qutebrowser/qutebrowser/issues/879
             if tab.history.current_idx() == idx:
                 data['title'] = tab.title()
             else:
@@ -217,10 +216,15 @@ class SessionManager(QObject):
             data['history'].append(item_data)
         return data
 
-    def _save_all(self):
+    def _save_all(self, *, only_window=None):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
-        for win_id in objreg.window_registry:
+        if only_window is not None:
+            winlist = [only_window]
+        else:
+            winlist = objreg.window_registry
+
+        for win_id in winlist:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             main_window = objreg.get('main-window', scope='window',
@@ -258,7 +262,8 @@ class SessionManager(QObject):
                     name = 'default'
         return name
 
-    def save(self, name, last_window=False, load_next_time=False):
+    def save(self, name, last_window=False, load_next_time=False,
+             only_window=None):
         """Save a named session.
 
         Args:
@@ -267,6 +272,7 @@ class SessionManager(QObject):
             last_window: If set, saves the saved self._last_window_session
                          instead of the currently open state.
             load_next_time: If set, prepares this session to be load next time.
+            only_window: If set, only tabs in the specified window is saved.
 
         Return:
             The name of the saved session.
@@ -281,7 +287,7 @@ class SessionManager(QObject):
                 log.sessions.error("last_window_session is None while saving!")
                 return
         else:
-            data = self._save_all()
+            data = self._save_all(only_window=only_window)
         log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
@@ -296,6 +302,24 @@ class SessionManager(QObject):
             state_config['general']['session'] = name
         return name
 
+    def save_autosave(self):
+        """Save the autosave session."""
+        try:
+            self.save('_autosave')
+        except SessionError as e:
+            log.sessions.error("Failed to save autosave session: {}".format(e))
+
+    def delete_autosave(self):
+        """Delete the autosave session."""
+        try:
+            self.delete('_autosave')
+        except SessionNotFoundError:
+            # Exiting before the first load finished
+            pass
+        except SessionError as e:
+            log.sessions.error("Failed to delete autosave session: {}"
+                               .format(e))
+
     def save_last_window_session(self):
         """Temporarily save the session for the last closed window."""
         self._last_window_session = self._save_all()
@@ -309,7 +333,7 @@ class SessionManager(QObject):
             if 'zoom' in data:
                 # The zoom was accidentally stored in 'data' instead of per-tab
                 # earlier.
-                # See https://github.com/The-Compiler/qutebrowser/issues/728
+                # See https://github.com/qutebrowser/qutebrowser/issues/728
                 user_data['zoom'] = data['zoom']
             elif 'zoom' in histentry:
                 user_data['zoom'] = histentry['zoom']
@@ -317,7 +341,7 @@ class SessionManager(QObject):
             if 'scroll-pos' in data:
                 # The scroll position was accidentally stored in 'data' instead
                 # of per-tab earlier.
-                # See https://github.com/The-Compiler/qutebrowser/issues/728
+                # See https://github.com/qutebrowser/qutebrowser/issues/728
                 pos = data['scroll-pos']
                 user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
             elif 'scroll-pos' in histentry:
@@ -352,6 +376,7 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
+        from qutebrowser.mainwindow import mainwindow
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
@@ -425,8 +450,9 @@ class SessionManager(QObject):
 
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('win_id', win_id=True)
     def session_save(self, name: str=default, current=False, quiet=False,
-                     force=False):
+                     force=False, only_active_window=False, win_id=None):
         """Save a session.
 
         Args:
@@ -435,6 +461,7 @@ class SessionManager(QObject):
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
+            only_active_window: Saves only tabs of the currently active window.
         """
         if (name is not default and
                 name.startswith('_') and  # pylint: disable=no-member
@@ -447,7 +474,10 @@ class SessionManager(QObject):
             name = self._current
             assert not name.startswith('_')
         try:
-            name = self.save(name)
+            if only_active_window:
+                name = self.save(name, only_window=win_id)
+            else:
+                name = self.save(name)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))

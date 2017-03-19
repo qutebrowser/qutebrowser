@@ -102,7 +102,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     exit 0
 fi
 
-pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtwebkit"
+pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit"
 
 pip_install pip
 pip_install -r misc/requirements/requirements-tox.txt
@@ -113,8 +113,11 @@ tox --version
 case $TESTENV in
     py34-cov)
         pip_install -r misc/requirements/requirements-codecov.txt
-        apt_install xvfb $pyqt_pkgs libpython3.4-dev
+        apt_install xvfb $pyqt_pkgs libpython3.4-dev gdb apport libqt5webkit5-dbg python3-pyqt5-dbg python3-pyqt5.qtquick-dbg python3-pyqt5.qtwebkit-dbg python3-dbg
         check_pyqt
+        ;;
+    py3*-pyqt*)
+        apt_install xvfb geoclue gdb apport
         ;;
     pylint|vulture)
         apt_install $pyqt_pkgs libpython3.4-dev

@@ -28,7 +28,8 @@ import subprocess
 import importlib
 import collections
 
-from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
+from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
+                          QLibraryInfo)
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
 
@@ -37,8 +38,14 @@ try:
 except ImportError:  # pragma: no cover
     qWebKitVersion = None
 
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+except ImportError:  # pragma: no cover
+    QWebEngineProfile = None
+
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir
+from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
+from qutebrowser.misc import objects
 from qutebrowser.browser import pdfjs
 
 
@@ -132,6 +139,7 @@ def _module_versions():
         ('cssutils', ['__version__']),
         ('typing', []),
         ('PyQt5.QtWebEngineWidgets', []),
+        ('PyQt5.QtWebKitWidgets', []),
     ])
     for name, attributes in modules.items():
         try:
@@ -210,7 +218,8 @@ def _pdfjs_version():
     else:
         pdfjs_file = pdfjs_file.decode('utf-8')
         version_re = re.compile(
-            r"^(PDFJS\.version|var pdfjsVersion) = '([^']+)';$", re.MULTILINE)
+            r"^ *(PDFJS\.version|var pdfjsVersion) = '([^']+)';$",
+            re.MULTILINE)
 
         match = version_re.search(pdfjs_file)
         if not match:
@@ -222,6 +231,40 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
+def qt_version():
+    """Get a Qt version string based on the runtime/compiled versions."""
+    if qVersion() != QT_VERSION_STR:
+        return '{} (compiled {})'.format(qVersion(), QT_VERSION_STR)
+    else:
+        return qVersion()
+
+
+def _chromium_version():
+    """Get the Chromium version for QtWebEngine."""
+    if QWebEngineProfile is None:
+        # This should never happen
+        return 'unavailable'
+    profile = QWebEngineProfile()
+    ua = profile.httpUserAgent()
+    match = re.search(r' Chrome/([^ ]*) ', ua)
+    if not match:
+        log.misc.error("Could not get Chromium version from: {}".format(ua))
+        return 'unknown'
+    return match.group(1)
+
+
+def _backend():
+    """Get the backend line with relevant information."""
+    if objects.backend == usertypes.Backend.QtWebKit:
+        return 'QtWebKit{} (WebKit {})'.format(
+            '-NG' if qtutils.is_qtwebkit_ng(qWebKitVersion()) else '',
+            qWebKitVersion())
+    else:
+        webengine = usertypes.Backend.QtWebEngine
+        assert objects.backend == webengine, objects.backend
+        return 'QtWebEngine (Chromium {})'.format(_chromium_version())
+
+
 def version():
     """Return a string with various version informations."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
@@ -229,16 +272,13 @@ def version():
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
 
-    if qVersion() != QT_VERSION_STR:
-        qt_version = 'Qt: {} (compiled {})'.format(qVersion(), QT_VERSION_STR)
-    else:
-        qt_version = 'Qt: {}'.format(qVersion())
+    lines.append("Backend: {}".format(_backend()))
 
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        qt_version,
+        'Qt: {}'.format(qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]
@@ -246,11 +286,6 @@ def version():
     lines += _module_versions()
 
     lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
-    if qWebKitVersion is None:
-        lines.append('Webkit: no')
-    else:
-        lines.append('Webkit: {}'.format(qWebKitVersion()))
 
     lines += [
         'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
@@ -269,6 +304,10 @@ def version():
                                   platform.architecture()[0]),
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
+        "Qt library executable path: {}, data path: {}".format(
+            QLibraryInfo.location(QLibraryInfo.LibraryExecutablesPath),
+            QLibraryInfo.location(QLibraryInfo.DataPath)
+        )
     ]
     lines += _os_info()
 

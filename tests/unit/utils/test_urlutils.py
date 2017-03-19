@@ -24,9 +24,11 @@ import collections
 import logging
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtNetwork import QNetworkProxy
 import pytest
 
 from qutebrowser.commands import cmdexc
+from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
 
 
@@ -82,8 +84,7 @@ def fake_dns(monkeypatch):
     fromname_mock will be called without answer being set.
     """
     dns = FakeDNS()
-    monkeypatch.setattr('qutebrowser.utils.urlutils.QHostInfo.fromName',
-                        dns.fromname_mock)
+    monkeypatch.setattr(urlutils.QHostInfo, 'fromName', dns.fromname_mock)
     return dns
 
 
@@ -103,7 +104,7 @@ def urlutils_config_stub(config_stub, monkeypatch):
             'DEFAULT': 'http://www.example.com/?q={}',
         },
     }
-    monkeypatch.setattr('qutebrowser.utils.urlutils.config', config_stub)
+    monkeypatch.setattr(urlutils, 'config', config_stub)
     return config_stub
 
 
@@ -223,7 +224,7 @@ class TestFuzzyUrl:
                          caplog):
         """Test with an invalid URL."""
         is_url_mock.return_value = True
-        monkeypatch.setattr('qutebrowser.utils.urlutils.qurl_from_user_input',
+        monkeypatch.setattr(urlutils, 'qurl_from_user_input',
                             lambda url: QUrl())
         with pytest.raises(exception):
             with caplog.at_level(logging.ERROR):
@@ -736,3 +737,42 @@ def test_file_url():
 def test_data_url():
     url = urlutils.data_url('text/plain', b'foo')
     assert url == QUrl('data:text/plain;base64,Zm9v')
+
+
+class TestProxyFromUrl:
+
+    @pytest.mark.parametrize('url, expected', [
+        ('socks://example.com/',
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+        ('socks5://example.com',
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+        ('socks5://example.com:2342',
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
+        ('socks5://foo@example.com',
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
+        ('socks5://foo:bar@example.com',
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
+                          'bar')),
+        ('socks5://foo:bar@example.com:2323',
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                          'foo', 'bar')),
+        ('direct://', QNetworkProxy(QNetworkProxy.NoProxy)),
+    ])
+    def test_proxy_from_url_valid(self, url, expected):
+        assert urlutils.proxy_from_url(QUrl(url)) == expected
+
+    @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
+    def test_proxy_from_url_pac(self, scheme):
+        fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))
+        assert isinstance(fetcher, pac.PACFetcher)
+
+    @pytest.mark.parametrize('url, exception', [
+        ('blah', urlutils.InvalidProxyTypeError),
+        (':', urlutils.InvalidUrlError),  # invalid URL
+        # Invalid/unsupported scheme
+        ('ftp://example.com/', urlutils.InvalidProxyTypeError),
+        ('socks4://example.com/', urlutils.InvalidProxyTypeError),
+    ])
+    def test_invalid(self, url, exception):
+        with pytest.raises(exception):
+            urlutils.proxy_from_url(QUrl(url))

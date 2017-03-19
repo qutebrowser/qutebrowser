@@ -64,8 +64,6 @@ class MouseEventFilter(QObject):
     """Handle mouse events on a tab.
 
     Attributes:
-        _widget_class: The class of the main widget getting the events.
-                       All other events are ignored.
         _tab: The browsertab object this filter is installed on.
         _handlers: A dict of handler functions for the handled events.
         _ignore_wheel_event: Whether to ignore the next wheelEvent.
@@ -73,9 +71,8 @@ class MouseEventFilter(QObject):
                                       done when the mouse is released.
     """
 
-    def __init__(self, tab, *, widget_class, parent=None):
+    def __init__(self, tab, *, parent=None):
         super().__init__(parent)
-        self._widget_class = widget_class
         self._tab = tab
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
@@ -96,7 +93,10 @@ class MouseEventFilter(QObject):
             return True
 
         self._ignore_wheel_event = True
-        self._tab.elements.find_at_pos(e.pos(), self._mousepress_insertmode_cb)
+
+        if e.button() != Qt.NoButton:
+            self._tab.elements.find_at_pos(e.pos(),
+                                           self._mousepress_insertmode_cb)
 
         return False
 
@@ -114,18 +114,26 @@ class MouseEventFilter(QObject):
             e: The QWheelEvent.
         """
         if self._ignore_wheel_event:
-            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            # See https://github.com/qutebrowser/qutebrowser/issues/395
             self._ignore_wheel_event = False
             return True
 
         if e.modifiers() & Qt.ControlModifier:
             divider = config.get('input', 'mouse-zoom-divider')
+            if divider == 0:
+                return False
             factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
             if factor < 0:
                 return False
             perc = int(100 * factor)
-            message.info("Zoom level: {}%".format(perc))
+            message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
+        elif e.modifiers() & Qt.ShiftModifier:
+            if e.angleDelta().y() > 0:
+                self._tab.scroller.left()
+            else:
+                self._tab.scroller.right()
+            return True
 
         return False
 
@@ -201,9 +209,8 @@ class MouseEventFilter(QObject):
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        if not isinstance(obj, self._widget_class):
-            log.mouse.debug("Ignoring {} to {} which is not an instance of "
-                            "{}".format(event.__class__.__name__, obj,
-                                        self._widget_class))
+        if obj is not self._tab.event_target():
+            log.mouse.debug("Ignoring {} to {}".format(
+                event.__class__.__name__, obj))
             return False
         return self._handlers[evtype](event)

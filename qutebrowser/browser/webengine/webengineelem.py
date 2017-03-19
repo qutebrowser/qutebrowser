@@ -22,7 +22,12 @@
 
 """QtWebEngine specific part of the web element API."""
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
+from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtWidgets import QApplication
+# pylint: disable=no-name-in-module,import-error,useless-suppression
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.utils import log, javascript
 from qutebrowser.browser import webelem
@@ -51,9 +56,7 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def __setitem__(self, key, val):
         self._js_dict['attributes'][key] = val
-        js_code = javascript.assemble('webelem', 'set_attribute', self._id,
-            key, val)
-        self._tab.run_js_async(js_code)
+        self._js_call('set_attribute', key, val)
 
     def __delitem__(self, key):
         log.stub()
@@ -64,16 +67,17 @@ class WebEngineElement(webelem.AbstractWebElement):
     def __len__(self):
         return len(self._js_dict['attributes'])
 
+    def _js_call(self, name, *args, callback=None):
+        """Wrapper to run stuff from webelem.js."""
+        js_code = javascript.assemble('webelem', name, self._id, *args)
+        self._tab.run_js_async(js_code, callback=callback)
+
     def has_frame(self):
         return True
 
     def geometry(self):
         log.stub()
         return QRect()
-
-    def style_property(self, name, *, strategy):
-        log.stub()
-        return ''
 
     def classes(self):
         """Get a list of classes assigned to this element."""
@@ -91,25 +95,23 @@ class WebEngineElement(webelem.AbstractWebElement):
         return self._js_dict['outer_xml']
 
     def value(self):
-        return self._js_dict['value']
+        return self._js_dict.get('value', None)
 
     def set_value(self, value):
-        js_code = javascript.assemble('webelem', 'set_value', self._id, value)
-        self._tab.run_js_async(js_code)
+        self._js_call('set_value', value)
 
     def insert_text(self, text):
         if not self.is_editable(strict=True):
             raise webelem.Error("Element is not editable!")
         log.webelem.debug("Inserting text into element {!r}".format(self))
-        js_code = javascript.assemble('webelem', 'insert_text', self._id, text)
-        self._tab.run_js_async(js_code)
+        self._js_call('insert_text', text)
 
     def rect_on_view(self, *, elem_geometry=None, no_js=False):
         """Get the geometry of the element relative to the webview.
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
+        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.
@@ -146,6 +148,44 @@ class WebEngineElement(webelem.AbstractWebElement):
         return QRect()
 
     def remove_blank_target(self):
-        js_code = javascript.assemble('webelem', 'remove_blank_target',
-            self._id)
-        self._tab.run_js_async(js_code)
+        if self._js_dict['attributes'].get('target') == '_blank':
+            self._js_dict['attributes']['target'] = '_top'
+        self._js_call('remove_blank_target')
+
+    def _move_text_cursor(self):
+        if self.is_text_input() and self.is_editable():
+            self._js_call('move_cursor_to_end')
+
+    def _click_editable(self, click_target):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
+        # pylint doesn't know about Qt.MouseEventSynthesizedBySystem
+        # because it was added in Qt 5.6, but we can be sure we use that with
+        # QtWebEngine.
+        # pylint: disable=no-member,useless-suppression
+        ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
+                         QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
+                         Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
+        # pylint: enable=no-member,useless-suppression
+        self._tab.send_event(ev)
+        # This actually "clicks" the element by calling focus() on it in JS.
+        self._js_call('focus')
+        self._move_text_cursor()
+
+    def _click_js(self, _click_target):
+        settings = QWebEngineSettings.globalSettings()
+        attribute = QWebEngineSettings.JavascriptCanOpenWindows
+        could_open_windows = settings.testAttribute(attribute)
+        settings.setAttribute(attribute, True)
+
+        # Get QtWebEngine do apply the settings
+        # (it does so with a 0ms QTimer...)
+        # This is also used in Qt's tests:
+        # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
+        qapp = QApplication.instance()
+        qapp.processEvents(QEventLoop.ExcludeSocketNotifiers |
+                           QEventLoop.ExcludeUserInputEvents)
+
+        def reset_setting(_arg):
+            settings.setAttribute(attribute, could_open_windows)
+
+        self._js_call('click', callback=reset_setting)

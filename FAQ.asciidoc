@@ -105,12 +105,24 @@ It also works nicely with rapid hints:
 How do I use qutebrowser with mutt?::
     Due to a Qt limitation, local files without `.html` extensions are
     "downloaded" instead of displayed, see
-    https://github.com/The-Compiler/qutebrowser/issues/566[#566]. You can work
+    https://github.com/qutebrowser/qutebrowser/issues/566[#566]. You can work
     around this by using this in your `mailcap`:
 +
 ----
     text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
 ----
+
+What is the difference between bookmarks and quickmarks?::
+    Bookmarks will always use the title of the website as their name, but with quickmarks
+    you can set your own title.
++
+For example, if you bookmark multiple food recipe websites and use `:open`, 
+you have to type the title or address of the website.
++
+When using quickmark, you can give them all names, like
+`foodrecipes1`, `foodrecipes2` and so on. When you type 
+`:open foodrecipes`, you will see a list of all the food recipe sites,
+without having to remember the exact website title or address.
 
 == Troubleshooting
 
@@ -129,7 +141,7 @@ Experiencing freezing on sites like duckduckgo and youtube.::
     This issue could be caused by stale plugin files installed by `mozplugger`
     if mozplugger was subsequently removed.
     Try exiting qutebrowser and removing `~/.mozilla/plugins/mozplugger*.so`.
-    See https://github.com/The-Compiler/qutebrowser/issues/357[Issue #357]
+    See https://github.com/qutebrowser/qutebrowser/issues/357[Issue #357]
     for more details.
 
 Experiencing segfaults (crashes) on Debian systems.::
@@ -143,7 +155,7 @@ Segfaults on Facebook, Medium, Amazon, ...::
     visiting these sites. This is caused by various bugs in Qt which have been
     fixed in Qt 5.4. However Debian and Ubuntu are slow to adopt or upgrade
     some packages. On Debian Jessie, it's recommended to use the experimental
-    repos as described in https://github.com/The-Compiler/qutebrowser/blob/master/INSTALL.asciidoc#on-debian--ubuntu[INSTALL].
+    repos as described in https://github.com/qutebrowser/qutebrowser/blob/master/INSTALL.asciidoc#on-debian--ubuntu[INSTALL].
 +
 Since Ubuntu Trusty (using Qt 5.2.1),
 https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%20resolution%20%3D%20Done%20and%20fixVersion%20in%20(5.3.0%2C%20%225.3.0%20Alpha%22%2C%20%225.3.0%20Beta1%22%2C%20%225.3.0%20RC1%22%2C%205.3.1%2C%205.3.2%2C%205.4.0%2C%20%225.4.0%20Alpha%22%2C%20%225.4.0%20Beta%22%2C%20%225.4.0%20RC%22)%20and%20priority%20in%20(%22P2%3A%20Important%22%2C%20%22P1%3A%20Critical%22%2C%20%22P0%3A%20Blocker%22)[over
@@ -154,7 +166,7 @@ https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%2
 
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in
-    https://github.com/The-Compiler/qutebrowser/issues[the issue tracker] or
+    https://github.com/qutebrowser/qutebrowser/issues[the issue tracker] or
     using the `:report` command.
     If you are reporting a segfault, make sure you read the
     link:doc/stacktrace.asciidoc[guide] on how to report them with all needed

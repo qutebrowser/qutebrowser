@@ -194,7 +194,7 @@ Feature: Saving and loading sessions
             url: http://localhost:*/data/numbers/3.txt
             zoom: 1.0
 
-  # https://github.com/The-Compiler/qutebrowser/issues/879
+  # https://github.com/qutebrowser/qutebrowser/issues/879
 
   Scenario: Saving a session with a page using history.replaceState()
     When I open data/sessions/history_replace_state.html without waiting
@@ -263,8 +263,10 @@ Feature: Saving and loading sessions
     Then the error "No session loaded currently!" should be shown
 
   Scenario: Saving current session after one is loaded
+    When I open data/numbers/1.txt
     When I run :session-save current_session
     And I run :session-load current_session
+    And I wait until data/numbers/1.txt is loaded
     And I run :session-save --current
     Then the message "Saved session current_session." should be shown
 
@@ -277,6 +279,32 @@ Feature: Saving and loading sessions
     When I run :session-save --quiet quiet_session
     Then "Saved session quiet_session." should not be logged
     And the session quiet_session should exist
+
+  Scenario: Saving session with --only-active-window
+    When I open data/numbers/1.txt
+    And I open data/numbers/2.txt in a new tab
+    And I open data/numbers/3.txt in a new window
+    And I open data/numbers/4.txt in a new tab
+    And I open data/numbers/5.txt in a new tab
+    And I run :session-save --only-active-window window_session_name
+    And I run :window-only
+    And I run :tab-only
+    And I run :session-load window_session_name
+    And I wait until data/numbers/5.txt is loaded
+    Then the session should look like:
+      windows:
+        - tabs:
+            - history:
+              - active: true
+                url: http://localhost:*/data/numbers/5.txt
+        - tabs:
+            - history:
+                - url: http://localhost:*/data/numbers/3.txt
+            - history:
+                - url: http://localhost:*/data/numbers/4.txt
+            - history:
+                - active: true
+                  url: http://localhost:*/data/numbers/5.txt
 
   # :session-delete
 

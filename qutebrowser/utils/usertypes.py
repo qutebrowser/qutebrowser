@@ -255,10 +255,6 @@ LoadStatus = enum('LoadStatus', ['none', 'success', 'success_https', 'error',
 
 # Backend of a tab
 Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
-arg2backend = {
-    'webkit': Backend.QtWebKit,
-    'webengine': Backend.QtWebEngine,
-}
 
 
 # JS world for QtWebEngine

@@ -101,7 +101,6 @@ class FakeSocket(QObject):
         _error_val: The value returned for error().
         _state_val: The value returned for state().
         _connect_successful: The value returned for waitForConnected().
-        deleted: Set to True if deleteLater() was called.
     """
 
     readyRead = pyqtSignal()
@@ -115,7 +114,6 @@ class FakeSocket(QObject):
         self._data = data
         self._connect_successful = connect_successful
         self.error = stubs.FakeSignal('error', func=self._error)
-        self.deleted = False
 
     def _error(self):
         return self._error_val
@@ -130,9 +128,6 @@ class FakeSocket(QObject):
         firstline, mid, rest = self._data.partition(b'\n')
         self._data = rest
         return firstline + mid
-
-    def deleteLater(self):
-        self.deleted = True
 
     def errorString(self):
         return "Error string"
@@ -199,8 +194,7 @@ class TestSocketName:
 
     @pytest.fixture(autouse=True)
     def patch_user(self, monkeypatch):
-        monkeypatch.setattr('qutebrowser.misc.ipc.getpass.getuser',
-                            lambda: 'testusername')
+        monkeypatch.setattr(ipc.getpass, 'getuser', lambda: 'testusername')
 
     @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
     def test_legacy(self, basedir, expected):
@@ -281,7 +275,7 @@ class TestListen:
 
     def test_error(self, ipc_server, monkeypatch):
         """Simulate an error while listening."""
-        monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
+        monkeypatch.setattr(ipc.QLocalServer, 'removeServer',
                             lambda self: True)
         monkeypatch.setattr(ipc_server, '_socketname', None)
         with pytest.raises(ipc.ListenError):
@@ -289,7 +283,7 @@ class TestListen:
 
     @pytest.mark.posix
     def test_in_use(self, qlocalserver, ipc_server, monkeypatch):
-        monkeypatch.setattr('qutebrowser.misc.ipc.QLocalServer.removeServer',
+        monkeypatch.setattr(ipc.QLocalServer, 'removeServer',
                             lambda self: True)
         qlocalserver.listen('qute-test')
         with pytest.raises(ipc.AddressInUseError):
@@ -443,7 +437,7 @@ class TestHandleConnection:
 def connected_socket(qtbot, qlocalsocket, ipc_server):
     if sys.platform == 'darwin':
         pytest.skip("Skipping connected_socket test - "
-                    "https://github.com/The-Compiler/qutebrowser/issues/1045")
+                    "https://github.com/qutebrowser/qutebrowser/issues/1045")
     ipc_server.listen()
     with qtbot.waitSignal(ipc_server._server.newConnection):
         qlocalsocket.connectToServer('qute-test')
@@ -577,7 +571,7 @@ class TestSendToRunningInstance:
         assert str(excinfo.value) == msg
 
 
-@pytest.mark.not_osx(reason="https://github.com/The-Compiler/qutebrowser/"
+@pytest.mark.not_osx(reason="https://github.com/qutebrowser/qutebrowser/"
                             "issues/975")
 def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     ipc_server._timer.setInterval(100)
@@ -831,11 +825,10 @@ class TestSendOrListen:
 @pytest.mark.windows
 @pytest.mark.osx
 def test_long_username(monkeypatch):
-    """See https://github.com/The-Compiler/qutebrowser/issues/888."""
+    """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'
     basedir = '/this_is_a_long_basedir'
-    monkeypatch.setattr('qutebrowser.misc.ipc.standarddir.getpass.getuser',
-                        lambda: username)
+    monkeypatch.setattr('getpass.getuser', lambda: username)
     name = ipc._get_socketname(basedir=basedir)
     server = ipc.IPCServer(name)
     expected_md5 = md5('{}-{}'.format(username, basedir))

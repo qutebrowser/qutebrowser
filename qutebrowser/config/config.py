@@ -43,6 +43,7 @@ from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
                                qtutils, error, usertypes)
+from qutebrowser.misc import objects
 from qutebrowser.utils.usertypes import Completion
 
 
@@ -233,7 +234,7 @@ def _init_misc():
     # doesn't overwrite our config.
     #
     # This fixes one of the corruption issues here:
-    # https://github.com/The-Compiler/qutebrowser/issues/515
+    # https://github.com/qutebrowser/qutebrowser/issues/515
 
     path = os.path.join(standarddir.config(), 'qsettings')
     for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:
@@ -442,6 +443,7 @@ class ConfigManager(QObject):
                 'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
                 '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
             }),
+        ('contents', 'cache-size'): _get_value_transformer({'52428800': ''}),
     }
 
     changed = pyqtSignal(str, str)
@@ -772,12 +774,12 @@ class ConfigManager(QObject):
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
-    @cmdutils.register(name='set', instance='config')
+    @cmdutils.register(name='set', instance='config', star_args_optional=True)
     @cmdutils.argument('section_', completion=Completion.section)
     @cmdutils.argument('option', completion=Completion.option)
-    @cmdutils.argument('value', completion=Completion.value)
+    @cmdutils.argument('values', completion=Completion.value)
     @cmdutils.argument('win_id', win_id=True)
-    def set_command(self, win_id, section_=None, option=None, value=None,
+    def set_command(self, win_id, section_=None, option=None, *values,
                     temp=False, print_=False):
         """Set an option.
 
@@ -793,7 +795,7 @@ class ConfigManager(QObject):
         Args:
             section_: The section where the option is in.
             option: The name of the option.
-            value: The value to set.
+            values: The value to set, or the values to cycle through.
             temp: Set value temporarily.
             print_: Print the value after setting.
         """
@@ -812,26 +814,45 @@ class ConfigManager(QObject):
             print_ = True
         else:
             with self._handle_config_error():
-                if option.endswith('!') and option != '!' and value is None:
+                if option.endswith('!') and option != '!' and not values:
+                    # Handle inversion as special cases of the cycle code path
                     option = option[:-1]
                     val = self.get(section_, option)
-                    layer = 'temp' if temp else 'conf'
                     if isinstance(val, bool):
-                        self.set(layer, section_, option, str(not val).lower())
+                        values = ['false', 'true']
                     else:
                         raise cmdexc.CommandError(
                             "set: Attempted inversion of non-boolean value.")
-                elif value is not None:
-                    layer = 'temp' if temp else 'conf'
-                    self.set(layer, section_, option, value)
-                else:
+                elif not values:
                     raise cmdexc.CommandError("set: The following arguments "
                                               "are required: value")
+
+                layer = 'temp' if temp else 'conf'
+                self._set_next(layer, section_, option, values)
 
         if print_:
             with self._handle_config_error():
                 val = self.get(section_, option, transformed=False)
             message.info("{} {} = {}".format(section_, option, val))
+
+    def _set_next(self, layer, section_, option, values):
+        """Set the next value out of a list of values."""
+        if len(values) == 1:
+            # If we have only one value, just set it directly (avoid
+            # breaking stuff like aliases or other pseudo-settings)
+            self.set(layer, section_, option, values[0])
+        else:
+            # Otherwise, use the next valid value from values, or the
+            # first if the current value does not appear in the list
+            assert len(values) > 1
+            val = self.get(section_, option, transformed=False)
+            try:
+                idx = values.index(str(val))
+                idx = (idx + 1) % len(values)
+                value = values[idx]
+            except ValueError:
+                value = values[0]
+            self.set(layer, section_, option, value)
 
     def set(self, layer, sectname, optname, value, validate=True):
         """Set an option.
@@ -863,10 +884,9 @@ class ConfigManager(QObject):
                 # Will be handled later in .setv()
                 pass
             else:
-                backend = usertypes.arg2backend[objreg.get('args').backend]
                 if (allowed_backends is not None and
-                        backend not in allowed_backends):
-                    raise configexc.BackendError(backend)
+                        objects.backend not in allowed_backends):
+                    raise configexc.BackendError(objects.backend)
         else:
             interpolated = None
 

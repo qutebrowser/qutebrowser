@@ -211,7 +211,8 @@ class NetworkManager(QNetworkAccessManager):
             request.deleteLater()
         self.shutting_down.emit()
 
-    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
+    # No @pyqtSlot here, see
+    # https://github.com/qutebrowser/qutebrowser/issues/2213
     def on_ssl_errors(self, reply, errors):  # pragma: no mccabe
         """Decide if SSL errors should be ignored or not.
 
@@ -396,6 +397,14 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             A QNetworkReply.
         """
+        proxy_factory = objreg.get('proxy-factory', None)
+        if proxy_factory is not None:
+            proxy_error = proxy_factory.get_error()
+            if proxy_error is not None:
+                return networkreply.ErrorNetworkReply(
+                    req, proxy_error, QNetworkReply.UnknownProxyError,
+                    self)
+
         scheme = req.url().scheme()
         if scheme in self._scheme_handlers:
             result = self._scheme_handlers[scheme].createRequest(
@@ -426,7 +435,7 @@ class NetworkManager(QNetworkAccessManager):
                                  tab=self._tab_id)
                 current_url = tab.url()
             except (KeyError, RuntimeError, TypeError):
-                # https://github.com/The-Compiler/qutebrowser/issues/889
+                # https://github.com/qutebrowser/qutebrowser/issues/889
                 # Catching RuntimeError and TypeError because we could be in
                 # the middle of the webpage shutdown here.
                 current_url = QUrl()

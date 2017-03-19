@@ -29,9 +29,10 @@ import functools
 import contextlib
 import itertools
 import socket
+import shlex
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence, QColor, QClipboard
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
 
@@ -155,37 +156,6 @@ def resource_filename(filename):
     if hasattr(sys, 'frozen'):
         return os.path.join(os.path.dirname(sys.executable), filename)
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
-
-
-def actute_warning():
-    """Display a warning about the dead_actute issue if needed."""
-    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    # Non Linux OS' aren't affected
-    if not sys.platform.startswith('linux'):
-        return
-    # If no compose file exists for some reason, we're not affected
-    if not os.path.exists('/usr/share/X11/locale/en_US.UTF-8/Compose'):
-        return
-    # Qt >= 5.3 doesn't seem to be affected
-    try:
-        if qtutils.version_check('5.3.0'):
-            return
-    except ValueError:  # pragma: no cover
-        pass
-    try:
-        with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
-                  encoding='utf-8') as f:
-            for line in f:
-                if '<dead_actute>' in line:
-                    if sys.stdout is not None:
-                        sys.stdout.flush()
-                    print("Note: If you got a 'dead_actute' warning above, "
-                          "that is not a bug in qutebrowser! See "
-                          "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
-                          "for details.")
-                    break
-    except OSError:
-        log.init.exception("Failed to read Compose file")
 
 
 def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
@@ -399,7 +369,7 @@ def keyevent_to_string(e):
     if sys.platform == 'darwin':
         # Qt swaps Ctrl/Meta on OS X, so we switch it back here so the user can
         # use it in the config as expected. See:
-        # https://github.com/The-Compiler/qutebrowser/issues/110
+        # https://github.com/qutebrowser/qutebrowser/issues/110
         # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
         modmask2str = collections.OrderedDict([
             (Qt.MetaModifier, 'Ctrl'),
@@ -825,3 +795,53 @@ def random_port():
     port = sock.getsockname()[1]
     sock.close()
     return port
+
+
+def open_file(filename, cmdline=None):
+    """Open the given file.
+
+    If cmdline is not given, general->default-open-dispatcher is used.
+    If default-open-dispatcher is unset, the system's default application is
+    used.
+
+    Args:
+        filename: The filename to open.
+        cmdline: The command to use as string. A `{}` is expanded to the
+                 filename. None means to use the system's default application
+                 or `default-open-dispatcher` if set. If no `{}` is found, the
+                 filename is appended to the cmdline.
+    """
+    # Import late to avoid circular imports:
+    # utils -> config -> configdata -> configtypes -> cmdutils -> command ->
+    # utils
+    from qutebrowser.misc import guiprocess
+    from qutebrowser.config import config
+    # the default program to open downloads with - will be empty string
+    # if we want to use the default
+    override = config.get('general', 'default-open-dispatcher')
+
+    # precedence order: cmdline > default-open-dispatcher > openUrl
+
+    if cmdline is None and not override:
+        log.misc.debug("Opening {} with the system application"
+                       .format(filename))
+        url = QUrl.fromLocalFile(filename)
+        QDesktopServices.openUrl(url)
+        return
+
+    if cmdline is None and override:
+        cmdline = override
+
+    cmd, *args = shlex.split(cmdline)
+    args = [arg.replace('{}', filename) for arg in args]
+    if '{}' not in cmdline:
+        args.append(filename)
+    log.misc.debug("Opening {} with {}"
+                   .format(filename, [cmd] + args))
+    proc = guiprocess.GUIProcess(what='open-file')
+    proc.start_detached(cmd, args)
+
+
+def unused(_arg):
+    """Function which does nothing to avoid pylint complaining."""
+    pass

@@ -32,6 +32,26 @@ Feature: Setting settings.
         When I run :set colors statusbar.bg!
         Then the error "set: Attempted inversion of non-boolean value." should be shown
 
+    Scenario: Cycling an option
+        When I run :set colors statusbar.bg magenta
+        And I run :set colors statusbar.bg green magenta blue yellow
+        Then colors -> statusbar.bg should be blue
+
+    Scenario: Cycling an option through the end of the list
+        When I run :set colors statusbar.bg yellow
+        And I run :set colors statusbar.bg green magenta blue yellow
+        Then colors -> statusbar.bg should be green
+
+    Scenario: Cycling an option that's not on the list
+        When I run :set colors statusbar.bg red
+        And I run :set colors statusbar.bg green magenta blue yellow
+        Then colors -> statusbar.bg should be green
+
+    Scenario: Cycling through a single option
+        When I run :set colors statusbar.bg red
+        And I run :set colors statusbar.bg red
+        Then colors -> statusbar.bg should be red
+
     Scenario: Getting an option
         When I run :set colors statusbar.bg magenta
         And I run :set colors statusbar.bg?

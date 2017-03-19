@@ -32,8 +32,9 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
+from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.browser.webkit.network import proxy, webkitqutescheme
+from qutebrowser.browser.webkit.network import webkitqutescheme
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
 
 
@@ -41,12 +42,26 @@ def init():
     """Initialize QtWebKit-specific modules."""
     qapp = QApplication.instance()
 
-    log.init.debug("Initializing proxy...")
-    proxy.init()
+    if not qtutils.version_check('5.8'):
+        # Otherwise we initialize it globally in app.py
+        log.init.debug("Initializing proxy...")
+        proxy.init()
 
     log.init.debug("Initializing js-bridge...")
     js_bridge = webkitqutescheme.JSBridge(qapp)
     objreg.register('js-bridge', js_bridge)
+
+
+class WebKitAction(browsertab.AbstractAction):
+
+    """QtWebKit implementations related to web actions."""
+
+    def exit_fullscreen(self):
+        raise browsertab.UnsupportedOperationError
+
+    def save_page(self):
+        """Save the current page."""
+        raise browsertab.UnsupportedOperationError
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -65,13 +80,19 @@ class WebKitPrinting(browsertab.AbstractPrinting):
     def check_printer_support(self):
         self._do_check()
 
+    def check_preview_support(self):
+        self._do_check()
+
     def to_pdf(self, filename):
         printer = QPrinter()
         printer.setOutputFileName(filename)
         self.to_printer(printer)
 
-    def to_printer(self, printer):
+    def to_printer(self, printer, callback=None):
         self._widget.print(printer)
+        # Can't find out whether there was an error...
+        if callback is not None:
+            callback(True)
 
 
 class WebKitSearch(browsertab.AbstractSearch):
@@ -422,7 +443,7 @@ class WebKitScroller(browsertab.AbstractScroller):
         # FIXME:qtwebengine needed?
         # self._widget.setFocus()
 
-        for _ in range(count):
+        for _ in range(min(count, 5000)):
             press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
             release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
                                     0, 0, 0)
@@ -589,8 +610,6 @@ class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
-    WIDGET_CLASS = webview.WebView
-
     def __init__(self, win_id, mode_manager, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
                          parent=parent)
@@ -603,9 +622,9 @@ class WebKitTab(browsertab.AbstractTab):
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(self)
+        self.action = WebKitAction()
         self._set_widget(widget)
         self._connect_signals()
-        self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
 
     def _install_event_filter(self):
@@ -671,13 +690,17 @@ class WebKitTab(browsertab.AbstractTab):
     def networkaccessmanager(self):
         return self._widget.page().networkAccessManager()
 
+    def user_agent(self):
+        page = self._widget.page()
+        return page.userAgentForUrl(self.url())
+
     @pyqtSlot()
     def _on_frame_load_finished(self):
         """Make sure we emit an appropriate status when loading finished.
 
         While Qt has a bool "ok" attribute for loadFinished, it always is True
         when using error pages... See
-        https://github.com/The-Compiler/qutebrowser/issues/84
+        https://github.com/qutebrowser/qutebrowser/issues/84
         """
         self._on_load_finished(not self._widget.page().error_occurred)
 
@@ -690,8 +713,8 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_frame_created(self, frame):
         """Connect the contentsSizeChanged signal of each frame."""
         # FIXME:qtwebengine those could theoretically regress:
-        # https://github.com/The-Compiler/qutebrowser/issues/152
-        # https://github.com/The-Compiler/qutebrowser/issues/263
+        # https://github.com/qutebrowser/qutebrowser/issues/152
+        # https://github.com/qutebrowser/qutebrowser/issues/263
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
 
     @pyqtSlot(QSize)
@@ -717,5 +740,5 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
 
-    def _event_target(self):
+    def event_target(self):
         return self._widget

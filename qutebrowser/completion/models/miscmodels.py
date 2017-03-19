@@ -32,7 +32,7 @@ class CommandCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with non-hidden commands and descriptions."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     COLUMN_WIDTHS = (20, 60, 20)
@@ -50,8 +50,10 @@ class HelpCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with help topics."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
+
+    COLUMN_WIDTHS = (20, 60, 20)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -87,7 +89,7 @@ class QuickmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all quickmarks."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -102,7 +104,7 @@ class BookmarkCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all bookmarks."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -117,7 +119,7 @@ class SessionCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with session names."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     def __init__(self, parent=None):
@@ -160,6 +162,7 @@ class TabCompletionModel(base.BaseCompletionModel):
                 tab.title_changed.connect(self.rebuild)
                 tab.shutting_down.connect(self.delayed_rebuild)
             tabbed_browser.new_tab.connect(self.on_new_tab)
+            tabbed_browser.tabBar().tabMoved.connect(self.rebuild)
         objreg.get("app").new_window.connect(self.on_new_window)
         self.rebuild()
 
@@ -248,7 +251,7 @@ class BindCompletionModel(base.BaseCompletionModel):
 
     """A CompletionModel filled with all bindable commands and descriptions."""
 
-    # https://github.com/The-Compiler/qutebrowser/issues/545
+    # https://github.com/qutebrowser/qutebrowser/issues/545
     # pylint: disable=abstract-method
 
     COLUMN_WIDTHS = (20, 60, 20)

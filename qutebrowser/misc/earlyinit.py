@@ -34,7 +34,6 @@ import sys
 import faulthandler
 import traceback
 import signal
-import operator
 import importlib
 import pkg_resources
 import datetime
@@ -59,17 +58,18 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
         webengine: Whether this is checking the QtWebEngine package
     """
     blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
-              "could not be imported! Maybe it's not installed?".format(name)]
+              "could not be imported! Maybe it's not installed?".format(name),
+              "<b>The error encountered was:</b><br />%ERROR%"]
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
     if webengine:
         lines = [
             ('Note QtWebEngine is not available for some distributions '
-                '(like Debian/Ubuntu), so you need to start without '
-                '--backend webengine there.'),
+                '(like Ubuntu), so you need to start without --backend '
+                'webengine there.'),
             ('QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/The-Compiler/qutebrowser/issues/1692'),
+                'https://github.com/qutebrowser/qutebrowser/issues/1692'),
         ]
     else:
         lines = ['<b>If you installed a qutebrowser package for your '
@@ -107,7 +107,7 @@ def _die(message, exception=None):
         print("Exiting because of --no-err-windows.", file=sys.stderr)
     else:
         if exception is not None:
-            message += '<br/><br/><br/><b>Error:</b><br/>{}'.format(exception)
+            message = message.replace('%ERROR%', str(exception))
         msgbox = QMessageBox(QMessageBox.Critical, "qutebrowser: Fatal error!",
                              message)
         msgbox.setTextFormat(Qt.RichText)
@@ -226,7 +226,7 @@ def check_pyqt_core():
         text = text.replace('<b>', '')
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
-        text += '\n\nError: {}'.format(e)
+        text = text.replace('%ERROR%', str(e))
         if tkinter and '--no-err-windows' not in sys.argv:
             root = tkinter.Tk()
             root.withdraw()
@@ -239,18 +239,42 @@ def check_pyqt_core():
         sys.exit(1)
 
 
-def check_qt_version(args):
+def get_backend(args):
+    """Find out what backend to use based on available libraries.
+
+    Note this function returns the backend as a string so we don't have to
+    import qutebrowser.utils.usertypes yet.
+    """
+    try:
+        import PyQt5.QtWebKit  # pylint: disable=unused-variable
+        webkit_available = True
+    except ImportError:
+        webkit_available = False
+
+    if args.backend is not None:
+        return args.backend
+    elif webkit_available:
+        return 'webkit'
+    else:
+        return 'webengine'
+
+
+def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
-    from PyQt5.QtCore import qVersion
-    from qutebrowser.utils import qtutils
-    if qtutils.version_check('5.2.0', operator.lt):
-        text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but {} is "
-                "installed.".format(qVersion()))
+    from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
+    from qutebrowser.utils import qtutils, version
+    if (not qtutils.version_check('5.2.0', strict=True) or
+            PYQT_VERSION < 0x050200):
+        text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
+                "PyQt {} is installed.".format(version.qt_version(),
+                                               PYQT_VERSION_STR))
         _die(text)
-    elif args.backend == 'webengine' and qtutils.version_check('5.6.0',
-                                                               operator.lt):
-        text = ("Fatal error: Qt and PyQt >= 5.6.0 are required for "
-                "QtWebEngine support, but {} is installed.".format(qVersion()))
+    elif (backend == 'webengine' and (
+            not qtutils.version_check('5.7.1', strict=True) or
+            PYQT_VERSION < 0x050700)):
+        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
+                "QtWebEngine support, but Qt {} / PyQt {} is installed."
+                .format(version.qt_version(), PYQT_VERSION_STR))
         _die(text)
 
 
@@ -267,7 +291,7 @@ def check_ssl_support():
         _die(text)
 
 
-def check_libraries(args):
+def check_libraries(backend):
     """Check if all needed Python libraries are installed."""
     modules = {
         'pkg_resources':
@@ -293,15 +317,29 @@ def check_libraries(args):
                                  "or Install via pip.",
                          pip="PyYAML"),
     }
-    if args.backend == 'webengine':
+    if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
     else:
+        assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
+        modules['PyQt5.QtWebKitWidgets'] = _missing_str(
+            "PyQt5.QtWebKitWidgets")
+
+    from qutebrowser.utils import log
 
     for name, text in modules.items():
         try:
-            importlib.import_module(name)
+            # https://github.com/pallets/jinja/pull/628
+            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
+            # https://github.com/pallets/jinja/issues/646
+            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
+            messages = ['invalid escape sequence',
+                        'Flags not at the start of the expression']
+            with log.ignore_py_warnings(
+                    category=DeprecationWarning,
+                    message=r'({})'.format('|'.join(messages))):
+                importlib.import_module(name)
         except ImportError as e:
             _die(text, e)
 
@@ -334,6 +372,17 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
+def set_backend(backend):
+    """Set the objects.backend global to the given backend (as string)."""
+    from qutebrowser.misc import objects
+    from qutebrowser.utils import usertypes
+    backends = {
+        'webkit': usertypes.Backend.QtWebKit,
+        'webengine': usertypes.Backend.QtWebEngine,
+    }
+    objects.backend = backends[backend]
+
+
 def earlyinit(args):
     """Do all needed early initialization.
 
@@ -356,8 +405,10 @@ def earlyinit(args):
     fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
-    check_qt_version(args)
+    backend = get_backend(args)
+    check_qt_version(backend)
     remove_inputhook()
-    check_libraries(args)
+    check_libraries(backend)
     check_ssl_support()
     check_optimize_flag()
+    set_backend(backend)

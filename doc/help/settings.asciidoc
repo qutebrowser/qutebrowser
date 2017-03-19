@@ -11,6 +11,7 @@
 |<<general-ignore-case,ignore-case>>|Whether to find text on a page case-insensitively.
 |<<general-startpage,startpage>>|The default page(s) to open at the start, separated by commas.
 |<<general-yank-ignored-url-parameters,yank-ignored-url-parameters>>|The URL parameters to strip with :yank url, separated by commas.
+|<<general-default-open-dispatcher,default-open-dispatcher>>|The default program used to open downloads. Set to an empty string to use the default internal handler.
 |<<general-default-page,default-page>>|The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
 |<<general-auto-search,auto-search>>|Whether to start a search when something else than a URL is entered.
 |<<general-auto-save-config,auto-save-config>>|Whether to save the config automatically on quit.
@@ -21,7 +22,7 @@
 |<<general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
 |<<general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
 |<<general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
-|<<general-site-specific-quirks,site-specific-quirks>>|Enable workarounds for broken sites.
+|<<general-site-specific-quirks,site-specific-quirks>>|Enable QtWebKit workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
 |<<general-new-instance-open-target.window,new-instance-open-target.window>>|Which window to choose when opening links as new tabs.
@@ -47,7 +48,7 @@
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
 |<<ui-hide-scrollbar,hide-scrollbar>>|Hide the main scrollbar.
 |<<ui-css-media-type,css-media-type>>|Set the CSS media type.
-|<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for webpages.
+|<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for web pages. Note smooth scrolling does not work with the :scroll-px command.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Number of milliseconds to wait before removing finished downloads. Will not be removed if value is -1.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
 |<<ui-statusbar-padding,statusbar-padding>>|Padding for statusbar (top, bottom, left, right).
@@ -56,6 +57,7 @@
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
 |<<ui-prompt-radius,prompt-radius>>|The rounding radius for the edges of prompts.
+|<<ui-prompt-filebrowser,prompt-filebrowser>>|Show a filebrowser in upload/download prompts.
 |==============
 
 .Quick reference for section ``network''
@@ -146,7 +148,7 @@
 |<<storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
 |<<storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
 |<<storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
-|<<storage-cache-size,cache-size>>|Size of the HTTP network cache.
+|<<storage-cache-size,cache-size>>|Size of the HTTP network cache. Empty to use the default value.
 |==============
 
 .Quick reference for section ``content''
@@ -156,7 +158,7 @@
 |<<content-allow-images,allow-images>>|Whether images are automatically loaded in web pages.
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
-|<<content-webgl,webgl>>|Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is required for this setting.
+|<<content-webgl,webgl>>|Enables or disables WebGL.
 |<<content-css-regions,css-regions>>|Enable or disable support for CSS regions.
 |<<content-hyperlink-auditing,hyperlink-auditing>>|Enable or disable hyperlink auditing (<a ping>).
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
@@ -170,7 +172,7 @@
 |<<content-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
 |<<content-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<content-cookies-accept,cookies-accept>>|Control which cookies to accept.
-|<<content-cookies-store,cookies-store>>|Whether to store cookies.
+|<<content-cookies-store,cookies-store>>|Whether to store cookies. Note this option needs a restart with QtWebEngine.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
 |<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
@@ -330,6 +332,14 @@ The URL parameters to strip with :yank url, separated by commas.
 
 Default: +pass:[ref,utm_source,utm_medium,utm_campaign,utm_term,utm_content]+
 
+[[general-default-open-dispatcher]]
+=== default-open-dispatcher
+The default program used to open downloads. Set to an empty string to use the default internal handler.
+
+Any {} in the string will be expanded to the filename, else the filename will be appended.
+
+Default: empty
+
 [[general-default-page]]
 === default-page
 The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
@@ -397,7 +407,7 @@ This setting is only available with the QtWebKit backend.
 === developer-extras
 Enable extra tools for Web developers.
 
-This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu.
+This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu. For QtWebEngine, see 'qutebrowser --help' instead.
 
 Valid values:
 
@@ -406,9 +416,12 @@ Valid values:
 
 Default: +pass:[false]+
 
+This setting is only available with the QtWebKit backend.
+
 [[general-print-element-backgrounds]]
 === print-element-backgrounds
 Whether the background color and images are also drawn when the page is printed.
+This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
 
 Valid values:
 
@@ -416,8 +429,6 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[general-xss-auditing]]
 === xss-auditing
@@ -434,7 +445,7 @@ Default: +pass:[false]+
 
 [[general-site-specific-quirks]]
 === site-specific-quirks
-Enable workarounds for broken sites.
+Enable QtWebKit workarounds for broken sites.
 
 Valid values:
 
@@ -644,7 +655,7 @@ This setting is only available with the QtWebKit backend.
 
 [[ui-smooth-scrolling]]
 === smooth-scrolling
-Whether to enable smooth scrolling for webpages.
+Whether to enable smooth scrolling for web pages. Note smooth scrolling does not work with the :scroll-px command.
 
 Valid values:
 
@@ -727,6 +738,17 @@ The rounding radius for the edges of prompts.
 
 Default: +pass:[8]+
 
+[[ui-prompt-filebrowser]]
+=== prompt-filebrowser
+Show a filebrowser in upload/download prompts.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
 == network
 Settings related to the network.
 
@@ -773,14 +795,14 @@ The proxy to use.
 
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
 
+This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
+
 Valid values:
 
  * +system+: Use the system wide proxy.
  * +none+: Don't use any proxy
 
 Default: +pass:[system]+
-
-This setting is only available with the QtWebKit backend.
 
 [[network-proxy-dns-requests]]
 === proxy-dns-requests
@@ -1360,9 +1382,9 @@ Default: +pass:[true]+
 
 [[storage-cache-size]]
 === cache-size
-Size of the HTTP network cache.
+Size of the HTTP network cache. Empty to use the default value.
 
-Default: +pass:[52428800]+
+Default: empty
 
 == content
 Loaded plugins/scripts and allowed actions.
@@ -1404,14 +1426,14 @@ Default: +pass:[false]+
 
 [[content-webgl]]
 === webgl
-Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is required for this setting.
+Enables or disables WebGL.
 
 Valid values:
 
  * +true+
  * +false+
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 [[content-css-regions]]
 === css-regions
@@ -1502,6 +1524,7 @@ This setting is only available with the QtWebKit backend.
 [[content-javascript-can-access-clipboard]]
 === javascript-can-access-clipboard
 Whether JavaScript programs can read or write to the clipboard.
+With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
 
 Valid values:
 
@@ -1571,7 +1594,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content-cookies-store]]
 === cookies-store
-Whether to store cookies.
+Whether to store cookies. Note this option needs a restart with QtWebEngine.
 
 Valid values:
 
@@ -1579,8 +1602,6 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content-host-block-lists]]
 === host-block-lists
@@ -1643,7 +1664,7 @@ Mode to use for hints.
 
 Valid values:
 
- * +number+: Use numeric hints.
+ * +number+: Use numeric hints. (In this mode you can also type letters form the hinted element to filter and reduce the number of elements that are hinted.)
  * +letter+: Use the chars in the hints -> chars setting.
  * +word+: Use hints words based on the html elements and the extra words.
 
@@ -2129,8 +2150,6 @@ Default: +pass:[red]+
 Background color for webpages if unset (or empty to use the theme's color)
 
 Default: +pass:[white]+
-
-This setting is only available with the QtWebKit backend.
 
 [[colors-keyhint.fg]]
 === keyhint.fg

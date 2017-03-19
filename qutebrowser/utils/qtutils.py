@@ -34,7 +34,7 @@ import operator
 import contextlib
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QSaveFile)
+                          QIODevice, QSaveFile, QT_VERSION_STR)
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.utils import log
@@ -80,15 +80,34 @@ class QtOSError(OSError):
             self.qt_errno = None
 
 
-def version_check(version, op=operator.ge):
+def version_check(version, exact=False, strict=False):
     """Check if the Qt runtime version is the version supplied or newer.
 
     Args:
         version: The version to check against.
-        op: The operator to use for the check.
+        exact: if given, check with == instead of >=
+        strict: If given, also check the compiled Qt version.
     """
-    return op(pkg_resources.parse_version(qVersion()),
-              pkg_resources.parse_version(version))
+    # Catch code using the old API for this
+    assert exact not in [operator.gt, operator.lt, operator.ge, operator.le,
+                         operator.eq], exact
+    parsed = pkg_resources.parse_version(version)
+    op = operator.eq if exact else operator.ge
+    result = op(pkg_resources.parse_version(qVersion()), parsed)
+    if strict and result:
+        # v1 ==/>= parsed, now check if v2 ==/>= parsed too.
+        result = op(pkg_resources.parse_version(QT_VERSION_STR), parsed)
+    return result
+
+
+def is_qtwebkit_ng(version):
+    """Check if the given version is  QtWebKit-NG.
+
+    This is typically used as is_webkit_ng(qWebKitVersion) but we don't want to
+    have QtWebKit imports in here.
+    """
+    return (pkg_resources.parse_version(version) >
+            pkg_resources.parse_version('538.1'))
 
 
 def check_overflow(arg, ctype, fatal=True):
@@ -129,18 +148,24 @@ def get_args(namespace):
         The argv list to be passed to Qt.
     """
     argv = [sys.argv[0]]
+
     if namespace.qt_flag is not None:
-        argv.append('-' + namespace.qt_flag[0])
+        argv += ['--' + flag[0] for flag in namespace.qt_flag]
+
     if namespace.qt_arg is not None:
-        argv.append('-' + namespace.qt_arg[0])
-        argv.append(namespace.qt_arg[1])
+        for name, value in namespace.qt_arg:
+            argv += ['--' + name, value]
+
     return argv
 
 
 def check_print_compat():
     """Check if printing should work in the given Qt version."""
     # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    return not (os.name == 'nt' and version_check('5.3.0', operator.lt))
+    if os.name == 'nt':
+        return version_check('5.3')
+    else:
+        return True
 
 
 def ensure_valid(obj):

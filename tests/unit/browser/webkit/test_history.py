@@ -27,7 +27,7 @@ from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg, urlutils
+from qutebrowser.utils import objreg, urlutils, usertypes
 
 
 class FakeWebHistory:
@@ -220,7 +220,7 @@ def test_clear(qtbot, hist, tmpdir):
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
     with qtbot.waitSignal(hist.cleared):
-        hist.clear()
+        hist._do_clear()
 
     assert not hist_file.read()
     assert not hist.history_dict
@@ -380,14 +380,16 @@ def test_history_interface(qtbot, webview, hist_interface):
         webview.load(url)
 
 
-@pytest.mark.parametrize('backend', ['webengine', 'webkit'])
-def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager,
-              fake_args):
-    if backend == 'webkit':
+@pytest.mark.parametrize('backend', [usertypes.Backend.QtWebEngine,
+                                     usertypes.Backend.QtWebKit])
+def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager):
+    if backend == usertypes.Backend.QtWebKit:
         pytest.importorskip('PyQt5.QtWebKitWidgets')
+    else:
+        assert backend == usertypes.Backend.QtWebEngine
 
-    fake_args.backend = backend
     monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
+    monkeypatch.setattr(history.objects, 'backend', backend)
     history.init(qapp)
     hist = objreg.get('web-history')
     assert hist.parent() is qapp
@@ -397,11 +399,11 @@ def test_init(backend, qapp, tmpdir, monkeypatch, fake_save_manager,
     except ImportError:
         QWebHistoryInterface = None
 
-    if backend == 'webkit':
+    if backend == usertypes.Backend.QtWebKit:
         default_interface = QWebHistoryInterface.defaultInterface()
         assert default_interface._history is hist
     else:
-        assert backend == 'webengine'
+        assert backend == usertypes.Backend.QtWebEngine
         if QWebHistoryInterface is None:
             default_interface = None
         else:

@@ -68,7 +68,7 @@ def restore_loggers():
     root_logger.setLevel(original_logging_level)
     for h in root_handlers:
         if not isinstance(h, pytest_catchlog.LogCaptureHandler):
-            # https://github.com/The-Compiler/qutebrowser/issues/856
+            # https://github.com/qutebrowser/qutebrowser/issues/856
             root_logger.addHandler(h)
     logging._acquireLock()
     try:

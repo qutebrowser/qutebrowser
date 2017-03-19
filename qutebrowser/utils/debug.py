@@ -70,7 +70,11 @@ def log_signals(obj):
                 name = bytes(meta_method.name()).decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
-                    signal.connect(functools.partial(log_slot, obj, signal))
+                    try:
+                        signal.connect(functools.partial(
+                            log_slot, obj, signal))
+                    except TypeError:  # pragma: no cover
+                        pass
 
     if inspect.isclass(obj):
         old_init = obj.__init__
@@ -133,7 +137,7 @@ def qflags_key(base, value, add_base=False, klass=None):
     Note: Passing a combined value (such as Qt.AlignCenter) will get the names
     for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
 
-    https://github.com/The-Compiler/qutebrowser/issues/42
+    https://github.com/qutebrowser/qutebrowser/issues/42
 
     Args:
         base: The object the flags are in, e.g. QtCore.Qt

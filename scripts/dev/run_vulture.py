@@ -65,7 +65,6 @@ def whitelist_generator():
     yield 'qutebrowser.utils.debug.qflags_key'
     yield 'qutebrowser.utils.qtutils.QtOSError.qt_errno'
     yield 'scripts.utils.bg_colors'
-    yield 'qutebrowser.browser.webelem.AbstractWebElement.style_property'
     yield 'qutebrowser.config.configtypes.Float'
 
     # Qt attributes
@@ -87,6 +86,7 @@ def whitelist_generator():
     yield 'qutebrowser.browser.pdfjs.is_available'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py
+    yield 'propagate'  # logging.getLogger('...).propagate = False
     # vulture doesn't notice the hasattr() and thus thinks netrc_used is unused
     # in NetworkManager.on_authentication_required
     yield 'PyQt5.QtNetwork.QNetworkReply.netrc_used'

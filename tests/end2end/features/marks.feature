@@ -70,7 +70,7 @@ Feature: Setting positional marks
         And I run :jump-mark b
         Then the error "Mark b is not set" should be shown
 
-    @qtwebengine_todo: Does not emit loaded signal for fragments?
+    @qtwebengine_todo: Does not emit loaded signal for fragments? @flaky
     Scenario: Jumping to a local mark after changing fragments
         When I open data/marks.html#top
         And I run :scroll 'top'

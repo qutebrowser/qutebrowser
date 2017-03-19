@@ -59,16 +59,6 @@ class Font(QFont):
         return f
 
 
-class NetworkProxy(QNetworkProxy):
-
-    """A QNetworkProxy with a nicer repr()."""
-
-    def __repr__(self):
-        return utils.get_repr(self, type=self.type(), hostName=self.hostName(),
-                              port=self.port(), user=self.user(),
-                              password=self.password())
-
-
 class RegexEq:
 
     """A class to compare regex objects."""
@@ -806,8 +796,7 @@ class TestCommand:
         cmd_utils = stubs.FakeCmdUtils({
             'cmd1': stubs.FakeCommand(desc="desc 1"),
             'cmd2': stubs.FakeCommand(desc="desc 2")})
-        monkeypatch.setattr('qutebrowser.config.configtypes.cmdutils',
-                            cmd_utils)
+        monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
 
     @pytest.fixture
     def klass(self):
@@ -890,19 +879,16 @@ class ColorTests:
         ('#12', []),
         ('foobar', []),
         ('42', []),
-        ('rgb(1, 2, 3, 4)', []),
         ('foo(1, 2, 3)', []),
+        ('rgb(1, 2, 3', []),
 
         ('rgb(0, 0, 0)', [configtypes.QssColor]),
         ('rgb(0,0,0)', [configtypes.QssColor]),
         ('-foobar(42)', [configtypes.CssColor]),
 
-        ('rgba(255, 255, 255, 255)', [configtypes.QssColor]),
-        ('rgba(255,255,255,255)', [configtypes.QssColor]),
-        ('hsv(359, 255, 255)', [configtypes.QssColor]),
-        ('hsva(359, 255, 255, 255)', [configtypes.QssColor]),
-        ('hsv(10%, 10%, 10%)', [configtypes.QssColor]),
+        ('rgba(255, 255, 255, 1.0)', [configtypes.QssColor]),
         ('hsv(10%,10%,10%)', [configtypes.QssColor]),
+
         ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, '
          'stop: 0.4 gray, stop:1 green)', [configtypes.QssColor]),
         ('qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
@@ -988,6 +974,9 @@ class TestFont:
         'inconsolatazi4':
             FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
                      'inconsolatazi4'),
+        'Terminus (TTF)':
+            FontDesc(QFont.StyleNormal, QFont.Normal, -1, -1,
+                     'Terminus (TTF)'),
         '10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, QFont.Normal, 10, None, 'Foobar Neue'),
         '10PT "Foobar Neue"':
@@ -1052,7 +1041,7 @@ class TestFont:
         font_xfail('green'),
         font_xfail('10pt'),
         font_xfail('10pt ""'),
-        '%',
+        '',
     ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
@@ -1112,7 +1101,6 @@ class TestFontFamily:
         'normal bold 10pt "Foobar Neue"',
         'bold italic 10pt "Foobar Neue"',
         '',  # with none_ok=False
-        '%',
     ]
 
     @pytest.fixture
@@ -1490,8 +1478,8 @@ class TestProxy:
         'system',
         'none',
         'http://user:pass@example.com:2323/',
-        'socks://user:pass@example.com:2323/',
-        'socks5://user:pass@example.com:2323/',
+        'pac+http://example.com/proxy.pac',
+        'pac+file:///tmp/proxy.pac'
     ])
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
@@ -1517,27 +1505,18 @@ class TestProxy:
     @pytest.mark.parametrize('val, expected', [
         ('', None),
         ('system', configtypes.SYSTEM_PROXY),
-        ('none', NetworkProxy(QNetworkProxy.NoProxy)),
+        ('none', QNetworkProxy(QNetworkProxy.NoProxy)),
         ('socks://example.com/',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
-        ('socks5://example.com',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
-        ('socks5://example.com:2342',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
-        ('socks5://foo@example.com',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
-        ('socks5://foo:bar@example.com',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
-                         'bar')),
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
         ('socks5://foo:bar@example.com:2323',
-            NetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323, 'foo',
-                         'bar')),
+            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                          'foo', 'bar')),
     ])
     def test_transform(self, klass, val, expected):
         """Test transform with an empty value."""
         actual = klass().transform(val)
         if isinstance(actual, QNetworkProxy):
-            actual = NetworkProxy(actual)
+            actual = QNetworkProxy(actual)
         assert actual == expected
 
 

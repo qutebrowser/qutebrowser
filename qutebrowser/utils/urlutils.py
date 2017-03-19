@@ -27,15 +27,16 @@ import posixpath
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QHostInfo, QHostAddress
+from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
 from qutebrowser.config import config, configexc
 from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
+from qutebrowser.browser.network import pac
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
-# https://github.com/The-Compiler/qutebrowser/issues/108
+# https://github.com/qutebrowser/qutebrowser/issues/108
 
 
 class InvalidUrlError(ValueError):
@@ -296,7 +297,7 @@ def qurl_from_user_input(urlstr):
     WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
-    https://github.com/The-Compiler/qutebrowser/issues/109
+    https://github.com/qutebrowser/qutebrowser/issues/109
 
     Args:
         urlstr: The URL as string.
@@ -589,3 +590,47 @@ def data_url(mimetype, data):
     url = QUrl('data:{};base64,{}'.format(mimetype, b64))
     qtutils.ensure_valid(url)
     return url
+
+
+class InvalidProxyTypeError(Exception):
+
+    """Error raised when proxy_from_url gets an unknown proxy type."""
+
+    def __init__(self, typ):
+        super().__init__("Invalid proxy type {}!".format(typ))
+
+
+def proxy_from_url(url):
+    """Create a QNetworkProxy from QUrl and a proxy type.
+
+    Args:
+        url: URL of a proxy (possibly with credentials).
+
+    Return:
+        New QNetworkProxy.
+    """
+    if not url.isValid():
+        raise InvalidUrlError(url)
+
+    scheme = url.scheme()
+    if scheme in ['pac+http', 'pac+https', 'pac+file']:
+        return pac.PACFetcher(url)
+
+    types = {
+        'http': QNetworkProxy.HttpProxy,
+        'socks': QNetworkProxy.Socks5Proxy,
+        'socks5': QNetworkProxy.Socks5Proxy,
+        'direct': QNetworkProxy.NoProxy,
+    }
+    if scheme not in types:
+        raise InvalidProxyTypeError(scheme)
+
+    proxy = QNetworkProxy(types[scheme], url.host())
+
+    if url.port() != -1:
+        proxy.setPort(url.port())
+    if url.userName():
+        proxy.setUser(url.userName())
+    if url.password():
+        proxy.setPassword(url.password())
+    return proxy

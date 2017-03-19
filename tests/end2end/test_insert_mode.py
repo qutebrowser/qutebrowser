@@ -19,9 +19,6 @@
 
 """Test insert mode settings on html files."""
 
-import logging
-import json
-
 import pytest
 
 
@@ -35,48 +32,29 @@ import pytest
     ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser',
      'true'),
 ])
-def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
+@pytest.mark.parametrize('zoom', [100, 125, 250])
+def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
                      quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
 
     quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
-    quteproc.send_cmd(':click-element id {}'.format(elem_id))
-    quteproc.wait_for(message='Clicked editable element!')
+    quteproc.send_cmd(':zoom {}'.format(zoom))
+
+    quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
     if source == 'keypress':
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
-        if request.config.webengine:
-            pytest.xfail(reason="QtWebEngine TODO: caret mode is not "
-                         "implemented")
-            # Note we actually run the keypress tests with QtWebEngine, as for
-            # some reason it selects all the text when clicking the field the
-            # second time.
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
         quteproc.send_cmd(':insert-text {clipboard}')
     else:
         raise ValueError("Invalid source {!r}".format(source))
 
     quteproc.wait_for_js('contents: {}'.format(input_text))
-
     quteproc.send_cmd(':leave-mode')
-    quteproc.send_cmd(':hint all')
-    quteproc.wait_for(message='hints: *')
-    quteproc.send_cmd(':follow-hint a')
-    quteproc.wait_for(message='Clicked editable element!')
-    quteproc.send_cmd(':enter-mode caret')
-    quteproc.send_cmd(':toggle-selection')
-    quteproc.send_cmd(':move-to-prev-word')
-    quteproc.send_cmd(':yank selection')
-
-    expected_message = '{} chars yanked to clipboard'.format(len(input_text))
-    quteproc.mark_expected(category='message',
-                           loglevel=logging.INFO,
-                           message=expected_message)
-    quteproc.wait_for(
-        message='Setting fake clipboard: {}'.format(json.dumps(input_text)))
 
 
 def test_auto_leave_insert_mode(quteproc):
@@ -84,6 +62,7 @@ def test_auto_leave_insert_mode(quteproc):
     quteproc.open_path(url_path)
 
     quteproc.set_setting('input', 'auto-leave-insert-mode', 'true')
+    quteproc.send_cmd(':zoom 100')
 
     quteproc.press_keys('abcd')
 
@@ -93,11 +72,3 @@ def test_auto_leave_insert_mode(quteproc):
     # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')
     quteproc.wait_for(message='Clicked non-editable element!')
-    quteproc.send_cmd(':enter-mode caret')
-    quteproc.send_cmd(':paste-primary')
-
-    expected_message = ('paste-primary: This command is only allowed in '
-                        'insert mode, not caret.')
-    quteproc.mark_expected(category='message',
-                           loglevel=logging.ERROR,
-                           message=expected_message)

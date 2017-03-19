@@ -107,7 +107,7 @@ class ExternalEditor(QObject):
             # Close while the external process is running, as otherwise systems
             # with exclusive write access (e.g. Windows) may fail to update
             # the file from the external editor, see
-            # https://github.com/The-Compiler/qutebrowser/issues/1767
+            # https://github.com/qutebrowser/qutebrowser/issues/1767
             with tempfile.NamedTemporaryFile(
                     mode='w', prefix='qutebrowser-editor-', encoding=encoding,
                     delete=False) as fobj:

@@ -111,7 +111,7 @@ class ObjectRegistry(collections.UserDict):
                 #
                 # With older PyQt-versions (5.2.1) we'll get a "TypeError:
                 # pyqtSignal must be bound to a QObject" instead:
-                # https://github.com/The-Compiler/qutebrowser/issues/257
+                # https://github.com/qutebrowser/qutebrowser/issues/257
                 pass
             del partial_objs[name]
 

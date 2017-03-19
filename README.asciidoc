@@ -1,26 +1,26 @@
 // If you are reading this in plaintext or on PyPi:
 //
 // A rendered version is available at:
-// https://github.com/The-Compiler/qutebrowser/blob/master/README.asciidoc
+// https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc
 
 qutebrowser
 ===========
 
 // QUTE_WEB_HIDE
-image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.*
+image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
 
-image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/The-Compiler/qutebrowser/blob/master/COPYING"]
+image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/COPYING"]
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
-image:https://requires.io/github/The-Compiler/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/The-Compiler/qutebrowser/requirements/?branch=master"]
-image:https://travis-ci.org/The-Compiler/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/The-Compiler/qutebrowser"]
-image:https://ci.appveyor.com/api/projects/status/9gmnuip6i1oq7046?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/The-Compiler/qutebrowser"]
-image:https://codecov.io/github/The-Compiler/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/The-Compiler/qutebrowser?branch=master"]
+image:https://requires.io/github/qutebrowser/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/qutebrowser/qutebrowser/requirements/?branch=master"]
+image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/qutebrowser/qutebrowser"]
+image:https://ci.appveyor.com/api/projects/status/5pyauww2k68bbow2/branch/master?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/qutebrowser/qutebrowser"]
+image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
 
-link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | link:https://github.com/The-Compiler/qutebrowser/releases[releases]
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | link:https://github.com/qutebrowser/qutebrowser/releases[releases]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
-on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
+on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
@@ -35,7 +35,7 @@ image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
 Downloads
 ---------
 
-See the https://github.com/The-Compiler/qutebrowser/releases[github releases
+See the https://github.com/qutebrowser/qutebrowser/releases[github releases
 page] for available downloads (currently a source archive, and standalone
 packages as well as MSI installers for Windows).
 
@@ -99,7 +99,7 @@ The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4 or newer
 * http://qt.io/[Qt] 5.2.0 or newer (5.5.1 recommended)
-* QtWebKit
+* QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG) or QtWebEngine
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
 (5.5.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
@@ -146,8 +146,8 @@ Contributors, sorted by the number of commits in descending order:
 * Florian Bruhin
 * Daniel Schadt
 * Ryan Roden-Corrent
-* Jakub Klinkovský
 * Jan Verbeek
+* Jakub Klinkovský
 * Antoni Boucher
 * Lamar Pavel
 * Marshall Lochbaum
@@ -165,14 +165,17 @@ Contributors, sorted by the number of commits in descending order:
 * Corentin Julé
 * meles5
 * Philipp Hansch
+* Imran Sobir
 * Panagiotis Ktistakis
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
 * Austin Anderson
+* Fritz Reichwald
 * Jimmy
-* Spreadyy
 * Niklas Haas
+* Maciej Wołczyk
+* Spreadyy
 * Alexey "Averrin" Nabrodov
 * nanjekyejoannah
 * avk
@@ -184,22 +187,25 @@ Contributors, sorted by the number of commits in descending order:
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
+* Tomasz Kramkowski
 * Sebastian Frysztak
+* Nikolay Amiantov
+* Julie Engel
 * Jonas Schürmann
 * error800
 * Michael Hoang
-* Maciej Wołczyk
 * Liam BEGUIN
-* Julie Engel
+* Daniel Fiser
 * skinnay
 * Zach-Button
-* Tomasz Kramkowski
+* Samuel Walladge
 * Peter Rice
 * Ismail S
 * Halfwit
 * David Vogt
 * Claire Cavanaugh
 * rikn00
+* pkill9
 * kanikaa1234
 * haitaka
 * Nick Ginther
@@ -207,19 +213,23 @@ Contributors, sorted by the number of commits in descending order:
 * Michael Ilsaas
 * Martin Zimmermann
 * Jussi Timperi
-* Fritz Reichwald
+* Cosmin Popescu
 * Brian Jackson
 * thuck
 * sbinix
+* rsteube
 * neeasade
 * jnphilipp
+* Yannis Rohloff
 * Tobias Patzl
 * Stefan Tatschner
 * Samuel Loury
 * Peter Michely
 * Panashe M. Fundira
+* Lucas Hoffmann
 * Link
 * Larry Hynes
+* Kirill A. Shutemov
 * Johannes Altmanninger
 * Jeremy Kaplan
 * Ismail
@@ -233,12 +243,10 @@ Contributors, sorted by the number of commits in descending order:
 * Marcelo Santos
 * Joel Bradshaw
 * Jean-Louis Fuchs
-* Fritz V155 Reichwald
 * Franz Fellner
 * Eric Drechsel
 * zwarag
 * xd1le
-* rsteube
 * rmortens
 * oniondreams
 * issue
@@ -247,6 +255,7 @@ Contributors, sorted by the number of commits in descending order:
 * dylan araps
 * addictedtoflames
 * Xitian9
+* Vasilij Schneidermann
 * Tomas Orsava
 * Tom Janson
 * Tobias Werth
@@ -260,6 +269,7 @@ Contributors, sorted by the number of commits in descending order:
 * Matthias Lisin
 * Marcel Schilling
 * Lazlow Carmichael
+* Kevin Wang
 * Ján Kobezda
 * Johannes Martinsson
 * Jean-Christophe Petkovich
@@ -274,6 +284,7 @@ Contributors, sorted by the number of commits in descending order:
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
+* Akselmo
 // QUTE_AUTHORS_END
 
 The following people have contributed graphics:

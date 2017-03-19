@@ -31,7 +31,6 @@ import datetime
 
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtNetwork import QNetworkProxy
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
@@ -695,30 +694,17 @@ class CssColor(BaseType):
 
 class QssColor(CssColor):
 
-    """Base class for a color value.
-
-    Class attributes:
-        color_func_regexes: Valid function regexes.
-    """
-
-    num = r'[0-9]{1,3}%?'
-
-    color_func_regexes = [
-        r'rgb\({num},\s*{num},\s*{num}\)'.format(num=num),
-        r'rgba\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
-        r'hsv\({num},\s*{num},\s*{num}\)'.format(num=num),
-        r'hsva\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
-        r'qlineargradient\(.*\)',
-        r'qradialgradient\(.*\)',
-        r'qconicalgradient\(.*\)',
-    ]
+    """Color used in a Qt stylesheet."""
 
     def validate(self, value):
+        functions = ['rgb', 'rgba', 'hsv', 'hsva', 'qlineargradient',
+                     'qradialgradient', 'qconicalgradient']
         self._basic_validation(value)
         if not value:
             return
-        elif any(re.match(r, value) for r in self.color_func_regexes):
-            # QColor doesn't handle these, so we do the best we can easily
+        elif (any(value.startswith(func + '(') for func in functions) and
+              value.endswith(')')):
+            # QColor doesn't handle these
             pass
         elif QColor.isValidColor(value):
             pass
@@ -742,15 +728,15 @@ class Font(BaseType):
                 ) |
                 # size (<float>pt | <int>px)
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
-            )\                         # size/weight/style are space-separated
-        )*                             # 0-inf size/weight/style tags
-        (?P<family>[A-Za-z0-9, "-]*)$  # mandatory font family""", re.VERBOSE)
+            )\           # size/weight/style are space-separated
+        )*               # 0-inf size/weight/style tags
+        (?P<family>.+)$  # mandatory font family""", re.VERBOSE)
 
     def validate(self, value):
         self._basic_validation(value)
         if not value:
             return
-        elif not self.font_regex.match(value):
+        elif not self.font_regex.match(value):  # pragma: no cover
             raise configexc.ValidationError(value, "must be a valid font")
 
 
@@ -763,7 +749,7 @@ class FontFamily(Font):
         if not value:
             return
         match = self.font_regex.match(value)
-        if not match:
+        if not match:  # pragma: no cover
             raise configexc.ValidationError(value, "must be a valid font")
         for group in 'style', 'weight', 'namedweight', 'size':
             if match.group(group):
@@ -1018,12 +1004,6 @@ class Proxy(BaseType):
 
     """A proxy URL or special value."""
 
-    PROXY_TYPES = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
-    }
-
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
         self.valid_values = ValidValues(
@@ -1031,19 +1011,17 @@ class Proxy(BaseType):
             ('none', "Don't use any proxy"))
 
     def validate(self, value):
+        from qutebrowser.utils import urlutils
         self._basic_validation(value)
         if not value:
             return
         elif value in self.valid_values:
             return
-        url = QUrl(value)
-        if not url.isValid():
-            raise configexc.ValidationError(
-                value, "invalid url, {}".format(url.errorString()))
-        elif url.scheme() not in self.PROXY_TYPES:
-            raise configexc.ValidationError(value, "must be a proxy URL "
-                                            "(http://... or socks://...) or "
-                                            "system/none!")
+
+        try:
+            self.transform(value)
+        except (urlutils.InvalidUrlError, urlutils.InvalidProxyTypeError) as e:
+            raise configexc.ValidationError(value, e)
 
     def complete(self):
         out = []
@@ -1053,25 +1031,21 @@ class Proxy(BaseType):
         out.append(('socks://', 'SOCKS proxy URL'))
         out.append(('socks://localhost:9050/', 'Tor via SOCKS'))
         out.append(('http://localhost:8080/', 'Local HTTP proxy'))
+        out.append(('pac+https://example.com/proxy.pac', 'Proxy autoconfiguration file URL'))
         return out
 
     def transform(self, value):
+        from qutebrowser.utils import urlutils
         if not value:
             return None
         elif value == 'system':
             return SYSTEM_PROXY
-        elif value == 'none':
-            return QNetworkProxy(QNetworkProxy.NoProxy)
-        url = QUrl(value)
-        typ = self.PROXY_TYPES[url.scheme()]
-        proxy = QNetworkProxy(typ, url.host())
-        if url.port() != -1:
-            proxy.setPort(url.port())
-        if url.userName():
-            proxy.setUser(url.userName())
-        if url.password():
-            proxy.setPassword(url.password())
-        return proxy
+
+        if value == 'none':
+            url = QUrl('direct://')
+        else:
+            url = QUrl(value)
+        return urlutils.proxy_from_url(url)
 
 
 class SearchEngineName(BaseType):

@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
-from qutebrowser.misc import miscwidgets
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
 
 
@@ -45,7 +45,7 @@ def create(win_id, parent=None):
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
     mode_manager = modeman.instance(win_id)
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         tab_class = webenginetab.WebEngineTab
     else:
@@ -54,9 +54,9 @@ def create(win_id, parent=None):
     return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
 
 
-def init(args):
+def init():
     """Initialize backend-specific modules."""
-    if args.backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
     else:
@@ -72,6 +72,15 @@ class WebTabError(Exception):
 class UnsupportedOperationError(WebTabError):
 
     """Raised when an operation is not supported with the given backend."""
+
+
+TerminationStatus = usertypes.enum('TerminationStatus', [
+    'normal',
+    'abnormal',  # non-zero exit status
+    'crashed',   # e.g. segfault
+    'killed',
+    'unknown',
+])
 
 
 class TabData:
@@ -96,6 +105,22 @@ class TabData:
         self.pinned = False
 
 
+class AbstractAction:
+
+    """Attribute of AbstractTab for Qt WebActions."""
+
+    def __init__(self):
+        self._widget = None
+
+    def exit_fullscreen(self):
+        """Exit the fullscreen mode."""
+        raise NotImplementedError
+
+    def save_page(self):
+        """Save the current page."""
+        raise NotImplementedError
+
+
 class AbstractPrinting:
 
     """Attribute of AbstractTab for printing the page."""
@@ -109,10 +134,20 @@ class AbstractPrinting:
     def check_printer_support(self):
         raise NotImplementedError
 
+    def check_preview_support(self):
+        raise NotImplementedError
+
     def to_pdf(self, filename):
         raise NotImplementedError
 
-    def to_printer(self, printer):
+    def to_printer(self, printer, callback=None):
+        """Print the tab.
+
+        Args:
+            printer: The QPrinter to print to.
+            callback: Called with a boolean
+                      (True if printing succeeded, False otherwise)
+        """
         raise NotImplementedError
 
 
@@ -184,7 +219,7 @@ class AbstractZoom(QObject):
         # # FIXME:qtwebengine is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
         # # when the WebView is destroyed on older PyQt versions.
-        # # See https://github.com/The-Compiler/qutebrowser/issues/390
+        # # See https://github.com/qutebrowser/qutebrowser/issues/390
         # self.destroyed.connect(functools.partial(
         #     cfg.changed.disconnect, self.init_neighborlist))
 
@@ -216,6 +251,9 @@ class AbstractZoom(QObject):
         level = self._neighborlist.getitem(offset)
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
+
+    def _set_factor_internal(self, factor):
+        raise NotImplementedError
 
     def set_factor(self, factor, *, fuzzyval=True):
         """Zoom to a given zoom factor.
@@ -485,10 +523,6 @@ class AbstractTab(QWidget):
 
     We use this to unify QWebView and QWebEngineView.
 
-    Class attributes:
-        WIDGET_CLASS: The class of the main widget recieving events.
-                      Needs to be overridden by subclasses.
-
     Attributes:
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
@@ -506,6 +540,13 @@ class AbstractTab(QWidget):
         new_tab_requested: Emitted when a new tab should be opened with the
                            given URL.
         load_status_changed: The loading status changed
+        fullscreen_requested: Fullscreen display was requested by the page.
+                              arg: True if fullscreen should be turned on,
+                                   False if it should be turned off.
+        renderer_process_terminated: Emitted when the underlying renderer
+                                     process terminated.
+                                     arg 0: A TerminationStatus member.
+                                     arg 1: The exit code.
     """
 
     window_close_requested = pyqtSignal()
@@ -521,8 +562,8 @@ class AbstractTab(QWidget):
     shutting_down = pyqtSignal()
     contents_size_changed = pyqtSignal(QSizeF)
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
-
-    WIDGET_CLASS = None
+    fullscreen_requested = pyqtSignal(bool)
+    renderer_process_terminated = pyqtSignal(TerminationStatus, int)
 
     def __init__(self, win_id, mode_manager, parent=None):
         self.win_id = win_id
@@ -543,6 +584,7 @@ class AbstractTab(QWidget):
         # self.search = AbstractSearch(parent=self)
         # self.printing = AbstractPrinting()
         # self.elements = AbstractElements(self)
+        # self.action = AbstractAction()
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
@@ -552,7 +594,7 @@ class AbstractTab(QWidget):
         self._mode_manager = mode_manager
         self._load_status = usertypes.LoadStatus.none
         self._mouse_event_filter = mouse.MouseEventFilter(
-            self, widget_class=self.WIDGET_CLASS, parent=self)
+            self, parent=self)
         self.backend = None
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
@@ -571,8 +613,11 @@ class AbstractTab(QWidget):
         self.zoom._widget = widget
         self.search._widget = widget
         self.printing._widget = widget
+        self.action._widget = widget
         self.elements._widget = widget
+
         self._install_event_filter()
+        self.zoom.set_default()
 
     def _install_event_filter(self):
         raise NotImplementedError
@@ -585,7 +630,7 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val.name)
 
-    def _event_target(self):
+    def event_target(self):
         """Return the widget events should be sent to."""
         raise NotImplementedError
 
@@ -600,7 +645,7 @@ class AbstractTab(QWidget):
         if getattr(evt, 'posted', False):
             raise AssertionError("Can't re-use an event which was already "
                                  "posted!")
-        recipient = self._event_target()
+        recipient = self.event_target()
         evt.posted = True
         QApplication.postEvent(recipient, evt)
 
@@ -641,12 +686,14 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
+        sess_manager = objreg.get('session-manager')
+        sess_manager.save_autosave()
+
         if ok and not self._has_ssl_errors:
             if self.url().scheme() == 'https':
                 self._set_load_status(usertypes.LoadStatus.success_https)
             else:
                 self._set_load_status(usertypes.LoadStatus.success)
-
         elif ok:
             self._set_load_status(usertypes.LoadStatus.warn)
         else:
@@ -731,6 +778,14 @@ class AbstractTab(QWidget):
 
     def networkaccessmanager(self):
         """Get the QNetworkAccessManager for this tab.
+
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always returns None.
+        """
+        raise NotImplementedError
+
+    def user_agent(self):
+        """Get the user agent for this tab.
 
         This is only implemented for QtWebKit.
         For QtWebEngine, always returns None.

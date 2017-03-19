@@ -267,7 +267,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         self.read_config('caret')
 
 
-class RegisterKeyParser(keyparser.BaseKeyParser):
+class RegisterKeyParser(keyparser.CommandKeyParser):
 
     """KeyParser for modes that record a register key.
 
@@ -280,6 +280,7 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
         super().__init__(win_id, parent, supports_count=False,
                          supports_chains=False)
         self._mode = mode
+        self.read_config('register')
 
     def handle(self, e):
         """Override handle to always match the next key and use the register.
@@ -290,11 +291,14 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
-        if utils.keyevent_to_string(e) is None:
-            # this is a modifier key, let it pass and keep going
-            return False
+        if super().handle(e):
+            return True
 
         key = e.text()
+
+        if key == '' or utils.keyevent_to_string(e) is None:
+            # this is not a proper register key, let it pass and keep going
+            return False
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
@@ -323,7 +327,3 @@ class RegisterKeyParser(keyparser.BaseKeyParser):
     def on_keyconfig_changed(self, mode):
         """RegisterKeyParser has no config section (no bindable keys)."""
         pass
-
-    def execute(self, cmdstr, _keytype, count=None):
-        """Should never be called on RegisterKeyParser."""
-        assert False

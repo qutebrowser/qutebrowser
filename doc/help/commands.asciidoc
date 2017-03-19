@@ -44,6 +44,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
+|<<history,history>>|Show browsing history.
 |<<history-clear,history-clear>>|Clear all browsing history.
 |<<home,home>>|Open main startpage in current tab.
 |<<insert-text,insert-text>>|Insert text at cursor position.
@@ -84,7 +85,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
-|<<view-source,view-source>>|Show the source of the current page.
+|<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
 |<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank something to the clipboard or primary selection.
@@ -319,7 +320,12 @@ How many pages to go forward.
 
 [[fullscreen]]
 === fullscreen
+Syntax: +:fullscreen [*--leave*]+
+
 Toggle fullscreen mode.
+
+==== optional arguments
+* +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
 
 [[help]]
 === help
@@ -413,11 +419,27 @@ Start hinting.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 
+[[history]]
+=== history
+Syntax: +:history [*--tab*] [*--bg*] [*--window*]+
+
+Show browsing history.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Open in a new tab.
+* +*-b*+, +*--bg*+: Open in a background tab.
+* +*-w*+, +*--window*+: Open in a new window.
+
 [[history-clear]]
 === history-clear
+Syntax: +:history-clear [*--force*]+
+
 Clear all browsing history.
 
 Note this only clears the global history (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies, the back/forward history of a tab, cache or other persistent data.
+
+==== optional arguments
+* +*-f*+, +*--force*+: Don't ask for confirmation.
 
 [[home]]
 === home
@@ -443,14 +465,15 @@ Note: Due a bug in Qt, the inspector will show incorrect request headers in the 
 
 [[jseval]]
 === jseval
-Syntax: +:jseval [*--quiet*] [*--world* 'world'] 'js-code'+
+Syntax: +:jseval [*--file*] [*--quiet*] [*--world* 'world'] 'js-code'+
 
 Evaluate a JavaScript string.
 
 ==== positional arguments
-* +'js-code'+: The string to evaluate.
+* +'js-code'+: The string/file to evaluate.
 
 ==== optional arguments
+* +*-f*+, +*--file*+: Interpret js-code as a path to a file.
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 
@@ -718,7 +741,8 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
+             ['name']+
 
 Save a session.
 
@@ -730,10 +754,11 @@ Save a session.
 * +*-c*+, +*--current*+: Save the current session instead of the default.
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
+* +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['values' ['values' ...]]+
 
 Set an option.
 
@@ -742,7 +767,7 @@ If the option name ends with '?', the value of the option is shown instead. If t
 ==== positional arguments
 * +'section'+: The section where the option is in.
 * +'option'+: The name of the option.
-* +'value'+: The value to set.
+* +'values'+: The value to set, or the values to cycle through.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily.
@@ -837,8 +862,7 @@ If neither count nor index are given, it behaves like tab-next. If both are give
 
 
 ==== count
-The tab index to focus, starting with 1. The special value 0 focuses the rightmost tab.
-
+The tab index to focus, starting with 1.
 
 [[tab-move]]
 === tab-move
@@ -899,7 +923,7 @@ Re-open a closed tab (optionally skipping [count] closed tabs).
 
 [[view-source]]
 === view-source
-Show the source of the current page.
+Show the source of the current page in a new tab.
 
 [[window-only]]
 === window-only
@@ -971,6 +995,7 @@ How many steps to zoom out.
 |==============
 |Command|Description
 |<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
+|<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
@@ -1035,9 +1060,13 @@ How many steps to zoom out.
 === clear-keychain
 Clear the currently entered key chain.
 
+[[clear-messages]]
+=== clear-messages
+Clear all message notifications.
+
 [[click-element]]
 === click-element
-Syntax: +:click-element [*--target* 'target'] 'filter' 'value'+
+Syntax: +:click-element [*--target* 'target'] [*--force-event*] 'filter' 'value'+
 
 Click the element matching the given filter.
 
@@ -1050,6 +1079,7 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 
 ==== optional arguments
 * +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
+* +*-f*+, +*--force-event*+: Force generating a fake click event.
 
 [[command-accept]]
 === command-accept
@@ -1137,6 +1167,9 @@ Show an info message in the statusbar.
 
 ==== positional arguments
 * +'text'+: The text to show.
+
+==== count
+How many times to show the message
 
 [[message-warning]]
 === message-warning
@@ -1404,6 +1437,8 @@ The count that run_with_count itself received.
 Syntax: +:scroll 'direction'+
 
 Scroll the current tab in the given direction.
+
+Note you can use `:run-with-count` to have a keybinding with a bigger scroll increment.
 
 ==== positional arguments
 * +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).

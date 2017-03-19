@@ -35,6 +35,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # pylint: disable=wildcard-import
+from qutebrowser.utils import qtutils
 
 
 # Set hypothesis settings
@@ -115,8 +116,6 @@ def pytest_collection_modifyitems(config, items):
                                        'test_conftest.py']
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
-            elif os.environ.get('QUTE_BDD_WEBENGINE', ''):
-                deselected = True
 
         _apply_platform_markers(item)
         if item.get_marker('xfail_norun'):
@@ -193,21 +192,3 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_sessionfinish(exitstatus):
-    """Create a file to tell run_pytest.py how pytest exited."""
-    outcome = yield
-    outcome.get_result()
-
-    cache_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             '..', '.cache')
-    try:
-        os.mkdir(cache_dir)
-    except FileExistsError:
-        pass
-
-    status_file = os.path.join(cache_dir, 'pytest_status')
-    with open(status_file, 'w', encoding='ascii') as f:
-        f.write(str(exitstatus))

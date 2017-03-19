@@ -108,7 +108,12 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     else:
         elem.classes.return_value = []
 
-    style_dict = {'visibility': '', 'display': '', 'foo': 'bar'}
+    style_dict = {
+        'visibility': '',
+        'display': '',
+        'foo': 'bar',
+        'opacity': '100'
+    }
     if style is not None:
         style_dict.update(style)
 
@@ -257,7 +262,6 @@ class TestWebKitElement:
         len,
         lambda e: e.has_frame(),
         lambda e: e.geometry(),
-        lambda e: e.style_property('visibility', strategy='computed'),
         lambda e: e.value(),
         lambda e: e.set_value('foo'),
         lambda e: e.insert_text('foo'),
@@ -271,8 +275,8 @@ class TestWebKitElement:
         lambda e: e.rect_on_view(),
         lambda e: e._is_visible(None),
     ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
-            'frame', 'geometry', 'style_property', 'value', 'set_value',
-            'insert_text', 'is_writable', 'is_content_editable', 'is_editable',
+            'frame', 'geometry', 'value', 'set_value', 'insert_text',
+            'is_writable', 'is_content_editable', 'is_editable',
             'is_text_input', 'remove_blank_target', 'outer_xml', 'tag_name',
             'rect_on_view', 'is_visible'])
     def test_vanished(self, elem, code):
@@ -407,9 +411,6 @@ class TestWebKitElement:
     def test_tag_name(self, elem):
         elem._elem.tagName.return_value = 'SPAN'
         assert elem.tag_name() == 'span'
-
-    def test_style_property(self, elem):
-        assert elem.style_property('foo', strategy='computed') == 'bar'
 
     def test_value(self, elem):
         elem._elem.evaluateJavaScript.return_value = 'js'
@@ -667,8 +668,7 @@ class TestRectOnView:
         This is needed for all the tests calling rect_on_view or is_visible.
         """
         config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
-                            config_stub)
+        monkeypatch.setattr(webkitelem, 'config', config_stub)
         return config_stub
 
     @pytest.mark.parametrize('js_rect', [
@@ -795,8 +795,7 @@ class TestIsEditable:
     def stubbed_config(self, config_stub, monkeypatch):
         """Fixture to create a config stub with an input section."""
         config_stub.data = {'input': {}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
-                            config_stub)
+        monkeypatch.setattr(webkitelem, 'config', config_stub)
         return config_stub
 
     @pytest.mark.parametrize('tagname, attributes, editable', [

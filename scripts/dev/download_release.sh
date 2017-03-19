@@ -14,7 +14,7 @@ fi
 cd "$tmpdir"
 mkdir windows
 
-base="https://github.com/The-Compiler/qutebrowser/releases/download/v$1"
+base="https://github.com/qutebrowser/qutebrowser/releases/download/v$1"
 
 wget "$base/qutebrowser-$1.tar.gz" || exit 1
 wget "$base/qutebrowser-$1.tar.gz.asc" || exit 1

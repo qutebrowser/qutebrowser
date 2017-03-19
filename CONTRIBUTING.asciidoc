@@ -34,12 +34,12 @@ this. It might be a good idea to ask on the mailing list or IRC channel to make
 sure nobody else started working on the same thing already.
 
 If you want to find something useful to do, check the
-https://github.com/The-Compiler/qutebrowser/issues[issue tracker]. Some
+https://github.com/qutebrowser/qutebrowser/issues[issue tracker]. Some
 pointers:
 
-* https://github.com/The-Compiler/qutebrowser/labels/easy[Issues which should
+* https://github.com/qutebrowser/qutebrowser/labels/easy[Issues which should
 be easy to solve]
-* https://github.com/The-Compiler/qutebrowser/labels/not%20code[Issues which
+* https://github.com/qutebrowser/qutebrowser/labels/not%20code[Issues which
 require little/no coding]
 
 There are also some things to do if you don't want to write code:
@@ -55,7 +55,7 @@ qutebrowser uses http://git-scm.com/[git] for its development. You can clone
 the repo like this:
 
 ----
-git clone https://github.com/The-Compiler/qutebrowser.git
+git clone https://github.com/qutebrowser/qutebrowser.git
 ----
 
 If you don't know git, a http://git-scm.com/[git cheatsheet] might come in
@@ -541,6 +541,12 @@ Setting up a Windows Development Environment
 
 Note that the `flake8` tox env might not run due to encoding errors despite having LANG/LC_* set correctly.
 
+Rebuilding the website
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to rebuild the website, run `./scripts/asciidoc2html.py --website <outputdir>`.
+
+
 Style conventions
 -----------------
 
@@ -629,7 +635,7 @@ and make sure all bugs marked as resolved are actually fixed.
 * Grep for `WORKAROUND` in the code and test if fixed stuff works without the
 workaround.
 * Check relevant
-https://github.com/The-Compiler/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Aqt[qutebrowser
+https://github.com/qutebrowser/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Aqt[qutebrowser
 bugs] and check if they're fixed.
 
 New PyQt release
@@ -638,6 +644,7 @@ New PyQt release
 * See above
 * Install new PyQt in Windows VM (32- and 64-bit)
 * Download new installer and update PyQt installer path in `ci_install.py`.
+* Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions
 
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
@@ -659,7 +666,7 @@ qutebrowser release
 * `git push origin`; `git push origin v0.$x.$y`
 * If committing on minor branch, cherry-pick release commit to master.
 * Create release on github
-* Mark the milestone at https://github.com/The-Compiler/qutebrowser/milestones
+* Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones
 as closed.
 
 * Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`

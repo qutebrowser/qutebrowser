@@ -59,7 +59,7 @@ class WebView(QWebView):
         super().__init__(parent)
         if sys.platform == 'darwin' and qtutils.version_check('5.4'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
-            # See https://github.com/The-Compiler/qutebrowser/issues/462
+            # See https://github.com/qutebrowser/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
         # FIXME:qtwebengine this is only used to set the zoom factor from
         # the QWebPage - we should get rid of it somehow (signals?)
@@ -108,11 +108,7 @@ class WebView(QWebView):
 
     @config.change_filter('colors', 'webpage.bg')
     def _set_bg_color(self):
-        """Set the webpage background color as configured.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
+        """Set the webpage background color as configured."""
         col = config.get('colors', 'webpage.bg')
         palette = self.palette()
         if col is None:

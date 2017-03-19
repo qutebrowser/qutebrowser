@@ -35,7 +35,7 @@ from qutebrowser.config import configtypes as typ
 from qutebrowser.config import sections as sect
 from qutebrowser.config.value import SettingValue
 from qutebrowser.utils.qtutils import MAXVALS
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, qtutils
 
 
 FIRST_COMMENT = r"""
@@ -147,6 +147,13 @@ def data(readonly=False):
             "The URL parameters to strip with :yank url, separated by "
             "commas."),
 
+            ('default-open-dispatcher',
+             SettingValue(typ.String(none_ok=True), ''),
+            "The default program used to open downloads. Set to an empty "
+            "string to use the default internal handler.\n\n"
+            "Any {} in the string will be expanded to the filename, else "
+            "the filename will be appended."),
+
             ('default-page',
              SettingValue(typ.FuzzyUrl(), '${startpage}'),
              "The page to open if :open -t/-b/-w is used without URL. Use "
@@ -184,16 +191,22 @@ def data(readonly=False):
              "icons."),
 
             ('developer-extras',
-             SettingValue(typ.Bool(), 'false'),
+             SettingValue(typ.Bool(), 'false',
+                          backends=[usertypes.Backend.QtWebKit]),
              "Enable extra tools for Web developers.\n\n"
              "This needs to be enabled for `:inspector` to work and also adds "
-             "an _Inspect_ entry to the context menu."),
+             "an _Inspect_ entry to the context menu. For QtWebEngine, see "
+             "'qutebrowser --help' instead."),
 
             ('print-element-backgrounds',
              SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
+                          backends=(
+                              None if qtutils.version_check('5.8', strict=True)
+                              else [usertypes.Backend.QtWebKit])),
              "Whether the background color and images are also drawn when the "
-             "page is printed."),
+             "page is printed.\n"
+             "This setting only works with Qt 5.8 or newer when using the "
+             "QtWebEngine backend."),
 
             ('xss-auditing',
              SettingValue(typ.Bool(), 'false'),
@@ -206,7 +219,7 @@ def data(readonly=False):
             ('site-specific-quirks',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
-             "Enable workarounds for broken sites."),
+             "Enable QtWebKit workarounds for broken sites."),
 
             ('default-encoding',
              SettingValue(typ.String(none_ok=True), ''),
@@ -338,7 +351,8 @@ def data(readonly=False):
 
             ('smooth-scrolling',
              SettingValue(typ.Bool(), 'false'),
-             "Whether to enable smooth scrolling for webpages."),
+             "Whether to enable smooth scrolling for web pages. Note smooth "
+             "scrolling does not work with the :scroll-px command."),
 
             ('remove-finished-downloads',
              SettingValue(typ.Int(minval=-1), '-1'),
@@ -390,6 +404,10 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '8'),
              "The rounding radius for the edges of prompts."),
 
+            ('prompt-filebrowser',
+             SettingValue(typ.Bool(), 'true'),
+             "Show a filebrowser in upload/download prompts."),
+
             readonly=readonly
         )),
 
@@ -420,10 +438,13 @@ def data(readonly=False):
 
             ('proxy',
              SettingValue(typ.Proxy(), 'system',
-                          backends=[usertypes.Backend.QtWebKit]),
+                          backends=(None if qtutils.version_check('5.8')
+                                    else [usertypes.Backend.QtWebKit])),
              "The proxy to use.\n\n"
              "In addition to the listed values, you can use a `socks://...` "
-             "or `http://...` URL."),
+             "or `http://...` URL.\n\n"
+             "This setting only works with Qt 5.8 or newer when using the "
+             "QtWebEngine backend."),
 
             ('proxy-dns-requests',
              SettingValue(typ.Bool(), 'true',
@@ -570,7 +591,7 @@ def data(readonly=False):
              "disables the context menu."),
 
             ('mouse-zoom-divider',
-             SettingValue(typ.Int(minval=1), '512'),
+             SettingValue(typ.Int(minval=0), '512'),
              "How much to divide the mouse wheel movements to translate them "
              "into zoom increments."),
 
@@ -792,9 +813,10 @@ def data(readonly=False):
              "enabled."),
 
             ('cache-size',
-             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int64']),
-                          '52428800'),
-             "Size of the HTTP network cache."),
+             SettingValue(typ.Int(none_ok=True, minval=0,
+                                  maxval=MAXVALS['int64']), ''),
+             "Size of the HTTP network cache. Empty to use the default "
+             "value."),
 
             readonly=readonly
         )),
@@ -815,9 +837,8 @@ def data(readonly=False):
              "are not affected by this setting."),
 
             ('webgl',
-             SettingValue(typ.Bool(), 'false'),
-             "Enables or disables WebGL. For QtWebEngine, Qt/PyQt >= 5.7 is "
-             "required for this setting."),
+             SettingValue(typ.Bool(), 'true'),
+             "Enables or disables WebGL."),
 
             ('css-regions',
              SettingValue(typ.Bool(), 'true',
@@ -854,7 +875,8 @@ def data(readonly=False):
             ('javascript-can-access-clipboard',
              SettingValue(typ.Bool(), 'false'),
              "Whether JavaScript programs can read or write to the "
-             "clipboard."),
+             "clipboard.\nWith QtWebEngine, writing the clipboard as response "
+             "to a user interaction is always allowed."),
 
             ('ignore-javascript-prompt',
              SettingValue(typ.Bool(), 'false'),
@@ -888,9 +910,9 @@ def data(readonly=False):
              "Control which cookies to accept."),
 
             ('cookies-store',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Whether to store cookies."),
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to store cookies. Note this option needs a restart with "
+             "QtWebEngine."),
 
             ('host-block-lists',
              SettingValue(
@@ -936,7 +958,9 @@ def data(readonly=False):
             ('mode',
              SettingValue(typ.String(
                  valid_values=typ.ValidValues(
-                     ('number', "Use numeric hints."),
+                     ('number', "Use numeric hints. (In this mode you can "
+                      "also type letters form the hinted element to filter "
+                      "and reduce the number of elements that are hinted.)"),
                      ('letter', "Use the chars in the hints -> "
                       "chars setting."),
                      ('word', "Use hints words based on the html "
@@ -1268,8 +1292,7 @@ def data(readonly=False):
              "Background color for downloads with errors."),
 
             ('webpage.bg',
-             SettingValue(typ.QtColor(none_ok=True), 'white',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.QtColor(none_ok=True), 'white'),
              "Background color for webpages if unset (or empty to use the "
              "theme's color)"),
 
@@ -1543,7 +1566,8 @@ KEY_DATA = collections.OrderedDict([
     ])),
 
     ('normal', collections.OrderedDict([
-        ('clear-keychain ;; search', ['<Escape>']),
+        ('clear-keychain ;; search ;; fullscreen --leave',
+            ['<Escape>', '<Ctrl-[>']),
         ('set-cmd-text -s :open', ['o']),
         ('set-cmd-text :open {url:pretty}', ['go']),
         ('set-cmd-text -s :open -t', ['O']),
@@ -1569,10 +1593,10 @@ KEY_DATA = collections.OrderedDict([
         ('tab-clone', ['gC']),
         ('reload', ['r', '<F5>']),
         ('reload -f', ['R', '<Ctrl-F5>']),
-        ('back', ['H']),
+        ('back', ['H', '<back>']),
         ('back -t', ['th']),
         ('back -w', ['wh']),
-        ('forward', ['L']),
+        ('forward', ['L', '<forward>']),
         ('forward -t', ['tl']),
         ('forward -w', ['wl']),
         ('fullscreen', ['<F11>']),
@@ -1650,7 +1674,8 @@ KEY_DATA = collections.OrderedDict([
         ('set-cmd-text -s :buffer', ['gt']),
         ('tab-focus last', ['<Ctrl-Tab>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
-        ('quit', ['<Ctrl-Q>']),
+        ('quit', ['<Ctrl-Q>', 'ZQ']),
+        ('wq', ['ZZ']),
         ('scroll-page 0 1', ['<Ctrl-F>']),
         ('scroll-page 0 -1', ['<Ctrl-B>']),
         ('scroll-page 0 0.5', ['<Ctrl-D>']),
@@ -1764,8 +1789,12 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^download-page$'), r'download'),
     (re.compile(r'^cancel-download$'), r'download-cancel'),
 
-    (re.compile(r"""^search (''|"")$"""), r'clear-keychain ;; search'),
-    (re.compile(r'^search$'), r'clear-keychain ;; search'),
+    (re.compile(r"""^search (''|"")$"""),
+        r'clear-keychain ;; search ;; fullscreen --leave'),
+    (re.compile(r'^search$'),
+        r'clear-keychain ;; search ;; fullscreen --leave'),
+    (re.compile(r'^clear-keychain ;; search$'),
+        r'clear-keychain ;; search ;; fullscreen --leave'),
 
     (re.compile(r"""^set-cmd-text ['"](.*) ['"]$"""), r'set-cmd-text -s \1'),
     (re.compile(r"""^set-cmd-text ['"](.*)['"]$"""), r'set-cmd-text \1'),
@@ -1779,7 +1808,8 @@ CHANGED_KEY_COMMANDS = [
     (re.compile(r'^scroll 50 0$'), r'scroll right'),
     (re.compile(r'^scroll ([-\d]+ [-\d]+)$'), r'scroll-px \1'),
 
-    (re.compile(r'^search *;; *clear-keychain$'), r'clear-keychain ;; search'),
+    (re.compile(r'^search *;; *clear-keychain$'),
+        r'clear-keychain ;; search ;; fullscreen --leave'),
     (re.compile(r'^clear-keychain *;; *leave-mode$'), r'leave-mode'),
 
     (re.compile(r'^download-remove --all$'), r'download-clear'),

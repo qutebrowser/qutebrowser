@@ -43,6 +43,26 @@ Feature: Using :navigate
         And I run :navigate next
         Then data/navigate/next.html should be loaded
 
+    Scenario: Navigating to previous page with rel
+        When I open data/navigate/rel.html
+        And I run :navigate prev
+        Then data/navigate/prev.html should be loaded
+
+    Scenario: Navigating to next page with rel
+        When I open data/navigate/rel.html
+        And I run :navigate next
+        Then data/navigate/next.html should be loaded
+
+    Scenario: Navigating to previous page with rel nofollow
+        When I open data/navigate/rel_nofollow.html
+        And I run :navigate prev
+        Then data/navigate/prev.html should be loaded
+
+    Scenario: Navigating to next page with rel nofollow
+        When I open data/navigate/rel_nofollow.html
+        And I run :navigate next
+        Then data/navigate/next.html should be loaded
+
     # increment/decrement
 
     Scenario: Incrementing number in URL

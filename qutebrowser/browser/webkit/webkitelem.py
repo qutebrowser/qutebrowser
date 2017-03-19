@@ -20,7 +20,7 @@
 """QtWebKit specific part of the web element API."""
 
 from PyQt5.QtCore import QRect
-from PyQt5.QtWebKit import QWebElement
+from PyQt5.QtWebKit import QWebElement, QWebSettings
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript
@@ -96,16 +96,6 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.geometry()
 
-    def style_property(self, name, *, strategy):
-        self._check_vanished()
-        strategies = {
-            # FIXME:qtwebengine which ones do we actually need?
-            'inline': QWebElement.InlineStyle,
-            'computed': QWebElement.ComputedStyle,
-        }
-        qt_strategy = strategies[strategy]
-        return self._elem.styleProperty(name, qt_strategy)
-
     def classes(self):
         self._check_vanished()
         return self._elem.classes()
@@ -162,7 +152,7 @@ class WebKitElement(webelem.AbstractWebElement):
             # On e.g. Void Linux with musl libc, the stack size is too small
             # for jsc, and running JS will fail. If that happens, fall back to
             # the Python implementation.
-            # https://github.com/The-Compiler/qutebrowser/issues/1641
+            # https://github.com/qutebrowser/qutebrowser/issues/1641
             return None
 
         text = utils.compact_text(self._elem.toOuterXml(), 500)
@@ -216,7 +206,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
+        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.
@@ -248,10 +238,13 @@ class WebKitElement(webelem.AbstractWebElement):
         hidden_attributes = {
             'visibility': 'hidden',
             'display': 'none',
+            'opacity': '0',
         }
         for k, v in hidden_attributes.items():
-            if self._elem.styleProperty(k, QWebElement.ComputedStyle) == v:
+            if (self._elem.styleProperty(k, QWebElement.ComputedStyle) == v and
+                    'ace_text-input' not in self.classes()):
                 return False
+
         elem_geometry = self._elem.geometry()
         if not elem_geometry.isValid() and elem_geometry.x() == 0:
             # Most likely an invisible link
@@ -296,6 +289,36 @@ class WebKitElement(webelem.AbstractWebElement):
                     elem['target'] = '_top'
                 break
             elem = elem._parent()  # pylint: disable=protected-access
+
+    def _move_text_cursor(self):
+        if self is None:
+            # old PyQt versions call the slot after the element is deleted.
+            return
+        if self.is_text_input() and self.is_editable():
+            self._tab.caret.move_to_end_of_document()
+
+    def _click_editable(self, click_target):
+        ok = self._elem.evaluateJavaScript('this.focus(); true;')
+        if ok:
+            self._move_text_cursor()
+        else:
+            log.webelem.debug("Failed to focus via JS, falling back to event")
+            self._click_fake_event(click_target)
+
+    def _click_js(self, click_target):
+        settings = QWebSettings.globalSettings()
+        attribute = QWebSettings.JavascriptCanOpenWindows
+        could_open_windows = settings.testAttribute(attribute)
+        settings.setAttribute(attribute, True)
+        ok = self._elem.evaluateJavaScript('this.click(); true;')
+        settings.setAttribute(attribute, could_open_windows)
+        if not ok:
+            log.webelem.debug("Failed to click via JS, falling back to event")
+            self._click_fake_event(click_target)
+
+    def _click_fake_event(self, click_target):
+        self._tab.data.override_target = click_target
+        super()._click_fake_event(click_target)
 
 
 def get_child_frames(startframe):

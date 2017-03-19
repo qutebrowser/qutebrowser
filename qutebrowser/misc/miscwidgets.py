@@ -19,13 +19,13 @@
 
 """Misc. widgets used at different places."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout)
+                             QStyleOption, QStyle, QLayout, QApplication)
 from PyQt5.QtGui import QValidator, QPainter
 
-from qutebrowser.utils import utils
-from qutebrowser.misc import cmdhistory
+from qutebrowser.utils import utils, objreg, qtutils, log, usertypes
+from qutebrowser.misc import cmdhistory, objects
 
 
 class MinimalLineEditMixin:
@@ -260,3 +260,56 @@ class WrapperLayout(QLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
+        if (qtutils.version_check('5.8.0', exact=True) and
+                objects.backend == usertypes.Backend.QtWebEngine and
+                container.window() and
+                container.window().windowHandle() and
+                not container.window().windowHandle().isActive()):
+            log.misc.debug("Calling QApplication::sync...")
+            # WORKAROUND for:
+            # https://bugreports.qt.io/browse/QTBUG-56652
+            # https://codereview.qt-project.org/#/c/176113/5//ALL,unified
+            QApplication.sync()
+
+    def unwrap(self):
+        self._widget.setParent(None)
+        self._widget.deleteLater()
+
+
+class FullscreenNotification(QLabel):
+
+    """A label telling the user this page is now fullscreen."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("""
+            background-color: rgba(50, 50, 50, 80%);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+        """)
+
+        key_config = objreg.get('key-config')
+        all_bindings = key_config.get_reverse_bindings_for('normal')
+        bindings = all_bindings.get('fullscreen --leave')
+        if bindings:
+            key = bindings[0]
+            if utils.is_special_key(key):
+                key = key.strip('<>').capitalize()
+            self.setText("Press {} to exit fullscreen.".format(key))
+        else:
+            self.setText("Page is now fullscreen.")
+
+        self.resize(self.sizeHint())
+        geom = QApplication.desktop().screenGeometry(self)
+        self.move((geom.width() - self.sizeHint().width()) / 2, 30)
+
+    def set_timeout(self, timeout):
+        """Hide the widget after the given timeout."""
+        QTimer.singleShot(timeout, self._on_timeout)
+
+    @pyqtSlot()
+    def _on_timeout(self):
+        """Hide and delete the widget."""
+        self.hide()
+        self.deleteLater()

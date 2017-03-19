@@ -39,8 +39,8 @@ def update_geometry(obj):
 
     Here we check if obj ("self") was deleted and just ignore the event if so.
 
-    Original bug:   https://github.com/The-Compiler/qutebrowser/issues/167
-    Workaround bug: https://github.com/The-Compiler/qutebrowser/issues/171
+    Original bug:   https://github.com/qutebrowser/qutebrowser/issues/167
+    Workaround bug: https://github.com/qutebrowser/qutebrowser/issues/171
     """
     def _update_geometry():
         """Actually update the geometry if the object still exists."""

@@ -80,7 +80,7 @@ Feature: Various utility commands.
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
 
-    @qtwebkit_skip @pyqt>=5.7.0
+    @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
         When I set general -> log-javascript-console to info
         And I open data/misc/jseval.html
@@ -88,19 +88,30 @@ Feature: Various utility commands.
         Then the javascript message "Hello from the page!" should not be logged
         And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
 
-    @qtwebkit_skip @pyqt>=5.7.0
+    @qtwebkit_skip
     Scenario: :jseval using the main world
         When I set general -> log-javascript-console to info
         And I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
 
-    @qtwebkit_skip @pyqt>=5.7.0
+    @qtwebkit_skip
     Scenario: :jseval using the main world as name
         When I set general -> log-javascript-console to info
         And I open data/misc/jseval.html
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
+
+    Scenario: :jseval --file using a file that exists as js-code
+        When I set general -> log-javascript-console to info
+        And I run :jseval --file (testdata)/misc/jseval_file.js
+        Then the javascript message "Hello from JS!" should be logged
+        And the javascript message "Hello again from JS!" should be logged
+
+    Scenario: :jseval --file using a file that doesn't exist as js-code
+        When I run :jseval --file nonexistentfile
+        Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
+        And "No output or error" should not be logged
 
     # :debug-webaction
 
@@ -130,10 +141,16 @@ Feature: Various utility commands.
 
     # :inspect
 
+    @qtwebengine_skip
     Scenario: Inspector without developer extras
         When I set general -> developer-extras to false
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
+
+    @qtwebkit_skip
+    Scenario: Inspector without --enable-webengine-inspector
+        When I run :inspector
+        Then the error "Debugging is not enabled. See 'qutebrowser --help' for details." should be shown
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
@@ -145,6 +162,7 @@ Feature: Various utility commands.
         Then no crash should happen
 
     # Different code path as an inspector got created now
+    @qtwebengine_skip
     Scenario: Inspector without developer extras (after smoke)
         When I set general -> developer-extras to false
         And I run :inspector
@@ -283,6 +301,24 @@ Feature: Various utility commands.
             - about:blank
             - qute://help/index.html (active)
 
+    # :history
+
+    Scenario: :history without arguments
+        When I run :tab-only
+        And I run :history
+        And I wait until qute://history/ is loaded
+        Then the following tabs should be open:
+            - qute://history/ (active)
+
+    Scenario: :history with -t
+        When I open about:blank
+        And I run :tab-only
+        And I run :history -t
+        And I wait until qute://history/ is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - qute://history/ (active)
+
     # :home
 
     Scenario: :home with single page
@@ -297,7 +333,7 @@ Feature: Various utility commands.
 
     # pdfjs support
 
-    @qtwebengine_todo: pdfjs is not implemented yet
+    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
         When I set content -> enable-pdfjs to true
@@ -311,7 +347,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_todo: pdfjs is not implemented yet
+    @qtwebengine_skip: pdfjs is not implemented yet @qtwebkit_ng_xfail: https://github.com/annulen/webkit/issues/428
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
@@ -374,7 +410,7 @@ Feature: Various utility commands.
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/504
+    ## https://github.com/qutebrowser/qutebrowser/issues/504
 
     Scenario: Focusing download widget via Tab
         When I open about:blank
@@ -389,6 +425,7 @@ Feature: Various utility commands.
         And I wait for "Entering mode KeyMode.prompt *" in the log
         And I press the key "<Tab>"
         And I press the key "<Ctrl-C>"
+        And I run :leave-mode
         Then no crash should happen
 
     ## Custom headers
@@ -482,13 +519,13 @@ Feature: Various utility commands.
         Then qute://log?level=error should be loaded
         And the page should contain the plaintext "No messages to show."
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1523
+    ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
         When I run :set-cmd-text -s :--
         Then no crash should happen
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1386
+    ## https://github.com/qutebrowser/qutebrowser/issues/1386
 
     Scenario: Partial commandline matching with startup command
         When I run :message-i "Hello World" (invalid command)
@@ -502,9 +539,9 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1219
+    ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
-    @qtwebengine_todo: private browsing is not implemented yet
+    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
     Scenario: Sharing cookies with private browsing
         When I set general -> private-browsing to true
         And I open cookies/set?qute-test=42 without waiting
@@ -513,18 +550,14 @@ Feature: Various utility commands.
         And I set general -> private-browsing to false
         Then the cookie qute-test should be set to 42
 
-    ## https://github.com/The-Compiler/qutebrowser/issues/1742
+    ## https://github.com/qutebrowser/qutebrowser/issues/1742
 
-    @qtwebengine_todo: private browsing is not implemented yet
+    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_xfail: private browsing is not implemented yet
     Scenario: Private browsing is activated in QtWebKit without restart
         When I set general -> private-browsing to true
         And I open data/javascript/localstorage.html
         And I set general -> private-browsing to false
         Then the page should contain the plaintext "Local storage status: not working"
-
-    Scenario: Using 0 as count
-        When I run :scroll down with count 0
-        Then the error "scroll: A zero count is not allowed for this command!" should be shown
 
     @no_xvfb
     Scenario: :window-only
@@ -571,7 +604,7 @@ Feature: Various utility commands.
     Scenario: Clicking an element by ID
         When I open data/click_element.html
         And I run :click-element id qute-input
-        Then "Clicked editable element!" should be logged
+        Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
 
     Scenario: Clicking an element with tab target
         When I open data/click_element.html
@@ -581,14 +614,6 @@ Feature: Various utility commands.
         And the following tabs should be open:
             - data/click_element.html
             - data/hello.txt (active)
-
-    @qtwebengine_flaky
-    Scenario: Clicking an element which is out of view
-        When I open data/scroll/simple.html
-        And I run :scroll-page 0 1
-        And I wait until the scroll position changed
-        And I run :click-element id link
-        Then the error "Element position is out of view!" should be shown
 
     ## :command-history-{prev,next}
 
@@ -626,7 +651,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
-    @qtwebengine_todo: private browsing is not implemented yet
+    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
     Scenario: Calling previous command with private-browsing mode
         When I run :set-cmd-text :message-info blah
         And I run :command-accept
@@ -639,3 +664,34 @@ Feature: Various utility commands.
         And I run :command-accept
         And I set general -> private-browsing to false
         Then the message "blah" should be shown
+
+    ## Modes blacklisted for :enter-mode
+
+    Scenario: Trying to enter command mode with :enter-mode
+        When I run :enter-mode command
+        Then the error "Mode command can't be entered manually!" should be shown
+
+    ## Renderer crashes
+
+    @qtwebkit_skip @no_invalid_lines
+    Scenario: Renderer crash
+        When I run :open -t chrome://crash
+        Then the error "Renderer process crashed" should be shown
+
+    @qtwebkit_skip @no_invalid_lines
+    Scenario: Renderer kill
+        When I run :open -t chrome://kill
+        Then the error "Renderer process was killed" should be shown
+
+    # https://github.com/qutebrowser/qutebrowser/issues/2290
+    @qtwebkit_skip @no_invalid_lines
+    Scenario: Navigating to URL after renderer process is gone
+        When I run :tab-only
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :open chrome://kill
+        And I wait for "Renderer process was killed" in the log
+        And I open data/numbers/3.txt
+        Then no crash should happen
+        And the following tabs should be open:
+            - data/numbers/3.txt (active)

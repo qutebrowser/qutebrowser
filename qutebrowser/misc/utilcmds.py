@@ -115,13 +115,16 @@ def message_error(text):
 
 
 @cmdutils.register(hide=True)
-def message_info(text):
+@cmdutils.argument('count', count=True)
+def message_info(text, count=1):
     """Show an info message in the statusbar.
 
     Args:
         text: The text to show.
+        count: How many times to show the message
     """
-    message.info(text)
+    for _ in range(count):
+        message.info(text)
 
 
 @cmdutils.register(hide=True)
@@ -132,6 +135,12 @@ def message_warning(text):
         text: The text to show.
     """
     message.warning(text)
+
+
+@cmdutils.register(hide=True)
+def clear_messages():
+    """Clear all message notifications."""
+    message.global_bridge.clear_messages.emit()
 
 
 @cmdutils.register(debug=True)

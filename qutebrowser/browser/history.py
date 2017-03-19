@@ -26,9 +26,9 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
-                               usertypes)
+                               usertypes, message)
 from qutebrowser.config import config
-from qutebrowser.misc import lineparser
+from qutebrowser.misc import lineparser, objects
 
 
 class Entry:
@@ -88,7 +88,7 @@ class Entry:
         if not url.isValid():
             raise ValueError("Invalid URL: {}".format(url.errorString()))
 
-        # https://github.com/The-Compiler/qutebrowser/issues/670
+        # https://github.com/qutebrowser/qutebrowser/issues/670
         atime = atime.lstrip('\0')
 
         if '-' in atime:
@@ -230,13 +230,23 @@ class WebHistory(QObject):
         self._saved_count = len(self._new_history)
 
     @cmdutils.register(name='history-clear', instance='web-history')
-    def clear(self):
+    def clear(self, force=False):
         """Clear all browsing history.
 
         Note this only clears the global history
         (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies,
         the back/forward history of a tab, cache or other persistent data.
+
+        Args:
+            force: Don't ask for confirmation.
         """
+        if force:
+            self._do_clear()
+        else:
+            message.confirm_async(self._do_clear, title="Clear all browsing "
+                                "history?")
+
+    def _do_clear(self):
         self._lineparser.clear()
         self.history_dict.clear()
         self._temp_history.clear()
@@ -293,7 +303,6 @@ def init(parent=None):
                          parent=parent)
     objreg.register('web-history', history)
 
-    used_backend = usertypes.arg2backend[objreg.get('args').backend]
-    if used_backend == usertypes.Backend.QtWebKit:
+    if objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkithistory
         webkithistory.init(history)

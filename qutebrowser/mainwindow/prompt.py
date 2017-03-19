@@ -25,12 +25,12 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject)
+                          QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import style
+from qutebrowser.config import style, config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
@@ -112,7 +112,7 @@ class PromptQueue(QObject):
             if not sip.isdeleted(question):
                 # the question could already be deleted, e.g. by a cancelled
                 # download. See
-                # https://github.com/The-Compiler/qutebrowser/issues/415
+                # https://github.com/qutebrowser/qutebrowser/issues/415
                 self.ask_question(question, blocking=False)
 
     def shutdown(self):
@@ -153,7 +153,7 @@ class PromptQueue(QObject):
         if self._shutting_down:
             # If we're currently shutting down we have to ignore this question
             # to avoid segfaults - see
-            # https://github.com/The-Compiler/qutebrowser/issues/95
+            # https://github.com/qutebrowser/qutebrowser/issues/95
             log.prompt.debug("Ignoring question because we're shutting down.")
             question.abort()
             return None
@@ -184,7 +184,7 @@ class PromptQueue(QObject):
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
-            loop.exec_()
+            loop.exec_(QEventLoop.ExcludeSocketNotifiers)
             log.prompt.debug("Ending loop.exec_() for {}".format(question))
 
             log.prompt.debug("Restoring old question {}".format(old_question))
@@ -564,7 +564,9 @@ class FilenamePrompt(_BasePrompt):
 
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        if config.get('ui', 'prompt-filebrowser'):
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -624,7 +626,12 @@ class FilenamePrompt(_BasePrompt):
         self._file_model = QFileSystemModel(self)
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
-        self._vbox.addWidget(self._file_view)
+
+        if config.get('ui', 'prompt-filebrowser'):
+            self._vbox.addWidget(self._file_view)
+        else:
+            self._file_view.hide()
+
         # Only show name
         self._file_view.setHeaderHidden(True)
         for col in range(1, 4):

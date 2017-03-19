@@ -65,7 +65,13 @@ def get_argparser():
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
                         help="Which backend to use (webengine backend is "
-                             "EXPERIMENTAL!).", default='webkit')
+                             "EXPERIMENTAL!).")
+    parser.add_argument('--enable-webengine-inspector', action='store_true',
+                        help="Enable the web inspector for QtWebEngine. Note "
+                        "that this is a SECURITY RISK and you should not "
+                        "visit untrusted websites with the inspector turned "
+                        "on. See https://bugreports.qt.io/browse/QTBUG-50725 "
+                        "for more details.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
@@ -108,9 +114,10 @@ def get_argparser():
     debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt. "
                        "For example, you can do "
                        "`--qt-arg geometry 650x555+200+300` to set the window "
-                       "geometry.", nargs=2, metavar=('NAME', 'VALUE'))
+                       "geometry.", nargs=2, metavar=('NAME', 'VALUE'),
+                       action='append')
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
-                       nargs=1)
+                       nargs=1, action='append')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command

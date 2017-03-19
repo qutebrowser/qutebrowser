@@ -24,9 +24,8 @@ import binascii
 
 from PyQt5.QtWidgets import QWidget
 
-from qutebrowser.utils import log, objreg
-from qutebrowser.misc import miscwidgets
-from qutebrowser.config import config
+from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.misc import miscwidgets, objects
 
 
 def create(parent=None):
@@ -37,7 +36,7 @@ def create(parent=None):
     """
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
         return webengineinspector.WebEngineInspector(parent)
     else:
@@ -90,13 +89,6 @@ class AbstractWebInspector(QWidget):
         geom = base64.b64encode(data).decode('ASCII')
         state_config['geometry']['inspector'] = geom
         super().closeEvent(e)
-
-    def _check_developer_extras(self):
-        """Check if developer-extras are enabled."""
-        if not config.get('general', 'developer-extras'):
-            raise WebInspectorError(
-                "Please enable developer-extras before using the "
-                "webinspector!")
 
     def inspect(self, page):
         """Inspect the given QWeb(Engine)Page."""

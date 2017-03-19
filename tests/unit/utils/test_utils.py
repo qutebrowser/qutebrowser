@@ -27,8 +27,10 @@ import logging
 import functools
 import collections
 import socket
+import re
+import shlex
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
 
@@ -115,7 +117,7 @@ class TestElidingFilenames:
 def freezer(request, monkeypatch):
     if request.param and not getattr(sys, 'frozen', False):
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr('sys.executable', qutebrowser.__file__)
+        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
     elif not request.param and getattr(sys, 'frozen', False):
         # Want to test unfrozen tests, but we are frozen
         pytest.skip("Can't run with sys.frozen = True!")
@@ -144,129 +146,6 @@ def test_resource_filename():
     filename = utils.resource_filename(os.path.join('utils', 'testfile'))
     with open(filename, 'r', encoding='utf-8') as f:
         assert f.read().splitlines()[0] == "Hello World!"
-
-
-class Patcher:
-
-    """Helper for TestActuteWarning.
-
-    Attributes:
-        monkeypatch: The pytest monkeypatch fixture.
-    """
-
-    def __init__(self, monkeypatch):
-        self.monkeypatch = monkeypatch
-
-    def patch_platform(self, platform='linux'):
-        """Patch sys.platform."""
-        self.monkeypatch.setattr('sys.platform', platform)
-
-    def patch_exists(self, exists=True):
-        """Patch os.path.exists."""
-        self.monkeypatch.setattr('qutebrowser.utils.utils.os.path.exists',
-                                 lambda path: exists)
-
-    def patch_version(self, version='5.2.0'):
-        """Patch Qt version."""
-        self.monkeypatch.setattr('qutebrowser.utils.utils.qtutils.qVersion',
-                                 lambda: version)
-
-    def patch_file(self, data):
-        """Patch open() to return the given data."""
-        fake_file = io.StringIO(data)
-        self.monkeypatch.setattr(utils, 'open',
-                                 lambda filename, mode, encoding: fake_file,
-                                 raising=False)
-
-    def patch_all(self, data):
-        """Patch everything so the issue would exist."""
-        self.patch_platform()
-        self.patch_exists()
-        self.patch_version()
-        self.patch_file(data)
-
-
-class TestActuteWarning:
-
-    """Test actute_warning."""
-
-    @pytest.fixture
-    def patcher(self, monkeypatch):
-        """Fixture providing a Patcher helper."""
-        return Patcher(monkeypatch)
-
-    def test_non_linux(self, patcher, capsys):
-        """Test with a non-Linux OS."""
-        patcher.patch_platform('toaster')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_no_compose(self, patcher, capsys):
-        """Test with no compose file."""
-        patcher.patch_platform()
-        patcher.patch_exists(False)
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_newer_qt(self, patcher, capsys):
-        """Test with compose file but newer Qt version."""
-        patcher.patch_platform()
-        patcher.patch_exists()
-        patcher.patch_version('5.4')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_no_match(self, patcher, capsys):
-        """Test with compose file and affected Qt but no match."""
-        patcher.patch_all('foobar')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_empty(self, patcher, capsys):
-        """Test with empty compose file."""
-        patcher.patch_all(None)
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_match(self, patcher, capsys):
-        """Test with compose file and affected Qt and a match."""
-        patcher.patch_all('foobar\n<dead_actute>\nbaz')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert out.startswith('Note: If you got a')
-        assert not err
-
-    def test_match_stdout_none(self, monkeypatch, patcher, capsys):
-        """Test with a match and stdout being None."""
-        patcher.patch_all('foobar\n<dead_actute>\nbaz')
-        monkeypatch.setattr('sys.stdout', None)
-        utils.actute_warning()
-
-    def test_unreadable(self, mocker, patcher, capsys, caplog):
-        """Test with an unreadable compose file."""
-        patcher.patch_platform()
-        patcher.patch_exists()
-        patcher.patch_version()
-        mocker.patch('qutebrowser.utils.utils.open', side_effect=OSError,
-                     create=True)
-
-        with caplog.at_level(logging.ERROR, 'init'):
-            utils.actute_warning()
-
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'Failed to read Compose file'
-        out, _err = capsys.readouterr()
-        assert not out
 
 
 class TestInterpolateColor:
@@ -432,7 +311,7 @@ class TestKeyToString:
 
     def test_missing(self, monkeypatch):
         """Test with a missing key."""
-        monkeypatch.delattr('qutebrowser.utils.utils.Qt.Key_Blue')
+        monkeypatch.delattr(utils.Qt, 'Key_Blue')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert utils.key_to_string(Qt.Key_A) == 'A'
@@ -484,7 +363,7 @@ class TestKeyEventToString:
 
     def test_mac(self, monkeypatch, fake_keyevent_factory):
         """Test with a simulated mac."""
-        monkeypatch.setattr('sys.platform', 'darwin')
+        monkeypatch.setattr(sys, 'platform', 'darwin')
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
         assert utils.keyevent_to_string(evt) == 'Meta+A'
 
@@ -946,6 +825,12 @@ class TestGetSetClipboard:
     def test_get(self):
         assert utils.get_clipboard() == 'mocked clipboard text'
 
+    @pytest.mark.parametrize('selection', [True, False])
+    def test_get_empty(self, clipboard_mock, selection):
+        clipboard_mock.text.return_value = ''
+        with pytest.raises(utils.ClipboardEmptyError):
+            utils.get_clipboard(selection=selection)
+
     def test_get_unsupported_selection(self, clipboard_mock):
         clipboard_mock.supportsSelection.return_value = False
         with pytest.raises(utils.SelectionUnsupportedError):
@@ -984,3 +869,50 @@ def test_random_port():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(('localhost', port))
     sock.close()
+
+
+class TestOpenFile:
+
+    @pytest.mark.not_frozen
+    def test_cmdline_without_argument(self, caplog, config_stub):
+        config_stub.data = {'general': {'default-open-dispatcher': ''}}
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass'.format(executable)
+        utils.open_file('/foo/bar', cmdline)
+        result = caplog.records[0].message
+        assert re.match(
+            r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
+
+    @pytest.mark.not_frozen
+    def test_cmdline_with_argument(self, caplog, config_stub):
+        config_stub.data = {'general': {'default-open-dispatcher': ''}}
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass {{}} raboof'.format(executable)
+        utils.open_file('/foo/bar', cmdline)
+        result = caplog.records[0].message
+        assert re.match(
+            r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
+
+    @pytest.mark.not_frozen
+    def test_setting_override(self, caplog, config_stub):
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass'.format(executable)
+        config_stub.data = {'general': {'default-open-dispatcher': cmdline}}
+        utils.open_file('/foo/bar')
+        result = caplog.records[0].message
+        assert re.match(
+            r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
+
+    def test_system_default_application(self, caplog, config_stub, mocker):
+        config_stub.data = {'general': {'default-open-dispatcher': ''}}
+        m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+                         new_callable=mocker.Mock)
+        utils.open_file('/foo/bar')
+        result = caplog.records[0].message
+        assert re.match(
+            r"Opening /foo/bar with the system application", result)
+        m.assert_called_with(QUrl('file:///foo/bar'))
+
+
+def test_unused():
+    utils.unused(None)

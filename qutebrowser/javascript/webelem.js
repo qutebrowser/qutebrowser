@@ -17,6 +17,23 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * The connection for web elements between Python and Javascript works like
+ * this:
+ *
+ * - Python calls into Javascript and invokes a function to find elements (like
+ *   find_all, focus_element, element_at_pos or element_by_id).
+ * - Javascript gets the requested element, and calls serialize_elem on it.
+ * - serialize_elem saves the javascript element object in "elements", gets some
+ *   attributes from the element, and assigns an ID (index into 'elements') to
+ *   it.
+ * - Python gets this information and constructs a Python wrapper object with
+ *   the information it got right away, and the ID.
+ * - When Python wants to modify an element, it calls javascript again with the
+ *   element ID.
+ * - Javascript gets the element from the elements array, and modifies it.
+ */
+
 "use strict";
 
 window._qutebrowser.webelem = (function() {
@@ -92,14 +109,17 @@ window._qutebrowser.webelem = (function() {
         }
 
         var style = win.getComputedStyle(elem, null);
-        // FIXME:qtwebengine do we need this <area> handling?
-        // visibility and display style are misleading for area tags and they
-        // get "display: none" by default.
-        // See https://github.com/vimperator/vimperator-labs/issues/236
-        if (elem.nodeName.toLowerCase() !== "area" && (
-                style.getPropertyValue("visibility") !== "visible" ||
-                style.getPropertyValue("display") === "none")) {
-            return false;
+        if (style.getPropertyValue("visibility") !== "visible" ||
+                style.getPropertyValue("display") === "none" ||
+                style.getPropertyValue("opacity") === "0") {
+            // FIXME:qtwebengine do we need this <area> handling?
+            // visibility and display style are misleading for area tags and
+            // they get "display: none" by default.
+            // See https://github.com/vimperator/vimperator-labs/issues/236
+            if (elem.nodeName.toLowerCase() !== "area" &&
+                    !elem.classList.contains("ace_text-input")) {
+                return false;
+            }
         }
 
         return true;
@@ -136,9 +156,8 @@ window._qutebrowser.webelem = (function() {
 
     funcs.insert_text = function(id, text) {
         var elem = elements[id];
-        var event = document.createEvent("TextEvent");
-        event.initTextEvent("textInput", true, true, null, text);
-        elem.dispatchEvent(event);
+        elem.focus();
+        document.execCommand("insertText", false, text);
     };
 
     funcs.element_at_pos = function(x, y) {
@@ -172,6 +191,22 @@ window._qutebrowser.webelem = (function() {
             }
             elem = elem.parentElement;
         }
+    };
+
+    funcs.click = function(id) {
+        var elem = elements[id];
+        elem.click();
+    };
+
+    funcs.focus = function(id) {
+        var elem = elements[id];
+        elem.focus();
+    };
+
+    funcs.move_cursor_to_end = function(id) {
+        var elem = elements[id];
+        elem.selectionStart = elem.value.length;
+        elem.selectionEnd = elem.value.length;
     };
 
     return funcs;

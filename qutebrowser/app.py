@@ -47,6 +47,7 @@ from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
+from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
@@ -132,7 +133,6 @@ def init(args, crash_handler):
     log.init.debug("Starting init...")
     qApp.setQuitOnLastWindowClosed(False)
     _init_icon()
-    utils.actute_warning()
 
     try:
         _init_modules(args, crash_handler)
@@ -140,9 +140,6 @@ def init(args, crash_handler):
         error.handle_fatal_exc(e, args, "Error while initializing!",
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)
-
-    QTimer.singleShot(0, functools.partial(_process_args, args))
-    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
 
     log.init.debug("Initializing eventfilter...")
     event_filter = EventFilter(qApp)
@@ -154,11 +151,13 @@ def init(args, crash_handler):
     config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
     qApp.focusChanged.connect(on_focus_changed)
 
+    _process_args(args)
+
     QDesktopServices.setUrlHandler('http', open_desktopservices_url)
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
-    macros.init()
+    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
@@ -213,14 +212,17 @@ def _load_session(name):
         name: The name of the session to load, or None to read state file.
     """
     state_config = objreg.get('state-config')
-    if name is None:
+    session_manager = objreg.get('session-manager')
+    if name is None and session_manager.exists('_autosave'):
+        name = '_autosave'
+    elif name is None:
         try:
             name = state_config['general']['session']
         except KeyError:
             # No session given as argument and none in the session file ->
             # start without loading a session
             return
-    session_manager = objreg.get('session-manager')
+
     try:
         session_manager.load(name)
     except sessions.SessionNotFoundError:
@@ -375,6 +377,7 @@ def _init_modules(args, crash_handler):
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
     """
+    # pylint: disable=too-many-statements
     log.init.debug("Initializing prompts...")
     prompt.init()
 
@@ -385,6 +388,11 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing network...")
     networkmanager.init()
+
+    if qtutils.version_check('5.8'):
+        # Otherwise we can only initialize it for QtWebKit because of crashes
+        log.init.debug("Initializing proxy...")
+        proxy.init()
 
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
@@ -405,7 +413,7 @@ def _init_modules(args, crash_handler):
     sessions.init(qApp)
 
     log.init.debug("Initializing websettings...")
-    websettings.init()
+    websettings.init(args)
 
     log.init.debug("Initializing adblock...")
     host_blocker = adblock.HostBlocker()
@@ -438,8 +446,9 @@ def _init_modules(args, crash_handler):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
+    macros.init()
     # Init backend-specific stuff
-    browsertab.init(args)
+    browsertab.init()
 
 
 def _init_late_modules(args):
@@ -527,7 +536,7 @@ class Quitter:
             if not os.path.isdir(cwd):
                 # Probably running from a python egg. Let's fallback to
                 # cwd=None and see if that works out.
-                # See https://github.com/The-Compiler/qutebrowser/issues/323
+                # See https://github.com/qutebrowser/qutebrowser/issues/323
                 cwd = None
 
         # Add all open pages so they get reopened.
@@ -713,6 +722,7 @@ class Quitter:
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
         objreg.get('signal-handler').deactivate()
+        objreg.get('session-manager').delete_autosave()
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))

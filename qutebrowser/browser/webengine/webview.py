@@ -19,10 +19,10 @@
 
 """The main browser widget for QtWebEngine."""
 
-import os
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
+from PyQt5.QtGui import QPalette
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
@@ -30,8 +30,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import (log, debug, usertypes, qtutils, jinja, urlutils,
-                               message)
+from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
+                               objreg)
 
 
 class WebEngineView(QWebEngineView):
@@ -42,7 +42,10 @@ class WebEngineView(QWebEngineView):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
-        self.setPage(WebEnginePage(parent=self))
+
+        theme_color = self.style().standardPalette().color(QPalette.Base)
+        page = WebEnginePage(theme_color=theme_color, parent=self)
+        self.setPage(page)
 
     def shutdown(self):
         self.page().shutdown()
@@ -67,7 +70,7 @@ class WebEngineView(QWebEngineView):
                          A window without decoration.
                      QWebEnginePage::WebBrowserBackgroundTab:
                          A web browser tab without hiding the current visible
-                         WebEngineView. (Added in Qt 5.7)
+                         WebEngineView.
 
         Return:
             The new QWebEngineView object.
@@ -77,13 +80,6 @@ class WebEngineView(QWebEngineView):
 
         log.webview.debug("createWindow with type {}, background_tabs "
                           "{}".format(debug_type, background_tabs))
-
-        try:
-            background_tab_wintype = QWebEnginePage.WebBrowserBackgroundTab
-        except AttributeError:
-            # This is unavailable with an older PyQt, but we still might get
-            # this with a newer Qt...
-            background_tab_wintype = 0x0003
 
         if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
@@ -99,7 +95,7 @@ class WebEngineView(QWebEngineView):
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
-        elif wintype == background_tab_wintype:
+        elif wintype == QWebEnginePage.WebBrowserBackgroundTab:
             # Middle-click / Ctrl-Click
             if background_tabs:
                 target = usertypes.ClickTarget.tab_bg
@@ -109,15 +105,6 @@ class WebEngineView(QWebEngineView):
             raise ValueError("Invalid wintype {}".format(debug_type))
 
         tab = shared.get_tab(self._win_id, target)
-
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
-        vercheck = qtutils.version_check
-        qtbug54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                            qtutils.version_check('5.7.1') or
-                            os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
-        if not qtbug54419_fixed:
-            tab.needs_qtbug54419_workaround = True
-
         return tab._widget  # pylint: disable=protected-access
 
 
@@ -127,6 +114,7 @@ class WebEnginePage(QWebEnginePage):
 
     Attributes:
         _is_shutting_down: Whether the page is currently shutting down.
+        _theme_color: The theme background color.
 
     Signals:
         certificate_error: Emitted on certificate errors.
@@ -136,11 +124,21 @@ class WebEnginePage(QWebEnginePage):
     certificate_error = pyqtSignal()
     shutting_down = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, theme_color, parent=None):
         super().__init__(parent)
         self._is_shutting_down = False
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
+        self._theme_color = theme_color
+        self._set_bg_color()
+        objreg.get('config').changed.connect(self._set_bg_color)
+
+    @config.change_filter('colors', 'webpage.bg')
+    def _set_bg_color(self):
+        col = config.get('colors', 'webpage.bg')
+        if col is None:
+            col = self._theme_color
+        self.setBackgroundColor(col)
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):

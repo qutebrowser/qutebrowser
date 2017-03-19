@@ -365,6 +365,8 @@ def generate_commands(filename):
 
 def _generate_setting_section(f, sectname, sect):
     """Generate documentation for a single section."""
+    version_dependent_options = [('network', 'proxy'),
+                                 ('general', 'print-element-backgrounds')]
     for optname, option in sect.items():
         f.write("\n")
         f.write('[[{}-{}]]'.format(sectname, optname) + "\n")
@@ -390,7 +392,8 @@ def _generate_setting_section(f, sectname, sect):
         else:
             f.write("Default: empty\n")
 
-        if option.backends is None:
+        if (option.backends is None or
+                (sectname, optname) in version_dependent_options):
             pass
         elif option.backends == [usertypes.Backend.QtWebKit]:
             f.write("\nThis setting is only available with the QtWebKit "
@@ -433,10 +436,13 @@ def _get_authors():
         'Corentin Jule': 'Corentin Julé',
         'Claire C.C': 'Claire Cavanaugh',
         'Rahid': 'Maciej Wołczyk',
+        'Fritz V155 Reichwald': 'Fritz Reichwald',
     }
+    ignored = ['pyup-bot']
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
     authors = [corrections.get(author, author)
-               for author in commits.decode('utf-8').splitlines()]
+               for author in commits.decode('utf-8').splitlines()
+               if author not in ignored]
     cnt = collections.Counter(authors)
     return sorted(cnt, key=lambda k: (cnt[k], k), reverse=True)
 

@@ -27,7 +27,7 @@ import getpass
 import binascii
 import hashlib
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QTimer
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
@@ -37,7 +37,7 @@ from qutebrowser.utils import log, usertypes, error, objreg, standarddir
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
-ATIME_INTERVAL = 60 * 60 * 6 * 1000  # 6 hours
+ATIME_INTERVAL = 60 * 60 * 3 * 1000  # 3 hours
 PROTOCOL_VERSION = 1
 
 
@@ -222,7 +222,7 @@ class IPCServer(QObject):
             try:
                 os.chmod(self._server.fullServerName(), 0o700)
             except FileNotFoundError:
-                # https://github.com/The-Compiler/qutebrowser/issues/1530
+                # https://github.com/qutebrowser/qutebrowser/issues/1530
                 # The server doesn't actually exist even if ok was reported as
                 # True, so report this as an error.
                 raise ListenError(self._server)
@@ -281,7 +281,11 @@ class IPCServer(QObject):
         if self._socket is None:
             log.ipc.debug("In on_disconnected with None socket!")
         else:
-            self._socket.deleteLater()
+            # For some reason Qt can still get delayed canReadNotifications
+            # internally, so if we call deleteLater() right away and then call
+            # QApplication::processEvents() somewhere in the code, we can get a
+            # segfault.
+            QTimer.singleShot(500, self._socket.deleteLater)
             self._socket = None
         # Maybe another connection is waiting.
         self.handle_connection()
@@ -363,7 +367,7 @@ class IPCServer(QObject):
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
         if self._socket is None:  # pragma: no cover
-            log.ipc.error("on_timeout got called with None socket!")
+            log.ipc.debug("on_timeout got called with None socket!")
             return
         log.ipc.error("IPC connection timed out "
                       "(socket 0x{:x}).".format(id(self._socket)))

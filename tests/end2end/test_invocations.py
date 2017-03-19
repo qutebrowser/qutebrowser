@@ -19,6 +19,7 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import socket
 import sys
 import logging
 import re
@@ -28,6 +29,7 @@ import pytest
 from PyQt5.QtCore import QProcess
 
 from end2end.fixtures import quteprocess, testprocess
+from qutebrowser.utils import qtutils
 
 
 def _base_args(config):
@@ -72,8 +74,8 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
-    https://github.com/The-Compiler/qutebrowser/issues/908
-    https://github.com/The-Compiler/qutebrowser/issues/1726
+    https://github.com/qutebrowser/qutebrowser/issues/908
+    https://github.com/qutebrowser/qutebrowser/issues/1726
     """
     if request.config.webengine:
         pytest.skip("Downloads are not implemented with QtWebEngine yet")
@@ -96,7 +98,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
                           .format(sys.executable))
     quteproc_new.wait_for(category='downloads',
                           message='Download ä-issue908.bin finished')
-    quteproc_new.wait_for(category='downloads',
+    quteproc_new.wait_for(category='misc',
                           message='Opening * with [*python*]')
 
     assert len(tmpdir.listdir()) == 1
@@ -108,8 +110,8 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
                                  tmpdir, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
-    https://github.com/The-Compiler/qutebrowser/issues/866
-    https://github.com/The-Compiler/qutebrowser/issues/1269
+    https://github.com/qutebrowser/qutebrowser/issues/866
+    https://github.com/qutebrowser/qutebrowser/issues/1269
     """
     if request.config.webengine:
         pytest.skip("Downloads are not implemented with QtWebEngine yet")
@@ -185,3 +187,77 @@ def test_version(request):
     output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
 
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
+
+
+@pytest.mark.skipif(not qtutils.version_check('5.3'),
+                    reason="Does not work on Qt 5.2")
+def test_qt_arg(request, quteproc_new, tmpdir):
+    """Test --qt-arg."""
+    args = (['--temp-basedir', '--qt-arg', 'stylesheet',
+             str(tmpdir / 'does-not-exist')] + _base_args(request.config))
+    quteproc_new.start(args)
+
+    msg = 'QCss::Parser - Failed to load file  "*does-not-exist"'
+    line = quteproc_new.wait_for(message=msg)
+    line.expected = True
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+def test_webengine_inspector(request, quteproc_new):
+    if not request.config.webengine:
+        pytest.skip()
+    args = (['--temp-basedir', '--enable-webengine-inspector'] +
+            _base_args(request.config))
+    quteproc_new.start(args)
+    line = quteproc_new.wait_for(
+        message='Remote debugging server started successfully. Try pointing a '
+                'Chromium-based browser to http://127.0.0.1:*')
+    port = int(line.message.split(':')[-1])
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('127.0.0.1', port))
+    s.close()
+
+
+@pytest.mark.linux
+def test_webengine_download_suffix(request, quteproc_new, tmpdir):
+    """Make sure QtWebEngine does not add a suffix to downloads."""
+    if not request.config.webengine:
+        pytest.skip()
+
+    download_dir = tmpdir / 'downloads'
+    download_dir.ensure(dir=True)
+
+    (tmpdir / 'user-dirs.dirs').write(
+        'XDG_DOWNLOAD_DIR={}'.format(download_dir))
+    env = {'XDG_CONFIG_HOME': str(tmpdir)}
+    args = (['--temp-basedir'] + _base_args(request.config))
+    quteproc_new.start(args, env=env)
+
+    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc_new.set_setting('storage', 'download-directory',
+                             str(download_dir))
+    quteproc_new.open_path('data/downloads/download.bin', wait=False)
+    quteproc_new.wait_for(category='downloads', message='Download * finished')
+    quteproc_new.open_path('data/downloads/download.bin', wait=False)
+    quteproc_new.wait_for(message='Entering mode KeyMode.yesno *')
+    quteproc_new.send_cmd(':prompt-accept yes')
+    quteproc_new.wait_for(category='downloads', message='Download * finished')
+
+    files = download_dir.listdir()
+    assert len(files) == 1
+    assert files[0].basename == 'download.bin'
+
+
+def test_command_on_start(request, quteproc_new):
+    """Make sure passing a command on start works.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/2408
+    """
+    args = (['--temp-basedir'] + _base_args(request.config) +
+            [':quickmark-add https://www.example.com/ example'])
+    quteproc_new.start(args)
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()

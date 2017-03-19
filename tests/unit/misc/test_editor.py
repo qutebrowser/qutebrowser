@@ -33,13 +33,13 @@ from qutebrowser.utils import usertypes
 
 @pytest.fixture(autouse=True)
 def patch_things(config_stub, monkeypatch, stubs):
-    monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
+    monkeypatch.setattr(editormod.guiprocess, 'QProcess',
                         stubs.fake_qprocess())
     config_stub.data = {
         'general': {'editor': [''], 'editor-encoding': 'utf-8'},
         'input': {},
     }
-    monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
+    monkeypatch.setattr(editormod, 'config', config_stub)
 
 
 @pytest.fixture
@@ -141,8 +141,7 @@ class TestFileHandling:
                         caplog):
         """Test file handling when the initial file is not writable."""
         tmpdir.chmod(0)
-        monkeypatch.setattr('qutebrowser.misc.editor.tempfile.tempdir',
-                            str(tmpdir))
+        monkeypatch.setattr(editormod.tempfile, 'tempdir', str(tmpdir))
 
         with caplog.at_level(logging.ERROR):
             editor.edit("")

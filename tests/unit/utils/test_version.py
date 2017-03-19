@@ -33,7 +33,7 @@ import textwrap
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version
+from qutebrowser.utils import version, usertypes
 from qutebrowser.browser import pdfjs
 
 
@@ -93,21 +93,18 @@ class TestGitStr:
         mocker.patch('qutebrowser.utils.version.subprocess',
                      side_effect=AssertionError)
         fake = GitStrSubprocessFake()
-        monkeypatch.setattr('qutebrowser.utils.version._git_str_subprocess',
-                            fake.func)
+        monkeypatch.setattr(version, '_git_str_subprocess', fake.func)
         return fake
 
     def test_frozen_ok(self, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and a successful git-commit-id read."""
-        monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
-                            raising=False)
+        monkeypatch.setattr(version.sys, 'frozen', True, raising=False)
         commit_file_mock.return_value = 'deadbeef'
         assert version._git_str() == 'deadbeef'
 
     def test_frozen_oserror(self, caplog, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and OSError when reading git-commit-id."""
-        monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
-                            raising=False)
+        monkeypatch.setattr(version.sys, 'frozen', True, raising=False)
         commit_file_mock.side_effect = OSError
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() is None
@@ -144,7 +141,7 @@ class TestGitStr:
     def test_normal_path_nofile(self, monkeypatch, caplog,
                                 git_str_subprocess_fake, commit_file_mock):
         """Test with undefined __file__ but available git-commit-id."""
-        monkeypatch.delattr('qutebrowser.utils.version.__file__')
+        monkeypatch.delattr(version, '__file__')
         commit_file_mock.return_value = '0deadcode'
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() == '0deadcode'
@@ -304,7 +301,7 @@ def test_release_info(files, expected, caplog, monkeypatch):
         expected: The expected _release_info output.
     """
     fake = ReleaseInfoFake(files)
-    monkeypatch.setattr('qutebrowser.utils.version.glob.glob', fake.glob_fake)
+    monkeypatch.setattr(version.glob, 'glob', fake.glob_fake)
     monkeypatch.setattr(version, 'open', fake.open_fake, raising=False)
     with caplog.at_level(logging.ERROR, 'misc'):
         assert version._release_info() == expected
@@ -325,7 +322,7 @@ def test_path_info(monkeypatch):
     }
 
     for attr, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.standarddir.' + attr, val)
+        monkeypatch.setattr(version.standarddir, attr, val)
 
     pathinfo = version._path_info()
 
@@ -362,6 +359,7 @@ class ImportFake:
             'cssutils': True,
             'typing': True,
             'PyQt5.QtWebEngineWidgets': True,
+            'PyQt5.QtWebKitWidgets': True,
         }
         self.version_attribute = '__version__'
         self.version = '1.2.3'
@@ -407,7 +405,7 @@ def import_fake(monkeypatch):
     """Fixture to patch imports using ImportFake."""
     fake = ImportFake()
     monkeypatch.setattr('builtins.__import__', fake.fake_import)
-    monkeypatch.setattr('qutebrowser.utils.version.importlib.import_module',
+    monkeypatch.setattr(version.importlib, 'import_module',
                         fake.fake_importlib_import)
     return fake
 
@@ -422,7 +420,8 @@ class TestModuleVersions:
         expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
                     'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
                     'cssutils: 1.2.3', 'typing: yes',
-                    'PyQt5.QtWebEngineWidgets: yes']
+                    'PyQt5.QtWebEngineWidgets: yes',
+                    'PyQt5.QtWebKitWidgets: yes']
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
@@ -445,14 +444,17 @@ class TestModuleVersions:
         ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
                      'jinja2: yes', 'pygments: yes', 'yaml: yes',
                      'cssutils: yes', 'typing: yes',
-                     'PyQt5.QtWebEngineWidgets: yes']),
+                     'PyQt5.QtWebEngineWidgets: yes',
+                     'PyQt5.QtWebKitWidgets: yes']),
         ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
                              'jinja2: yes', 'pygments: yes', 'yaml: yes',
                              'cssutils: yes', 'typing: yes',
-                             'PyQt5.QtWebEngineWidgets: yes']),
+                             'PyQt5.QtWebEngineWidgets: yes',
+                             'PyQt5.QtWebKitWidgets: yes']),
         (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
                 'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes',
-                'PyQt5.QtWebEngineWidgets: yes']),
+                'PyQt5.QtWebEngineWidgets: yes',
+                'PyQt5.QtWebKitWidgets: yes']),
     ])
     def test_version_attribute(self, value, expected, import_fake):
         """Test with a different version attribute.
@@ -508,8 +510,8 @@ class TestOsInfo:
 
         No args because osver is set to '' if the OS is linux.
         """
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'linux')
-        monkeypatch.setattr('qutebrowser.utils.version._release_info',
+        monkeypatch.setattr(version.sys, 'platform', 'linux')
+        monkeypatch.setattr(version, '_release_info',
                             lambda: [('releaseinfo', 'Hello World')])
         ret = version._os_info()
         expected = ['OS Version: ', '',
@@ -518,8 +520,8 @@ class TestOsInfo:
 
     def test_windows_fake(self, monkeypatch):
         """Test with a fake Windows."""
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'win32')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.win32_ver',
+        monkeypatch.setattr(version.sys, 'platform', 'win32')
+        monkeypatch.setattr(version.platform, 'win32_ver',
                             lambda: ('eggs', 'bacon', 'ham', 'spam'))
         ret = version._os_info()
         expected = ['OS Version: eggs, bacon, ham, spam']
@@ -537,17 +539,15 @@ class TestOsInfo:
             mac_ver: The tuple to set platform.mac_ver() to.
             mac_ver_str: The expected Mac version string in version._os_info().
         """
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'darwin')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.mac_ver',
-                            lambda: mac_ver)
+        monkeypatch.setattr(version.sys, 'platform', 'darwin')
+        monkeypatch.setattr(version.platform, 'mac_ver', lambda: mac_ver)
         ret = version._os_info()
         expected = ['OS Version: {}'.format(mac_ver_str)]
         assert ret == expected
 
     def test_unknown_fake(self, monkeypatch):
         """Test with a fake unknown sys.platform."""
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform',
-                            'toaster')
+        monkeypatch.setattr(version.sys, 'platform', 'toaster')
         ret = version._os_info()
         expected = ['OS Version: ?']
         assert ret == expected
@@ -638,18 +638,58 @@ class FakeQSslSocket:
         return self._version
 
 
-@pytest.mark.parametrize(['git_commit', 'frozen', 'style',
-                          'equal_qt', 'with_webkit'], [
-    (True, False, True, True, True),  # normal
-    (False, False, True, True, True),  # no git commit
-    (True, True, True, True, True),  # frozen
-    (True, True, False, True, True),  # no style
-    (True, False, True, False, True),  # different Qt
-    (True, False, True, True, False),  # no webkit
+@pytest.mark.parametrize('same', [True, False])
+def test_qt_version(monkeypatch, same):
+    if same:
+        qt_version_str = '5.4.0'
+        expected = '5.4.0'
+    else:
+        qt_version_str = '5.3.0'
+        expected = '5.4.0 (compiled 5.3.0)'
+    monkeypatch.setattr(version, 'qVersion', lambda: '5.4.0')
+    monkeypatch.setattr(version, 'QT_VERSION_STR', qt_version_str)
+    assert version.qt_version() == expected
+
+
+@pytest.mark.parametrize('ua, expected', [
+    (None, 'unavailable'),  # No QWebEngineProfile
+    ('Mozilla/5.0', 'unknown'),
+    ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
+     'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36', '53.0.2785.148'),
 ])
-def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
-                        stubs, monkeypatch):
+def test_chromium_version(monkeypatch, caplog, ua, expected):
+    if ua is None:
+        monkeypatch.setattr(version, 'QWebEngineProfile', None)
+    else:
+        class FakeWebEngineProfile:
+            def httpUserAgent(self):
+                return ua
+        monkeypatch.setattr(version, 'QWebEngineProfile', FakeWebEngineProfile)
+
+    with caplog.at_level(logging.ERROR):
+        assert version._chromium_version() == expected
+
+
+def test_chromium_version_unpatched(qapp):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    assert version._chromium_version() not in ['', 'unknown', 'unavailable']
+
+
+@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit'], [
+    (True, False, True, True),  # normal
+    (False, False, True, True),  # no git commit
+    (True, True, True, True),  # frozen
+    (True, True, False, True),  # no style
+    (True, False, True, False),  # no webkit
+    (True, False, True, 'ng'),  # QtWebKit-NG
+])
+def test_version_output(git_commit, frozen, style, with_webkit, stubs,
+                        monkeypatch):
     """Test version.version()."""
+    class FakeWebEngineProfile:
+        def httpUserAgent(self):
+            return 'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
+
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
@@ -659,11 +699,9 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         'platform.python_version': lambda: 'PYTHON VERSION',
         'PYQT_VERSION_STR': 'PYQT VERSION',
         'QT_VERSION_STR': 'QT VERSION',
-        'qVersion': (lambda:
-                     'QT VERSION' if equal_qt else 'QT RUNTIME VERSION'),
+        'qVersion': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'qWebKitVersion': (lambda: 'WEBKIT VERSION') if with_webkit else None,
         'QSslSocket': FakeQSslSocket('SSL VERSION'),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
@@ -671,7 +709,32 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
                          stubs.FakeQApplication(instance=None)),
+        'QLibraryInfo.location': (lambda _loc: 'QT PATH')
     }
+
+    substitutions = {
+        'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
+        'style': '\nStyle: STYLE' if style else '',
+        'qt': 'QT VERSION',
+        'frozen': str(frozen),
+        'import_path': import_path,
+    }
+
+    if with_webkit:
+        patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
+        patches['objects.backend'] = usertypes.Backend.QtWebKit
+        patches['QWebEngineProfile'] = None
+        if with_webkit == 'ng':
+            patches['qtutils.is_qtwebkit_ng'] = lambda v: True
+            substitutions['backend'] = 'QtWebKit-NG (WebKit WEBKIT VERSION)'
+        else:
+            patches['qtutils.is_qtwebkit_ng'] = lambda v: False
+            substitutions['backend'] = 'QtWebKit (WebKit WEBKIT VERSION)'
+    else:
+        patches['qWebKitVersion'] = None
+        patches['objects.backend'] = usertypes.Backend.QtWebEngine
+        patches['QWebEngineProfile'] = FakeWebEngineProfile
+        substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
@@ -682,8 +745,9 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
     template = textwrap.dedent("""
-        qutebrowser vVERSION
-        {git_commit}
+        qutebrowser vVERSION{git_commit}
+        Backend: {backend}
+
         PYTHON IMPLEMENTATION: PYTHON VERSION
         Qt: {qt}
         PyQt: PYQT VERSION
@@ -691,28 +755,18 @@ def test_version_output(git_commit, frozen, style, equal_qt, with_webkit,
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
-        Webkit: {webkit}
         SSL: SSL VERSION
         {style}
         Platform: PLATFORM, ARCHITECTURE
         Frozen: {frozen}
         Imported from {import_path}
+        Qt library executable path: QT PATH, data path: QT PATH
         OS INFO 1
         OS INFO 2
 
         Paths:
         PATH DESC: PATH NAME
     """.lstrip('\n'))
-
-    substitutions = {
-        'git_commit': 'Git commit: GIT COMMIT\n' if git_commit else '',
-        'style': '\nStyle: STYLE' if style else '',
-        'qt': ('QT VERSION' if equal_qt else
-               'QT RUNTIME VERSION (compiled QT VERSION)'),
-        'frozen': str(frozen),
-        'import_path': import_path,
-        'webkit': 'WEBKIT VERSION' if with_webkit else 'no'
-    }
 
     expected = template.rstrip('\n').format(**substitutions)
     assert version.version() == expected

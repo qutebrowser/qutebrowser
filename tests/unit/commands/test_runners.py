@@ -31,7 +31,7 @@ class TestCommandRunner:
     def test_parse_all(self, cmdline_test):
         """Test parsing of commands.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/615
+        See https://github.com/qutebrowser/qutebrowser/issues/615
 
         Args:
             cmdline_test: A pytest fixture which provides testcases.
@@ -57,8 +57,8 @@ class TestCommandRunner:
     def test_parse_empty_with_alias(self, command):
         """An empty command should not crash.
 
-        See https://github.com/The-Compiler/qutebrowser/issues/1690
-        and https://github.com/The-Compiler/qutebrowser/issues/1773
+        See https://github.com/qutebrowser/qutebrowser/issues/1690
+        and https://github.com/qutebrowser/qutebrowser/issues/1773
         """
         cr = runners.CommandRunner(0)
         with pytest.raises(cmdexc.NoSuchCommandError):

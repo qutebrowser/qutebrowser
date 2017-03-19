@@ -33,7 +33,8 @@ from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer
 from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, usertypes, utils, qtutils
+from qutebrowser.keyinput import modeman
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
 Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
@@ -119,10 +120,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def style_property(self, name, *, strategy):
-        """Get the element style resolved with the given strategy."""
-        raise NotImplementedError
-
     def classes(self):
         """Get a list of classes assigned to this element."""
         raise NotImplementedError
@@ -139,7 +136,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         raise NotImplementedError
 
     def value(self):
-        """Get the value attribute for this element."""
+        """Get the value attribute for this element, or None."""
         raise NotImplementedError
 
     def set_value(self, value):
@@ -160,7 +157,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         Skipping of small rectangles is due to <a> elements containing other
         elements with "display:block" style, see
-        https://github.com/The-Compiler/qutebrowser/issues/1298
+        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.
@@ -222,18 +219,22 @@ class AbstractWebElement(collections.abc.MutableMapping):
             else:
                 return False
 
-    def _is_editable_div(self):
-        """Check if a div-element is editable.
+    def _is_editable_classes(self):
+        """Check if an element is editable based on its classes.
 
         Return:
             True if the element is editable, False otherwise.
         """
         # Beginnings of div-classes which are actually some kind of editor.
-        div_classes = ('CodeMirror',  # Javascript editor over a textarea
-                       'kix-',        # Google Docs editor
-                       'ace_')        # http://ace.c9.io/
+        classes = {
+            'div': ['CodeMirror',  # Javascript editor over a textarea
+                    'kix-',  # Google Docs editor
+                    'ace_'],  # http://ace.c9.io/
+            'pre': ['CodeMirror'],
+        }
+        relevant_classes = classes[self.tag_name()]
         for klass in self.classes():
-            if any([klass.startswith(e) for e in div_classes]):
+            if any([klass.strip().startswith(e) for e in relevant_classes]):
                 return True
         return False
 
@@ -264,10 +265,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return config.get('input', 'insert-mode-on-plugins') and not strict
         elif tag == 'object':
             return self._is_editable_object() and not strict
-        elif tag == 'div':
-            return self._is_editable_div() and not strict
-        else:
-            return False
+        elif tag in ['div', 'pre']:
+            return self._is_editable_classes() and not strict
+        return False
 
     def is_text_input(self):
         """Check if this element is some kind of text box."""
@@ -311,7 +311,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # Click the center of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
         # is hidden behind other elements
-        # https://github.com/The-Compiler/qutebrowser/issues/1005
+        # https://github.com/qutebrowser/qutebrowser/issues/1005
         rect = self.rect_on_view()
         if rect.width() > rect.height():
             rect.setWidth(rect.height())
@@ -322,14 +322,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
             raise Error("Element position is out of view!")
         return pos
 
-    def click(self, click_target):
-        """Simulate a click on the element."""
-        # FIXME:qtwebengine do we need this?
-        # self._widget.setFocus()
+    def _move_text_cursor(self):
+        """Move cursor to end after clicking."""
+        raise NotImplementedError
 
-        # For QtWebKit
-        self._tab.data.override_target = click_target
-
+    def _click_fake_event(self, click_target):
+        """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
         log.webelem.debug("Sending fake click to {!r} at position {} with "
@@ -358,11 +356,74 @@ class AbstractWebElement(collections.abc.MutableMapping):
         for evt in events:
             self._tab.send_event(evt)
 
-        def after_click():
-            """Move cursor to end after clicking."""
-            if self.is_text_input() and self.is_editable():
-                self._tab.caret.move_to_end_of_document()
-        QTimer.singleShot(0, after_click)
+        QTimer.singleShot(0, self._move_text_cursor)
+
+    def _click_editable(self, click_target):
+        """Fake a click on an editable input field."""
+        raise NotImplementedError
+
+    def _click_js(self, click_target):
+        """Fake a click by using the JS .click() method."""
+        raise NotImplementedError
+
+    def _click_href(self, click_target):
+        """Fake a click on an element with a href by opening the link."""
+        baseurl = self._tab.url()
+        url = self.resolve_url(baseurl)
+        if url is None:
+            self._click_fake_event(click_target)
+            return
+
+        if click_target in [usertypes.ClickTarget.tab,
+                            usertypes.ClickTarget.tab_bg]:
+            background = click_target == usertypes.ClickTarget.tab_bg
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._tab.win_id)
+            tabbed_browser.tabopen(url, background=background)
+        elif click_target == usertypes.ClickTarget.window:
+            from qutebrowser.mainwindow import mainwindow
+            window = mainwindow.MainWindow()
+            window.show()
+            window.tabbed_browser.tabopen(url)
+        else:
+            raise ValueError("Unknown ClickTarget {}".format(click_target))
+
+    def click(self, click_target, *, force_event=False):
+        """Simulate a click on the element.
+
+        Args:
+            click_target: A usertypes.ClickTarget member, what kind of click
+                          to simulate.
+            force_event: Force generating a fake mouse event.
+        """
+        log.webelem.debug("Clicking {!r} with click_target {}, force_event {}"
+                          .format(self, click_target, force_event))
+
+        if force_event:
+            self._click_fake_event(click_target)
+            return
+
+        href_tags = ['a', 'area', 'link']
+        if click_target == usertypes.ClickTarget.normal:
+            if self.tag_name() in href_tags:
+                log.webelem.debug("Clicking via JS click()")
+                self._click_js(click_target)
+            elif self.is_editable(strict=True):
+                log.webelem.debug("Clicking via JS focus()")
+                self._click_editable(click_target)
+                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                              'clicking input')
+            else:
+                self._click_fake_event(click_target)
+        elif click_target in [usertypes.ClickTarget.tab,
+                              usertypes.ClickTarget.tab_bg,
+                              usertypes.ClickTarget.window]:
+            if self.tag_name() in href_tags:
+                self._click_href(click_target)
+            else:
+                self._click_fake_event(click_target)
+        else:
+            raise ValueError("Unknown ClickTarget {}".format(click_target))
 
     def hover(self):
         """Simulate a mouse hover over the element."""

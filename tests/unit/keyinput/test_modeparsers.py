@@ -46,8 +46,7 @@ class TestsNormalKeyParser:
             'qutebrowser.keyinput.basekeyparser.usertypes.Timer',
             stubs.FakeTimer)
         config_stub.data = CONFIG
-        monkeypatch.setattr('qutebrowser.keyinput.modeparsers.config',
-                            config_stub)
+        monkeypatch.setattr(modeparsers, 'config', config_stub)
 
     @pytest.fixture
     def keyparser(self):

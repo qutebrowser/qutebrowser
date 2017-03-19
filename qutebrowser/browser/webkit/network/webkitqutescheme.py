@@ -74,7 +74,7 @@ class JSBridge(QObject):
     @pyqtSlot(str, str, str)
     def set(self, sectname, optname, value):
         """Slot to set a setting from qute:settings."""
-        # https://github.com/The-Compiler/qutebrowser/issues/727
+        # https://github.com/qutebrowser/qutebrowser/issues/727
         if ((sectname, optname) == ('content', 'allow-javascript') and
                 value == 'false'):
             message.error("Refusing to disable javascript via qute:settings "

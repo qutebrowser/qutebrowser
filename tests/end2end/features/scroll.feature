@@ -142,7 +142,6 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    @qtwebengine_skip: Causes memory leak...
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
         And I wait until the scroll position changed
@@ -231,7 +230,7 @@ Feature: Scrolling
         When I run :scroll-perc 0 with count 50
         Then the page should be scrolled vertically
         
-    # https://github.com/The-Compiler/qutebrowser/issues/1821
+    # https://github.com/qutebrowser/qutebrowser/issues/1821
     Scenario: :scroll-perc without doctype
         When I open data/scroll/no_doctype.html
         And I run :scroll-perc 100

@@ -101,3 +101,16 @@ def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
     view.show_message(usertypes.MessageLevel.info, 'test')
     with qtbot.waitSignal(view._clear_timer.timeout):
         config_stub.set('ui', 'message-timeout', 100)
+
+
+@pytest.mark.parametrize('replace1, replace2, length', [
+    (False, False, 2),    # Two stacked messages
+    (True, True, 1),  # Two replaceable messages
+    (False, True, 2),  # Stacked and replaceable
+    (True, False, 2),  # Replaceable and stacked
+])
+def test_replaced_messages(view, replace1, replace2, length):
+    """Show two stack=False messages which should replace each other."""
+    view.show_message(usertypes.MessageLevel.info, 'test', replace=replace1)
+    view.show_message(usertypes.MessageLevel.info, 'test 2', replace=replace2)
+    assert len(view._messages) == length

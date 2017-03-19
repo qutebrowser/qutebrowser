@@ -44,12 +44,6 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configexc
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
-try:
-    from qutebrowser.browser.webkit import mhtml
-except ImportError:
-    # Failing imports on QtWebEngine, only used in QtWebKit commands.
-    # FIXME:qtwebengine don't import this anymore at all
-    pass
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
@@ -310,13 +304,10 @@ class CommandDispatcher:
             count: The tab index to open the URL in, or None.
         """
         if url is None:
-            if tab or bg or window:
-                urls = [config.get('general', 'default-page')]
-            else:
-                raise cmdexc.CommandError("No URL given, but -t/-b/-w is not "
-                                          "set!")
+            urls = [config.get('general', 'default-page')]
         else:
             urls = self._parse_url_input(url)
+
         for i, cur_url in enumerate(urls):
             if not window and i > 0:
                 tab = False
@@ -407,6 +398,43 @@ class CommandDispatcher:
         if tab is not None:
             tab.stop()
 
+    def _print_preview(self, tab):
+        """Show a print preview."""
+        def print_callback(ok):
+            if not ok:
+                message.error("Printing failed!")
+
+        tab.printing.check_preview_support()
+        diag = QPrintPreviewDialog(tab)
+        diag.setAttribute(Qt.WA_DeleteOnClose)
+        diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
+                            Qt.WindowMinimizeButtonHint)
+        diag.paintRequested.connect(functools.partial(
+            tab.printing.to_printer, callback=print_callback))
+        diag.exec_()
+
+    def _print_pdf(self, tab, filename):
+        """Print to the given PDF file."""
+        tab.printing.check_pdf_support()
+        filename = os.path.expanduser(filename)
+        directory = os.path.dirname(filename)
+        if directory and not os.path.exists(directory):
+            os.mkdir(directory)
+        tab.printing.to_pdf(filename)
+        log.misc.debug("Print to file: {}".format(filename))
+
+    def _print(self, tab):
+        """Print with a QPrintDialog."""
+        def print_callback(ok):
+            """Called when printing finished."""
+            if not ok:
+                message.error("Printing failed!")
+            diag.deleteLater()
+
+        diag = QPrintDialog(tab)
+        diag.open(lambda: tab.printing.to_printer(diag.printer(),
+                                                  print_callback))
+
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
@@ -428,28 +456,17 @@ class CommandDispatcher:
                 tab.printing.check_pdf_support()
             else:
                 tab.printing.check_printer_support()
+            if preview:
+                tab.printing.check_preview_support()
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)
 
         if preview:
-            diag = QPrintPreviewDialog()
-            diag.setAttribute(Qt.WA_DeleteOnClose)
-            diag.setWindowFlags(diag.windowFlags() |
-                                Qt.WindowMaximizeButtonHint |
-                                Qt.WindowMinimizeButtonHint)
-            diag.paintRequested.connect(tab.printing.to_printer)
-            diag.exec_()
+            self._print_preview(tab)
         elif pdf:
-            pdf = os.path.expanduser(pdf)
-            directory = os.path.dirname(pdf)
-            if directory and not os.path.exists(directory):
-                os.mkdir(directory)
-            tab.printing.to_pdf(pdf)
-            log.misc.debug("Print to file: {}".format(pdf))
+            self._print_pdf(tab, pdf)
         else:
-            diag = QPrintDialog()
-            diag.setAttribute(Qt.WA_DeleteOnClose)
-            diag.open(lambda: tab.printing.to_printer(diag.printer()))
+            self._print(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
@@ -465,6 +482,11 @@ class CommandDispatcher:
         cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
         cur_title = self._tabbed_browser.page_title(self._current_index())
+        try:
+            history = curtab.history.serialize()
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)
+
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs-are-windows being set)
         if window:
@@ -475,13 +497,15 @@ class CommandDispatcher:
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
         idx = new_tabbed_browser.indexOf(newtab)
+
         new_tabbed_browser.set_page_title(idx, cur_title)
         if config.get('tabs', 'show-favicons'):
             new_tabbed_browser.setTabIcon(idx, curtab.icon())
             if config.get('tabs', 'tabs-are-windows'):
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
+
         newtab.data.keep_icon = True
-        newtab.history.deserialize(curtab.history.serialize())
+        newtab.history.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
         return newtab
 
@@ -626,6 +650,9 @@ class CommandDispatcher:
     def scroll(self, direction: typing.Union[str, int], count=1):
         """Scroll the current tab in the given direction.
 
+        Note you can use `:run-with-count` to have a keybinding with a bigger
+        scroll increment.
+
         Args:
             direction: In which direction to scroll
                        (up/down/left/right/top/bottom).
@@ -710,7 +737,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         if not tab.url().isValid():
-            # See https://github.com/The-Compiler/qutebrowser/issues/701
+            # See https://github.com/qutebrowser/qutebrowser/issues/701
             return
 
         if bottom_navigate is not None and tab.scroller.at_bottom():
@@ -813,7 +840,7 @@ class CommandDispatcher:
             perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -828,7 +855,7 @@ class CommandDispatcher:
             perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(perc))
+        message.info("Zoom level: {}%".format(perc), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -852,7 +879,7 @@ class CommandDispatcher:
             tab.zoom.set_factor(float(level) / 100)
         except ValueError:
             raise cmdexc.CommandError("Can't zoom {}%!".format(level))
-        message.info("Zoom level: {}%".format(level))
+        message.info("Zoom level: {}%".format(level), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, prev=False, next_=False):
@@ -891,7 +918,7 @@ class CommandDispatcher:
         """
         if self._count() == 0:
             # Running :tab-prev after last tab was closed
-            # See https://github.com/The-Compiler/qutebrowser/issues/1448
+            # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
         newidx = self._current_index() - count
         if newidx >= 0:
@@ -911,7 +938,7 @@ class CommandDispatcher:
         """
         if self._count() == 0:
             # Running :tab-next after last tab was closed
-            # See https://github.com/The-Compiler/qutebrowser/issues/1448
+            # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
         newidx = self._current_index() + count
         if newidx < self._count():
@@ -1014,7 +1041,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
-    @cmdutils.argument('count', count=True, zero_count=True)
+    @cmdutils.argument('count', count=True)
     def tab_focus(self, index: typing.Union[str, int]=None, count=None):
         """Select the tab given as argument/[count].
 
@@ -1027,7 +1054,6 @@ class CommandDispatcher:
                    Negative indices count from the end, such that -1 is the
                    last tab.
             count: The tab index to focus, starting with 1.
-                   The special value 0 focuses the rightmost tab.
         """
         if index == 'last':
             self._tab_focus_last()
@@ -1037,9 +1063,8 @@ class CommandDispatcher:
         if index is None:
             self.tab_next()
             return
-        elif index == 0:
-            index = self._count()
-        elif index < 0:
+
+        if index < 0:
             index = self._count() + index + 1
 
         if 1 <= index <= self._count():
@@ -1088,21 +1113,10 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't move tab to position {}!".format(
                 new_idx + 1))
 
-        tab = self._current_widget()
         cur_idx = self._current_index()
-        icon = self._tabbed_browser.tabIcon(cur_idx)
-        label = self._tabbed_browser.page_title(cur_idx)
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
-        self._tabbed_browser.setUpdatesEnabled(False)
-        try:
-            color = self._tabbed_browser.tab_indicator_color(cur_idx)
-            self._tabbed_browser.removeTab(cur_idx)
-            self._tabbed_browser.insertTab(new_idx, tab, icon, label)
-            self._set_current_index(new_idx)
-            self._tabbed_browser.set_tab_indicator_color(new_idx, color)
-        finally:
-            self._tabbed_browser.setUpdatesEnabled(True)
+        self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
@@ -1373,58 +1387,39 @@ class CommandDispatcher:
         # FIXME:qtwebengine do this with the QtWebEngine download manager?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
+        target = None
+        if dest is not None:
+            target = downloads.FileDownloadTarget(dest)
+
+        tab = self._current_widget()
+        user_agent = tab.user_agent()
+
         if url:
             if mhtml_:
                 raise cmdexc.CommandError("Can only download the current page"
                                           " as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            if dest is None:
-                target = None
-            else:
-                target = downloads.FileDownloadTarget(dest)
-            download_manager.get(url, target=target)
+            download_manager.get(url, user_agent=user_agent, target=target)
         elif mhtml_:
-            self._download_mhtml(dest)
-        else:
-            qnam = self._current_widget().networkaccessmanager()
-
-            if dest is None:
-                target = None
+            tab = self._current_widget()
+            if tab.backend == usertypes.Backend.QtWebEngine:
+                webengine_download_manager = objreg.get(
+                    'webengine-download-manager')
+                try:
+                    webengine_download_manager.get_mhtml(tab, target)
+                except browsertab.UnsupportedOperationError as e:
+                    raise cmdexc.CommandError(e)
             else:
-                target = downloads.FileDownloadTarget(dest)
-            download_manager.get(self._current_url(), qnam=qnam, target=target)
-
-    def _download_mhtml(self, dest=None):
-        """Download the current page as an MHTML file, including all assets.
-
-        Args:
-            dest: The file path to write the download to.
-        """
-        tab = self._current_widget()
-        if tab.backend == usertypes.Backend.QtWebEngine:
-            raise cmdexc.CommandError("Download --mhtml is not implemented "
-                                      "with QtWebEngine yet")
-
-        if dest is None:
-            suggested_fn = self._current_title() + ".mht"
-            suggested_fn = utils.sanitize_filename(suggested_fn)
-
-            filename = downloads.immediate_download_path()
-            if filename is not None:
-                mhtml.start_download_checked(filename, tab=tab)
-            else:
-                question = downloads.get_filename_question(
-                    suggested_filename=suggested_fn, url=tab.url(), parent=tab)
-                question.answered.connect(functools.partial(
-                    mhtml.start_download_checked, tab=tab))
-                message.global_bridge.ask(question, blocking=False)
+                download_manager.get_mhtml(tab, target)
         else:
-            mhtml.start_download_checked(dest, tab=tab)
+            qnam = tab.networkaccessmanager()
+            download_manager.get(self._current_url(), user_agent=user_agent,
+                                 qnam=qnam, target=target)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
-        """Show the source of the current page."""
+        """Show the source of the current page in a new tab."""
         # pylint: disable=no-member
         # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/491/
         tab = self._current_widget()
@@ -1470,6 +1465,18 @@ class CommandDispatcher:
                 message.info("Dumped page to {}.".format(dest))
 
         tab.dump_async(callback, plain=plain)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def history(self, tab=True, bg=False, window=False):
+        """Show browsing history.
+
+        Args:
+            tab: Open in a new tab.
+            bg: Open in a background tab.
+            window: Open in a new window.
+        """
+        url = QUrl('qute://history/')
+        self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')
@@ -1544,6 +1551,10 @@ class CommandDispatcher:
             return
 
         text = elem.value()
+        if text is None:
+            message.error("Could not get text from the focused element.")
+            return
+
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
@@ -1612,7 +1623,8 @@ class CommandDispatcher:
     @cmdutils.argument('filter_', choices=['id'])
     def click_element(self, filter_: str, value, *,
                       target: usertypes.ClickTarget=
-                      usertypes.ClickTarget.normal):
+                      usertypes.ClickTarget.normal,
+                      force_event=False):
         """Click the element matching the given filter.
 
         The given filter needs to result in exactly one element, otherwise, an
@@ -1623,6 +1635,7 @@ class CommandDispatcher:
                      id: Get an element based on its ID.
             value: The value to filter for.
             target: How to open the clicked element (normal/tab/tab-bg/window).
+            force_event: Force generating a fake click event.
         """
         tab = self._current_widget()
 
@@ -1632,7 +1645,7 @@ class CommandDispatcher:
                 message.error("No element found with id {}!".format(value))
                 return
             try:
-                elem.click(target)
+                elem.click(target, force_event=force_event)
             except webelem.Error as e:
                 message.error(str(e))
                 return
@@ -1972,12 +1985,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code, quiet=False, *,
+    def jseval(self, js_code, file=False, quiet=False, *,
                world: typing.Union[usertypes.JsWorld, int]=None):
         """Evaluate a JavaScript string.
 
         Args:
-            js_code: The string to evaluate.
+            js_code: The string/file to evaluate.
+            file: Interpret js-code as a path to a file.
             quiet: Don't show resulting JS object.
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
@@ -2004,6 +2018,13 @@ class CommandDispatcher:
                     if len(out) > 5000:
                         out = out[:5000] + ' [...trimmed...]'
                     message.info(out)
+
+        if file:
+            try:
+                with open(js_code, 'r', encoding='utf-8') as f:
+                    js_code = f.read()
+            except OSError as e:
+                raise cmdexc.CommandError(str(e))
 
         widget = self._current_widget()
         widget.run_js_async(js_code, callback=jseval_cb, world=world)
@@ -2038,11 +2059,6 @@ class CommandDispatcher:
                 QApplication.postEvent(window, press_event)
                 QApplication.postEvent(window, release_event)
             else:
-                try:
-                    tab = objreg.get('tab', scope='tab', tab='current')
-                except objreg.RegistryUnavailableError:
-                    raise cmdexc.CommandError("No focused webview!")
-
                 tab = self._current_widget()
                 tab.send_event(press_event)
                 tab.send_event(release_event)
@@ -2112,3 +2128,24 @@ class CommandDispatcher:
         """
         if bg or tab or window or url != old_url:
             self.openurl(url=url, bg=bg, tab=tab, window=window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def fullscreen(self, leave=False):
+        """Toggle fullscreen mode.
+
+        Args:
+            leave: Only leave fullscreen if it was entered by the page.
+        """
+        if leave:
+            tab = self._current_widget()
+            try:
+                tab.action.exit_fullscreen()
+            except browsertab.UnsupportedOperationError:
+                pass
+            return
+
+        window = self._tabbed_browser.window()
+        if window.isFullScreen():
+            window.showNormal()
+        else:
+            window.showFullScreen()

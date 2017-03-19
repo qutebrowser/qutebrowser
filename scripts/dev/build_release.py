@@ -23,6 +23,7 @@
 
 import os
 import sys
+import glob
 import os.path
 import shutil
 import subprocess
@@ -90,12 +91,44 @@ def smoke_test(executable):
                            '--temp-basedir', 'about:blank', ':later 500 quit'])
 
 
+def patch_osx_app():
+    """Patch .app to copy missing data and link some libs.
+
+    See https://github.com/pyinstaller/pyinstaller/issues/2276
+    """
+    app_path = os.path.join('dist', 'qutebrowser.app')
+    qtwe_core_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'python3.6',
+                                 'site-packages', 'PyQt5', 'Qt', 'lib',
+                                 'QtWebengineCore.framework')
+    # Copy QtWebEngineProcess.app
+    proc_app = 'QtWebEngineProcess.app'
+    shutil.copytree(os.path.join(qtwe_core_dir, 'Helpers', proc_app),
+                    os.path.join(app_path, 'Contents', 'MacOS', proc_app))
+    # Copy resources
+    for f in glob.glob(os.path.join(qtwe_core_dir, 'Resources', '*')):
+        dest = os.path.join(app_path, 'Contents', 'Resources')
+        if os.path.isdir(f):
+            shutil.copytree(f, os.path.join(dest, f))
+        else:
+            shutil.copy(f, dest)
+    # Link dependencies
+    for lib in ['QtCore', 'QtWebEngineCore', 'QtQuick', 'QtQml', 'QtNetwork',
+                'QtGui', 'QtWebChannel', 'QtPositioning']:
+        dest = os.path.join(app_path, lib + '.framework', 'Versions', '5')
+        os.makedirs(dest)
+        os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
+                                'MacOS', lib),
+                   os.path.join(dest, lib))
+
+
 def build_osx():
     """Build OS X .dmg/.app."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.update_pdfjs()
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r')
+    utils.print_title("Patching .app")
+    patch_osx_app()
     utils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
     utils.print_title("Cleaning up...")

@@ -20,7 +20,8 @@
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, utils, debug, objreg
+from qutebrowser.utils import log, utils, debug, usertypes
+from qutebrowser.misc import objects
 
 UNSET = object()
 
@@ -259,19 +260,19 @@ def update_mappings(mappings, section, option):
     mapping.set(value)
 
 
-def init():
+def init(args):
     """Initialize all QWeb(Engine)Settings."""
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
-        webenginesettings.init()
+        webenginesettings.init(args)
     else:
         from qutebrowser.browser.webkit import webkitsettings
-        webkitsettings.init()
+        webkitsettings.init(args)
 
 
 def shutdown():
     """Shut down QWeb(Engine)Settings."""
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.shutdown()
     else:

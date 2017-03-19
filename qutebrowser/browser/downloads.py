@@ -20,7 +20,6 @@
 """Shared QtWebKit/QtWebEngine code for downloads."""
 
 import sys
-import shlex
 import html
 import os.path
 import collections
@@ -28,15 +27,13 @@ import functools
 import tempfile
 
 import sip
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QUrl, QModelIndex,
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel)
-from PyQt5.QtGui import QDesktopServices
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils)
-from qutebrowser.misc import guiprocess
 
 
 ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
@@ -128,7 +125,7 @@ def create_full_filename(basename, filename):
         The full absolute path, or None if filename creation was not possible.
     """
     # Remove chars which can't be encoded in the filename encoding.
-    # See https://github.com/The-Compiler/qutebrowser/issues/427
+    # See https://github.com/qutebrowser/qutebrowser/issues/427
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
     basename = utils.force_encoding(basename, encoding)
@@ -158,7 +155,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
         html.escape(url.toDisplayString()))
-    q.mode = usertypes.PromptMode.text
+    q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)
     return q
@@ -197,6 +194,9 @@ class FileDownloadTarget(_DownloadTarget):
     def suggested_filename(self):
         return os.path.basename(self.filename)
 
+    def __str__(self):
+        return self.filename
+
 
 class FileObjDownloadTarget(_DownloadTarget):
 
@@ -216,6 +216,12 @@ class FileObjDownloadTarget(_DownloadTarget):
         except AttributeError:
             raise NoFilenameError
 
+    def __str__(self):
+        try:
+            return 'file object at {}'.format(self.fileobj.name)
+        except AttributeError:
+            return 'anonymous file object'
+
 
 class OpenFileDownloadTarget(_DownloadTarget):
 
@@ -233,6 +239,9 @@ class OpenFileDownloadTarget(_DownloadTarget):
 
     def suggested_filename(self):
         raise NoFilenameError
+
+    def __str__(self):
+        return 'temporary file'
 
 
 class DownloadItemStats(QObject):
@@ -512,30 +521,19 @@ class AbstractDownloadItem(QObject):
         Args:
             cmdline: The command to use as string. A `{}` is expanded to the
                      filename. None means to use the system's default
-                     application. If no `{}` is found, the filename is appended
-                     to the cmdline.
+                     application or `default-open-dispatcher` if set. If no
+                     `{}` is found, the filename is appended to the cmdline.
         """
         assert self.successful
         filename = self._get_open_filename()
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-
-        if cmdline is None:
-            log.downloads.debug("Opening {} with the system application"
-                                .format(filename))
-            url = QUrl.fromLocalFile(filename)
-            QDesktopServices.openUrl(url)
-            return
-
-        cmd, *args = shlex.split(cmdline)
-        args = [arg.replace('{}', filename) for arg in args]
-        if '{}' not in cmdline:
-            args.append(filename)
-        log.downloads.debug("Opening {} with {}"
-                            .format(filename, [cmd] + args))
-        proc = guiprocess.GUIProcess(what='download')
-        proc.start_detached(cmd, args)
+        # By using a singleshot timer, we ensure that we return fast. This
+        # is important on systems where process creation takes long, as
+        # otherwise the prompt might hang around and cause bugs
+        # (see issue #2296)
+        QTimer.singleShot(0, lambda: utils.open_file(filename, cmdline))
 
     def _ensure_can_set_filename(self, filename):
         """Make sure we can still set a filename."""
@@ -564,13 +562,16 @@ class AbstractDownloadItem(QObject):
         """Set a temporary file when opening the download."""
         raise NotImplementedError
 
-    def _set_filename(self, filename, *, force_overwrite=False):
+    def _set_filename(self, filename, *, force_overwrite=False,
+                      remember_directory=True):
         """Set the filename to save the download to.
 
         Args:
             filename: The full filename to save the download to.
                       None: special value to stop the download.
             force_overwrite: Force overwriting existing files.
+            remember_directory: If True, remember the directory for future
+                                downloads.
         """
         global last_used_directory
         filename = os.path.expanduser(filename)
@@ -600,7 +601,8 @@ class AbstractDownloadItem(QObject):
                                                   os.path.expanduser('~'))
 
         self.basename = os.path.basename(self._filename)
-        last_used_directory = os.path.dirname(self._filename)
+        if remember_directory:
+            last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(filename))
         if force_overwrite:
@@ -743,7 +745,7 @@ class AbstractDownloadManager(QObject):
     def _remove_item(self, download):
         """Remove a given download."""
         if sip.isdeleted(self):
-            # https://github.com/The-Compiler/qutebrowser/issues/1242
+            # https://github.com/qutebrowser/qutebrowser/issues/1242
             return
         try:
             idx = self.downloads.index(download)
@@ -767,7 +769,6 @@ class AbstractDownloadManager(QObject):
 
     def _init_filename_question(self, question, download):
         """Set up an existing filename question with a download."""
-        question.mode = usertypes.PromptMode.download
         question.answered.connect(download.set_target)
         question.cancelled.connect(download.cancel)
         download.cancelled.connect(question.abort)

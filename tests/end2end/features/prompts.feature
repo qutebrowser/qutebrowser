@@ -213,14 +213,14 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
-    @ci @not_osx
+    @ci @not_osx @qt!=5.8
     Scenario: Always accepting geolocation
         When I set content -> geolocation to true
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should not be logged
 
-    @ci @not_osx
+    @ci @not_osx @qt!=5.8
     Scenario: geolocation with ask -> true
         When I set content -> geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -353,6 +353,13 @@ Feature: Prompts
               "user": "user4"
             }
 
+    @qtwebengine_skip
+    Scenario: Cancellling webpage authentification with QtWebKit
+        When I open basic-auth/user6/password6 without waiting
+        And I wait for a prompt
+        And I run :leave-mode
+        Then basic-auth/user6/password6 should be loaded
+
     # :prompt-accept with value argument
 
     Scenario: Javascript alert with value
@@ -444,7 +451,7 @@ Feature: Prompts
         And I run :prompt-accept prompt-in-command-mode
         Then "Added quickmark prompt-in-command-mode for *" should be logged
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1093
+    # https://github.com/qutebrowser/qutebrowser/issues/1093
     @qtwebengine_skip: QtWebEngine doesn't open the second page/prompt
     Scenario: Keyboard focus with multiple auth prompts
         When I open basic-auth/user5/password5 without waiting
@@ -470,8 +477,8 @@ Feature: Prompts
               "user": "user6"
             }
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1249#issuecomment-175205531
-    # https://github.com/The-Compiler/qutebrowser/pull/2054#issuecomment-258285544
+    # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
+    # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Interrupting SSL prompt during a notification prompt
         When I set content -> notifications to ask

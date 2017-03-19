@@ -55,16 +55,14 @@ PERFECT_FILES = [
         'qutebrowser/browser/history.py'),
     ('tests/unit/browser/webkit/test_history.py',
         'qutebrowser/browser/webkit/webkithistory.py'),
-    ('tests/unit/browser/webkit/test_tabhistory.py',
-        'qutebrowser/browser/webkit/tabhistory.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
         'qutebrowser/browser/webkit/http.py'),
     ('tests/unit/browser/webkit/http/test_content_disposition.py',
         'qutebrowser/browser/webkit/rfc6266.py'),
-    ('tests/unit/browser/webkit/test_webkitelem.py',
-        'qutebrowser/browser/webkit/webkitelem.py'),
-    ('tests/unit/browser/webkit/test_webkitelem.py',
-        'qutebrowser/browser/webelem.py'),
+    # ('tests/unit/browser/webkit/test_webkitelem.py',
+    #     'qutebrowser/browser/webkit/webkitelem.py'),
+    # ('tests/unit/browser/webkit/test_webkitelem.py',
+    #     'qutebrowser/browser/webelem.py'),
     ('tests/unit/browser/webkit/network/test_schemehandler.py',
         'qutebrowser/browser/webkit/network/schemehandler.py'),
     ('tests/unit/browser/webkit/network/test_filescheme.py',
@@ -104,6 +102,8 @@ PERFECT_FILES = [
         'qutebrowser/misc/keyhintwidget.py'),
     ('tests/unit/misc/test_pastebin.py',
         'qutebrowser/misc/pastebin.py'),
+    (None,
+        'qutebrowser/misc/objects.py'),
 
     (None,
         'qutebrowser/mainwindow/statusbar/keystring.py'),
@@ -166,6 +166,7 @@ PERFECT_FILES = [
 WHITELISTED_FILES = [
     'qutebrowser/browser/webkit/webkitinspector.py',
     'qutebrowser/keyinput/macros.py',
+    'qutebrowser/browser/webkit/webkitelem.py',
 ]
 
 
@@ -267,7 +268,7 @@ def main_check():
         print()
         print("To debug this, run 'tox -e py35-cov' (or py34-cov) locally and "
               "check htmlcov/index.html")
-        print("or check https://codecov.io/github/The-Compiler/qutebrowser")
+        print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 
     if 'CI' in os.environ:

@@ -46,12 +46,13 @@ def _log_stack(typ, stack):
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
-def error(message, *, stack=None):
+def error(message, *, stack=None, replace=False):
     """Convenience function to display an error message in the statusbar.
 
     Args:
         message: The message to show
         stack: The stack trace to show.
+        replace: Replace existing messages with replace=True
     """
     if stack is None:
         stack = traceback.format_stack()
@@ -60,20 +61,30 @@ def error(message, *, stack=None):
         typ = 'error (from exception)'
     _log_stack(typ, stack)
     log.message.error(message)
-    global_bridge.show_message.emit(usertypes.MessageLevel.error, message)
+    global_bridge.show(usertypes.MessageLevel.error, message, replace)
 
 
-def warning(message):
-    """Convenience function to display a warning message in the statusbar."""
+def warning(message, *, replace=False):
+    """Convenience function to display a warning message in the statusbar.
+
+    Args:
+        message: The message to show
+        replace: Replace existing messages with replace=True
+    """
     _log_stack('warning', traceback.format_stack())
     log.message.warning(message)
-    global_bridge.show_message.emit(usertypes.MessageLevel.warning, message)
+    global_bridge.show(usertypes.MessageLevel.warning, message, replace)
 
 
-def info(message):
-    """Convenience function to display an info message in the statusbar."""
+def info(message, *, replace=False):
+    """Convenience function to display an info message in the statusbar.
+
+    Args:
+        message: The message to show
+        replace: Replace existing messages with replace=True
+    """
     log.message.info(message)
-    global_bridge.show_message.emit(usertypes.MessageLevel.info, message)
+    global_bridge.show(usertypes.MessageLevel.info, message, replace)
 
 
 def _build_question(title, text=None, *, mode, default=None, abort_on=()):
@@ -159,10 +170,16 @@ class GlobalMessageBridge(QObject):
 
     """Global (not per-window) message bridge for errors/infos/warnings.
 
+    Attributes:
+        _connected: Whether a slot is connected and we can show messages.
+        _cache: Messages shown while we were not connected.
+
     Signals:
         show_message: Show a message
                       arg 0: A MessageLevel member
                       arg 1: The text to show
+                      arg 2: Whether to replace other messages with
+                             replace=True.
         prompt_done: Emitted when a prompt was answered somewhere.
         ask_question: Ask a question to the user.
                       arg 0: The Question object to ask.
@@ -173,10 +190,16 @@ class GlobalMessageBridge(QObject):
         mode_left: Emitted when a keymode was left in any window.
     """
 
-    show_message = pyqtSignal(usertypes.MessageLevel, str)
+    show_message = pyqtSignal(usertypes.MessageLevel, str, bool)
     prompt_done = pyqtSignal(usertypes.KeyMode)
     ask_question = pyqtSignal(usertypes.Question, bool)
     mode_left = pyqtSignal(usertypes.KeyMode)
+    clear_messages = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._connected = False
+        self._cache = []
 
     def ask(self, question, blocking, *, log_stack=False):
         """Ask a question to the user.
@@ -191,6 +214,23 @@ class GlobalMessageBridge(QObject):
             log_stack: ignored
         """
         self.ask_question.emit(question, blocking)
+
+    def show(self, level, text, replace=False):
+        if self._connected:
+            self.show_message.emit(level, text, replace)
+        else:
+            self._cache.append((level, text, replace))
+
+    def flush(self):
+        """Flush messages which accumulated while no handler was connected.
+
+        This is so we don't miss messages shown during some early init phase.
+        It needs to be called once the show_message signal is connected.
+        """
+        self._connected = True
+        for args in self._cache:
+            self.show(*args)
+        self._cache = []
 
 
 class MessageBridge(QObject):
