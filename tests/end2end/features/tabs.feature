@@ -1074,7 +1074,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I run :tab-pin
         And I run :tab-close
-        And I wait for "*want to close a pinned tab*" in the log
+        And I wait for a prompt
         And I run :prompt-accept yes
         Then the following tabs should be open:
             - data/numbers/1.txt (active)
