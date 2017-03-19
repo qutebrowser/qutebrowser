@@ -226,9 +226,6 @@ class CommandDispatcher:
         selection_override = self._get_selection_override(prev, next_,
                                                           opposite)
 
-        if tab.data.pinned:
-            tabbar.pinned -= 1
-
         if selection_override is None:
             self._tabbed_browser.close_tab(tab)
         else:
@@ -236,6 +233,9 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(selection_override)
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
+
+        if tab.data.pinned:
+            tabbar.pinned_count -= 1
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
