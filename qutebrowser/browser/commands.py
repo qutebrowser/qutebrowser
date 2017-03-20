@@ -1650,21 +1650,22 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.search.clear()
 
+        if not text:
+            return
+
         options = {
             'ignore_case': config.get('general', 'ignore-case'),
             'reverse': reverse,
         }
+
         self._tabbed_browser.search_text = text
         self._tabbed_browser.search_options = dict(options)
 
-        if text:
-            cb = functools.partial(self._search_cb, tab=tab,
-                                   old_scroll_pos=tab.scroller.pos_px(),
-                                   options=options, text=text, prev=False)
-        else:
-            cb = None
-
+        cb = functools.partial(self._search_cb, tab=tab,
+                                old_scroll_pos=tab.scroller.pos_px(),
+                                options=options, text=text, prev=False)
         options['result_cb'] = cb
+
         tab.search.search(text, **options)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,

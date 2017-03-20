@@ -110,6 +110,15 @@ Feature: Searching on a page
         And I run :yank selection
         Then the clipboard should contain "foo"
 
+    # https://github.com/qutebrowser/qutebrowser/issues/2438
+    Scenario: Jumping to next match after clearing
+        When I set general -> ignore-case to true
+        And I run :search foo
+        And I run :search
+        And I run :search-next
+        And I run :yank selection
+        Then the clipboard should contain "foo"
+
     ## :search-prev
 
     Scenario: Jumping to previous match

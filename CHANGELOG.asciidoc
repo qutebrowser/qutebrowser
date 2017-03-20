@@ -36,6 +36,7 @@ Fixed
   (requires PyOpenGL to be installed)
 - Fixed crash when trying to retry downloads with QtWebEngine
 - Fixed crash when cloning page without history
+- Fixed continuing a search after clearing it
 
 v0.10.1
 -------
