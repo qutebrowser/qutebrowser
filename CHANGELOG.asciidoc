@@ -35,6 +35,7 @@ Fixed
 - Added a workaround for a black screen with QtWebEngine with some setups
   (requires PyOpenGL to be installed)
 - Fixed crash when trying to retry downloads with QtWebEngine
+- Fixed crash when cloning page without history
 
 v0.10.1
 -------
