@@ -36,6 +36,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
+|<<ui-history-session-interval,history-session-interval>>|The maximum time in minutes between two history items for them to be considered being from the same session. Use -1 to disable separation.
 |<<ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
 |<<ui-default-zoom,default-zoom>>|The default zoom level.
 |<<ui-downloads-position,downloads-position>>|Where to show the downloaded files.
@@ -535,6 +536,12 @@ Default: +pass:[path,query]+
 
 == ui
 General options related to the user interface.
+
+[[ui-history-session-interval]]
+=== history-session-interval
+The maximum time in minutes between two history items for them to be considered being from the same session. Use -1 to disable separation.
+
+Default: +pass:[30]+
 
 [[ui-zoom-levels]]
 === zoom-levels

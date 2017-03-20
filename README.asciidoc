@@ -155,6 +155,7 @@ Contributors, sorted by the number of commits in descending order:
 * Alexander Cogneau
 * Felix Van der Jeugt
 * Daniel Karbach
+* Imran Sobir
 * Martin Tournoij
 * Kevin Velghe
 * Raphael Pierzina
@@ -165,7 +166,6 @@ Contributors, sorted by the number of commits in descending order:
 * Corentin Julé
 * meles5
 * Philipp Hansch
-* Imran Sobir
 * Panagiotis Ktistakis
 * Artur Shaik
 * Nathan Isom
