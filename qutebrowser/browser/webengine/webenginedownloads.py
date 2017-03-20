@@ -78,17 +78,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
-            self.done = True
             # https://bugreports.qt.io/browse/QTBUG-56839
-            self.error.emit("Download failed")
-            self.stats.finish()
+            self._die("Download failed")
         else:
             raise ValueError("_on_state_changed was called with unknown state "
                              "{}".format(state_name))
 
     def _do_die(self):
         self._qt_item.downloadProgress.disconnect()
-        self._qt_item.cancel()
+        if self._qt_item.state() != QWebEngineDownloadItem.DownloadInterrupted:
+            self._qt_item.cancel()
 
     def _do_cancel(self):
         self._qt_item.cancel()
