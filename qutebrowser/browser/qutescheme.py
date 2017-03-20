@@ -24,14 +24,16 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import json
+import os
 import sys
 import time
-import datetime
 import urllib.parse
 
 from PyQt5.QtCore import QUrlQuery
 
 import qutebrowser
+from qutebrowser.config import config
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg)
 from qutebrowser.misc import objects
@@ -165,83 +167,102 @@ def qute_bookmarks(_url):
 
 @add_handler('history')  # noqa
 def qute_history(url):
-    """Handler for qute:history. Display history."""
-    # Get current date from query parameter, if not given choose today.
-    curr_date = datetime.date.today()
-    try:
-        query_date = QUrlQuery(url).queryItemValue("date")
-        if query_date:
-            curr_date = datetime.datetime.strptime(query_date, "%Y-%m-%d")
-            curr_date = curr_date.date()
-    except ValueError:
-        log.misc.debug("Invalid date passed to qute:history: " + query_date)
+    """Handler for qute:history. Display and serve history."""
+    def history_iter(start_time, reverse=False):
+        """Iterate through the history and get items we're interested.
 
-    one_day = datetime.timedelta(days=1)
-    next_date = curr_date + one_day
-    prev_date = curr_date - one_day
-
-    def history_iter(reverse):
-        """Iterate through the history and get items we're interested in."""
-        curr_timestamp = time.mktime(curr_date.timetuple())
+        Arguments:
+            reverse -- whether to reverse the history_dict before iterating.
+            start_time -- select history starting from this timestamp.
+        """
         history = objreg.get('web-history').history_dict.values()
         if reverse:
             history = reversed(history)
 
+        end_time = start_time - 24*60*60  # end is 24hrs earlier than start
+
+        # when history_dict is not reversed, we need to keep track of last item
+        # so that we can yield its atime
+        last_item = None
+
         for item in history:
-            # If we can't apply the reverse performance trick below,
-            # at least continue as early as possible with old items.
-            # This gets us down from 550ms to 123ms with 500k old items on my
-            # machine.
-            if item.atime < curr_timestamp and not reverse:
-                continue
-
-            # Convert timestamp
-            try:
-                item_atime = datetime.datetime.fromtimestamp(item.atime)
-            except (ValueError, OSError, OverflowError):
-                log.misc.debug("Invalid timestamp {}.".format(item.atime))
-                continue
-
-            if reverse and item_atime.date() < curr_date:
-                # If we could reverse the history in-place, and this entry is
-                # older than today, only older entries will follow, so we can
-                # abort here.
-                return
-
-            # Skip items not on curr_date
             # Skip redirects
             # Skip qute:// links
-            is_internal = item.url.scheme() == 'qute'
-            is_not_today = item_atime.date() != curr_date
-            if item.redirect or is_internal or is_not_today:
+            if item.redirect or item.url.scheme() == 'qute':
                 continue
+
+            # Skip items out of time window
+            item_newer = item.atime > start_time
+            item_older = item.atime <= end_time
+            if reverse:
+                # history_dict is reversed, we are going back in history.
+                # so:
+                #     abort if item is older than start_time+24hr
+                #     skip if item is newer than start
+                if item_older:
+                    yield {"next": int(item.atime)}
+                    return
+                if item_newer:
+                    continue
+            else:
+                # history_dict isn't reversed, we are going forward in history.
+                # so:
+                #     abort if item is newer than start_time
+                #     skip if item is older than start_time+24hrs
+                if item_older:
+                    last_item = item
+                    continue
+                if item_newer:
+                    yield {"next": int(last_item.atime if last_item else -1)}
+                    return
 
             # Use item's url as title if there's no title.
             item_url = item.url.toDisplayString()
             item_title = item.title if item.title else item_url
-            display_atime = item_atime.strftime("%X")
+            item_time = int(item.atime * 1000)
 
-            yield (item_url, item_title, display_atime)
+            yield {"url": item_url, "title": item_title, "time": item_time}
 
-    if sys.hexversion >= 0x03050000:
-        # On Python >= 3.5 we can reverse the ordereddict in-place and thus
-        # apply an additional performance improvement in history_iter.
-        # On my machine, this gets us down from 550ms to 72us with 500k old
-        # items.
-        history = list(history_iter(reverse=True))
+        # if we reached here, we had reached the end of history
+        yield {"next": int(last_item.atime if last_item else -1)}
+
+    if url.path() == '/data':
+        # Use start_time in query or current time.
+        try:
+            start_time = QUrlQuery(url).queryItemValue("start_time")
+            start_time = float(start_time) if start_time else time.time()
+        except ValueError as e:
+            raise QuteSchemeError("Query parameter start_time is invalid", e)
+
+        if sys.hexversion >= 0x03050000:
+            # On Python >= 3.5 we can reverse the ordereddict in-place and thus
+            # apply an additional performance improvement in history_iter.
+            # On my machine, this gets us down from 550ms to 72us with 500k old
+            # items.
+            history = history_iter(start_time, reverse=True)
+        else:
+            # On Python 3.4, we can't do that, so we'd need to copy the entire
+            # history to a list. There, filter first and then reverse it here.
+            history = reversed(list(history_iter(start_time, reverse=False)))
+
+        return 'text/html', json.dumps(list(history))
     else:
-        # On Python 3.4, we can't do that, so we'd need to copy the entire
-        # history to a list. There, filter first and then reverse it here.
-        history = reversed(list(history_iter(reverse=False)))
+        return 'text/html', jinja.render('history.html', title='History',
+                session_interval=config.get('ui', 'history-session-interval'))
 
-    html = jinja.render('history.html',
-                        title='History',
-                        history=history,
-                        curr_date=curr_date,
-                        next_date=next_date,
-                        prev_date=prev_date,
-                        today=datetime.date.today())
-    return 'text/html', html
+
+@add_handler('javascript')
+def qute_javascript(url):
+    """Handler for qute:javascript.
+
+    Return content of file given as query parameter.
+    """
+    path = url.path()
+    if path:
+        path = "javascript" + os.sep.join(path.split('/'))
+        return 'text/html', utils.read_file(path, binary=False)
+    else:
+        raise QuteSchemeError("No file specified", ValueError())
 
 
 @add_handler('pyeval')
