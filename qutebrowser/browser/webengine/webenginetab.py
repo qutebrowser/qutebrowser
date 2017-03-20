@@ -369,6 +369,9 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.canGoForward()
 
     def serialize(self):
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-59599
+        if self._history.count() == 0:
+            raise browsertab.WebTabError("Can't serialize page without history!")
         # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/2289
         # FIXME:qtwebengine can we get rid of this with Qt 5.8.1?
         scheme = self._history.currentItem().url().scheme()
