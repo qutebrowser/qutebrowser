@@ -507,6 +507,14 @@ class AbstractDownloadItem(QObject):
         """Retry a failed download."""
         raise NotImplementedError
 
+    @pyqtSlot()
+    def try_retry(self):
+        """Try to retry a download and show an error if it's unsupported."""
+        try:
+            self.retry()
+        except UnsupportedOperationError as e:
+            message.error(str(e))
+
     def _get_open_filename(self):
         """Get the filename to open a download.
 
@@ -968,7 +976,7 @@ class DownloadModel(QAbstractListModel):
                 raise cmdexc.CommandError("No failed downloads!")
             else:
                 download = to_retry[0]
-        download.retry()
+        download.try_retry()
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""

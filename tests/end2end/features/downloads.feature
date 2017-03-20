@@ -137,6 +137,14 @@ Feature: Downloading things from a website.
             does-not-exist
             does-not-exist
 
+    @qtwebkit_skip
+    Scenario: Retrying a failed download with QtWebEngine
+        When I open data/downloads/issue2298.html
+        And I run :click-element id download
+        And I wait for "Download error: *" in the log
+        And I run :download-retry
+        Then the error "Retrying downloads is unsupported with QtWebEngine" should be shown
+
     Scenario: Retrying with count
         When I run :download http://localhost:(port)/data/downloads/download.bin
         And I run :download http://localhost:(port)/does-not-exist
