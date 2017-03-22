@@ -122,6 +122,17 @@ def redirect_self():
     return app.make_response(flask.redirect(flask.url_for('redirect_self')))
 
 
+@app.route('/custom/500-inline')
+def internal_error_attachment():
+    """A 500 error with Content-Disposition: inline."""
+    response = flask.Response(b"", headers={
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": 'inline; filename="attachment.jpg"',
+    })
+    response.status_code = 500
+    return response
+
+
 @app.after_request
 def log_request(response):
     """Log a webserver request."""

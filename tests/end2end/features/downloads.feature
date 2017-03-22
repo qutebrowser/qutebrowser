@@ -611,3 +611,9 @@ Feature: Downloading things from a website.
         And I run :follow-hint 0
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
+
+    @qtwebengine_skip: Handled by QtWebEngine, not by us
+    Scenario: Downloading a "Internal server error" with disposition: inline (#2304)
+        When I set storage -> prompt-download-directory to false
+        And I open custom/500-inline
+        Then the error "Download error: *INTERNAL SERVER ERROR" should be shown
