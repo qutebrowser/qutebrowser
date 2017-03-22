@@ -19,8 +19,6 @@
 
 """Tests for CompletionModel."""
 
-import sys
-import pytest
 import hypothesis
 from unittest import mock
 from hypothesis import strategies

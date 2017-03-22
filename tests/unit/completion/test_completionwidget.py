@@ -22,7 +22,7 @@
 from unittest import mock
 
 import pytest
-from PyQt5.QtGui import QStandardItem, QColor
+from PyQt5.QtGui import QColor
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
@@ -74,10 +74,10 @@ def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
     model = completionmodel.CompletionModel()
     for i in range(3):
-        cat = listcategory.ListCategory('', [('foo',)])
+        model.add_category(listcategory.ListCategory('', [('foo',)]))
     completionview.set_model(model)
     assert completionview.model() is model
-    for i in range(model.rowCount()):
+    for i in range(3):
         assert completionview.isExpanded(model.index(i, 0))
 
 

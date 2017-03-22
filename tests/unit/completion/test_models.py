@@ -30,7 +30,6 @@ from qutebrowser.browser import history
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
 from qutebrowser.misc import sql
-from qutebrowser.utils import objreg
 
 
 def _check_completions(model, expected):

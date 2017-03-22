@@ -25,7 +25,7 @@ Module attributes:
 
 import re
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex
+from PyQt5.QtCore import QSortFilterProxyModel
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from qutebrowser.utils import qtutils, debug, log
@@ -41,6 +41,7 @@ class ListCategory(QSortFilterProxyModel):
         self.srcmodel = QStandardItemModel(parent=self)
         self.pattern = ''
         self.pattern_re = None
+        self.columns_to_filter = None
         for item in items:
             self.srcmodel.appendRow([QStandardItem(x) for x in item])
         self.setSourceModel(self.srcmodel)
