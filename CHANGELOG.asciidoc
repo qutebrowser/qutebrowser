@@ -37,6 +37,7 @@ Fixed
 - Fixed crash when trying to retry downloads with QtWebEngine
 - Fixed crash when cloning page without history
 - Fixed continuing a search after clearing it
+- Crash when downloading a download resulting in a HTTP error
 
 v0.10.1
 -------
