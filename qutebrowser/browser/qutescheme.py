@@ -212,7 +212,7 @@ def history_data(start_time):  # noqa
         for item in history:
             # Skip redirects
             # Skip qute:// links
-            if item.redirect or item.url.scheme() == 'qute':
+            if item.redirect or item.url.startswith('qute://'):
                 continue
 
             # Skip items out of time window
@@ -241,11 +241,10 @@ def history_data(start_time):  # noqa
                     return
 
             # Use item's url as title if there's no title.
-            item_url = item.url.toDisplayString()
-            item_title = item.title if item.title else item_url
+            item_title = item.title if item.title else item.url
             item_time = int(item.atime * 1000)
 
-            yield {"url": item_url, "title": item_title, "time": item_time}
+            yield {"url": item.url, "title": item_title, "time": item_time}
 
         # if we reached here, we had reached the end of history
         yield {"next": int(last_item.atime if last_item else -1)}
