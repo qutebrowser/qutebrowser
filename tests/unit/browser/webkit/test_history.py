@@ -325,12 +325,12 @@ def test_history_interface(qtbot, webview, hist_interface):
 
 @pytest.fixture
 def cleanup_init():
-    yield
     # prevent test_init from leaking state
-    hist = objreg.get('web-history')
-    hist.setParent(None)
-    objreg.delete('web-history')
+    yield
     try:
+        hist = objreg.get('web-history')
+        hist.setParent(None)
+        objreg.delete('web-history')
         from PyQt5.QtWebKit import QWebHistoryInterface
         QWebHistoryInterface.setDefaultInterface(None)
     except:
