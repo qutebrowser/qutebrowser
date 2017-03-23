@@ -583,6 +583,8 @@ class AbstractDownloadItem(QObject):
         """
         global last_used_directory
         filename = os.path.expanduser(filename)
+        if sys.platform == "win32":
+            filename = utils.expand_windows_drive(filename)
         self._ensure_can_set_filename(filename)
 
         self._filename = create_full_filename(self.basename, filename)
