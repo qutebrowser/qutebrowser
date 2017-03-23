@@ -167,6 +167,7 @@ def web_history(stubs, init_sql):
                   datetime(2016, 3, 8).timestamp(), False])
     table.insert(['https://github.com', 'https://github.com',
                   datetime(2016, 5, 1).timestamp(), False])
+    return table
 
 
 def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
@@ -235,7 +236,6 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
     })
 
 
-@pytest.mark.skip
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
     model = miscmodels.quickmark()
@@ -244,14 +244,13 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
 
     _check_completions(model, {
         "Quickmarks": [
-            ('aw', 'https://wiki.archlinux.org', ''),
-            ('ddg', 'https://duckduckgo.com', ''),
-            ('wiki', 'https://wikipedia.org', ''),
+            ('aw', 'https://wiki.archlinux.org', None),
+            ('ddg', 'https://duckduckgo.com', None),
+            ('wiki', 'https://wikipedia.org', None),
         ]
     })
 
 
-@pytest.mark.skip
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = miscmodels.bookmark()
@@ -260,9 +259,9 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', ''),
-            ('https://python.org', 'Welcome to Python.org', ''),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+            ('https://github.com', 'GitHub', None),
+            ('https://python.org', 'Welcome to Python.org', None),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ]
     })
 
@@ -332,6 +331,21 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     assert 'aw' in quickmarks.marks
     assert 'ddg' not in quickmarks.marks
     assert 'wiki' in quickmarks.marks
+
+
+def test_url_completion_delete_history(qtmodeltester, config_stub,
+                                       web_history, quickmarks, bookmarks,
+                                       qtbot):
+    """Test that deleting a history entry is a noop."""
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
+    model = urlmodel.url()
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    hist_before = list(web_history)
+    view = _mock_view_index(model, 2, 0, qtbot)
+    model.delete_cur_item(view)
+    assert list(web_history) == hist_before
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):
