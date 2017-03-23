@@ -2,6 +2,7 @@
 -e git+https://github.com/PyCQA/pylint.git#egg=pylint
 ./scripts/dev/pylint_checkers
 requests
+github3.py
 
 # remove @commit-id for scm installs
 #@ replace: @.*# #
