@@ -44,8 +44,8 @@ def expected_text(*args):
 
 
 @pytest.fixture
-def keyhint(qtbot, config_stub, key_config_stub):
-    """Fixture to initialize a KeyHintView."""
+def keyhint_config(config_stub):
+    """Fixture providing the necessary config settings for the KeyHintView."""
     config_stub.data = {
         'colors': {
             'keyhint.fg': 'white',
@@ -55,9 +55,16 @@ def keyhint(qtbot, config_stub, key_config_stub):
         'fonts': {'keyhint': 'Comic Sans'},
         'ui': {
             'keyhint-blacklist': '',
+            'keyhint-delay': 500,
             'status-position': 'bottom',
         },
     }
+    return config_stub
+
+
+@pytest.fixture
+def keyhint(qtbot, keyhint_config, key_config_stub):
+    """Fixture to initialize a KeyHintView."""
     keyhint = KeyHintView(0, None)
     qtbot.add_widget(keyhint)
     assert keyhint.text() == ''
@@ -161,3 +168,16 @@ def test_blacklist_all(keyhint, config_stub, key_config_stub):
 
     keyhint.update_keyhint('normal', 'a')
     assert not keyhint.text()
+
+
+def test_delay(qtbot, stubs, monkeypatch, keyhint_config, key_config_stub):
+    timer = stubs.FakeTimer()
+    monkeypatch.setattr(
+        'qutebrowser.misc.keyhintwidget.usertypes.Timer',
+        lambda *_: timer)
+    interval = 200
+    keyhint_config.set('ui', 'keyhint-delay', interval)
+    key_config_stub.set_bindings_for('normal', OrderedDict([('aa', 'cmd-aa')]))
+    keyhint = KeyHintView(0, None)
+    keyhint.update_keyhint('normal', 'a')
+    assert timer.interval() == interval

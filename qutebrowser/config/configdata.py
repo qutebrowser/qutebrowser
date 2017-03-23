@@ -406,6 +406,10 @@ def data(readonly=False):
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
 
+            ('keyhint-delay',
+             SettingValue(typ.Int(minval=0), '500'),
+             "Time from pressing a key to seeing the keyhint dialog (ms)"),
+
             ('prompt-radius',
              SettingValue(typ.Int(minval=0), '8'),
              "The rounding radius for the edges of prompts."),
