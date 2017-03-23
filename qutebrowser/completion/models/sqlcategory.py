@@ -49,6 +49,12 @@ class SqlCategory(QSqlQueryModel):
         self.set_pattern('', [0])
 
     def set_pattern(self, pattern, columns_to_filter):
+        """Set the pattern used to filter results.
+
+        Args:
+            pattern: string pattern to filter by.
+            columns_to_filter: indices of columns to apply pattern to.
+        """
         query = sql.run_query('select * from {} limit 1'.format(self.name))
         fields = [query.record().fieldName(i) for i in columns_to_filter]
 
