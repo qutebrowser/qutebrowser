@@ -126,6 +126,20 @@ Feature: Downloading things from a website.
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
+    @windows
+    Scenario: Downloading a file to a reserved path
+        When I open data/downloads/download.bin
+        And I run :prompt-accept COM1
+        And I run :prompt-cancel
+        Then "Invalid filename" should be logged
+
+    @windows
+    Scenario: Downloading a file to a drive-relative working directory
+        When I open data/downloads/download.bin
+        And I run :prompt-accept C:foobar
+        And I run :prompt-cancel
+        Then "Invalid filename" should be logged
+
     ## :download-retry
 
     Scenario: Retrying a failed download

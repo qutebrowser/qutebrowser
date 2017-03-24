@@ -665,6 +665,7 @@ class FilenamePrompt(_BasePrompt):
         return path
 
     def _show_error(self, msg):
+        log.prompt.error(msg)
         QToolTip.showText(self._lineedit.mapToGlobal(QPoint(0, 0)), msg)
 
     def accept(self, value=None):
