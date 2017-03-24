@@ -23,6 +23,7 @@ import re
 import sys
 import os.path
 import html
+import pathlib
 import collections
 
 import sip
@@ -656,6 +657,10 @@ class FilenamePrompt(_BasePrompt):
         # Drive dependent working directories are not supported, e.g.
         # E:filename is invalid
         if re.match(r'[A-Z]:[^\\]', path, re.IGNORECASE):
+            return None
+        # Paths like COM1, ...
+        # See https://github.com/qutebrowser/qutebrowser/issues/82
+        if pathlib.Path(path).is_reserved():
             return None
         return path
 
