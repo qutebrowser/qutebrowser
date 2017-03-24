@@ -19,7 +19,6 @@
 
 """Showing prompts above the statusbar."""
 
-import sys
 import os.path
 import html
 import collections
