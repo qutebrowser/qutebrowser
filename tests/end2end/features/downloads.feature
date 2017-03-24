@@ -128,16 +128,20 @@ Feature: Downloading things from a website.
 
     @windows
     Scenario: Downloading a file to a reserved path
-        When I open data/downloads/download.bin
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept COM1
-        And I run :prompt-cancel
+        And I run :leave-mode
         Then "Invalid filename" should be logged
 
     @windows
     Scenario: Downloading a file to a drive-relative working directory
-        When I open data/downloads/download.bin
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept C:foobar
-        And I run :prompt-cancel
+        And I run :leave-mode
         Then "Invalid filename" should be logged
 
     @windows
