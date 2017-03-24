@@ -140,6 +140,16 @@ Feature: Downloading things from a website.
         And I run :prompt-cancel
         Then "Invalid filename" should be logged
 
+    @windows
+    Scenario: Downloading a file to a reserved path with :download
+        When I run :download data/downloads/download.bin --dest=COM1
+        Then the error "Invalid target filename" should be shown
+
+    @windows
+    Scenario: Download a file to a drive-relative working directory with :download
+        When I run :download data/downloads/download.bin --dest=C:foobar
+        Then the error "Invalid target filename" should be shown
+
     ## :download-retry
 
     Scenario: Retrying a failed download

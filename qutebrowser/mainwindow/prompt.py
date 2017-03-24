@@ -19,11 +19,9 @@
 
 """Showing prompts above the statusbar."""
 
-import re
 import sys
 import os.path
 import html
-import pathlib
 import collections
 
 import sip
@@ -646,31 +644,13 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
-    def _transform_path(self, path):
-        r"""Do platform-specific transformations, like changing E: to E:\.
-
-        Returns None if the path is invalid on the current platform.
-        """
-        if sys.platform != "win32":
-            return path
-        path = utils.expand_windows_drive(path)
-        # Drive dependent working directories are not supported, e.g.
-        # E:filename is invalid
-        if re.match(r'[A-Z]:[^\\]', path, re.IGNORECASE):
-            return None
-        # Paths like COM1, ...
-        # See https://github.com/qutebrowser/qutebrowser/issues/82
-        if pathlib.Path(path).is_reserved():
-            return None
-        return path
-
     def _show_error(self, msg):
         log.prompt.error(msg)
         QToolTip.showText(self._lineedit.mapToGlobal(QPoint(0, 0)), msg)
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
-        text = self._transform_path(text)
+        text = downloads.transform_path(text)
         if text is None:
             self._show_error("Invalid filename")
             return False
@@ -725,7 +705,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
-        text = self._transform_path(text)
+        text = downloads.transform_path(text)
         if text is None:
             self._show_error("Invalid filename")
             return False
