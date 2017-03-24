@@ -19,15 +19,18 @@
 
 """Showing prompts above the statusbar."""
 
+import re
+import sys
 import os.path
 import html
 import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop)
+                          QItemSelectionModel, QObject, QEventLoop, QPoint)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
+                             QToolTip)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style, config
@@ -642,8 +645,29 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
+    def _transform_path(self, path):
+        r"""Do platform-specific transformations, like changing E: to E:\.
+
+        Returns None if the path is invalid on the current platform.
+        """
+        if sys.platform != "win32":
+            return path
+        path = utils.expand_windows_drive(path)
+        # Drive dependent working directories are not supported, e.g.
+        # E:filename is invalid
+        if re.match(r'[A-Z]:[^\\]', path, re.IGNORECASE):
+            return None
+        return path
+
+    def _show_error(self, msg):
+        QToolTip.showText(self._lineedit.mapToGlobal(QPoint(0, 0)), msg)
+
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
+        text = self._transform_path(text)
+        if text is None:
+            self._show_error("Invalid filename")
+            return False
         self.question.answer = text
         return True
 
@@ -695,6 +719,10 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
+        text = self._transform_path(text)
+        if text is None:
+            self._show_error("Invalid filename")
+            return False
         self.question.answer = downloads.FileDownloadTarget(text)
         return True
 

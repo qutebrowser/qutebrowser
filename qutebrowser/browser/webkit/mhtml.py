@@ -554,8 +554,6 @@ def start_download_checked(target, tab):
     dest = utils.force_encoding(target.filename, encoding)
 
     dest = os.path.expanduser(dest)
-    if sys.platform == "win32":
-        dest = utils.expand_windows_drive(dest)
 
     # See if we already have an absolute path
     path = downloads.create_full_filename(default_name, dest)
