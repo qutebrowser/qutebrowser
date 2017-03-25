@@ -236,7 +236,7 @@ class CommandDispatcher:
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
     def openurl(self, url=None, implicit=False,
-                bg=False, tab=False, window=False, count=None):
+                bg=False, tab=False, window=False, count=None, secure=False):
         """Open a URL in the current/[count]th tab.
 
         If the URL contains newlines, each line gets opened in its own tab.
@@ -249,6 +249,7 @@ class CommandDispatcher:
             implicit: If opening a new tab, treat the tab as implicit (like
                       clicking on a link).
             count: The tab index to open the URL in, or None.
+            secure: Force HTTPS.
         """
         if url is None:
             urls = [config.get('general', 'default-page')]
@@ -256,6 +257,8 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         for i, cur_url in enumerate(urls):
+            if secure:
+                cur_url.setScheme('https')
             if not window and i > 0:
                 tab = False
                 bg = True
