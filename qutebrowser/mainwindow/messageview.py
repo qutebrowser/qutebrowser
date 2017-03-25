@@ -132,5 +132,7 @@ class MessageView(QWidget):
         self.update_geometry.emit()
 
     def mousePressEvent(self, e):
-        if e.button() in [Qt.LeftButton, Qt.RightButton]:
+        criteria = [Qt.LeftButton, Qt.MiddleButton, Qt.RightButton]
+
+        if e.button() in criteria:
             self.clear_messages()
