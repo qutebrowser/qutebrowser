@@ -30,6 +30,7 @@ Changed
 - When using QtWebEngine, the underlying Chromium version is now shown in the
   version info.
 - Improved `qute:history` page with lazy loading
+- Messages are now hidden when clicked
 
 Fixed
 ~~~~~
