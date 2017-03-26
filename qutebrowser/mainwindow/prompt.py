@@ -25,9 +25,10 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop)
+                          QItemSelectionModel, QObject, QEventLoop, QPoint)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
+                             QToolTip)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style, config
@@ -642,8 +643,16 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
+    def _show_error(self, msg):
+        log.prompt.error(msg)
+        QToolTip.showText(self._lineedit.mapToGlobal(QPoint(0, 0)), msg)
+
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
+        text = downloads.transform_path(text)
+        if text is None:
+            self._show_error("Invalid filename")
+            return False
         self.question.answer = text
         return True
 
@@ -695,6 +704,10 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
+        text = downloads.transform_path(text)
+        if text is None:
+            self._show_error("Invalid filename")
+            return False
         self.question.answer = downloads.FileDownloadTarget(text)
         return True
 

@@ -1334,6 +1334,9 @@ class CommandDispatcher:
                                       scope='window', window=self._win_id)
         target = None
         if dest is not None:
+            dest = downloads.transform_path(dest)
+            if dest is None:
+                raise cmdexc.CommandError("Invalid target filename")
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
