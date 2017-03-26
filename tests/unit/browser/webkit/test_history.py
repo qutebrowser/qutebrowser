@@ -38,47 +38,17 @@ def prerequisites(config_stub, fake_save_manager, init_sql):
 
 @pytest.fixture()
 def hist(tmpdir):
-    return history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
+    return history.WebHistory()
 
 
-def test_register_saveable(monkeypatch, qtbot, tmpdir, caplog,
-                          fake_save_manager):
-    (tmpdir / 'filled-history').write('12345 http://example.com/ title')
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
-    assert fake_save_manager.add_saveable.called
-
-
-def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
-    (tmpdir / 'filled-history').write('\n'.join([
-        '12345 http://example.com/ title',
-        '67890 http://example.com/',
-        '12345 http://qutebrowser.org/ blah',
-    ]))
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    next(hist.async_read())
-    with pytest.raises(StopIteration):
-        next(hist.async_read())
-    expected = "Ignoring async_read() because reading is started."
-    assert expected in (record.msg for record in caplog.records)
-
-
-@pytest.mark.parametrize('redirect', [True, False])
-def test_adding_item_during_async_read(qtbot, hist, redirect):
-    """Check what happens when adding URL while reading the history."""
-    url = 'http://www.example.com/'
-    hist.add_url(QUrl(url), redirect=redirect, atime=12345)
-
-    with qtbot.waitSignal(hist.async_read_done):
-        list(hist.async_read())
-
-    assert not hist._temp_history
-    assert list(hist) == [(url, '', 12345, redirect)]
+@pytest.fixture()
+def mock_time(mocker):
+    m = mocker.patch('qutebrowser.browser.history.time')
+    m.time.return_value = 12345
+    return 12345
 
 
 def test_iter(hist):
-    list(hist.async_read())
-
     urlstr = 'http://www.example.com/'
     url = QUrl(urlstr)
     hist.add_url(url, atime=12345)
@@ -88,7 +58,6 @@ def test_iter(hist):
 
 def test_len(hist):
     assert len(hist) == 0
-    list(hist.async_read())
 
     url = QUrl('http://www.example.com/')
     hist.add_url(url)
@@ -96,101 +65,49 @@ def test_len(hist):
     assert len(hist) == 1
 
 
-@pytest.mark.parametrize('line', [
-    '12345 http://example.com/ title',  # with title
-    '67890 http://example.com/',  # no title
-    '12345 http://qutebrowser.org/ ',  # trailing space
-    ' ',
-    '',
-])
-def test_read(tmpdir, line):
-    (tmpdir / 'filled-history').write(line + '\n')
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
+def test_updated_entries(tmpdir, hist):
+    hist.add_url(QUrl('http://example.com/'), atime=67890)
+    assert list(hist) == [('http://example.com/', '', 67890, False)]
 
-
-def test_updated_entries(tmpdir):
-    (tmpdir / 'filled-history').write('12345 http://example.com/\n'
-                                      '67890 http://example.com/\n')
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
-
-    assert hist['http://example.com/'] == ('http://example.com/', '', 67890,
-                                           False)
     hist.add_url(QUrl('http://example.com/'), atime=99999)
-    assert hist['http://example.com/'] == ('http://example.com/', '', 99999,
-                                           False)
+    assert list(hist) == [('http://example.com/', '', 99999, False)]
 
 
-def test_invalid_read(tmpdir, caplog):
-    (tmpdir / 'filled-history').write('foobar\n12345 http://example.com/')
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    with caplog.at_level(logging.WARNING):
-        list(hist.async_read())
-
-    entries = list(hist)
-
-    assert len(entries) == 1
-    msg = "Invalid history entry 'foobar': 2 or 3 fields expected!"
-    assert msg in (rec.msg for rec in caplog.records)
-
-
-def test_get_recent(tmpdir):
-    (tmpdir / 'filled-history').write('12345 http://example.com/')
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
-
+def test_get_recent(hist):
     hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
-    lines = hist.get_recent()
+    hist.add_url(QUrl('http://example.com/'), atime=12345)
+    assert list(hist.get_recent()) == [
+        ('http://www.qutebrowser.org/', '', 67890 , False),
+        ('http://example.com/', '', 12345, False),
+    ]
 
-    expected = ['12345 http://example.com/',
-                '67890 http://www.qutebrowser.org/']
-    assert lines == expected
 
-
-def test_save(tmpdir):
-    hist_file = tmpdir / 'filled-history'
-    hist_file.write('12345 http://example.com/\n')
-
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
-
+def test_save(tmpdir, hist):
+    hist.add_url(QUrl('http://example.com/'), atime=12345)
     hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
-    hist.save()
 
-    lines = hist_file.read().splitlines()
-    expected = ['12345 http://example.com/',
-                '67890 http://www.qutebrowser.org/']
-    assert lines == expected
-
-    hist.add_url(QUrl('http://www.the-compiler.org/'), atime=99999)
-    hist.save()
-    expected.append('99999 http://www.the-compiler.org/')
-
-    lines = hist_file.read().splitlines()
-    assert lines == expected
+    hist2 = history.WebHistory()
+    assert list(hist2) == [('http://example.com/', '', 12345, False),
+                           ('http://www.qutebrowser.org/', '', 67890, False)]
 
 
-def test_clear(qtbot, tmpdir):
-    hist_file = tmpdir / 'filled-history'
-    hist_file.write('12345 http://example.com/\n')
+def test_clear(qtbot, tmpdir, hist, mocker):
+    hist.add_url(QUrl('http://example.com/'))
+    hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
+    m = mocker.patch('qutebrowser.browser.history.message.confirm_async')
+    hist.clear()
+    m.assert_called()
 
+
+def test_clear_force(qtbot, tmpdir, hist):
+    hist.add_url(QUrl('http://example.com/'))
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
     with qtbot.waitSignal(hist.cleared):
-        hist._do_clear()
+        hist.clear(force=True)
 
-    assert not hist_file.read()
-    assert not hist._new_history
-
-    hist.add_url(QUrl('http://www.the-compiler.org/'), atime=67890)
-    hist.save()
-
-    lines = hist_file.read().splitlines()
-    assert lines == ['67890 http://www.the-compiler.org/']
+    assert not len(hist)
 
 
 @pytest.mark.parametrize('item', [
@@ -198,21 +115,34 @@ def test_clear(qtbot, tmpdir):
     ('http://www.example.com', 12346, 'the title', True)
 ])
 def test_add_item(qtbot, hist, item):
-    list(hist.async_read())
     (url, atime, title, redirect) = item
     hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
     assert hist[url] == (url, title, atime, redirect)
 
 
-def test_add_item_redirect_update(qtbot, tmpdir, fake_save_manager):
+def test_add_item_invalid(qtbot, hist, caplog):
+    with caplog.at_level(logging.WARNING):
+        hist.add_url(QUrl())
+    assert not list(hist)
+
+
+@pytest.mark.parametrize('level, url, req_url, expected', [
+    (logging.DEBUG, 'a.com', 'a.com', [('a.com', 'title', 12345, False)]),
+    (logging.DEBUG, 'a.com', 'b.com', [('a.com', 'title', 12345, False),
+                                       ('b.com', 'title', 12345, True)]),
+    (logging.WARNING, 'a.com', '', [('a.com', 'title', 12345, False)]),
+    (logging.WARNING, '', '', []),
+])
+def test_add_from_tab(hist, level, url, req_url, expected, mock_time, caplog):
+    with caplog.at_level(level):
+        hist.add_from_tab(QUrl(url), QUrl(req_url), 'title')
+    assert set(list(hist)) == set(expected)
+
+
+def test_add_item_redirect_update(qtbot, tmpdir, hist):
     """A redirect update added should override a non-redirect one."""
     url = 'http://www.example.com/'
-
-    hist_file = tmpdir / 'filled-history'
-    hist_file.write('12345 {}\n'.format(url))
-    hist = history.WebHistory(hist_dir=str(tmpdir), hist_name='filled-history')
-    list(hist.async_read())
-
+    hist.add_url(QUrl(url), atime=5555)
     hist.add_url(QUrl(url), redirect=True, atime=67890)
 
     assert hist[url] == (url, '', 67890, True)

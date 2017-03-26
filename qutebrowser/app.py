@@ -158,8 +158,6 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
-    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
-
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
 
@@ -428,7 +426,7 @@ def _init_modules(args, crash_handler):
     keyconf.init(qApp)
 
     log.init.debug("Initializing sql...")
-    sql.init()
+    sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
     log.init.debug("Initializing web history...")
     history.init(qApp)
@@ -474,23 +472,6 @@ def _init_modules(args, crash_handler):
     macros.init()
     # Init backend-specific stuff
     browsertab.init()
-
-
-def _init_late_modules(args):
-    """Initialize modules which can be inited after the window is shown."""
-    log.init.debug("Reading web history...")
-    reader = objreg.get('web-history').async_read()
-    with debug.log_time(log.init, 'Reading history'):
-        while True:
-            QApplication.processEvents()
-            try:
-                next(reader)
-            except StopIteration:
-                break
-            except (OSError, UnicodeDecodeError) as e:
-                error.handle_fatal_exc(e, args, "Error while initializing!",
-                                       pre_text="Error while initializing")
-                sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:

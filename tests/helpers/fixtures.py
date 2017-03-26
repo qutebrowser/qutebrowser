@@ -476,8 +476,9 @@ def short_tmpdir():
 
 
 @pytest.fixture
-def init_sql():
+def init_sql(data_tmpdir):
     """Initialize the SQL module, and shut it down after the test."""
-    sql.init()
+    path = str(data_tmpdir / 'test.db')
+    sql.init(path)
     yield
     sql.close()

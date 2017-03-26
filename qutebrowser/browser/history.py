@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
                                usertypes, message)
-from qutebrowser.misc import lineparser, objects, sql
+from qutebrowser.misc import objects, sql
 
 
 class Entry:
@@ -118,14 +118,6 @@ class WebHistory(sql.SqlTable):
     self._saved_count tracks how many of those entries were already written to
     disk, so we can always append to the existing data.
 
-    Attributes:
-        _lineparser: The AppendLineParser used to save the history.
-        _new_history: A list of Entry items of the current session.
-        _saved_count: How many HistoryEntries have been written to disk.
-        _initial_read_started: Whether async_read was called.
-        _initial_read_done: Whether async_read has completed.
-        _temp_history: List of history entries from before async_read finished.
-
     Signals:
         cleared: Emitted after the history is cleared.
     """
@@ -133,58 +125,12 @@ class WebHistory(sql.SqlTable):
     cleared = pyqtSignal()
     async_read_done = pyqtSignal()
 
-    def __init__(self, hist_dir, hist_name, parent=None):
+    def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          primary_key='url', parent=parent)
-        self._initial_read_started = False
-        self._initial_read_done = False
-        self._lineparser = lineparser.AppendLineParser(hist_dir, hist_name,
-                                                       parent=self)
-        self._temp_history = []
-        self._new_history = []
-        self._saved_count = 0
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
-
-    def async_read(self):
-        """Read the initial history."""
-        if self._initial_read_started:
-            log.init.debug("Ignoring async_read() because reading is started.")
-            return
-        self._initial_read_started = True
-
-        with self._lineparser.open():
-            for line in self._lineparser:
-                yield
-
-                line = line.rstrip()
-                if not line:
-                    continue
-
-                try:
-                    entry = Entry.from_str(line)
-                except ValueError as e:
-                    log.init.warning("Invalid history entry {!r}: {}!".format(
-                        line, e))
-                    continue
-
-                # This de-duplicates history entries; only the latest
-                # entry for each URL is kept. If you want to keep
-                # information about previous hits change the items in
-                # old_urls to be lists or change Entry to have a
-                # list of atimes.
-                self._add_entry(entry)
-
-        self._initial_read_done = True
-        self.async_read_done.emit()
-        objreg.get('save-manager').add_saveable(
-            'history', self.save, self.changed)
-
-        for entry in self._temp_history:
-            self._add_entry(entry)
-            self._new_history.append(entry)
-        self._temp_history.clear()
 
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
@@ -193,15 +139,7 @@ class WebHistory(sql.SqlTable):
 
     def get_recent(self):
         """Get the most recent history entries."""
-        old = self._lineparser.get_recent()
-        return old + [str(e) for e in self._new_history]
-
-    def save(self):
-        """Save the history to disk."""
-        new = (str(e) for e in self._new_history[self._saved_count:])
-        self._lineparser.new_data = new
-        self._lineparser.save()
-        self._saved_count = len(self._new_history)
+        return self.select(sort_by='atime', sort_order='desc', limit=100)
 
     @cmdutils.register(name='history-clear', instance='web-history')
     def clear(self, force=False):
@@ -221,11 +159,7 @@ class WebHistory(sql.SqlTable):
                                 "history?")
 
     def _do_clear(self):
-        self._lineparser.clear()
         self.delete_all()
-        self._temp_history.clear()
-        self._new_history.clear()
-        self._saved_count = 0
         self.cleared.emit()
 
     @pyqtSlot(QUrl, QUrl, str)
@@ -263,11 +197,7 @@ class WebHistory(sql.SqlTable):
         if atime is None:
             atime = time.time()
         entry = Entry(atime, url, title, redirect=redirect)
-        if self._initial_read_done:
-            self._add_entry(entry)
-            self._new_history.append(entry)
-        else:
-            self._temp_history.append(entry)
+        self._add_entry(entry)
 
 
 def init(parent=None):
@@ -276,8 +206,7 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
-    history = WebHistory(hist_dir=standarddir.data(), hist_name='history',
-                         parent=parent)
+    history = WebHistory(parent=parent)
     objreg.register('web-history', history)
 
     if objects.backend == usertypes.Backend.QtWebKit:

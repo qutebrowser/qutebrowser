@@ -34,14 +34,13 @@ class SqlException(Exception):
     pass
 
 
-def init():
+def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
-    # In-memory database, see https://sqlite.org/inmemorydb.html
-    database.setDatabaseName(':memory:')
+    database.setDatabaseName(db_path)
     if not database.open():
-        raise SqlException("Failed to open in-memory sqlite database: {}"
-                           .format(database.lastError().text()))
+        raise SqlException("Failed to open sqlite database at {}: {}"
+                           .format(db_path, database.lastError().text()))
 
 
 def close():
@@ -103,8 +102,8 @@ class SqlTable(QObject):
         super().__init__(parent)
         self._name = name
         self._primary_key = primary_key
-        run_query("CREATE TABLE {} ({}, PRIMARY KEY ({}))".format(
-            name, ','.join(fields), primary_key))
+        run_query("CREATE TABLE IF NOT EXISTS {} ({}, PRIMARY KEY ({}))"
+                  .format(name, ','.join(fields), primary_key))
         # pylint: disable=invalid-name
         self.Entry = collections.namedtuple(name + '_Entry', fields)
 
@@ -177,3 +176,11 @@ class SqlTable(QObject):
         """Remove all row from the table."""
         run_query("DELETE FROM {}".format(self._name))
         self.changed.emit()
+
+    def select(self, sort_by, sort_order, limit):
+        """Remove all row from the table."""
+        result = run_query('SELECT * FROM {} ORDER BY {} {} LIMIT {}'
+                           .format(self._name, sort_by, sort_order, limit))
+        while result.next():
+            rec = result.record()
+            yield self.Entry(*[rec.value(i) for i in range(rec.count())])

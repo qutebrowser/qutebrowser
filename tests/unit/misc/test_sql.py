@@ -28,9 +28,8 @@ pytestmark = pytest.mark.usefixtures('init_sql')
 
 def test_init():
     sql.SqlTable('Foo', ['name', 'val', 'lucky'], primary_key='name')
-    with pytest.raises(sql.SqlException):
-        # table name collision on 'Foo'
-        sql.SqlTable('Foo', ['foo', 'bar'], primary_key='foo')
+    # should not error if table already exists
+    sql.SqlTable('Foo', ['name', 'val', 'lucky'], primary_key='name')
 
 
 def test_insert(qtbot):
@@ -52,6 +51,18 @@ def test_iter():
     assert list(table) == [('one', 1, False),
                            ('nine', 9, False),
                            ('thirteen', 13, True)]
+
+
+@pytest.mark.parametrize('rows, sort_by, sort_order, limit, result', [
+    ([[2, 5], [1, 6], [3, 4]], 'a', 'asc', 5, [(1, 6), (2, 5), (3, 4)]),
+    ([[2, 5], [1, 6], [3, 4]], 'a', 'desc', 3, [(3, 4), (2, 5), (1, 6)]),
+    ([[2, 5], [1, 6], [3, 4]], 'b', 'desc', 2, [(1, 6), (2, 5)])
+])
+def test_select(rows, sort_by, sort_order, limit, result):
+    table = sql.SqlTable('Foo', ['a', 'b'], primary_key='a')
+    for row in rows:
+        table.insert(row)
+    assert list(table.select(sort_by, sort_order, limit)) == result
 
 
 def test_replace(qtbot):
