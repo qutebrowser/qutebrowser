@@ -18,8 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
-from PyQt5.QtTest import QTest
 from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import messageview
@@ -119,21 +117,15 @@ def test_replaced_messages(view, replace1, replace2, length):
     assert len(view._messages) == length
 
 
-def test_click_messages(qtbot, view):
+@pytest.mark.parametrize('button, count', [
+    (Qt.LeftButton, 0),
+    (Qt.MiddleButton, 0),
+    (Qt.RightButton, 0),
+    (Qt.BackButton, 2),
+])
+def test_click_messages(qtbot, view, button, count):
     """Messages should dissappear when we click on them."""
-    view.show_message(usertypes.MessageLevel.info, 'test mouse left click')
-    QTest.mousePress(view, Qt.LeftButton)
-    assert not view._messages
-
-    view.show_message(usertypes.MessageLevel.info, 'test mouse middle click')
-    QTest.mousePress(view, Qt.MiddleButton)
-    assert not view._messages
-
-    view.show_message(usertypes.MessageLevel.info, 'test mouse right click')
-    QTest.mousePress(view, Qt.RightButton)
-    assert not view._messages
-
-    # Test mouse back button - This shouldn't clear messages.
-    view.show_message(usertypes.MessageLevel.info, 'test mouse back button')
-    QTest.mousePress(view, Qt.BackButton)
-    assert len(view._messages) == 1
+    view.show_message(usertypes.MessageLevel.info, 'test mouse click')
+    view.show_message(usertypes.MessageLevel.info, 'test mouse click 2')
+    qtbot.mousePress(view, button)
+    assert len(view._messages) == count
