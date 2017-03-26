@@ -130,3 +130,10 @@ class MessageView(QWidget):
         self._last_text = text
         self.show()
         self.update_geometry.emit()
+
+    def mousePressEvent(self, e):
+        """Clear messages when they are clicked on."""
+        criteria = [Qt.LeftButton, Qt.MiddleButton, Qt.RightButton]
+
+        if e.button() in criteria:
+            self.clear_messages()

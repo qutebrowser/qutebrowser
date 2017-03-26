@@ -19,6 +19,9 @@
 
 import pytest
 
+from PyQt5.QtTest import QTest
+from PyQt5.QtCore import Qt
+
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes
 
@@ -114,3 +117,23 @@ def test_replaced_messages(view, replace1, replace2, length):
     view.show_message(usertypes.MessageLevel.info, 'test', replace=replace1)
     view.show_message(usertypes.MessageLevel.info, 'test 2', replace=replace2)
     assert len(view._messages) == length
+
+
+def test_click_messages(qtbot, view):
+    """Messages should dissappear when we click on them."""
+    view.show_message(usertypes.MessageLevel.info, 'test mouse left click')
+    QTest.mousePress(view, Qt.LeftButton)
+    assert not view._messages
+
+    view.show_message(usertypes.MessageLevel.info, 'test mouse middle click')
+    QTest.mousePress(view, Qt.MiddleButton)
+    assert not view._messages
+
+    view.show_message(usertypes.MessageLevel.info, 'test mouse right click')
+    QTest.mousePress(view, Qt.RightButton)
+    assert not view._messages
+
+    # Test mouse back button - This shouldn't clear messages.
+    view.show_message(usertypes.MessageLevel.info, 'test mouse back button')
+    QTest.mousePress(view, Qt.BackButton)
+    assert len(view._messages) == 1
