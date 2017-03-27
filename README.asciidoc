@@ -253,6 +253,7 @@ Contributors, sorted by the number of commits in descending order:
 * haxwithaxe
 * evan
 * dylan araps
+* caveman
 * addictedtoflames
 * Xitian9
 * Vasilij Schneidermann

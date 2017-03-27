@@ -23,6 +23,7 @@ Added
 - New `:clear-messages` command to clear shown messages.
 - New `ui -> keyhint-delay` setting to configure the delay until
   the keyhint overlay pops up.
+- New `-s` option for `:open` to force a HTTPS scheme.
 
 Changed
 ~~~~~~~
