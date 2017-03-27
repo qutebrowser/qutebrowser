@@ -118,6 +118,9 @@ class TabWidget(QTabWidget):
     def get_tab_fields(self, idx):
         """Get the tab field data."""
         tab = self.widget(idx)
+        if tab is None:
+            log.misc.debug("Got None-tab in get_tab_fields!")
+
         page_title = self.page_title(idx)
 
         fields = {}
