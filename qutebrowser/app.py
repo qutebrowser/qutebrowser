@@ -301,7 +301,7 @@ def _open_startpage(win_id=None):
         window_ids = [win_id]
     else:
         window_ids = objreg.window_registry
-    for cur_win_id in window_ids:
+    for cur_win_id in list(window_ids):  # Copying as the dict could change
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=cur_win_id)
         if tabbed_browser.count() == 0:
