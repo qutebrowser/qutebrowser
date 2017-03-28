@@ -75,6 +75,8 @@ def is_ignored_lowlevel_message(message):
           "not supported by protocol" in message):
         # Makes tests fail on Quantumcross' machine
         return True
+    elif 'Unable to locate theme engine in module_path:' in message:
+        return True
     return False
 
 
