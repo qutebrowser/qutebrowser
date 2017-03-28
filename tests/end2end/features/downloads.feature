@@ -78,6 +78,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading with SSL errors (issue 1413)
         When I clear SSL errors
         And I set network -> ssl-strict to ask
+        And I set storage -> prompt-download-directory to false
         And I download an SSL page
         And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
         And I run :prompt-accept
