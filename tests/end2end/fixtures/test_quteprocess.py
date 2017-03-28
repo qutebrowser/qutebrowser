@@ -149,11 +149,11 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
 @pytest.mark.parametrize('data, attrs', [
     (
         # Normal message
-        '{"created": 0, "msecs": 0, "levelname": "DEBUG", "name": "init", '
+        '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "init", '
         '"module": "earlyinit", "funcName": "init_log", "lineno": 280, '
         '"levelno": 10, "message": "Log initialized."}',
         {
-            'timestamp': datetime.datetime.fromtimestamp(0),
+            'timestamp': datetime.datetime.fromtimestamp(86400),
             'loglevel': logging.DEBUG,
             'category': 'init',
             'module': 'earlyinit',
@@ -165,28 +165,28 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     ),
     (
         # VDEBUG
-        '{"created": 0, "msecs": 0, "levelname": "VDEBUG", "name": "foo", '
+        '{"created": 86400, "msecs": 0, "levelname": "VDEBUG", "name": "foo", '
         '"module": "foo", "funcName": "foo", "lineno": 0, "levelno": 9, '
         '"message": ""}',
         {'loglevel': log.VDEBUG_LEVEL}
     ),
     (
         # Unknown module
-        '{"created": 0, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
+        '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
         '"module": null, "funcName": null, "lineno": 0, "levelno": 10, '
         '"message": "test"}',
         {'module': None, 'function': None, 'line': None},
     ),
     (
         # Expected message
-        '{"created": 0, "msecs": 0, "levelname": "VDEBUG", "name": "foo", '
+        '{"created": 86400, "msecs": 0, "levelname": "VDEBUG", "name": "foo", '
         '"module": "foo", "funcName": "foo", "lineno": 0, "levelno": 9, '
         '"message": "SpellCheck: test"}',
         {'expected': True},
     ),
     (
         # Weird Qt location
-        '{"created": 0, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
+        '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
         '"module": "qnetworkreplyhttpimpl", "funcName": '
         '"void QNetworkReplyHttpImplPrivate::error('
         'QNetworkReply::NetworkError, const QString&)", "lineno": 1929, '
@@ -200,7 +200,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         }
     ),
     (
-        '{"created": 0, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
+        '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
         '"module": "qxcbxsettings", "funcName": "QXcbXSettings::QXcbXSettings('
         'QXcbScreen*)", "lineno": 233, "levelno": 10, "message": '
         '"QXcbXSettings::QXcbXSettings(QXcbScreen*) Failed to get selection '
@@ -213,7 +213,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
     ),
     (
         # ResourceWarning
-        '{"created": 0, "msecs": 0, "levelname": "WARNING", '
+        '{"created": 86400, "msecs": 0, "levelname": "WARNING", '
         '"name": "py.warnings", "module": "app", "funcName": "qt_mainloop", '
         '"lineno": 121, "levelno": 30, "message": '
         '".../app.py:121: ResourceWarning: unclosed file <_io.TextIOWrapper '
@@ -231,7 +231,7 @@ def test_log_line_parse(data, attrs):
 
 @pytest.mark.parametrize('data, colorized, expect_error, expected', [
     (
-        {'created': 0, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
+        {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux'},
         False, False,
@@ -239,7 +239,7 @@ def test_log_line_parse(data, attrs):
     ),
     # Traceback attached
     (
-        {'created': 0, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
+        {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux', 'traceback': 'Traceback (most recent call '
          'last):\n here be dragons'},
@@ -250,7 +250,7 @@ def test_log_line_parse(data, attrs):
     ),
     # Colorized
     (
-        {'created': 0, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
+        {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux'},
         True, False,
@@ -259,7 +259,7 @@ def test_log_line_parse(data, attrs):
     ),
     # Expected error
     (
-        {'created': 0, 'msecs': 0, 'levelname': 'ERROR', 'name': 'foo',
+        {'created': 86400, 'msecs': 0, 'levelname': 'ERROR', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 40,
          'message': 'quux'},
         False, True,
@@ -267,7 +267,7 @@ def test_log_line_parse(data, attrs):
     ),
     # Expected other message (i.e. should make no difference)
     (
-        {'created': 0, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
+        {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux'},
         False, True,
@@ -275,7 +275,7 @@ def test_log_line_parse(data, attrs):
     ),
     # Expected error colorized (shouldn't be red)
     (
-        {'created': 0, 'msecs': 0, 'levelname': 'ERROR', 'name': 'foo',
+        {'created': 86400, 'msecs': 0, 'levelname': 'ERROR', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 40,
          'message': 'quux'},
         True, True,
