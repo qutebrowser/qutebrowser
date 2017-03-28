@@ -27,7 +27,7 @@ import getpass
 import binascii
 import hashlib
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
@@ -182,6 +182,7 @@ class IPCServer(QObject):
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
+        self._old_socket = None
         self._socketopts_ok = os.name == 'nt'
         if self._socketopts_ok:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
@@ -278,15 +279,8 @@ class IPCServer(QObject):
         log.ipc.debug("Client disconnected from socket 0x{:x}.".format(
             id(self._socket)))
         self._timer.stop()
-        if self._socket is None:
-            log.ipc.debug("In on_disconnected with None socket!")
-        else:
-            # For some reason Qt can still get delayed canReadNotifications
-            # internally, so if we call deleteLater() right away and then call
-            # QApplication::processEvents() somewhere in the code, we can get a
-            # segfault.
-            QTimer.singleShot(500, self._socket.deleteLater)
-            self._socket = None
+        self._old_socket = self._socket
+        self._socket = None
         # Maybe another connection is waiting.
         self.handle_connection()
 
@@ -349,17 +343,23 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
-        if self._socket is None:
+        if self._socket is None:  # pragma: no cover
             # This happens when doing a connection while another one is already
             # active for some reason.
-            log.ipc.warning("In on_ready_read with None socket!")
-            return
+            if self._old_socket is None:
+                log.ipc.warning("In on_ready_read with None socket and "
+                                "old_socket!")
+                return
+            log.ipc.debug("In on_ready_read with None socket!")
+            socket = self._old_socket
+        else:
+            socket = self._socket
         self._timer.stop()
-        while self._socket is not None and self._socket.canReadLine():
-            data = bytes(self._socket.readLine())
+        while socket is not None and socket.canReadLine():
+            data = bytes(socket.readLine())
             self.got_raw.emit(data)
             log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
-                id(self._socket), data))
+                id(socket), data))
             self._handle_data(data)
         self._timer.start()
 

@@ -587,22 +587,20 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     assert caplog.records[-1].message.startswith("IPC connection timed out")
 
 
-@pytest.mark.parametrize('method, args, is_warning', [
-    pytest.mark.posix(('on_error', [0], False)),
-    ('on_disconnected', [], False),
-    ('on_ready_read', [], True),
-])
-def test_ipcserver_socket_none(ipc_server, caplog, method, args, is_warning):
-    func = getattr(ipc_server, method)
+def test_ipcserver_socket_none_readyread(ipc_server, caplog):
     assert ipc_server._socket is None
+    assert ipc_server._old_socket is None
+    with caplog.at_level(logging.WARNING):
+        ipc_server.on_ready_read()
+    msg = "In on_ready_read with None socket and old_socket!"
+    assert msg in [r.message for r in caplog.records]
 
-    if is_warning:
-        with caplog.at_level(logging.WARNING):
-            func(*args)
-    else:
-        func(*args)
 
-    msg = "In {} with None socket!".format(method)
+@pytest.mark.posix
+def test_ipcserver_socket_none_error(ipc_server, caplog):
+    assert ipc_server._socket is None
+    ipc_server.on_error(0)
+    msg = "In on_error with None socket!"
     assert msg in [r.message for r in caplog.records]
 
 
