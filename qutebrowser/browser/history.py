@@ -20,6 +20,7 @@
 """Simple history which gets written to disk."""
 
 import time
+import os
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
 
@@ -69,37 +70,6 @@ class Entry:
     def url_str(self):
         """Get the URL as a lossless string."""
         return self.url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-
-    @classmethod
-    def from_str(cls, line):
-        """Parse a history line like '12345 http://example.com title'."""
-        data = line.split(maxsplit=2)
-        if len(data) == 2:
-            atime, url = data
-            title = ""
-        elif len(data) == 3:
-            atime, url, title = data
-        else:
-            raise ValueError("2 or 3 fields expected")
-
-        url = QUrl(url)
-        if not url.isValid():
-            raise ValueError("Invalid URL: {}".format(url.errorString()))
-
-        # https://github.com/qutebrowser/qutebrowser/issues/670
-        atime = atime.lstrip('\0')
-
-        if '-' in atime:
-            atime, flags = atime.split('-')
-        else:
-            flags = ''
-
-        if not set(flags).issubset('r'):
-            raise ValueError("Invalid flags {!r}".format(flags))
-
-        redirect = 'r' in flags
-
-        return cls(atime, url, title, redirect=redirect)
 
 
 class WebHistory(sql.SqlTable):
@@ -198,6 +168,48 @@ class WebHistory(sql.SqlTable):
             atime = time.time()
         entry = Entry(atime, url, title, redirect=redirect)
         self._add_entry(entry)
+
+    def _parse_entry(self, line):
+        """Parse a history line like '12345 http://example.com title'."""
+        data = line.split(maxsplit=2)
+        if len(data) == 2:
+            atime, url = data
+            title = ""
+        elif len(data) == 3:
+            atime, url, title = data
+        else:
+            raise ValueError("2 or 3 fields expected")
+
+        url = QUrl(url)
+        if not url.isValid():
+            raise ValueError("Invalid URL: {}".format(url.errorString()))
+
+        # https://github.com/qutebrowser/qutebrowser/issues/670
+        atime = atime.lstrip('\0')
+
+        if '-' in atime:
+            atime, flags = atime.split('-')
+        else:
+            flags = ''
+
+        if not set(flags).issubset('r'):
+            raise ValueError("Invalid flags {!r}".format(flags))
+
+        redirect = 'r' in flags
+
+        return (url, title, float(atime), bool(redirect))
+
+    def read(self, path):
+        """Import a text file into the sql database."""
+        with open(path, 'r') as f:
+            rows = []
+            for line in f:
+                try:
+                    row = self._parse_entry(line.strip())
+                    rows.append(row)
+                except ValueError:
+                    log.init.warning('Skipping history line {}'.format(line))
+        self.insert_batch(rows)
 
 
 def init(parent=None):

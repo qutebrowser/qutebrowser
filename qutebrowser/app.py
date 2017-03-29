@@ -158,6 +158,8 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
+    _import_history()
+
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
 
@@ -472,6 +474,27 @@ def _init_modules(args, crash_handler):
     macros.init()
     # Init backend-specific stuff
     browsertab.init()
+
+
+def _import_history():
+    """Import a history text file into sqlite if it exists.
+
+       In older versions of qutebrowser, history was stored in a text format.
+       This converts that file into the new sqlite format and removes it.
+   """
+    path = os.path.join(standarddir.data(), 'history')
+    if not os.path.isfile(path):
+        return
+
+    def action():
+        with debug.log_time(log.init, 'Converting old history file to sqlite'):
+            objreg.get('web-history').read(path)
+            message.info('History import complete. Removing {}'.format(path))
+            os.remove(path)
+
+    # delay to give message time to appear before locking down for import
+    message.info('Converting {} to sqlite...'.format(path))
+    QTimer.singleShot(100, action)
 
 
 class Quitter:

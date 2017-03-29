@@ -55,16 +55,21 @@ def version():
     return result.record().value(0)
 
 
+def _prepare_query(querystr):
+    log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
+    database = QSqlDatabase.database()
+    query = QSqlQuery(database)
+    query.prepare(querystr)
+    return query
+
+
 def run_query(querystr, values=None):
     """Run the given SQL query string on the database.
 
     Args:
         values: A list of positional parameter bindings.
     """
-    log.sql.debug('Running SQL query: "{}"'.format(querystr))
-    database = QSqlDatabase.database()
-    query = QSqlQuery(database)
-    query.prepare(querystr)
+    query = _prepare_query(querystr)
     for val in values or []:
         query.addBindValue(val)
     log.sql.debug('Query bindings: {}'.format(query.boundValues()))
@@ -73,6 +78,28 @@ def run_query(querystr, values=None):
                            querystr, query.lastError().text()))
     return query
 
+
+def run_batch(querystr, values):
+    """Run the given SQL query string on the database in batch mode.
+
+    Args:
+        values: A list of lists, where each inner list contains positional
+                bindings for one run of the batch.
+    """
+    query = _prepare_query(querystr)
+    transposed = [list(row) for row in zip(*values)]
+    for val in transposed:
+        query.addBindValue(val)
+    log.sql.debug('Batch Query bindings: {}'.format(query.boundValues()))
+
+    db = QSqlDatabase.database()
+    db.transaction()
+    if not query.execBatch():
+        raise SqlException('Failed to exec query "{}": "{}"'.format(
+                           querystr, query.lastError().text()))
+    db.commit()
+
+    return query
 
 class SqlTable(QObject):
 
@@ -102,8 +129,8 @@ class SqlTable(QObject):
         super().__init__(parent)
         self._name = name
         self._primary_key = primary_key
-        run_query("CREATE TABLE IF NOT EXISTS {} ({}, PRIMARY KEY ({}))"
-                  .format(name, ','.join(fields), primary_key))
+        run_query("CREATE TABLE IF NOT EXISTS {} ({})"
+                  .format(name, ','.join(fields)))
         # pylint: disable=invalid-name
         self.Entry = collections.namedtuple(name + '_Entry', fields)
 
@@ -170,6 +197,19 @@ class SqlTable(QObject):
         paramstr = ','.join(['?'] * len(values))
         run_query("{} INTO {} values({})".format(cmd, self._name, paramstr),
             values)
+        self.changed.emit()
+
+    def insert_batch(self, rows, replace=False):
+        """Performantly append multiple rows to the table.
+
+        Args:
+            rows: A list of lists, where each sub-list is a row.
+            replace: If true, allow inserting over an existing primary key.
+        """
+        cmd = "REPLACE" if replace else "INSERT"
+        paramstr = ','.join(['?'] * len(rows[0]))
+        run_batch("{} INTO {} values({})".format(cmd, self._name, paramstr),
+            rows)
         self.changed.emit()
 
     def delete_all(self):

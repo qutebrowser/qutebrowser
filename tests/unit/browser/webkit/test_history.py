@@ -148,88 +148,6 @@ def test_add_item_redirect_update(qtbot, tmpdir, hist):
     assert hist[url] == (url, '', 67890, True)
 
 
-@pytest.mark.parametrize('line, expected', [
-    (
-        # old format without title
-        '12345 http://example.com/',
-        history.Entry(atime=12345, url=QUrl('http://example.com/'), title='',)
-    ),
-    (
-        # trailing space without title
-        '12345 http://example.com/ ',
-        history.Entry(atime=12345, url=QUrl('http://example.com/'), title='',)
-    ),
-    (
-        # new format with title
-        '12345 http://example.com/ this is a title',
-        history.Entry(atime=12345, url=QUrl('http://example.com/'),
-                      title='this is a title')
-    ),
-    (
-        # weird NUL bytes
-        '\x0012345 http://example.com/',
-        history.Entry(atime=12345, url=QUrl('http://example.com/'), title=''),
-    ),
-    (
-        # redirect flag
-        '12345-r http://example.com/ this is a title',
-        history.Entry(atime=12345, url=QUrl('http://example.com/'),
-                      title='this is a title', redirect=True)
-    ),
-])
-def test_entry_parse_valid(line, expected):
-    entry = history.Entry.from_str(line)
-    assert entry == expected
-
-
-@pytest.mark.parametrize('line', [
-    '12345',  # one field
-    '12345 ::',  # invalid URL
-    'xyz http://www.example.com/',  # invalid timestamp
-    '12345-x http://www.example.com/',  # invalid flags
-    '12345-r-r http://www.example.com/',  # double flags
-])
-def test_entry_parse_invalid(line):
-    with pytest.raises(ValueError):
-        history.Entry.from_str(line)
-
-
-@hypothesis.given(strategies.text())
-def test_entry_parse_hypothesis(text):
-    """Make sure parsing works or gives us ValueError."""
-    try:
-        history.Entry.from_str(text)
-    except ValueError:
-        pass
-
-
-@pytest.mark.parametrize('entry, expected', [
-    # simple
-    (
-        history.Entry(12345, QUrl('http://example.com/'), "the title"),
-        "12345 http://example.com/ the title",
-    ),
-    # timestamp as float
-    (
-        history.Entry(12345.678, QUrl('http://example.com/'), "the title"),
-        "12345 http://example.com/ the title",
-    ),
-    # no title
-    (
-        history.Entry(12345.678, QUrl('http://example.com/'), ""),
-        "12345 http://example.com/",
-    ),
-    # redirect flag
-    (
-        history.Entry(12345.678, QUrl('http://example.com/'), "",
-                      redirect=True),
-        "12345-r http://example.com/",
-    ),
-])
-def test_entry_str(entry, expected):
-    assert str(entry) == expected
-
-
 @pytest.fixture
 def hist_interface():
     # pylint: disable=invalid-name
@@ -298,3 +216,26 @@ def test_init(backend, qapp, tmpdir, monkeypatch, cleanup_init):
         # For this to work, nothing can ever have called setDefaultInterface
         # before (so we need to test webengine before webkit)
         assert default_interface is None
+
+
+def test_read(hist, tmpdir, caplog):
+    histfile = tmpdir / 'history'
+    histfile.write('''12345 http://example.com/ title
+                      12346 http://qutebrowser.org/
+                      67890 http://example.com/path
+
+                      xyz http://example.com/bad-timestamp
+                      12345
+                      http://example.com/no-timestamp
+                      68891-r http://example.com/path/other
+                      68891-r-r http://example.com/double-flag''')
+
+    with caplog.at_level(logging.WARNING):
+        hist.read(str(histfile))
+
+    assert list(hist) == [
+        ('http://example.com/', 'title', 12345, False),
+        ('http://qutebrowser.org/', '', 12346, False),
+        ('http://example.com/path', '', 67890, False),
+        ('http://example.com/path/other', '', 68891, True)
+    ]
