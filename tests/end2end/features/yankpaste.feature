@@ -99,6 +99,11 @@ Feature: Yanking and pasting.
         And I run :open {primary} (invalid command)
         Then the error "Primary selection is empty." should be shown
 
+    Scenario: Pasting without primary selection being supported
+        When selection is not supported
+        And I run :open {primary} (invalid command)
+        Then the error "Primary selection is not supported on this platform!" should be shown
+
     Scenario: Pasting with a space in clipboard
         When I put " " into the clipboard
         And I run :open {clipboard} (invalid command)

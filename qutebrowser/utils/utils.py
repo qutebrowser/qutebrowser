@@ -54,6 +54,10 @@ class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
 
+    def __init__(self):
+        super().__init__("Primary selection is not supported on this "
+                         "platform!")
+
 
 class ClipboardEmptyError(ClipboardError):
 
