@@ -155,7 +155,7 @@ class PACResolver:
                 raise ParseProxyError("Invalid number of parameters for PROXY")
             host, port = PACResolver._parse_proxy_host(config[1])
             return QNetworkProxy(QNetworkProxy.HttpProxy, host, port)
-        elif config[0] == "SOCKS":
+        elif config[0] in ["SOCKS", "SOCKS5"]:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for SOCKS")
             host, port = PACResolver._parse_proxy_host(config[1])
