@@ -129,6 +129,7 @@ Feature: Miscellaneous utility commands exposed to the user.
         And I hint with args "all tab-fg"
         And I run :leave-mode
         And I run :repeat-command
+        And I wait for "hints: *" in the log
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
