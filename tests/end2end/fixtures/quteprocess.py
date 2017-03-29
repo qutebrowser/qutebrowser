@@ -77,6 +77,8 @@ def is_ignored_lowlevel_message(message):
         return True
     elif 'Unable to locate theme engine in module_path:' in message:
         return True
+    elif message == 'getrlimit(RLIMIT_NOFILE) failed':
+        return True
     return False
 
 
