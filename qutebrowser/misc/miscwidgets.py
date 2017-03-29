@@ -48,11 +48,10 @@ class MinimalLineEditMixin:
             try:
                 text = utils.get_clipboard(selection=True)
             except utils.ClipboardError:
-                pass
-            else:
-                e.accept()
-                self.insert(text)
-                return
+                text = utils.get_clipboard()
+            e.accept()
+            self.insert(text)
+            return
         super().keyPressEvent(e)
 
     def __repr__(self):
