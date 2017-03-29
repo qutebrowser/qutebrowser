@@ -678,7 +678,8 @@ Feature: Various utility commands.
 
     ## Renderer crashes
 
-    @qtwebkit_skip @no_invalid_lines
+    # Skipped on Windows as "... has stopped working" hangs.
+    @qtwebkit_skip @no_invalid_lines @posix
     Scenario: Renderer crash
         When I run :open -t chrome://crash
         Then the error "Renderer process crashed" should be shown
