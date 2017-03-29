@@ -419,7 +419,6 @@ Feature: Downloading things from a website.
 
     ## opening a file directly (prompt-open-download)
 
-    @issue2478
     Scenario: Opening a download directly
         When I set storage -> prompt-download-directory to true
         And I open data/downloads/download.bin without waiting
