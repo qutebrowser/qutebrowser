@@ -68,6 +68,8 @@ def wait_for_download_finished_name(quteproc, name):
 def wait_for_download_prompt(tmpdir, quteproc, path):
     full_path = path.replace('(tmpdir)', str(tmpdir)).replace('/', os.sep)
     quteproc.wait_for(message=PROMPT_MSG.format(full_path))
+    quteproc.wait_for(message="Entering mode KeyMode.prompt "
+                      "(reason: question asked)")
 
 
 @bdd.when("I download an SSL page")
