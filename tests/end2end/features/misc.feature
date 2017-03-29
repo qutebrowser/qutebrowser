@@ -79,6 +79,7 @@ Feature: Various utility commands.
         And I run :jseval --world=1 console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
+        And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
@@ -87,6 +88,7 @@ Feature: Various utility commands.
         And I run :jseval do_log()
         Then the javascript message "Hello from the page!" should not be logged
         And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
+        And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval using the main world
@@ -94,6 +96,7 @@ Feature: Various utility commands.
         And I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
+        And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval using the main world as name
@@ -101,12 +104,14 @@ Feature: Various utility commands.
         And I open data/misc/jseval.html
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
+        And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that exists as js-code
         When I set general -> log-javascript-console to info
         And I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
         And the javascript message "Hello again from JS!" should be logged
+        And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
         When I run :jseval --file nonexistentfile
