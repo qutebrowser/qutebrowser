@@ -7,6 +7,8 @@ environment:
     PYTHONUNBUFFERED: 1
     matrix:
     - TESTENV: py34
+    - TESTENV: py36-pyqt58
+      PYTHON: C:\Python36\python.exe
     - TESTENV: unittests-frozen
     - TESTENV: pylint
 
