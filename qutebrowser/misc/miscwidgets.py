@@ -46,11 +46,12 @@ class MinimalLineEditMixin:
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
             try:
-                text = utils.get_clipboard(selection=True)
+                text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:
-                text = utils.get_clipboard()
-            e.accept()
-            self.insert(text)
+                e.ignore()
+            else:
+                e.accept()
+                self.insert(text)
             return
         super().keyPressEvent(e)
 

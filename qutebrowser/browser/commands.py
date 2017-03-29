@@ -1542,10 +1542,7 @@ class CommandDispatcher:
                        backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
-        try:
-            self.insert_text(utils.get_clipboard(selection=True))
-        except utils.SelectionUnsupportedError:
-            self.insert_text(utils.get_clipboard())
+        self.insert_text(utils.get_clipboard(selection=True, fallback=True))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')

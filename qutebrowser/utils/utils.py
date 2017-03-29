@@ -767,11 +767,23 @@ def set_clipboard(data, selection=False):
         QApplication.clipboard().setText(data, mode=mode)
 
 
-def get_clipboard(selection=False):
-    """Get data from the clipboard."""
+def get_clipboard(selection=False, fallback=False):
+    """Get data from the clipboard.
+
+    Args:
+        selection: Use the primary selection.
+        fallback: Fall back to the clipboard if primary selection is
+                  unavailable.
+    """
     global fake_clipboard
+    if fallback and not selection:
+        raise ValueError("fallback given without selection!")
+
     if selection and not supports_selection():
-        raise SelectionUnsupportedError
+        if fallback:
+            selection = False
+        else:
+            raise SelectionUnsupportedError
 
     if fake_clipboard is not None:
         data = fake_clipboard
