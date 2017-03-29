@@ -150,12 +150,13 @@ Feature: Prompts
     Scenario: Pasting via shift-insert without it being supported
         When selection is not supported
         And I put "insert test" into the primary selection
+        And I put "clipboard test" into the clipboard
         And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "<Shift-Insert>"
         And I run :prompt-accept
-        Then the javascript message "Prompt reply: " should be logged
+        Then the javascript message "Prompt reply: clipboard test" should be logged
 
     @js_prompt
     Scenario: Using content -> ignore-javascript-prompt
