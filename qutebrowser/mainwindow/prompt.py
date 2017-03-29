@@ -25,10 +25,9 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop, QPoint)
+                          QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
-                             QToolTip)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style, config
