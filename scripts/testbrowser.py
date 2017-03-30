@@ -46,7 +46,7 @@ def parse_args():
     if QWebEngineView is not None:
         parser.add_argument('--webengine', help='Use QtWebEngine',
                             default=False, action='store_true')
-    return parser.parse_args()
+    return parser.parse_known_args()[0]
 
 
 if __name__ == '__main__':
