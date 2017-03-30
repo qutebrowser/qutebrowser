@@ -916,3 +916,16 @@ class TestOpenFile:
 
 def test_unused():
     utils.unused(None)
+
+
+@pytest.mark.parametrize('path, expected', [
+    ('E:', 'E:\\'),
+    ('e:', 'e:\\'),
+    ('E:foo', 'E:foo'),
+    ('E:\\', 'E:\\'),
+    ('E:\\foo', 'E:\\foo'),
+    ('foo:', 'foo:'),
+    ('foo:bar', 'foo:bar'),
+])
+def test_expand_windows_drive(path, expected):
+    assert utils.expand_windows_drive(path) == expected

@@ -126,6 +126,34 @@ Feature: Downloading things from a website.
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
+    @windows
+    Scenario: Downloading a file to a reserved path
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I run :prompt-accept COM1
+        And I run :leave-mode
+        Then "Invalid filename" should be logged
+
+    @windows
+    Scenario: Downloading a file to a drive-relative working directory
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I run :prompt-accept C:foobar
+        And I run :leave-mode
+        Then "Invalid filename" should be logged
+
+    @windows
+    Scenario: Downloading a file to a reserved path with :download
+        When I run :download data/downloads/download.bin --dest=COM1
+        Then the error "Invalid target filename" should be shown
+
+    @windows
+    Scenario: Download a file to a drive-relative working directory with :download
+        When I run :download data/downloads/download.bin --dest=C:foobar
+        Then the error "Invalid target filename" should be shown
+
     ## :download-retry
 
     Scenario: Retrying a failed download

@@ -20,6 +20,7 @@
 """Other utilities which don't fit anywhere else."""
 
 import io
+import re
 import sys
 import enum
 import json
@@ -845,3 +846,21 @@ def open_file(filename, cmdline=None):
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
     pass
+
+
+def expand_windows_drive(path):
+    r"""Expand a drive-path like E: into E:\.
+
+    Does nothing for other paths.
+
+    Args:
+        path: The path to expand.
+    """
+    # Usually, "E:" on Windows refers to the current working directory on drive
+    # E:\. The correct way to specifify drive E: is "E:\", but most users
+    # probably don't use the "multiple working directories" feature and expect
+    # "E:" and "E:\" to be equal.
+    if re.match(r'[A-Z]:$', path, re.IGNORECASE):
+        return path + "\\"
+    else:
+        return path
