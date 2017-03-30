@@ -538,6 +538,16 @@ Feature: Various utility commands.
         When I run :message-i "Hello World" (invalid command)
         Then the error "message-i: no such command" should be shown
 
+     Scenario: Multiple leading : in command
+        When I run :::::set-cmd-text ::::message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+
+    Scenario: Whitespace in command
+        When I run :   :  set-cmd-text :  :  message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+
     # We can't run :message-i as startup command, so we use
     # :set-cmd-text
 
@@ -632,7 +642,7 @@ Feature: Various utility commands.
         And I run :command-history-prev
         And I run :command-accept
         Then the message "blah" should be shown
- 
+
     Scenario: Browsing through commands 
         When I run :set-cmd-text :message-info blarg
         And I run :command-accept
@@ -644,7 +654,7 @@ Feature: Various utility commands.
         And I run :command-history-next
         And I run :command-accept
         Then the message "blarg" should be shown
- 
+
     Scenario: Calling previous command when history is empty
         Given I have a fresh instance
         When I run :set-cmd-text :
