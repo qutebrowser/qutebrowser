@@ -32,6 +32,7 @@ Changed
   version info.
 - Improved `qute:history` page with lazy loading
 - Messages are now hidden when clicked
+- Paths like `C:Downloads` are now treated as absolute paths on Windows.
 
 Fixed
 ~~~~~
