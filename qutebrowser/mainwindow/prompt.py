@@ -25,10 +25,9 @@ import collections
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop, QPoint)
+                          QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
-                             QToolTip)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style, config
@@ -643,15 +642,11 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
-    def _show_error(self, msg):
-        log.prompt.error(msg)
-        QToolTip.showText(self._lineedit.mapToGlobal(QPoint(0, 0)), msg)
-
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
         text = downloads.transform_path(text)
         if text is None:
-            self._show_error("Invalid filename")
+            message.error("Invalid filename")
             return False
         self.question.answer = text
         return True
@@ -703,13 +698,11 @@ class DownloadFilenamePrompt(FilenamePrompt):
         self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
 
     def accept(self, value=None):
-        text = value if value is not None else self._lineedit.text()
-        text = downloads.transform_path(text)
-        if text is None:
-            self._show_error("Invalid filename")
-            return False
-        self.question.answer = downloads.FileDownloadTarget(text)
-        return True
+        done = super().accept(value)
+        answer = self.question.answer
+        if answer is not None:
+            self.question.answer = downloads.FileDownloadTarget(answer)
+        return done
 
     def download_open(self, cmdline):
         self.question.answer = downloads.OpenFileDownloadTarget(cmdline)
