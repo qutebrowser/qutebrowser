@@ -33,6 +33,7 @@ Changed
 - Improved `qute:history` page with lazy loading
 - Messages are now hidden when clicked
 - Paths like `C:Downloads` are now treated as absolute paths on Windows.
+- PAC on QtWebKit now supports SOCK5 as type.
 
 Fixed
 ~~~~~
