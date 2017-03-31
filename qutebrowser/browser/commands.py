@@ -205,24 +205,21 @@ class CommandDispatcher:
                                  "{!r}!".format(conf_selection))
         return None
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
-    def tab_close(self, prev=False, next_=False, opposite=False, count=None):
-        """Close the current/[count]th tab.
+    def _tab_close(self, tab, prev=False, next_=False, opposite=False):
+        """Helper function for tab_close be able to handle message.async.
 
         Args:
+            tab: Tab select to be closed.
             prev: Force selecting the tab before the current tab.
             next_: Force selecting the tab after the current tab.
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs->select-on-remove'.
             count: The tab index to close, or None
         """
-        tab = self._cntwidget(count)
-        if tab is None:
-            return
         tabbar = self._tabbed_browser.tabBar()
         selection_override = self._get_selection_override(prev, next_,
                                                           opposite)
+
         if selection_override is None:
             self._tabbed_browser.close_tab(tab)
         else:
@@ -230,6 +227,62 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(selection_override)
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
+
+        if tab.data.pinned:
+            tabbar.pinned_count -= 1
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', count=True)
+    def tab_close(self, prev=False, next_=False, opposite=False,
+                  force=False, count=None):
+        """Close the current/[count]th tab.
+
+        Args:
+            prev: Force selecting the tab before the current tab.
+            next_: Force selecting the tab after the current tab.
+            opposite: Force selecting the tab in the opposite direction of
+                      what's configured in 'tabs->select-on-remove'.
+            force: Avoid confirmation for pinned tabs.
+            count: The tab index to close, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        close = functools.partial(self._tab_close, tab, prev,
+                                next_, opposite)
+
+        if tab.data.pinned and not force:
+            message.confirm_async(title='Pinned Tab',
+                    text="Are you sure you want to close a pinned tab?",
+                    yes_action=close, default=False)
+        else:
+            close()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       name='tab-pin')
+    @cmdutils.argument('index')
+    @cmdutils.argument('count', count=True)
+    def tab_pin(self, index=None, count=None):
+        """Pin/Unpin the current tab.
+
+        Args:
+            index: Location where the tab should be pinned/unpinned.
+            count: The tab index to pin or unpin, or None
+        """
+        tabbar = self._tabbed_browser.tabBar()
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
+        tab.data.pinned = not tab.data.pinned
+        if tab.data.pinned:
+            index = tabbar.pinned_count + 1 if index is None else int(index)
+        else:
+            index = self._count() if index is None else int(index)
+
+        self.tab_move(index)
+        self._tabbed_browser.set_tab_pinned(self._current_index(),
+                                            tab.data.pinned)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -274,6 +327,8 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
+                elif curtab.data.pinned:
+                    message.info("Tab is pinned!")
                 else:
                     curtab.openurl(cur_url)
 

@@ -1023,3 +1023,78 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+
+    # :tab-pin
+
+    Scenario: :tab-pin command
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-pin unpin
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-pin to index 2
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt (active)
+            - data/numbers/2.txt
+
+    Scenario: :tab-pin unpin to index 1
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-pin 1
+        Then the following tabs should be open:
+            - data/numbers/3.txt (active)
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+
+    Scenario: :tab-pin prompt yes
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close
+        And I wait for a prompt
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+
+    Scenario: :tab-pin prompt no
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept no
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+
+    Scenario: :tab-pin open url
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :open data/numbers/2.txt
+        Then the message "Tab is pinned!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active)

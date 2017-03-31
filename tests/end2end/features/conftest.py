@@ -160,7 +160,7 @@ def clean_open_tabs(quteproc):
     quteproc.set_setting('tabs', 'last-close', 'blank')
     quteproc.send_cmd(':window-only')
     quteproc.send_cmd(':tab-only')
-    quteproc.send_cmd(':tab-close')
+    quteproc.send_cmd(':tab-close --force')
 
 
 @bdd.given('pdfjs is available')

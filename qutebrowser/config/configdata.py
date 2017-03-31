@@ -685,6 +685,11 @@ def data(readonly=False):
              "The width of the tab bar if it's vertical, in px or as "
              "percentage of the window."),
 
+            ('pinned-width',
+             SettingValue(typ.Int(minval=10),
+                          '43'),
+             "The width for pinned tabs with a horizontal tabbar, in px."),
+
             ('indicator-width',
              SettingValue(typ.Int(minval=0), '3'),
              "Width of the progress indicator (0 to disable)."),
@@ -710,6 +715,14 @@ def data(readonly=False):
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
              "* `{backend}`: Either 'webkit' or 'webengine'"),
+
+            ('title-format-pinned',
+             SettingValue(typ.FormatString(
+                 fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
+                         'id', 'scroll_pos', 'host'], none_ok=True),
+                 '{index}'),
+             "The format to use for the tab title for pinned tabs."
+             "The same placeholders like for title-format are defined."),
 
             ('title-alignment',
              SettingValue(typ.TextAlignment(), 'left'),
@@ -1693,6 +1706,7 @@ KEY_DATA = collections.OrderedDict([
         ('follow-selected', RETURN_KEYS),
         ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
         ('repeat-command', ['.']),
+        ('tab-pin', ['<Ctrl-p>']),
         ('record-macro', ['q']),
         ('run-macro', ['@']),
     ])),

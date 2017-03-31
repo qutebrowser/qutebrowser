@@ -121,6 +121,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
+        objreg.get('config').changed.connect(self.update_tab_titles_pinned)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())

@@ -92,6 +92,24 @@ class TabWidget(QTabWidget):
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
+    def set_tab_pinned(self, idx, pinned):
+        """Set the tab status as pinned.
+
+        Args:
+            idx: The tab index.
+            pinned: Pinned tab state.
+        """
+        bar = self.tabBar()
+        bar.set_tab_data(idx, 'pinned', pinned)
+        bar.update(bar.tabRect(idx))
+
+        if pinned:
+            bar.pinned_count += 1
+        else:
+            bar.pinned_count -= 1
+
+        bar.refresh()
+
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
         return self.tabBar().tab_indicator_color(idx)
@@ -107,12 +125,19 @@ class TabWidget(QTabWidget):
 
     def update_tab_title(self, idx):
         """Update the tab text for the given tab."""
+        tab = self.widget(idx)
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
         fields['index'] = idx + 1
 
         fmt = config.get('tabs', 'title-format')
-        title = '' if fmt is None else fmt.format(**fields)
+        fmt_pinned = config.get('tabs', 'title-format-pinned')
+
+        if tab.data.pinned:
+            title = '' if fmt_pinned is None else fmt_pinned.format(**fields)
+        else:
+            title = '' if fmt is None else fmt.format(**fields)
+
         self.tabBar().setTabText(idx, title)
 
     def get_tab_fields(self, idx):
@@ -155,6 +180,12 @@ class TabWidget(QTabWidget):
 
     @config.change_filter('tabs', 'title-format')
     def update_tab_titles(self):
+        """Update all texts."""
+        for idx in range(self.count()):
+            self.update_tab_title(idx)
+
+    @config.change_filter('tabs', 'title-format-pinned')
+    def update_tab_titles_pinned(self):
         """Update all texts."""
         for idx in range(self.count()):
             self.update_tab_title(idx)
@@ -282,6 +313,7 @@ class TabBar(QTabBar):
         self._auto_hide_timer.timeout.connect(self._tabhide)
         self.setAutoFillBackground(True)
         self.set_colors()
+        self.pinned_count = 0
         config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self._tabhide)
         config_obj.changed.connect(self.on_tab_colors_changed)
@@ -462,9 +494,31 @@ class TabBar(QTabBar):
             # get scroll buttons as soon as needed.
             size = minimum_size
         else:
+            tab_width_pinned_conf = config.get('tabs', 'pinned-width')
+
+            try:
+                pinned = self.tab_data(index, 'pinned')
+            except KeyError:
+                pinned = False
+
+            if pinned:
+                size = QSize(tab_width_pinned_conf, height)
+                qtutils.ensure_valid(size)
+                return size
+
             # If we *do* have enough space, tabs should occupy the whole window
-            # width.
-            width = self.width() / self.count()
+            # width. If there is pinned tabs their size will be substracted
+            # from the total window width.
+            # During shutdown the self.count goes down,
+            # but the self.pinned_count not - this generates some odd behavior.
+            # To avoid this we compare self.count against self.pinned_count.
+            if self.pinned_count > 0 and self.count() > self.pinned_count:
+                pinned_width = tab_width_pinned_conf * self.pinned_count
+                no_pinned_width = self.width() - pinned_width
+                width = no_pinned_width / (self.count() - self.pinned_count)
+            else:
+                width = self.width() / self.count()
+
             # If width is not divisible by count, add a pixel to some tabs so
             # that there is no ugly leftover space.
             if index < self.width() % self.count():
