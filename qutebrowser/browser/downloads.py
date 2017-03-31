@@ -911,27 +911,56 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_delete(self, all_=False, count=0):
+    def download_delete(self, indexset=None, count=0):
         """Delete the last/[count]th download from disk.
 
         Args:
-            all: Delete all listed downloads.
+            indexset: Specify the set of download indexes to delete. E.g.
+                '2,5,6-last,3', where 'last' is special keyword that denotes
+                that latest download index. If you specify numbers smaller than
+                1, or greater than 'last', then those numbers will be silently
+                ignored.
             count: The index of the download to delete.
         """
 
-        repeat = count+1
-        if all_:
-            repeat = len(self)
+        # if there are no downloads, raise an exception
+        if len(self) == 0:
+            self._raise_no_download(count)
 
-        for i in range(0, repeat):
+        # get list of indexes to delete
+        if indexset == None:
+            indexes_to_del = [count]
+        else:
             try:
-                download = self[count - 1]
+                indexes_to_del = [i for i in utils.parse_number_sets(indexset, 1, len(self))]
+            except ValueError:
+                raise cmdexc.CommandError("Invalid index set '{}'!".format(indexset))
+
+        # get list of downloaded items to delete
+        download_to_del = []
+        for i in indexes_to_del:
+            j = i - 1
+            try:
+                download = self[j]
+                if download.successful:
+                    download_to_del.append(download)
+                else:
+                    raise cmdexc.CommandError("Download {} is not done!".format(i))
             except IndexError:
-                self._raise_no_download(count)
-            if not download.successful:
-                if not count:
-                    count = len(self)
-                raise cmdexc.CommandError("Download {} is not done!".format(count))
+                # silently ignore the case when a particular download index 'i'
+                # does not exist. in caveman's view, there is no need to be too
+                # chatty, and that it is maybe better to calm down, and
+                # complain later on only if there is absolutely nothing to
+                # delete
+                pass
+
+        # complain only if there is absolutely nothing to delete. caveman
+        # thinks this is a good idea.
+        if len(download_to_del) == 0:
+            raise cmdexc.CommandError("None of the downloaded items matched!")
+
+        # delete downloads
+        for download in download_to_del:
             download.delete()
             download.remove()
             log.downloads.debug("deleted download {}".format(download))

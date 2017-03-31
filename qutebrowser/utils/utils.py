@@ -845,3 +845,35 @@ def open_file(filename, cmdline=None):
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
     pass
+
+
+def parse_number_sets(txtset, nummin, nummax):
+    """Parse the given numbers set in text format, and return it as a list of
+    numbers, such that the numbers are never smaller than nummin, and never
+    greater than nummax.
+
+    Args:
+        txtset: Numbers set specification. E.g. '1,5,8-last,32,2', where 'last'
+        is a special keyword that denotes that maximum allowable number.
+        nummin: Minimum allowable number.
+        nummax: Maximum allowable number.
+    """
+    txtset = txtset.lower().replace('last', '%d' % (nummax))
+    numset = set()
+    parts = txtset.split(',')
+    for part in parts:
+        if part.find('-') != -1:
+            [start, end] = part.split('-')
+            start = int(start)
+            end = int(end)
+            if start < nummin:
+                start = nummin
+            if end > nummax:
+                end = nummax
+            for i in range(int(start), int(end)+1):
+                numset.add(i)
+        else:
+            i = int(part)
+            if i >= nummin and i <= nummax:
+                numset.add(i)
+    return sorted(numset)
