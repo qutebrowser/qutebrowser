@@ -124,6 +124,34 @@ When using quickmark, you can give them all names, like
 `:open foodrecipes`, you will see a list of all the food recipe sites,
 without having to remember the exact website title or address.
 
+How do I use spell checking?::
+    Qutebrowser's support for spell checking is somewhat limited at the moment
+    (see https://github.com/qutebrowser/qutebrowser/issues/700[#700]), but it
+    can be done.
++
+For QtWebKit:
+
+. Install https://github.com/QupZilla/qtwebkit-plugins[qtwebkit-plugins].
+  . Note: with QtWebKit reloaded you may experience some issues. See
+    https://github.com/QupZilla/qtwebkit-plugins/issues/10[#10].
+. The dictionary to use is taken from the `DICTIONARY` environment variable.
+  The default is `en_US`. For example to use Dutch spell check set `DICTIONARY`
+  to `nl_NL`; you can't use multiple dictionaries or change them at runtime at
+  the moment.
+  (also see the README file for `qtwebkit-plugins`).
+. Remember to install the hunspell dictionaries if you don't have them already
+  (most distros should have packages for this).
+
++
+For QtWebEngine:
+
+. Not yet supported unfortunately :-( +
+  Adding it shouldn't be too hard though, since QtWebEngine 5.8 added an API for
+  this (see
+  https://github.com/qutebrowser/qutebrowser/issues/700#issuecomment-290780706[this
+  comment for a basic example]), so what are you waiting for and why aren't you
+  hacking qutebrowser yet?
+
 == Troubleshooting
 
 Configuration not saved after modifying config.::
