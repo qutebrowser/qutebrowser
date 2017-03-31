@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Keyboard input
 
     Tests for :bind and :unbind, :clear-keychain and other keyboard input
