@@ -911,23 +911,30 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_delete(self, count=0):
+    def download_delete(self, all_=False, count=0):
         """Delete the last/[count]th download from disk.
 
         Args:
+            all: Delete all listed downloads.
             count: The index of the download to delete.
         """
-        try:
-            download = self[count - 1]
-        except IndexError:
-            self._raise_no_download(count)
-        if not download.successful:
-            if not count:
-                count = len(self)
-            raise cmdexc.CommandError("Download {} is not done!".format(count))
-        download.delete()
-        download.remove()
-        log.downloads.debug("deleted download {}".format(download))
+
+        repeat = count+1
+        if all_:
+            repeat = len(self)
+
+        for i in range(0, repeat):
+            try:
+                download = self[count - 1]
+            except IndexError:
+                self._raise_no_download(count)
+            if not download.successful:
+                if not count:
+                    count = len(self)
+                raise cmdexc.CommandError("Download {} is not done!".format(count))
+            download.delete()
+            download.remove()
+            log.downloads.debug("deleted download {}".format(download))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
