@@ -938,6 +938,7 @@ class DownloadModel(QAbstractListModel):
 
         # get list of downloaded items to delete
         download_to_del = []
+        download_incomplete = []
         for i in indexes_to_del:
             j = i - 1
             try:
@@ -945,16 +946,15 @@ class DownloadModel(QAbstractListModel):
                 if download.successful:
                     download_to_del.append(download)
                 else:
-                    raise cmdexc.CommandError("Download {} is not done!".format(i))
+                    download_incomplete.append(i)
             except IndexError:
-                # silently ignore the case when a particular download index 'i'
-                # does not exist. in caveman's view, there is no need to be too
-                # chatty, and that it is maybe better to calm down, and
-                # complain later on only if there is absolutely nothing to
-                # delete
+                # i (caveman) think, there is no need to be too
+                # interactive/online. we probably better delete whatever is
+                # deletable first, and then complain about various errors later
+                # on. so for now we do nothing
                 pass
 
-        # complain only if there is absolutely nothing to delete. caveman
+        # complain if there is absolutely nothing to delete. caveman
         # thinks this is a good idea.
         if len(download_to_del) == 0:
             raise cmdexc.CommandError("None of the downloaded items matched!")
@@ -964,6 +964,14 @@ class DownloadModel(QAbstractListModel):
             download.delete()
             download.remove()
             log.downloads.debug("deleted download {}".format(download))
+
+        # raise exception for those downloads that were incomplete
+        if len(download_incomplete) > 0:
+            plural = 's'
+            if (download_incomplete) == 1:
+                plural = ''
+            raise cmdexc.CommandError("Download%s %s is not done!" % (plural,
+            ', '.join([str(i) for i in download_incomplete])))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
