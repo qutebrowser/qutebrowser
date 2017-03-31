@@ -103,7 +103,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         try:
             fileobj = open(self._filename, 'wb')
         except OSError as e:
-            self._die(e.strerror)
+            self._die('{}: {}'.format(e.strerror, self._filename))
         else:
             self._set_fileobj(fileobj)
 
@@ -172,9 +172,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
         assert not self.successful
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = self._manager.fetch(new_reply,
+                                           target=self.target,
                                            suggested_filename=self.basename)
         self.adopt_download.emit(new_download)
-        self.cancel()
 
     def _get_open_filename(self):
         filename = self._filename

@@ -131,7 +131,12 @@ def create_full_filename(basename, filename):
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
     basename = utils.force_encoding(basename, encoding)
-    if os.path.isabs(filename) and os.path.isdir(filename):
+
+    if filename.endswith('/'):
+        # The path is a directory we want to store the file in (rather than the
+        # path *to* the file).
+        return os.path.join(filename, basename)
+    elif os.path.isabs(filename) and os.path.isdir(filename):
         # We got an absolute directory from the user, so we save it under
         # the default filename in that directory.
         return os.path.join(filename, basename)
@@ -359,6 +364,8 @@ class AbstractDownloadItem(QObject):
         error_msg: The current error message, or None
         fileobj: The file object to download the file to.
         raw_headers: The headers sent by the server.
+        basename: The basename to use if filename is a directory.
+        target: The DownloadTarget for this download.
         _filename: The filename of the download.
         _dead: Whether the Download has _die()'d.
 
@@ -383,12 +390,12 @@ class AbstractDownloadItem(QObject):
         self.done = False
         self.stats = DownloadItemStats(self)
         self.index = 0
-        self.error_msg = None
-        self.basename = '???'
         self.successful = False
-
+        self.error_msg = None
         self.fileobj = UnsupportedAttribute()
         self.raw_headers = UnsupportedAttribute()
+        self.basename = '???'
+        self.target = None
 
         self._filename = None
         self._dead = False
@@ -669,6 +676,7 @@ class AbstractDownloadItem(QObject):
         Args:
             target: The DownloadTarget for this download.
         """
+        self.target = target
         if isinstance(target, FileObjDownloadTarget):
             self._set_fileobj(target.fileobj, autoclose=False)
         elif isinstance(target, FileDownloadTarget):
@@ -927,7 +935,7 @@ class DownloadModel(QAbstractListModel):
                 if not count:
                     count = len(self)
                 raise cmdexc.CommandError("Download {} is already done!"
-                                        .format(count))
+                                          .format(count))
             download.cancel()
 
     @cmdutils.register(instance='download-model', scope='window')
