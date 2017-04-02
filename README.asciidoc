@@ -285,6 +285,7 @@ Contributors, sorted by the number of commits in descending order:
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
+* Amos Bird
 * Akselmo
 // QUTE_AUTHORS_END
 
