@@ -340,8 +340,9 @@ def _open_quickstart(args):
 
 def _save_version():
     """Save the current version to the state config."""
-    state_config = objreg.get('state-config')
-    state_config['general']['version'] = qutebrowser.__version__
+    state_config = objreg.get('state-config', None)
+    if state_config is not None:
+        state_config['general']['version'] = qutebrowser.__version__
 
 
 def on_focus_changed(_old, new):
@@ -647,14 +648,14 @@ class Quitter:
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
-
-        session_manager = objreg.get('session-manager')
-        if session is not None:
-            session_manager.save(session, last_window=last_window,
-                                 load_next_time=True)
-        elif config.get('general', 'save-session'):
-            session_manager.save(sessions.default, last_window=last_window,
-                                 load_next_time=True)
+        session_manager = objreg.get('session-manager', None)
+        if session_manager is not None:
+            if session is not None:
+                session_manager.save(session, last_window=last_window,
+                                     load_next_time=True)
+            elif config.get('general', 'save-session'):
+                session_manager.save(sessions.default, last_window=last_window,
+                                     load_next_time=True)
 
         if prompt.prompt_queue.shutdown():
             # If shutdown was called while we were asking a question, we're in
@@ -680,7 +681,9 @@ class Quitter:
         # Remove eventfilter
         try:
             log.destroy.debug("Removing eventfilter...")
-            qApp.removeEventFilter(objreg.get('event-filter'))
+            event_filter = objreg.get('event-filter', None)
+            if event_filter is not None:
+                qApp.removeEventFilter(event_filter)
         except AttributeError:
             pass
         # Close all windows
@@ -722,7 +725,9 @@ class Quitter:
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
         objreg.get('signal-handler').deactivate()
-        objreg.get('session-manager').delete_autosave()
+        session_manager = objreg.get('session-manager', None)
+        if session_manager is not None:
+            session_manager.delete_autosave()
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
