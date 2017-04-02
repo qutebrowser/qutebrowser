@@ -34,7 +34,9 @@ Changed
 - Messages are now hidden when clicked
 - Paths like `C:` are now treated as absolute paths on Windows for downloads,
   and invalid paths are handled properly.
-- PAC on QtWebKit now supports SOCK5 as type.
+- PAC on QtWebKit now supports SOCKS5 as type.
+- Comments in the config file are now before the individual
+  options instead of being before sections.
 
 Fixed
 ~~~~~
