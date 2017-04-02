@@ -163,6 +163,14 @@ Save the file and then install qutebrowser via
 
 Or rebuild your system if you already installed it.
 
+To update to the last Live version, remember to do
+
+----
+# emerge -uDNav @live-rebuild @world
+----
+
+To include qutebrowser among the updates.
+
 Make sure you have `python3_4` in your `PYTHON_TARGETS`
 (`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
 necessary.
