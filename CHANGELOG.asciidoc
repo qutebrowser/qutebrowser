@@ -45,6 +45,7 @@ Fixed
 - Crash when cloning page without history
 - Continuing a search after clearing it
 - Crash when downloading a download resulting in a HTTP error
+- Crash when pressing ctrl-c while a config error is shown
 - Various rare crashes
 
 v0.10.1
