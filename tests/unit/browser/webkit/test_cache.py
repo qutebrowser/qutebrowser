@@ -25,8 +25,9 @@ from qutebrowser.browser.webkit import cache
 from qutebrowser.utils import qtutils
 
 
-pytestmark = pytest.mark.skipif(qtutils.version_check('5.8', exact=True),
-                                reason="QNetworkDiskCache is broken on Qt 5.8")
+pytestmark = pytest.mark.skipif(qtutils.version_check('5.7'),
+                                reason="QNetworkDiskCache is broken on Qt >= "
+                                       "5.7")
 
 
 def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
