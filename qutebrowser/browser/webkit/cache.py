@@ -54,7 +54,7 @@ class DiskCache(QNetworkDiskCache):
         if size is None:
             size = 1024 * 1024 * 50  # default from QNetworkDiskCachePrivate
         # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/2427
-        if qtutils.version_check('5.8', exact=True):
+        if qtutils.version_check('5.8', exact=True):  # pragma: no cover
             size = 0
         self.setMaximumCacheSize(size)
 
