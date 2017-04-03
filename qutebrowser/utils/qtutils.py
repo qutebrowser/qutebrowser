@@ -406,15 +406,12 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj, null=False):
+    def __init__(self, obj):
         try:
             self.reason = obj.errorString()
         except AttributeError:
             self.reason = None
-        if null:
-            err = "{} is null".format(obj)
-        else:
-            err = "{} is not valid".format(obj)
+        err = "{} is not valid".format(obj)
         if self.reason:
             err += ": {}".format(self.reason)
         super().__init__(err)
