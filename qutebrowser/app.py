@@ -170,12 +170,15 @@ def _init_icon():
     for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
         filename = ':/icons/qutebrowser-{}x{}.png'.format(size, size)
         pixmap = QPixmap(filename)
-        qtutils.ensure_not_null(pixmap)
-        fallback_icon.addPixmap(pixmap)
-    qtutils.ensure_not_null(fallback_icon)
+        if pixmap.isNull():
+            log.init.warn("Failed to load {}".format(filename))
+        else:
+            fallback_icon.addPixmap(pixmap)
     icon = QIcon.fromTheme('qutebrowser', fallback_icon)
-    qtutils.ensure_not_null(icon)
-    qApp.setWindowIcon(icon)
+    if icon.isNull():
+        log.init.warn("Failed to load icon")
+    else:
+        qApp.setWindowIcon(icon)
 
 
 def _process_args(args):
