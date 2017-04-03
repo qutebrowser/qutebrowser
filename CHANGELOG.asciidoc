@@ -37,6 +37,8 @@ Changed
 - PAC on QtWebKit now supports SOCKS5 as type.
 - Comments in the config file are now before the individual
   options instead of being before sections.
+- The HTTP cache is disabled with QtWebKit on Qt 5.8 now as it leads to frequent
+  crashes due to a Qt bug.
 
 Fixed
 ~~~~~
