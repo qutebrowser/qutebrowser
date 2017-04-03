@@ -174,12 +174,6 @@ def ensure_valid(obj):
         raise QtValueError(obj)
 
 
-def ensure_not_null(obj):
-    """Ensure a Qt object with an .isNull() method is not null."""
-    if obj.isNull():
-        raise QtValueError(obj, null=True)
-
-
 def check_qdatastream(stream):
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
