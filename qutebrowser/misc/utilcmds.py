@@ -295,12 +295,15 @@ def debug_log_filter(filters: str):
     Args:
         filters: A comma separated list of logger names.
     """
-    if set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        log.console_filter.names = filters.split(',')
-    else:
+    if not set(filters.split(',')).issubset(log.LOGGER_NAMES):
         raise cmdexc.CommandError("filters: Invalid value {} - expected one "
                                   "of: {}".format(filters,
                                                   ', '.join(log.LOGGER_NAMES)))
+
+    if log.console_filter is None:
+        raise cmdexc.CommandError("No log.console_filter. Not attached "
+                                  "to a console?")
+    log.console_filter.names = filters.split(',')
 
 
 @cmdutils.register()
