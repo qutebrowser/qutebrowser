@@ -322,7 +322,7 @@ class KeyConfigParser(QObject):
                         else:
                             line = line.strip()
                             self._read_command(line)
-                    except KeyConfigError as e:
+                    except (KeyConfigError, cmdexc.CommandError) as e:
                         if relaxed:
                             continue
                         else:

@@ -186,7 +186,8 @@ def _init_key_config(parent):
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
                                              args.relaxed_config,
                                              parent=parent)
-    except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
+    except (keyconf.KeyConfigError, cmdexc.CommandError,
+            UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
