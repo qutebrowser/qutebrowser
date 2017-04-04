@@ -51,6 +51,7 @@ Fixed
 - Crash when downloading a download resulting in a HTTP error
 - Crash when pressing ctrl-c while a config error is shown
 - Crash when the key config isn't writable
+- Crash when unbinding an unbound key in the key config
 - Various rare crashes
 
 v0.10.1
