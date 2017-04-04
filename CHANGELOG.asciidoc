@@ -24,6 +24,8 @@ Added
 - New `ui -> keyhint-delay` setting to configure the delay until
   the keyhint overlay pops up.
 - New `-s` option for `:open` to force a HTTPS scheme.
+- `:debug-log-filter` now accepts `none` as an argument to clear any log
+  filters.
 
 Changed
 ~~~~~~~

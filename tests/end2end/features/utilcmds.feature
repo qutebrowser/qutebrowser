@@ -166,5 +166,8 @@ Feature: Miscellaneous utility commands exposed to the user.
         Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
 
     Scenario: Using debug-log-filter
-        When I run :debug-log-filter webview
-        Then no crash should happen
+        When I run :debug-log-filter commands,ipc,webview
+        And I run :enter-mode insert
+        And I run :debug-log-filter none
+        And I run :leave-mode
+        Then "Entering mode KeyMode.insert *" should not be logged
