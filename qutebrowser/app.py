@@ -481,7 +481,7 @@ def _import_history():
 
        In older versions of qutebrowser, history was stored in a text format.
        This converts that file into the new sqlite format and removes it.
-   """
+    """
     path = os.path.join(standarddir.data(), 'history')
     if not os.path.isfile(path):
         return

@@ -97,7 +97,7 @@ class WebHistory(sql.SqlTable):
 
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
-                         primary_key='url', parent=parent)
+                         parent=parent)
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
@@ -105,7 +105,7 @@ class WebHistory(sql.SqlTable):
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
         self.insert([entry.url_str(), entry.title, entry.atime,
-                     entry.redirect], replace=True)
+                     entry.redirect])
 
     def get_recent(self):
         """Get the most recent history entries."""

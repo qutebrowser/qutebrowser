@@ -71,7 +71,7 @@ def _validate(cat, expected):
      [('B', 'C', 2), ('C', 'A', 1), ('A', 'F', 0)]),
 ])
 def test_sorting(sort_by, sort_order, data, expected):
-    table = sql.SqlTable('Foo', ['a', 'b', 'c'], primary_key='a')
+    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in data:
         table.insert(row)
     cat = sqlcategory.SqlCategory('Foo', sort_by=sort_by,
@@ -126,7 +126,7 @@ def test_sorting(sort_by, sort_order, data, expected):
 ])
 def test_set_pattern(pattern, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
-    table = sql.SqlTable('Foo', ['a', 'b', 'c'], primary_key='a')
+    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in before:
         table.insert(row)
     cat = sqlcategory.SqlCategory('Foo')
@@ -135,14 +135,14 @@ def test_set_pattern(pattern, filter_cols, before, after):
 
 
 def test_select():
-    table = sql.SqlTable('Foo', ['a', 'b', 'c'], primary_key='a')
+    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     table.insert(['foo', 'bar', 'baz'])
     cat = sqlcategory.SqlCategory('Foo', select='b, c, a')
     _validate(cat, [('bar', 'baz', 'foo')])
 
 
 def test_where():
-    table = sql.SqlTable('Foo', ['a', 'b', 'c'], primary_key='a')
+    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     table.insert(['foo', 'bar', False])
     table.insert(['baz', 'biz', True])
     cat = sqlcategory.SqlCategory('Foo', where='not c')
@@ -150,7 +150,7 @@ def test_where():
 
 
 def test_entry():
-    table = sql.SqlTable('Foo', ['a', 'b', 'c'], primary_key='a')
+    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     assert hasattr(table.Entry, 'a')
     assert hasattr(table.Entry, 'b')
     assert hasattr(table.Entry, 'c')

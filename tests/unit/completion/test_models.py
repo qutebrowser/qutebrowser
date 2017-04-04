@@ -157,8 +157,7 @@ def bookmarks(bookmark_manager_stub):
 @pytest.fixture
 def web_history(stubs, init_sql):
     """Pre-populate the web-history database."""
-    table = sql.SqlTable("History", ['url', 'title', 'atime', 'redirect'],
-                         primary_key='url')
+    table = sql.SqlTable("History", ['url', 'title', 'atime', 'redirect'])
     table.insert(['http://some-redirect.example.com', 'redirect',
                   datetime(2016, 9, 5).timestamp(), True])
     table.insert(['http://qutebrowser.org', 'qutebrowser',

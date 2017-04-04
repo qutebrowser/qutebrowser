@@ -101,6 +101,7 @@ def run_batch(querystr, values):
 
     return query
 
+
 class SqlTable(QObject):
 
     """Interface to a sql table.
@@ -108,7 +109,6 @@ class SqlTable(QObject):
     Attributes:
         Entry: The class wrapping row data from this table.
         _name: Name of the SQL table this wraps.
-        _primary_key: The primary key of the table.
 
     Signals:
         changed: Emitted when the table is modified.
@@ -116,7 +116,7 @@ class SqlTable(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, name, fields, primary_key, parent=None):
+    def __init__(self, name, fields, parent=None):
         """Create a new table in the sql database.
 
         Raises SqlException if the table already exists.
@@ -124,11 +124,9 @@ class SqlTable(QObject):
         Args:
             name: Name of the table.
             fields: A list of field names.
-            primary_key: Name of the field to serve as the primary key.
         """
         super().__init__(parent)
         self._name = name
-        self._primary_key = primary_key
         run_query("CREATE TABLE IF NOT EXISTS {} ({})"
                   .format(name, ','.join(fields)))
         # pylint: disable=invalid-name
@@ -141,74 +139,47 @@ class SqlTable(QObject):
             rec = result.record()
             yield self.Entry(*[rec.value(i) for i in range(rec.count())])
 
-    def __contains__(self, key):
-        """Return whether the table contains the matching item.
-
-        Args:
-            key: Primary key value to search for.
-        """
-        query = run_query("SELECT * FROM {} where {} = ?".format(
-            self._name, self._primary_key), [key])
-        return query.next()
-
     def __len__(self):
         """Return the count of rows in the table."""
         result = run_query("SELECT count(*) FROM {}".format(self._name))
         result.next()
         return result.value(0)
 
-    def __getitem__(self, key):
-        """Retrieve the row matching the given key.
-
-        Args:
-            key: Primary key value to fetch.
-        """
-        result = run_query("SELECT * FROM {} where {} = ?".format(
-            self._name, self._primary_key), [key])
-        result.next()
-        rec = result.record()
-        return self.Entry(*[rec.value(i) for i in range(rec.count())])
-
-    def delete(self, value, field=None):
+    def delete(self, value, field):
         """Remove all rows for which `field` equals `value`.
 
         Args:
             value: Key value to delete.
-            field: Field to use as the key, defaults to the primary key.
+            field: Field to use as the key.
 
         Return:
             The number of rows deleted.
         """
-        field = field or self._primary_key
         query = run_query("DELETE FROM {} where {} = ?".format(
             self._name, field), [value])
         if not query.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
-    def insert(self, values, replace=False):
+    def insert(self, values):
         """Append a row to the table.
 
         Args:
             values: A list of values to insert.
-            replace: If true, allow inserting over an existing primary key.
         """
-        cmd = "REPLACE" if replace else "INSERT"
         paramstr = ','.join(['?'] * len(values))
-        run_query("{} INTO {} values({})".format(cmd, self._name, paramstr),
+        run_query("INSERT INTO {} values({})".format(self._name, paramstr),
             values)
         self.changed.emit()
 
-    def insert_batch(self, rows, replace=False):
+    def insert_batch(self, rows):
         """Performantly append multiple rows to the table.
 
         Args:
             rows: A list of lists, where each sub-list is a row.
-            replace: If true, allow inserting over an existing primary key.
         """
-        cmd = "REPLACE" if replace else "INSERT"
         paramstr = ','.join(['?'] * len(rows[0]))
-        run_batch("{} INTO {} values({})".format(cmd, self._name, paramstr),
+        run_batch("INSERT INTO {} values({})".format(self._name, paramstr),
             rows)
         self.changed.emit()
 

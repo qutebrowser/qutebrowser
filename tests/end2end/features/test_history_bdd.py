@@ -20,31 +20,29 @@
 import os.path
 
 import pytest_bdd as bdd
+
+from PyQt5.QtSql import QSqlDatabase, QSqlQuery
+
 bdd.scenarios('history.feature')
 
 
 @bdd.then(bdd.parsers.parse("the history file should contain:\n{expected}"))
 def check_history(quteproc, httpbin, expected):
-    history_file = os.path.join(quteproc.basedir, 'data', 'history')
-    quteproc.send_cmd(':save history')
-    quteproc.wait_for(message=':save saved history')
-
-    expected = expected.replace('(port)', str(httpbin.port)).splitlines()
-
-    with open(history_file, 'r', encoding='utf-8') as f:
-        lines = []
-        for line in f:
-            if not line.strip():
-                continue
-            print('history line: ' + line)
-            atime, line = line.split(' ', maxsplit=1)
-            line = line.rstrip()
-            if '-' in atime:
-                flags = atime.split('-')[1]
-                line = '{} {}'.format(flags, line)
-            lines.append(line)
-
-    assert lines == expected
+    path = os.path.join(quteproc.basedir, 'data', 'history.sqlite')
+    db = QSqlDatabase.addDatabase('QSQLITE')
+    db.setDatabaseName(path)
+    assert db.open(), 'Failed to open history database'
+    query = db.exec_('select * from History')
+    actual = []
+    while query.next():
+        rec = query.record()
+        url = rec.value(0)
+        title = rec.value(1)
+        redirect = rec.value(3)
+        actual.append('{} {} {}'.format('r' * redirect, url, title).strip())
+    db = None
+    QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
+    assert actual == expected.replace('(port)', str(httpbin.port)).splitlines()
 
 
 @bdd.then("the history file should be empty")

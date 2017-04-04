@@ -65,14 +65,6 @@ def test_len(hist):
     assert len(hist) == 1
 
 
-def test_updated_entries(tmpdir, hist):
-    hist.add_url(QUrl('http://example.com/'), atime=67890)
-    assert list(hist) == [('http://example.com/', '', 67890, False)]
-
-    hist.add_url(QUrl('http://example.com/'), atime=99999)
-    assert list(hist) == [('http://example.com/', '', 99999, False)]
-
-
 def test_get_recent(hist):
     hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
     hist.add_url(QUrl('http://example.com/'), atime=12345)
@@ -117,7 +109,7 @@ def test_clear_force(qtbot, tmpdir, hist):
 def test_add_item(qtbot, hist, item):
     (url, atime, title, redirect) = item
     hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
-    assert hist[url] == (url, title, atime, redirect)
+    assert list(hist) == [(url, title, atime, redirect)]
 
 
 def test_add_item_invalid(qtbot, hist, caplog):
@@ -137,15 +129,6 @@ def test_add_from_tab(hist, level, url, req_url, expected, mock_time, caplog):
     with caplog.at_level(level):
         hist.add_from_tab(QUrl(url), QUrl(req_url), 'title')
     assert set(list(hist)) == set(expected)
-
-
-def test_add_item_redirect_update(qtbot, tmpdir, hist):
-    """A redirect update added should override a non-redirect one."""
-    url = 'http://www.example.com/'
-    hist.add_url(QUrl(url), atime=5555)
-    hist.add_url(QUrl(url), redirect=True, atime=67890)
-
-    assert hist[url] == (url, '', 67890, True)
 
 
 @pytest.fixture

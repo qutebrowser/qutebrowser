@@ -327,7 +327,8 @@ def version():
 
     lines += ['pdf.js: {}'.format(_pdfjs_version())]
 
-    sql.init()
+    # we can use an in-memory database as we just want to query the version
+    sql.init('')
     lines += ['sqlite: {}'.format(sql.version())]
     sql.close()
 

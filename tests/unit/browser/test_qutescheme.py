@@ -98,7 +98,7 @@ class TestHistoryHandler:
     @pytest.fixture
     def fake_web_history(self, fake_save_manager, tmpdir, init_sql):
         """Create a fake web-history and register it into objreg."""
-        web_history = history.WebHistory(tmpdir.dirname, 'fake-history')
+        web_history = history.WebHistory()
         objreg.register('web-history', web_history)
         yield web_history
         objreg.delete('web-history')
@@ -108,7 +108,6 @@ class TestHistoryHandler:
         """Create fake history."""
         for item in entries:
             fake_web_history._add_entry(item)
-        fake_web_history.save()
 
     @pytest.mark.parametrize("start_time_offset, expected_item_count", [
         (0, 4),
