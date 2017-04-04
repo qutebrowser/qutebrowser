@@ -36,7 +36,7 @@ from PyQt5.QtCore import QUrlQuery
 import qutebrowser
 from qutebrowser.config import config
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, usertypes)
+                               objreg, usertypes, qtutils)
 from qutebrowser.misc import objects
 
 
@@ -257,9 +257,15 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time))
     else:
+        try:
+            from PyQt5.QtWebKit import qWebKitVersion
+            is_webkit_ng = qtutils.is_qtwebkit_ng(qWebKitVersion())
+        except ImportError:  # pragma: no cover
+            is_webkit_ng = False
+
         if (
             config.get('content', 'allow-javascript') and
-            objects.backend == usertypes.Backend.QtWebEngine
+            (objects.backend == usertypes.Backend.QtWebEngine or is_webkit_ng)
         ):
             return 'text/html', jinja.render(
                 'history.html',
