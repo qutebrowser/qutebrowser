@@ -291,7 +291,7 @@ def qute_history(url):
             )
         else:
             # Get current date from query parameter, if not given choose today.
-            curr_date = date.today()
+            curr_date = datetime.date.today()
             try:
                 query_date = QUrlQuery(url).queryItemValue("date")
                 if query_date:
@@ -320,7 +320,7 @@ def qute_history(url):
                 curr_date=curr_date,
                 next_date=next_date,
                 prev_date=prev_date,
-                today=date.today(),
+                today=datetime.date.today(),
             )
 
 
