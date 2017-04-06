@@ -20,13 +20,11 @@
 """Simple history which gets written to disk."""
 
 import time
-import os
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
-                               usertypes, message)
+from qutebrowser.utils import utils, objreg, log, qtutils, usertypes, message
 from qutebrowser.misc import objects, sql
 
 
@@ -201,7 +199,7 @@ class WebHistory(sql.SqlTable):
 
     def read(self, path):
         """Import a text file into the sql database."""
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             rows = []
             for line in f:
                 try:

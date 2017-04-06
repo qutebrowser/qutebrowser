@@ -21,7 +21,7 @@ import os.path
 
 import pytest_bdd as bdd
 
-from PyQt5.QtSql import QSqlDatabase, QSqlQuery
+from PyQt5.QtSql import QSqlDatabase
 
 bdd.scenarios('history.feature')
 

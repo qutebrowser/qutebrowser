@@ -479,8 +479,8 @@ def _init_modules(args, crash_handler):
 def _import_history():
     """Import a history text file into sqlite if it exists.
 
-       In older versions of qutebrowser, history was stored in a text format.
-       This converts that file into the new sqlite format and removes it.
+    In older versions of qutebrowser, history was stored in a text format.
+    This converts that file into the new sqlite format and removes it.
     """
     path = os.path.join(standarddir.data(), 'history')
     if not os.path.isfile(path):

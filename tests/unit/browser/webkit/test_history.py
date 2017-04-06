@@ -22,8 +22,6 @@
 import logging
 
 import pytest
-import hypothesis
-from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
@@ -69,7 +67,7 @@ def test_get_recent(hist):
     hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
     hist.add_url(QUrl('http://example.com/'), atime=12345)
     assert list(hist.get_recent()) == [
-        ('http://www.qutebrowser.org/', '', 67890 , False),
+        ('http://www.qutebrowser.org/', '', 67890, False),
         ('http://example.com/', '', 12345, False),
     ]
 
