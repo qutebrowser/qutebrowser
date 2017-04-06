@@ -24,6 +24,8 @@ Added
 - New `ui -> keyhint-delay` setting to configure the delay until
   the keyhint overlay pops up.
 - New `-s` option for `:open` to force a HTTPS scheme.
+- `:debug-log-filter` now accepts `none` as an argument to clear any log
+  filters.
 
 Changed
 ~~~~~~~
@@ -52,6 +54,7 @@ Fixed
 - Crash when pressing ctrl-c while a config error is shown
 - Crash when the key config isn't writable
 - Crash when unbinding an unbound key in the key config
+- Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Various rare crashes
 
 v0.10.1
