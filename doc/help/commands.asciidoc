@@ -1599,7 +1599,8 @@ Syntax: +:debug-log-filter 'filters'+
 Change the log filter for console logging.
 
 ==== positional arguments
-* +'filters'+: A comma separated list of logger names.
+* +'filters'+: A comma separated list of logger names. Can also be "none" to clear any existing filters.
+
 
 [[debug-log-level]]
 === debug-log-level
