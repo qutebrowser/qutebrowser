@@ -24,6 +24,7 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+from datetime import date, datetime, timedelta
 import json
 import os
 import sys
@@ -35,7 +36,7 @@ from PyQt5.QtCore import QUrlQuery
 import qutebrowser
 from qutebrowser.config import config
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg)
+                               objreg, usertypes, qtutils)
 from qutebrowser.misc import objects
 
 
@@ -165,25 +166,28 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
-@add_handler('history')  # noqa
-def qute_history(url):
-    """Handler for qute:history. Display and serve history."""
+def history_data(start_time):  # noqa
+    """Return history data
+
+    Arguments:
+        start_time -- select history starting from this timestamp.
+    """
     def history_iter(start_time, reverse=False):
         """Iterate through the history and get items we're interested.
 
         Arguments:
             reverse -- whether to reverse the history_dict before iterating.
-            start_time -- select history starting from this timestamp.
         """
         history = objreg.get('web-history').history_dict.values()
         if reverse:
             history = reversed(history)
 
-        end_time = start_time - 24*60*60  # end is 24hrs earlier than start
-
         # when history_dict is not reversed, we need to keep track of last item
         # so that we can yield its atime
         last_item = None
+
+        # end is 24hrs earlier than start
+        end_time = start_time - 24*60*60
 
         for item in history:
             # Skip redirects
@@ -226,6 +230,23 @@ def qute_history(url):
         # if we reached here, we had reached the end of history
         yield {"next": int(last_item.atime if last_item else -1)}
 
+    if sys.hexversion >= 0x03050000:
+        # On Python >= 3.5 we can reverse the ordereddict in-place and thus
+        # apply an additional performance improvement in history_iter.
+        # On my machine, this gets us down from 550ms to 72us with 500k old
+        # items.
+        history = history_iter(start_time, reverse=True)
+    else:
+        # On Python 3.4, we can't do that, so we'd need to copy the entire
+        # history to a list. There, filter first and then reverse it here.
+        history = reversed(list(history_iter(start_time, reverse=False)))
+
+    return list(history)
+
+
+@add_handler('history')
+def qute_history(url):
+    """Handler for qute:history. Display and serve history."""
     if url.path() == '/data':
         # Use start_time in query or current time.
         try:
@@ -234,21 +255,55 @@ def qute_history(url):
         except ValueError as e:
             raise QuteSchemeError("Query parameter start_time is invalid", e)
 
-        if sys.hexversion >= 0x03050000:
-            # On Python >= 3.5 we can reverse the ordereddict in-place and thus
-            # apply an additional performance improvement in history_iter.
-            # On my machine, this gets us down from 550ms to 72us with 500k old
-            # items.
-            history = history_iter(start_time, reverse=True)
-        else:
-            # On Python 3.4, we can't do that, so we'd need to copy the entire
-            # history to a list. There, filter first and then reverse it here.
-            history = reversed(list(history_iter(start_time, reverse=False)))
-
-        return 'text/html', json.dumps(list(history))
+        return 'text/html', json.dumps(history_data(start_time))
     else:
-        return 'text/html', jinja.render('history.html', title='History',
-                session_interval=config.get('ui', 'history-session-interval'))
+        try:
+            from PyQt5.QtWebKit import qWebKitVersion
+            is_webkit_ng = qtutils.is_qtwebkit_ng(qWebKitVersion())
+        except ImportError:  # pragma: no cover
+            is_webkit_ng = False
+
+        if (
+            config.get('content', 'allow-javascript') and
+            (objects.backend == usertypes.Backend.QtWebEngine or is_webkit_ng)
+        ):
+            return 'text/html', jinja.render(
+                'history.html',
+                title='History',
+                session_interval=config.get('ui', 'history-session-interval')
+            )
+        else:
+            # Get current date from query parameter, if not given choose today.
+            curr_date = date.today()
+            try:
+                query_date = QUrlQuery(url).queryItemValue("date")
+                if query_date:
+                    curr_date = datetime.strptime(query_date,
+                        "%Y-%m-%d").date()
+            except ValueError:
+                log.misc.debug("Invalid date passed to qute:history: " +
+                    query_date)
+
+            one_day = timedelta(days=1)
+            next_date = curr_date + one_day
+            prev_date = curr_date - one_day
+
+            # start_time is the last second of curr_date
+            start_time = time.mktime(next_date.timetuple()) - 1
+            history = [
+                (i["url"], i["title"], datetime.fromtimestamp(i["time"]/1000))
+                for i in history_data(start_time) if "next" not in i
+            ]
+
+            return 'text/html', jinja.render(
+                'history_nojs.html',
+                title='History',
+                history=history,
+                curr_date=curr_date,
+                next_date=next_date,
+                prev_date=prev_date,
+                today=date.today(),
+            )
 
 
 @add_handler('javascript')
