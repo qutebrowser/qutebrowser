@@ -805,7 +805,7 @@ class ConfigManager(QObject):
         if section_ is None and option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
+            tabbed_browser.openurl(QUrl('qute://settings'), newtab=False)
             return
 
         if option.endswith('?') and option != '?':

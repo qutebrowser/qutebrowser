@@ -19,11 +19,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For some reason, a segfault will be triggered if the unnecessary lambdas in
+# this file aren't there.
+# pylint: disable=unnecessary-lambda
 
 """Special network replies.."""
 
-from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtCore import pyqtSlot, QIODevice, QByteArray, QTimer
+from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest, QNetworkAccessManager
+from PyQt5.QtCore import pyqtSlot, QIODevice, QByteArray, QTimer, QUrl
 
 
 class FixedDataNetworkReply(QNetworkReply):
@@ -114,9 +118,6 @@ class ErrorNetworkReply(QNetworkReply):
         # the device to avoid getting a warning.
         self.setOpenMode(QIODevice.ReadOnly)
         self.setError(error, errorstring)
-        # For some reason, a segfault will be triggered if these lambdas aren't
-        # there.
-        # pylint: disable=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.error.emit(error))
         QTimer.singleShot(0, lambda: self.finished.emit())
 
@@ -137,3 +138,16 @@ class ErrorNetworkReply(QNetworkReply):
 
     def isRunning(self):
         return False
+
+
+class RedirectNetworkReply(QNetworkReply):
+
+    """A reply which redirects to the given URL."""
+
+    def __init__(self, new_url, parent=None):
+        super().__init__(parent)
+        self.setAttribute(QNetworkRequest.RedirectionTargetAttribute, new_url)
+        QTimer.singleShot(0, lambda: self.finished.emit())
+
+    def readData(self, _maxlen):
+        return bytes()

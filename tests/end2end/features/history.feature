@@ -83,6 +83,14 @@ Feature: Page history
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
+    Scenario: Listing history with qute:history redirect
+        When I open data/numbers/3.txt
+        And I open data/numbers/4.txt
+        And I open qute:history without waiting
+        And I wait until qute://history is loaded
+        Then the page should contain the plaintext "3.txt"
+        Then the page should contain the plaintext "4.txt"
+
     ## Bugs
 
     @qtwebengine_skip @qtwebkit_ng_skip

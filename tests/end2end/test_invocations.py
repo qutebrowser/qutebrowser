@@ -138,10 +138,10 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
 
 def test_no_loglines(request, quteproc_new):
-    """Test qute:log with --loglines=0."""
+    """Test qute://log with --loglines=0."""
     quteproc_new.start(args=['--temp-basedir', '--loglines=0'] +
                        _base_args(request.config))
-    quteproc_new.open_path('qute:log')
+    quteproc_new.open_path('qute://log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
 
 

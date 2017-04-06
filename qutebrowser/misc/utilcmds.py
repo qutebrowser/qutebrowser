@@ -228,7 +228,7 @@ def debug_pyeval(s, quiet=False):
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
+        tabbed_browser.openurl(QUrl('qute://pyeval'), newtab=True)
 
 
 @cmdutils.register(debug=True)

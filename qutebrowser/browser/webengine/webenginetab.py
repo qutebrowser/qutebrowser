@@ -55,7 +55,7 @@ def init():
     app = QApplication.instance()
     profile = QWebEngineProfile.defaultProfile()
 
-    log.init.debug("Initializing qute:* handler...")
+    log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
     _qute_scheme_handler.install(profile)
 

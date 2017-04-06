@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Backend-independent qute:* code.
+"""Backend-independent qute://* code.
 
 Module attributes:
     pyeval_output: The output of the last :pyeval command.
@@ -31,7 +31,7 @@ import time
 import urllib.parse
 import datetime
 
-from PyQt5.QtCore import QUrlQuery
+from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
 from qutebrowser.config import config
@@ -78,12 +78,25 @@ class QuteSchemeError(Exception):
         super().__init__(errorstring)
 
 
-class add_handler:  # pylint: disable=invalid-name
+class Redirect(Exception):
 
-    """Decorator to register a qute:* URL handler.
+    """Exception to signal a redirect should happen.
 
     Attributes:
-        _name: The 'foo' part of qute:foo
+        url: The URL to redirect to, as a QUrl.
+    """
+
+    def __init__(self, url):
+        super().__init__(url.toDisplayString())
+        self.url = url
+
+
+class add_handler:  # pylint: disable=invalid-name
+
+    """Decorator to register a qute://* URL handler.
+
+    Attributes:
+        _name: The 'foo' part of qute://foo
         backend: Limit which backends the handler can run with.
     """
 
@@ -106,7 +119,7 @@ class add_handler:  # pylint: disable=invalid-name
     def wrong_backend_handler(self, url):
         """Show an error page about using the invalid backend."""
         html = jinja.render('error.html',
-                            title="Error while opening qute:url",
+                            title="Error while opening qute://url",
                             url=url.toDisplayString(),
                             error='{} is not available with this '
                                   'backend'.format(url.toDisplayString()),
@@ -128,13 +141,17 @@ def data_for_url(url):
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))
+    if path and not host:
+        new_url = QUrl()
+        new_url.setScheme('qute')
+        new_url.setHost(path)
+        raise Redirect(new_url)
+
     try:
-        handler = _HANDLERS[path]
+        handler = _HANDLERS[host]
     except KeyError:
-        try:
-            handler = _HANDLERS[host]
-        except KeyError:
-            raise NoHandlerFound(url)
+        raise NoHandlerFound(url)
+
     try:
         mimetype, data = handler(url)
     except OSError as e:
@@ -153,7 +170,7 @@ def data_for_url(url):
 
 @add_handler('bookmarks')
 def qute_bookmarks(_url):
-    """Handler for qute:bookmarks. Display all quickmarks / bookmarks."""
+    """Handler for qute://bookmarks. Display all quickmarks / bookmarks."""
     bookmarks = sorted(objreg.get('bookmark-manager').marks.items(),
                        key=lambda x: x[1])  # Sort by title
     quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
@@ -246,7 +263,7 @@ def history_data(start_time):  # noqa
 
 @add_handler('history')
 def qute_history(url):
-    """Handler for qute:history. Display and serve history."""
+    """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
         # Use start_time in query or current time.
         try:
@@ -309,7 +326,7 @@ def qute_history(url):
 
 @add_handler('javascript')
 def qute_javascript(url):
-    """Handler for qute:javascript.
+    """Handler for qute://javascript.
 
     Return content of file given as query parameter.
     """
@@ -323,7 +340,7 @@ def qute_javascript(url):
 
 @add_handler('pyeval')
 def qute_pyeval(_url):
-    """Handler for qute:pyeval."""
+    """Handler for qute://pyeval."""
     html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
     return 'text/html', html
 
@@ -331,7 +348,7 @@ def qute_pyeval(_url):
 @add_handler('version')
 @add_handler('verizon')
 def qute_version(_url):
-    """Handler for qute:version."""
+    """Handler for qute://version."""
     html = jinja.render('version.html', title='Version info',
                         version=version.version(),
                         copyright=qutebrowser.__copyright__)
@@ -340,7 +357,7 @@ def qute_version(_url):
 
 @add_handler('plainlog')
 def qute_plainlog(url):
-    """Handler for qute:plainlog.
+    """Handler for qute://plainlog.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
@@ -360,7 +377,7 @@ def qute_plainlog(url):
 
 @add_handler('log')
 def qute_log(url):
-    """Handler for qute:log.
+    """Handler for qute://log.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
@@ -381,13 +398,13 @@ def qute_log(url):
 
 @add_handler('gpl')
 def qute_gpl(_url):
-    """Handler for qute:gpl. Return HTML content as string."""
+    """Handler for qute://gpl. Return HTML content as string."""
     return 'text/html', utils.read_file('html/COPYING.html')
 
 
 @add_handler('help')
 def qute_help(url):
-    """Handler for qute:help."""
+    """Handler for qute://help."""
     try:
         utils.read_file('html/doc/index.html')
     except OSError:

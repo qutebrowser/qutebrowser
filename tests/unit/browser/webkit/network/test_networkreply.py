@@ -91,3 +91,10 @@ def test_error_network_reply(qtbot, req):
     assert reply.readData(1) == b''
     assert reply.error() == QNetworkReply.UnknownNetworkError
     assert reply.errorString() == "This is an error"
+
+
+def test_redirect_network_reply():
+    url = QUrl('https://www.example.com/')
+    reply = networkreply.RedirectNetworkReply(url)
+    assert reply.readData(1) == b''
+    assert reply.attribute(QNetworkRequest.RedirectionTargetAttribute) == url
