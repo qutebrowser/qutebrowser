@@ -24,12 +24,12 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
-from datetime import date, datetime, timedelta
 import json
 import os
 import sys
 import time
 import urllib.parse
+import datetime
 
 from PyQt5.QtCore import QUrlQuery
 
@@ -278,20 +278,21 @@ def qute_history(url):
             try:
                 query_date = QUrlQuery(url).queryItemValue("date")
                 if query_date:
-                    curr_date = datetime.strptime(query_date,
+                    curr_date = datetime.datetime.strptime(query_date,
                         "%Y-%m-%d").date()
             except ValueError:
                 log.misc.debug("Invalid date passed to qute:history: " +
                     query_date)
 
-            one_day = timedelta(days=1)
+            one_day = datetime.timedelta(days=1)
             next_date = curr_date + one_day
             prev_date = curr_date - one_day
 
             # start_time is the last second of curr_date
             start_time = time.mktime(next_date.timetuple()) - 1
             history = [
-                (i["url"], i["title"], datetime.fromtimestamp(i["time"]/1000))
+                (i["url"], i["title"],
+                 datetime.datetime.fromtimestamp(i["time"]/1000))
                 for i in history_data(start_time) if "next" not in i
             ]
 
