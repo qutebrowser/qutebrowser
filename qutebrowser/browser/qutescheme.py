@@ -145,6 +145,7 @@ def data_for_url(url):
         new_url = QUrl()
         new_url.setScheme('qute')
         new_url.setHost(path)
+        new_url.setPath('/')
         raise Redirect(new_url)
 
     try:

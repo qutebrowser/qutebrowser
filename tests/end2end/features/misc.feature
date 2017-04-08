@@ -308,6 +308,14 @@ Feature: Various utility commands.
             - about:blank
             - qute://help/index.html (active)
 
+    # https://github.com/qutebrowser/qutebrowser/issues/2513
+    Scenario: Opening link with qute:help
+        When I run :tab-only
+        And I open qute:help without waiting
+        And I wait for "Changing title for idx 0 to 'qutebrowser help'" in the log
+        And I hint with args "links normal" and follow a
+        Then qute://help/quickstart.html should be loaded
+
     # :history
 
     Scenario: :history without arguments
