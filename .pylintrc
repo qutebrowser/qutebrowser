@@ -38,7 +38,8 @@ disable=no-self-use,
         suppressed-message,
         too-many-return-statements,
         duplicate-code,
-        wrong-import-position
+        wrong-import-position,
+        no-else-return
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$

@@ -265,6 +265,7 @@ class TestFuzzyUrl:
     ('file:///tmp/foo', True),
     ('about:blank', True),
     ('qute:version', True),
+    ('qute://version', True),
     ('http://www.qutebrowser.org/', False),
     ('www.qutebrowser.org', False),
 ])
@@ -317,9 +318,11 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (True, True, False, 'file:///tmp/foo'),
     (True, True, False, 'about:blank'),
     (True, True, False, 'qute:version'),
+    (True, True, False, 'qute://version'),
     (True, True, False, 'localhost'),
     # _has_explicit_scheme False, special_url True
     (True, True, False, 'qute::foo'),
+    (True, True, False, 'qute:://foo'),
     # Invalid URLs
     (False, False, False, ''),
     (False, True, False, 'onlyscheme:'),

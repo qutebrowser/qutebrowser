@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""QtWebEngine specific qute:* handlers and glue code."""
+"""QtWebEngine specific qute://* handlers and glue code."""
 
 from PyQt5.QtCore import QBuffer, QIODevice
 # pylint: disable=no-name-in-module,import-error,useless-suppression
@@ -26,15 +26,15 @@ from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import qutescheme
-from qutebrowser.utils import log
+from qutebrowser.utils import log, qtutils
 
 
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
-    """Handle qute:* requests on QtWebEngine."""
+    """Handle qute://* requests on QtWebEngine."""
 
     def install(self, profile):
-        """Install the handler for qute: URLs on the given profile."""
+        """Install the handler for qute:// URLs on the given profile."""
         profile.installUrlSchemeHandler(b'qute', self)
 
     def requestStarted(self, job):
@@ -58,12 +58,15 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             job.fail(QWebEngineUrlRequestJob.UrlNotFound)
         except qutescheme.QuteSchemeOSError:
             # FIXME:qtwebengine how do we show a better error here?
-            log.misc.exception("OSError while handling qute:* URL")
+            log.misc.exception("OSError while handling qute://* URL")
             job.fail(QWebEngineUrlRequestJob.UrlNotFound)
         except qutescheme.QuteSchemeError:
             # FIXME:qtwebengine how do we show a better error here?
-            log.misc.exception("Error while handling qute:* URL")
+            log.misc.exception("Error while handling qute://* URL")
             job.fail(QWebEngineUrlRequestJob.RequestFailed)
+        except qutescheme.Redirect as e:
+            qtutils.ensure_valid(e.url)
+            job.redirect(e.url)
         else:
             log.misc.debug("Returning {} data".format(mimetype))
 

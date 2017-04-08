@@ -36,6 +36,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
+|<<ui-history-session-interval,history-session-interval>>|The maximum time in minutes between two history items for them to be considered being from the same session. Use -1 to disable separation.
 |<<ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
 |<<ui-default-zoom,default-zoom>>|The default zoom level.
 |<<ui-downloads-position,downloads-position>>|Where to show the downloaded files.
@@ -56,6 +57,7 @@
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
+|<<ui-keyhint-delay,keyhint-delay>>|Time from pressing a key to seeing the keyhint dialog (ms)
 |<<ui-prompt-radius,prompt-radius>>|The rounding radius for the edges of prompts.
 |<<ui-prompt-filebrowser,prompt-filebrowser>>|Show a filebrowser in upload/download prompts.
 |==============
@@ -536,6 +538,12 @@ Default: +pass:[path,query]+
 == ui
 General options related to the user interface.
 
+[[ui-history-session-interval]]
+=== history-session-interval
+The maximum time in minutes between two history items for them to be considered being from the same session. Use -1 to disable separation.
+
+Default: +pass:[30]+
+
 [[ui-zoom-levels]]
 === zoom-levels
 The available zoom levels, separated by commas.
@@ -731,6 +739,12 @@ Keychains that shouldn't be shown in the keyhint dialog
 Globs are supported, so ';*' will blacklist all keychainsstarting with ';'. Use '*' to disable keyhints
 
 Default: empty
+
+[[ui-keyhint-delay]]
+=== keyhint-delay
+Time from pressing a key to seeing the keyhint dialog (ms)
+
+Default: +pass:[500]+
 
 [[ui-prompt-radius]]
 === prompt-radius

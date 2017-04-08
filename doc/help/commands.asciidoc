@@ -544,7 +544,7 @@ For `increment` and `decrement`, the number to change the URL by. For `up`, the 
 
 [[open]]
 === open
-Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] ['url']+
+Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] [*--secure*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -559,6 +559,7 @@ If the URL contains newlines, each line gets opened in its own tab.
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-s*+, +*--secure*+: Force HTTPS.
 
 ==== count
 The tab index to open the URL in.
@@ -1598,7 +1599,8 @@ Syntax: +:debug-log-filter 'filters'+
 Change the log filter for console logging.
 
 ==== positional arguments
-* +'filters'+: A comma separated list of logger names.
+* +'filters'+: A comma separated list of logger names. Can also be "none" to clear any existing filters.
+
 
 [[debug-log-level]]
 === debug-log-level

@@ -292,6 +292,12 @@ def data(readonly=False):
         )),
 
         ('ui', sect.KeyValue(
+            ('history-session-interval',
+             SettingValue(typ.Int(), '30'),
+             "The maximum time in minutes between two history items for them "
+             "to be considered being from the same session. Use -1 to "
+             "disable separation."),
+
             ('zoom-levels',
              SettingValue(typ.List(typ.Perc(minval=0)),
                           '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,'
@@ -399,6 +405,10 @@ def data(readonly=False):
              "Keychains that shouldn't be shown in the keyhint dialog\n\n"
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
+
+            ('keyhint-delay',
+             SettingValue(typ.Int(minval=0), '500'),
+             "Time from pressing a key to seeing the keyhint dialog (ms)"),
 
             ('prompt-radius',
              SettingValue(typ.Int(minval=0), '8'),
@@ -1679,7 +1689,7 @@ KEY_DATA = collections.OrderedDict([
         ('home', ['<Ctrl-h>']),
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
-        ('open qute:settings', ['Ss']),
+        ('open qute://settings', ['Ss']),
         ('follow-selected', RETURN_KEYS),
         ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
         ('repeat-command', ['.']),

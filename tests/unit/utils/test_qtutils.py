@@ -209,48 +209,32 @@ class QtObject:
         return self._null
 
 
-@pytest.mark.parametrize('func_name, obj, raising, exc_reason, exc_str', [
-    # ensure_valid, good examples
-    ('ensure_valid', QtObject(valid=True, null=True), False, None, None),
-    ('ensure_valid', QtObject(valid=True, null=False), False, None, None),
-    # ensure_valid, bad examples
-    ('ensure_valid', QtObject(valid=False, null=True), True, None,
-     '<QtObject> is not valid'),
-    ('ensure_valid', QtObject(valid=False, null=False), True, None,
-     '<QtObject> is not valid'),
-    ('ensure_valid', QtObject(valid=False, null=True, error='Test'), True,
-     'Test', '<QtObject> is not valid: Test'),
-    # ensure_not_null, good examples
-    ('ensure_not_null', QtObject(valid=True, null=False), False, None, None),
-    ('ensure_not_null', QtObject(valid=False, null=False), False, None, None),
-    # ensure_not_null, bad examples
-    ('ensure_not_null', QtObject(valid=True, null=True), True, None,
-     '<QtObject> is null'),
-    ('ensure_not_null', QtObject(valid=False, null=True), True, None,
-     '<QtObject> is null'),
-    ('ensure_not_null', QtObject(valid=False, null=True, error='Test'), True,
-     'Test', '<QtObject> is null: Test'),
+@pytest.mark.parametrize('obj, raising, exc_reason, exc_str', [
+    # good examples
+    (QtObject(valid=True, null=True), False, None, None),
+    (QtObject(valid=True, null=False), False, None, None),
+    # bad examples
+    (QtObject(valid=False, null=True), True, None, '<QtObject> is not valid'),
+    (QtObject(valid=False, null=False), True, None, '<QtObject> is not valid'),
+    (QtObject(valid=False, null=True, error='Test'), True, 'Test',
+     '<QtObject> is not valid: Test'),
 ])
-def test_ensure(func_name, obj, raising, exc_reason, exc_str):
-    """Test ensure_valid and ensure_not_null.
-
-    The function is parametrized as they do nearly the same.
+def test_ensure_valid(obj, raising, exc_reason, exc_str):
+    """Test ensure_valid.
 
     Args:
-        func_name: The name of the function to call.
         obj: The object to test with.
         raising: Whether QtValueError is expected to be raised.
         exc_reason: The expected .reason attribute of the exception.
         exc_str: The expected string of the exception.
     """
-    func = getattr(qtutils, func_name)
     if raising:
         with pytest.raises(qtutils.QtValueError) as excinfo:
-            func(obj)
+            qtutils.ensure_valid(obj)
         assert excinfo.value.reason == exc_reason
         assert str(excinfo.value) == exc_str
     else:
-        func(obj)
+        qtutils.ensure_valid(obj)
 
 
 @pytest.mark.parametrize('status, raising, message', [

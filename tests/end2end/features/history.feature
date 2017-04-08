@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Page history
 
     Make sure the global page history is saved correctly.
@@ -77,7 +79,15 @@ Feature: Page history
     Scenario: Listing history
         When I open data/numbers/3.txt
         And I open data/numbers/4.txt
-        And I open qute:history
+        And I open qute://history
+        Then the page should contain the plaintext "3.txt"
+        Then the page should contain the plaintext "4.txt"
+
+    Scenario: Listing history with qute:history redirect
+        When I open data/numbers/3.txt
+        And I open data/numbers/4.txt
+        And I open qute:history without waiting
+        And I wait until qute://history is loaded
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 

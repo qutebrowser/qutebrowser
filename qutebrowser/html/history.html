@@ -16,43 +16,62 @@ td.time {
     white-space: nowrap;
 }
 
+table {
+    margin-bottom: 30px;
+}
+
 .date {
-    color: #888;
-    font-size: 14pt;
-    padding-left: 25px;
-}
-
-.pagination-link {
-    display: inline-block;
-    margin-bottom: 10px;
-    margin-top: 10px;
-    padding-right: 10px;
-}
-
-.pagination-link > a {
-    color: #333;
+    color: #555;
+    font-size: 12pt;
+    padding-bottom: 15px;
     font-weight: bold;
+    text-align: left;
 }
+
+#load {
+    color: #555;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#eof {
+    color: #aaa;
+    margin-bottom: 30px;
+    text-align: center;
+    width: 100%;
+}
+
+.session-separator {
+    color: #aaa;
+    height: 40px;
+    text-align: center;
+}
+
 {% endblock %}
-
 {% block content %}
+<h1>Browsing history</h1>
+<div id="hist-container"></div>
+<span id="eof" style="display: none">end</span>
+<a href="#" id="load" style="display: none">Show more</a>
+<script type="text/javascript" src="qute://javascript/history.js"></script>
+<script type="text/javascript">
+    window.SESSION_INTERVAL = {{session_interval}} * 60 * 1000;
 
-<h1>Browsing history <span class="date">{{curr_date.strftime("%a, %d %B %Y")}}</span></h1>
+    window.onload = function() {
+        var loadLink = document.getElementById('load');
+        loadLink.style.display = null;
+        loadLink.addEventListener('click', function(ev) {
+            ev.preventDefault();
+            window.loadHistory();
+        });
 
-<table>
-    <tbody>
-    {% for url, title, time in history %}
-        <tr>
-            <td class="title"><a href="{{url}}">{{title}}</a></td>
-            <td class="time">{{time}}</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+        window.onscroll = function(ev) {
+            if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+                window.loadHistory();
+            }
+        };
 
-<span class="pagination-link"><a href="qute://history/?date={{prev_date.strftime("%Y-%m-%d")}}" rel="prev">Previous</a></span>
-{% if today >= next_date %}
-<span class="pagination-link"><a href="qute://history/?date={{next_date.strftime("%Y-%m-%d")}}" rel="next">Next</a></span>
-{% endif %}
-
+        window.loadHistory();
+    };
+</script>
 {% endblock %}

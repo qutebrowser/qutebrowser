@@ -67,7 +67,6 @@ class KeyHintView(QLabel):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
-        self._show_timer.setInterval(500)
         self._show_timer.timeout.connect(self.show)
         style.set_register_stylesheet(self)
 
@@ -108,6 +107,7 @@ class KeyHintView(QLabel):
             return
 
         # delay so a quickly typed keychain doesn't display hints
+        self._show_timer.setInterval(config.get('ui', 'keyhint-delay'))
         self._show_timer.start()
         suffix_color = html.escape(config.get('colors', 'keyhint.fg.suffix'))
 

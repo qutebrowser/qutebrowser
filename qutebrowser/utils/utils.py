@@ -20,6 +20,7 @@
 """Other utilities which don't fit anywhere else."""
 
 import io
+import re
 import sys
 import enum
 import json
@@ -52,6 +53,10 @@ class ClipboardError(Exception):
 class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
+
+    def __init__(self):
+        super().__init__("Primary selection is not supported on this "
+                         "platform!")
 
 
 class ClipboardEmptyError(ClipboardError):
@@ -762,11 +767,23 @@ def set_clipboard(data, selection=False):
         QApplication.clipboard().setText(data, mode=mode)
 
 
-def get_clipboard(selection=False):
-    """Get data from the clipboard."""
+def get_clipboard(selection=False, fallback=False):
+    """Get data from the clipboard.
+
+    Args:
+        selection: Use the primary selection.
+        fallback: Fall back to the clipboard if primary selection is
+                  unavailable.
+    """
     global fake_clipboard
+    if fallback and not selection:
+        raise ValueError("fallback given without selection!")
+
     if selection and not supports_selection():
-        raise SelectionUnsupportedError
+        if fallback:
+            selection = False
+        else:
+            raise SelectionUnsupportedError
 
     if fake_clipboard is not None:
         data = fake_clipboard
@@ -845,3 +862,21 @@ def open_file(filename, cmdline=None):
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
     pass
+
+
+def expand_windows_drive(path):
+    r"""Expand a drive-path like E: into E:\.
+
+    Does nothing for other paths.
+
+    Args:
+        path: The path to expand.
+    """
+    # Usually, "E:" on Windows refers to the current working directory on drive
+    # E:\. The correct way to specifify drive E: is "E:\", but most users
+    # probably don't use the "multiple working directories" feature and expect
+    # "E:" and "E:\" to be equal.
+    if re.match(r'[A-Z]:$', path, re.IGNORECASE):
+        return path + "\\"
+    else:
+        return path

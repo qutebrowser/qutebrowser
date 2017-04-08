@@ -23,6 +23,7 @@ import sys
 import functools
 import xml.etree.ElementTree
 
+import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent
@@ -707,6 +708,9 @@ class WebKitTab(browsertab.AbstractTab):
     @pyqtSlot()
     def _on_webkit_icon_changed(self):
         """Emit iconChanged with a QIcon like QWebEngineView does."""
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Got _on_webkit_icon_changed for deleted view!")
+            return
         self.icon_changed.emit(self._widget.icon())
 
     @pyqtSlot(QWebFrame)

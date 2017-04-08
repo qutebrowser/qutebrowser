@@ -142,9 +142,14 @@ class KeyConfigParser(QObject):
     def save(self):
         """Save the key config file."""
         log.destroy.debug("Saving key config to {}".format(self._configfile))
-        with qtutils.savefile_open(self._configfile, encoding='utf-8') as f:
-            data = str(self)
-            f.write(data)
+
+        try:
+            with qtutils.savefile_open(self._configfile,
+                                       encoding='utf-8') as f:
+                data = str(self)
+                f.write(data)
+        except OSError as e:
+            message.error("Could not save key config: {}".format(e))
 
     @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
                        no_replace_variables=True)
@@ -252,6 +257,7 @@ class KeyConfigParser(QObject):
         """
         # {'sectname': {'keychain1': 'command', 'keychain2': 'command'}, ...}
         bindings_to_add = collections.OrderedDict()
+        mark_dirty = False
 
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
@@ -261,6 +267,7 @@ class KeyConfigParser(QObject):
                     if not only_new or self._is_new(sectname, command, e):
                         assert e not in bindings_to_add[sectname]
                         bindings_to_add[sectname][e] = command
+                        mark_dirty = True
 
         for sectname, sect in bindings_to_add.items():
             if not sect:
@@ -271,7 +278,7 @@ class KeyConfigParser(QObject):
                     self._add_binding(sectname, keychain, command)
             self.changed.emit(sectname)
 
-        if bindings_to_add:
+        if mark_dirty:
             self._mark_config_dirty()
 
     def _is_new(self, sectname, command, keychain):
@@ -315,7 +322,7 @@ class KeyConfigParser(QObject):
                         else:
                             line = line.strip()
                             self._read_command(line)
-                    except KeyConfigError as e:
+                    except (KeyConfigError, cmdexc.CommandError) as e:
                         if relaxed:
                             continue
                         else:

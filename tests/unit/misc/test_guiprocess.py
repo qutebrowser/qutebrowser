@@ -41,6 +41,7 @@ def proc(qtbot, caplog):
                 p._proc.terminate()
             if not blocker.signal_triggered:
                 p._proc.kill()
+            p._proc.waitForFinished()
 
 
 @pytest.fixture()

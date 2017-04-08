@@ -74,6 +74,8 @@ class Request(testprocess.Line):
             '/redirect-to': [http.client.FOUND],
 
             '/cookies/set': [http.client.FOUND],
+
+            '/custom/500-inline': [http.client.INTERNAL_SERVER_ERROR],
         }
         for i in range(15):
             path_to_statuses['/redirect/{}'.format(i)] = [http.client.FOUND]

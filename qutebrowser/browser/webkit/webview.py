@@ -140,7 +140,7 @@ class WebView(QWebView):
 
     @pyqtSlot()
     def add_js_bridge(self):
-        """Add the javascript bridge for qute:... pages."""
+        """Add the javascript bridge for qute://... pages."""
         frame = self.sender()
         if not isinstance(frame, QWebFrame):
             log.webview.error("Got non-QWebFrame {!r} in "

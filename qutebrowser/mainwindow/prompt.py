@@ -437,13 +437,13 @@ class LineEdit(QLineEdit):
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
             try:
-                text = utils.get_clipboard(selection=True)
+                text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:  # pragma: no cover
-                pass
+                e.ignore()
             else:
                 e.accept()
                 self.insert(text)
-                return
+            return
         super().keyPressEvent(e)
 
     def __repr__(self):
@@ -644,6 +644,10 @@ class FilenamePrompt(_BasePrompt):
 
     def accept(self, value=None):
         text = value if value is not None else self._lineedit.text()
+        text = downloads.transform_path(text)
+        if text is None:
+            message.error("Invalid filename")
+            return False
         self.question.answer = text
         return True
 
@@ -694,9 +698,11 @@ class DownloadFilenamePrompt(FilenamePrompt):
         self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
 
     def accept(self, value=None):
-        text = value if value is not None else self._lineedit.text()
-        self.question.answer = downloads.FileDownloadTarget(text)
-        return True
+        done = super().accept(value)
+        answer = self.question.answer
+        if answer is not None:
+            self.question.answer = downloads.FileDownloadTarget(answer)
+        return done
 
     def download_open(self, cmdline):
         self.question.answer = downloads.OpenFileDownloadTarget(cmdline)
