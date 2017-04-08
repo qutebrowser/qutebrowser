@@ -93,10 +93,7 @@ def test_clear(qtbot, tmpdir, hist, mocker):
 def test_clear_force(qtbot, tmpdir, hist):
     hist.add_url(QUrl('http://example.com/'))
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
-
-    with qtbot.waitSignal(hist.cleared):
-        hist.clear(force=True)
-
+    hist.clear(force=True)
     assert not len(hist)
 
 

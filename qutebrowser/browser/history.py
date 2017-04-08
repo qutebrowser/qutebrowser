@@ -72,25 +72,8 @@ class Entry:
 
 class WebHistory(sql.SqlTable):
 
-    """The global history of visited pages.
+    """The global history of visited pages."""
 
-    This is a little more complex as you'd expect so the history can be read
-    from disk async while new history is already arriving.
-
-    While reading from disk is still ongoing, the history is saved in
-    self._temp_history instead, and then inserted into the sql table once
-    the async read completes.
-
-    All history which is new in this session (rather than read from disk from a
-    previous browsing session) is also stored in self._new_history.
-    self._saved_count tracks how many of those entries were already written to
-    disk, so we can always append to the existing data.
-
-    Signals:
-        cleared: Emitted after the history is cleared.
-    """
-
-    cleared = pyqtSignal()
     async_read_done = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -128,7 +111,6 @@ class WebHistory(sql.SqlTable):
 
     def _do_clear(self):
         self.delete_all()
-        self.cleared.emit()
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
