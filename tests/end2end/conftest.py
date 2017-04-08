@@ -68,7 +68,7 @@ def _get_version_tag(tag):
     """
     version_re = re.compile(r"""
         (?P<package>qt|pyqt)
-        (?P<operator>==|>=|!=)
+        (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
 
@@ -84,6 +84,7 @@ def _get_version_tag(tag):
         do_skip = {
             '==': not qtutils.version_check(version, exact=True),
             '>=': not qtutils.version_check(version),
+            '<': qtutils.version_check(version),
             '!=': qtutils.version_check(version, exact=True),
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
