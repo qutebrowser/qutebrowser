@@ -105,7 +105,7 @@ def get_argparser():
                        "the main window.")
     debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
                        action='store_true')
-    debug.add_argument('--pdb-postmortem', action='store_true',
+    debug.add_argument('--debug-flag', action='store_true',
                        help="Drop into pdb on exceptions.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "
                        "temporary basedir.")
