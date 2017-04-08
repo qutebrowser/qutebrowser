@@ -118,6 +118,9 @@ def get_argparser():
                        action='append')
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
                        nargs=1, action='append')
+    debug.add_argument('--debug-flag', type=debug_flag_error, 
+	                   help="Pass name of debugging feature to be turned on.", 
+					   nargs=1, action='append')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
@@ -144,6 +147,21 @@ def logfilter_error(logfilter: str):
             "filters: Invalid value {} - expected a list of: {}".format(
                 logfilter, ', '.join(log.LOGGER_NAMES)))
 
+def debug_flag_error(flag):
+    """Validate flags passed to --debug-flag.
+
+	Available flags:
+	   debug-exit
+	   pdb-postmortem
+	"""
+	valid_flags = ['debug-exit','pdb-postmortem']
+
+	if flag in valid_flags:
+	    return flag
+    else:
+	    raise argparse.ArgumentTypeError("Invalid flag - valid flags include: " +
+		    str(valid_flags))
+	    
 
 def main():
     parser = get_argparser()
