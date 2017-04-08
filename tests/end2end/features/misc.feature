@@ -513,11 +513,15 @@ Feature: Various utility commands.
         Then the error "Invalid log level cataclysmic!" should be shown
 
     Scenario: Using qute://log directly
-        When I open qute://log
+        When I open qute://log without waiting
+        # With Qt 5.9, we don't get a loaded message?
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
     Scenario: Using qute://plainlog directly
-        When I open qute://plainlog
+        When I open qute://plainlog without waiting
+        # With Qt 5.9, we don't get a loaded message?
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
     Scenario: Using :messages without messages
