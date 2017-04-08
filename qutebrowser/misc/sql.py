@@ -139,6 +139,17 @@ class SqlTable(QObject):
             rec = result.record()
             yield self.Entry(*[rec.value(i) for i in range(rec.count())])
 
+    def contains(self, field, value):
+        """Return whether the table contains the matching item.
+
+        Args:
+            field: Field to match.
+            value: Value to check for the given field.
+        """
+        query = run_query("SELECT * FROM {} where {} = ? LIMIT 1"
+                          .format(self._name, field), [value])
+        return query.next()
+
     def __len__(self):
         """Return the count of rows in the table."""
         result = run_query("SELECT count(*) FROM {}".format(self._name))

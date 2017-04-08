@@ -63,6 +63,14 @@ def test_len(hist):
     assert len(hist) == 1
 
 
+def test_contains(hist):
+    hist.add_url(QUrl('http://www.example.com/'), title='Title', atime=12345)
+    assert 'http://www.example.com/' in hist
+    assert not 'www.example.com' in hist
+    assert not 'Title' in hist
+    assert not 12345 in hist
+
+
 def test_get_recent(hist):
     hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
     hist.add_url(QUrl('http://example.com/'), atime=12345)

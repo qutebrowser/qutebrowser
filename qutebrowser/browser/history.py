@@ -83,6 +83,9 @@ class WebHistory(sql.SqlTable):
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
+    def __contains__(self, url):
+        return self.contains('url', url)
+
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
         self.insert([entry.url_str(), entry.title, entry.atime,

@@ -88,6 +88,22 @@ def test_len():
     assert len(table) == 3
 
 
+def test_contains():
+    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+    table.insert(['one', 1, False])
+    table.insert(['nine', 9, False])
+    table.insert(['thirteen', 13, True])
+    assert table.contains('name', 'one')
+    assert table.contains('name', 'thirteen')
+    assert table.contains('val', 9)
+    assert table.contains('lucky', False)
+    assert table.contains('lucky', True)
+    assert not table.contains('name', 'oone')
+    assert not table.contains('name', 1)
+    assert not table.contains('name', '*')
+    assert not table.contains('val', 10)
+
+
 def test_delete_all(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     table.insert(['one', 1, False])
