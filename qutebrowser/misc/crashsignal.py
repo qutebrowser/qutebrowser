@@ -207,10 +207,10 @@ class CrashHandler(QObject):
         is_ignored_exception = (exctype is bdb.BdbQuit or
                                 not issubclass(exctype, Exception))
 
-        if self._args.pdb_postmortem:
+        if 'pdb-postmortem' in self._args.debug_flags:
             pdb.post_mortem(tb)
 
-        if is_ignored_exception or self._args.pdb_postmortem:
+        if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
             status = 0 if is_ignored_exception else 2
             try:

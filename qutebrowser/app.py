@@ -792,7 +792,7 @@ class Application(QApplication):
     def exit(self, status):
         """Extend QApplication::exit to log the event."""
         log.destroy.debug("Now calling QApplication::exit.")
-        if self._args.debug_exit:
+        if 'debug_exit' in self._args.debug_flags:
             if hunter is None:
                 print("Not logging late shutdown because hunter could not be "
                       "imported!", file=sys.stderr)
