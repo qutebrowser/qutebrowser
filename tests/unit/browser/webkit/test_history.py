@@ -179,7 +179,6 @@ def test_init(backend, qapp, tmpdir, monkeypatch, cleanup_init):
     else:
         assert backend == usertypes.Backend.QtWebEngine
 
-    monkeypatch.setattr(history.standarddir, 'data', lambda: str(tmpdir))
     monkeypatch.setattr(history.objects, 'backend', backend)
     history.init(qapp)
     hist = objreg.get('web-history')
