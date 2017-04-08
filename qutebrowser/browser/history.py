@@ -183,12 +183,16 @@ class WebHistory(sql.SqlTable):
         """Import a text file into the sql database."""
         with open(path, 'r', encoding='utf-8') as f:
             rows = []
-            for line in f:
+            for (i, line) in enumerate(f):
+                line = line.strip()
+                if not line:
+                    continue
                 try:
                     row = self._parse_entry(line.strip())
                     rows.append(row)
                 except ValueError:
-                    log.init.warning('Skipping history line {}'.format(line))
+                    raise Exception('Failed to parse line #{} of {}: "{}"'
+                                    .format(i, path, line))
         self.insert_batch(rows)
 
 

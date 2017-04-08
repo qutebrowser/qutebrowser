@@ -196,20 +196,16 @@ def test_init(backend, qapp, tmpdir, monkeypatch, cleanup_init):
         assert default_interface is None
 
 
-def test_read(hist, tmpdir, caplog):
+def test_read(hist, tmpdir):
     histfile = tmpdir / 'history'
+    # empty line is deliberate, to test skipping empty lines
     histfile.write('''12345 http://example.com/ title
                       12346 http://qutebrowser.org/
                       67890 http://example.com/path
 
-                      xyz http://example.com/bad-timestamp
-                      12345
-                      http://example.com/no-timestamp
-                      68891-r http://example.com/path/other
-                      68891-r-r http://example.com/double-flag''')
+                      68891-r http://example.com/path/other ''')
 
-    with caplog.at_level(logging.WARNING):
-        hist.read(str(histfile))
+    hist.read(str(histfile))
 
     assert list(hist) == [
         ('http://example.com/', 'title', 12345, False),
@@ -217,3 +213,17 @@ def test_read(hist, tmpdir, caplog):
         ('http://example.com/path', '', 67890, False),
         ('http://example.com/path/other', '', 68891, True)
     ]
+
+
+@pytest.mark.parametrize('line', [
+    'xyz http://example.com/bad-timestamp',
+    '12345',
+    'http://example.com/no-timestamp',
+    '68891-r-r http://example.com/double-flag',
+])
+def test_read_invalid(hist, tmpdir, line):
+    histfile = tmpdir / 'history'
+    histfile.write(line)
+
+    with pytest.raises(Exception):
+        hist.read(str(histfile))
