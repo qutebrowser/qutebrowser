@@ -120,7 +120,7 @@ def get_argparser():
                        nargs=1, action='append')
     debug.add_argument('--debug-flag', type=debug_flag_error,
                        help="Pass name of debugging feature to be turned on.",
-                       nargs=1, action='append')
+                       nargs=1, action='append', dest='debug_flags')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
