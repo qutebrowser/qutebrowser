@@ -103,10 +103,6 @@ def get_argparser():
                        help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
-    debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
-                       action='store_true')
-    debug.add_argument('--pdb-postmortem', action='store_true',
-                       help="Drop into pdb on exceptions.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "
                        "temporary basedir.")
     debug.add_argument('--no-err-windows', action='store_true', help="Don't "
@@ -152,8 +148,8 @@ def debug_flag_error(flag):
     """Validate flags passed to --debug-flag.
 
     Available flags:
-        debug-exit
-        pdb-postmortem
+        debug-exit: Turn on debugging of late exit.
+        pdb-postmortem: Drop into pdb on exceptions.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem']
 
