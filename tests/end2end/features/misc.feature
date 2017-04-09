@@ -310,7 +310,8 @@ Feature: Various utility commands.
 
     # https://github.com/qutebrowser/qutebrowser/issues/2513
     Scenario: Opening link with qute:help
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I open qute:help without waiting
         And I wait for "Changing title for idx 0 to 'qutebrowser help'" in the log
         And I hint with args "links normal" and follow a
