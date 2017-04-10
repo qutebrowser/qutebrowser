@@ -186,7 +186,8 @@ def _init_key_config(parent):
         key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
                                              args.relaxed_config,
                                              parent=parent)
-    except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
+    except (keyconf.KeyConfigError, cmdexc.CommandError,
+            UnicodeDecodeError) as e:
         log.init.exception(e)
         errstr = "Error while reading key config:\n"
         if e.lineno is not None:
@@ -471,10 +472,9 @@ class ConfigManager(QObject):
         """Get the whole config as a string."""
         lines = configdata.FIRST_COMMENT.strip('\n').splitlines()
         for sectname, sect in self.sections.items():
-            lines.append('\n[{}]'.format(sectname))
-            lines += self._str_section_desc(sectname)
-            lines += self._str_option_desc(sectname, sect)
-            lines += self._str_items(sect)
+            lines += ['\n'] + self._str_section_desc(sectname)
+            lines.append('[{}]'.format(sectname))
+            lines += self._str_items(sectname, sect)
         return '\n'.join(lines) + '\n'
 
     def _str_section_desc(self, sectname):
@@ -489,42 +489,7 @@ class ConfigManager(QObject):
                 lines += wrapper.wrap(secline)
         return lines
 
-    def _str_option_desc(self, sectname, sect):
-        """Get the option description strings for sect/sectname."""
-        wrapper = textwrapper.TextWrapper(initial_indent='#' + ' ' * 5,
-                                          subsequent_indent='#' + ' ' * 5)
-        lines = []
-        if not getattr(sect, 'descriptions', None):
-            return lines
-
-        for optname, option in sect.items():
-
-            lines.append('#')
-            typestr = ' ({})'.format(option.typ.get_name())
-            lines.append("# {}{}:".format(optname, typestr))
-
-            try:
-                desc = self.sections[sectname].descriptions[optname]
-            except KeyError:
-                log.config.exception("No description for {}.{}!".format(
-                    sectname, optname))
-                continue
-            for descline in desc.splitlines():
-                lines += wrapper.wrap(descline)
-            valid_values = option.typ.get_valid_values()
-            if valid_values is not None:
-                if valid_values.descriptions:
-                    for val in valid_values:
-                        desc = valid_values.descriptions[val]
-                        lines += wrapper.wrap("    {}: {}".format(val, desc))
-                else:
-                    lines += wrapper.wrap("Valid values: {}".format(', '.join(
-                        valid_values)))
-            lines += wrapper.wrap("Default: {}".format(
-                option.values['default']))
-        return lines
-
-    def _str_items(self, sect):
+    def _str_items(self, sectname, sect):
         """Get the option items as string for sect."""
         lines = []
         for optname, option in sect.items():
@@ -535,7 +500,41 @@ class ConfigManager(QObject):
             # configparser can't handle = in keys :(
             optname = optname.replace('=', '<eq>')
             keyval = '{} = {}'.format(optname, value)
+            lines += self._str_option_desc(sectname, sect, optname, option)
             lines.append(keyval)
+        return lines
+
+    def _str_option_desc(self, sectname, sect, optname, option):
+        """Get the option description strings for a single option."""
+        wrapper = textwrapper.TextWrapper(initial_indent='#' + ' ' * 5,
+                                          subsequent_indent='#' + ' ' * 5)
+        lines = []
+        if not getattr(sect, 'descriptions', None):
+            return lines
+
+        lines.append('')
+        typestr = ' ({})'.format(option.typ.get_name())
+        lines.append("# {}{}:".format(optname, typestr))
+
+        try:
+            desc = self.sections[sectname].descriptions[optname]
+        except KeyError:
+            log.config.exception("No description for {}.{}!".format(
+                sectname, optname))
+            return []
+        for descline in desc.splitlines():
+            lines += wrapper.wrap(descline)
+        valid_values = option.typ.get_valid_values()
+        if valid_values is not None:
+            if valid_values.descriptions:
+                for val in valid_values:
+                    desc = valid_values.descriptions[val]
+                    lines += wrapper.wrap("    {}: {}".format(val, desc))
+            else:
+                lines += wrapper.wrap("Valid values: {}".format(', '.join(
+                    valid_values)))
+        lines += wrapper.wrap("Default: {}".format(
+            option.values['default']))
         return lines
 
     def _get_real_sectname(self, cp, sectname):
@@ -806,7 +805,7 @@ class ConfigManager(QObject):
         if section_ is None and option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
+            tabbed_browser.openurl(QUrl('qute://settings'), newtab=False)
             return
 
         if option.endswith('?') and option != '?':

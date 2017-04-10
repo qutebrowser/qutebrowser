@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""QtWebKit specific qute:* handlers and glue code."""
+"""QtWebKit specific qute://* handlers and glue code."""
 
 import mimetypes
 import functools
@@ -28,13 +28,13 @@ from PyQt5.QtNetwork import QNetworkReply
 
 from qutebrowser.browser import pdfjs, qutescheme
 from qutebrowser.browser.webkit.network import schemehandler, networkreply
-from qutebrowser.utils import jinja, log, message, objreg, usertypes
+from qutebrowser.utils import jinja, log, message, objreg, usertypes, qtutils
 from qutebrowser.config import configexc, configdata
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
 
-    """Scheme handler for qute: URLs."""
+    """Scheme handler for qute:// URLs."""
 
     def createRequest(self, _op, request, _outgoing_data):
         """Create a new request.
@@ -62,6 +62,9 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
         except qutescheme.QuteSchemeError as e:
             return networkreply.ErrorNetworkReply(request, e.errorstring,
                                                   e.error, self.parent())
+        except qutescheme.Redirect as e:
+            qtutils.ensure_valid(e.url)
+            return networkreply.RedirectNetworkReply(e.url, self.parent())
 
         return networkreply.FixedDataNetworkReply(request, data, mimetype,
                                                   self.parent())
@@ -69,15 +72,15 @@ class QuteSchemeHandler(schemehandler.SchemeHandler):
 
 class JSBridge(QObject):
 
-    """Javascript-bridge for special qute:... pages."""
+    """Javascript-bridge for special qute://... pages."""
 
     @pyqtSlot(str, str, str)
     def set(self, sectname, optname, value):
-        """Slot to set a setting from qute:settings."""
+        """Slot to set a setting from qute://settings."""
         # https://github.com/qutebrowser/qutebrowser/issues/727
         if ((sectname, optname) == ('content', 'allow-javascript') and
                 value == 'false'):
-            message.error("Refusing to disable javascript via qute:settings "
+            message.error("Refusing to disable javascript via qute://settings "
                           "as it needs javascript support.")
             return
         try:
@@ -88,7 +91,7 @@ class JSBridge(QObject):
 
 @qutescheme.add_handler('settings', backend=usertypes.Backend.QtWebKit)
 def qute_settings(_url):
-    """Handler for qute:settings. View/change qute configuration."""
+    """Handler for qute://settings. View/change qute configuration."""
     config_getter = functools.partial(objreg.get('config').get, raw=True)
     html = jinja.render('settings.html', title='settings', config=configdata,
                         confget=config_getter)

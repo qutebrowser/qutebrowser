@@ -182,9 +182,10 @@ def init_log(args):
     root = logging.getLogger()
     global console_filter
     if console is not None:
+        console_filter = LogFilter(None)
         if args.logfilter is not None:
-            console_filter = LogFilter(args.logfilter.split(','))
-            console.addFilter(console_filter)
+            console_filter.names = args.logfilter.split(',')
+        console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)

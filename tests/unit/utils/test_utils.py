@@ -836,6 +836,11 @@ class TestGetSetClipboard:
         with pytest.raises(utils.SelectionUnsupportedError):
             utils.get_clipboard(selection=True)
 
+    def test_get_unsupported_selection_fallback(self, clipboard_mock):
+        clipboard_mock.supportsSelection.return_value = False
+        clipboard_mock.text.return_value = 'text'
+        assert utils.get_clipboard(selection=True, fallback=True) == 'text'
+
     @pytest.mark.parametrize('selection', [True, False])
     def test_get_fake_clipboard(self, selection):
         utils.fake_clipboard = 'fake clipboard text'
@@ -846,6 +851,10 @@ class TestGetSetClipboard:
     def test_supports_selection(self, clipboard_mock, selection):
         clipboard_mock.supportsSelection.return_value = selection
         assert utils.supports_selection() == selection
+
+    def test_fallback_without_selection(self):
+        with pytest.raises(ValueError):
+            utils.get_clipboard(fallback=True)
 
 
 @pytest.mark.parametrize('keystr, expected', [
@@ -916,3 +925,16 @@ class TestOpenFile:
 
 def test_unused():
     utils.unused(None)
+
+
+@pytest.mark.parametrize('path, expected', [
+    ('E:', 'E:\\'),
+    ('e:', 'e:\\'),
+    ('E:foo', 'E:foo'),
+    ('E:\\', 'E:\\'),
+    ('E:\\foo', 'E:\\foo'),
+    ('foo:', 'foo:'),
+    ('foo:bar', 'foo:bar'),
+])
+def test_expand_windows_drive(path, expected):
+    assert utils.expand_windows_drive(path) == expected

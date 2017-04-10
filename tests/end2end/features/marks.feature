@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Setting positional marks
 
     Background:
@@ -25,6 +27,7 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 10/20
         Then the page should be scrolled to 10 20
 
+    @qtwebengine_flaky
     Scenario: Setting the same local mark on another page
         When I run :scroll-px 5 10
         And I wait until the scroll position changed to 5/10

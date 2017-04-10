@@ -104,6 +104,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         raise downloads.UnsupportedOperationError
 
     def _set_tempfile(self, fileobj):
+        fileobj.close()
         self._set_filename(fileobj.name, force_overwrite=True,
                            remember_directory=False)
 

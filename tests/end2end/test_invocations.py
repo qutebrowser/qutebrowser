@@ -77,8 +77,6 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     https://github.com/qutebrowser/qutebrowser/issues/908
     https://github.com/qutebrowser/qutebrowser/issues/1726
     """
-    if request.config.webengine:
-        pytest.skip("Downloads are not implemented with QtWebEngine yet")
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
     quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
@@ -113,9 +111,6 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
     https://github.com/qutebrowser/qutebrowser/issues/866
     https://github.com/qutebrowser/qutebrowser/issues/1269
     """
-    if request.config.webengine:
-        pytest.skip("Downloads are not implemented with QtWebEngine yet")
-
     home = tmpdir / 'home'
     home.ensure(dir=True)
     temp_basedir_env['HOME'] = str(home)
@@ -143,12 +138,10 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
 
 def test_no_loglines(request, quteproc_new):
-    """Test qute:log with --loglines=0."""
-    if request.config.webengine:
-        pytest.skip("qute:log is not implemented with QtWebEngine yet")
+    """Test qute://log with --loglines=0."""
     quteproc_new.start(args=['--temp-basedir', '--loglines=0'] +
                        _base_args(request.config))
-    quteproc_new.open_path('qute:log')
+    quteproc_new.open_path('qute://log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
 
 

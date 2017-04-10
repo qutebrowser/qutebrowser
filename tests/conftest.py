@@ -44,7 +44,7 @@ hypothesis.settings.register_profile('default',
 hypothesis.settings.load_profile('default')
 
 
-def _apply_platform_markers(item):
+def _apply_platform_markers(config, item):
     """Apply a skip marker to a given item."""
     markers = [
         ('posix', os.name != 'posix', "Requires a POSIX os"),
@@ -57,6 +57,8 @@ def _apply_platform_markers(item):
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
+        ('issue2478', os.name == 'nt' and config.webengine,
+         "Broken with QtWebEngine on Windows"),
     ]
 
     for searched_marker, condition, default_reason in markers:
@@ -117,7 +119,7 @@ def pytest_collection_modifyitems(config, items):
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
 
-        _apply_platform_markers(item)
+        _apply_platform_markers(config, item)
         if item.get_marker('xfail_norun'):
             item.add_marker(pytest.mark.xfail(run=False))
         if item.get_marker('js_prompt'):

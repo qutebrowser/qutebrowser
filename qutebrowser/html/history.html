@@ -47,22 +47,9 @@ table {
     text-align: center;
 }
 
-.error {
-    background-color: #ffbbbb;
-    border-radius: 5px;
-    font-weight: bold;
-    padding: 10px;
-    text-align: center;
-    width: 100%;
-    border: 1px solid #ff7777;
-}
-
 {% endblock %}
 {% block content %}
 <h1>Browsing history</h1>
-<noscript>
-    <div class="error">Javascript is required to view this page.</div>
-</noscript>
 <div id="hist-container"></div>
 <span id="eof" style="display: none">end</span>
 <a href="#" id="load" style="display: none">Show more</a>

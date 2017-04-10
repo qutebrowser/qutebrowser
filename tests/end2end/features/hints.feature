@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Using hints
 
     # https://bugreports.qt.io/browse/QTBUG-58381
@@ -45,17 +47,17 @@ Feature: Using hints
 
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "-- all spawn -v echo" and follow a
+        And I hint with args "-- all spawn -v python -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "all spawn -v echo" and follow a
+        And I hint with args "all spawn -v python -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags and --rapid (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "--rapid all spawn -v echo" and follow a
+        And I hint with args "--rapid all spawn -v python -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     @posix

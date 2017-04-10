@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Miscellaneous utility commands exposed to the user.
 
     Background:
@@ -129,6 +131,7 @@ Feature: Miscellaneous utility commands exposed to the user.
         And I hint with args "all tab-fg"
         And I run :leave-mode
         And I run :repeat-command
+        And I wait for "hints: *" in the log
         And I run :follow-hint a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -142,7 +145,7 @@ Feature: Miscellaneous utility commands exposed to the user.
         And I run :message-info oldstuff
         And I run :repeat 20 message-info otherstuff
         And I run :message-info newstuff
-        And I open qute:log
+        And I open qute://log
         Then the page should contain the plaintext "newstuff"
         And the page should not contain the plaintext "oldstuff"
 
@@ -161,3 +164,10 @@ Feature: Miscellaneous utility commands exposed to the user.
     Scenario: Using debug-log-filter with invalid filter
         When I run :debug-log-filter blah
         Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+
+    Scenario: Using debug-log-filter
+        When I run :debug-log-filter commands,ipc,webview
+        And I run :enter-mode insert
+        And I run :debug-log-filter none
+        And I run :leave-mode
+        Then "Entering mode KeyMode.insert *" should not be logged

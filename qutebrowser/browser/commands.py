@@ -1337,6 +1337,9 @@ class CommandDispatcher:
                                       scope='window', window=self._win_id)
         target = None
         if dest is not None:
+            dest = downloads.transform_path(dest)
+            if dest is None:
+                raise cmdexc.CommandError("Invalid target filename")
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
@@ -1539,10 +1542,7 @@ class CommandDispatcher:
                        backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
-        try:
-            self.insert_text(utils.get_clipboard(selection=True))
-        except utils.SelectionUnsupportedError:
-            self.insert_text(utils.get_clipboard())
+        self.insert_text(utils.get_clipboard(selection=True, fallback=True))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')

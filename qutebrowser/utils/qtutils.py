@@ -174,12 +174,6 @@ def ensure_valid(obj):
         raise QtValueError(obj)
 
 
-def ensure_not_null(obj):
-    """Ensure a Qt object with an .isNull() method is not null."""
-    if obj.isNull():
-        raise QtValueError(obj, null=True)
-
-
 def check_qdatastream(stream):
     """Check the status of a QDataStream and raise OSError if it's not ok."""
     status_to_str = {
@@ -412,15 +406,12 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj, null=False):
+    def __init__(self, obj):
         try:
             self.reason = obj.errorString()
         except AttributeError:
             self.reason = None
-        if null:
-            err = "{} is null".format(obj)
-        else:
-            err = "{} is not valid".format(obj)
+        err = "{} is not valid".format(obj)
         if self.reason:
             err += ": {}".format(self.reason)
         super().__init__(err)
