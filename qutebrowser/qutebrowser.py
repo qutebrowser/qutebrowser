@@ -114,7 +114,7 @@ def get_argparser():
                        action='append')
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
                        nargs=1, action='append')
-    debug.add_argument('--debug-flag', type=debug_flag_error,
+    debug.add_argument('--debug-flag', type=debug_flag_error, default=[],
                        help="Pass name of debugging feature to be turned on.",
                        nargs=1, action='append', dest='debug_flags')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
