@@ -916,28 +916,36 @@ class DownloadModel(QAbstractListModel):
             if msg_error != '':
                 msg_error += ' '
             msg_error += "{} are successful!".format(
-                            utils.parse_list_into_numsettxt(successfuls)
+                            utils.parse_list_into_numsettxt(
+                                [i[0] for i in successfuls]
+                            )
                          )
 
         if len(notsuccessfuls):
             if msg_error != '':
                 msg_error += ' '
             msg_error += "{} are not successful!".format(
-                            utils.parse_list_into_numsettxt(notsuccessfuls)
+                            utils.parse_list_into_numsettxt(
+                                [i[0] for i in notsuccessfuls]
+                            )
                          )
 
         if len(dones):
             if msg_error != '':
                 msg_error += ' '
             msg_error += "{} are done!".format(
-                            utils.parse_list_into_numsettxt(dones)
+                            utils.parse_list_into_numsettxt(
+                                [i[0] for i in dones]
+                            )
                          )
 
         if len(notdones):
             if msg_error != '':
                 msg_error += ' '
             msg_error += "{} are not done!".format(
-                            utils.parse_list_into_numsettxt(notdones)
+                            utils.parse_list_into_numsettxt(
+                                [i[0] for i in notdones]
+                            )
                          )
 
         if len(nonexistents):
