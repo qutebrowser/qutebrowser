@@ -894,41 +894,168 @@ class DownloadModel(QAbstractListModel):
             qtutils.ensure_valid(end_index)
         self.dataChanged.emit(start_index, end_index)
 
-    def _raise_no_download(self, count):
-        """Raise an exception that the download doesn't exist.
+    def _raise_error_download(self, successfuls, notsuccessfuls, dones, notdones,
+                             nonexistents):
+        """Raise exception for each category of downloads. if a category should
+        not have any exceptions raised for, then pass an empty list for the
+        category.
 
         Args:
-            count: The index of the download
+            successfuls     : The indexes of the successful downloads
+            notsuccessfuls  : The indexes of the downloads that are not
+                              successful
+            dones           : The indexes of the downloads that are done
+            notdones        : The indexes of the downloads that are not
+                              done 
+            nonexistents    : The indexes of the nonexistent downloads
         """
-        if not count:
-            raise cmdexc.CommandError("There's no download!")
-        raise cmdexc.CommandError("There's no download {}!".format(count))
+
+        msg_error = ''
+
+        if len(successfuls):
+            if msg_error == '':
+                msg_error += ', '
+            msg_error += "{} are successful!".format(','.join(
+                            [str(i[0]) for i in successfuls]
+                         ))
+
+        if len(notsuccessfuls):
+            if msg_error == '':
+                msg_error += ', '
+            msg_error += "{} are not successful!".format(','.join(
+                            [str(i[0]) for i in notsuccessfuls]
+                         ))
+
+        if len(dones):
+            if msg_error == '':
+                msg_error += ', '
+            msg_error += "{} are done!".format(','.join(
+                            [str(i[0]) for i in dones]
+                         ))
+
+        if len(notdones):
+            if msg_error == '':
+                msg_error += ', '
+            msg_error += "{} are not done!".format(','.join(
+                            [str(i[0]) for i in notdones]
+                         ))
+
+        if len(nonexistents):
+            if msg_error == '':
+                msg_error += ', '
+            msg_error += "{} are nonexistent!".format(','.join(
+                            [str(i) for i in nonexistents if i != '']
+                         ))
+
+        print('ERROR: successfulls: %s' % successfuls)
+        print('ERROR: notsuccessfulls: %s' % notsuccessfuls)
+        print('ERROR: dones: %s' % dones)
+        print('ERROR: notdones: %s' % notdones)
+        print('ERROR: nonexistents: %s' % nonexistents)
+        
+
+        if msg_error != '':
+            raise cmdexc.CommandError("Downloads {}".format(msg_error))
+
+    def _download_select(self, count, indexset):
+        """Select download objects that match the selection criterion, and then
+        classify them as completed, incomplete, and nonexistent downloads.
+
+        Args:
+            count: Single index item to pick (for compatibility).
+            indexset: Specify the set of download indexes to delete. E.g.
+                '2,5,6-last,3', where 'last' is special keyword that denotes
+                that latest download index. If you specify numbers smaller than
+                1, or greater than 'last', then those numbers will be silently
+                ignored.
+        """
+
+        indexset_p = []
+
+        # parse set of indexes to delete (parsed based on count, or the
+        # indexset)
+        if indexset == None:
+            indexset_p.append(count)
+        else:
+            try:
+                for i in utils.parse_number_sets(indexset, len(self)):
+                    indexset_p.add(i)
+            except ValueError:
+                raise cmdexc.CommandError(
+                        "Invalid index set '{}'!".format(indexset)
+                      )
+
+        # get list of downloaded items to delete
+        successfuls = []
+        notsuccessfuls = []
+        dones = []
+        notdones = []
+        nonexistents = []
+        for i in sorted(indexset_p, reverse=True):
+            j = i - 1   # humans usually count from 1, but python usually counts
+                        # from 0. let's make python's life easier, cause
+                        # happier python also means happier programmer. let's
+                        # face it, a developer, unlike a pure end-user, needs
+                        # to make both happy. so this is the point where we
+                        # (devs) try to work to make sure everyone is happy
+                        # (pure end user, and python) by making this
+                        # translation of how indexes are defined.
+                        #
+                        # however, to be honest, i think humans, including pure
+                        # end-users, should count from zero *shrug*. maybe one
+                        # day we should expect that pure end-users also count
+                        # from 0?
+            try:
+                download = self[j]
+                if download.successful:
+                    successfuls.append([i, download])
+                else:
+                    notsuccessfuls.append([i, download])
+                if download.done:
+                    dones.append([i, download])
+                else:
+                    notdones.append([i, download])
+            except IndexError:
+                nonexistents.append(i)
+
+        print('SELECT: successfulls: %s' % successfuls)
+        print('SELECT: notsuccessfulls: %s' % notsuccessfuls)
+        print('SELECT: dones: %s' % dones)
+        print('SELECT: notdones: %s' % notdones)
+        print('SELECT: nonexistents: %s' % nonexistents)
+        
+        return (successfuls, notsuccessfuls, dones, notdones, nonexistents)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_cancel(self, all_=False, count=0):
+    def download_cancel(self, indexset=None, count=0):
         """Cancel the last/[count]th download.
 
         Args:
-            all_: Cancel all running downloads
+            indexset: Specify the set of download indexes to delete. E.g.
+                      '2,5,6-last,3', where 'last' is special keyword that
+                      denotes that latest download index. If you specify
+                      numbers smaller than 1, or greater than 'last', then
+                      those numbers will be silently ignored.
             count: The index of the download to cancel.
         """
-        downloads = self._all_downloads()
-        if all_:
-            for download in downloads:
-                if not download.done:
-                    download.cancel()
-        else:
-            try:
-                download = downloads[count - 1]
-            except IndexError:
-                self._raise_no_download(count)
-            if download.done:
-                if not count:
-                    count = len(self)
-                raise cmdexc.CommandError("Download {} is already done!"
-                                        .format(count))
+
+        # get categorized lists of downloads that match the selected criteria
+        # (count and indexset)
+        (
+            successfuls,
+            notsuccessfuls,
+            dones,
+            notdones,
+            nonexistents
+        ) = self._download_select(count, indexset)
+
+        # cancel all that's cancelable
+        for (i,d) in notdones:
             download.cancel()
+
+        # tell the user about what wasn't cancelable
+        self._raise_error_download([], [], dones, [], nonexistents)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -937,111 +1064,104 @@ class DownloadModel(QAbstractListModel):
 
         Args:
             indexset: Specify the set of download indexes to delete. E.g.
-                '2,5,6-last,3', where 'last' is special keyword that denotes
-                that latest download index. If you specify numbers smaller than
-                1, or greater than 'last', then those numbers will be silently
-                ignored.
+                      '2,5,6-last,3', where 'last' is special keyword that
+                      denotes that latest download index. If you specify
+                      numbers smaller than 1, or greater than 'last', then
+                      those numbers will be silently ignored.
             count: The index of the download to delete.
         """
 
-        # if there are no downloads, raise an exception
-        if len(self) == 0:
-            self._raise_no_download(count)
+        # get categorized lists of downloads that match the selected criteria
+        # (count and indexset)
+        (
+            successfuls,
+            notsuccessfuls,
+            dones,
+            notdones,
+            nonexistents
+        ) = self._download_select(count, indexset)
 
-        # get list of indexes to delete
-        if indexset == None:
-            indexes_to_del = [count]
-        else:
-            try:
-                indexes_to_del = [i for i in utils.parse_number_sets(indexset, 1, len(self))]
-            except ValueError:
-                raise cmdexc.CommandError("Invalid index set '{}'!".format(indexset))
+        # delete all that are deletable (completed downloads)
+        for (i,d) in successfuls:
+            d.delete()
+            d.remove()
+            log.downloads.debug("deleted download {}".format(i))
 
-        # get list of downloaded items to delete
-        download_to_del = []
-        download_incomplete = []
-        for i in indexes_to_del:
-            j = i - 1
-            try:
-                download = self[j]
-                if download.successful:
-                    download_to_del.append(download)
-                else:
-                    download_incomplete.append(i)
-            except IndexError:
-                # i (caveman) think, there is no need to be too
-                # interactive/online. we probably better delete whatever is
-                # deletable first, and then complain about various errors later
-                # on. so for now we do nothing
-                pass
-
-        # complain if there is absolutely nothing to delete. caveman
-        # thinks this is a good idea.
-        if len(download_to_del) == 0:
-            raise cmdexc.CommandError("None of the downloaded items matched!")
-
-        # delete downloads
-        for download in download_to_del:
-            download.delete()
-            download.remove()
-            log.downloads.debug("deleted download {}".format(download))
-
-        # raise exception for those downloads that were incomplete
-        if len(download_incomplete) > 0:
-            plural = 's'
-            if (download_incomplete) == 1:
-                plural = ''
-            raise cmdexc.CommandError("Download%s %s is not done!" % (plural,
-            ', '.join([str(i) for i in download_incomplete])))
+        # raise an exception to tell the user about downloads that were
+        # undeletable. namely, those that were incomplelte or nonexistent.
+        self._raise_error_download([], notsuccessfuls, [], [], nonexistents)
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, cmdline: str=None, count=0):
+    def download_open(self, indexset=None, cmdline: str=None, count=0):
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default
         application to open the file.
 
         Args:
+            indexset: Specify the set of download indexes to delete. E.g.
+                      '2,5,6-last,3', where 'last' is special keyword that
+                      denotes that latest download index. If you specify
+                      numbers smaller than 1, or greater than 'last', then
+                      those numbers will be silently ignored.
             cmdline: The command which should be used to open the file. A `{}`
                      is expanded to the temporary file name. If no `{}` is
                      present, the filename is automatically appended to the
                      cmdline.
             count: The index of the download to open.
         """
-        try:
-            download = self[count - 1]
-        except IndexError:
-            self._raise_no_download(count)
-        if not download.successful:
-            if not count:
-                count = len(self)
-            raise cmdexc.CommandError("Download {} is not done!".format(count))
-        download.open_file(cmdline)
+
+        # get categorized lists of downloads that match the selected criteria
+        # (count and indexset)
+        (
+            successfuls,
+            notsuccessfuls,
+            dones,
+            notdones,
+            nonexistents
+        ) = self._download_select(count, indexset)
+
+        # open all that are openable (completed downloads)
+        for (i,d) in successfuls:
+            d.open_file(cmdline)
+
+        # raise an exception to tell the user about downloads that were
+        # unopenable. namely, those that were incomplelte or nonexistent.
+        self._raise_error_download([], notsuccessfuls, [], [], nonexistents)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_retry(self, count=0):
+    def download_retry(self, indexset=None, count=0):
         """Retry the first failed/[count]th download.
 
         Args:
+            indexset: Specify the set of download indexes to delete. E.g.
+                      '2,5,6-last,3', where 'last' is special keyword that
+                      denotes that latest download index. If you specify
+                      numbers smaller than 1, or greater than 'last', then
+                      those numbers will be silently ignored.
             count: The index of the download to retry.
         """
-        if count:
-            try:
-                download = self[count - 1]
-            except IndexError:
-                self._raise_no_download(count)
-            if download.successful or not download.done:
-                raise cmdexc.CommandError("Download {} did not fail!".format(
-                    count))
-        else:
-            to_retry = [d for d in self if d.done and not d.successful]
-            if not to_retry:
-                raise cmdexc.CommandError("No failed downloads!")
-            else:
-                download = to_retry[0]
-        download.try_retry()
+
+        # get categorized lists of downloads that match the selected criteria
+        # (count and indexset)
+        (
+            successfuls,
+            notsuccessfuls,
+            dones,
+            notdones,
+            nonexistents
+        ) = self._download_select(count, indexset)
+
+        # retry all that are retryable (i.e. those that are, simultaneously, done and
+        # notsuccessful)
+        for (i,d) in [dt for dt in dones if dt in notsuccessfuls]:
+            d.try_retry()
+
+        # raise an exception to tell the user about downloads that were
+        # not retryable. namely, those that were successful or nonexistent.
+        self._raise_error_download(successfuls, [], [], notdones, nonexistents)
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
@@ -1056,26 +1176,35 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_remove(self, all_=False, count=0):
+    def download_remove(self, indexset=None, count=0):
         """Remove the last/[count]th download from the list.
 
         Args:
-            all_: Remove all finished downloads.
+            indexset: Specify the set of download indexes to delete. E.g.
+                      '2,5,6-last,3', where 'last' is special keyword that
+                      denotes that latest download index. If you specify
+                      numbers smaller than 1, or greater than 'last', then
+                      those numbers will be silently ignored.
             count: The index of the download to remove.
         """
-        if all_:
-            self.download_clear()
-        else:
-            try:
-                download = self[count - 1]
-            except IndexError:
-                self._raise_no_download(count)
-            if not download.done:
-                if not count:
-                    count = len(self)
-                raise cmdexc.CommandError("Download {} is not done!"
-                                          .format(count))
-            download.remove()
+
+        # get categorized lists of downloads that match the selected criteria
+        # (count and indexset)
+        (
+            successfuls,
+            notsuccessfuls,
+            dones,
+            notdones,
+            nonexistents
+        ) = self._download_select(count, indexset)
+
+        # remove what's removable
+        for (i,d) in dones:
+            d.remove()
+
+        # raise an exception to tell the user about downloads that were
+        # not removable. namely, those that were not done or nonexistent.
+        self._raise_error_download([], [], [], notdones, nonexistents)
 
     def running_downloads(self):
         """Return the amount of still running downloads.

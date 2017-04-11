@@ -864,16 +864,14 @@ def unused(_arg):
     pass
 
 
-def parse_number_sets(txtset, nummin, nummax):
+def parse_number_sets(txtset, nummax):
     """Parse the given numbers set in text format, and return it as a list of
-    numbers, such that the numbers are never smaller than nummin, and never
-    greater than nummax.
+    numbers.
 
     Args:
         txtset: Numbers set specification. E.g. '1,5,8-last,32,2', where 'last'
         is a special keyword that denotes that maximum allowable number.
-        nummin: Minimum allowable number.
-        nummax: Maximum allowable number.
+        nummax: The number that will be used to replace 'last'
     """
     txtset = txtset.lower().replace('last', '%d' % (nummax))
     numset = set()
@@ -883,16 +881,10 @@ def parse_number_sets(txtset, nummin, nummax):
             [start, end] = part.split('-')
             start = int(start)
             end = int(end)
-            if start < nummin:
-                start = nummin
-            if end > nummax:
-                end = nummax
             for i in range(int(start), int(end)+1):
                 numset.add(i)
         else:
-            i = int(part)
-            if i >= nummin and i <= nummax:
-                numset.add(i)
+            numset.add(int(part))
     return sorted(numset)
 
 
