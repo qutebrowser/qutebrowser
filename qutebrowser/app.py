@@ -83,6 +83,9 @@ def run(args):
     standarddir.init(args)
 
     if args.version:
+        # we need to init sql to print the sql version
+        # we can use an in-memory database as we just want to query the version
+        sql.init('')
         print(version.version())
         sys.exit(usertypes.Exit.ok)
 

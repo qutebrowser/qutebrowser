@@ -326,11 +326,7 @@ def version():
     lines += _module_versions()
 
     lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
-    # we can use an in-memory database as we just want to query the version
-    sql.init('')
     lines += ['sqlite: {}'.format(sql.version())]
-    sql.close()
 
     lines += [
         'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),

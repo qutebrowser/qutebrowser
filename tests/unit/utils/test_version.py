@@ -809,7 +809,7 @@ def test_chromium_version_unpatched(qapp):
     (True, False, True, True, False),  # unknown Linux distribution
 ])
 def test_version_output(git_commit, frozen, style, with_webkit,
-                        known_distribution, stubs, monkeypatch):
+                        known_distribution, stubs, monkeypatch, init_sql):
     """Test version.version()."""
     class FakeWebEngineProfile:
         def httpUserAgent(self):
