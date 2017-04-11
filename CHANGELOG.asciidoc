@@ -26,6 +26,8 @@ Added
 - New `-s` option for `:open` to force a HTTPS scheme.
 - `:debug-log-filter` now accepts `none` as an argument to clear any log
   filters.
+- New `--debug-flag` argument which replaces `--debug-exit` and
+  `--pdb-postmortem`.
 
 Changed
 ~~~~~~~
