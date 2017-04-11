@@ -991,7 +991,7 @@ class DownloadModel(QAbstractListModel):
         dones = []
         notdones = []
         nonexistents = []
-        for i in sorted(indexset_p, reverse=True):
+        for i in indexset_p:
             j = i - 1   # humans usually count from 1, but python usually counts
                         # from 0. let's make python's life easier, cause
                         # happier python also means happier programmer. let's
