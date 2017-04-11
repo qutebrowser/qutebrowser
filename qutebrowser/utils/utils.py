@@ -864,17 +864,18 @@ def unused(_arg):
     pass
 
 
-def parse_number_sets(txtset, nummax):
+def parse_numsettxt_into_list(txtset, nummax):
     """Parse the given numbers set in text format, and return it as a list of
     numbers.
 
     Args:
         txtset: Numbers set specification. E.g. '1,5,8-last,32,2', where 'last'
-        is a special keyword that denotes that maximum allowable number.
+                is a special keyword that denotes that maximum allowable
+                number.
         nummax: The number that will be used to replace 'last'
     """
     txtset = txtset.lower().replace('last', '%d' % (nummax))
-    numset = set()
+    l = set()
     parts = txtset.split(',')
     for part in parts:
         if part.find('-') != -1:
@@ -882,11 +883,43 @@ def parse_number_sets(txtset, nummax):
             start = int(start)
             end = int(end)
             for i in range(int(start), int(end)+1):
-                numset.add(i)
+                l.add(i)
         else:
-            numset.add(int(part))
-    return sorted(numset)
+            l.add(int(part))
+    return sorted(l)
 
+
+def parse_list_into_numsettxt(l):
+    """Summarise list of numbers into a numbers set description in text.
+    Basically undoes the effect of parse_numsettxt_into_list(...). For example,
+    l = [1,5,8,9,10,11,35] will be summarized into the string '1,5,8-11,35'.
+
+    Args:
+        l: Numbers list to be summarized back into text set descriptors. 
+    """
+
+    state = 'start'
+    for i in sorted(l):
+        if state == 'start':
+            txtset = str(i)
+            state = 'inside'
+        elif state == 'inside':
+            diff = i - last_i
+            if diff > 1:
+                txtset += ',{}'.format(i)
+            else:
+                txtset += '-'.format(i)
+                state = 'inside-dashed'
+        elif state == 'inside-dashed':
+            diff = i - last_i
+            if diff > 1:
+                txtset += '{},{}'.format(last_i,i)
+                state = 'inside'
+        last_i = i
+    if state == 'inside-dashed':
+        txtset += '{}'.format(i)
+
+    return txtset
 
 def expand_windows_drive(path):
     r"""Expand a drive-path like E: into E:\.
