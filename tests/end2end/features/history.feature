@@ -14,7 +14,7 @@ Feature: Page history
         Then the history file should contain:
             http://localhost:(port)/data/numbers/1.txt
             http://localhost:(port)/data/numbers/2.txt
-            
+
     Scenario: History item with title
         When I open data/title.html
         Then the history file should contain:
@@ -26,7 +26,7 @@ Feature: Page history
         Then the history file should contain:
             r http://localhost:(port)/redirect-to?url=data/title.html Test title
             http://localhost:(port)/data/title.html Test title
-            
+
     Scenario: History item with spaces in URL
         When I open data/title with spaces.html
         Then the history file should contain:
@@ -36,20 +36,24 @@ Feature: Page history
         When I open data/äöü.html
         Then the history file should contain:
             http://localhost:(port)/data/%C3%A4%C3%B6%C3%BC.html Chäschüechli
-            
+
+    # The following two tests use qute://history instead of checking the
+    # history file due to a race condition with sqlite.
+    # https://github.com/qutebrowser/qutebrowser/pull/2295#issuecomment-292786138
     @flaky @qtwebengine_todo: Error page message is not implemented
     Scenario: History with an error
         When I run :open file:///does/not/exist
         And I wait for "Error while loading file:///does/not/exist: Error opening /does/not/exist: *" in the log
-        Then the history file should contain:
-            file:///does/not/exist Error loading page: file:///does/not/exist
+        And I open qute://history
+        Then the page should contain the plaintext "Error loading page: file:///does/not/exist"
 
     @qtwebengine_todo: Error page message is not implemented
     Scenario: History with a 404
         When I open status/404 without waiting
         And I wait for "Error while loading http://localhost:*/status/404: NOT FOUND" in the log
-        Then the history file should contain:
-            http://localhost:(port)/status/404 Error loading page: http://localhost:(port)/status/404
+        And I open qute://history
+        Then the page should contain the plaintext "Error loading page: http://localhost:"
+        And the page should contain the plaintext "/status/404"
 
     Scenario: History with invalid URL
         When I run :tab-only
