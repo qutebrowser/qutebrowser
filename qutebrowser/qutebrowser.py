@@ -156,8 +156,8 @@ def debug_flag_error(flag):
     if flag in valid_flags:
         return flag
     else:
-        raise argparse.ArgumentTypeError("Invalid flag - valid flags include: " +
-        str(valid_flags))
+        raise argparse.ArgumentTypeError("Invalid debug flag - valid flags: {}"
+                                         .format(', '.join(valid_flags)))
 
 
 def main():
