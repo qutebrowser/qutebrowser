@@ -21,7 +21,7 @@
 
 import time
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl
+from PyQt5.QtCore import pyqtSlot, QUrl
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import utils, objreg, log, qtutils, usertypes, message
@@ -73,8 +73,6 @@ class Entry:
 class WebHistory(sql.SqlTable):
 
     """The global history of visited pages."""
-
-    async_read_done = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],

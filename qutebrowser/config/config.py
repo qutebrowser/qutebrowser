@@ -174,38 +174,6 @@ def _init_main_config(parent=None):
                     return
 
 
-def _init_key_config(parent):
-    """Initialize the key config.
-
-    Args:
-        parent: The parent to use for the KeyConfigParser.
-    """
-    from qutebrowser.config.parsers import keyconf
-    args = objreg.get('args')
-    try:
-        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
-                                             args.relaxed_config,
-                                             parent=parent)
-    except (keyconf.KeyConfigError, cmdexc.CommandError,
-            UnicodeDecodeError) as e:
-        log.init.exception(e)
-        errstr = "Error while reading key config:\n"
-        if e.lineno is not None:
-            errstr += "In line {}: ".format(e.lineno)
-        error.handle_fatal_exc(e, args, "Error while reading key config!",
-                               pre_text=errstr)
-        # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(usertypes.Exit.err_key_config)
-    else:
-        objreg.register('key-config', key_config)
-        save_manager = objreg.get('save-manager')
-        filename = os.path.join(standarddir.config(), 'keys.conf')
-        save_manager.add_saveable(
-            'key-config', key_config.save, key_config.config_dirty,
-            config_opt=('general', 'auto-save-config'), filename=filename,
-            dirty=key_config.is_dirty)
-
-
 def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
