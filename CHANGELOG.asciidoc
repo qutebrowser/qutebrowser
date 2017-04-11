@@ -43,6 +43,9 @@ Changed
   options instead of being before sections.
 - The HTTP cache is disabled with QtWebKit on Qt 5.8 now as it leads to frequent
   crashes due to a Qt bug.
+- Don't remove temporary `/tmp/qutebrowser-editor-*` files when there was a
+  problem reading back this text. This allows users to recover text from those
+  files.
 
 Fixed
 ~~~~~
