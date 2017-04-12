@@ -79,6 +79,8 @@ def is_ignored_lowlevel_message(message):
         return True
     elif message == 'getrlimit(RLIMIT_NOFILE) failed':
         return True
+    elif message == 'Could not bind NETLINK socket: Address already in use':
+        return True
     return False
 
 
