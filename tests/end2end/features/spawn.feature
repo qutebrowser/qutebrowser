@@ -55,3 +55,8 @@ Feature: :spawn
         Then the following tabs should be open:
             - about:blank
             - about:blank (active)
+
+    Scenario: Running :spawn with userscript that expects the stdin getting closed
+        When I open about:blank
+	And I run :spawn -u (testdata)/userscripts/test_stdinclose.py
+	Then "stdin closed" should be logged
