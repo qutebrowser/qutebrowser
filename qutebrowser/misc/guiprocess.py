@@ -142,14 +142,13 @@ class GUIProcess(QObject):
             self._proc.start(cmd, args)
         else:
             self._proc.start(cmd, args, mode)
-        self._proc.closeWriteChannel();
+        self._proc.closeWriteChannel()
 
     def start_detached(self, cmd, args, cwd=None):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
         ok, _pid = self._proc.startDetached(cmd, args, cwd)
-        self._proc.closeWriteChannel();
 
         if ok:
             log.procs.debug("Process started.")
