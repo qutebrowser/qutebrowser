@@ -57,6 +57,5 @@ Feature: :spawn
             - about:blank (active)
 
     Scenario: Running :spawn with userscript that expects the stdin getting closed
-        When I open about:blank
-	And I run :spawn -u (testdata)/userscripts/test_stdinclose.py
-	Then "stdin closed" should be logged
+        When I run :spawn -u (testdata)/userscripts/stdinclose.py
+        Then the message "stdin closed" should be shown
