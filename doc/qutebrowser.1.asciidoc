@@ -93,12 +93,6 @@ show it.
 *--nowindow*::
     Don't show the main window.
 
-*--debug-exit*::
-    Turn on debugging of late exit.
-
-*--pdb-postmortem*::
-    Drop into pdb on exceptions.
-
 *--temp-basedir*::
     Use a temporary basedir.
 
@@ -110,6 +104,9 @@ show it.
 
 *--qt-flag* 'QT_FLAG'::
     Pass an argument to Qt as flag.
+
+*--debug-flag* 'DEBUG_FLAGS'::
+    Pass name of debugging feature to be turned on.
 // QUTE_OPTIONS_END
 
 == FILES

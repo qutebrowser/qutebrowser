@@ -164,6 +164,7 @@ Contributors, sorted by the number of commits in descending order:
 * Patric Schmitz
 * Tarcisio Fedrizzi
 * Claude
+* Fritz Reichwald
 * Corentin Julé
 * meles5
 * Philipp Hansch
@@ -172,7 +173,6 @@ Contributors, sorted by the number of commits in descending order:
 * Nathan Isom
 * Thorsten Wißmann
 * Austin Anderson
-* Fritz Reichwald
 * Jimmy
 * Niklas Haas
 * Maciej Wołczyk
@@ -186,6 +186,7 @@ Contributors, sorted by the number of commits in descending order:
 * John ShaggyTwoDope Jenkins
 * Clayton Craft
 * Peter Vilim
+* Jacob Sword
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
