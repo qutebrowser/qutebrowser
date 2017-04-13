@@ -322,8 +322,7 @@ def check_libraries(backend):
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
-    else:
-        assert backend == 'webkit'
+    elif backend == 'webkit':
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
         modules['PyQt5.QtWebKitWidgets'] = _missing_str(
             "PyQt5.QtWebKitWidgets")
@@ -407,10 +406,15 @@ def earlyinit(args):
     fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
-    backend = get_backend(args)
-    check_qt_version(backend)
+    #
+    # First do some early version checks, without knowing the backend.
+    check_qt_version(None)
     remove_inputhook()
-    check_libraries(backend)
+    check_libraries(None)
     check_ssl_support()
     check_optimize_flag()
+    # Now find out the backend to use, and do the rest of the checks
+    backend = get_backend(args)
+    check_qt_version(backend)
+    check_libraries(backend)
     set_backend(backend)
