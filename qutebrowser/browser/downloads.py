@@ -894,10 +894,9 @@ class DownloadModel(QAbstractListModel):
             qtutils.ensure_valid(end_index)
         self.dataChanged.emit(start_index, end_index)
 
-    def _selective_dos(self, count, all_, indexset, criterion, dos,
-    err_postfix):
-        """Apply actions in dos against downloads specified by indexset that
-        satisfy the criterion.
+    def _select_downloads(self, count, all_, indexset, criterion):
+        """Return selected downloads specified by indexset that satisfy the
+        criterion.
 
         Args:
             count: count of download to get the actions applied against.
@@ -908,10 +907,6 @@ class DownloadModel(QAbstractListModel):
                 1, or greater than 'last', then those numbers will be silently
                 ignored.
             criterion: A function that returns True only when satisfied.
-            dos: A set of functions that apply actions against satisfying
-                 downloads.
-            err_postfix: The text to print after printing the list of indexes
-                         that don't match the criterion.
         """
 
         # support --all/-a
@@ -951,23 +946,7 @@ class DownloadModel(QAbstractListModel):
             except IndexError:
                 noexists.append(i)
 
-        # apply actions on matched downloads
-        for d in matchs:
-            for do in dos:
-                do(d)
-
-        # display errors - downloads that didn't match the criterion
-        if len(nomatchs):
-            raise cmdexc.CommandError("Downloads {} {}!".format(
-                    ", ".join([str(i) for i in nomatchs]),
-                    err_postfix
-                ))
-
-        # display errors - downloads that don't exist
-        if len(noexists):
-            raise cmdexc.CommandError("Downloads {} don't exist!".format(
-                    ", ".join([str(i) for i in noexists])
-                ))
+        return (matchs, nomatchs, noexists)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -985,15 +964,25 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to cancel.
         """
 
-        # cancel all downloads that are matched
-        self._selective_dos(
-            count,                  # support count
-            all_,                   # support --all/-a
-            indexset,               # select downloads
-            lambda d: d.done,       # that match this criteria
-            [lambda d: d.cancel()], # to do these against
-            "are not done yet"      # error postfix
-        )
+        # find matched downloads
+        (matchs, nomatchs, noexists) = self._select_downloads(
+                                           count,
+                                           all_,
+                                           indexset,
+                                           lambda d: not d.done
+                                       )
+
+        # cancel them
+        for d in matchs:
+            d.cancel()
+
+        # show errors if needed
+        if len(nomatchs):
+            message.error("Downloads {} are already done!".format(
+            utils.parse_list_into_numsettxt(nomatchs)))
+        if len(noexists):
+            message.error("Downloads {} don't exist!".format(
+            utils.parse_list_into_numsettxt(noexists)))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1011,20 +1000,27 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to delete.
         """
 
-        # cancel all downloads that are matched
-        self._selective_dos(
-            count,                                # support count
-            all_,                                 # support --all/-a
-            indexset,                             # select downloads
-            lambda d: d.done,                     # matching this
-            [
-                lambda d: d.delete(),
-                lambda d: d.remove(),
-                lambda d: d.remove(),
-                lambda d: log.downloads.debug("deleted download {}".format(d))
-            ],                                    # to do these against
-            "are not successfully downloaded yet" # error postfix
-        )
+        # find matched downloads
+        (matchs, nomatchs, noexists) = self._select_downloads(
+                                           count,
+                                           all_,
+                                           indexset,
+                                           lambda d: d.successful
+                                       )
+
+        # delete them
+        for d in matchs:
+            d.delete(),
+            d.remove(),
+            log.downloads.debug("Deleted download {}".format(d))
+
+        # show errors if needed
+        if len(nomatchs):
+            message.error("Downloads {} are not successful yet!".format(
+            utils.parse_list_into_numsettxt(nomatchs)))
+        if len(noexists):
+            message.error("Downloads {} don't exist!".format(
+            utils.parse_list_into_numsettxt(noexists)))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
@@ -1049,15 +1045,25 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to open.
         """
 
-        # cancel all downloads that are matched
-        self._selective_dos(
-            count,                                # support count
-            all_,                                 # support --all/-a
-            indexset,                             # select downloads
-            lambda d: d.done,                     # matching this
-            [lambda d: d.open_file(cmdline)],     # to do these against
-            "are not successfully downloaded yet" # error postfix (not done)
-        )
+        # find matched downloads
+        (matchs, nomatchs, noexists) = self._select_downloads(
+                                           count,
+                                           all_,
+                                           indexset,
+                                           lambda d: d.successful
+                                       )
+
+        # open them
+        for d in matchs:
+            d.open_file(cmdline)
+
+        # show errors if needed
+        if len(nomatchs):
+            message.error("Downloads {} are not successful!".format(
+            utils.parse_list_into_numsettxt(nomatchs)))
+        if len(noexists):
+            message.error("Downloads {} don't exist!".format(
+            utils.parse_list_into_numsettxt(noexists)))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1075,15 +1081,25 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to retry.
         """
 
-        # cancel all downloads that are matched
-        self._selective_dos(
-            count,                      # support count
-            all_,                       # support --all/-a
-            indexset,                   # select downloads
-            lambda d: d.done and not d.successful, # matching this
-            [lambda d: d.try_retry()],  # to do these against
-            "are fine"                  # error postfix (not done)
-        )
+        # find matched downloads
+        (matchs, nomatchs, noexists) = self._select_downloads(
+                                        count,
+                                        all_,
+                                        indexset,
+                                        lambda d: d.done and not d.successful
+                                    )
+
+        # retry them
+        for d in matchs:
+            d.try_retry()
+
+        # show errors if needed
+        if len(nomatchs):
+            message.error("Downloads {} are fine!".format(
+            utils.parse_list_into_numsettxt(nomatchs)))
+        if len(noexists):
+            message.error("Downloads {} don't exist!".format(
+            utils.parse_list_into_numsettxt(noexists)))
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
@@ -1112,15 +1128,25 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download to remove.
         """
 
-        # cancel all downloads that are matched
-        self._selective_dos(
-            count,                  # support count
-            all_,                   # support --all/-a
-            indexset,               # select downloads
-            lambda d: d.done,       # matching this
-            [lambda d: d.remove()], # to do these against
-            "are not done yet"      # error postfix (not done)
-        )
+        # find matche downloads 
+        (matchs, nomatchs, noexists) = self._select_downloads(
+                                           count,
+                                           all_,
+                                           indexset,
+                                           lambda d: d.done
+                                       )
+
+        # remove them
+        for d in matchs:
+            d.remove()
+
+        # show errors if needed
+        if len(nomatchs):
+            message.error("Downloads {} are in progress!".format(
+            utils.parse_list_into_numsettxt(nomatchs)))
+        if len(noexists):
+            message.error("Downloads {} don't exist!".format(
+            utils.parse_list_into_numsettxt(noexists)))
 
     def running_downloads(self):
         """Return the amount of still running downloads.
