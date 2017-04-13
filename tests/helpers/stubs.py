@@ -376,9 +376,6 @@ class InstaTimer(QObject):
 
     timeout = pyqtSignal()
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
     def start(self):
         self.timeout.emit()
 
@@ -409,9 +406,6 @@ class StatusBarCommandStub(QLineEdit):
     update_completion = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
 
     def prefix(self):
         return self.text()[0]
@@ -594,6 +588,3 @@ class ApplicationStub(QObject):
     """Stub to insert as the app object in objreg."""
 
     new_window = pyqtSignal(mainwindow.MainWindow)
-
-    def __init__(self):
-        super().__init__()

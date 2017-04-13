@@ -387,7 +387,7 @@ class PromptContainer(QWidget):
 
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
-    def prompt_open_download(self, cmdline: str=None):
+    def prompt_open_download(self, cmdline: str = None):
         """Immediately open a download.
 
         If no specific command is given, this will use the system's default

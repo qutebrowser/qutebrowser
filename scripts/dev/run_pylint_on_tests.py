@@ -54,7 +54,8 @@ def main():
         'missing-docstring',
         'protected-access',
         # https://bitbucket.org/logilab/pylint/issue/511/
-        'undefined-variable',
+        #'undefined-variable',
+        'len-as-condition',
         # directories without __init__.py...
         'import-error',
     ]
@@ -66,7 +67,8 @@ def main():
 
     no_docstring_rgx = ['^__.*__$', '^setup$']
     args = (['--disable={}'.format(','.join(disabled)),
-             '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx))] +
+             '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx)),
+             '--ignored-modules=helpers,pytest'] +
             sys.argv[2:] + files)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(pythonpath)
