@@ -76,11 +76,11 @@ class ArgumentParser(argparse.ArgumentParser):
         self.name = name
         super().__init__(*args, add_help=False, prog=name, **kwargs)
 
-    def exit(self, status=0, msg=None):
-        raise ArgumentParserExit(status, msg)
+    def exit(self, status=0, message=None):
+        raise ArgumentParserExit(status, message)
 
-    def error(self, msg):
-        raise ArgumentParserError(msg.capitalize())
+    def error(self, message):
+        raise ArgumentParserError(message.capitalize())
 
 
 def arg_name(name):

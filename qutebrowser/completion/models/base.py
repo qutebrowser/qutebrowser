@@ -103,7 +103,7 @@ class BaseCompletionModel(QStandardItemModel):
             nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
 
-    def delete_cur_item(self, win_id):
+    def delete_cur_item(self, completion):
         """Delete the selected item."""
         raise NotImplementedError
 

@@ -634,7 +634,7 @@ class CommandDispatcher:
                        scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
-    def scroll_perc(self, perc: float=None, horizontal=False, count=None):
+    def scroll_perc(self, perc: float = None, horizontal=False, count=None):
         """Scroll to a specific percentage of the page.
 
         The percentage can be given either as argument or as count.
@@ -670,7 +670,7 @@ class CommandDispatcher:
     @cmdutils.argument('bottom_navigate', metavar='ACTION',
                        choices=('next', 'increment'))
     def scroll_page(self, x: float, y: float, *,
-                    top_navigate: str=None, bottom_navigate: str=None,
+                    top_navigate: str = None, bottom_navigate: str = None,
                     count=1):
         """Scroll the frame page-wise.
 
@@ -807,7 +807,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: int=None, count=None):
+    def zoom(self, zoom: int = None, count=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is

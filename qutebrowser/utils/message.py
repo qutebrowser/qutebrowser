@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 # Because every method needs to have a log_stack argument
-# pylint: disable=unused-variable
+# pylint: disable=unused-argument
 
 """Message singleton so we don't have to define unneeded signals."""
 
