@@ -162,49 +162,44 @@ def build_windows():
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
-    dotver = '.'.join(parts)
     python_x86 = r'C:\Python{}_x32'.format(ver)
     python_x64 = r'C:\Python{}'.format(ver)
+    out_pyinstaller = os.path.join('build', 'qutebrowser')
+    out_32 = os.path.join('build',
+                          'qutebrowser-{}-x32'.format(qutebrowser.__version__))
+    out_64 = os.path.join('build',
+                          'qutebrowser-{}-x64'.format(qutebrowser.__version__))
 
     artifacts = []
 
     utils.print_title("Rebuilding tox environment")
-    call_tox('cxfreeze-windows', '-r', '--notest')
-    utils.print_title("Running 32bit freeze.py build_exe")
-    call_tox('cxfreeze-windows', 'build_exe', python=python_x86)
-    utils.print_title("Running 32bit freeze.py bdist_msi")
-    call_tox('cxfreeze-windows', 'bdist_msi', python=python_x86)
-    utils.print_title("Running 64bit freeze.py build_exe")
-    call_tox('cxfreeze-windows', 'build_exe', python=python_x64)
-    utils.print_title("Running 64bit freeze.py bdist_msi")
-    call_tox('cxfreeze-windows', 'bdist_msi', python=python_x64)
+    call_tox('pyinstaller', '-r', '--notest')
+    utils.print_title("Running pyinstaller 32bit")
+    call_tox('pyinstaller', python=python_x86)
+    shutil.move(out_pyinstaller, out_32)
+    utils.print_title("Running pyinstaller 64bit")
+    call_tox('pyinstaller', python=python_x64)
+    shutil.move(out_pyinstaller, out_64)
 
-    name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
-    name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
+    # name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
+    # name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
 
-    artifacts += [
-        (os.path.join('dist', name_32), 'application/x-msi',
-         'Windows 32bit installer'),
-        (os.path.join('dist', name_64), 'application/x-msi',
-         'Windows 64bit installer'),
-    ]
+    # artifacts += [
+    #     (os.path.join('dist', name_32), 'application/x-msi',
+    #      'Windows 32bit installer'),
+    #     (os.path.join('dist', name_64), 'application/x-msi',
+    #      'Windows 64bit installer'),
+    # ]
 
     utils.print_title("Running 32bit smoke test")
-    smoke_test('build/exe.win32-{}/qutebrowser.exe'.format(dotver))
+    smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
     utils.print_title("Running 64bit smoke test")
-    smoke_test('build/exe.win-amd64-{}/qutebrowser.exe'.format(dotver))
-
-    basedirname = 'qutebrowser-{}'.format(qutebrowser.__version__)
-    builddir = os.path.join('build', basedirname)
-    _maybe_remove(builddir)
+    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Zipping 32bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-win32'.format(
         qutebrowser.__version__)
-    origin = os.path.join('build', 'exe.win32-{}'.format(dotver))
-    os.rename(origin, builddir)
-    shutil.make_archive(name, 'zip', 'build', basedirname)
-    shutil.rmtree(builddir)
+    shutil.make_archive(name, 'zip', 'build', out_32)
     artifacts.append(('{}.zip'.format(name),
                       'application/zip',
                       'Windows 32bit standalone'))
@@ -212,10 +207,7 @@ def build_windows():
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
         qutebrowser.__version__)
-    origin = os.path.join('build', 'exe.win-amd64-{}'.format(dotver))
-    os.rename(origin, builddir)
-    shutil.make_archive(name, 'zip', 'build', basedirname)
-    shutil.rmtree(builddir)
+    shutil.make_archive(name, 'zip', 'build', out_32)
     artifacts.append(('{}.zip'.format(name),
                       'application/zip',
                       'Windows 64bit standalone'))
