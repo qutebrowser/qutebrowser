@@ -182,11 +182,13 @@ def build_windows():
     artifacts = []
 
     utils.print_title("Running pyinstaller 32bit")
+    _maybe_remove(out_32)
     call_tox('pyinstaller', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
     patch_windows(out_32)
 
     utils.print_title("Running pyinstaller 64bit")
+    _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
     patch_windows(out_64)
@@ -209,7 +211,7 @@ def build_windows():
     utils.print_title("Zipping 32bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-win32'.format(
         qutebrowser.__version__)
-    shutil.make_archive(name, 'zip', 'dist', out_32)
+    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
     artifacts.append(('{}.zip'.format(name),
                       'application/zip',
                       'Windows 32bit standalone'))
@@ -217,7 +219,7 @@ def build_windows():
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
         qutebrowser.__version__)
-    shutil.make_archive(name, 'zip', 'dist', out_64)
+    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_64))
     artifacts.append(('{}.zip'.format(name),
                       'application/zip',
                       'Windows 64bit standalone'))
