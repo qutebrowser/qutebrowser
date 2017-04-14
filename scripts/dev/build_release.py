@@ -278,7 +278,7 @@ def github_upload(artifacts, tag):
     with open(token_file, encoding='ascii') as f:
         token = f.read().strip()
     gh = github3.login(token=token)
-    repo = gh.repository('The-Compiler', 'qutebrowser')
+    repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
     for release in repo.iter_releases():
