@@ -972,12 +972,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        (matchs, nomatchs) = self._select_downloads(
+        matchs, nomatchs = self._select_downloads(
                                  count,
                                  all_,
                                  indexset,
                                  lambda d: not d.done
-                             )
+                           )
 
         # cancel them
         for d in matchs:
@@ -1006,12 +1006,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        (matchs, nomatchs) = self._select_downloads(
+        matchs, nomatchs = self._select_downloads(
                                  count,
                                  False,
                                  indexset,
                                  lambda d: d.successful
-                             )
+                           )
 
         # delete them
         for d in matchs:
@@ -1049,12 +1049,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        (matchs, nomatchs) = self._select_downloads(
+        matchs, nomatchs = self._select_downloads(
                                  count,
                                  False,
                                  indexset,
                                  lambda d: d.successful
-                             )
+                           )
 
         # open them
         for d in matchs:
@@ -1083,12 +1083,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        (matchs, nomatchs) = self._select_downloads(
+        matchs, nomatchs = self._select_downloads(
                                  count,
                                  False,
                                  indexset,
                                  lambda d: d.done and not d.successful
-                             )
+                           )
 
         # retry them
         for d in matchs:
@@ -1130,12 +1130,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matche downloads 
-        (matchs, nomatchs) = self._select_downloads(
+        matchs, nomatchs = self._select_downloads(
                                  count,
                                  all_,
                                  indexset,
                                  lambda d: d.done
-                             )
+                           )
 
         # remove them
         for d in matchs:
