@@ -154,6 +154,15 @@ def build_osx():
     return [(dmg_name, 'application/x-apple-diskimage', 'OS X .dmg')]
 
 
+def patch_windows(out_dir):
+    """Copy missing DLLs for windows into the given output."""
+    dll_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'site-packages',
+                           'PyQt5', 'Qt', 'bin')
+    dlls = ['libEGL.dll', 'libGLESv2.dll', 'libeay32.dll', 'ssleay32.dll']
+    for dll in dlls:
+        shutil.copy(os.path.join(dll_dir, dll), out_dir)
+
+
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
@@ -177,9 +186,12 @@ def build_windows():
     utils.print_title("Running pyinstaller 32bit")
     call_tox('pyinstaller', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
+    patch_windows(out_32)
+
     utils.print_title("Running pyinstaller 64bit")
     call_tox('pyinstaller', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
+    patch_windows(out_64)
 
     # name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
     # name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
