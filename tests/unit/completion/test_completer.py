@@ -113,7 +113,6 @@ def cmdutils_patch(monkeypatch, stubs):
     @cmdutils.argument('command', completion=usertypes.Completion.command)
     def bind(key, win_id, command=None, *, mode='normal', force=False):
         """docstring."""
-        # pylint: disable=unused-variable
         pass
 
     def tab_detach():

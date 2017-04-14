@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import,wildcard-import,unused-wildcard-import
 
 """The qutebrowser test suite conftest file."""
 
@@ -34,7 +34,7 @@ pytest.register_assert_rewrite('helpers')
 from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
-from helpers.fixtures import *  # pylint: disable=wildcard-import
+from helpers.fixtures import *
 from qutebrowser.utils import qtutils
 
 

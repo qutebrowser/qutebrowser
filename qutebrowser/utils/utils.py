@@ -874,32 +874,29 @@ def parse_numsettxt_into_list(txtset, nummax):
                 number.
         nummax: The number that will be used to replace 'last'
     """
-    txtset = txtset.lower().replace('last', '%d' % (nummax))
-    l = set()
-    parts = txtset.split(',')
-    for part in parts:
-        if part.find('-') != -1:
-            [start, end] = part.split('-')
-            start = int(start)
-            end = int(end)
+    txtset = txtset.lower().replace('last', str(nummax))
+    numbers = set()
+    for part in txtset.split(','):
+        if '-' in part:
+            start, end = part.split('-')
             for i in range(int(start), int(end)+1):
-                l.add(i)
+                numbers.add(i)
         else:
-            l.add(int(part))
-    return sorted(l)
+            numbers.add(int(part))
+    return sorted(numbers)
 
 
-def parse_list_into_numsettxt(l):
+def parse_list_into_numsettxt(numbers):
     """Summarise list of numbers into a numbers set description in text.
     Basically undoes the effect of parse_numsettxt_into_list(...). For example,
     l = [1,5,8,9,10,11,35] will be summarized into the string '1,5,8-11,35'.
 
     Args:
-        l: Numbers list to be summarized back into text set descriptors. 
+        numbers: Numbers list to be summarized back into text set descriptors. 
     """
 
     state = 'start'
-    for i in sorted(l):
+    for i in sorted(numbers):
         if state == 'start':
             txtset = str(i)
             state = 'inside'
