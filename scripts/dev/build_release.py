@@ -52,7 +52,7 @@ def call_script(name, *args, python=sys.executable):
     subprocess.check_call([python, path] + list(args))
 
 
-def call_tox(toxenv, *args, python=os.path.dirname(sys.executable)):
+def call_tox(toxenv, *args, python=sys.executable):
     """Call tox.
 
     Args:
@@ -171,11 +171,11 @@ def build_windows():
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
-    python_x86 = r'C:\Python{}_x32'.format(ver)
-    python_x64 = r'C:\Python{}'.format(ver)
+    python_x86 = r'C:\Program Files (x86)\Python{}-32\python.exe'.format(ver)
+    python_x64 = r'C:\Program Files\Python{}\python.exe'.format(ver)
     out_pyinstaller = os.path.join('build', 'qutebrowser')
     out_32 = os.path.join('build',
-                          'qutebrowser-{}-x32'.format(qutebrowser.__version__))
+                          'qutebrowser-{}-x86'.format(qutebrowser.__version__))
     out_64 = os.path.join('build',
                           'qutebrowser-{}-x64'.format(qutebrowser.__version__))
 
