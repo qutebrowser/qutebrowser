@@ -908,13 +908,15 @@ class DownloadModel(QAbstractListModel):
                 ignored.
             criterion: A function that returns True only when satisfied.
         """
-
         # support --all/-a
         if all_ == True:
             indexset = '1-last'
+            message.warning(
+                "'--all/-a' will be deprecated. Kindly use '0-last' instead."
+            )
 
         # support count
-        if indexset == None:
+        if indexset is None:
             if count == 0:
                 count = len(self)
             indexset = str(count)
@@ -933,10 +935,7 @@ class DownloadModel(QAbstractListModel):
         nomatchs = []
         noexists = []
         for i in indexset_p:
-            j = i-1 # j is the download item when counting from 0, i is the one
-                    # when counting from 1 - do we need this? maybe one day we
-                    # should count downloads, everywhere, from 0, and get away
-                    # with this?
+            j = i - 1
             try:
                 d = self[j]
                 if criterion(d):
@@ -946,7 +945,15 @@ class DownloadModel(QAbstractListModel):
             except IndexError:
                 noexists.append(i)
 
-        return (matchs, nomatchs, noexists)
+        # tell the user about nonexistent downloads
+        if len(noexists):
+            message.error("Download{} {} {} exist!".format(
+                "s" if len(noexists) > 1 else "",
+                utils.parse_list_into_numsettxt(nomatchs),
+                "don't" if len(noexists) > 1 else "doesn't"
+            ))
+
+        return (matchs, nomatchs)
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -965,12 +972,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        (matchs, nomatchs, noexists) = self._select_downloads(
-                                           count,
-                                           all_,
-                                           indexset,
-                                           lambda d: not d.done
-                                       )
+        (matchs, nomatchs) = self._select_downloads(
+                                 count,
+                                 all_,
+                                 indexset,
+                                 lambda d: not d.done
+                             )
 
         # cancel them
         for d in matchs:
@@ -978,15 +985,15 @@ class DownloadModel(QAbstractListModel):
 
         # show errors if needed
         if len(nomatchs):
-            message.error("Downloads {} are already done!".format(
-            utils.parse_list_into_numsettxt(nomatchs)))
-        if len(noexists):
-            message.error("Downloads {} don't exist!".format(
-            utils.parse_list_into_numsettxt(noexists)))
+            message.error("Download{} {} {} already done!".format(
+                "s" if len(nomatchs) > 1 else "",
+                utils.parse_list_into_numsettxt(nomatchs),
+                "are" if len(nomatchs) > 1 else "is"
+            ))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_delete(self, indexset=None, all_=False, count=0):
+    def download_delete(self, indexset=None, count=0):
         """Delete the last/[count]th download from disk.
 
         Args:
@@ -995,36 +1002,34 @@ class DownloadModel(QAbstractListModel):
                       denotes that latest download index. If you specify
                       numbers smaller than 1, or greater than 'last', then
                       those numbers will be silently ignored.
-            all_: Cancels all downloads. This is a shortcut to using the list
-                  specification '1-last'.
             count: The index of the download to delete.
         """
 
         # find matched downloads
-        (matchs, nomatchs, noexists) = self._select_downloads(
-                                           count,
-                                           all_,
-                                           indexset,
-                                           lambda d: d.successful
-                                       )
+        (matchs, nomatchs) = self._select_downloads(
+                                 count,
+                                 False,
+                                 indexset,
+                                 lambda d: d.successful
+                             )
 
         # delete them
         for d in matchs:
-            d.delete(),
-            d.remove(),
+            d.delete()
+            d.remove()
             log.downloads.debug("Deleted download {}".format(d))
 
         # show errors if needed
         if len(nomatchs):
-            message.error("Downloads {} are not successful yet!".format(
-            utils.parse_list_into_numsettxt(nomatchs)))
-        if len(noexists):
-            message.error("Downloads {} don't exist!".format(
-            utils.parse_list_into_numsettxt(noexists)))
+            message.error("Download{} {} {} not successful yet!".format(
+                "s" if len(nomatchs) > 1 else "",
+                utils.parse_list_into_numsettxt(nomatchs),
+                "are" if len(nomatchs) > 1 else "is"
+            ))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, indexset=None, all_=False, cmdline: str=None, count=0):
+    def download_open(self, indexset=None, cmdline: str=None, count=0):
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default
@@ -1036,8 +1041,6 @@ class DownloadModel(QAbstractListModel):
                       denotes that latest download index. If you specify
                       numbers smaller than 1, or greater than 'last', then
                       those numbers will be silently ignored.
-            all_: Cancels all downloads. This is a shortcut to using the list
-                  specification '1-last'.
             cmdline: The command which should be used to open the file. A `{}`
                      is expanded to the temporary file name. If no `{}` is
                      present, the filename is automatically appended to the
@@ -1046,12 +1049,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        (matchs, nomatchs, noexists) = self._select_downloads(
-                                           count,
-                                           all_,
-                                           indexset,
-                                           lambda d: d.successful
-                                       )
+        (matchs, nomatchs) = self._select_downloads(
+                                 count,
+                                 False,
+                                 indexset,
+                                 lambda d: d.successful
+                             )
 
         # open them
         for d in matchs:
@@ -1059,15 +1062,15 @@ class DownloadModel(QAbstractListModel):
 
         # show errors if needed
         if len(nomatchs):
-            message.error("Downloads {} are not successful!".format(
-            utils.parse_list_into_numsettxt(nomatchs)))
-        if len(noexists):
-            message.error("Downloads {} don't exist!".format(
-            utils.parse_list_into_numsettxt(noexists)))
+            message.error("Download{} {} {} not successful yet!".format(
+                "s" if len(nomatchs) > 1 else "",
+                utils.parse_list_into_numsettxt(nomatchs),
+                "are" if len(nomatchs) > 1 else "is"
+            ))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
-    def download_retry(self, indexset=None, all_=False, count=0):
+    def download_retry(self, indexset=None, count=0):
         """Retry the first failed/[count]th download.
 
         Args:
@@ -1076,18 +1079,16 @@ class DownloadModel(QAbstractListModel):
                       denotes that latest download index. If you specify
                       numbers smaller than 1, or greater than 'last', then
                       those numbers will be silently ignored.
-            all_: Cancels all downloads. This is a shortcut to using the list
-                  specification '1-last'.
             count: The index of the download to retry.
         """
 
         # find matched downloads
-        (matchs, nomatchs, noexists) = self._select_downloads(
-                                        count,
-                                        all_,
-                                        indexset,
-                                        lambda d: d.done and not d.successful
-                                    )
+        (matchs, nomatchs) = self._select_downloads(
+                                 count,
+                                 False,
+                                 indexset,
+                                 lambda d: d.done and not d.successful
+                             )
 
         # retry them
         for d in matchs:
@@ -1095,11 +1096,11 @@ class DownloadModel(QAbstractListModel):
 
         # show errors if needed
         if len(nomatchs):
-            message.error("Downloads {} are fine!".format(
-            utils.parse_list_into_numsettxt(nomatchs)))
-        if len(noexists):
-            message.error("Downloads {} don't exist!".format(
-            utils.parse_list_into_numsettxt(noexists)))
+            message.error("Download{} {} {} fine!".format(
+                "s" if len(nomatchs) > 1 else "",
+                utils.parse_list_into_numsettxt(nomatchs),
+                "are" if len(nomatchs) > 1 else "is"
+            ))
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
@@ -1129,12 +1130,12 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matche downloads 
-        (matchs, nomatchs, noexists) = self._select_downloads(
-                                           count,
-                                           all_,
-                                           indexset,
-                                           lambda d: d.done
-                                       )
+        (matchs, nomatchs) = self._select_downloads(
+                                 count,
+                                 all_,
+                                 indexset,
+                                 lambda d: d.done
+                             )
 
         # remove them
         for d in matchs:
@@ -1142,11 +1143,11 @@ class DownloadModel(QAbstractListModel):
 
         # show errors if needed
         if len(nomatchs):
-            message.error("Downloads {} are in progress!".format(
-            utils.parse_list_into_numsettxt(nomatchs)))
-        if len(noexists):
-            message.error("Downloads {} don't exist!".format(
-            utils.parse_list_into_numsettxt(noexists)))
+            message.error("Download{} {} {} in progress!".format(
+                "s" if len(nomatchs) > 1 else "",
+                utils.parse_list_into_numsettxt(nomatchs),
+                "are" if len(nomatchs) > 1 else "is"
+            ))
 
     def running_downloads(self):
         """Return the amount of still running downloads.
