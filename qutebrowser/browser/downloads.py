@@ -949,7 +949,7 @@ class DownloadModel(QAbstractListModel):
         if len(noexists):
             message.error("Download{} {} {} exist!".format(
                 "s" if len(noexists) > 1 else "",
-                utils.parse_list_into_numsettxt(nomatchs),
+                utils.parse_list_into_numsettxt(noexists),
                 "don't" if len(noexists) > 1 else "doesn't"
             ))
 
