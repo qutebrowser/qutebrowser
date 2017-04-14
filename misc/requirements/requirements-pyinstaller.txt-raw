@@ -1,4 +1,4 @@
--e git+https://github.com/pyinstaller/pyinstaller.git@develop#egg=PyInstaller
+-e git+https://github.com/xoviat/pyinstaller.git@qtweb#egg=PyInstaller
 
 # remove @commit-id for scm installs
-#@ replace: @.*# @develop#
+#@ replace: @.*# @qtweb#
