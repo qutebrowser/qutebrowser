@@ -163,14 +163,6 @@ def patch_windows(out_dir):
         shutil.copy(os.path.join(dll_dir, dll), out_dir)
 
 
-def remove_tox_pyinstaller_src():
-    """Remove leftover pieces of .tox.
-
-    WORKAROUND for https://github.com/tox-dev/tox/issues/503
-    """
-    shutil.rmtree(os.path.join('.tox', 'pyinstaller', 'src', 'pyinstaller'))
-
-
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
@@ -190,13 +182,11 @@ def build_windows():
     artifacts = []
 
     utils.print_title("Running pyinstaller 32bit")
-    remove_tox_pyinstaller_src()
     call_tox('pyinstaller', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
     patch_windows(out_32)
 
     utils.print_title("Running pyinstaller 64bit")
-    remove_tox_pyinstaller_src()
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
     patch_windows(out_64)
