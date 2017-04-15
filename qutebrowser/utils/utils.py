@@ -895,8 +895,6 @@ def which_nums_in_numints(nums, numints):
     """
     nums = sorted(nums)
     numints = sorted(numints)
-
-    # identify which of the numbers fall in the intervals
     ins    = []
     i, j = 0, 0
     done = False
@@ -916,7 +914,6 @@ def which_nums_in_numints(nums, numints):
             j += 1
         else:
             done = True
-
     return ins
 
 
