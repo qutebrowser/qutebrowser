@@ -864,59 +864,61 @@ def unused(_arg):
     pass
 
 
-def parse_numsettxt_into_list(txtset, nummax):
+def parse_numsettxt_into_numints(txtset, nummax):
     """Parse the given numbers set in text format, and return it as a list of
-    numbers.
+    number intervals [[start1, end2], [start2, end2], ..., [startn, endn]].
 
     Args:
         txtset: Numbers set specification. E.g. '1,5,8-last,32,2', where 'last'
-                is a special keyword that denotes that maximum allowable
-                number.
+                is a special keyword that denotes that largest number.
         nummax: The number that will be used to replace 'last'
     """
     txtset = txtset.lower().replace('last', str(nummax))
-    numbers = set()
+    numints = []
     for part in txtset.split(','):
         if '-' in part:
             start, end = part.split('-')
-            for i in range(int(start), int(end)+1):
-                numbers.add(i)
+            numints.append((int(start), int(end)))
         else:
-            numbers.add(int(part))
-    return sorted(numbers)
+            numints.append((int(part), int(part)))
+    return numints
 
 
-def parse_list_into_numsettxt(numbers):
-    """Summarise list of numbers into a numbers set description in text.
-    Basically undoes the effect of parse_numsettxt_into_list(...). For example,
-    l = [1,5,8,9,10,11,35] will be summarized into the string '1,5,8-11,35'.
+def which_nums_in_numints(nums, numints):
+    """Identify which of the numbers in nums fall within the intervals in
+    numints.
 
     Args:
-        numbers: Numbers list to be summarized back into text set descriptors. 
+        nums: A list of numbers.
+        numints: A list of number intervals [[start1, end2], [start2,
+                 end2], ..., [startn, endn]].
     """
+    nums = sorted(nums)
+    numints = sorted(numints)
 
-    state = 'start'
-    for i in sorted(numbers):
-        if state == 'start':
-            txtset = str(i)
-            state = 'inside'
-        elif state == 'inside':
-            diff = i - last_i
-            if diff > 1:
-                txtset += ',{}'.format(i)
+    # identify which of the numbers fall in the intervals
+    ins    = []
+    i, j = 0, 0
+    done = False
+    while done == False:
+        n = nums[i]
+        int_start = numints[j][0]
+        int_end = numints[j][1]
+        if n >= int_start and n <= int_end:
+            ins.append(n)
+            if i < (len(nums) - 1):
+                i += 1
             else:
-                txtset += '-'.format(i)
-                state = 'inside-dashed'
-        elif state == 'inside-dashed':
-            diff = i - last_i
-            if diff > 1:
-                txtset += '{},{}'.format(last_i,i)
-                state = 'inside'
-        last_i = i
-    if state == 'inside-dashed':
-        txtset += '{}'.format(i)
+                done = True
+        elif n < int_start and i < (len(nums) - 1):
+            i += 1
+        elif n > int_end and j < (len(numints) - 1):
+            j += 1
+        else:
+            done = True
 
-    return txtset
+    return ins
+
 
 def expand_windows_drive(path):
     r"""Expand a drive-path like E: into E:\.
