@@ -894,7 +894,7 @@ class DownloadModel(QAbstractListModel):
             qtutils.ensure_valid(end_index)
         self.dataChanged.emit(start_index, end_index)
 
-    def _select_downloads(self, count, all_, indexset, criterion):
+    def _select_downloads(self, count, all_, indexset, criterion, errmsg):
         """Return selected downloads specified by indexset that satisfy the
         criterion.
 
@@ -907,7 +907,15 @@ class DownloadModel(QAbstractListModel):
                 1, or greater than 'last', then those numbers will be silently
                 ignored.
             criterion: A function that returns True only when satisfied.
+            errmsg: The postfix of the error message that is shown alongside
+                    list of downloads that do not match the criterion.
         """
+        # test if there are any downloads at all
+        if len(self) == 0:
+            raise cmdexc.CommandError(
+                    "No downloads!".format(indexset)
+                  )
+
         # support --all/-a
         if all_ == True:
             indexset = '1-last'
@@ -921,39 +929,49 @@ class DownloadModel(QAbstractListModel):
                 count = len(self)
             indexset = str(count)
 
-        # parse the indexset into numbers set
+        # parse the indexset into number intervals list
         try:
-            indexset_p = utils.parse_numsettxt_into_list(indexset, len(self))
+            indexset_p = utils.parse_numsettxt_into_numints(indexset, len(self))
         except ValueError:
             raise cmdexc.CommandError(
                     "Invalid index set '{}'!".format(indexset)
                   )
 
-        # identify downloads that match the criterion, as well as those that
-        # don't exist
+        # identify downloads indexes that fall in the indexset
+        ins = utils.which_nums_in_numints(
+                range(1, len(self) + 1),
+                indexset_p
+              )
+
+        # tell the user if no downloads matched his query
+        if len(ins) == 0:
+            raise cmdexc.CommandError(
+                    "No downloads with indexes that match '{}'!".format(indexset)
+                  )
+
+        # identify which of those that are in the indexset, match the criteria,
+        # don't match the criteria.
         matchs = []
         nomatchs = []
-        noexists = []
-        for i in indexset_p:
+        for i in ins:
             j = i - 1
-            try:
-                d = self[j]
-                if criterion(d):
-                    matchs.append(d)
-                else:
-                    nomatchs.append(i)
-            except IndexError:
-                noexists.append(i)
+            d = self[j]
+            if criterion(d):
+                matchs.append(d)
+            else:
+                nomatchs.append(i)
 
-        # tell the user about nonexistent downloads
-        if len(noexists):
-            message.error("Download{} {} {} exist!".format(
-                "s" if len(noexists) > 1 else "",
-                utils.parse_list_into_numsettxt(noexists),
-                "don't" if len(noexists) > 1 else "doesn't"
+        # tell the user about the downloads that exist, but didn't match the
+        # criteria
+        if len(nomatchs):
+            message.error("Download{} {} {} {}!".format(
+                "s" if len(nomatchs) > 1 else "",
+                ','.join([str(i) for i in nomatchs]),
+                "are" if len(nomatchs) > 1 else "is",
+                errmsg
             ))
 
-        return (matchs, nomatchs)
+        return matchs
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -972,24 +990,17 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        matchs, nomatchs = self._select_downloads(
-                                 count,
-                                 all_,
-                                 indexset,
-                                 lambda d: not d.done
-                           )
+        matchs = self._select_downloads(
+                       count,
+                       all_,
+                       indexset,
+                       lambda d: not d.done,
+                       "already done"
+                 )
 
         # cancel them
         for d in matchs:
             d.cancel()
-
-        # show errors if needed
-        if len(nomatchs):
-            message.error("Download{} {} {} already done!".format(
-                "s" if len(nomatchs) > 1 else "",
-                utils.parse_list_into_numsettxt(nomatchs),
-                "are" if len(nomatchs) > 1 else "is"
-            ))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1006,26 +1017,19 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        matchs, nomatchs = self._select_downloads(
-                                 count,
-                                 False,
-                                 indexset,
-                                 lambda d: d.successful
-                           )
+        matchs = self._select_downloads(
+                       count,
+                       False,
+                       indexset,
+                       lambda d: d.successful,
+                       "not successful yet"
+                 )
 
         # delete them
         for d in matchs:
             d.delete()
             d.remove()
             log.downloads.debug("Deleted download {}".format(d))
-
-        # show errors if needed
-        if len(nomatchs):
-            message.error("Download{} {} {} not successful yet!".format(
-                "s" if len(nomatchs) > 1 else "",
-                utils.parse_list_into_numsettxt(nomatchs),
-                "are" if len(nomatchs) > 1 else "is"
-            ))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
@@ -1049,24 +1053,17 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        matchs, nomatchs = self._select_downloads(
-                                 count,
-                                 False,
-                                 indexset,
-                                 lambda d: d.successful
-                           )
+        matchs = self._select_downloads(
+                       count,
+                       False,
+                       indexset,
+                       lambda d: d.successful,
+                       "not successful yet"
+                 )
 
         # open them
         for d in matchs:
             d.open_file(cmdline)
-
-        # show errors if needed
-        if len(nomatchs):
-            message.error("Download{} {} {} not successful yet!".format(
-                "s" if len(nomatchs) > 1 else "",
-                utils.parse_list_into_numsettxt(nomatchs),
-                "are" if len(nomatchs) > 1 else "is"
-            ))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1083,24 +1080,17 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matched downloads
-        matchs, nomatchs = self._select_downloads(
-                                 count,
-                                 False,
-                                 indexset,
-                                 lambda d: d.done and not d.successful
-                           )
+        matchs = self._select_downloads(
+                       count,
+                       False,
+                       indexset,
+                       lambda d: d.done and not d.successful,
+                       "fine"
+                 )
 
         # retry them
         for d in matchs:
             d.try_retry()
-
-        # show errors if needed
-        if len(nomatchs):
-            message.error("Download{} {} {} fine!".format(
-                "s" if len(nomatchs) > 1 else "",
-                utils.parse_list_into_numsettxt(nomatchs),
-                "are" if len(nomatchs) > 1 else "is"
-            ))
 
     def can_clear(self):
         """Check if there are finished downloads to clear."""
@@ -1130,24 +1120,17 @@ class DownloadModel(QAbstractListModel):
         """
 
         # find matche downloads 
-        matchs, nomatchs = self._select_downloads(
-                                 count,
-                                 all_,
-                                 indexset,
-                                 lambda d: d.done
-                           )
+        matchs = self._select_downloads(
+                       count,
+                       all_,
+                       indexset,
+                       lambda d: d.done,
+                       "in progress"
+                 )
 
         # remove them
         for d in matchs:
             d.remove()
-
-        # show errors if needed
-        if len(nomatchs):
-            message.error("Download{} {} {} in progress!".format(
-                "s" if len(nomatchs) > 1 else "",
-                utils.parse_list_into_numsettxt(nomatchs),
-                "are" if len(nomatchs) > 1 else "is"
-            ))
 
     def running_downloads(self):
         """Return the amount of still running downloads.
