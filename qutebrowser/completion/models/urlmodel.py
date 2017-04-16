@@ -51,6 +51,13 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._bookmark_cat = self.new_category("Bookmarks")
         self._history_cat = self.new_category("History")
 
+        self._quickmark_row = None
+        self._bookmark_row = None
+        self._history_row = None
+
+        self.update_categories()
+        objreg.get('config').changed.connect(self.update_categories)
+
         quickmark_manager = objreg.get('quickmark-manager')
         quickmarks = quickmark_manager.marks.items()
         for qm_name, qm_url in quickmarks:
@@ -115,6 +122,23 @@ class UrlCompletionModel(base.BaseCompletionModel):
             atime_item = self._history_cat.child(i, self.TIME_COLUMN)
             atime = url_item.data(base.Role.sort)
             atime_item.setText(self._fmt_atime(atime))
+
+    @config.change_filter('completion')
+    def update_categories(self):
+        """Update the visible categories by removing unnecessary ones."""
+        if self._quickmark_cat.row() != -1:
+            self._quickmark_row = self.takeRow(self._quickmark_cat.row())
+        if self._bookmark_cat.row() != -1:
+            self._bookmark_row = self.takeRow(self._bookmark_cat.row())
+        if self._history_cat.row() != -1:
+            self._history_row = self.takeRow(self._history_cat.row())
+
+        if config.get('completion', 'url-complete-quickmarks'):
+            self.appendRow(self._quickmark_row)
+        if config.get('completion', 'url-complete-bookmarks'):
+            self.appendRow(self._bookmark_row)
+        if config.get('completion', 'url-complete-history'):
+            self.appendRow(self._history_row)
 
     @pyqtSlot(object)
     def on_history_item_added(self, entry):

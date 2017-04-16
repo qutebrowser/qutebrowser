@@ -539,6 +539,18 @@ def data(readonly=False):
              SettingValue(typ.Int(minval=0), '2'),
              "Padding of scrollbar handle in completion window (in px)."),
 
+            ('url-complete-bookmarks',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to complete from bookmarks when completing URLs."),
+
+            ('url-complete-history',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to complete from history when completing URLs."),
+
+            ('url-complete-quickmarks',
+             SettingValue(typ.Bool(), 'true'),
+             "Whether to complete from quickmarks when completing URLs."),
+
             readonly=readonly
         )),
 
