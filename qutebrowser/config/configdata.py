@@ -317,8 +317,9 @@ def data(readonly=False):
              "The position of the status bar."),
 
             ('message-timeout',
-             SettingValue(typ.Int(), '2000'),
-             "Time (in ms) to show messages in the statusbar for."),
+             SettingValue(typ.Int(minval=0), '2000'),
+             "Time (in ms) to show messages in the statusbar for.\n"
+             "Set to 0 to never clear messages."),
 
             ('message-unfocused',
              SettingValue(typ.Bool(), 'false'),
