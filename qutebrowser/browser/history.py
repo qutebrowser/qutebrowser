@@ -86,12 +86,30 @@ class WebHistory(sql.SqlTable):
 
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
-        self.insert([entry.url_str(), entry.title, entry.atime,
+        self.insert([entry.url_str(), entry.title, int(entry.atime),
                      entry.redirect])
 
     def get_recent(self):
         """Get the most recent history entries."""
         return self.select(sort_by='atime', sort_order='desc', limit=100)
+
+    def entries_between(self, earliest, latest):
+        """Iterate non-redirect, non-qute entries between two timestamps.
+
+        Args:
+            earliest: Omit timestamps earlier than this.
+            latest: Omit timestamps later than this.
+        """
+        result = sql.run_query('SELECT * FROM History '
+                               'where not redirect '
+                               'and not url like "qute://%" '
+                               'and atime > {} '
+                               'and atime <= {} '
+                               'ORDER BY atime desc'
+                               .format(earliest, latest))
+        while result.next():
+            rec = result.record()
+            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
 
     @cmdutils.register(name='history-clear', instance='web-history')
     def clear(self, force=False):
