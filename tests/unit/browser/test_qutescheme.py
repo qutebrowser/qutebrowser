@@ -154,7 +154,8 @@ class TestHistoryHandler:
             assert items[0]["next"] == now - next_time
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
-        for t in range(100000):  # one history per second
+        # items must be earliest-first to ensure history is sorted properly
+        for t in range(100000, 0, -1):  # one history per second
             entry = history.Entry(
                 atime=str(now - t),
                 url=QUrl('www.x.com/{}'.format(t)),
@@ -162,4 +163,5 @@ class TestHistoryHandler:
             fake_web_history._add_entry(entry)
 
         url = QUrl("qute://history/data?start_time={}".format(now))
-        _mimetype, _data = benchmark(qutescheme.qute_history, url)
+        _mimetype, data = benchmark(qutescheme.qute_history, url)
+        assert len(json.loads(data)) > 1
