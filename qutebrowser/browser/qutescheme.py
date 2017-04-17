@@ -146,7 +146,8 @@ def data_for_url(url):
         new_url.setScheme('qute')
         new_url.setHost(path)
         new_url.setPath('/')
-        raise Redirect(new_url)
+        if new_url.host():  # path was a valid host
+            raise Redirect(new_url)
 
     try:
         handler = _HANDLERS[host]

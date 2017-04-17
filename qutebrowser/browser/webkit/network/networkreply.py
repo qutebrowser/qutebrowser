@@ -149,5 +149,9 @@ class RedirectNetworkReply(QNetworkReply):
         self.setAttribute(QNetworkRequest.RedirectionTargetAttribute, new_url)
         QTimer.singleShot(0, lambda: self.finished.emit())
 
+    def abort(self):
+        """Called when there's e.g. a redirection limit."""
+        pass
+
     def readData(self, _maxlen):
         return bytes()

@@ -581,6 +581,7 @@ Default: +pass:[bottom]+
 [[ui-message-timeout]]
 === message-timeout
 Time (in ms) to show messages in the statusbar for.
+Set to 0 to never clear messages.
 
 Default: +pass:[2000]+
 
