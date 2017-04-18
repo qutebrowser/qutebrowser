@@ -187,7 +187,7 @@ def qute_bookmarks(_url):
 
 
 def history_data(start_time):
-    """Return history data
+    """Return history data.
 
     Arguments:
         start_time -- select history starting from this timestamp.

@@ -30,7 +30,7 @@ class SqlCategory(QSqlQueryModel):
     """Wraps a SqlQuery for use as a completion category."""
 
     def __init__(self, name, *, sort_by=None, sort_order=None, select='*',
-                 where=None, parent=None):
+                 where=None, group_by=None, parent=None):
         """Create a new completion category backed by a sql table.
 
         Args:
@@ -46,6 +46,7 @@ class SqlCategory(QSqlQueryModel):
         self._sort_order = sort_order
         self._select = select
         self._where = where
+        self._group_by = group_by
         self.set_pattern('', [0])
 
     def set_pattern(self, pattern, columns_to_filter):
@@ -66,6 +67,9 @@ class SqlCategory(QSqlQueryModel):
         querystr += ')'
         if self._where:
             querystr += ' and ' + self._where
+
+        if self._group_by:
+            querystr += ' group by {}'.format(self._group_by)
 
         if self._sort_by:
             assert self._sort_order in ['asc', 'desc']

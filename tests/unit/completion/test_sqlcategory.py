@@ -149,6 +149,16 @@ def test_where():
     _validate(cat, [('foo', 'bar', False)])
 
 
+def test_group():
+    table = sql.SqlTable('Foo', ['a', 'b'])
+    table.insert(['foo', 1])
+    table.insert(['bar', 3])
+    table.insert(['foo', 2])
+    table.insert(['bar', 0])
+    cat = sqlcategory.SqlCategory('Foo', select='a, max(b)', group_by='a')
+    _validate(cat, [('bar', 3), ('foo', 2)])
+
+
 def test_entry():
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     assert hasattr(table.Entry, 'a')

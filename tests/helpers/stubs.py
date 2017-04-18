@@ -518,24 +518,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
         self.delete(key)
 
 
-class WebHistoryStub(QObject):
-
-    """Stub for the web-history object."""
-
-    add_completion_item = pyqtSignal(history.Entry)
-    cleared = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.history_dict = collections.OrderedDict()
-
-    def __iter__(self):
-        return iter(self.history_dict.values())
-
-    def __len__(self):
-        return len(self.history_dict)
-
-
 class HostBlockerStub:
 
     """Stub for the host-blocker object."""

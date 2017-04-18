@@ -259,7 +259,7 @@ def bookmark_manager_stub(stubs):
 
 @pytest.fixture
 def session_manager_stub(stubs):
-    """Fixture which provides a fake web-history object."""
+    """Fixture which provides a fake session-manager object."""
     stub = stubs.SessionManagerStub()
     objreg.register('session-manager', stub)
     yield stub
