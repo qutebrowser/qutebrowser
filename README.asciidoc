@@ -292,6 +292,7 @@ Contributors, sorted by the number of commits in descending order:
 * Dietrich Daroch
 * Derek Sivers
 * Daniel Lu
+* Daniel Jakots
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
