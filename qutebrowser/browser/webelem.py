@@ -44,7 +44,7 @@ Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
 SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
                 'frame, iframe, link, [onclick], [onmousedown], [role=link], '
-                '[role=option], [role=button], img'),
+                '[role=option], [role=button], img, label[for]'),
     Group.links: 'a, area, link, [role=link]',
     Group.images: 'img',
     Group.url: '[src], [href]',
@@ -52,7 +52,7 @@ SELECTORS = {
     Group.inputs: ('input[type=text], input[type=email], input[type=url], '
                    'input[type=tel], input[type=number], '
                    'input[type=password], input[type=search], '
-                   'input:not([type]), textarea'),
+                   'input:not([type]), textarea, label[for]'),
 }
 
 
