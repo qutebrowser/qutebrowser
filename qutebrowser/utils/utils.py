@@ -895,7 +895,7 @@ def which_nums_in_numints(nums, numints):
     """
     nums = sorted(nums)
     numints = sorted(numints)
-    ins    = []
+    ins = []
     i, j = 0, 0
     done = False
     while done == False:

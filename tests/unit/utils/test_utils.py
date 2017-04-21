@@ -926,6 +926,21 @@ class TestOpenFile:
 def test_unused():
     utils.unused(None)
 
+@pytest.mark.parametrize('txtset, nummax, expected', [
+    ('0-5,9-100,last', 500, [(0, 5), (9, 100), (500, 500)]),
+    ('0-5,9-100,last-3', 500, [(0, 5), (9, 100), (500, 3)]),
+    ('0-5,9-100,last-7000', 500, [(0, 5), (9, 100), (500, 7000)]),
+])
+def test_parse_numsettxt_into_numints(txtset, nummax, expected):
+    assert utils.parse_numsettxt_into_numints(txtset, nummax) == expected
+
+@pytest.mark.parametrize('nums, numints, expected', [
+    ([501], [(0, 5), (9, 100), (500, 500)], []),
+    ([3, 6, 50], [(0, 5), (9, 100), (500, 3)], [3, 50]),
+    ([501, 0], [(0, 5), (9, 100), (500, 7000)], [0, 501]),
+])
+def which_nums_in_numints(nums, numints, expected):
+    assert utils.which_nums_in_numints(nums, numints) == expected
 
 @pytest.mark.parametrize('path, expected', [
     ('E:', 'E:\\'),
