@@ -7,12 +7,12 @@ Feature: quickmarks and bookmarks
     Scenario: Saving a bookmark
         When I open data/title.html
         And I run :bookmark-add
-        Then the message "Bookmarked http://localhost:*/data/title.html!" should be shown
+        Then the message "Bookmarked http://localhost:*/data/title.html" should be shown
         And the bookmark file should contain "http://localhost:*/data/title.html Test title"
 
     Scenario: Saving a bookmark with a provided url and title
         When I run :bookmark-add http://example.com "some example title"
-        Then the message "Bookmarked http://example.com!" should be shown
+        Then the message "Bookmarked http://example.com" should be shown
         And the bookmark file should contain "http://example.com some example title"
 
     Scenario: Saving a bookmark with a url but no title

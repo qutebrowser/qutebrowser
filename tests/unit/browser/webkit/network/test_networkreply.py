@@ -98,3 +98,4 @@ def test_redirect_network_reply():
     reply = networkreply.RedirectNetworkReply(url)
     assert reply.readData(1) == b''
     assert reply.attribute(QNetworkRequest.RedirectionTargetAttribute) == url
+    reply.abort()  # shouldn't do anything

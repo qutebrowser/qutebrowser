@@ -222,17 +222,17 @@ On OpenBSD
 
 qutebrowser is in http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/qutebrowser/[OpenBSD ports].
 
-Manual install:
+Install the package:
+
+----
+# pkg_add qutebrowser
+----
+
+Or alternatively, use the ports system :
 
 ----
 # cd /usr/ports/www/qutebrowser
 # make install
-----
-
-Or alternatively if you're using `-current` (or OpenBSD 6.1 once it's been released):
-
-----
-# pkg_add qutebrowser
 ----
 
 On Windows

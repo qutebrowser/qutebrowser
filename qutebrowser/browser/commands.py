@@ -1233,7 +1233,7 @@ class CommandDispatcher:
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
         else:
-            msg = "Bookmarked {}!" if was_added else "Removed bookmark {}!"
+            msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
             message.info(msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
