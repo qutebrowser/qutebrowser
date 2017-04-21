@@ -24,6 +24,13 @@ on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+// QUTE_WEB_HIDE
+**qutebrowser is currently running a crowdfunding campaign for its new
+configuration system, allowing for per-domain settings and much more.**
+
+See the link:https://www.kickstarter.com/projects/the-compiler/qutebrowser-v10-with-per-domain-settings?ref=6zw7qz[Kickstarter campaign] for more information!
+// QUTE_WEB_HIDE_END
+
 Screenshots
 -----------
 
@@ -285,6 +292,7 @@ Contributors, sorted by the number of commits in descending order:
 * Dietrich Daroch
 * Derek Sivers
 * Daniel Lu
+* Daniel Jakots
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
