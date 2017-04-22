@@ -1,0 +1,8 @@
+# Run `spark deploy hooks.sus` to deploy these hooks.
+# You can also deploy them manually by linking or copying the files into `.git/hooks`.
+card hooks {
+  into .git/hooks
+  outof scripts/dev
+  pre_commit_test.sh -> pre-commit
+  pre_push_test.sh -> pre-push
+}

@@ -1,0 +1,5 @@
+echo "Checking that you didn't muck anything up."
+echo "PLACEHOLDER Run linter here."
+echo "PLACEHOLDER Run tests here."
+echo "PLACEHOLDER Build whatever resources here, no compilation because Python, but maybe something else."
+echo "All clear, commiting."
