@@ -765,7 +765,7 @@ class TestProxyFromUrl:
         assert urlutils.proxy_from_url(QUrl(url)) == expected
 
     @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
-    def test_proxy_from_url_pac(self, scheme):
+    def test_proxy_from_url_pac(self, scheme, qapp):
         fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))
         assert isinstance(fetcher, pac.PACFetcher)
 
