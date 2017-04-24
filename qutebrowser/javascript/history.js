@@ -111,7 +111,11 @@ window.loadHistory = (function() {
         var link = document.createElement("a");
         link.href = itemUrl;
         link.innerHTML = itemTitle;
+        var host = document.createElement("span");
+        host.className = "hostname";
+        host.innerHTML = link.hostname;
         title.appendChild(link);
+        title.appendChild(host);
 
         var time = document.createElement("td");
         time.className = "time";
