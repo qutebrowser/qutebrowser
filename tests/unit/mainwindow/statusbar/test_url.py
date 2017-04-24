@@ -116,7 +116,7 @@ def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
     tab_widget = fake_web_tab(load_status=load_status, url=qurl)
     url_widget.on_tab_changed(tab_widget)
     assert url_widget._urltype == load_status
-    assert url_widget.text() == urlutils.safe_display_url(qurl)
+    assert url_widget.text() == urlutils.safe_display_string(qurl)
 
 
 @pytest.mark.parametrize('qurl, load_status, expected_status', [

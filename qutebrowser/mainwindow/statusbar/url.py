@@ -141,7 +141,7 @@ class UrlText(textbase.TextBase):
         elif not url.isValid():
             self._normal_url = "Invalid URL!"
         else:
-            self._normal_url = urlutils.safe_display_url(url)
+            self._normal_url = urlutils.safe_display_string(url)
         self._normal_url_type = UrlType.normal
         self._update_url()
 
@@ -158,7 +158,7 @@ class UrlText(textbase.TextBase):
         if link:
             qurl = QUrl(link)
             if qurl.isValid():
-                self._hover_url = urlutils.safe_display_url(qurl)
+                self._hover_url = urlutils.safe_display_string(qurl)
             else:
                 self._hover_url = '(invalid URL!) {}'.format(link)
         else:
@@ -170,7 +170,7 @@ class UrlText(textbase.TextBase):
         """Update URL if the tab changed."""
         self._hover_url = None
         if tab.url().isValid():
-            self._normal_url = urlutils.safe_display_url(tab.url())
+            self._normal_url = urlutils.safe_display_string(tab.url())
         else:
             self._normal_url = ''
         self.on_load_status_changed(tab.load_status().name)

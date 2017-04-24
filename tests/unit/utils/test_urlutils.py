@@ -758,13 +758,13 @@ def test_data_url():
     (QUrl('http://www.xn--80ak6aa92e.com'),
         '(unparseable URL!) http://www.аррӏе.com'),
 ])
-def test_safe_display_url(url, expected):
-    assert urlutils.safe_display_url(url) == expected
+def test_safe_display_string(url, expected):
+    assert urlutils.safe_display_string(url) == expected
 
 
-def test_safe_display_url_invalid():
+def test_safe_display_string_invalid():
     with pytest.raises(urlutils.InvalidUrlError):
-        urlutils.safe_display_url(QUrl())
+        urlutils.safe_display_string(QUrl())
 
 
 class TestProxyFromUrl:
