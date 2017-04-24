@@ -138,6 +138,8 @@ class UrlText(textbase.TextBase):
         """
         if url is None:
             self._normal_url = None
+        elif not url.isValid():
+            self._normal_url = "Invalid URL!"
         else:
             self._normal_url = urlutils.safe_display_url(url)
         self._normal_url_type = UrlType.normal

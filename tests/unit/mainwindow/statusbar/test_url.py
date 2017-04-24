@@ -71,12 +71,12 @@ def test_set_url(url_widget, url_text, expected, which):
     """Test text when hovering over a percent encoded link."""
     qurl = QUrl(url_text)
     if which == 'normal':
-        if not qurl.isValid():
-            with pytest.raises(urlutils.InvalidUrlError):
-                url_widget.set_url(qurl)
+        if url_text is None:
             return
-        else:
-            url_widget.set_url(qurl)
+        if not qurl.isValid():
+            # Special case for the invalid URL above
+            expected = "Invalid URL!"
+        url_widget.set_url(qurl)
     else:
         url_widget.set_hover_url(url_text)
 
