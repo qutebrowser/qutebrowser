@@ -28,7 +28,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import certificateerror
+from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
 from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
                                objreg)
@@ -38,13 +38,19 @@ class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
-    def __init__(self, tabdata, win_id, parent=None):
+    def __init__(self, *, tabdata, win_id, private, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
 
         theme_color = self.style().standardPalette().color(QPalette.Base)
-        page = WebEnginePage(theme_color=theme_color, parent=self)
+        if private:
+            profile = webenginesettings.private_profile
+            assert profile.isOffTheRecord()
+        else:
+            profile = webenginesettings.default_profile
+        page = WebEnginePage(theme_color=theme_color, profile=profile,
+                             parent=self)
         self.setPage(page)
 
     def shutdown(self):
@@ -124,8 +130,8 @@ class WebEnginePage(QWebEnginePage):
     certificate_error = pyqtSignal()
     shutting_down = pyqtSignal()
 
-    def __init__(self, theme_color, parent=None):
-        super().__init__(parent)
+    def __init__(self, *, theme_color, profile, parent=None):
+        super().__init__(profile, parent)
         self._is_shutting_down = False
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)

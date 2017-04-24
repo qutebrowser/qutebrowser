@@ -38,6 +38,12 @@ from qutebrowser.utils import (objreg, utils, standarddir, javascript, log,
                                qtutils)
 
 
+# The default QWebEngineProfile
+default_profile = None
+# The QWebEngineProfile used for private (off-the-record) windows
+private_profile = None
+
+
 class Attribute(websettings.Attribute):
 
     """A setting set via QWebEngineSettings::setAttribute."""
@@ -67,7 +73,7 @@ class StaticSetter(websettings.StaticSetter):
     GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
 
 
-class ProfileSetter(websettings.Base):
+class DefaultProfileSetter(websettings.Base):
 
     """A setting set on the QWebEngineProfile."""
 
@@ -78,16 +84,16 @@ class ProfileSetter(websettings.Base):
 
     def get(self, settings=None):
         utils.unused(settings)
-        getter = getattr(QWebEngineProfile.defaultProfile(), self._getter)
+        getter = getattr(default_profile, self._getter)
         return getter()
 
     def _set(self, value, settings=None):
         utils.unused(settings)
-        setter = getattr(QWebEngineProfile.defaultProfile(), self._setter)
+        setter = getattr(default_profile, self._setter)
         setter(value)
 
 
-class PersistentCookiePolicy(ProfileSetter):
+class PersistentCookiePolicy(DefaultProfileSetter):
 
     """The cookies -> store setting is different from other settings."""
 
@@ -141,19 +147,27 @@ def _init_stylesheet(profile):
     profile.scripts().insert(script)
 
 
-def _init_profile(profile):
-    """Initialize settings set on the QWebEngineProfile."""
-    profile.setCachePath(os.path.join(standarddir.cache(), 'webengine'))
-    profile.setPersistentStoragePath(
-        os.path.join(standarddir.data(), 'webengine'))
-
-
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, section, option)
-    profile = QWebEngineProfile.defaultProfile()
     if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
-        _init_stylesheet(profile)
+        _init_stylesheet(default_profile)
+        _init_stylesheet(private_profile)
+
+
+def _init_profiles():
+    """Init the two used QWebEngineProfiles"""
+    global default_profile, private_profile
+    default_profile = QWebEngineProfile.defaultProfile()
+    default_profile.setCachePath(
+        os.path.join(standarddir.cache(), 'webengine'))
+    default_profile.setPersistentStoragePath(
+        os.path.join(standarddir.data(), 'webengine'))
+    _init_stylesheet(default_profile)
+
+    private_profile = QWebEngineProfile()
+    assert private_profile.isOffTheRecord()
+    _init_stylesheet(private_profile)
 
 
 def init(args):
@@ -173,9 +187,7 @@ def init(args):
         else:
             log.misc.debug("Imported PyOpenGL as workaround")
 
-    profile = QWebEngineProfile.defaultProfile()
-    _init_profile(profile)
-    _init_stylesheet(profile)
+    _init_profiles()
     # We need to do this here as a WORKAROUND for
     # https://bugreports.qt.io/browse/QTBUG-58650
     if not qtutils.version_check('5.9'):
@@ -282,7 +294,7 @@ MAPPINGS = {
         'local-storage':
             Attribute(QWebEngineSettings.LocalStorageEnabled),
         'cache-size':
-            ProfileSetter(getter='httpCacheMaximumSize',
+            DefaultProfileSetter(getter='httpCacheMaximumSize',
                           setter='setHttpCacheMaximumSize')
     },
     'general': {

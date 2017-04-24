@@ -185,8 +185,7 @@ def data(readonly=False):
              "Encoding to use for editor."),
 
             ('private-browsing',
-             SettingValue(typ.Bool(), 'false',
-                          backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Bool(), 'false'),
              "Do not record visited pages in the history or store web page "
              "icons."),
 
