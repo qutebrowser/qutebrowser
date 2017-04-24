@@ -42,9 +42,12 @@ table {
 <table>
     <caption class="date">{{curr_date.strftime("%a, %d %B %Y")}}</caption>
     <tbody>
-    {% for url, title, time in history %}
+    {% for url, title, time, host in history %}
         <tr>
-            <td class="title"><a href="{{url}}">{{title}}</a></td>
+            <td class="title">
+                <a href="{{url}}">{{title}}</a>
+                <span class="hostname">{{host}}</span>
+            </td>
             <td class="time">{{time.strftime("%X")}}</td>
         </tr>
     {% endfor %}

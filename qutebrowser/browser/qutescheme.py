@@ -311,7 +311,8 @@ def qute_history(url):
             start_time = time.mktime(next_date.timetuple()) - 1
             history = [
                 (i["url"], i["title"],
-                 datetime.datetime.fromtimestamp(i["time"]/1000))
+                 datetime.datetime.fromtimestamp(i["time"]/1000),
+                 QUrl(i["url"]).host())
                 for i in history_data(start_time) if "next" not in i
             ]
 
