@@ -61,6 +61,7 @@ Fixed
 - Crash when the key config isn't writable
 - Crash when unbinding an unbound key in the key config
 - Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
+- Crash with some invalid setting values
 - Various rare crashes
 
 v0.10.1
