@@ -69,13 +69,14 @@ def url_widget(qtbot, monkeypatch, config_stub):
 @pytest.mark.parametrize('which', ['normal', 'hover'])
 def test_set_url(url_widget, url_text, expected, which):
     """Test text when hovering over a percent encoded link."""
-    qurl = QUrl(url_text)
     if which == 'normal':
         if url_text is None:
-            return
-        if not qurl.isValid():
-            # Special case for the invalid URL above
-            expected = "Invalid URL!"
+            qurl = None
+        else:
+            qurl = QUrl(url_text)
+            if not qurl.isValid():
+                # Special case for the invalid URL above
+                expected = "Invalid URL!"
         url_widget.set_url(qurl)
     else:
         url_widget.set_hover_url(url_text)
@@ -111,12 +112,18 @@ def test_on_load_status_changed(url_widget, status, expected):
     (url.UrlType.success_https, QUrl('https://supersecret.gov/nsa/files.txt')),
     (url.UrlType.warn, QUrl('www.shadysite.org/some/file/with/issues.htm')),
     (url.UrlType.error, QUrl('invalid::/url')),
+    (url.UrlType.error, QUrl()),
 ])
 def test_on_tab_changed(url_widget, fake_web_tab, load_status, qurl):
     tab_widget = fake_web_tab(load_status=load_status, url=qurl)
     url_widget.on_tab_changed(tab_widget)
+
     assert url_widget._urltype == load_status
-    assert url_widget.text() == urlutils.safe_display_string(qurl)
+    if not qurl.isValid():
+        expected = ''
+    else:
+        expected = urlutils.safe_display_string(qurl)
+    assert url_widget.text() == expected
 
 
 @pytest.mark.parametrize('qurl, load_status, expected_status', [
