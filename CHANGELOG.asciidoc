@@ -32,6 +32,8 @@ Added
 Changed
 ~~~~~~~
 
+- To prevent elaborate phishing attacks, the Punycode version is now shown in
+  addition to the decoded version for IDN domain names.
 - When using QtWebEngine, the underlying Chromium version is now shown in the
   version info.
 - Improved `qute:history` page with lazy loading

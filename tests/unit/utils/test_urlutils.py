@@ -742,6 +742,31 @@ def test_data_url():
     assert url == QUrl('data:text/plain;base64,Zm9v')
 
 
+@pytest.mark.parametrize('url, expected', [
+    # No IDN
+    (QUrl('http://www.example.com'), 'http://www.example.com'),
+    # IDN in domain
+    (QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
+    # IDN with non-whitelisted TLD
+    (QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
+    # Unicode only in path
+    (QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
+    # Unicode only in TLD (looks like Qt shows Punycode with рф...)
+    (QUrl('http://www.example.xn--p1ai'),
+        '(www.example.xn--p1ai) http://www.example.рф'),
+    # https://bugreports.qt.io/browse/QTBUG-60364
+    (QUrl('http://www.xn--80ak6aa92e.com'),
+        '(unparseable URL!) http://www.аррӏе.com'),
+])
+def test_safe_display_url(url, expected):
+    assert urlutils.safe_display_url(url) == expected
+
+
+def test_safe_display_url_invalid():
+    with pytest.raises(urlutils.InvalidUrlError):
+        urlutils.safe_display_url(QUrl())
+
+
 class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
