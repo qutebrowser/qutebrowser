@@ -336,6 +336,7 @@ class StatusBar(QWidget):
 
     @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
+        """Notify sub-widgets when the tab has been changed."""
         self.url.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)

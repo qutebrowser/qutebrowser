@@ -27,8 +27,7 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
-                                      QWebEngineProfile)
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import browsertab, mouse, shared

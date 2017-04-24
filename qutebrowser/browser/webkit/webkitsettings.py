@@ -91,7 +91,8 @@ def _set_user_stylesheet():
 def _init_private_browsing():
     if qtutils.is_qtwebkit_ng():
         # WORKAROUND for https://github.com/annulen/webkit/issues/54
-        message.warning("Private browsing is not fully implemented by QtWebKit-NG!")
+        message.warning("Private browsing is not fully implemented by "
+                        "QtWebKit-NG!")
     elif not qtutils.version_check('5.4.2'):
         # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
         # Won't work when private browsing is not enabled globally, but that's

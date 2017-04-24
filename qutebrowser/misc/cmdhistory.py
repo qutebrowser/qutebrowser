@@ -21,7 +21,6 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log
 
 

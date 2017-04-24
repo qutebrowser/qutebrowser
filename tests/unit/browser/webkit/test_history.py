@@ -38,18 +38,13 @@ class FakeWebHistory:
         self.history_dict = history_dict
 
 
-@pytest.fixture(autouse=True)
-def prerequisites(config_stub, fake_save_manager):
-    """Make sure everything is ready to initialize a WebHistory."""
-    config_stub.data = {'general': {'private-browsing': False}}
-
-
 @pytest.fixture()
-def hist(tmpdir):
+def hist(tmpdir, fake_save_manager):
     return history.WebHistory(hist_dir=str(tmpdir), hist_name='history')
 
 
-def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog):
+def test_async_read_twice(monkeypatch, qtbot, tmpdir, caplog,
+                          fake_save_manager):
     (tmpdir / 'filled-history').write('\n'.join([
         '12345 http://example.com/ title',
         '67890 http://example.com/',
@@ -86,34 +81,6 @@ def test_adding_item_during_async_read(qtbot, hist, redirect):
 
     expected = history.Entry(url=url, atime=12345, redirect=redirect, title="")
     assert list(hist.history_dict.values()) == [expected]
-
-
-def test_private_browsing(qtbot, tmpdir, fake_save_manager, config_stub):
-    """Make sure no data is saved at all with private browsing."""
-    config_stub.data = {'general': {'private-browsing': True}}
-    private_hist = history.WebHistory(hist_dir=str(tmpdir),
-                                      hist_name='history')
-
-    # Before initial read
-    with qtbot.assertNotEmitted(private_hist.add_completion_item), \
-            qtbot.assertNotEmitted(private_hist.item_added):
-        private_hist.add_url(QUrl('http://www.example.com/'))
-    assert not private_hist._temp_history
-
-    # read
-    with qtbot.assertNotEmitted(private_hist.add_completion_item), \
-            qtbot.assertNotEmitted(private_hist.item_added):
-        with qtbot.waitSignals([private_hist.async_read_done], order='strict'):
-            list(private_hist.async_read())
-
-    # after read
-    with qtbot.assertNotEmitted(private_hist.add_completion_item), \
-            qtbot.assertNotEmitted(private_hist.item_added):
-        private_hist.add_url(QUrl('http://www.example.com/'))
-
-    assert not private_hist._temp_history
-    assert not private_hist._new_history
-    assert not private_hist.history_dict
 
 
 def test_iter(hist):
@@ -257,7 +224,7 @@ def test_add_item_redirect(qtbot, hist):
     assert hist.history_dict[url] == entry
 
 
-def test_add_item_redirect_update(qtbot, tmpdir):
+def test_add_item_redirect_update(qtbot, tmpdir, fake_save_manager):
     """A redirect update added should override a non-redirect one."""
     url = 'http://www.example.com/'
 

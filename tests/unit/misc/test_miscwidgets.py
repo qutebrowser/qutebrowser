@@ -34,7 +34,7 @@ class TestCommandLineEdit:
     @pytest.fixture
     def cmd_edit(self, qtbot):
         """Fixture to initialize a CommandLineEdit."""
-        cmd_edit = miscwidgets.CommandLineEdit(None)
+        cmd_edit = miscwidgets.CommandLineEdit()
         cmd_edit.set_prompt(':')
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''

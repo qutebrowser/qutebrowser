@@ -40,7 +40,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess
+from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import instances, sortfilter
 
 
@@ -256,15 +256,11 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         if private:
-            try:
-                from PyQt5.QtWebKit import qWebKitVersion
-            except ImportError:
-                pass
-            else:
-                # WORKAROUND for https://github.com/annulen/webkit/issues/54
-                if qtutils.is_qtwebkit_ng(qWebKitVersion()):
-                    message.warning("Private browsing is not fully "
-                                    "implemented by QtWebKit-NG!")
+            # WORKAROUND for https://github.com/annulen/webkit/issues/54
+            if (objects.backend == usertypes.Backend.QtWebKit and
+                    qtutils.is_qtwebkit_ng()):
+                message.warning("Private browsing is not fully "
+                                "implemented by QtWebKit-NG!")
             window = True
 
         for i, cur_url in enumerate(urls):

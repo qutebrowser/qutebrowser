@@ -156,7 +156,7 @@ def update_settings(section, option):
 
 
 def _init_profiles():
-    """Init the two used QWebEngineProfiles"""
+    """Init the two used QWebEngineProfiles."""
     global default_profile, private_profile
     default_profile = QWebEngineProfile.defaultProfile()
     default_profile.setCachePath(

@@ -27,7 +27,6 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
                                usertypes, message)
-from qutebrowser.config import config
 from qutebrowser.misc import lineparser, objects
 
 
@@ -274,7 +273,6 @@ class WebHistory(QObject):
                       (hidden in completion)
             atime: Override the atime used to add the entry
         """
-        assert not config.get('general', 'private-browsing')
         if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
             return

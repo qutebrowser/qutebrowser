@@ -206,15 +206,7 @@ class MainWindow(QWidget):
         self._messageview = messageview.MessageView(parent=self)
         self._add_overlay(self._messageview, self._messageview.update_geometry)
 
-        if geometry is not None:
-            self._load_geometry(geometry)
-        elif self.win_id == 0:
-            self._load_state_geometry()
-        else:
-            self._set_default_geometry()
-        log.init.debug("Initial main window geometry: {}".format(
-            self.geometry()))
-
+        self._init_geometry(geometry)
         self._connect_signals()
 
         # When we're here the statusbar might not even really exist yet, so
@@ -224,6 +216,17 @@ class MainWindow(QWidget):
         objreg.get('config').changed.connect(self.on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+
+    def _init_geometry(self, geometry):
+        """Initialize the window geometry or load it from disk."""
+        if geometry is not None:
+            self._load_geometry(geometry)
+        elif self.win_id == 0:
+            self._load_state_geometry()
+        else:
+            self._set_default_geometry()
+        log.init.debug("Initial main window geometry: {}".format(
+            self.geometry()))
 
     def _add_overlay(self, widget, signal, *, centered=False, padding=0):
         self._overlays.append((widget, signal, centered, padding))
