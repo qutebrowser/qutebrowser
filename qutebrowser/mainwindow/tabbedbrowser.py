@@ -68,6 +68,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
         default_window_icon: The qutebrowser window icon
+        private: Whether private browsing is on for this window.
 
     Signals:
         cur_progress: Progress of the current tab changed (load_progress).
@@ -100,7 +101,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
     page_fullscreen_requested = pyqtSignal(bool)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, *, win_id, private, parent=None):
         super().__init__(win_id, parent)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
@@ -118,6 +119,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._local_marks = {}
         self._global_marks = {}
         self.default_window_icon = self.window().windowIcon()
+        self.private = private
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -205,7 +207,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.renderer_process_terminated.connect(
             functools.partial(self._on_renderer_process_terminated, tab))
         tab.new_tab_requested.connect(self.tabopen)
-        tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
+        if not self.private:
+            web_history = objreg.get('web-history')
+            tab.add_history_item.connect(web_history.add_from_tab)
         tab.fullscreen_requested.connect(self.page_fullscreen_requested)
         tab.fullscreen_requested.connect(
             self.tabBar().on_page_fullscreen_requested)
@@ -399,13 +403,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         if (config.get('tabs', 'tabs-are-windows') and self.count() > 0 and
                 not ignore_tabs_are_windows):
             from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
+            window = mainwindow.MainWindow(private=self.private)
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
 
-        tab = browsertab.create(win_id=self._win_id, parent=self)
+        tab = browsertab.create(win_id=self._win_id, private=self.private,
+                                parent=self)
         self._connect_tab_signals(tab)
 
         if idx is None:

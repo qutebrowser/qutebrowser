@@ -22,6 +22,7 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
+from qutebrowser.browser import browsertab
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
@@ -70,6 +71,11 @@ class StatusBar(QWidget):
                      For some reason we need to have this as class attribute
                      so pyqtProperty works correctly.
 
+        _private: Whether we're in private browsing mode.
+
+                  For some reason we need to have this as class attribute
+                  so pyqtProperty works correctly.
+
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
                  widget can adjust its size to it.
@@ -86,6 +92,7 @@ class StatusBar(QWidget):
     _insert_active = False
     _command_active = False
     _caret_mode = CaretMode.off
+    _private = False
 
     STYLESHEET = """
 
@@ -95,6 +102,13 @@ class StatusBar(QWidget):
             font: {{ font['statusbar'] }};
             background-color: {{ color['statusbar.bg'] }};
             color: {{ color['statusbar.fg'] }};
+        }
+
+        QWidget#StatusBar[private="true"],
+        QWidget#StatusBar[private="true"] QLabel,
+        QWidget#StatusBar[private="true"] QLineEdit {
+            color: {{ color['statusbar.fg.private'] }};
+            background-color: {{ color['statusbar.bg.private'] }};
         }
 
         QWidget#StatusBar[caret_mode="on"],
@@ -134,7 +148,7 @@ class StatusBar(QWidget):
 
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
         objreg.register('statusbar', self, scope='window', window=win_id)
         self.setObjectName(self.__class__.__name__)
@@ -146,6 +160,7 @@ class StatusBar(QWidget):
         self._win_id = win_id
         self._option = None
         self._page_fullscreen = False
+        self._private = private
 
         self._hbox = QHBoxLayout(self)
         self.set_hbox_padding()
@@ -156,7 +171,7 @@ class StatusBar(QWidget):
         self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
-        self.cmd = command.Command(win_id)
+        self.cmd = command.Command(private=private, win_id=win_id)
         self._stack.addWidget(self.cmd)
         objreg.register('status-command', self.cmd, scope='window',
                         window=win_id)
@@ -225,6 +240,11 @@ class StatusBar(QWidget):
     def caret_mode(self):
         """Getter for self._caret_mode, so it can be used as Qt property."""
         return self._caret_mode.name
+
+    @pyqtProperty(bool)
+    def private(self):
+        """Getter for self.private so it can be used as Qt property."""
+        return self._private
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,command,caret}_active.
@@ -313,6 +333,13 @@ class StatusBar(QWidget):
     def on_page_fullscreen_requested(self, on):
         self._page_fullscreen = on
         self.maybe_hide()
+
+    @pyqtSlot(browsertab.AbstractTab)
+    def on_tab_changed(self, tab):
+        self.url.on_tab_changed(tab)
+        self.prog.on_tab_changed(tab)
+        self.percentage.on_tab_changed(tab)
+        assert tab.private == self._private
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

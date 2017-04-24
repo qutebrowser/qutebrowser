@@ -67,10 +67,10 @@ class CommandDispatcher:
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _new_tabbed_browser(self):
+    def _new_tabbed_browser(self, private):
         """Get a tabbed-browser from a new window."""
         from qutebrowser.mainwindow import mainwindow
-        new_window = mainwindow.MainWindow()
+        new_window = mainwindow.MainWindow(private=private)
         new_window.show()
         return new_window.tabbed_browser
 
@@ -110,7 +110,7 @@ class CommandDispatcher:
         return widget
 
     def _open(self, url, tab=False, background=False, window=False,
-              explicit=True):
+              explicit=True, private=None):
         """Helper function to open a page.
 
         Args:
@@ -118,12 +118,17 @@ class CommandDispatcher:
             tab: Whether to open in a new tab.
             background: Whether to open in the background.
             window: Whether to open in a new window
+            private: If opening a new window, open it in private browsing mode.
+                     If not given, inherit the current window's mode.
         """
         urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window), 'tbw')
+        if private is None:
+            private = self._tabbed_browser.private
+
         if window:
-            tabbed_browser = self._new_tabbed_browser()
+            tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=explicit)
@@ -228,7 +233,8 @@ class CommandDispatcher:
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
     def openurl(self, url=None, implicit=False,
-                bg=False, tab=False, window=False, count=None, secure=False):
+                bg=False, tab=False, window=False, count=None, secure=False,
+                private=False):
         """Open a URL in the current/[count]th tab.
 
         If the URL contains newlines, each line gets opened in its own tab.
@@ -242,11 +248,24 @@ class CommandDispatcher:
                       clicking on a link).
             count: The tab index to open the URL in, or None.
             secure: Force HTTPS.
+            private: Open a new window in private browsing mode.
         """
         if url is None:
             urls = [config.get('general', 'default-page')]
         else:
             urls = self._parse_url_input(url)
+
+        if private:
+            try:
+                from PyQt5.QtWebKit import qWebKitVersion
+            except ImportError:
+                pass
+            else:
+                # WORKAROUND for https://github.com/annulen/webkit/issues/54
+                if qtutils.is_qtwebkit_ng(qWebKitVersion()):
+                    message.warning("Private browsing is not fully "
+                                    "implemented by QtWebKit-NG!")
+            window = True
 
         for i, cur_url in enumerate(urls):
             if secure:
@@ -255,7 +274,8 @@ class CommandDispatcher:
                 tab = False
                 bg = True
             if tab or bg or window:
-                self._open(cur_url, tab, bg, window, not implicit)
+                self._open(cur_url, tab, bg, window, explicit=not implicit,
+                           private=private)
             else:
                 curtab = self._cntwidget(count)
                 if curtab is None:
@@ -430,7 +450,8 @@ class CommandDispatcher:
         # The new tab could be in a new tabbed_browser (e.g. because of
         # tabs-are-windows being set)
         if window:
-            new_tabbed_browser = self._new_tabbed_browser()
+            new_tabbed_browser = self._new_tabbed_browser(
+                private=self._tabbed_browser.private)
         else:
             new_tabbed_browser = self._tabbed_browser
         newtab = new_tabbed_browser.tabopen(background=bg, explicit=True)

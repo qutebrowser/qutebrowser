@@ -54,12 +54,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
-    def __init__(self, win_id, parent=None):
-        misc.CommandLineEdit.__init__(self, parent)
+    def __init__(self, *, win_id, private, parent=None):
+        misc.CommandLineEdit.__init__(self, private=private, parent=parent)
         misc.MinimalLineEditMixin.__init__(self)
         self._win_id = win_id
         command_history = objreg.get('command-history')
-        self.history.handle_private_mode = True
         self.history.history = command_history.data
         self.history.changed.connect(command_history.changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)

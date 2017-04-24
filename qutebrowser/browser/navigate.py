@@ -128,17 +128,19 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
             return
         qtutils.ensure_valid(url)
 
+        cur_tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+
         if window:
             from qutebrowser.mainwindow import mainwindow
-            new_window = mainwindow.MainWindow()
+            new_window = mainwindow.MainWindow(
+                private=cur_tabbed_browser.private)
             new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
             tabbed_browser.tabopen(url, background=False)
         elif tab:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            tabbed_browser.tabopen(url, background=background)
+            cur_tabbed_browser.tabopen(url, background=background)
         else:
             browsertab.openurl(url)
 

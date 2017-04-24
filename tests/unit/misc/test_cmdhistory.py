@@ -146,7 +146,7 @@ def test_previtem_index_error(hist):
 
 def test_append_private_mode(hist, config_stub):
     """Test append in private mode."""
-    hist.handle_private_mode = True
+    hist._private = True
     # We want general.private-browsing set to True
     config_stub.data = CONFIG_PRIVATE
     hist.append('new item')

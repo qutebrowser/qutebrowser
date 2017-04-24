@@ -89,20 +89,19 @@ def _set_user_stylesheet():
 
 
 def _init_private_browsing():
-    if config.get('general', 'private-browsing'):
-        if qtutils.is_qtwebkit_ng():
-            message.warning("Private browsing is not fully implemented by "
-                            "QtWebKit-NG!")
+    if qtutils.is_qtwebkit_ng():
+        # WORKAROUND for https://github.com/annulen/webkit/issues/54
+        message.warning("Private browsing is not fully implemented by QtWebKit-NG!")
+    elif not qtutils.version_check('5.4.2'):
+        # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
+        # Won't work when private browsing is not enabled globally, but that's
+        # the best we can do...
         QWebSettings.setIconDatabasePath('')
-    else:
-        QWebSettings.setIconDatabasePath(standarddir.cache())
 
 
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
-    if (section, option) == ('general', 'private-browsing'):
-        _init_private_browsing()
-    elif section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
+    if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
         _set_user_stylesheet()
 
     websettings.update_mappings(MAPPINGS, section, option)
@@ -113,14 +112,16 @@ def init(_args):
     cache_path = standarddir.cache()
     data_path = standarddir.data()
 
-    _init_private_browsing()
-
+    QWebSettings.setIconDatabasePath(standarddir.cache())
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(cache_path, 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
         os.path.join(data_path, 'local-storage'))
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
+
+    if config.get('general', 'private-browsing'):
+        _init_private_browsing()
 
     websettings.init_mappings(MAPPINGS)
     _set_user_stylesheet()
@@ -254,8 +255,6 @@ MAPPINGS = {
                 setter=QWebSettings.setOfflineWebApplicationCacheQuota),
     },
     'general': {
-        'private-browsing':
-            Attribute(QWebSettings.PrivateBrowsingEnabled),
         'developer-extras':
             Attribute(QWebSettings.DeveloperExtrasEnabled),
         'print-element-backgrounds':

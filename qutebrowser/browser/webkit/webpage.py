@@ -59,7 +59,7 @@ class BrowserPage(QWebPage):
     shutting_down = pyqtSignal()
     reloading = pyqtSignal(QUrl)
 
-    def __init__(self, win_id, tab_id, tabdata, parent=None):
+    def __init__(self, win_id, tab_id, tabdata, private, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
@@ -72,7 +72,7 @@ class BrowserPage(QWebPage):
         self.error_occurred = False
         self.open_target = usertypes.ClickTarget.normal
         self._networkmanager = networkmanager.NetworkManager(
-            win_id, tab_id, self)
+            win_id=win_id, tab_id=tab_id, private=private, parent=self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)

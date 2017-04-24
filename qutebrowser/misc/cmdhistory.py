@@ -44,9 +44,9 @@ class History(QObject):
     """Command history.
 
     Attributes:
-        handle_private_mode: Whether to ignore history in private mode.
         history: A list of executed commands, with newer commands at the end.
         _tmphist: Temporary history for history browsing (as NeighborList)
+        _private: Whether this history is in private browsing mode.
 
     Signals:
         changed: Emitted when an entry was added to the history.
@@ -54,15 +54,15 @@ class History(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, history=None, parent=None):
+    def __init__(self, *, private=False, history=None, parent=None):
         """Constructor.
 
         Args:
             history: The initial history to set.
         """
         super().__init__(parent)
-        self.handle_private_mode = False
         self._tmphist = None
+        self._private = private
         if history is None:
             self.history = []
         else:
@@ -129,8 +129,7 @@ class History(QObject):
         Args:
             text: The text to append.
         """
-        if (self.handle_private_mode and
-                config.get('general', 'private-browsing')):
+        if self._private:
             return
         if not self.history or text != self.history[-1]:
             self.history.append(text)

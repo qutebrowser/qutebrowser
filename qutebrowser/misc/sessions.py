@@ -379,7 +379,8 @@ class SessionManager(QObject):
             raise SessionError(e)
         log.sessions.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
-            window = mainwindow.MainWindow(geometry=win['geometry'])
+            window = mainwindow.MainWindow(geometry=win['geometry'],
+                                           private=win.get('private', False))
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)

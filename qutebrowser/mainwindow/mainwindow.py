@@ -81,7 +81,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
 
     # Otherwise, or if no window was found, create a new one
     if window is None:
-        window = MainWindow()
+        window = MainWindow(private=None)
         window.show()
         raise_window = True
 
@@ -127,13 +127,15 @@ class MainWindow(QWidget):
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
+        _private: Whether the window is in private browsing mode.
     """
 
-    def __init__(self, geometry=None, parent=None):
+    def __init__(self, *, private, geometry=None, parent=None):
         """Create a new main window.
 
         Args:
             geometry: The geometry to load, as a bytes-object (or None).
+            private: Whether the window is in private browsing mode.
             parent: The parent the window should get.
         """
         super().__init__(parent)
@@ -161,7 +163,14 @@ class MainWindow(QWidget):
         self._init_downloadmanager()
         self._downloadview = downloadview.DownloadView(self.win_id)
 
-        self.tabbed_browser = tabbedbrowser.TabbedBrowser(self.win_id)
+        if config.get('general', 'private-browsing'):
+            # This setting always trumps what's passed in.
+            private = True
+        else:
+            private = bool(private)
+        self._private = private
+        self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
+                                                          private=private)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()
@@ -169,7 +178,8 @@ class MainWindow(QWidget):
         # We need to set an explicit parent for StatusBar because it does some
         # show/hide magic immediately which would mean it'd show up as a
         # window.
-        self.status = bar.StatusBar(self.win_id, parent=self)
+        self.status = bar.StatusBar(win_id=self.win_id, private=private,
+                                    parent=self)
 
         self._add_widgets()
         self._downloadview.show()
@@ -446,17 +456,15 @@ class MainWindow(QWidget):
         message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
 
         # statusbar
-        tabs.current_tab_changed.connect(status.prog.on_tab_changed)
+        tabs.current_tab_changed.connect(status.on_tab_changed)
+
         tabs.cur_progress.connect(status.prog.setValue)
         tabs.cur_load_finished.connect(status.prog.hide)
         tabs.cur_load_started.connect(status.prog.on_load_started)
 
-        tabs.current_tab_changed.connect(status.percentage.on_tab_changed)
         tabs.cur_scroll_perc_changed.connect(status.percentage.set_perc)
-
         tabs.tab_index_changed.connect(status.tabindex.on_tab_index_changed)
 
-        tabs.current_tab_changed.connect(status.url.on_tab_changed)
         tabs.cur_url_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)

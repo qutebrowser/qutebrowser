@@ -274,8 +274,7 @@ class WebHistory(QObject):
                       (hidden in completion)
             atime: Override the atime used to add the entry
         """
-        if config.get('general', 'private-browsing'):
-            return
+        assert not config.get('general', 'private-browsing')
         if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
             return

@@ -1125,6 +1125,14 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
 
+            ('statusbar.fg.private',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in private browsing mode."),
+
+            ('statusbar.bg.private',
+             SettingValue(typ.QssColor(), 'grey'),  # FIXME darker color
+             "Background color of the statusbar in private browsing mode."),
+
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in insert mode."),
