@@ -593,7 +593,7 @@ def data_url(mimetype, data):
 
 
 def safe_display_string(qurl):
-    """Get a IDN-homograph phising safe form of the given QUrl.
+    """Get a IDN-homograph phishing safe form of the given QUrl.
 
     If we're dealing with a Punycode-encoded URL, this prepends the hostname in
     its encoded form, to make sure those URLs are distinguishable.
