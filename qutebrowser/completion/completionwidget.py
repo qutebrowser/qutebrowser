@@ -124,6 +124,7 @@ class CompletionView(QTreeView):
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
+        self.setAnimated(False)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # WORKAROUND
         # This is a workaround for weird race conditions with invalid
