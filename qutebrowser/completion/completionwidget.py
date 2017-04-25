@@ -23,7 +23,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
+from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, style
@@ -117,6 +117,7 @@ class CompletionView(QTreeView):
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
+        self.setStyle(QStyleFactory.create('Fusion'))
         style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
