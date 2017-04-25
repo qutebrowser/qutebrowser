@@ -24,7 +24,8 @@ import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer, QUrl
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle, QStylePainter, QStyleOptionTab)
+                             QStyle, QStylePainter, QStyleOptionTab,
+                             QStyleFactory)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -51,7 +52,7 @@ class TabWidget(QTabWidget):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         bar = TabBar(win_id)
-        self.setStyle(TabBarStyle(self.style()))
+        self.setStyle(TabBarStyle())
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
@@ -269,7 +270,7 @@ class TabBar(QTabBar):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.setStyle(TabBarStyle(self.style()))
+        self.setStyle(TabBarStyle())
         self.set_font()
         config_obj = objreg.get('config')
         config_obj.changed.connect(self.set_font)
@@ -554,20 +555,14 @@ class TabBarStyle(QCommonStyle):
 
     http://stackoverflow.com/a/17294081
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
-
-    Attributes:
-        _style: The base/"parent" style.
     """
 
-    def __init__(self, style):
+    def __init__(self):
         """Initialize all functions we're not overriding.
 
         This simply calls the corresponding function in self._style.
-
-        Args:
-            style: The base/"parent" style.
         """
-        self._style = style
+        self._style = QStyleFactory.create('Fusion')
         for method in ['drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',

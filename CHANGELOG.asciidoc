@@ -65,6 +65,7 @@ Fixed
 - Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Crash with some invalid setting values
 - Various rare crashes
+- Various styling issues with the tabbar and a crash with qt5ct
 
 v0.10.1
 -------
