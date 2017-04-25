@@ -395,11 +395,12 @@ class TabBar(QTabBar):
         button = config.get('tabs', 'close-mouse-button')
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
+            e.accept()
             idx = self.tabAt(e.pos())
-            if idx != -1:
-                e.accept()
-                self.tabCloseRequested.emit(idx)
-                return
+            if idx == -1:
+                idx = self.currentIndex()
+            self.tabCloseRequested.emit(idx)
+            return
         super().mousePressEvent(e)
 
     def minimumTabSizeHint(self, index):

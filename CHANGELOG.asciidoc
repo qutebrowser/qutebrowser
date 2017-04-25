@@ -47,6 +47,8 @@ Changed
   to frequent crashes due to a Qt bug.
 - stdin is now closed immediately for processes spawned from qutebrowser
 - When ui -> message-timeout is set to 0, messages are now never cleared.
+- Middle/right-clicking the blank parts of the tab bar (when vertical) now
+  closes the current tab.
 
 Fixed
 ~~~~~
