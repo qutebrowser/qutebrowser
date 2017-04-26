@@ -727,6 +727,10 @@ class HintManager(QObject):
             visible = {string: label
                        for string, label in self._context.labels.items()
                        if label.isVisible()}
+        if len(visible) == 0:
+            #Apply auto-follow-timeout if hints reduced to none
+            self._apply_auto_follow_timeout()
+            return
 
         if len(visible) != 1:
             return
@@ -748,14 +752,17 @@ class HintManager(QObject):
             self._context.to_follow = list(visible.keys())[0]
 
         if follow:
-            # apply auto-follow-timeout
-            timeout = config.get('hints', 'auto-follow-timeout')
-            keyparsers = objreg.get('keyparsers', scope='window',
-                                    window=self._win_id)
-            normal_parser = keyparsers[usertypes.KeyMode.normal]
-            normal_parser.set_inhibited_timeout(timeout)
+            self._apply_auto_follow_timeout()
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
+
+    def _apply_auto_follow_timeout(self):
+        """Apply timeout of keyboard input delay set in auto-follow-timeout."""
+        timeout = config.get('hints', 'auto-follow-timeout')
+        keyparsers = objreg.get('keyparsers', scope='window',
+                                window=self._win_id)
+        normal_parser = keyparsers[usertypes.KeyMode.normal]
+        normal_parser.set_inhibited_timeout(timeout)
 
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
