@@ -680,6 +680,11 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to show favicons in the tab bar."),
 
+            ('favicon-scale',
+             SettingValue(typ.Float(minval=0.0), '1.0'),
+             "Scale for favicons in the tab bar. The tab size is unchanged, "
+             "so big favicons also require extra `tabs->padding`."),
+
             ('width',
              SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
                           '20%'),
