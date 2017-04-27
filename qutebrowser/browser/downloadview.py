@@ -23,7 +23,7 @@ import functools
 
 import sip
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
-from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
+from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style
@@ -75,6 +75,7 @@ class DownloadView(QListView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.setStyle(QStyleFactory.create('Fusion'))
         style.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

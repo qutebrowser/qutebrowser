@@ -1359,7 +1359,7 @@ def data(readonly=False):
 
         ('fonts', sect.KeyValue(
             ('_monospace',
-             SettingValue(typ.Font(), 'Terminus, Monospace, '
+             SettingValue(typ.Font(), 'xos4 Terminus, Terminus, Monospace, '
                           '"DejaVu Sans Mono", Monaco, '
                           '"Bitstream Vera Sans Mono", "Andale Mono", '
                           '"Courier New", Courier, "Liberation Mono", '

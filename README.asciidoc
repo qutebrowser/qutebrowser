@@ -161,8 +161,8 @@ Contributors, sorted by the number of commits in descending order:
 * Marshall Lochbaum
 * Bruno Oliveira
 * Martin Tournoij
-* Alexander Cogneau
 * Imran Sobir
+* Alexander Cogneau
 * Felix Van der Jeugt
 * Daniel Karbach
 * Kevin Velghe
@@ -251,6 +251,7 @@ Contributors, sorted by the number of commits in descending order:
 * Penaz
 * Mathias Fussenegger
 * Marcelo Santos
+* Marcel Schilling
 * Joel Bradshaw
 * Jean-Louis Fuchs
 * Franz Fellner
@@ -278,7 +279,6 @@ Contributors, sorted by the number of commits in descending order:
 * Noah Huesser
 * Moez Bouhlel
 * Matthias Lisin
-* Marcel Schilling
 * Lazlow Carmichael
 * Kevin Wang
 * Ján Kobezda

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
 import pytest
 import pytest_bdd as bdd
 
@@ -24,6 +26,16 @@ import pytest_bdd as bdd
 from end2end.features.test_yankpaste_bdd import init_fake_clipboard
 
 
-bdd.scenarios('search.feature')
+@bdd.then(bdd.parsers.parse('"{text}" should be found'))
+def check_found_text(request, quteproc, text):
+    quteproc.send_cmd(':yank selection')
+    quteproc.wait_for(message='Setting fake clipboard: {}'.format(
+        json.dumps(text)))
 
+
+# After cancelling the search, the text (sometimes?) shows up as selected.
+# However, we can't get it via ':yank selection' it seems?
 pytestmark = pytest.mark.qtwebengine_skip("Searched text is not selected...")
+
+
+bdd.scenarios('search.feature')
