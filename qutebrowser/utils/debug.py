@@ -156,6 +156,10 @@ def qflags_key(base, value, add_base=False, klass=None):
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+
+    if not value:
+        return qenum_key(base, value, add_base, klass)
+
     bits = []
     names = []
     mask = 0x01

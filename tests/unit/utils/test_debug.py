@@ -138,6 +138,7 @@ class TestQEnumKey:
         (QFrame, QFrame.Sunken, None, 'Sunken'),
         (QFrame, 0x0030, QFrame.Shadow, 'Sunken'),
         (QFrame, 0x1337, QFrame.Shadow, '0x1337'),
+        (Qt, Qt.AnchorLeft, None, 'AnchorLeft'),
     ])
     def test_qenum_key(self, base, value, klass, expected):
         key = debug.qenum_key(base, value, klass=klass)
@@ -168,6 +169,8 @@ class TestQFlagsKey:
         (Qt, Qt.AlignCenter, None, 'AlignHCenter|AlignVCenter'),
         fixme((Qt, 0x0021, Qt.Alignment, 'AlignLeft|AlignTop')),
         (Qt, 0x1100, Qt.Alignment, '0x0100|0x1000'),
+        (Qt, Qt.DockWidgetAreas(0), Qt.DockWidgetArea, 'NoDockWidgetArea'),
+        (Qt, Qt.DockWidgetAreas(0), None, '0x0000'),
     ])
     def test_qflags_key(self, base, value, klass, expected):
         flags = debug.qflags_key(base, value, klass=klass)
