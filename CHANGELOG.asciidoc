@@ -28,6 +28,7 @@ Added
   filters.
 - New `--debug-flag` argument which replaces `--debug-exit` and
   `--pdb-postmortem`.
+- New `tabs -> favicon-scale` option to scale up/down favicons.
 
 Changed
 ~~~~~~~
