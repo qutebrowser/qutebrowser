@@ -36,7 +36,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.browser.webkit.network import webkitqutescheme
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
+from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 
 def init():
@@ -104,7 +104,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         super().__init__(parent)
         self._flags = QWebPage.FindFlags(0)
 
-    def _call_cb(self, callback, found):
+    def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
 
         Delays the call via a QTimer so the website is re-rendered in between.
@@ -112,7 +112,22 @@ class WebKitSearch(browsertab.AbstractSearch):
         Args:
             callback: What to call
             found: If the text was found
+            text: The text searched for
+            flags: The flags searched with
+            caller: Name of the caller.
         """
+        found_text = 'found' if found else "didn't find"
+        # Removing FindWrapsAroundDocument to get the same logging as with
+        # QtWebEngine
+        debug_flags = debug.qflags_key(
+            QWebPage, flags & ~QWebPage.FindWrapsAroundDocument,
+            klass=QWebPage.FindFlag)
+        if debug_flags != '0x0000':
+            flag_text = 'with flags {}'.format(debug_flags)
+        else:
+            flag_text = ''
+        log.webview.debug(' '.join([caller, found_text, text, flag_text])
+                          .strip())
         if callback is not None:
             QTimer.singleShot(0, functools.partial(callback, found))
 
@@ -137,11 +152,11 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText(text, flags | QWebPage.HighlightAllOccurrences)
         self.text = text
         self._flags = flags
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, text, flags, 'search')
 
     def next_result(self, *, result_cb=None):
         found = self._widget.findText(self.text, self._flags)
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, self.text, self._flags, 'next_result')
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
@@ -151,7 +166,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         else:
             flags |= QWebPage.FindBackward
         found = self._widget.findText(self.text, flags)
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, self.text, flags, 'prev_result')
 
 
 class WebKitCaret(browsertab.AbstractCaret):
