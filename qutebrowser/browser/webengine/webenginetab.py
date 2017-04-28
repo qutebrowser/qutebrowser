@@ -631,11 +631,12 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
-        # FIXME:qtwebengine support .netrc
-        answer = shared.authentication_required(
-            url, authenticator, abort_on=[self.shutting_down,
-                                          self.load_started])
-        if answer is None:
+        netrc = shared.netrc_authentication(url, authenticator)
+        if not netrc:
+            answer = shared.authentication_required(
+                url, authenticator, abort_on=[self.shutting_down,
+                                              self.load_started])
+        if not netrc and answer is None:
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())

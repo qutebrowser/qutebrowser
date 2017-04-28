@@ -23,6 +23,9 @@ import html
 
 import jinja2
 
+import os
+import netrc
+
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, message, log, objreg
 
@@ -243,3 +246,29 @@ def get_user_stylesheet():
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css
+
+
+def netrc_authentication(url, authenticator):
+    if 'HOME' in os.environ:
+        # We'll get an OSError by netrc if 'HOME' isn't available in
+        # os.environ. We don't want to log that, so we prevent it
+        # altogether.
+        user, password = None, None
+        try:
+            net = netrc.netrc(config.get('network', 'netrc-file'))
+            authenticators = net.authenticators(url.host())
+            if authenticators is not None:
+                (user, _account, password) = authenticators
+        except FileNotFoundError:
+            log.misc.debug("No .netrc file found")
+        except OSError:
+            log.misc.exception("Unable to read the netrc file")
+        except netrc.NetrcParseError:
+            log.misc.exception("Error when parsing the netrc file")
+
+        if user is not None:
+            authenticator.setUser(user)
+            authenticator.setPassword(password)
+            return True
+
+    return False
