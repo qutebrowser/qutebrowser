@@ -53,8 +53,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
         for name, typ in js_dict_types.items():
             if name in js_dict and not isinstance(js_dict[name], typ):
-                raise TypeError("Got {} for {} from JS but expected {}: {}".format(
-                    type(js_dict[name]), name, typ, js_dict))
+                raise TypeError("Got {} for {} from JS but expected {}: "
+                                "{}".format(type(js_dict[name]), name, typ,
+                                            js_dict))
         for name, value in js_dict['attributes'].items():
             if not isinstance(name, str):
                 raise TypeError("Got {} ({}) for attribute name from JS: "
