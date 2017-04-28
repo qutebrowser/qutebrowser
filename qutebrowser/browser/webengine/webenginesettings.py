@@ -34,7 +34,8 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import objreg, utils, standarddir, javascript, log
+from qutebrowser.utils import (objreg, utils, standarddir, javascript, log,
+                               qtutils)
 
 
 class Attribute(websettings.Attribute):
@@ -177,7 +178,8 @@ def init(args):
     _init_stylesheet(profile)
     # We need to do this here as a WORKAROUND for
     # https://bugreports.qt.io/browse/QTBUG-58650
-    PersistentCookiePolicy().set(config.get('content', 'cookies-store'))
+    if not qtutils.version_check('5.9'):
+        PersistentCookiePolicy().set(config.get('content', 'cookies-store'))
 
     Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
 
@@ -221,9 +223,6 @@ MAPPINGS = {
             Attribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
         'local-content-can-access-file-urls':
             Attribute(QWebEngineSettings.LocalContentCanAccessFileUrls),
-        # https://bugreports.qt.io/browse/QTBUG-58650
-        # 'cookies-store':
-        #     PersistentCookiePolicy(),
         'webgl':
             Attribute(QWebEngineSettings.WebGLEnabled),
     },
@@ -301,3 +300,8 @@ try:
 except AttributeError:
     # Added in Qt 5.8
     pass
+
+
+if qtutils.version_check('5.9'):
+    # https://bugreports.qt.io/browse/QTBUG-58650
+    MAPPINGS['content']['cookies-store'] = PersistentCookiePolicy()

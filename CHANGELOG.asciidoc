@@ -50,6 +50,8 @@ Changed
 - When ui -> message-timeout is set to 0, messages are now never cleared.
 - Middle/right-clicking the blank parts of the tab bar (when vertical) now
   closes the current tab.
+- With Qt 5.9, `content -> cookies-store` can now be set on QtWebEngine without
+  a restart.
 
 Fixed
 ~~~~~

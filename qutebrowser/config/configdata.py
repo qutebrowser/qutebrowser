@@ -915,7 +915,7 @@ def data(readonly=False):
             ('cookies-store',
              SettingValue(typ.Bool(), 'true'),
              "Whether to store cookies. Note this option needs a restart with "
-             "QtWebEngine."),
+             "QtWebEngine on Qt < 5.9."),
 
             ('host-block-lists',
              SettingValue(
