@@ -136,16 +136,6 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
-    if config.webengine:
-        qtwebkit_ng_used = False
-    else:
-        try:
-            from PyQt5.QtWebKit import qWebKitVersion
-        except ImportError:
-            qtwebkit_ng_used = False
-        else:
-            qtwebkit_ng_used = qtutils.is_qtwebkit_ng(qWebKitVersion())
-
     markers = [
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
@@ -154,9 +144,9 @@ def pytest_collection_modifyitems(config, items):
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebkit_ng_xfail', 'Failing with QtWebKit-NG', pytest.mark.xfail,
-         qtwebkit_ng_used),
+         not config.webengine and qtutils.is_qtwebkit_ng()),
         ('qtwebkit_ng_skip', 'Skipped with QtWebKit-NG', pytest.mark.skipif,
-         qtwebkit_ng_used),
+         not config.webengine and qtutils.is_qtwebkit_ng()),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_osx_xfail', 'Fails on OS X with QtWebEngine',

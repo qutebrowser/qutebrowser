@@ -21,7 +21,6 @@
 
 
 from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
-from PyQt5.QtWebKit import qWebKitVersion
 
 from qutebrowser.utils import qtutils
 
@@ -181,7 +180,7 @@ def serialize(items):
     else:
         current_idx = 0
 
-    if qtutils.is_qtwebkit_ng(qWebKitVersion()):
+    if qtutils.is_qtwebkit_ng():
         _serialize_ng(items, current_idx, stream)
     else:
         _serialize_old(items, current_idx, stream)

@@ -88,8 +88,9 @@ def test_version_check(monkeypatch, qversion, compiled, version, exact,
     ('538.1', False),   # Qt 5.8
     ('602.1', True)     # QtWebKit-NG TP5
 ])
-def test_is_qtwebkit_ng(version, ng):
-    assert qtutils.is_qtwebkit_ng(version) == ng
+def test_is_qtwebkit_ng(monkeypatch, version, ng):
+    monkeypatch.setattr(qtutils, 'qWebKitVersion', lambda: version)
+    assert qtutils.is_qtwebkit_ng() == ng
 
 
 class TestCheckOverflow:

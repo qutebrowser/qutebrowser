@@ -257,8 +257,7 @@ def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'QtWebKit{} (WebKit {})'.format(
-            '-NG' if qtutils.is_qtwebkit_ng(qWebKitVersion()) else '',
-            qWebKitVersion())
+            '-NG' if qtutils.is_qtwebkit_ng() else '', qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend
