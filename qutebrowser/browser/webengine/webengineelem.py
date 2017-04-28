@@ -43,7 +43,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         js_dict_types = {
             'id': int,
             'text': str,
-            'value': str,
+            'value': (str, int, float),
             'tag_name': str,
             'outer_xml': str,
             'class_name': str,
