@@ -726,3 +726,12 @@ Feature: Various utility commands.
         Then no crash should happen
         And the following tabs should be open:
             - data/numbers/3.txt (active)
+
+    ## Bugs
+
+    # https://github.com/qutebrowser/qutebrowser/issues/2569
+    Scenario: Clicking on form element with tagName child
+        When I open data/issue2569.html
+        And I run :click-element id theform
+        And I wait for "Clicked editable element!" in the log
+        Then no crash should happen

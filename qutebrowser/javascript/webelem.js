@@ -52,11 +52,19 @@ window._qutebrowser.webelem = (function() {
             "id": id,
             "text": elem.text,
             "value": elem.value,
-            "tag_name": elem.tagName,
             "outer_xml": elem.outerHTML,
             "class_name": elem.className,
             "rects": [],  // Gets filled up later
         };
+
+        // https://github.com/qutebrowser/qutebrowser/issues/2569
+        if (typeof elem.tagName === "string") {
+            out.tag_name = elem.tagName;
+        } else if (typeof elem.nodeName === "string") {
+            out.tag_name = elem.nodeName;
+        } else {
+            out.tag_name = "";
+        }
 
         var attributes = {};
         for (var i = 0; i < elem.attributes.length; ++i) {
