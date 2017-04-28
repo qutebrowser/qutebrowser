@@ -79,7 +79,13 @@ Feature: Javascript stuff
     # https://github.com/qutebrowser/qutebrowser/issues/2569
     Scenario: Clicking on form element with tagName child
         When I open data/issue2569.html
-        And I run :click-element id theform
+        And I run :click-element id tagnameform
+        And I wait for "Sending fake click to *" in the log
+        Then no crash should happen
+
+    Scenario: Clicking on form element with text child
+        When I open data/issue2569.html
+        And I run :click-element id textform
         And I wait for "Sending fake click to *" in the log
         Then no crash should happen
 

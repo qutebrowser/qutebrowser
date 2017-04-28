@@ -50,7 +50,6 @@ window._qutebrowser.webelem = (function() {
 
         var out = {
             "id": id,
-            "text": elem.text,
             "value": elem.value,
             "outer_xml": elem.outerHTML,
             "rects": [],  // Gets filled up later
@@ -71,6 +70,12 @@ window._qutebrowser.webelem = (function() {
             // e.g. SVG elements
             out.class_name = "";
         }
+
+        if (typeof elem.textContent === "string") {
+            out.text = elem.textContent;
+        } else if (typeof elem.text === "string") {
+            out.text = elem.text;
+        }  // else: don't add the text at all
 
         var attributes = {};
         for (var i = 0; i < elem.attributes.length; ++i) {
