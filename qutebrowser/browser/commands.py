@@ -1505,6 +1505,7 @@ class CommandDispatcher:
         if text is None:
             message.error("Could not get text from the focused element.")
             return
+        assert isinstance(text, str), text
 
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
