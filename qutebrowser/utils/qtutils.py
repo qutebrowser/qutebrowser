@@ -38,8 +38,8 @@ from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
 from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
-except ImportError:
-    pass
+except ImportError:  # pragma: no cover
+    qWebKitVersion = None
 
 from qutebrowser.utils import log
 
@@ -106,6 +106,7 @@ def version_check(version, exact=False, strict=False):
 
 def is_qtwebkit_ng():
     """Check if the given version is QtWebKit-NG."""
+    assert qWebKitVersion is not None
     return (pkg_resources.parse_version(qWebKitVersion()) >
             pkg_resources.parse_version('538.1'))
 
