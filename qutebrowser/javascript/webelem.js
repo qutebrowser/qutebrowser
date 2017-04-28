@@ -53,7 +53,6 @@ window._qutebrowser.webelem = (function() {
             "text": elem.text,
             "value": elem.value,
             "outer_xml": elem.outerHTML,
-            "class_name": elem.className,
             "rects": [],  // Gets filled up later
         };
 
@@ -64,6 +63,13 @@ window._qutebrowser.webelem = (function() {
             out.tag_name = elem.nodeName;
         } else {
             out.tag_name = "";
+        }
+
+        if (typeof elem.className === "string") {
+            out.class_name = elem.className;
+        } else {
+            // e.g. SVG elements
+            out.class_name = "";
         }
 
         var attributes = {};
