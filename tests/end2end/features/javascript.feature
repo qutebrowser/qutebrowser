@@ -80,17 +80,17 @@ Feature: Javascript stuff
     Scenario: Clicking on form element with tagName child
         When I open data/issue2569.html
         And I run :click-element id theform
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Sending fake click to *" in the log
         Then no crash should happen
 
     Scenario: Clicking on svg element
         When I open data/issue2569.html
         And I run :click-element id icon
-        And I wait for "Clicked non-editable element!" in the log
+        And I wait for "Sending fake click to *" in the log
         Then no crash should happen
 
     Scenario: Clicking on li element
         When I open data/issue2569.html
         And I run :click-element id listitem
-        And I wait for "Clicked non-editable element!" in the log
+        And I wait for "Sending fake click to *" in the log
         Then no crash should happen
