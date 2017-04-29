@@ -576,7 +576,7 @@ class QuteProc(testprocess.Process):
         """Save the session and get the parsed session data."""
         with tempfile.TemporaryDirectory() as tmpdir:
             session = os.path.join(tmpdir, 'session.yml')
-            self.send_cmd(':session-save "{}"'.format(session))
+            self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
             with open(session, encoding='utf-8') as f:
