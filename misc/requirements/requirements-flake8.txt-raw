@@ -2,7 +2,7 @@ flake8<3.0.0
 flake8-copyright
 flake8-debugger!=2.0.0
 flake8-deprecated
-flake8-docstrings
+flake8-docstrings<1.1.0
 flake8-future-import
 flake8-mock
 flake8-pep3101
@@ -22,6 +22,7 @@ mccabe==0.6.1
 # Waiting until flake8-putty updated
 #@ filter: flake8 < 3.0.0
 #@ filter: pydocstyle < 2.0.0
+#@ filter: flake8-docstrings < 1.1.0
 
 # https://github.com/JBKahn/flake8-debugger/issues/5
 #@ filter: flake8-debugger != 2.0.0
