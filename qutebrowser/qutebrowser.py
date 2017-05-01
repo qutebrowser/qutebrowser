@@ -23,7 +23,6 @@ import sys
 import json
 
 import qutebrowser
-from qutebrowser.utils import log
 try:
     from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
@@ -38,6 +37,7 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
+from qutebrowser.utils import log
 
 import argparse
 from qutebrowser.misc import earlyinit
@@ -130,7 +130,7 @@ def directory(arg):
         raise argparse.ArgumentTypeError("Invalid empty value")
 
 
-def logfilter_error(logfilter: str):
+def logfilter_error(logfilter):
     """Validate logger names passed to --logfilter.
 
     Args:

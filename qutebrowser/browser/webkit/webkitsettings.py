@@ -26,7 +26,7 @@ Module attributes:
 
 import os.path
 
-from PyQt5.QtWebKit import QWebSettings, qWebKitVersion
+from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import standarddir, objreg, urlutils, qtutils, message
@@ -90,7 +90,7 @@ def _set_user_stylesheet():
 
 def _init_private_browsing():
     if config.get('general', 'private-browsing'):
-        if qtutils.is_qtwebkit_ng(qWebKitVersion()):
+        if qtutils.is_qtwebkit_ng():
             message.warning("Private browsing is not fully implemented by "
                             "QtWebKit-NG!")
         QWebSettings.setIconDatabasePath('')

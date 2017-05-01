@@ -592,6 +592,30 @@ def data_url(mimetype, data):
     return url
 
 
+def safe_display_string(qurl):
+    """Get a IDN-homograph phishing safe form of the given QUrl.
+
+    If we're dealing with a Punycode-encoded URL, this prepends the hostname in
+    its encoded form, to make sure those URLs are distinguishable.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/2547
+    and https://bugreports.qt.io/browse/QTBUG-60365
+    """
+    if not qurl.isValid():
+        raise InvalidUrlError(qurl)
+
+    host = qurl.host(QUrl.FullyEncoded)
+    if '..' in host:
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
+        return '(unparseable URL!) {}'.format(qurl.toDisplayString())
+
+    for part in host.split('.'):
+        if part.startswith('xn--') and host != qurl.host(QUrl.FullyDecoded):
+            return '({}) {}'.format(host, qurl.toDisplayString())
+
+    return qurl.toDisplayString()
+
+
 class InvalidProxyTypeError(Exception):
 
     """Error raised when proxy_from_url gets an unknown proxy type."""

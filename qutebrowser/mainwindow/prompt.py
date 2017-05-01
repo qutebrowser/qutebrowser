@@ -475,6 +475,7 @@ class _BasePrompt(QWidget):
         if question.text is not None:
             # Not doing any HTML escaping here as the text can be formatted
             text_label = QLabel(question.text)
+            text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
             self._vbox.addWidget(text_label)
 
     def _init_key_label(self):

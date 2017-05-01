@@ -22,9 +22,11 @@
 import collections
 import functools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize, QRect, QTimer, QUrl
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
+                          QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle, QStylePainter, QStyleOptionTab)
+                             QStyle, QStylePainter, QStyleOptionTab,
+                             QStyleFactory)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -51,7 +53,7 @@ class TabWidget(QTabWidget):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         bar = TabBar(win_id)
-        self.setStyle(TabBarStyle(self.style()))
+        self.setStyle(TabBarStyle())
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
@@ -269,10 +271,11 @@ class TabBar(QTabBar):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.setStyle(TabBarStyle(self.style()))
+        self.setStyle(TabBarStyle())
         self.set_font()
         config_obj = objreg.get('config')
         config_obj.changed.connect(self.set_font)
+        config_obj.changed.connect(self.set_icon_size)
         self.vertical = False
         self._page_fullscreen = False
         self._auto_hide_timer = QTimer()
@@ -374,7 +377,13 @@ class TabBar(QTabBar):
     def set_font(self):
         """Set the tab bar font."""
         self.setFont(config.get('fonts', 'tabbar'))
+        self.set_icon_size()
+
+    @config.change_filter('tabs', 'favicon-scale')
+    def set_icon_size(self):
+        """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
+        size *= config.get('tabs', 'favicon-scale')
         self.setIconSize(QSize(size, size))
 
     @config.change_filter('colors', 'tabs.bg.bar')
@@ -395,11 +404,12 @@ class TabBar(QTabBar):
         button = config.get('tabs', 'close-mouse-button')
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
+            e.accept()
             idx = self.tabAt(e.pos())
-            if idx != -1:
-                e.accept()
-                self.tabCloseRequested.emit(idx)
-                return
+            if idx == -1:
+                idx = self.currentIndex()
+            self.tabCloseRequested.emit(idx)
+            return
         super().mousePressEvent(e)
 
     def minimumTabSizeHint(self, index):
@@ -553,20 +563,14 @@ class TabBarStyle(QCommonStyle):
 
     http://stackoverflow.com/a/17294081
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
-
-    Attributes:
-        _style: The base/"parent" style.
     """
 
-    def __init__(self, style):
+    def __init__(self):
         """Initialize all functions we're not overriding.
 
         This simply calls the corresponding function in self._style.
-
-        Args:
-            style: The base/"parent" style.
         """
-        self._style = style
+        self._style = QStyleFactory.create('Fusion')
         for method in ['drawComplexControl', 'drawItemPixmap',
                        'generatedIconPixmap', 'hitTestComplexControl',
                        'itemPixmapRect', 'itemTextRect', 'polish', 'styleHint',
@@ -775,7 +779,7 @@ class TabBarStyle(QCommonStyle):
             tab_icon_size = QSize(
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
-        icon_rect = QRect(text_rect.left(), text_rect.top() + 1,
-                          tab_icon_size.width(), tab_icon_size.height())
+        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() / 2
+        icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         return icon_rect

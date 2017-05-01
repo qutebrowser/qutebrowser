@@ -42,6 +42,12 @@ be easy to solve]
 * https://github.com/qutebrowser/qutebrowser/labels/not%20code[Issues which
 require little/no coding]
 
+If you prefer C++ or Javascript to Python, see the relevant issues which involve
+work in those languages:
+
+* https://github.com/qutebrowser/qutebrowser/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Ac%2B%2B[C++] (mostly work on Qt, the library behind qutebrowser)
+* https://github.com/qutebrowser/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Ajavascript[JavaScript]
+
 There are also some things to do if you don't want to write code:
 
 * Help the community, e.g., on the mailinglist and the IRC channel.

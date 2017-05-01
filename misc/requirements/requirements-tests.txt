@@ -9,7 +9,7 @@ EasyProcess==0.2.3
 Flask==0.12.1
 glob2==0.5
 httpbin==0.5.0
-hypothesis==3.7.0
+hypothesis==3.8.2
 itsdangerous==0.24
 # Jinja2==2.9.5
 Mako==1.0.6
@@ -32,5 +32,5 @@ pytest-travis-fold==1.2.0
 pytest-warnings==0.2.0
 pytest-xvfb==1.0.0
 PyVirtualDisplay==0.2.1
-vulture==0.13
+vulture==0.14
 Werkzeug==0.12.1

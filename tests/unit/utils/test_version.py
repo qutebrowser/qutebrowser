@@ -725,13 +725,13 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         patches['objects.backend'] = usertypes.Backend.QtWebKit
         patches['QWebEngineProfile'] = None
         if with_webkit == 'ng':
-            patches['qtutils.is_qtwebkit_ng'] = lambda v: True
+            patches['qtutils.is_qtwebkit_ng'] = lambda: True
             substitutions['backend'] = 'QtWebKit-NG (WebKit WEBKIT VERSION)'
         else:
-            patches['qtutils.is_qtwebkit_ng'] = lambda v: False
+            patches['qtutils.is_qtwebkit_ng'] = lambda: False
             substitutions['backend'] = 'QtWebKit (WebKit WEBKIT VERSION)'
     else:
-        patches['qWebKitVersion'] = None
+        monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
         patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'

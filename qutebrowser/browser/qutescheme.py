@@ -276,15 +276,10 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time))
     else:
-        try:
-            from PyQt5.QtWebKit import qWebKitVersion
-            is_webkit_ng = qtutils.is_qtwebkit_ng(qWebKitVersion())
-        except ImportError:  # pragma: no cover
-            is_webkit_ng = False
-
         if (
             config.get('content', 'allow-javascript') and
-            (objects.backend == usertypes.Backend.QtWebEngine or is_webkit_ng)
+            (objects.backend == usertypes.Backend.QtWebEngine or
+             qtutils.is_qtwebkit_ng())
         ):
             return 'text/html', jinja.render(
                 'history.html',
@@ -311,7 +306,8 @@ def qute_history(url):
             start_time = time.mktime(next_date.timetuple()) - 1
             history = [
                 (i["url"], i["title"],
-                 datetime.datetime.fromtimestamp(i["time"]/1000))
+                 datetime.datetime.fromtimestamp(i["time"]/1000),
+                 QUrl(i["url"]).host())
                 for i in history_data(start_time) if "next" not in i
             ]
 
