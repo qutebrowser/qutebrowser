@@ -1,9 +1,7 @@
-status:
-  project:
-    enabled: no
-  patch:
-    enabled: no
-  changes:
-    enabled: no
+coverage:
+  status:
+    project: off
+    patch: off
+    changes: off
 
 comment: off
