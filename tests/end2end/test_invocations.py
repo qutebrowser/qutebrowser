@@ -162,23 +162,24 @@ def test_optimize(request, quteproc_new, capfd, level):
     quteproc_new.wait_for_quit()
 
 
+@pytest.mark.not_frozen
 def test_version(request):
     """Test invocation with --version argument."""
-    args = ['--version'] + _base_args(request.config)
+    args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)
     # can't use quteproc_new here because it's confused by
     # early process termination
-    proc = quteprocess.QuteProc(request)
-    proc.proc.setProcessChannelMode(QProcess.SeparateChannels)
+    proc = QProcess()
+    proc.setProcessChannelMode(QProcess.SeparateChannels)
 
-    try:
-        proc.start(args)
-        proc.wait_for_quit()
-    except testprocess.ProcessExited:
-        assert proc.proc.exitStatus() == QProcess.NormalExit
-    else:
-        pytest.fail("Process did not exit!")
+    proc.start(sys.executable, args)
+    ok = proc.waitForStarted(2000)
+    assert ok
+    ok = proc.waitForFinished(2000)
+    assert ok
+    assert proc.exitStatus() == QProcess.NormalExit
 
-    output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
+    output = bytes(proc.readAllStandardOutput()).decode('utf-8')
+    print(output)
 
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
 
