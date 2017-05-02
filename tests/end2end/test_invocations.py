@@ -29,7 +29,6 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from end2end.fixtures import quteprocess, testprocess
 from qutebrowser.utils import qtutils
 
 
