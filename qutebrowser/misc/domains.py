@@ -95,8 +95,7 @@ class DomainManager(QObject):
 
     @cmdutils.register(name=['domain'],
                        instance='domain-manager')
-    @cmdutils.argument('win_id', win_id=True)
-    def set(self, option, value=None, page=False, remove=False, win_id=None):
+    def set(self, option, value=None, page=False, remove=False):
         """Set an option for the current domain or page.
 
         Args:
@@ -106,8 +105,14 @@ class DomainManager(QObject):
             page: set for domain (False) or just this url (True)
             remove: unset for this domain/url
         """
-        full_url = objreg.get('tabbed-browser', scope='window',
+        try:
+            full_url = objreg.get('tabbed-browser', scope='window',
                               window='current').current_url()
+        except qtutils.QtValueError:
+            log.domains.error("Current tab has invalid URL")
+            message.error(msg)
+            return
+
         if not page:
             part = full_url.host()
         else:
@@ -144,20 +149,14 @@ class DomainManager(QObject):
             if old_policy == None:
                 old_policy = "<unset>"
             msg = "{} = {} for {}".format(option, old_policy, part)
-            if win_id is None:
-                log.domains.info(msg)
-            else:
-                message.info(win_id, msg, immediately=True)
+            message.info(msg)
             return
 
         if remove:
             if option in domain_settings:
                 del domain_settings[option]
                 msg = "set {} = {} for {}".format(option, "<unset>", part)
-                if win_id is None:
-                    log.domains.info(msg)
-                else:
-                    message.info(win_id, msg, immediately=True)
+                message.info(msg)
             if not domain_settings:
                 if part in self.data:
                     del self.data[part]
@@ -169,10 +168,7 @@ class DomainManager(QObject):
             domain_settings[option] = value
             self.data[part] = domain_settings
             msg = "set {} = {} for {}".format(option, value, part)
-            if win_id is None:
-                log.domains.info(msg)
-            else:
-                message.info(win_id, msg, immediately=True)
+            message.info(msg)
 
         self.domain_settings_changed.emit(part)
 

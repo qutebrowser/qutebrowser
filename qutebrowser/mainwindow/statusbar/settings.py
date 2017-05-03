@@ -20,8 +20,8 @@
 """Tab settings displayed in the statusbar."""
 
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView
+from qutebrowser.config import websettings
+from qutebrowser.browser.browsertab import AbstractTab
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import objreg
@@ -55,7 +55,7 @@ class TabSettings(textbase.TextBase):
                 falsy.
         """
         text = ''
-        if not tab or not isinstance(tab, QWebView):
+        if not tab or not isinstance(tab, AbstractTab):
             try:
                 tab = objreg.get('tabbed-browser', scope='window',
                                  window='current')._now_focused
@@ -64,7 +64,9 @@ class TabSettings(textbase.TextBase):
             if not tab:
                 self.setText('[]')
                 return
-        if tab._widget.settings().testAttribute(QWebSettings.JavascriptEnabled):
+        js_attribute = websettings.get_attribute("content", "allow-javascript")
+        if js_attribute and tab._widget.settings().testAttribute(
+                                            js_attribute._attribute):
             text = text + 'S'
         if objreg.get('cookie-jar').setCookiesFromUrl(None, tab.url(), test=True):
             text = text + 'C'
