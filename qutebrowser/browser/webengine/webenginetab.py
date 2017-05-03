@@ -378,16 +378,16 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.canGoForward()
 
     def serialize(self):
-        # WORKAROUND (remove this when we bump the requirements to 5.9)
-        # https://bugreports.qt.io/browse/QTBUG-59599
-        if self._history.count() == 0:
-            raise browsertab.WebTabError("Can't serialize page without "
-                                         "history!")
-        # WORKAROUND (FIXME: remove this when we bump the requirements to 5.9?)
-        # https://github.com/qutebrowser/qutebrowser/issues/2289
-        scheme = self._history.currentItem().url().scheme()
-        if scheme in ['view-source', 'chrome']:
-            raise browsertab.WebTabError("Can't serialize special URL!")
+        if not qtutils.version_check('5.9'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-59599
+            if self._history.count() == 0:
+                raise browsertab.WebTabError("Can't serialize page without "
+                                            "history!")
+            # WORKAROUND for
+            # https://github.com/qutebrowser/qutebrowser/issues/2289
+            scheme = self._history.currentItem().url().scheme()
+            if scheme in ['view-source', 'chrome']:
+                raise browsertab.WebTabError("Can't serialize special URL!")
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
