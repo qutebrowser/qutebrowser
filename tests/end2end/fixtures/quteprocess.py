@@ -314,7 +314,7 @@ class QuteProc(testprocess.Process):
         URLs like about:... and qute:... are handled specially and returned
         verbatim.
         """
-        special_schemes = ['about:', 'qute:', 'chrome:']
+        special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:']
         if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:

@@ -68,6 +68,7 @@ Fixed
 - Crash when unbinding an unbound key in the key config
 - Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Crash with some invalid setting values
+- Crash when cloning a view-source tab with QtWebEngine
 - Various rare crashes
 - Various styling issues with the tabbar and a crash with qt5ct
 
