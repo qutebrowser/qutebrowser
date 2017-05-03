@@ -57,8 +57,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             info: QWebEngineUrlRequestInfo &info
         """
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        if (bytes(info.requestMethod()) == b'GET' and
-                self._host_blocker.is_blocked(info.requestUrl())):
+        if self._host_blocker.is_blocked(info.requestUrl()):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 info.requestUrl().host()))
             info.block(True)
