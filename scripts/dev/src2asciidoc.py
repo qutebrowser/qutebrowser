@@ -437,6 +437,7 @@ def _get_authors():
         'Claire C.C': 'Claire Cavanaugh',
         'Rahid': 'Maciej Wołczyk',
         'Fritz V155 Reichwald': 'Fritz Reichwald',
+        'Spreadyy': 'sandrosc',
     }
     ignored = ['pyup-bot']
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])
