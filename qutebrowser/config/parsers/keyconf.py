@@ -115,7 +115,7 @@ class KeyConfigParser(QObject):
             for cmd, keys in data.items():
                 lines.append(cmd)
                 for k in keys:
-                    lines.append(' ' * 4 + k)
+                    lines.append(' ' * 4 + k.replace(" ", "<space>"))
                 lines.append('')
         return '\n'.join(lines) + '\n'
 
@@ -167,7 +167,7 @@ class KeyConfigParser(QObject):
         """
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            key = key.lower()
+            key = key.lower().replace('<space>', ' ')
 
         if command is None:
             cmd = self.get_bindings_for(mode).get(key, None)
@@ -209,7 +209,7 @@ class KeyConfigParser(QObject):
         """
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            key = key.lower()
+            key = key.lower().replace('<space>', ' ')
 
         mode = self._normalize_sectname(mode)
         for m in mode.split(','):
@@ -395,7 +395,7 @@ class KeyConfigParser(QObject):
                                  "command!".format(line))
         else:
             assert self._cur_section is not None
-            self._add_binding(self._cur_section, line, self._cur_command)
+            self._add_binding(self._cur_section, line.replace("<space>", " "), self._cur_command)
 
     def _add_binding(self, sectname, keychain, command, *, force=False):
         """Add a new binding from keychain to command in section sectname."""
