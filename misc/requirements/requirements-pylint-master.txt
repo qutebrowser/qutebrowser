@@ -4,7 +4,7 @@
 editdistance==0.3.1
 github3.py==0.9.6
 isort==4.2.5
-lazy-object-proxy==1.2.2
+lazy-object-proxy==1.3.0
 mccabe==0.6.1
 -e git+https://github.com/PyCQA/pylint.git#egg=pylint
 ./scripts/dev/pylint_checkers
