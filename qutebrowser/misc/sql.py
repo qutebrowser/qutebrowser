@@ -146,9 +146,10 @@ class SqlTable(QObject):
             field: Field to match.
             value: Value to check for the given field.
         """
-        query = run_query("SELECT * FROM {} where {} = ? LIMIT 1"
+        query = run_query("Select EXISTS(SELECT * FROM {} where {} = ?)"
                           .format(self._name, field), [value])
-        return query.next()
+        query.next()
+        return query.value(0)
 
     def __len__(self):
         """Return the count of rows in the table."""
