@@ -44,14 +44,14 @@ Feature: Page history
     Scenario: History with an error
         When I run :open file:///does/not/exist
         And I wait for "Error while loading file:///does/not/exist: Error opening /does/not/exist: *" in the log
-        And I open qute://history
+        And I open qute://history/data
         Then the page should contain the plaintext "Error loading page: file:///does/not/exist"
 
     @qtwebengine_todo: Error page message is not implemented
     Scenario: History with a 404
         When I open status/404 without waiting
         And I wait for "Error while loading http://localhost:*/status/404: NOT FOUND" in the log
-        And I open qute://history
+        And I open qute://history/data
         Then the page should contain the plaintext "Error loading page: http://localhost:"
         And the page should contain the plaintext "/status/404"
 

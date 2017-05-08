@@ -186,15 +186,22 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
-def history_data(start_time):
+def history_data(start_time, offset=None):
     """Return history data.
 
     Arguments:
-        start_time -- select history starting from this timestamp.
+        start_time: select history starting from this timestamp.
+        offset: number of items to skip
     """
-    # end is 24hrs earlier than start
-    end_time = start_time - 24*60*60
-    entries = objreg.get('web-history').entries_between(end_time, start_time)
+    hist = objreg.get('web-history')
+    if offset is not None:
+        # end is 24hrs earlier than start
+        entries = hist.entries_before(start_time, limit=1000, offset=offset)
+    else:
+        # end is 24hrs earlier than start
+        end_time = start_time - 24*60*60
+        entries = hist.entries_between(end_time, start_time)
+
     return [{"url": e.url, "title": e.title or e.url, "time": e.atime * 1000}
             for e in entries]
 
@@ -203,6 +210,11 @@ def history_data(start_time):
 def qute_history(url):
     """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
+        try:
+            offset = QUrlQuery(url).queryItemValue("offset")
+            offset = int(offset) if offset else None
+        except ValueError as e:
+            raise QuteSchemeError("Query parameter start_time is invalid", e)
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
@@ -210,7 +222,7 @@ def qute_history(url):
         except ValueError as e:
             raise QuteSchemeError("Query parameter start_time is invalid", e)
 
-        return 'text/html', json.dumps(history_data(start_time))
+        return 'text/html', json.dumps(history_data(start_time, offset))
     else:
         if (
             config.get('content', 'allow-javascript') and
@@ -244,7 +256,7 @@ def qute_history(url):
                 (i["url"], i["title"],
                  datetime.datetime.fromtimestamp(i["time"]/1000),
                  QUrl(i["url"]).host())
-                for i in history_data(start_time) if "next" not in i
+                for i in history_data(start_time)
             ]
 
             return 'text/html', jinja.render(

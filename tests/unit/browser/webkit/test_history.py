@@ -80,6 +80,33 @@ def test_get_recent(hist):
     ]
 
 
+def test_entries_between(hist):
+    hist.add_url(QUrl('http://www.example.com/1'), atime=12345)
+    hist.add_url(QUrl('http://www.example.com/2'), atime=12346)
+    hist.add_url(QUrl('http://www.example.com/3'), atime=12347)
+    hist.add_url(QUrl('http://www.example.com/4'), atime=12348)
+    hist.add_url(QUrl('http://www.example.com/5'), atime=12348)
+    hist.add_url(QUrl('http://www.example.com/6'), atime=12349)
+    hist.add_url(QUrl('http://www.example.com/7'), atime=12350)
+
+    times = [x.atime for x in hist.entries_between(12346, 12349)]
+    assert times == [12349, 12348, 12348, 12347]
+
+
+def test_entries_before(hist):
+    hist.add_url(QUrl('http://www.example.com/1'), atime=12346)
+    hist.add_url(QUrl('http://www.example.com/2'), atime=12346)
+    hist.add_url(QUrl('http://www.example.com/3'), atime=12347)
+    hist.add_url(QUrl('http://www.example.com/4'), atime=12348)
+    hist.add_url(QUrl('http://www.example.com/5'), atime=12348)
+    hist.add_url(QUrl('http://www.example.com/6'), atime=12348)
+    hist.add_url(QUrl('http://www.example.com/7'), atime=12349)
+    hist.add_url(QUrl('http://www.example.com/8'), atime=12349)
+
+    times = [x.atime for x in hist.entries_before(12348, limit=3, offset=2)]
+    assert times == [12348, 12347, 12346]
+
+
 def test_save(tmpdir, hist):
     hist.add_url(QUrl('http://example.com/'), atime=12345)
     hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)

@@ -111,6 +111,25 @@ class WebHistory(sql.SqlTable):
             rec = result.record()
             yield self.Entry(*[rec.value(i) for i in range(rec.count())])
 
+    def entries_before(self, latest, limit, offset):
+        """Iterate non-redirect, non-qute entries occuring before a timestamp.
+
+        Args:
+            latest: Omit timestamps more recent than this.
+            limit: Max number of entries to include.
+            offset: Number of entries to skip.
+        """
+        result = sql.run_query('SELECT * FROM History '
+                               'where not redirect '
+                               'and not url like "qute://%" '
+                               'and atime <= {} '
+                               'ORDER BY atime desc '
+                               'limit {} offset {}'
+                               .format(latest, limit, offset))
+        while result.next():
+            rec = result.record()
+            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
+
     @cmdutils.register(name='history-clear', instance='web-history')
     def clear(self, force=False):
         """Clear all browsing history.
