@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
 
@@ -741,6 +741,10 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def clear_ssl_errors(self):
+        raise NotImplementedError
+
+    def key_press(self, key, modifier=Qt.NoModifier):
+        """Send a fake key event to this tab."""
         raise NotImplementedError
 
     def dump_async(self, callback, *, plain=False):

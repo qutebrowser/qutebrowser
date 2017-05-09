@@ -696,7 +696,6 @@ class WebKitTab(browsertab.AbstractTab):
         self.networkaccessmanager().clear_all_ssl_errors()
 
     def key_press(self, key, modifier=Qt.NoModifier):
-        """Send a fake key event to this WebKitTab."""
         press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
                                 0, 0, 0)
