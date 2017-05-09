@@ -151,61 +151,6 @@ class WebView(QWebView):
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
 
-    def apply_local_js_policy(self, url):
-        # Apply per-domain javascript policy. Doing this in view rather
-        # than tabbed-browser or on the title changed signal so we can
-        # apply it to background tabs too.
-
-        # dwb does match(host)||match(uri)||match(scheme)
-        # QUrl has host(), path(), scheme(), matches(url),
-        # isLocalFile()
-        if url.scheme() == 'qute' or url.scheme() == 'file':
-            log.webview.debug("js policy scheme match for url {}".format(url))
-            self.settings().setAttribute(QWebSettings.JavascriptEnabled, True)
-            return
-        domains = objreg.get('domain-manager')
-        js_policy = domains.get_setting(url.host()+url.path(),
-                                              'javascript')
-        if js_policy is not None:
-            log.webview.debug("js policy path match for url {}".format(url))
-            self.settings().setAttribute(QWebSettings.JavascriptEnabled,
-                                     js_policy)
-            return
-        js_policy = domains.get_setting(url.host(),
-                                              'javascript')
-        if js_policy is not None:
-            # TODO: What do for subdomains? Loop through
-            # domains.data looking for matches or w.x.y.z, x.y.z
-            # etc?
-            log.webview.debug("js policy host match for url {}".format(url))
-            self.settings().setAttribute(QWebSettings.JavascriptEnabled,
-                                     js_policy)
-            return
-
-        log.webview.debug("No js policy match for url {} {} {}".format(
-                                                 url.scheme(),
-                                                 url.host(), url.path()))
-        default_policy = QWebSettings.globalSettings().testAttribute(
-                QWebSettings.JavascriptEnabled)
-
-        self.settings().setAttribute(QWebSettings.JavascriptEnabled,
-                        default_policy)
-
-    def apply_local_zoom_policy(self, url):
-        domains = objreg.get('domain-manager')
-        zoom_policy = domains.get_setting(url.host()+url.path(),
-                                          'zoom', None)
-        if not zoom_policy:
-            zoom_policy = domains.get_setting(url.host(),
-                                          'zoom', None)
-        if zoom_policy:
-            try:
-                zoom_policy = int(zoom_policy)
-            except ValueError:
-                log.webview.error("Invalid zoom value for {}".format(url))
-                return
-            self.tab.zoom.set_factor(float(zoom_policy) / 100)
-
     @pyqtSlot()
     def on_load_finished(self):
         """Handle a finished page load.
