@@ -224,3 +224,17 @@ Feature: Searching on a page
         And I run :follow-selected -t
         Then the following tabs should be open:
             - data/search.html (active)
+
+    Scenario: Follow a manually selected link
+        When I run :jseval --file (testdata)/search_select.js
+        And I run :follow-selected
+        Then data/hello.txt should be loaded
+
+    Scenario: Follow a manually selected link in a new tab
+        When I run :window-only
+        And I run :jseval --file (testdata)/search_select.js
+        And I run :follow-selected -t
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/search.html
+            - data/hello.txt (active)
