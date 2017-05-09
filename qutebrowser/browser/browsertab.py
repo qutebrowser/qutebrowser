@@ -196,6 +196,10 @@ class AbstractSearch(QObject):
         """
         raise NotImplementedError
 
+    def searching(self):
+        """Return True if we are currently searching or not."""
+        raise NotImplementedError
+
 
 class AbstractZoom(QObject):
 

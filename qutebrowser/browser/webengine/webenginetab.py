@@ -127,9 +127,12 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
+        self._searching = False
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
+        self._searching = True
+
         def wrapped_callback(found):
             """Wrap the callback to do debug logging."""
             found_text = 'found' if found else "didn't find"
@@ -160,7 +163,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._find(text, flags, result_cb, 'search')
 
     def clear(self):
+        self._searching = False
         self._widget.findText('')
+
+    def searching(self):
+        return self._searching
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
@@ -246,8 +253,47 @@ class WebEngineCaret(browsertab.AbstractCaret):
             raise browsertab.UnsupportedOperationError
         return self._widget.selectedText()
 
+    def _follow_selected_cb(self, js_elem, tab=False):
+        """Callback for javascript which clicks the selected element.
+
+         Args:
+             js_elems: The elements serialized from javascript.
+             tab: Open in a new tab or not.
+         """
+        if js_elem is None:
+            return
+        assert isinstance(js_elem, dict), js_elem
+        elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
+        if tab:
+            click_type = usertypes.ClickTarget.tab
+        else:
+            click_type = usertypes.ClickTarget.normal
+
+        # Only click if we see a link
+        if elem.is_link():
+            log.webview.debug("Found link in selection, clicking. Tab: " +
+                              str(click_type) + "Link: " + str(elem))
+            elem.click(click_type)
+
     def follow_selected(self, *, tab=False):
-        log.stub()
+        if self._tab.search.searching():
+            # We are currently in search mode.
+            # let's click the link via a fake-click
+            # https://bugreports.qt.io/browse/QTBUG-60673
+            self._tab.search.clear()
+
+            log.webview.debug("Clicking a searched link via fake key press.")
+            # send a fake enter, clicking the orange selection box
+            if not tab:
+                self._tab.scroller._key_press(Qt.Key_Enter)
+            else:
+                self._tab.scroller._key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+
+        else:
+            # click an existing blue selection
+            js_code = javascript.assemble('webelem', 'find_selected_link')
+            self._tab.run_js_async(js_code, lambda jsret:
+                                   self._follow_selected_cb(jsret, tab))
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -265,10 +311,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         page = widget.page()
         page.scrollPositionChanged.connect(self._update_pos)
 
-    def _key_press(self, key, count=1):
+    def _key_press(self, key, count=1, modifier=Qt.NoModifier):
         for _ in range(min(count, 5000)):
-            press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
+            press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+            release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
                                     0, 0, 0)
             self._tab.send_event(press_evt)
             self._tab.send_event(release_evt)

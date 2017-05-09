@@ -103,6 +103,7 @@ class WebKitSearch(browsertab.AbstractSearch):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebPage.FindFlags(0)
+        self._searching = True
 
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
@@ -132,12 +133,14 @@ class WebKitSearch(browsertab.AbstractSearch):
             QTimer.singleShot(0, functools.partial(callback, found))
 
     def clear(self):
+        self._searching = False
         # We first clear the marked text, then the highlights
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
+        self._searching = True
         flags = QWebPage.FindWrapsAroundDocument
         if ignore_case == 'smart':
             if not text.islower():
@@ -155,10 +158,12 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._call_cb(result_cb, found, text, flags, 'search')
 
     def next_result(self, *, result_cb=None):
+        self._searching = True
         found = self._widget.findText(self.text, self._flags)
         self._call_cb(result_cb, found, self.text, self._flags, 'next_result')
 
     def prev_result(self, *, result_cb=None):
+        self._searching = True
         # The int() here makes sure we get a copy of the flags.
         flags = QWebPage.FindFlags(int(self._flags))
         if flags & QWebPage.FindBackward:
@@ -167,6 +172,9 @@ class WebKitSearch(browsertab.AbstractSearch):
             flags |= QWebPage.FindBackward
         found = self._widget.findText(self.text, flags)
         self._call_cb(result_cb, found, self.text, flags, 'prev_result')
+
+    def searching(self):
+        return self._searching
 
 
 class WebKitCaret(browsertab.AbstractCaret):
