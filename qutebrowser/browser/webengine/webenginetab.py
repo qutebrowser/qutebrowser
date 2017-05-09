@@ -127,11 +127,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
-        self._searching = False
+        self.search_displayed = False
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
-        self._searching = True
+        self.search_displayed = True
 
         def wrapped_callback(found):
             """Wrap the callback to do debug logging."""
@@ -163,11 +163,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._find(text, flags, result_cb, 'search')
 
     def clear(self):
-        self._searching = False
+        self.search_displayed = False
         self._widget.findText('')
-
-    def searching(self):
-        return self._searching
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
@@ -256,10 +253,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.
 
-         Args:
-             js_elems: The elements serialized from javascript.
-             tab: Open in a new tab or not.
-         """
+        Args:
+            js_elems: The elements serialized from javascript.
+            tab: Open in a new tab or not.
+        """
         if js_elem is None:
             return
         assert isinstance(js_elem, dict), js_elem
@@ -276,7 +273,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
             elem.click(click_type)
 
     def follow_selected(self, *, tab=False):
-        if self._tab.search.searching():
+        if self._tab.search.search_displayed:
             # We are currently in search mode.
             # let's click the link via a fake-click
             # https://bugreports.qt.io/browse/QTBUG-60673

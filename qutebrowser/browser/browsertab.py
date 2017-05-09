@@ -163,6 +163,8 @@ class AbstractSearch(QObject):
         super().__init__(parent)
         self._widget = None
         self.text = None
+        # Implementing classes will set this.
+        self.search_displayed = False
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
@@ -194,10 +196,6 @@ class AbstractSearch(QObject):
         Args:
             result_cb: Called with a bool indicating whether a match was found.
         """
-        raise NotImplementedError
-
-    def searching(self):
-        """Return True if we are currently searching or not."""
         raise NotImplementedError
 
 
