@@ -468,15 +468,11 @@ class WebKitScroller(browsertab.AbstractScroller):
         # self._widget.setFocus()
 
         for _ in range(min(count, 5000)):
-            press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
-                                    0, 0, 0)
             # Abort scrolling if the minimum/maximum was reached.
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):
                 return
-            self._widget.keyPressEvent(press_evt)
-            self._widget.keyReleaseEvent(release_evt)
+            self._tab.key_press(key)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
@@ -701,6 +697,13 @@ class WebKitTab(browsertab.AbstractTab):
 
     def clear_ssl_errors(self):
         self.networkaccessmanager().clear_all_ssl_errors()
+
+    def key_press(self, key, modifier=Qt.NoModifier):
+        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+                                0, 0, 0)
+        self.send_event(press_evt)
+        self.send_event(release_evt)
 
     @pyqtSlot()
     def _on_history_trigger(self):

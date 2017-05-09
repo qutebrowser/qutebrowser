@@ -311,6 +311,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         page = widget.page()
         page.scrollPositionChanged.connect(self._update_pos)
 
+    def _repeated_key_press(self, key, count=1, modifier=Qt.NoModifier):
+        for _ in range(min(count, 5000)):
+            self._tab.key_press(key, modifier)
+
     @pyqtSlot()
     def _update_pos(self):
         """Update the scroll position attributes when it changed."""
@@ -366,16 +370,16 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
-        self._tab.key_press(Qt.Key_Up, count)
+        self._repeated_key_press(Qt.Key_Up, count)
 
     def down(self, count=1):
-        self._tab.key_press(Qt.Key_Down, count)
+        self._repeated_key_press(Qt.Key_Down, count)
 
     def left(self, count=1):
-        self._tab.key_press(Qt.Key_Left, count)
+        self._repeated_key_press(Qt.Key_Left, count)
 
     def right(self, count=1):
-        self._tab.key_press(Qt.Key_Right, count)
+        self._repeated_key_press(Qt.Key_Right, count)
 
     def top(self):
         self._tab.key_press(Qt.Key_Home)
@@ -384,10 +388,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.key_press(Qt.Key_End)
 
     def page_up(self, count=1):
-        self._tab.key_press(Qt.Key_PageUp, count)
+        self._repeated_key_press(Qt.Key_PageUp, count)
 
     def page_down(self, count=1):
-        self._tab.key_press(Qt.Key_PageDown, count)
+        self._repeated_key_press(Qt.Key_PageDown, count)
 
     def at_top(self):
         return self.pos_px().y() == 0
@@ -647,13 +651,12 @@ class WebEngineTab(browsertab.AbstractTab):
     def clear_ssl_errors(self):
         raise browsertab.UnsupportedOperationError
 
-    def key_press(self, key, count=1, modifier=Qt.NoModifier):
-        for _ in range(min(count, 5000)):
-            press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
-                                    0, 0, 0)
-            self.send_event(press_evt)
-            self.send_event(release_evt)
+    def key_press(self, key, modifier=Qt.NoModifier):
+        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+                                0, 0, 0)
+        self.send_event(press_evt)
+        self.send_event(release_evt)
 
     @pyqtSlot()
     def _on_history_trigger(self):
