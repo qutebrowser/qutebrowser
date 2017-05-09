@@ -279,12 +279,15 @@ def update_mappings(mappings, section, option):
 
 def init(args):
     """Initialize all QWeb(Engine)Settings."""
+    global GLOBAL_SETTINGS
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init(args)
+        GLOBAL_SETTINGS = webenginesettings.Attribute.GLOBAL_SETTINGS
     else:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init(args)
+        GLOBAL_SETTINGS = webkitsettings.Attribute.GLOBAL_SETTINGS
 
 
 def shutdown():
