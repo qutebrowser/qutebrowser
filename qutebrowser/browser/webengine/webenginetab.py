@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# FIXME:qtwebengine remove this once the stubs are gone
-# pylint: disable=unused-argument
-
 """Wrapper over a QWebEngineView."""
 
 import functools
@@ -281,10 +278,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
             log.webview.debug("Clicking a searched link via fake key press.")
             # send a fake enter, clicking the orange selection box
-            if not tab:
-                self._tab.key_press(Qt.Key_Enter)
-            else:
+            if tab:
                 self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            else:
+                self._tab.key_press(Qt.Key_Enter)
 
         else:
             # click an existing blue selection
