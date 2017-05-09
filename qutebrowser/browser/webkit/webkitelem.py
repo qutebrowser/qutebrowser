@@ -285,8 +285,7 @@ class WebKitElement(webelem.AbstractWebElement):
         for _ in range(5):
             if elem is None:
                 break
-            tag = elem.tag_name()
-            if tag == 'a' or tag == 'area':
+            if elem.is_link():
                 if elem.get('target', None) == '_blank':
                     elem['target'] = '_top'
                 break

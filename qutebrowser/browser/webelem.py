@@ -306,6 +306,11 @@ class AbstractWebElement(collections.abc.MutableMapping):
         qtutils.ensure_valid(url)
         return url
 
+    def is_link(self):
+        """Return True if this AbstractWebElement is a link."""
+        href_tags = ['a', 'area', 'link']
+        return self.tag_name() in href_tags
+
     def _mouse_pos(self):
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
@@ -403,9 +408,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
             self._click_fake_event(click_target)
             return
 
-        href_tags = ['a', 'area', 'link']
         if click_target == usertypes.ClickTarget.normal:
-            if self.tag_name() in href_tags:
+            if self.is_link():
                 log.webelem.debug("Clicking via JS click()")
                 self._click_js(click_target)
             elif self.is_editable(strict=True):
@@ -418,7 +422,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         elif click_target in [usertypes.ClickTarget.tab,
                               usertypes.ClickTarget.tab_bg,
                               usertypes.ClickTarget.window]:
-            if self.tag_name() in href_tags:
+            if self.is_link():
                 self._click_href(click_target)
             else:
                 self._click_fake_event(click_target)
