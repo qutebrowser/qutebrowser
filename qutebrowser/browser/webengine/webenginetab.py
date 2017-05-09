@@ -265,8 +265,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
         # Only click if we see a link
         if elem.is_link():
-            log.webview.debug("Found link in selection, clicking. Tab: " +
-                              str(click_type) + "Link: " + str(elem))
+            log.webview.debug("Found link in selection, clicking. ClickTarget "
+                              "{}, elem {}".format(click_type, elem))
             elem.click(click_type)
 
     def follow_selected(self, *, tab=False):
