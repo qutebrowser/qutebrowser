@@ -124,7 +124,6 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
-        self.search_displayed = False
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
