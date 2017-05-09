@@ -155,6 +155,8 @@ class AbstractSearch(QObject):
 
     Attributes:
         text: The last thing this view was searched for.
+        search_displayed: Whether we're currently displaying search results in
+                          this view.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
     """
@@ -163,7 +165,6 @@ class AbstractSearch(QObject):
         super().__init__(parent)
         self._widget = None
         self.text = None
-        # Implementing classes will set this.
         self.search_displayed = False
 
     def search(self, text, *, ignore_case=False, reverse=False,

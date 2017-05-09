@@ -251,8 +251,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
         """Callback for javascript which clicks the selected element.
 
         Args:
-            js_elems: The elements serialized from javascript.
-            tab: Open in a new tab or not.
+            js_elem: The element serialized from javascript.
+            tab: Open in a new tab.
         """
         if js_elem is None:
             return
