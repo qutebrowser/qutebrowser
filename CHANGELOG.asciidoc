@@ -53,6 +53,7 @@ Changed
 - With Qt 5.9, `content -> cookies-store` can now be set on QtWebEngine without
   a restart.
 - The adblocker now also blocks non-GET requests (e.g. POST)
+- `:follow-selected` now also works with QtWebEngine
 
 Fixed
 ~~~~~
