@@ -285,9 +285,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
             log.webview.debug("Clicking a searched link via fake key press.")
             # send a fake enter, clicking the orange selection box
             if not tab:
-                self._tab.scroller._key_press(Qt.Key_Enter)
+                self._tab.key_press(Qt.Key_Enter)
             else:
-                self._tab.scroller._key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+                self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
 
         else:
             # click an existing blue selection
@@ -310,14 +310,6 @@ class WebEngineScroller(browsertab.AbstractScroller):
         super()._init_widget(widget)
         page = widget.page()
         page.scrollPositionChanged.connect(self._update_pos)
-
-    def _key_press(self, key, count=1, modifier=Qt.NoModifier):
-        for _ in range(min(count, 5000)):
-            press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
-                                    0, 0, 0)
-            self._tab.send_event(press_evt)
-            self._tab.send_event(release_evt)
 
     @pyqtSlot()
     def _update_pos(self):
@@ -374,28 +366,28 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
-        self._key_press(Qt.Key_Up, count)
+        self._tab.key_press(Qt.Key_Up, count)
 
     def down(self, count=1):
-        self._key_press(Qt.Key_Down, count)
+        self._tab.key_press(Qt.Key_Down, count)
 
     def left(self, count=1):
-        self._key_press(Qt.Key_Left, count)
+        self._tab.key_press(Qt.Key_Left, count)
 
     def right(self, count=1):
-        self._key_press(Qt.Key_Right, count)
+        self._tab.key_press(Qt.Key_Right, count)
 
     def top(self):
-        self._key_press(Qt.Key_Home)
+        self._tab.key_press(Qt.Key_Home)
 
     def bottom(self):
-        self._key_press(Qt.Key_End)
+        self._tab.key_press(Qt.Key_End)
 
     def page_up(self, count=1):
-        self._key_press(Qt.Key_PageUp, count)
+        self._tab.key_press(Qt.Key_PageUp, count)
 
     def page_down(self, count=1):
-        self._key_press(Qt.Key_PageDown, count)
+        self._tab.key_press(Qt.Key_PageDown, count)
 
     def at_top(self):
         return self.pos_px().y() == 0
@@ -654,6 +646,14 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def clear_ssl_errors(self):
         raise browsertab.UnsupportedOperationError
+
+    def key_press(self, key, count=1, modifier=Qt.NoModifier):
+        for _ in range(min(count, 5000)):
+            press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+            release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+                                    0, 0, 0)
+            self.send_event(press_evt)
+            self.send_event(release_evt)
 
     @pyqtSlot()
     def _on_history_trigger(self):
