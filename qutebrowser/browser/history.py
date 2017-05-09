@@ -112,7 +112,7 @@ class WebHistory(sql.SqlTable):
             yield self.Entry(*[rec.value(i) for i in range(rec.count())])
 
     def entries_before(self, latest, limit, offset):
-        """Iterate non-redirect, non-qute entries occuring before a timestamp.
+        """Iterate non-redirect, non-qute entries occurring before a timestamp.
 
         Args:
             latest: Omit timestamps more recent than this.
