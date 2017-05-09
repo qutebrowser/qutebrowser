@@ -28,14 +28,6 @@ from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-try:
-    from PyQt5.QtWebKitWidgets import QWebPage
-except ImportError:
-    QWebPage = None
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage
-except ImportError:
-    QWebEnginePage = None
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -1905,33 +1897,20 @@ class CommandDispatcher:
     def debug_webaction(self, action, count=1):
         """Execute a webaction.
 
-        See http://doc.qt.io/qt-5/qwebpage.html#WebAction-enum for the
-        available actions.
+        Available actions:
+        http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
+        http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
 
         Args:
             action: The action to execute, e.g. MoveToNextChar.
             count: How many times to repeat the action.
         """
         tab = self._current_widget()
-
-        if tab.backend == usertypes.Backend.QtWebKit:
-            assert QWebPage is not None
-            member = getattr(QWebPage, action, None)
-            base = QWebPage.WebAction
-        elif tab.backend == usertypes.Backend.QtWebEngine:
-            assert QWebEnginePage is not None
-            member = getattr(QWebEnginePage, action, None)
-            base = QWebEnginePage.WebAction
-
-        if not isinstance(member, base):
-            raise cmdexc.CommandError("{} is not a valid web action!".format(
-                action))
-
         for _ in range(count):
-            # This whole command is backend-specific anyways, so it makes no
-            # sense to introduce some API for this.
-            # pylint: disable=protected-access
-            tab._widget.triggerPageAction(member)
+            try:
+                tab.action.run_string(action)
+            except browsertab.WebTabError as e:
+                raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)

@@ -1655,7 +1655,7 @@ Syntax: +:debug-webaction 'action'+
 
 Execute a webaction.
 
-See http://doc.qt.io/qt-5/qwebpage.html#WebAction-enum for the available actions.
+Available actions: http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit) http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
 
 ==== positional arguments
 * +'action'+: The action to execute, e.g. MoveToNextChar.

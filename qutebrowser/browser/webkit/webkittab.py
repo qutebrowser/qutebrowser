@@ -57,6 +57,9 @@ class WebKitAction(browsertab.AbstractAction):
 
     """QtWebKit implementations related to web actions."""
 
+    action_class = QWebPage
+    action_base = QWebPage.WebAction
+
     def exit_fullscreen(self):
         raise browsertab.UnsupportedOperationError
 

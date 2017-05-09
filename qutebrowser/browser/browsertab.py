@@ -105,7 +105,15 @@ class TabData:
 
 class AbstractAction:
 
-    """Attribute of AbstractTab for Qt WebActions."""
+    """Attribute of AbstractTab for Qt WebActions.
+
+    Class attributes (overridden by subclasses):
+        action_class: The class actions are defined on (QWeb{Engine,}Page)
+        action_base: The type of the actions (QWeb{Engine,}Page.WebAction)
+    """
+
+    action_class = None
+    action_base = None
 
     def __init__(self):
         self._widget = None
@@ -117,6 +125,13 @@ class AbstractAction:
     def save_page(self):
         """Save the current page."""
         raise NotImplementedError
+
+    def run_string(self, name):
+        """Run a webaction based on its name."""
+        member = getattr(self.action_class, name, None)
+        if not isinstance(member, self.action_base):
+            raise WebTabError("{} is not a valid web action!".format(name))
+        self._widget.triggerPageAction(member)
 
 
 class AbstractPrinting:

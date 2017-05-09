@@ -79,17 +79,17 @@ _JS_WORLD_MAP = {
 
 class WebEngineAction(browsertab.AbstractAction):
 
-    """QtWebKit implementations related to web actions."""
+    """QtWebEngine implementations related to web actions."""
 
-    def _action(self, action):
-        self._widget.triggerPageAction(action)
+    action_class = QWebEnginePage
+    action_base = QWebEnginePage.WebAction
 
     def exit_fullscreen(self):
-        self._action(QWebEnginePage.ExitFullScreen)
+        self._widget.triggerPageAction(QWebEnginePage.ExitFullScreen)
 
     def save_page(self):
         """Save the current page."""
-        self._action(QWebEnginePage.SavePage)
+        self._widget.triggerPageAction(QWebEnginePage.SavePage)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
