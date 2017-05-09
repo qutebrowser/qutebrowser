@@ -312,6 +312,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         page.scrollPositionChanged.connect(self._update_pos)
 
     def _repeated_key_press(self, key, count=1, modifier=Qt.NoModifier):
+        """Send count fake key presses to this scroller's WebEngineTab."""
         for _ in range(min(count, 5000)):
             self._tab.key_press(key, modifier)
 
@@ -652,6 +653,7 @@ class WebEngineTab(browsertab.AbstractTab):
         raise browsertab.UnsupportedOperationError
 
     def key_press(self, key, modifier=Qt.NoModifier):
+        """Send a fake key event to this WebKitTab."""
         press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
                                 0, 0, 0)
