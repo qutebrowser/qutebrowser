@@ -30,7 +30,53 @@ from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
 from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
-CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
+class ColorFlags:
+
+    """Flags which change the appearance of the statusbar.
+
+    Attributes:
+        prompt: If we're currently in prompt-mode.
+        insert: If we're currently in insert mode.
+        command: If we're currently in command mode.
+        mode: The current caret mode (CaretMode.off/.on/.selection).
+        private: Whether this window is in private browsing mode.
+    """
+
+    CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
+
+    def __init__(self):
+        self.prompt = False
+        self.insert = False
+        self.command = False
+        self.caret = self.CaretMode.off
+        self.private = False
+
+    def to_stringlist(self):
+        """Get a string list of set flags used in the stylesheet.
+
+        This also combines flags in ways they're used in the sheet.
+        """
+        strings = []
+        if self.prompt:
+            strings.append('prompt')
+        if self.insert:
+            strings.append('insert')
+        if self.command:
+            strings.append('command')
+        if self.private:
+            strings.append('private')
+
+        if self.private and self.command:
+            strings.append('private-command')
+
+        if self.caret == self.CaretMode.on:
+            strings.append('caret')
+        elif self.caret == self.CaretMode.selection:
+            strings.append('caret-selection')
+        else:
+            assert self.caret == self.CaretMode.off
+
+        return strings
 
 
 class StatusBar(QWidget):
@@ -50,32 +96,6 @@ class StatusBar(QWidget):
         _page_fullscreen: Whether the webpage (e.g. a video) is shown
                           fullscreen.
 
-    Class attributes:
-        _prompt_active: If we're currently in prompt-mode.
-
-                        For some reason we need to have this as class attribute
-                        so pyqtProperty works correctly.
-
-        _insert_active: If we're currently in insert mode.
-
-                        For some reason we need to have this as class attribute
-                        so pyqtProperty works correctly.
-
-        _command_active: If we're currently in command mode.
-
-                         For some reason we need to have this as class
-                         attribute so pyqtProperty works correctly.
-
-        _caret_mode: The current caret mode (off/on/selection).
-
-                     For some reason we need to have this as class attribute
-                     so pyqtProperty works correctly.
-
-        _private: Whether we're in private browsing mode.
-
-                  For some reason we need to have this as class attribute
-                  so pyqtProperty works correctly.
-
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
                  widget can adjust its size to it.
@@ -88,11 +108,7 @@ class StatusBar(QWidget):
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
     _severity = None
-    _prompt_active = False
-    _insert_active = False
-    _command_active = False
-    _caret_mode = CaretMode.off
-    _private = False
+    _color_flags = []
 
     STYLESHEET = """
 
@@ -104,48 +120,54 @@ class StatusBar(QWidget):
             color: {{ color['statusbar.fg'] }};
         }
 
-        QWidget#StatusBar[private="true"],
-        QWidget#StatusBar[private="true"] QLabel,
-        QWidget#StatusBar[private="true"] QLineEdit {
+        QWidget#StatusBar[color_flags~="private"],
+        QWidget#StatusBar[color_flags~="private"] QLabel,
+        QWidget#StatusBar[color_flags~="private"] QLineEdit {
             color: {{ color['statusbar.fg.private'] }};
             background-color: {{ color['statusbar.bg.private'] }};
         }
 
-        QWidget#StatusBar[caret_mode="on"],
-        QWidget#StatusBar[caret_mode="on"] QLabel,
-        QWidget#StatusBar[caret_mode="on"] QLineEdit {
+        QWidget#StatusBar[color_flags~="caret"],
+        QWidget#StatusBar[color_flags~="caret"] QLabel,
+        QWidget#StatusBar[color_flags~="caret"] QLineEdit {
             color: {{ color['statusbar.fg.caret'] }};
             background-color: {{ color['statusbar.bg.caret'] }};
         }
 
-        QWidget#StatusBar[caret_mode="selection"],
-        QWidget#StatusBar[caret_mode="selection"] QLabel,
-        QWidget#StatusBar[caret_mode="selection"] QLineEdit {
+        QWidget#StatusBar[color_flags~="caret-selection"],
+        QWidget#StatusBar[color_flags~="caret-selection"] QLabel,
+        QWidget#StatusBar[color_flags~="caret-selection"] QLineEdit {
             color: {{ color['statusbar.fg.caret-selection'] }};
             background-color: {{ color['statusbar.bg.caret-selection'] }};
         }
 
-        QWidget#StatusBar[prompt_active="true"],
-        QWidget#StatusBar[prompt_active="true"] QLabel,
-        QWidget#StatusBar[prompt_active="true"] QLineEdit {
+        QWidget#StatusBar[color_flags~="prompt"],
+        QWidget#StatusBar[color_flags~="prompt"] QLabel,
+        QWidget#StatusBar[color_flags~="prompt"] QLineEdit {
             color: {{ color['prompts.fg'] }};
             background-color: {{ color['prompts.bg'] }};
         }
 
-        QWidget#StatusBar[insert_active="true"],
-        QWidget#StatusBar[insert_active="true"] QLabel,
-        QWidget#StatusBar[insert_active="true"] QLineEdit {
+        QWidget#StatusBar[color_flags~="insert"],
+        QWidget#StatusBar[color_flags~="insert"] QLabel,
+        QWidget#StatusBar[color_flags~="insert"] QLineEdit {
             color: {{ color['statusbar.fg.insert'] }};
             background-color: {{ color['statusbar.bg.insert'] }};
         }
 
-        QWidget#StatusBar[command_active="true"],
-        QWidget#StatusBar[command_active="true"] QLabel,
-        QWidget#StatusBar[command_active="true"] QLineEdit {
+        QWidget#StatusBar[color_flags~="command"],
+        QWidget#StatusBar[color_flags~="command"] QLabel,
+        QWidget#StatusBar[color_flags~="command"] QLineEdit {
             color: {{ color['statusbar.fg.command'] }};
             background-color: {{ color['statusbar.bg.command'] }};
         }
 
+        QWidget#StatusBar[color_flags~="private-command"],
+        QWidget#StatusBar[color_flags~="private-command"] QLabel,
+        QWidget#StatusBar[color_flags~="private-command"] QLineEdit {
+            color: {{ color['statusbar.fg.command.private'] }};
+            background-color: {{ color['statusbar.bg.command.private'] }};
+        }
     """
 
     def __init__(self, *, win_id, private, parent=None):
@@ -160,7 +182,8 @@ class StatusBar(QWidget):
         self._win_id = win_id
         self._option = None
         self._page_fullscreen = False
-        self._private = private
+        self._color_flags = ColorFlags()
+        self._color_flags.private = private
 
         self._hbox = QHBoxLayout(self)
         self.set_hbox_padding()
@@ -221,30 +244,10 @@ class StatusBar(QWidget):
         padding = config.get('ui', 'statusbar-padding')
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
-    @pyqtProperty(bool)
-    def prompt_active(self):
-        """Getter for self.prompt_active, so it can be used as Qt property."""
-        return self._prompt_active
-
-    @pyqtProperty(bool)
-    def command_active(self):
-        """Getter for self.command_active, so it can be used as Qt property."""
-        return self._command_active
-
-    @pyqtProperty(bool)
-    def insert_active(self):
-        """Getter for self.insert_active, so it can be used as Qt property."""
-        return self._insert_active
-
-    @pyqtProperty(str)
-    def caret_mode(self):
-        """Getter for self._caret_mode, so it can be used as Qt property."""
-        return self._caret_mode.name
-
-    @pyqtProperty(bool)
-    def private(self):
-        """Getter for self.private so it can be used as Qt property."""
-        return self._private
+    @pyqtProperty('QStringList')
+    def color_flags(self):
+        """Getter for self.color_flags, so it can be used as Qt property."""
+        return self._color_flags.to_stringlist()
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,command,caret}_active.
@@ -253,28 +256,28 @@ class StatusBar(QWidget):
         updated by Qt properly.
         """
         if mode == usertypes.KeyMode.insert:
-            log.statusbar.debug("Setting insert_active to {}".format(val))
-            self._insert_active = val
+            log.statusbar.debug("Setting insert flag to {}".format(val))
+            self._color_flags.insert = val
         if mode == usertypes.KeyMode.command:
-            log.statusbar.debug("Setting command_active to {}".format(val))
-            self._command_active = val
+            log.statusbar.debug("Setting command flag to {}".format(val))
+            self._color_flags.command = val
         elif mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
-            log.statusbar.debug("Setting prompt_active to {}".format(val))
-            self._prompt_active = val
+            log.statusbar.debug("Setting prompt flag to {}".format(val))
+            self._color_flags.prompt = val
         elif mode == usertypes.KeyMode.caret:
             tab = objreg.get('tabbed-browser', scope='window',
                              window=self._win_id).currentWidget()
-            log.statusbar.debug("Setting caret_mode - val {}, selection "
+            log.statusbar.debug("Setting caret flag - val {}, selection "
                                 "{}".format(val, tab.caret.selection_enabled))
             if val:
                 if tab.caret.selection_enabled:
                     self._set_mode_text("{} selection".format(mode.name))
-                    self._caret_mode = CaretMode.selection
+                    self._color_flags.caret = ColorFlags.CaretMode.selection
                 else:
                     self._set_mode_text(mode.name)
-                    self._caret_mode = CaretMode.on
+                    self._color_flags.caret = ColorFlags.CaretMode.on
             else:
-                self._caret_mode = CaretMode.off
+                self._color_flags.caret = ColorFlags.CaretMode.off
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     def _set_mode_text(self, mode):
@@ -340,7 +343,7 @@ class StatusBar(QWidget):
         self.url.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
-        assert tab.private == self._private
+        assert tab.private == self._color_flags.private
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

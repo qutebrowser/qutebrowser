@@ -1148,6 +1148,16 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), '${statusbar.bg}'),
              "Background color of the statusbar in command mode."),
 
+            ('statusbar.fg.command.private',
+             SettingValue(typ.QssColor(), '${statusbar.fg.private}'),
+             "Foreground color of the statusbar in private browsing + command "
+             "mode."),
+
+            ('statusbar.bg.command.private',
+             SettingValue(typ.QssColor(), '${statusbar.bg.private}'),
+             "Background color of the statusbar in private browsing + command "
+             "mode."),
+
             ('statusbar.fg.caret',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in caret mode."),

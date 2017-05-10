@@ -227,6 +227,8 @@
 |<<colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
 |<<colors-statusbar.fg.command,statusbar.fg.command>>|Foreground color of the statusbar in command mode.
 |<<colors-statusbar.bg.command,statusbar.bg.command>>|Background color of the statusbar in command mode.
+|<<colors-statusbar.fg.command.private,statusbar.fg.command.private>>|Foreground color of the statusbar in private browsing + command mode.
+|<<colors-statusbar.bg.command.private,statusbar.bg.command.private>>|Background color of the statusbar in private browsing + command mode.
 |<<colors-statusbar.fg.caret,statusbar.fg.caret>>|Foreground color of the statusbar in caret mode.
 |<<colors-statusbar.bg.caret,statusbar.bg.caret>>|Background color of the statusbar in caret mode.
 |<<colors-statusbar.fg.caret-selection,statusbar.fg.caret-selection>>|Foreground color of the statusbar in caret mode with a selection
@@ -1916,7 +1918,7 @@ Default: +pass:[${statusbar.fg}]+
 === statusbar.bg.private
 Background color of the statusbar in private browsing mode.
 
-Default: +pass:[grey]+
+Default: +pass:[#666666]+
 
 [[colors-statusbar.fg.insert]]
 === statusbar.fg.insert
@@ -1941,6 +1943,18 @@ Default: +pass:[${statusbar.fg}]+
 Background color of the statusbar in command mode.
 
 Default: +pass:[${statusbar.bg}]+
+
+[[colors-statusbar.fg.command.private]]
+=== statusbar.fg.command.private
+Foreground color of the statusbar in private browsing + command mode.
+
+Default: +pass:[${statusbar.fg.private}]+
+
+[[colors-statusbar.bg.command.private]]
+=== statusbar.bg.command.private
+Background color of the statusbar in private browsing + command mode.
+
+Default: +pass:[${statusbar.bg.private}]+
 
 [[colors-statusbar.fg.caret]]
 === statusbar.fg.caret
