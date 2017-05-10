@@ -40,7 +40,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess, objects
+from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import instances, sortfilter
 
 

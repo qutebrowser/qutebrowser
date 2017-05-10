@@ -29,7 +29,7 @@ import os.path
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg, urlutils, qtutils, message
+from qutebrowser.utils import standarddir, objreg, urlutils, qtutils
 from qutebrowser.browser import shared
 
 
