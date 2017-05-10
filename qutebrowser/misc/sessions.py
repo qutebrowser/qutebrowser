@@ -221,7 +221,7 @@ class SessionManager(QObject):
         else:
             winlist = objreg.window_registry
 
-        for win_id in winlist:
+        for win_id in sorted(winlist):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             main_window = objreg.get('main-window', scope='window',
