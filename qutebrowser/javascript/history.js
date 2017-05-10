@@ -161,13 +161,16 @@ window.loadHistory = (function() {
             return;
         }
 
-        if (history.length == 0) {
+        if (history.length === 0) {
             // Reached end of history
             window.onscroll = null;
             EOF_MESSAGE.style.display = "block";
             LOAD_LINK.style.display = "none";
-            return
+            return;
         }
+
+        nextTime = history[history.length - 1].time;
+        nextOffset = 0;
 
         for (var i = 0, len = history.length; i < len; i++) {
             var item = history[i];
@@ -176,12 +179,7 @@ window.loadHistory = (function() {
                 item.url, item.title, currentItemDate.toLocaleTimeString()
             ));
             lastItemDate = currentItemDate;
-        }
-
-        nextTime = history[history.length - 1].time
-        nextOffset = 0;
-        for (var i = history.length - 1; i >= 0; i--) {
-            if (history[i].time == nextTime) {
+            if (item.time === nextTime) {
                 nextOffset++;
             }
         }
@@ -192,12 +190,11 @@ window.loadHistory = (function() {
      * @return {void}
      */
     function loadHistory() {
+        var url = DATA_URL.concat("?offset=", nextOffset.toString());
         if (nextTime === null) {
-            var url = DATA_URL.concat("?offset=0");
             getJSON(url, receiveHistory);
         } else {
-            var url = DATA_URL.concat("?start_time=", nextTime.toString());
-            var url = url.concat("&offset=", nextOffset.toString());
+            url = url.concat("&start_time=", nextTime.toString());
             getJSON(url, receiveHistory);
         }
     }
