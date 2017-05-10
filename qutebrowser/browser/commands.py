@@ -256,11 +256,6 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         if private:
-            # WORKAROUND for https://github.com/annulen/webkit/issues/54
-            if (objects.backend == usertypes.Backend.QtWebKit and
-                    qtutils.is_qtwebkit_ng()):
-                message.warning("Private browsing is not fully "
-                                "implemented by QtWebKit-NG!")
             window = True
 
         for i, cur_url in enumerate(urls):

@@ -88,18 +88,6 @@ def _set_user_stylesheet():
     QWebSettings.globalSettings().setUserStyleSheetUrl(url)
 
 
-def _init_private_browsing():
-    if qtutils.is_qtwebkit_ng():
-        # WORKAROUND for https://github.com/annulen/webkit/issues/54
-        message.warning("Private browsing is not fully implemented by "
-                        "QtWebKit-NG!")
-    elif not qtutils.version_check('5.4.2'):
-        # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
-        # Won't work when private browsing is not enabled globally, but that's
-        # the best we can do...
-        QWebSettings.setIconDatabasePath('')
-
-
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
@@ -121,8 +109,12 @@ def init(_args):
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
 
-    if config.get('general', 'private-browsing'):
-        _init_private_browsing()
+    if (config.get('general', 'private-browsing') and
+            not qtutils.version_check('5.4.2')):
+        # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
+        # Won't work when private browsing is not enabled globally, but that's
+        # the best we can do...
+        QWebSettings.setIconDatabasePath('')
 
     websettings.init_mappings(MAPPINGS)
     _set_user_stylesheet()
