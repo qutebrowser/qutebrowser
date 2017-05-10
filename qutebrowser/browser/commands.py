@@ -127,7 +127,7 @@ class CommandDispatcher:
         if private is None:
             private = self._tabbed_browser.private
 
-        if window:
+        if window or private:
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
         elif tab:
@@ -255,16 +255,14 @@ class CommandDispatcher:
         else:
             urls = self._parse_url_input(url)
 
-        if private:
-            window = True
-
         for i, cur_url in enumerate(urls):
             if secure:
                 cur_url.setScheme('https')
             if not window and i > 0:
                 tab = False
                 bg = True
-            if tab or bg or window:
+
+            if tab or bg or window or private:
                 self._open(cur_url, tab, bg, window, explicit=not implicit,
                            private=private)
             else:
