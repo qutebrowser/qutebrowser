@@ -221,6 +221,8 @@
 |<<colors-completion.scrollbar.bg,completion.scrollbar.bg>>|Color of the scrollbar in completion view
 |<<colors-statusbar.fg,statusbar.fg>>|Foreground color of the statusbar.
 |<<colors-statusbar.bg,statusbar.bg>>|Background color of the statusbar.
+|<<colors-statusbar.fg.private,statusbar.fg.private>>|Foreground color of the statusbar in private browsing mode.
+|<<colors-statusbar.bg.private,statusbar.bg.private>>|Background color of the statusbar in private browsing mode.
 |<<colors-statusbar.fg.insert,statusbar.fg.insert>>|Foreground color of the statusbar in insert mode.
 |<<colors-statusbar.bg.insert,statusbar.bg.insert>>|Background color of the statusbar in insert mode.
 |<<colors-statusbar.fg.command,statusbar.fg.command>>|Foreground color of the statusbar in command mode.
@@ -403,8 +405,6 @@ Valid values:
  * +false+
 
 Default: +pass:[false]+
-
-This setting is only available with the QtWebKit backend.
 
 [[general-developer-extras]]
 === developer-extras
@@ -1905,6 +1905,18 @@ Default: +pass:[white]+
 Background color of the statusbar.
 
 Default: +pass:[black]+
+
+[[colors-statusbar.fg.private]]
+=== statusbar.fg.private
+Foreground color of the statusbar in private browsing mode.
+
+Default: +pass:[${statusbar.fg}]+
+
+[[colors-statusbar.bg.private]]
+=== statusbar.bg.private
+Background color of the statusbar in private browsing mode.
+
+Default: +pass:[grey]+
 
 [[colors-statusbar.fg.insert]]
 === statusbar.fg.insert

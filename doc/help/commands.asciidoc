@@ -544,7 +544,8 @@ For `increment` and `decrement`, the number to change the URL by. For `up`, the 
 
 [[open]]
 === open
-Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] [*--secure*] ['url']+
+Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
+     ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -560,6 +561,7 @@ If the URL contains newlines, each line gets opened in its own tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
 * +*-s*+, +*--secure*+: Force HTTPS.
+* +*-p*+, +*--private*+: Open a new window in private browsing mode.
 
 ==== count
 The tab index to open the URL in.
@@ -743,6 +745,7 @@ Load a session.
 [[session-save]]
 === session-save
 Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
+             [*--with-private*]
              ['name']+
 
 Save a session.
@@ -756,6 +759,7 @@ Save a session.
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 * +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
+* +*-w*+, +*--with-private*+: Include private windows.
 
 [[set]]
 === set
