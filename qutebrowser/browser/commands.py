@@ -123,7 +123,7 @@ class CommandDispatcher:
         """
         urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser
-        cmdutils.check_exclusive((tab, background, window), 'tbw')
+        cmdutils.check_exclusive((tab, background, window, private), 'tbwp')
         if private is None:
             private = self._tabbed_browser.private
 

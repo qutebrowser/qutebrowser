@@ -33,7 +33,7 @@ Feature: Opening pages
 
     Scenario: :open with -t and -b
         When I run :open -t -b foo.bar
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Searching with :open
         When I set general -> auto-search to naive

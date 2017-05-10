@@ -33,3 +33,9 @@ def check_cookie(quteproc, name, value):
     data = json.loads(content)
     print(data)
     assert data['cookies'][name] == value
+
+
+@bdd.then(bdd.parsers.parse('the file {name} should not contain "{text}"'))
+def check_not_contain(tmpdir, name, text):
+    path = tmpdir / name
+    assert text not in path.read()

@@ -110,3 +110,9 @@ Feature: Using private browsing
               tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+
+    Scenario: Skipping private window when saving session
+        When I open data/hello.txt in a private window
+        And I run :session-save (tmpdir)/session.yml
+        And I wait for "Saved session */session.yml." in the log
+        Then the file session.yml should not contain "hello.txt"

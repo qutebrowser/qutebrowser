@@ -295,7 +295,7 @@ MAPPINGS = {
             Attribute(QWebEngineSettings.LocalStorageEnabled),
         'cache-size':
             DefaultProfileSetter(getter='httpCacheMaximumSize',
-                          setter='setHttpCacheMaximumSize')
+                                 setter='setHttpCacheMaximumSize')
     },
     'general': {
         'xss-auditing':
