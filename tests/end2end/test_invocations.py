@@ -267,3 +267,21 @@ def test_launching_with_python2():
     assert proc.returncode == 1
     error = "At least Python 3.4 is required to run qutebrowser"
     assert stderr.decode('ascii').startswith(error)
+
+
+def test_initial_private_browsing(request, quteproc_new):
+    """Make sure the initial window is private when the setting is set."""
+    args = (_base_args(request.config) +
+            ['--temp-basedir', '-s', 'general', 'private-browsing', 'true'])
+    quteproc_new.start(args)
+
+    quteproc_new.compare_session("""
+        windows:
+            - private: True
+              tabs:
+              - history:
+                - url: about:blank
+    """)
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
