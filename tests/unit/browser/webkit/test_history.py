@@ -122,7 +122,7 @@ def test_clear(qtbot, tmpdir, hist, mocker):
 
     m = mocker.patch('qutebrowser.browser.history.message.confirm_async')
     hist.clear()
-    m.assert_called()
+    assert m.called
 
 
 def test_clear_force(qtbot, tmpdir, hist):
