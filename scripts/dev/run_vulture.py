@@ -54,9 +54,7 @@ def whitelist_generator():
                                                                         attr)
 
     # PyQt properties
-    for attr in ['prompt_active', 'command_active', 'insert_active',
-                 'caret_mode']:
-        yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.' + attr
+    yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.color_flags'
     yield 'qutebrowser.mainwindow.statusbar.url.UrlText.urltype'
 
     # Not used yet, but soon (or when debugging)

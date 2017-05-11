@@ -79,6 +79,37 @@ class ColorFlags:
         return strings
 
 
+def _generate_stylesheet():
+    flags = {
+        'private': 'statusbar.{}.private',
+        'caret': 'statusbar.{}.caret',
+        'caret-selection': 'statusbar.{}.caret-selection',
+        'prompt': 'prompts.{}',
+        'insert': 'statusbar.{}.insert',
+        'command': 'statusbar.{}.command',
+        'private-command': 'statusbar.{}.command.private',
+    }
+    stylesheet = """
+        QWidget#StatusBar,
+        QWidget#StatusBar QLabel,
+        QWidget#StatusBar QLineEdit {
+            font: {{ font['statusbar'] }};
+            background-color: {{ color['statusbar.bg'] }};
+            color: {{ color['statusbar.fg'] }};
+        }
+    """
+    for flag, option in sorted(flags.items()):
+        stylesheet += """
+            QWidget#StatusBar[color_flags~="%s"],
+            QWidget#StatusBar[color_flags~="%s"] QLabel,
+            QWidget#StatusBar[color_flags~="%s"] QLineEdit {
+                color: {{ color['%s'] }};
+                background-color: {{ color['%s'] }};
+            }
+        """ % (flag, flag, flag, option.format('fg'), option.format('bg'))
+    return stylesheet
+
+
 class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow.
@@ -110,65 +141,7 @@ class StatusBar(QWidget):
     _severity = None
     _color_flags = []
 
-    STYLESHEET = """
-
-        QWidget#StatusBar,
-        QWidget#StatusBar QLabel,
-        QWidget#StatusBar QLineEdit {
-            font: {{ font['statusbar'] }};
-            background-color: {{ color['statusbar.bg'] }};
-            color: {{ color['statusbar.fg'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="private"],
-        QWidget#StatusBar[color_flags~="private"] QLabel,
-        QWidget#StatusBar[color_flags~="private"] QLineEdit {
-            color: {{ color['statusbar.fg.private'] }};
-            background-color: {{ color['statusbar.bg.private'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="caret"],
-        QWidget#StatusBar[color_flags~="caret"] QLabel,
-        QWidget#StatusBar[color_flags~="caret"] QLineEdit {
-            color: {{ color['statusbar.fg.caret'] }};
-            background-color: {{ color['statusbar.bg.caret'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="caret-selection"],
-        QWidget#StatusBar[color_flags~="caret-selection"] QLabel,
-        QWidget#StatusBar[color_flags~="caret-selection"] QLineEdit {
-            color: {{ color['statusbar.fg.caret-selection'] }};
-            background-color: {{ color['statusbar.bg.caret-selection'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="prompt"],
-        QWidget#StatusBar[color_flags~="prompt"] QLabel,
-        QWidget#StatusBar[color_flags~="prompt"] QLineEdit {
-            color: {{ color['prompts.fg'] }};
-            background-color: {{ color['prompts.bg'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="insert"],
-        QWidget#StatusBar[color_flags~="insert"] QLabel,
-        QWidget#StatusBar[color_flags~="insert"] QLineEdit {
-            color: {{ color['statusbar.fg.insert'] }};
-            background-color: {{ color['statusbar.bg.insert'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="command"],
-        QWidget#StatusBar[color_flags~="command"] QLabel,
-        QWidget#StatusBar[color_flags~="command"] QLineEdit {
-            color: {{ color['statusbar.fg.command'] }};
-            background-color: {{ color['statusbar.bg.command'] }};
-        }
-
-        QWidget#StatusBar[color_flags~="private-command"],
-        QWidget#StatusBar[color_flags~="private-command"] QLabel,
-        QWidget#StatusBar[color_flags~="private-command"] QLineEdit {
-            color: {{ color['statusbar.fg.command.private'] }};
-            background-color: {{ color['statusbar.bg.command.private'] }};
-        }
-    """
+    STYLESHEET = _generate_stylesheet()
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
