@@ -7,11 +7,14 @@ environment:
     PYTHONUNBUFFERED: 1
     matrix:
     - TESTENV: py34
+    - TESTENV: py36-pyqt58
+      PYTHON: C:\Python36\python.exe
     - TESTENV: unittests-frozen
     - TESTENV: pylint
 
 install:
   - C:\Python27\python -u scripts\dev\ci\appveyor_install.py
+  - set PATH=%PATH%;C:\Python36
 
 test_script:
   - C:\Python34\Scripts\tox -e %TESTENV%

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -140,7 +140,7 @@ class WebView(QWebView):
 
     @pyqtSlot()
     def add_js_bridge(self):
-        """Add the javascript bridge for qute:... pages."""
+        """Add the javascript bridge for qute://... pages."""
         frame = self.sender()
         if not isinstance(frame, QWebFrame):
             log.webview.error("Got non-QWebFrame {!r} in "

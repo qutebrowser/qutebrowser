@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -265,6 +265,7 @@ class TestFuzzyUrl:
     ('file:///tmp/foo', True),
     ('about:blank', True),
     ('qute:version', True),
+    ('qute://version', True),
     ('http://www.qutebrowser.org/', False),
     ('www.qutebrowser.org', False),
 ])
@@ -317,9 +318,11 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (True, True, False, 'file:///tmp/foo'),
     (True, True, False, 'about:blank'),
     (True, True, False, 'qute:version'),
+    (True, True, False, 'qute://version'),
     (True, True, False, 'localhost'),
     # _has_explicit_scheme False, special_url True
     (True, True, False, 'qute::foo'),
+    (True, True, False, 'qute:://foo'),
     # Invalid URLs
     (False, False, False, ''),
     (False, True, False, 'onlyscheme:'),
@@ -739,6 +742,31 @@ def test_data_url():
     assert url == QUrl('data:text/plain;base64,Zm9v')
 
 
+@pytest.mark.parametrize('url, expected', [
+    # No IDN
+    (QUrl('http://www.example.com'), 'http://www.example.com'),
+    # IDN in domain
+    (QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
+    # IDN with non-whitelisted TLD
+    (QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
+    # Unicode only in path
+    (QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
+    # Unicode only in TLD (looks like Qt shows Punycode with рф...)
+    (QUrl('http://www.example.xn--p1ai'),
+        '(www.example.xn--p1ai) http://www.example.рф'),
+    # https://bugreports.qt.io/browse/QTBUG-60364
+    (QUrl('http://www.xn--80ak6aa92e.com'),
+        '(unparseable URL!) http://www.аррӏе.com'),
+])
+def test_safe_display_string(url, expected):
+    assert urlutils.safe_display_string(url) == expected
+
+
+def test_safe_display_string_invalid():
+    with pytest.raises(urlutils.InvalidUrlError):
+        urlutils.safe_display_string(QUrl())
+
+
 class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
@@ -762,7 +790,7 @@ class TestProxyFromUrl:
         assert urlutils.proxy_from_url(QUrl(url)) == expected
 
     @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
-    def test_proxy_from_url_pac(self, scheme):
+    def test_proxy_from_url_pac(self, scheme, qapp):
         fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))
         assert isinstance(fetcher, pac.PACFetcher)
 

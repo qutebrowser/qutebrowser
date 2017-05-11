@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Saving and loading sessions
 
   Background:
@@ -198,7 +200,7 @@ Feature: Saving and loading sessions
 
   Scenario: Saving a session with a page using history.replaceState()
     When I open data/sessions/history_replace_state.html without waiting
-    Then the javascript message "Calling history.replaceState" should be logged
+    Then the javascript message "Called history.replaceState" should be logged
     And the session should look like:
       windows:
       - tabs:
@@ -212,7 +214,7 @@ Feature: Saving and loading sessions
   Scenario: Saving a session with a page using history.replaceState() and navigating away (qtwebkit)
     When I open data/sessions/history_replace_state.html
     And I open data/hello.txt
-    Then the javascript message "Calling history.replaceState" should be logged
+    Then the javascript message "Called history.replaceState" should be logged
     And the session should look like:
       windows:
       - tabs:
@@ -229,7 +231,7 @@ Feature: Saving and loading sessions
   @qtwebkit_skip
   Scenario: Saving a session with a page using history.replaceState() and navigating away
     When I open data/sessions/history_replace_state.html without waiting
-    And I wait for "* Calling history.replaceState" in the log
+    And I wait for "* Called history.replaceState" in the log
     And I open data/hello.txt
     Then the session should look like:
       windows:

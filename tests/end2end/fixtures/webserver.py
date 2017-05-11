@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -74,6 +74,8 @@ class Request(testprocess.Line):
             '/redirect-to': [http.client.FOUND],
 
             '/cookies/set': [http.client.FOUND],
+
+            '/custom/500-inline': [http.client.INTERNAL_SERVER_ERROR],
         }
         for i in range(15):
             path_to_statuses['/redirect/{}'.format(i)] = [http.client.FOUND]

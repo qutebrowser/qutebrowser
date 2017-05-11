@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -110,6 +110,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _do_die(self):
         """Abort the download and emit an error."""
         self._read_timer.stop()
+        if self._reply is None:
+            log.downloads.debug("Reply gone while dying")
+            return
         self._reply.downloadProgress.disconnect()
         self._reply.finished.disconnect()
         self._reply.error.disconnect()
@@ -270,7 +273,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if self.fileobj is None or self._reply is None:
             # No filename has been set yet (so we don't empty the buffer) or we
             # got a readyRead after the reply was finished (which happens on
-            # qute:log for example).
+            # qute://log for example).
             return
         if not self._reply.isOpen():
             raise OSError("Reply is closed!")

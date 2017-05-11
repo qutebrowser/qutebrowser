@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -161,11 +161,6 @@ def stub(suffix=''):
     misc.warning(text)
 
 
-class CriticalQtWarning(Exception):
-
-    """Exception raised when there's a critical Qt warning."""
-
-
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
     level = args.loglevel.upper()
@@ -182,9 +177,10 @@ def init_log(args):
     root = logging.getLogger()
     global console_filter
     if console is not None:
+        console_filter = LogFilter(None)
         if args.logfilter is not None:
-            console_filter = LogFilter(args.logfilter.split(','))
-            console.addFilter(console_filter)
+            console_filter.names = args.logfilter.split(',')
+        console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
@@ -423,17 +419,7 @@ def qt_message_handler(msg_type, context, msg):
                 'with: -9805',  # flake8: disable=E131
         ]
 
-    # Messages which will trigger an exception immediately
-    critical_msgs = [
-        'Could not parse stylesheet of object',
-    ]
-
-    if any(msg.strip().startswith(pattern) for pattern in critical_msgs):
-        # For some reason, the stack gets lost when raising here...
-        logger = logging.getLogger('misc')
-        logger.error("Got critical Qt warning!", stack_info=True)
-        raise CriticalQtWarning(msg)
-    elif any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
+    if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]

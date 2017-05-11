@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -98,7 +98,9 @@ class MessageView(QWidget):
     @config.change_filter('ui', 'message-timeout')
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
-        self._clear_timer.setInterval(config.get('ui', 'message-timeout'))
+        interval = config.get('ui', 'message-timeout')
+        if interval != 0:
+            self._clear_timer.setInterval(interval)
 
     @pyqtSlot()
     def clear_messages(self):
@@ -125,8 +127,14 @@ class MessageView(QWidget):
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)
         widget.show()
-        self._clear_timer.start()
+        if config.get('ui', 'message-timeout') != 0:
+            self._clear_timer.start()
         self._messages.append(widget)
         self._last_text = text
         self.show()
         self.update_geometry.emit()
+
+    def mousePressEvent(self, e):
+        """Clear messages when they are clicked on."""
+        if e.button() in [Qt.LeftButton, Qt.MiddleButton, Qt.RightButton]:
+            self.clear_messages()

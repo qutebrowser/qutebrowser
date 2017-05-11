@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -46,7 +46,7 @@ def parse_args():
     if QWebEngineView is not None:
         parser.add_argument('--webengine', help='Use QtWebEngine',
                             default=False, action='store_true')
-    return parser.parse_args()
+    return parser.parse_known_args()[0]
 
 
 if __name__ == '__main__':

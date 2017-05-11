@@ -38,3 +38,5 @@ rules:
      max-len: ["error", {"ignoreUrls": true}]
      capitalized-comments: "off"
      prefer-destructuring: "off"
+     line-comment-position: "off"
+     no-inline-comments: "off"

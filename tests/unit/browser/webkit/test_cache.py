@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 lamarpavel
+# Copyright 2015-2017 lamarpavel
 #
 # This file is part of qutebrowser.
 #
@@ -17,10 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
 from PyQt5.QtCore import QUrl, QDateTime
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.browser.webkit import cache
+from qutebrowser.utils import qtutils
+
+
+pytestmark = pytest.mark.skipif(
+    qtutils.version_check('5.7.1') and not qtutils.version_check('5.9'),
+    reason="QNetworkDiskCache is broken on Qt 5.7.1 and 5.8")
 
 
 def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):

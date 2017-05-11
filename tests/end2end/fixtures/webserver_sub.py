@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -120,6 +120,17 @@ def twenty_mb():
 def redirect_self():
     """302 Redirects to itself."""
     return app.make_response(flask.redirect(flask.url_for('redirect_self')))
+
+
+@app.route('/custom/500-inline')
+def internal_error_attachment():
+    """A 500 error with Content-Disposition: inline."""
+    response = flask.Response(b"", headers={
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": 'inline; filename="attachment.jpg"',
+    })
+    response.status_code = 500
+    return response
 
 
 @app.after_request

@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: :spawn
 
     Scenario: Running :spawn
@@ -53,3 +55,13 @@ Feature: :spawn
         Then the following tabs should be open:
             - about:blank
             - about:blank (active)
+
+    @posix
+    Scenario: Running :spawn with userscript that expects the stdin getting closed
+        When I run :spawn -u (testdata)/userscripts/stdinclose.py
+        Then the message "stdin closed" should be shown
+
+    @posix
+    Scenario: Running :spawn -d with userscript that expects the stdin getting closed
+        When I run :spawn -d -u (testdata)/userscripts/stdinclose.py
+        Then the message "stdin closed" should be shown

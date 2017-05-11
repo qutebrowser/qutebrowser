@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,6 @@ import sys
 import json
 
 import qutebrowser
-from qutebrowser.utils import log
 try:
     from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
@@ -38,6 +37,7 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
+from qutebrowser.utils import log
 
 import argparse
 from qutebrowser.misc import earlyinit
@@ -103,10 +103,6 @@ def get_argparser():
                        help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
-    debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
-                       action='store_true')
-    debug.add_argument('--pdb-postmortem', action='store_true',
-                       help="Drop into pdb on exceptions.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "
                        "temporary basedir.")
     debug.add_argument('--no-err-windows', action='store_true', help="Don't "
@@ -118,6 +114,9 @@ def get_argparser():
                        action='append')
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
                        nargs=1, action='append')
+    debug.add_argument('--debug-flag', type=debug_flag_error, default=[],
+                       help="Pass name of debugging feature to be turned on.",
+                       action='append', dest='debug_flags')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
@@ -131,7 +130,7 @@ def directory(arg):
         raise argparse.ArgumentTypeError("Invalid empty value")
 
 
-def logfilter_error(logfilter: str):
+def logfilter_error(logfilter):
     """Validate logger names passed to --logfilter.
 
     Args:
@@ -143,6 +142,22 @@ def logfilter_error(logfilter: str):
         raise argparse.ArgumentTypeError(
             "filters: Invalid value {} - expected a list of: {}".format(
                 logfilter, ', '.join(log.LOGGER_NAMES)))
+
+
+def debug_flag_error(flag):
+    """Validate flags passed to --debug-flag.
+
+    Available flags:
+        debug-exit: Turn on debugging of late exit.
+        pdb-postmortem: Drop into pdb on exceptions.
+    """
+    valid_flags = ['debug-exit', 'pdb-postmortem']
+
+    if flag in valid_flags:
+        return flag
+    else:
+        raise argparse.ArgumentTypeError("Invalid debug flag - valid flags: {}"
+                                         .format(', '.join(valid_flags)))
 
 
 def main():

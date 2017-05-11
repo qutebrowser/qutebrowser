@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -437,6 +437,7 @@ def _get_authors():
         'Claire C.C': 'Claire Cavanaugh',
         'Rahid': 'Maciej Wołczyk',
         'Fritz V155 Reichwald': 'Fritz Reichwald',
+        'Spreadyy': 'sandrosc',
     }
     ignored = ['pyup-bot']
     commits = subprocess.check_output(['git', 'log', '--format=%aN'])

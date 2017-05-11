@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -78,32 +78,34 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self.stats.finish()
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
-            self.done = True
             # https://bugreports.qt.io/browse/QTBUG-56839
-            self.error.emit("Download failed")
-            self.stats.finish()
+            self._die("Download failed")
         else:
             raise ValueError("_on_state_changed was called with unknown state "
                              "{}".format(state_name))
 
     def _do_die(self):
         self._qt_item.downloadProgress.disconnect()
-        self._qt_item.cancel()
+        if self._qt_item.state() != QWebEngineDownloadItem.DownloadInterrupted:
+            self._qt_item.cancel()
 
     def _do_cancel(self):
         self._qt_item.cancel()
 
     def retry(self):
         # https://bugreports.qt.io/browse/QTBUG-56840
-        raise downloads.UnsupportedOperationError
+        raise downloads.UnsupportedOperationError(
+            "Retrying downloads is unsupported with QtWebEngine")
 
     def _get_open_filename(self):
         return self._filename
 
-    def _set_fileobj(self, fileobj):
+    def _set_fileobj(self, fileobj, *,
+                     autoclose=True):  # pylint: disable=unused-argument
         raise downloads.UnsupportedOperationError
 
     def _set_tempfile(self, fileobj):
+        fileobj.close()
         self._set_filename(fileobj.name, force_overwrite=True,
                            remember_directory=False)
 
@@ -145,7 +147,7 @@ def _get_suggested_filename(path):
     """
     filename = os.path.basename(path)
     filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
-    if not qtutils.version_check('5.8.1'):
+    if not qtutils.version_check('5.9'):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
         # Doing basename a *second* time because there could be a %2F in

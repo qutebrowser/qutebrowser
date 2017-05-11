@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,14 +28,6 @@ from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-try:
-    from PyQt5.QtWebKitWidgets import QWebPage
-except ImportError:
-    QWebPage = None
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage
-except ImportError:
-    QWebEnginePage = None
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -289,7 +281,7 @@ class CommandDispatcher:
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
     def openurl(self, url=None, implicit=False,
-                bg=False, tab=False, window=False, count=None):
+                bg=False, tab=False, window=False, count=None, secure=False):
         """Open a URL in the current/[count]th tab.
 
         If the URL contains newlines, each line gets opened in its own tab.
@@ -302,6 +294,7 @@ class CommandDispatcher:
             implicit: If opening a new tab, treat the tab as implicit (like
                       clicking on a link).
             count: The tab index to open the URL in, or None.
+            secure: Force HTTPS.
         """
         if url is None:
             urls = [config.get('general', 'default-page')]
@@ -309,6 +302,8 @@ class CommandDispatcher:
             urls = self._parse_url_input(url)
 
         for i, cur_url in enumerate(urls):
+            if secure:
+                cur_url.setScheme('https')
             if not window and i > 0:
                 tab = False
                 bg = True
@@ -686,7 +681,7 @@ class CommandDispatcher:
                        scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
-    def scroll_perc(self, perc: float=None, horizontal=False, count=None):
+    def scroll_perc(self, perc: float = None, horizontal=False, count=None):
         """Scroll to a specific percentage of the page.
 
         The percentage can be given either as argument or as count.
@@ -722,7 +717,7 @@ class CommandDispatcher:
     @cmdutils.argument('bottom_navigate', metavar='ACTION',
                        choices=('next', 'increment'))
     def scroll_page(self, x: float, y: float, *,
-                    top_navigate: str=None, bottom_navigate: str=None,
+                    top_navigate: str = None, bottom_navigate: str = None,
                     count=1):
         """Scroll the frame page-wise.
 
@@ -859,7 +854,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: int=None, count=None):
+    def zoom(self, zoom: int = None, count=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -1285,7 +1280,7 @@ class CommandDispatcher:
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
         else:
-            msg = "Bookmarked {}!" if was_added else "Removed bookmark {}!"
+            msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
             message.info(msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
@@ -1389,6 +1384,9 @@ class CommandDispatcher:
                                       scope='window', window=self._win_id)
         target = None
         if dest is not None:
+            dest = downloads.transform_path(dest)
+            if dest is None:
+                raise cmdexc.CommandError("Invalid target filename")
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
@@ -1554,6 +1552,7 @@ class CommandDispatcher:
         if text is None:
             message.error("Could not get text from the focused element.")
             return
+        assert isinstance(text, str), text
 
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
@@ -1591,10 +1590,7 @@ class CommandDispatcher:
                        backend=usertypes.Backend.QtWebKit)
     def paste_primary(self):
         """Paste the primary selection at cursor position."""
-        try:
-            self.insert_text(utils.get_clipboard(selection=True))
-        except utils.SelectionUnsupportedError:
-            self.insert_text(utils.get_clipboard())
+        self.insert_text(utils.get_clipboard(selection=True, fallback=True))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')
@@ -1705,21 +1701,22 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.search.clear()
 
+        if not text:
+            return
+
         options = {
             'ignore_case': config.get('general', 'ignore-case'),
             'reverse': reverse,
         }
+
         self._tabbed_browser.search_text = text
         self._tabbed_browser.search_options = dict(options)
 
-        if text:
-            cb = functools.partial(self._search_cb, tab=tab,
-                                   old_scroll_pos=tab.scroller.pos_px(),
-                                   options=options, text=text, prev=False)
-        else:
-            cb = None
-
+        cb = functools.partial(self._search_cb, tab=tab,
+                               old_scroll_pos=tab.scroller.pos_px(),
+                               options=options, text=text, prev=False)
         options['result_cb'] = cb
+
         tab.search.search(text, **options)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
@@ -1955,33 +1952,20 @@ class CommandDispatcher:
     def debug_webaction(self, action, count=1):
         """Execute a webaction.
 
-        See http://doc.qt.io/qt-5/qwebpage.html#WebAction-enum for the
-        available actions.
+        Available actions:
+        http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
+        http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
 
         Args:
             action: The action to execute, e.g. MoveToNextChar.
             count: How many times to repeat the action.
         """
         tab = self._current_widget()
-
-        if tab.backend == usertypes.Backend.QtWebKit:
-            assert QWebPage is not None
-            member = getattr(QWebPage, action, None)
-            base = QWebPage.WebAction
-        elif tab.backend == usertypes.Backend.QtWebEngine:
-            assert QWebEnginePage is not None
-            member = getattr(QWebEnginePage, action, None)
-            base = QWebEnginePage.WebAction
-
-        if not isinstance(member, base):
-            raise cmdexc.CommandError("{} is not a valid web action!".format(
-                action))
-
         for _ in range(count):
-            # This whole command is backend-specific anyways, so it makes no
-            # sense to introduce some API for this.
-            # pylint: disable=protected-access
-            tab._widget.triggerPageAction(member)
+            try:
+                tab.action.run_string(action)
+            except browsertab.WebTabError as e:
+                raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)

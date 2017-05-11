@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Various utility commands.
 
     ## :set-cmd-text
@@ -79,6 +81,7 @@ Feature: Various utility commands.
         And I run :jseval --world=1 console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
+        And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
@@ -87,6 +90,7 @@ Feature: Various utility commands.
         And I run :jseval do_log()
         Then the javascript message "Hello from the page!" should not be logged
         And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
+        And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval using the main world
@@ -94,6 +98,7 @@ Feature: Various utility commands.
         And I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
+        And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval using the main world as name
@@ -101,12 +106,14 @@ Feature: Various utility commands.
         And I open data/misc/jseval.html
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
+        And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that exists as js-code
         When I set general -> log-javascript-console to info
         And I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
         And the javascript message "Hello again from JS!" should be logged
+        And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
         When I run :jseval --file nonexistentfile
@@ -301,6 +308,15 @@ Feature: Various utility commands.
             - about:blank
             - qute://help/index.html (active)
 
+    # https://github.com/qutebrowser/qutebrowser/issues/2513
+    Scenario: Opening link with qute:help
+        When the documentation is up to date
+        And I run :tab-only
+        And I open qute:help without waiting
+        And I wait for "Changing title for idx 0 to 'qutebrowser help'" in the log
+        And I hint with args "links normal" and follow a
+        Then qute://help/quickstart.html should be loaded
+
     # :history
 
     Scenario: :history without arguments
@@ -398,12 +414,12 @@ Feature: Various utility commands.
     # :pyeval
     Scenario: Running :pyeval
         When I run :debug-pyeval 1+1
-        And I wait until qute:pyeval is loaded
+        And I wait until qute://pyeval is loaded
         Then the page should contain the plaintext "2"
 
     Scenario: Causing exception in :pyeval
         When I run :debug-pyeval 1/0
-        And I wait until qute:pyeval is loaded
+        And I wait until qute://pyeval is loaded
         Then the page should contain the plaintext "ZeroDivisionError"
 
     Scenario: Running :pyeval with --quiet
@@ -505,12 +521,16 @@ Feature: Various utility commands.
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
 
-    Scenario: Using qute:log directly
-        When I open qute:log
+    Scenario: Using qute://log directly
+        When I open qute://log without waiting
+        # With Qt 5.9, we don't get a loaded message?
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
-    Scenario: Using qute:plainlog directly
-        When I open qute:plainlog
+    Scenario: Using qute://plainlog directly
+        When I open qute://plainlog without waiting
+        # With Qt 5.9, we don't get a loaded message?
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
     Scenario: Using :messages without messages
@@ -530,6 +550,16 @@ Feature: Various utility commands.
     Scenario: Partial commandline matching with startup command
         When I run :message-i "Hello World" (invalid command)
         Then the error "message-i: no such command" should be shown
+
+     Scenario: Multiple leading : in command
+        When I run :::::set-cmd-text ::::message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+
+    Scenario: Whitespace in command
+        When I run :   :  set-cmd-text :  :  message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown
 
     # We can't run :message-i as startup command, so we use
     # :set-cmd-text
@@ -625,7 +655,7 @@ Feature: Various utility commands.
         And I run :command-history-prev
         And I run :command-accept
         Then the message "blah" should be shown
- 
+
     Scenario: Browsing through commands 
         When I run :set-cmd-text :message-info blarg
         And I run :command-accept
@@ -637,7 +667,7 @@ Feature: Various utility commands.
         And I run :command-history-next
         And I run :command-accept
         Then the message "blarg" should be shown
- 
+
     Scenario: Calling previous command when history is empty
         Given I have a fresh instance
         When I run :set-cmd-text :
@@ -673,7 +703,8 @@ Feature: Various utility commands.
 
     ## Renderer crashes
 
-    @qtwebkit_skip @no_invalid_lines
+    # Skipped on Windows as "... has stopped working" hangs.
+    @qtwebkit_skip @no_invalid_lines @posix
     Scenario: Renderer crash
         When I run :open -t chrome://crash
         Then the error "Renderer process crashed" should be shown

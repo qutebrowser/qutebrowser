@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Scrolling
     Tests the various scroll commands.
 
@@ -37,6 +39,7 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
+    @qtwebengine_flaky
     Scenario: Scrolling left and right with count
         When I run :scroll-px 10 0 with count 2
         And I wait until the scroll position changed to 20/0
@@ -144,7 +147,6 @@ Feature: Scrolling
 
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
-        And I wait until the scroll position changed
         # Make sure it doesn't hang
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown

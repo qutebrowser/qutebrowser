@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -103,7 +103,7 @@ class BaseCompletionModel(QStandardItemModel):
             nameitem.setData(userdata, Role.userdata)
         return nameitem, descitem, miscitem
 
-    def delete_cur_item(self, win_id):
+    def delete_cur_item(self, completion):
         """Delete the selected item."""
         raise NotImplementedError
 

@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Prompts
     Various prompts (javascript, SSL errors, authentification, etc.)
 
@@ -150,12 +152,13 @@ Feature: Prompts
     Scenario: Pasting via shift-insert without it being supported
         When selection is not supported
         And I put "insert test" into the primary selection
+        And I put "clipboard test" into the clipboard
         And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
         And I press the keys "<Shift-Insert>"
         And I run :prompt-accept
-        Then the javascript message "Prompt reply: " should be logged
+        Then the javascript message "Prompt reply: clipboard test" should be logged
 
     @js_prompt
     Scenario: Using content -> ignore-javascript-prompt
@@ -174,6 +177,7 @@ Feature: Prompts
         Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
+    @issue2478
     Scenario: SSL error with ssl-strict = true
         When I clear SSL errors
         And I set network -> ssl-strict to true
@@ -189,6 +193,7 @@ Feature: Prompts
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
+    @issue2478
     Scenario: SSL error with ssl-strict = ask -> no
         When I clear SSL errors
         And I set network -> ssl-strict to ask
@@ -197,6 +202,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
+    @issue2478
     Scenario: SSL error with ssl-strict = ask -> abort
         When I clear SSL errors
         And I set network -> ssl-strict to ask

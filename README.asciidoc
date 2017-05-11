@@ -24,6 +24,13 @@ on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+// QUTE_WEB_HIDE
+**qutebrowser is currently running a crowdfunding campaign for its new
+configuration system, allowing for per-domain settings and much more.**
+
+See the link:https://www.kickstarter.com/projects/the-compiler/qutebrowser-v10-with-per-domain-settings?ref=6zw7qz[Kickstarter campaign] for more information!
+// QUTE_WEB_HIDE_END
+
 Screenshots
 -----------
 
@@ -71,7 +78,8 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 There's also a https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
-at mailto:qutebrowser-announce@lists.qutebrowser.org[].
+at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
+get sent to the general qutebrowser@ list).
 
 Contributions / Bugs
 --------------------
@@ -152,38 +160,41 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Marshall Lochbaum
 * Bruno Oliveira
+* Martin Tournoij
+* Imran Sobir
 * Alexander Cogneau
 * Felix Van der Jeugt
 * Daniel Karbach
-* Martin Tournoij
 * Kevin Velghe
 * Raphael Pierzina
 * Joel Torstensson
 * Patric Schmitz
 * Tarcisio Fedrizzi
 * Claude
+* Fritz Reichwald
 * Corentin Julé
 * meles5
 * Philipp Hansch
-* Imran Sobir
 * Panagiotis Ktistakis
 * Artur Shaik
 * Nathan Isom
 * Thorsten Wißmann
 * Austin Anderson
-* Fritz Reichwald
 * Jimmy
 * Niklas Haas
 * Maciej Wołczyk
-* Spreadyy
+* sandrosc
 * Alexey "Averrin" Nabrodov
+* pkill9
 * nanjekyejoannah
 * avk
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
+* Jay Kamat
 * Clayton Craft
 * Peter Vilim
+* Jacob Sword
 * knaggita
 * Oliver Caldwell
 * Julian Weigt
@@ -205,7 +216,6 @@ Contributors, sorted by the number of commits in descending order:
 * David Vogt
 * Claire Cavanaugh
 * rikn00
-* pkill9
 * kanikaa1234
 * haitaka
 * Nick Ginther
@@ -239,8 +249,10 @@ Contributors, sorted by the number of commits in descending order:
 * adam
 * Samir Benmendil
 * Regina Hug
+* Penaz
 * Mathias Fussenegger
 * Marcelo Santos
+* Marcel Schilling
 * Joel Bradshaw
 * Jean-Louis Fuchs
 * Franz Fellner
@@ -253,6 +265,7 @@ Contributors, sorted by the number of commits in descending order:
 * haxwithaxe
 * evan
 * dylan araps
+* caveman
 * addictedtoflames
 * Xitian9
 * Vasilij Schneidermann
@@ -261,19 +274,18 @@ Contributors, sorted by the number of commits in descending order:
 * Tobias Werth
 * Tim Harder
 * Thiago Barroso Perrotta
+* Steve Peak
 * Sorokin Alexei
 * Simon Désaulniers
 * Rok Mandeljc
 * Noah Huesser
 * Moez Bouhlel
 * Matthias Lisin
-* Marcel Schilling
 * Lazlow Carmichael
 * Kevin Wang
 * Ján Kobezda
 * Johannes Martinsson
 * Jean-Christophe Petkovich
-* Jay Kamat
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl
@@ -281,9 +293,11 @@ Contributors, sorted by the number of commits in descending order:
 * Dietrich Daroch
 * Derek Sivers
 * Daniel Lu
+* Daniel Jakots
 * Arseniy Seroka
 * Andy Balaam
 * Andreas Fischer
+* Amos Bird
 * Akselmo
 // QUTE_AUTHORS_END
 

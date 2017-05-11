@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import subprocess
 import socket
 import sys
 import logging
@@ -28,7 +29,6 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from end2end.fixtures import quteprocess, testprocess
 from qutebrowser.utils import qtutils
 
 
@@ -77,8 +77,6 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     https://github.com/qutebrowser/qutebrowser/issues/908
     https://github.com/qutebrowser/qutebrowser/issues/1726
     """
-    if request.config.webengine:
-        pytest.skip("Downloads are not implemented with QtWebEngine yet")
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
     quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
@@ -113,9 +111,6 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
     https://github.com/qutebrowser/qutebrowser/issues/866
     https://github.com/qutebrowser/qutebrowser/issues/1269
     """
-    if request.config.webengine:
-        pytest.skip("Downloads are not implemented with QtWebEngine yet")
-
     home = tmpdir / 'home'
     home.ensure(dir=True)
     temp_basedir_env['HOME'] = str(home)
@@ -143,12 +138,10 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
 
 def test_no_loglines(request, quteproc_new):
-    """Test qute:log with --loglines=0."""
-    if request.config.webengine:
-        pytest.skip("qute:log is not implemented with QtWebEngine yet")
+    """Test qute://log with --loglines=0."""
     quteproc_new.start(args=['--temp-basedir', '--loglines=0'] +
                        _base_args(request.config))
-    quteproc_new.open_path('qute:log')
+    quteproc_new.open_path('qute://log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
 
 
@@ -168,23 +161,24 @@ def test_optimize(request, quteproc_new, capfd, level):
     quteproc_new.wait_for_quit()
 
 
+@pytest.mark.not_frozen
 def test_version(request):
     """Test invocation with --version argument."""
-    args = ['--version'] + _base_args(request.config)
+    args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)
     # can't use quteproc_new here because it's confused by
     # early process termination
-    proc = quteprocess.QuteProc(request)
-    proc.proc.setProcessChannelMode(QProcess.SeparateChannels)
+    proc = QProcess()
+    proc.setProcessChannelMode(QProcess.SeparateChannels)
 
-    try:
-        proc.start(args)
-        proc.wait_for_quit()
-    except testprocess.ProcessExited:
-        assert proc.proc.exitStatus() == QProcess.NormalExit
-    else:
-        pytest.fail("Process did not exit!")
+    proc.start(sys.executable, args)
+    ok = proc.waitForStarted(2000)
+    assert ok
+    ok = proc.waitForFinished(2000)
+    assert ok
+    assert proc.exitStatus() == QProcess.NormalExit
 
-    output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
+    output = bytes(proc.readAllStandardOutput()).decode('utf-8')
+    print(output)
 
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
 
@@ -261,3 +255,15 @@ def test_command_on_start(request, quteproc_new):
     quteproc_new.start(args)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_launching_with_python2():
+    try:
+        proc = subprocess.Popen(['python2', '-m', 'qutebrowser',
+                                '--no-err-windows'], stderr=subprocess.PIPE)
+    except FileNotFoundError:
+        pytest.skip("python2 not found")
+    _stdout, stderr = proc.communicate()
+    assert proc.returncode == 1
+    error = "At least Python 3.4 is required to run qutebrowser"
+    assert stderr.decode('ascii').startswith(error)

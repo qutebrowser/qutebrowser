@@ -35,9 +35,9 @@ max-complexity = 12
 putty-auto-ignore = True
 putty-ignore =
     /# pylint: disable=invalid-name/ : +N801,N806
-    /# pylint: disable=wildcard-import/ : +F403
     /# pragma: no mccabe/ : +C901
     tests/*/test_*.py : +D100,D101,D401
+    tests/conftest.py : +F403
     tests/unit/browser/webkit/test_history.py : +N806
     tests/helpers/fixtures.py : +N806
     tests/unit/browser/webkit/http/test_content_disposition.py : +D400

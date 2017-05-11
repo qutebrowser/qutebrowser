@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Keyboard input
 
     Tests for :bind and :unbind, :clear-keychain and other keyboard input
@@ -200,34 +202,30 @@ Feature: Keyboard input
     # Macros
 
     Scenario: Recording a simple macro
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 6
-        And I wait until the scroll position changed
-        And I run :record-macro
+        When I run :record-macro
         And I press the key "a"
-        And I run :scroll up
-        And I run :scroll up
-        And I wait until the scroll position changed
+        And I run :message-info "foo 1"
+        And I run :message-info "bar 1"
         And I run :record-macro
         And I run :run-macro with count 2
         And I press the key "a"
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
+        Then the message "foo 1" should be shown
+        And the message "bar 1" should be shown
+        And the message "foo 1" should be shown
+        And the message "bar 1" should be shown
+        And the message "foo 1" should be shown
+        And the message "bar 1" should be shown
 
     Scenario: Recording a named macro
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 6
-        And I wait until the scroll position changed
+        When I run :record-macro foo
+        And I run :message-info "foo 2"
+        And I run :message-info "bar 2"
         And I run :record-macro foo
-        And I run :scroll up
-        And I run :scroll up
-        And I wait until the scroll position changed
-        And I run :record-macro foo
-        And I run :run-macro foo with count 2
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
+        And I run :run-macro foo
+        Then the message "foo 2" should be shown
+        And the message "bar 2" should be shown
+        And the message "foo 2" should be shown
+        And the message "bar 2" should be shown
 
     Scenario: Running an invalid macro
         Given I open data/scroll/simple.html
@@ -262,17 +260,12 @@ Feature: Keyboard input
         Then "Leaving mode KeyMode.record_macro (reason: leave current)" should be logged
 
     Scenario: Ignoring non-register keys
-        Given I open data/scroll/simple.html
-        And I run :tab-only
-        When I run :scroll down with count 2
-        And I wait until the scroll position changed
-        And I run :record-macro
+        When I run :record-macro
         And I press the key "<Menu>"
         And I press the key "c"
-        And I run :scroll up
-        And I wait until the scroll position changed
+        And I run :message-info "foo 3"
         And I run :record-macro
         And I run :run-macro
         And I press the key "c"
-        And I wait until the scroll position changed to 0/0
-        Then the page should not be scrolled
+        Then the message "foo 3" should be shown
+        And the message "foo 3" should be shown

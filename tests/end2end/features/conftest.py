@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -161,7 +161,7 @@ def clean_open_tabs(quteproc):
     quteproc.send_cmd(':window-only')
     quteproc.send_cmd(':tab-only')
     quteproc.send_cmd(':tab-close --force')
-
+    quteproc.wait_for_load_finished_url('about:blank')
 
 @bdd.given('pdfjs is available')
 def pdfjs_available():
@@ -173,13 +173,15 @@ def pdfjs_available():
 
 
 @bdd.when(bdd.parsers.parse("I open {path}"))
-def open_path(quteproc, path):
+def open_path(quteproc, httpbin, path):
     """Open a URL.
 
     If used like "When I open ... in a new tab", the URL is opened in a new
     tab. With "... in a new window", it's opened in a new window. With
     "... as a URL", it's opened according to new-instance-open-target.
     """
+    path = path.replace('(port)', str(httpbin.port))
+
     new_tab = False
     new_bg_tab = False
     new_window = False

@@ -135,11 +135,41 @@ If video or sound don't seem to work, try installing the gstreamer plugins:
 On Gentoo
 ---------
 
-qutebrowser is available in the main repository and can be installed with:
+A version of qutebrowser is available in the main repository and can be installed with:
 
 ----
 # emerge -av qutebrowser
 ----
+
+However it is suggested to install the Live version (-9999) to take advantage
+of the newest features introduced.
+
+First of all you need to edit your package.accept_keywords file to accept the live
+version:
+
+----
+# nano /etc/portage/package.accept_keywords
+----
+
+And add the following line to it:
+
+ =www-client/qutebrowser-9999 **
+
+Save the file and then install qutebrowser via
+
+----
+# emerge -av qutebrowser
+----
+
+Or rebuild your system if you already installed it.
+
+To update to the last Live version, remember to do
+
+----
+# emerge -uDNav @live-rebuild @world
+----
+
+To include qutebrowser among the updates.
 
 Make sure you have `python3_4` in your `PYTHON_TARGETS`
 (`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
@@ -192,17 +222,17 @@ On OpenBSD
 
 qutebrowser is in http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/qutebrowser/[OpenBSD ports].
 
-Manual install:
+Install the package:
+
+----
+# pkg_add qutebrowser
+----
+
+Or alternatively, use the ports system :
 
 ----
 # cd /usr/ports/www/qutebrowser
 # make install
-----
-
-Or alternatively if you're using `-current` (or OpenBSD 6.1 once it's been released):
-
-----
-# pkg_add qutebrowser
 ----
 
 On Windows

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -451,7 +451,7 @@ class SessionManager(QObject):
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     @cmdutils.argument('win_id', win_id=True)
-    def session_save(self, name: str=default, current=False, quiet=False,
+    def session_save(self, name: str = default, current=False, quiet=False,
                      force=False, only_active_window=False, win_id=None):
         """Save a session.
 
@@ -463,9 +463,7 @@ class SessionManager(QObject):
             force: Force saving internal sessions (starting with an underline).
             only_active_window: Saves only tabs of the currently active window.
         """
-        if (name is not default and
-                name.startswith('_') and  # pylint: disable=no-member
-                not force):
+        if name is not default and name.startswith('_') and not force:
             raise cmdexc.CommandError("{} is an internal session, use --force "
                                       "to save anyways.".format(name))
         if current:

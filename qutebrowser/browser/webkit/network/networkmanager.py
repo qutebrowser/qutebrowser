@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -416,8 +416,7 @@ class NetworkManager(QNetworkAccessManager):
             req.setRawHeader(header, value)
 
         host_blocker = objreg.get('host-blocker')
-        if (op == QNetworkAccessManager.GetOperation and
-                host_blocker.is_blocked(req.url())):
+        if host_blocker.is_blocked(req.url()):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 req.url().host()))
             return networkreply.ErrorNetworkReply(

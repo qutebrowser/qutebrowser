@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Setting settings.
 
     Background:
@@ -76,15 +78,15 @@ Feature: Setting settings.
         When I run :set -t colors statusbar.bg green
         Then colors -> statusbar.bg should be green
 
-    # qute:settings isn't actually implemented on QtWebEngine, but this works
+    # qute://settings isn't actually implemented on QtWebEngine, but this works
     # (and displays a page saying it's not available)
-    Scenario: Opening qute:settings
+    Scenario: Opening qute://settings
         When I run :set
-        And I wait until qute:settings is loaded
+        And I wait until qute://settings is loaded
         Then the following tabs should be open:
-            - qute:settings (active)
+            - qute://settings (active)
 
-    @qtwebengine_todo: qute:settings is not implemented yet
+    @qtwebengine_todo: qute://settings is not implemented yet
     Scenario: Focusing input fields in qute://settings and entering valid value
         When I set general -> ignore-case to false
         And I open qute://settings
@@ -99,7 +101,7 @@ Feature: Setting settings.
         And I press the key "<Tab>"
         Then general -> ignore-case should be true
 
-    @qtwebengine_todo: qute:settings is not implemented yet
+    @qtwebengine_todo: qute://settings is not implemented yet
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen

@@ -36,6 +36,7 @@
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Setting|Description
+|<<ui-history-session-interval,history-session-interval>>|The maximum time in minutes between two history items for them to be considered being from the same session. Use -1 to disable separation.
 |<<ui-zoom-levels,zoom-levels>>|The available zoom levels, separated by commas.
 |<<ui-default-zoom,default-zoom>>|The default zoom level.
 |<<ui-downloads-position,downloads-position>>|Where to show the downloaded files.
@@ -56,6 +57,7 @@
 |<<ui-modal-js-dialog,modal-js-dialog>>|Use standard JavaScript modal dialog for alert() and confirm()
 |<<ui-hide-wayland-decoration,hide-wayland-decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<ui-keyhint-blacklist,keyhint-blacklist>>|Keychains that shouldn't be shown in the keyhint dialog
+|<<ui-keyhint-delay,keyhint-delay>>|Time from pressing a key to seeing the keyhint dialog (ms)
 |<<ui-prompt-radius,prompt-radius>>|The rounding radius for the edges of prompts.
 |<<ui-prompt-filebrowser,prompt-filebrowser>>|Show a filebrowser in upload/download prompts.
 |==============
@@ -124,6 +126,7 @@
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
 |<<tabs-position,position>>|The position of the tab bar.
 |<<tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
+|<<tabs-favicon-scale,favicon-scale>>|Scale for favicons in the tab bar. The tab size is unchanged, so big favicons also require extra `tabs->padding`.
 |<<tabs-width,width>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
@@ -172,7 +175,7 @@
 |<<content-local-content-can-access-remote-urls,local-content-can-access-remote-urls>>|Whether locally loaded documents are allowed to access remote urls.
 |<<content-local-content-can-access-file-urls,local-content-can-access-file-urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<content-cookies-accept,cookies-accept>>|Control which cookies to accept.
-|<<content-cookies-store,cookies-store>>|Whether to store cookies. Note this option needs a restart with QtWebEngine.
+|<<content-cookies-store,cookies-store>>|Whether to store cookies. Note this option needs a restart with QtWebEngine on Qt < 5.9.
 |<<content-host-block-lists,host-block-lists>>|List of URLs of lists which contain hosts to block.
 |<<content-host-blocking-enabled,host-blocking-enabled>>|Whether host blocking is enabled.
 |<<content-host-blocking-whitelist,host-blocking-whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
@@ -536,6 +539,12 @@ Default: +pass:[path,query]+
 == ui
 General options related to the user interface.
 
+[[ui-history-session-interval]]
+=== history-session-interval
+The maximum time in minutes between two history items for them to be considered being from the same session. Use -1 to disable separation.
+
+Default: +pass:[30]+
+
 [[ui-zoom-levels]]
 === zoom-levels
 The available zoom levels, separated by commas.
@@ -573,6 +582,7 @@ Default: +pass:[bottom]+
 [[ui-message-timeout]]
 === message-timeout
 Time (in ms) to show messages in the statusbar for.
+Set to 0 to never clear messages.
 
 Default: +pass:[2000]+
 
@@ -731,6 +741,12 @@ Keychains that shouldn't be shown in the keyhint dialog
 Globs are supported, so ';*' will blacklist all keychainsstarting with ';'. Use '*' to disable keyhints
 
 Default: empty
+
+[[ui-keyhint-delay]]
+=== keyhint-delay
+Time from pressing a key to seeing the keyhint dialog (ms)
+
+Default: +pass:[500]+
 
 [[ui-prompt-radius]]
 === prompt-radius
@@ -1191,6 +1207,12 @@ Valid values:
 
 Default: +pass:[true]+
 
+[[tabs-favicon-scale]]
+=== favicon-scale
+Scale for favicons in the tab bar. The tab size is unchanged, so big favicons also require extra `tabs->padding`.
+
+Default: +pass:[1.0]+
+
 [[tabs-width]]
 === width
 The width of the tab bar if it's vertical, in px or as percentage of the window.
@@ -1594,7 +1616,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content-cookies-store]]
 === cookies-store
-Whether to store cookies. Note this option needs a restart with QtWebEngine.
+Whether to store cookies. Note this option needs a restart with QtWebEngine on Qt < 5.9.
 
 Valid values:
 
@@ -2252,7 +2274,7 @@ Fonts used for the UI, with optional style/weight/size.
 === _monospace
 Default monospace fonts.
 
-Default: +pass:[Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[xos4 Terminus, Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
 
 [[fonts-completion]]
 === completion

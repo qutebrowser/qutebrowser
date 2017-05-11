@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: quickmarks and bookmarks
 
     ## bookmarks
@@ -5,12 +7,12 @@ Feature: quickmarks and bookmarks
     Scenario: Saving a bookmark
         When I open data/title.html
         And I run :bookmark-add
-        Then the message "Bookmarked http://localhost:*/data/title.html!" should be shown
+        Then the message "Bookmarked http://localhost:*/data/title.html" should be shown
         And the bookmark file should contain "http://localhost:*/data/title.html Test title"
 
     Scenario: Saving a bookmark with a provided url and title
         When I run :bookmark-add http://example.com "some example title"
-        Then the message "Bookmarked http://example.com!" should be shown
+        Then the message "Bookmarked http://example.com" should be shown
         And the bookmark file should contain "http://example.com some example title"
 
     Scenario: Saving a bookmark with a url but no title
@@ -223,12 +225,12 @@ Feature: quickmarks and bookmarks
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/20.txt twenty
         And I run :quickmark-add http://localhost:(port)/data/numbers/21.txt twentyone
-        And I open qute:bookmarks
+        And I open qute://bookmarks
         Then the page should contain the plaintext "twenty"
         And the page should contain the plaintext "twentyone"
 
     Scenario: Listing bookmarks
-        When I open data/title.html
+        When I open data/title.html in a new tab
         And I run :bookmark-add
-        And I open qute:bookmarks
+        And I open qute://bookmarks
         Then the page should contain the plaintext "Test title"

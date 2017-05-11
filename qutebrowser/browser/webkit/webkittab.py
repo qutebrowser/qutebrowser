@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,7 @@ import sys
 import functools
 import xml.etree.ElementTree
 
+import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent
@@ -35,7 +36,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.browser.webkit.network import webkitqutescheme
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
+from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 
 def init():
@@ -55,6 +56,9 @@ def init():
 class WebKitAction(browsertab.AbstractAction):
 
     """QtWebKit implementations related to web actions."""
+
+    action_class = QWebPage
+    action_base = QWebPage.WebAction
 
     def exit_fullscreen(self):
         raise browsertab.UnsupportedOperationError
@@ -103,7 +107,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         super().__init__(parent)
         self._flags = QWebPage.FindFlags(0)
 
-    def _call_cb(self, callback, found):
+    def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
 
         Delays the call via a QTimer so the website is re-rendered in between.
@@ -111,17 +115,34 @@ class WebKitSearch(browsertab.AbstractSearch):
         Args:
             callback: What to call
             found: If the text was found
+            text: The text searched for
+            flags: The flags searched with
+            caller: Name of the caller.
         """
+        found_text = 'found' if found else "didn't find"
+        # Removing FindWrapsAroundDocument to get the same logging as with
+        # QtWebEngine
+        debug_flags = debug.qflags_key(
+            QWebPage, flags & ~QWebPage.FindWrapsAroundDocument,
+            klass=QWebPage.FindFlag)
+        if debug_flags != '0x0000':
+            flag_text = 'with flags {}'.format(debug_flags)
+        else:
+            flag_text = ''
+        log.webview.debug(' '.join([caller, found_text, text, flag_text])
+                          .strip())
         if callback is not None:
             QTimer.singleShot(0, functools.partial(callback, found))
 
     def clear(self):
+        self.search_displayed = False
         # We first clear the marked text, then the highlights
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
+        self.search_displayed = True
         flags = QWebPage.FindWrapsAroundDocument
         if ignore_case == 'smart':
             if not text.islower():
@@ -136,13 +157,15 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText(text, flags | QWebPage.HighlightAllOccurrences)
         self.text = text
         self._flags = flags
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, text, flags, 'search')
 
     def next_result(self, *, result_cb=None):
+        self.search_displayed = True
         found = self._widget.findText(self.text, self._flags)
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, self.text, self._flags, 'next_result')
 
     def prev_result(self, *, result_cb=None):
+        self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
         flags = QWebPage.FindFlags(int(self._flags))
         if flags & QWebPage.FindBackward:
@@ -150,7 +173,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         else:
             flags |= QWebPage.FindBackward
         found = self._widget.findText(self.text, flags)
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, self.text, flags, 'prev_result')
 
 
 class WebKitCaret(browsertab.AbstractCaret):
@@ -444,15 +467,11 @@ class WebKitScroller(browsertab.AbstractScroller):
         # self._widget.setFocus()
 
         for _ in range(min(count, 5000)):
-            press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
-                                    0, 0, 0)
             # Abort scrolling if the minimum/maximum was reached.
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):
                 return
-            self._widget.keyPressEvent(press_evt)
-            self._widget.keyReleaseEvent(release_evt)
+            self._tab.key_press(key)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
@@ -678,6 +697,13 @@ class WebKitTab(browsertab.AbstractTab):
     def clear_ssl_errors(self):
         self.networkaccessmanager().clear_all_ssl_errors()
 
+    def key_press(self, key, modifier=Qt.NoModifier):
+        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+                                0, 0, 0)
+        self.send_event(press_evt)
+        self.send_event(release_evt)
+
     @pyqtSlot()
     def _on_history_trigger(self):
         url = self.url()
@@ -707,6 +733,9 @@ class WebKitTab(browsertab.AbstractTab):
     @pyqtSlot()
     def _on_webkit_icon_changed(self):
         """Emit iconChanged with a QIcon like QWebEngineView does."""
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Got _on_webkit_icon_changed for deleted view!")
+            return
         self.icon_changed.emit(self._widget.icon())
 
     @pyqtSlot(QWebFrame)

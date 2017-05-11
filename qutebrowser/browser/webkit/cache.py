@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg
+from qutebrowser.utils import utils, objreg, qtutils
 
 
 class DiskCache(QNetworkDiskCache):
@@ -53,6 +53,10 @@ class DiskCache(QNetworkDiskCache):
         size = config.get('storage', 'cache-size')
         if size is None:
             size = 1024 * 1024 * 50  # default from QNetworkDiskCachePrivate
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-59909
+        if (qtutils.version_check('5.7.1') and
+                not qtutils.version_check('5.9')):  # pragma: no cover
+            size = 0
         self.setMaximumCacheSize(size)
 
     def _maybe_activate(self):

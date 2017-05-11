@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy
+from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, style
@@ -117,6 +117,7 @@ class CompletionView(QTreeView):
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
+        self.setStyle(QStyleFactory.create('Fusion'))
         style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
@@ -124,6 +125,7 @@ class CompletionView(QTreeView):
         self.setIndentation(0)
         self.setItemsExpandable(False)
         self.setExpandsOnDoubleClick(False)
+        self.setAnimated(False)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # WORKAROUND
         # This is a workaround for weird race conditions with invalid

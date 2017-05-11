@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -46,13 +46,13 @@ class MinimalLineEditMixin:
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
             try:
-                text = utils.get_clipboard(selection=True)
+                text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:
-                pass
+                e.ignore()
             else:
                 e.accept()
                 self.insert(text)
-                return
+            return
         super().keyPressEvent(e)
 
     def __repr__(self):

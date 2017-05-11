@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -185,11 +185,12 @@ def test_skipped_windows(covtest, monkeypatch):
 
 def _generate_files():
     """Get filenames from WHITELISTED_/PERFECT_FILES."""
-    yield from iter(check_coverage.WHITELISTED_FILES)
+    for src_file in check_coverage.WHITELISTED_FILES:
+        yield os.path.join('qutebrowser', src_file)
     for test_file, src_file in check_coverage.PERFECT_FILES:
         if test_file is not None:
             yield test_file
-        yield src_file
+        yield os.path.join('qutebrowser', src_file)
 
 
 @pytest.mark.parametrize('filename', list(_generate_files()))

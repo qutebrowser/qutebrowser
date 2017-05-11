@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -155,7 +155,7 @@ class PACResolver:
                 raise ParseProxyError("Invalid number of parameters for PROXY")
             host, port = PACResolver._parse_proxy_host(config[1])
             return QNetworkProxy(QNetworkProxy.HttpProxy, host, port)
-        elif config[0] == "SOCKS":
+        elif config[0] in ["SOCKS", "SOCKS5"]:
             if len(config) != 2:
                 raise ParseProxyError("Invalid number of parameters for SOCKS")
             host, port = PACResolver._parse_proxy_host(config[1])

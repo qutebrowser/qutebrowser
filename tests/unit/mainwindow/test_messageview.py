@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
+from PyQt5.QtCore import Qt
 
 from qutebrowser.mainwindow import messageview
 from qutebrowser.utils import usertypes
@@ -114,3 +115,17 @@ def test_replaced_messages(view, replace1, replace2, length):
     view.show_message(usertypes.MessageLevel.info, 'test', replace=replace1)
     view.show_message(usertypes.MessageLevel.info, 'test 2', replace=replace2)
     assert len(view._messages) == length
+
+
+@pytest.mark.parametrize('button, count', [
+    (Qt.LeftButton, 0),
+    (Qt.MiddleButton, 0),
+    (Qt.RightButton, 0),
+    (Qt.BackButton, 2),
+])
+def test_click_messages(qtbot, view, button, count):
+    """Messages should dissappear when we click on them."""
+    view.show_message(usertypes.MessageLevel.info, 'test mouse click')
+    view.show_message(usertypes.MessageLevel.info, 'test mouse click 2')
+    qtbot.mousePress(view, button)
+    assert len(view._messages) == count

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -292,6 +292,12 @@ def data(readonly=False):
         )),
 
         ('ui', sect.KeyValue(
+            ('history-session-interval',
+             SettingValue(typ.Int(), '30'),
+             "The maximum time in minutes between two history items for them "
+             "to be considered being from the same session. Use -1 to "
+             "disable separation."),
+
             ('zoom-levels',
              SettingValue(typ.List(typ.Perc(minval=0)),
                           '25%,33%,50%,67%,75%,90%,100%,110%,125%,150%,175%,'
@@ -311,8 +317,9 @@ def data(readonly=False):
              "The position of the status bar."),
 
             ('message-timeout',
-             SettingValue(typ.Int(), '2000'),
-             "Time (in ms) to show messages in the statusbar for."),
+             SettingValue(typ.Int(minval=0), '2000'),
+             "Time (in ms) to show messages in the statusbar for.\n"
+             "Set to 0 to never clear messages."),
 
             ('message-unfocused',
              SettingValue(typ.Bool(), 'false'),
@@ -399,6 +406,10 @@ def data(readonly=False):
              "Keychains that shouldn't be shown in the keyhint dialog\n\n"
              "Globs are supported, so ';*' will blacklist all keychains"
              "starting with ';'. Use '*' to disable keyhints"),
+
+            ('keyhint-delay',
+             SettingValue(typ.Int(minval=0), '500'),
+             "Time from pressing a key to seeing the keyhint dialog (ms)"),
 
             ('prompt-radius',
              SettingValue(typ.Int(minval=0), '8'),
@@ -669,6 +680,11 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to show favicons in the tab bar."),
 
+            ('favicon-scale',
+             SettingValue(typ.Float(minval=0.0), '1.0'),
+             "Scale for favicons in the tab bar. The tab size is unchanged, "
+             "so big favicons also require extra `tabs->padding`."),
+
             ('width',
              SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
                           '20%'),
@@ -912,7 +928,7 @@ def data(readonly=False):
             ('cookies-store',
              SettingValue(typ.Bool(), 'true'),
              "Whether to store cookies. Note this option needs a restart with "
-             "QtWebEngine."),
+             "QtWebEngine on Qt < 5.9."),
 
             ('host-block-lists',
              SettingValue(
@@ -1361,7 +1377,7 @@ def data(readonly=False):
 
         ('fonts', sect.KeyValue(
             ('_monospace',
-             SettingValue(typ.Font(), 'Terminus, Monospace, '
+             SettingValue(typ.Font(), 'xos4 Terminus, Terminus, Monospace, '
                           '"DejaVu Sans Mono", Monaco, '
                           '"Bitstream Vera Sans Mono", "Andale Mono", '
                           '"Courier New", Courier, "Liberation Mono", '
@@ -1692,7 +1708,7 @@ KEY_DATA = collections.OrderedDict([
         ('home', ['<Ctrl-h>']),
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
-        ('open qute:settings', ['Ss']),
+        ('open qute://settings', ['Ss']),
         ('follow-selected', RETURN_KEYS),
         ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
         ('repeat-command', ['.']),

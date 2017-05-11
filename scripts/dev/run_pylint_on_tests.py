@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -54,7 +54,8 @@ def main():
         'missing-docstring',
         'protected-access',
         # https://bitbucket.org/logilab/pylint/issue/511/
-        'undefined-variable',
+        #'undefined-variable',
+        'len-as-condition',
         # directories without __init__.py...
         'import-error',
     ]
@@ -66,7 +67,8 @@ def main():
 
     no_docstring_rgx = ['^__.*__$', '^setup$']
     args = (['--disable={}'.format(','.join(disabled)),
-             '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx))] +
+             '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx)),
+             '--ignored-modules=helpers,pytest'] +
             sys.argv[2:] + files)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(pythonpath)

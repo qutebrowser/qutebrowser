@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -257,8 +257,7 @@ def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'QtWebKit{} (WebKit {})'.format(
-            '-NG' if qtutils.is_qtwebkit_ng(qWebKitVersion()) else '',
-            qWebKitVersion())
+            '-NG' if qtutils.is_qtwebkit_ng() else '', qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend

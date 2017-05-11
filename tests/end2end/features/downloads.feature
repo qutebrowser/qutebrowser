@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Downloading things from a website.
 
     Background:
@@ -78,6 +80,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading with SSL errors (issue 1413)
         When I clear SSL errors
         And I set network -> ssl-strict to ask
+        And I set storage -> prompt-download-directory to false
         And I download an SSL page
         And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
         And I run :prompt-accept
@@ -118,13 +121,49 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip
-    Scenario: Downloading a file with evil content-disposition header
+    @qtwebkit_skip @qt<5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
+
+    @qtwebkit_skip @qt>=5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 or newer)
+        # Content-Disposition: download; filename=..%2Ffoo
+        When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
+        And I wait until the download is finished
+        Then the downloaded file ../foo should not exist
+        And the downloaded file ..%2Ffoo should exist
+
+    @windows
+    Scenario: Downloading a file to a reserved path
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I run :prompt-accept COM1
+        And I run :leave-mode
+        Then the error "Invalid filename" should be shown
+
+    @windows
+    Scenario: Downloading a file to a drive-relative working directory
+        When I set storage -> prompt-download-directory to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I run :prompt-accept C:foobar
+        And I run :leave-mode
+        Then the error "Invalid filename" should be shown
+
+    @windows
+    Scenario: Downloading a file to a reserved path with :download
+        When I run :download data/downloads/download.bin --dest=COM1
+        Then the error "Invalid target filename" should be shown
+
+    @windows
+    Scenario: Download a file to a drive-relative working directory with :download
+        When I run :download data/downloads/download.bin --dest=C:foobar
+        Then the error "Invalid target filename" should be shown
 
     ## :download-retry
 
@@ -136,6 +175,14 @@ Feature: Downloading things from a website.
         Then the requests should be:
             does-not-exist
             does-not-exist
+
+    @qtwebkit_skip
+    Scenario: Retrying a failed download with QtWebEngine
+        When I open data/downloads/issue2298.html
+        And I run :click-element id download
+        And I wait for "Download error: *" in the log
+        And I run :download-retry
+        Then the error "Retrying downloads is unsupported with QtWebEngine" should be shown
 
     Scenario: Retrying with count
         When I run :download http://localhost:(port)/data/downloads/download.bin
@@ -603,3 +650,9 @@ Feature: Downloading things from a website.
         And I run :follow-hint 0
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
+
+    @qtwebengine_skip: Handled by QtWebEngine, not by us
+    Scenario: Downloading a "Internal server error" with disposition: inline (#2304)
+        When I set storage -> prompt-download-directory to false
+        And I open custom/500-inline
+        Then the error "Download error: *INTERNAL SERVER ERROR" should be shown

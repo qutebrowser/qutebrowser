@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -113,7 +113,6 @@ def cmdutils_patch(monkeypatch, stubs):
     @cmdutils.argument('command', completion=usertypes.Completion.command)
     def bind(key, win_id, command=None, *, mode='normal', force=False):
         """docstring."""
-        # pylint: disable=unused-variable
         pass
 
     def tab_detach():

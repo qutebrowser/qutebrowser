@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -76,11 +76,11 @@ class ArgumentParser(argparse.ArgumentParser):
         self.name = name
         super().__init__(*args, add_help=False, prog=name, **kwargs)
 
-    def exit(self, status=0, msg=None):
-        raise ArgumentParserExit(status, msg)
+    def exit(self, status=0, message=None):
+        raise ArgumentParserExit(status, message)
 
-    def error(self, msg):
-        raise ArgumentParserError(msg.capitalize())
+    def error(self, message):
+        raise ArgumentParserError(message.capitalize())
 
 
 def arg_name(name):

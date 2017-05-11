@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -171,14 +171,14 @@ class CrashHandler(QObject):
         """
         try:
             pages = self._recover_pages(forgiving=True)
-        except Exception:
-            log.destroy.exception("Error while recovering pages")
+        except Exception as e:
+            log.destroy.exception("Error while recovering pages: {}".format(e))
             pages = []
 
         try:
             cmd_history = objreg.get('command-history')[-5:]
-        except Exception:
-            log.destroy.exception("Error while getting history: {}")
+        except Exception as e:
+            log.destroy.exception("Error while getting history: {}".format(e))
             cmd_history = []
 
         try:
@@ -207,10 +207,10 @@ class CrashHandler(QObject):
         is_ignored_exception = (exctype is bdb.BdbQuit or
                                 not issubclass(exctype, Exception))
 
-        if self._args.pdb_postmortem:
+        if 'pdb-postmortem' in self._args.debug_flags:
             pdb.post_mortem(tb)
 
-        if is_ignored_exception or self._args.pdb_postmortem:
+        if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
             status = 0 if is_ignored_exception else 2
             try:

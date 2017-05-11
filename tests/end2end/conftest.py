@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -68,7 +68,7 @@ def _get_version_tag(tag):
     """
     version_re = re.compile(r"""
         (?P<package>qt|pyqt)
-        (?P<operator>==|>=|!=)
+        (?P<operator>==|>=|!=|<)
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
 
@@ -84,6 +84,7 @@ def _get_version_tag(tag):
         do_skip = {
             '==': not qtutils.version_check(version, exact=True),
             '>=': not qtutils.version_check(version),
+            '<': qtutils.version_check(version),
             '!=': qtutils.version_check(version, exact=True),
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
@@ -135,16 +136,6 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
-    if config.webengine:
-        qtwebkit_ng_used = False
-    else:
-        try:
-            from PyQt5.QtWebKit import qWebKitVersion
-        except ImportError:
-            qtwebkit_ng_used = False
-        else:
-            qtwebkit_ng_used = qtutils.is_qtwebkit_ng(qWebKitVersion())
-
     markers = [
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
@@ -153,9 +144,9 @@ def pytest_collection_modifyitems(config, items):
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebkit_ng_xfail', 'Failing with QtWebKit-NG', pytest.mark.xfail,
-         qtwebkit_ng_used),
+         not config.webengine and qtutils.is_qtwebkit_ng()),
         ('qtwebkit_ng_skip', 'Skipped with QtWebKit-NG', pytest.mark.skipif,
-         qtwebkit_ng_used),
+         not config.webengine and qtutils.is_qtwebkit_ng()),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_osx_xfail', 'Fails on OS X with QtWebEngine',

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -184,8 +184,6 @@ class MainWindow(QWidget):
 
         self._keyhint = keyhintwidget.KeyHintView(self.win_id, self)
         self._add_overlay(self._keyhint, self._keyhint.update_geometry)
-        self._messageview = messageview.MessageView(parent=self)
-        self._add_overlay(self._messageview, self._messageview.update_geometry)
 
         self._prompt_container = prompt.PromptContainer(self.win_id, self)
         self._add_overlay(self._prompt_container,
@@ -194,6 +192,9 @@ class MainWindow(QWidget):
         objreg.register('prompt-container', self._prompt_container,
                         scope='window', window=self.win_id)
         self._prompt_container.hide()
+
+        self._messageview = messageview.MessageView(parent=self)
+        self._add_overlay(self._messageview, self._messageview.update_geometry)
 
         if geometry is not None:
             self._load_geometry(geometry)

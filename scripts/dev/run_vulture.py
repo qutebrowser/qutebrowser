@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -74,7 +74,7 @@ def whitelist_generator():
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
     yield 'PyQt5.QtWidgets.QStyleOptionViewItem.backgroundColor'
 
-    ## qute:... handlers
+    ## qute://... handlers
     for name in qutescheme._HANDLERS:  # pylint: disable=protected-access
         yield 'qutebrowser.browser.qutescheme.qute_' + name
 
