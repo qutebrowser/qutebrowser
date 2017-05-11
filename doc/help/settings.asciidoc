@@ -18,7 +18,7 @@
 |<<general-auto-save-interval,auto-save-interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
 |<<general-editor,editor>>|The editor (and arguments) to use for the `open-editor` command.
 |<<general-editor-encoding,editor-encoding>>|Encoding to use for editor.
-|<<general-private-browsing,private-browsing>>|Do not record visited pages in the history or store web page icons.
+|<<general-private-browsing,private-browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
 |<<general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
 |<<general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
@@ -399,7 +399,7 @@ Default: +pass:[utf-8]+
 
 [[general-private-browsing]]
 === private-browsing
-Do not record visited pages in the history or store web page icons.
+Open new windows in private browsing mode which does not record visited pages.
 
 Valid values:
 

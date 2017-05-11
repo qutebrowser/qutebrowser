@@ -186,8 +186,8 @@ def data(readonly=False):
 
             ('private-browsing',
              SettingValue(typ.Bool(), 'false'),
-             "Do not record visited pages in the history or store web page "
-             "icons."),
+             "Open new windows in private browsing mode which does not record "
+             "visited pages."),
 
             ('developer-extras',
              SettingValue(typ.Bool(), 'false',
