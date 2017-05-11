@@ -79,7 +79,7 @@ def _render_log(data, threshold=100):
     """Shorten the given log without -v and convert to a string."""
     data = [str(d) for d in data]
     is_exception = any('Traceback (most recent call last):' in line
-                       for line in data)
+                       or 'Uncaught exception' in line for line in data)
     verbose = pytest.config.getoption('--verbose')
     if len(data) > threshold and not verbose and not is_exception:
         msg = '[{} lines suppressed, use -v to show]'.format(
