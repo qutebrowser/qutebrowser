@@ -342,7 +342,7 @@ Feature: Saving and loading sessions
   Scenario: Loading a directory
     When I run :session-load (tmpdir)
     Then the error "Error while loading session: *" should be shown
-    
+
   Scenario: Loading internal session without --force
     When I run :session-save --force _internal
     And I run :session-load _internal
@@ -367,3 +367,26 @@ Feature: Saving and loading sessions
   Scenario: Loading a session which doesn't exist
     When I run :session-load inexistent_session
     Then the error "Session inexistent_session not found!" should be shown
+
+
+    # Test load/save of pinned tabs
+
+  Scenario: Saving/Loading a session with pinned tabs
+      When I open data/numbers/1.txt
+      And I open data/numbers/2.txt in a new tab
+      And I open data/numbers/3.txt in a new tab
+      And I run :tab-prev
+      And I run :tab-pin
+      And I run :tab-next
+      And I run :session-save pin_session
+      And I run :tab-only
+      And I run :tab-close --force
+      And I run :session-load -c pin_session
+      And I run :tab-prev
+      And I run :open data/numbers/4.txt
+      And I wait 10s
+      Then the message "Tab is pinned!" should be shown
+      And the following tabs should be open:
+        - data/numbers/2.txt (active)
+        - data/numbers/1.txt
+        - data/numbers/3.txt
