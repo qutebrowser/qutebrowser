@@ -163,6 +163,7 @@ def clean_open_tabs(quteproc):
     quteproc.send_cmd(':tab-close --force')
     quteproc.wait_for_load_finished_url('about:blank')
 
+
 @bdd.given('pdfjs is available')
 def pdfjs_available():
     if not pdfjs.is_available():

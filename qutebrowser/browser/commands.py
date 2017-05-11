@@ -220,9 +220,6 @@ class CommandDispatcher:
             self._tabbed_browser.close_tab(tab)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
-        if tab.data.pinned:
-            tabbar.pinned_count -= 1
-
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def tab_close(self, prev=False, next_=False, opposite=False,
@@ -241,12 +238,13 @@ class CommandDispatcher:
         if tab is None:
             return
         close = functools.partial(self._tab_close, tab, prev,
-                                next_, opposite)
+                                  next_, opposite)
 
         if tab.data.pinned and not force:
-            message.confirm_async(title='Pinned Tab',
-                    text="Are you sure you want to close a pinned tab?",
-                    yes_action=close, default=False)
+            message.confirm_async(
+                title='Pinned Tab',
+                text="Are you sure you want to close a pinned tab?",
+                yes_action=close, default=False)
         else:
             close()
 

@@ -241,6 +241,10 @@ class TabbedBrowser(tabwidget.TabWidget):
         if last_close == 'ignore' and count == 1:
             return
 
+        # If we are removing a pinned tab, decrease count
+        if tab.data.pinned:
+            self.tabBar().pinned_count -= 1
+
         self._remove_tab(tab, add_undo=add_undo)
 
         if count == 1:  # We just closed the last tab above.
