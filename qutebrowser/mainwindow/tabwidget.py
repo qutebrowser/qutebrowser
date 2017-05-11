@@ -99,10 +99,11 @@ class TabWidget(QTabWidget):
 
         Args:
             idx: The tab index.
-            pinned: Pinned tab state.
+            pinned: Pinned tab state to set.
         """
         bar = self.tabBar()
         bar.set_tab_data(idx, 'pinned', pinned)
+        self.update_tab_title(idx)
         bar.update(bar.tabRect(idx))
 
         if pinned:
@@ -189,8 +190,7 @@ class TabWidget(QTabWidget):
     @config.change_filter('tabs', 'title-format-pinned')
     def update_tab_titles_pinned(self):
         """Update all texts."""
-        for idx in range(self.count()):
-            self.update_tab_title(idx)
+        self.update_tab_titles()
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
