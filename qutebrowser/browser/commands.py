@@ -852,7 +852,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: int = None, count=None):
+    def zoom(self, zoom: int=None, count=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -875,22 +875,40 @@ class CommandDispatcher:
         message.info("Zoom level: {}%".format(level), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_only(self, prev=False, next_=False):
+    def tab_only(self, prev=False, next_=False, force=False):
         """Close all tabs except for the current one.
 
         Args:
             prev: Keep tabs before the current.
             next_: Keep tabs after the current.
+            force: Avoid confirmation for pinned tabs.
         """
         cmdutils.check_exclusive((prev, next_), 'pn')
         cur_idx = self._tabbed_browser.currentIndex()
         assert cur_idx != -1
 
+        def _to_close(index):
+            """Helper method to check if a tab should be closed or not."""
+            return not (i == cur_idx
+                        or (prev and i < cur_idx)
+                        or (next_ and i > cur_idx))
+
+        # Check to see if we are closing any pinned tabs
+        if not force:
+            for i, tab in enumerate(self._tabbed_browser.widgets()):
+                if _to_close(i) and tab.data.pinned:
+                    # Show alert only once, then exit
+                    message.confirm_async(
+                        title='Closing Pinned Tab',
+                        text="This action will close at least one " +
+                        "pinned tab, continue?",
+                        yes_action=lambda: self.tab_only(
+                            prev=prev, next_=next_, force=True), default=False)
+                    # We will get called again with force if user selects yes
+                    return
+
         for i, tab in enumerate(self._tabbed_browser.widgets()):
-            if (i == cur_idx or (prev and i < cur_idx) or
-                    (next_ and i > cur_idx)):
-                continue
-            else:
+            if _to_close(i):
                 self._tabbed_browser.close_tab(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
