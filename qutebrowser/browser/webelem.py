@@ -294,7 +294,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
     def is_link(self):
         """Return True if this AbstractWebElement is a link."""
         href_tags = ['a', 'area', 'link']
-        return self.tag_name() in href_tags
+        return self.tag_name() in href_tags and 'href' in self
 
     def _mouse_pos(self):
         """Get the position to click/hover."""
