@@ -124,6 +124,7 @@
 |<<tabs-wrap,wrap>>|Whether to wrap when changing tabs.
 |<<tabs-movable,movable>>|Whether tabs should be movable.
 |<<tabs-close-mouse-button,close-mouse-button>>|On which mouse button to close tabs.
+|<<tabs-pinned-width,pinned-width>>|The size of pinned tabs.
 |<<tabs-position,position>>|The position of the tab bar.
 |<<tabs-show-favicons,show-favicons>>|Whether to show favicons in the tab bar.
 |<<tabs-favicon-scale,favicon-scale>>|Scale for favicons in the tab bar. The tab size is unchanged, so big favicons also require extra `tabs->padding`.
@@ -131,6 +132,7 @@
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
+|<<tabs-title-format-pinned,title-format-pinned>>|The format to use for the tab title, when it is pinned. The following placeholders are defined:
 |<<tabs-title-alignment,title-alignment>>|Alignment of the text inside of tabs
 |<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
 |<<tabs-padding,padding>>|Padding for tabs (top, bottom, left, right).
@@ -1183,6 +1185,14 @@ Valid values:
 
 Default: +pass:[middle]+
 
+[[tabs-pinned-width]]
+=== pinned-width
+The width for pinned tabs with a horizontal tabbar, in px.
+
+See `:tab-pin` for more details.
+
+Default: +43+
+
 [[tabs-position]]
 === position
 The position of the tab bar.
@@ -1251,6 +1261,14 @@ The format to use for the tab title. The following placeholders are defined:
 * `{backend}`: Either 'webkit' or 'webengine'
 
 Default: +pass:[{index}: {title}]+
+
+[[tabs-title-format-pinned]]
+=== title-format-pinned
+The format to use for the tab title when it is pinned.
+
+The same syntax is used as `tabs->title-format`
+
+Default: +pass:[{index}]+
 
 [[tabs-title-alignment]]
 === title-alignment

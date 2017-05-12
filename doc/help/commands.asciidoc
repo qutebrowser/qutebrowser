@@ -82,6 +82,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
+|<<tab-pin,tab-pin>>|Pin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
@@ -334,7 +335,7 @@ Syntax: +:help [*--tab*] [*--bg*] [*--window*] ['topic']+
 Show help about a command or setting.
 
 ==== positional arguments
-* +'topic'+: The topic to show help for. 
+* +'topic'+: The topic to show help for.
 
  - :__command__ for commands.
  - __section__\->__option__ for settings.
@@ -893,13 +894,27 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
-Syntax: +:tab-only [*--prev*] [*--next*]+
+Syntax: +:tab-only [*--prev*] [*--next*] [*--force*]+
 
 Close all tabs except for the current one.
 
 ==== optional arguments
 * +*-p*+, +*--prev*+: Keep tabs before the current.
 * +*-n*+, +*--next*+: Keep tabs after the current.
+* +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
+
+[[tab-pin]]
+=== tab-pin
+Syntax: +:tab-pin+
+
+Pin the current/[count]th tab.
+
+==== count
+The tab index to pin
+
+==== note
+* Pinning a tab shrinks it to `tabs->pinned-width` size.
+* Attempting to close a pinned tab will cause a confirmation, unless `--force` is passed.
 
 [[tab-prev]]
 === tab-prev
