@@ -888,11 +888,11 @@ class CommandDispatcher:
         cur_idx = self._tabbed_browser.currentIndex()
         assert cur_idx != -1
 
-        def _to_close(index):
+        def _to_close(i):
             """Helper method to check if a tab should be closed or not."""
-            return not (i == cur_idx
-                        or (prev and i < cur_idx)
-                        or (next_ and i > cur_idx))
+            return not (i == cur_idx or
+                        (prev and i < cur_idx) or
+                        (next_ and i > cur_idx))
 
         # Check to see if we are closing any pinned tabs
         if not force:
@@ -900,7 +900,8 @@ class CommandDispatcher:
                 if _to_close(i) and tab.data.pinned:
                     self._tab_close_prompt_if_pinned(
                         tab, force,
-                        lambda: self.tab_only(prev=prev, next_=next_, force=True))
+                        lambda: self.tab_only(
+                            prev=prev, next_=next_, force=True))
                     return
 
         for i, tab in enumerate(self._tabbed_browser.widgets()):
