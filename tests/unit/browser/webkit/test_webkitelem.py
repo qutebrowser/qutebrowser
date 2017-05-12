@@ -425,25 +425,28 @@ class TestRemoveBlankTarget:
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     @pytest.mark.parametrize('target', ['_self', '_parent', '_top', ''])
     def test_keep_target(self, tagname, target):
-        elem = get_webelem(tagname=tagname, attributes={'target': target})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': target, 'href': '#'})
         elem.remove_blank_target()
         assert elem['target'] == target
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_no_target(self, tagname):
-        elem = get_webelem(tagname=tagname)
+        elem = get_webelem(tagname=tagname, attributes={'href': '#'})
         elem.remove_blank_target()
         assert 'target' not in elem
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': '_blank', 'href': '#'})
         elem.remove_blank_target()
         assert elem['target'] == '_top'
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_ancestor_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': '_blank', 'href': '#'})
         elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()
