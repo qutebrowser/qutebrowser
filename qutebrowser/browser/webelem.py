@@ -22,9 +22,6 @@
 Module attributes:
     Group: Enum for different kinds of groups.
     SELECTORS: CSS selectors for different groups of elements.
-    FILTERS: A dictionary of filter functions for the modes.
-             The filter for "links" filters javascript:-links and a-tags
-             without "href".
 """
 
 import collections.abc
@@ -45,24 +42,15 @@ SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
                 'frame, iframe, link, [onclick], [onmousedown], [role=link], '
                 '[role=option], [role=button], img'),
-    Group.links: 'a, area, link, [role=link]',
+    Group.links: 'a[href], area[href], link[href], [role=link][href]',
     Group.images: 'img',
     Group.url: '[src], [href]',
-    Group.prevnext: 'a, area, button, link, [role=button]',
+    Group.prevnext: 'a[href], area[href], button[href], link[href], '
+                    '[role=button][href]',
     Group.inputs: ('input[type=text], input[type=email], input[type=url], '
                    'input[type=tel], input[type=number], '
                    'input[type=password], input[type=search], '
                    'input:not([type]), textarea'),
-}
-
-
-def filter_links(elem):
-    return 'href' in elem and QUrl(elem['href']).scheme() != 'javascript'
-
-
-FILTERS = {
-    Group.links: filter_links,
-    Group.prevnext: filter_links,
 }
 
 

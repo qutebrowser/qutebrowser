@@ -149,19 +149,17 @@ class SelectionAndFilterTests:
         ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
                               webelem.Group.prevnext, webelem.Group.url]),
         ('<a href="javascript://foo" />', [webelem.Group.all,
+                                           webelem.Group.links,
+                                           webelem.Group.prevnext,
                                            webelem.Group.url]),
 
         ('<area />', [webelem.Group.all]),
         ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
                                  webelem.Group.prevnext, webelem.Group.url]),
-        ('<area href="javascript://foo" />', [webelem.Group.all,
-                                              webelem.Group.url]),
 
         ('<link />', [webelem.Group.all]),
         ('<link href="foo" />', [webelem.Group.all, webelem.Group.links,
                                  webelem.Group.prevnext, webelem.Group.url]),
-        ('<link href="javascript://foo" />', [webelem.Group.all,
-                                              webelem.Group.url]),
 
         ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
         ('<select />', [webelem.Group.all]),
@@ -180,8 +178,6 @@ class SelectionAndFilterTests:
         ('<button />', [webelem.Group.all]),
         ('<button href="foo" />', [webelem.Group.all, webelem.Group.prevnext,
                                    webelem.Group.url]),
-        ('<button href="javascript://foo" />', [webelem.Group.all,
-                                                webelem.Group.url]),
 
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
@@ -224,8 +220,6 @@ class TestSelectorsAndFilters:
         assert len(webframe.findAllElements('*')) == 3
         elems = webframe.findAllElements(webelem.SELECTORS[group])
         elems = [webkitelem.WebKitElement(e, tab=None) for e in elems]
-        filterfunc = webelem.FILTERS.get(group, lambda e: True)
-        elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
 
 

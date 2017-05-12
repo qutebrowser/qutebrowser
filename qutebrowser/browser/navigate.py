@@ -79,8 +79,7 @@ def _find_prevnext(prev, elems):
             return e
 
     # Then check for regular links/buttons.
-    filterfunc = webelem.FILTERS[webelem.Group.prevnext]
-    elems = [e for e in elems if e.tag_name() != 'link' and filterfunc(e)]
+    elems = [e for e in elems if e.tag_name() != 'link']
     option = 'prev-regexes' if prev else 'next-regexes'
     if not elems:
         return None

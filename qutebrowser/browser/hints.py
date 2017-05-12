@@ -579,12 +579,10 @@ class HintManager(QObject):
         if elems is None:
             message.error("There was an error while getting hint elements")
             return
-
-        filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
-        elems = [e for e in elems if filterfunc(e)]
         if not elems:
             message.error("No elements found.")
             return
+
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
 

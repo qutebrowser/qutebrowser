@@ -54,6 +54,7 @@ Changed
   a restart.
 - The adblocker now also blocks non-GET requests (e.g. POST)
 - `:follow-selected` now also works with QtWebEngine
+- javascript: links can now be hinted
 
 Fixed
 ~~~~~
