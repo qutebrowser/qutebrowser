@@ -433,7 +433,7 @@ class CommandDispatcher:
             new_tabbed_browser = self._new_tabbed_browser()
         else:
             new_tabbed_browser = self._tabbed_browser
-        newtab = new_tabbed_browser.tabopen(background=bg, explicit=True)
+        newtab = new_tabbed_browser.tabopen(background=bg)
         new_tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=newtab.win_id)
         idx = new_tabbed_browser.indexOf(newtab)
@@ -1380,7 +1380,7 @@ class CommandDispatcher:
             except cmdexc.CommandError as e:
                 message.error(str(e))
                 return
-            new_tab = self._tabbed_browser.tabopen(explicit=True)
+            new_tab = self._tabbed_browser.tabopen()
             new_tab.set_html(highlighted, current_url)
             new_tab.data.viewing_source = True
 
