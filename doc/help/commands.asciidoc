@@ -831,13 +831,14 @@ Duplicate the current tab.
 
 [[tab-close]]
 === tab-close
-Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*]+
+Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*] [*--force*]+
 
 Close the current/[count]th tab.
 
 ==== optional arguments
 * +*-p*+, +*--prev*+: Force selecting the tab before the current tab.
 * +*-n*+, +*--next*+: Force selecting the tab after the current tab.
+* +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
 * +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
 
 

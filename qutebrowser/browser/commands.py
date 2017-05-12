@@ -257,28 +257,22 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
-    @cmdutils.argument('index')
     @cmdutils.argument('count', count=True)
-    def tab_pin(self, index=None, count=None):
+    def tab_pin(self, count=None):
         """Pin/Unpin the current tab.
 
         Args:
-            index: Location where the tab should be pinned/unpinned.
             count: The tab index to pin or unpin, or None
         """
-        tabbar = self._tabbed_browser.tabBar()
         tab = self._cntwidget(count)
         if tab is None:
             return
 
         tab.data.pinned = not tab.data.pinned
-        if tab.data.pinned:
-            index = tabbar.pinned_count + 1 if index is None else int(index)
-        else:
-            index = self._count() if index is None else int(index)
 
-        self.tab_move(index)
-        self._tabbed_browser.set_tab_pinned(self._current_index(),
+        tab_index = self._current_index() if count is None else count - 1
+        cmdutils.check_overflow(tab_index + 1, 'int')
+        self._tabbed_browser.set_tab_pinned(tab_index,
                                             tab.data.pinned)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
