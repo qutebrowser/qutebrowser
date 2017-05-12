@@ -141,6 +141,5 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         else:
             browsertab.openurl(url)
 
-    selector = ', '.join([webelem.SELECTORS[webelem.Group.links],
-                          webelem.SELECTORS[webelem.Group.prevnext]])
-    browsertab.elements.find_css(selector, _prevnext_cb)
+    browsertab.elements.find_css(webelem.SELECTORS[webelem.Group.links],
+                                 _prevnext_cb)

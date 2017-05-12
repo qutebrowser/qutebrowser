@@ -147,19 +147,18 @@ class SelectionAndFilterTests:
 
         ('<a />', [webelem.Group.all]),
         ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
-                              webelem.Group.prevnext, webelem.Group.url]),
+                              webelem.Group.url]),
         ('<a href="javascript://foo" />', [webelem.Group.all,
                                            webelem.Group.links,
-                                           webelem.Group.prevnext,
                                            webelem.Group.url]),
 
         ('<area />', [webelem.Group.all]),
         ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.prevnext, webelem.Group.url]),
+                                 webelem.Group.url]),
 
         ('<link />', [webelem.Group.all]),
         ('<link href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.prevnext, webelem.Group.url]),
+                                 webelem.Group.url]),
 
         ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
         ('<select />', [webelem.Group.all]),
@@ -176,8 +175,7 @@ class SelectionAndFilterTests:
         ('<input type="search" />', [webelem.Group.inputs, webelem.Group.all]),
 
         ('<button />', [webelem.Group.all]),
-        ('<button href="foo" />', [webelem.Group.all, webelem.Group.prevnext,
-                                   webelem.Group.url]),
+        ('<button href="foo" />', [webelem.Group.all, webelem.Group.url]),
 
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
@@ -187,7 +185,6 @@ class SelectionAndFilterTests:
         ('<p role="option" foo="bar"/>', [webelem.Group.all]),
         ('<p role="button" foo="bar"/>', [webelem.Group.all]),
         ('<p role="button" href="bar"/>', [webelem.Group.all,
-                                           webelem.Group.prevnext,
                                            webelem.Group.url]),
     ]
 

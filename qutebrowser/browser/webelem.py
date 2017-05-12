@@ -34,8 +34,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
-Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
-                                 'inputs'])
+Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
 
 
 SELECTORS = {
@@ -45,8 +44,6 @@ SELECTORS = {
     Group.links: 'a[href], area[href], link[href], [role=link][href]',
     Group.images: 'img',
     Group.url: '[src], [href]',
-    Group.prevnext: 'a[href], area[href], button[href], link[href], '
-                    '[role=button][href]',
     Group.inputs: ('input[type=text], input[type=email], input[type=url], '
                    'input[type=tel], input[type=number], '
                    'input[type=password], input[type=search], '
