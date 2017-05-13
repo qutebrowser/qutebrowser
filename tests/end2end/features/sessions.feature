@@ -377,11 +377,12 @@ Feature: Saving and loading sessions
       And I open data/numbers/3.txt in a new tab
       And I run :run-with-count 2 :tab-pin
       And I run :session-save pin_session
-      And I run :tab-only
+      And I run :tab-only --force
       And I run :tab-close --force
       And I run :session-load -c pin_session
-      And I run :tab-prev
-      And I run :open data/numbers/4.txt
+      And I wait until data/numbers/3.txt is loaded
+      And I run :tab-focus 2
+      And I run :open hello world
       Then the message "Tab is pinned!" should be shown
       And the following tabs should be open:
         - data/numbers/1.txt
