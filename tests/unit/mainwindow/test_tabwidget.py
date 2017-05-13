@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Daniel Schadt
+# Copyright 2015-2017 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -44,6 +44,7 @@ class TestTabWidget:
             'select-on-remove': 1,
             'show': 'always',
             'show-favicons': True,
+            'favicon-scale': 1.0,
             'padding': configtypes.PaddingValues(0, 0, 5, 5),
             'indicator-width': 3,
             'indicator-padding': configtypes.PaddingValues(2, 2, 0, 4),

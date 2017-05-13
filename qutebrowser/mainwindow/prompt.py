@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -475,6 +475,7 @@ class _BasePrompt(QWidget):
         if question.text is not None:
             # Not doing any HTML escaping here as the text can be formatted
             text_label = QLabel(question.text)
+            text_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
             self._vbox.addWidget(text_label)
 
     def _init_key_label(self):

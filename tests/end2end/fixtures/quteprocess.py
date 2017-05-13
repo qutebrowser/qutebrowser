@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -77,9 +77,9 @@ def is_ignored_lowlevel_message(message):
         return True
     elif 'Unable to locate theme engine in module_path:' in message:
         return True
-    elif message == 'getrlimit(RLIMIT_NOFILE) failed':
+    elif 'getrlimit(RLIMIT_NOFILE) failed' in message:
         return True
-    elif message == 'Could not bind NETLINK socket: Address already in use':
+    elif 'Could not bind NETLINK socket: Address already in use' in message:
         return True
     return False
 
@@ -314,7 +314,7 @@ class QuteProc(testprocess.Process):
         URLs like about:... and qute:... are handled specially and returned
         verbatim.
         """
-        special_schemes = ['about:', 'qute:', 'chrome:']
+        special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:']
         if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:

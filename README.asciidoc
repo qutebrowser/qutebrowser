@@ -183,7 +183,7 @@ Contributors, sorted by the number of commits in descending order:
 * Jimmy
 * Niklas Haas
 * Maciej Wołczyk
-* Spreadyy
+* sandrosc
 * Alexey "Averrin" Nabrodov
 * pkill9
 * nanjekyejoannah
@@ -191,6 +191,7 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
+* Jay Kamat
 * Clayton Craft
 * Peter Vilim
 * Jacob Sword
@@ -273,6 +274,7 @@ Contributors, sorted by the number of commits in descending order:
 * Tobias Werth
 * Tim Harder
 * Thiago Barroso Perrotta
+* Steve Peak
 * Sorokin Alexei
 * Simon Désaulniers
 * Rok Mandeljc
@@ -284,7 +286,6 @@ Contributors, sorted by the number of commits in descending order:
 * Ján Kobezda
 * Johannes Martinsson
 * Jean-Christophe Petkovich
-* Jay Kamat
 * Helen Sherwood-Taylor
 * HalosGhost
 * Gregor Pohl

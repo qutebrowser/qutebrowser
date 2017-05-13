@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -276,15 +276,10 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time))
     else:
-        try:
-            from PyQt5.QtWebKit import qWebKitVersion
-            is_webkit_ng = qtutils.is_qtwebkit_ng(qWebKitVersion())
-        except ImportError:  # pragma: no cover
-            is_webkit_ng = False
-
         if (
             config.get('content', 'allow-javascript') and
-            (objects.backend == usertypes.Backend.QtWebEngine or is_webkit_ng)
+            (objects.backend == usertypes.Backend.QtWebEngine or
+             qtutils.is_qtwebkit_ng())
         ):
             return 'text/html', jinja.render(
                 'history.html',

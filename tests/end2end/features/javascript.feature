@@ -73,3 +73,30 @@ Feature: Javascript stuff
         When I set content -> allow-javascript to false
         And I run :jseval console.log('jseval executed')
         Then the javascript message "jseval executed" should be logged
+
+    ## webelement issues (mostly with QtWebEngine)
+
+    # https://github.com/qutebrowser/qutebrowser/issues/2569
+    Scenario: Clicking on form element with tagName child
+        When I open data/issue2569.html
+        And I run :click-element id tagnameform
+        And I wait for "Sending fake click to *" in the log
+        Then no crash should happen
+
+    Scenario: Clicking on form element with text child
+        When I open data/issue2569.html
+        And I run :click-element id textform
+        And I wait for "Sending fake click to *" in the log
+        Then no crash should happen
+
+    Scenario: Clicking on svg element
+        When I open data/issue2569.html
+        And I run :click-element id icon
+        And I wait for "Sending fake click to *" in the log
+        Then no crash should happen
+
+    Scenario: Clicking on li element
+        When I open data/issue2569.html
+        And I run :click-element id listitem
+        And I wait for "Sending fake click to *" in the log
+        Then no crash should happen

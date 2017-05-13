@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,7 @@ Module attributes:
 
 import os.path
 
-from PyQt5.QtWebKit import QWebSettings, qWebKitVersion
+from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import standarddir, objreg, urlutils, qtutils, message
@@ -90,7 +90,7 @@ def _set_user_stylesheet():
 
 def _init_private_browsing():
     if config.get('general', 'private-browsing'):
-        if qtutils.is_qtwebkit_ng(qWebKitVersion()):
+        if qtutils.is_qtwebkit_ng():
             message.warning("Private browsing is not fully implemented by "
                             "QtWebKit-NG!")
         QWebSettings.setIconDatabasePath('')
