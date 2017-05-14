@@ -104,7 +104,6 @@ class TabWidget(QTabWidget):
         bar = self.tabBar()
         bar.set_tab_data(idx, 'pinned', pinned)
         self.update_tab_title(idx)
-        bar.update(bar.tabRect(idx))
 
         if pinned:
             bar.pinned_count += 1
@@ -181,16 +180,12 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
-    @config.change_filter('tabs', 'title-format')
-    def update_tab_titles(self):
+    def update_tab_titles(self, section='tabs', option='title-format'):
         """Update all texts."""
-        for idx in range(self.count()):
-            self.update_tab_title(idx)
-
-    @config.change_filter('tabs', 'title-format-pinned')
-    def update_tab_titles_pinned(self):
-        """Update all texts."""
-        self.update_tab_titles()
+        if section == 'tabs' and option in ['title-format',
+                                            'title-format-pinned']:
+            for idx in range(self.count()):
+                self.update_tab_title(idx)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
@@ -517,7 +512,7 @@ class TabBar(QTabBar):
                 return size
 
             # If we *do* have enough space, tabs should occupy the whole window
-            # width. If there is pinned tabs their size will be substracted
+            # width. If there are pinned tabs their size will be subtracted
             # from the total window width.
             # During shutdown the self.count goes down,
             # but the self.pinned_count not - this generates some odd behavior.

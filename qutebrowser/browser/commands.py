@@ -201,7 +201,7 @@ class CommandDispatcher:
         """Helper function for tab_close be able to handle message.async.
 
         Args:
-            tab: Tab select to be closed.
+            tab: Tab object to select be closed.
             prev: Force selecting the tab before the current tab.
             next_: Force selecting the tab after the current tab.
             opposite: Force selecting the tab in the opposite direction of

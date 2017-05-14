@@ -1054,7 +1054,7 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
-        And I run :run-with-count 2 :tab-pin
+        And I run :tab-pin with count 2
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
@@ -1119,7 +1119,7 @@ Feature: Tab management
     Scenario: :tab-pin open url
         When I open data/numbers/1.txt
         And I run :tab-pin
-        And I run :open data/numbers/2.txt
+        And I open data/numbers/2.txt without waiting
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active)
