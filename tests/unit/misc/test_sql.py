@@ -53,7 +53,8 @@ def test_iter():
 @pytest.mark.parametrize('rows, sort_by, sort_order, limit, result', [
     ([[2, 5], [1, 6], [3, 4]], 'a', 'asc', 5, [(1, 6), (2, 5), (3, 4)]),
     ([[2, 5], [1, 6], [3, 4]], 'a', 'desc', 3, [(3, 4), (2, 5), (1, 6)]),
-    ([[2, 5], [1, 6], [3, 4]], 'b', 'desc', 2, [(1, 6), (2, 5)])
+    ([[2, 5], [1, 6], [3, 4]], 'b', 'desc', 2, [(1, 6), (2, 5)]),
+    ([[2, 5], [1, 6], [3, 4]], 'a', 'asc', -1, [(1, 6), (2, 5), (3, 4)]),
 ])
 def test_select(rows, sort_by, sort_order, limit, result):
     table = sql.SqlTable('Foo', ['a', 'b'])

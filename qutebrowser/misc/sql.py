@@ -200,8 +200,14 @@ class SqlTable(QObject):
         run_query("DELETE FROM {}".format(self._name))
         self.changed.emit()
 
-    def select(self, sort_by, sort_order, limit):
-        """Remove all row from the table."""
+    def select(self, sort_by, sort_order, limit=-1):
+        """Remove all row from the table.
+
+        Args:
+            sort_by: name of column to sort by.
+            sort_order: 'asc' or 'desc'.
+            limit: max number of rows in result, defaults to -1 (unlimited).
+        """
         result = run_query('SELECT * FROM {} ORDER BY {} {} LIMIT {}'
                            .format(self._name, sort_by, sort_order, limit))
         while result.next():

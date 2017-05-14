@@ -17,34 +17,33 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os.path
+import re
+import tempfile
 
 import pytest_bdd as bdd
-
-from PyQt5.QtSql import QSqlDatabase
 
 bdd.scenarios('history.feature')
 
 
-@bdd.then(bdd.parsers.parse("the history file should contain:\n{expected}"))
-def check_history(quteproc, httpbin, expected):
-    path = os.path.join(quteproc.basedir, 'data', 'history.sqlite')
-    db = QSqlDatabase.addDatabase('QSQLITE')
-    db.setDatabaseName(path)
-    assert db.open(), 'Failed to open history database'
-    query = db.exec_('select * from History')
-    actual = []
-    while query.next():
-        rec = query.record()
-        url = rec.value(0)
-        title = rec.value(1)
-        redirect = rec.value(3)
-        actual.append('{} {} {}'.format('r' * redirect, url, title).strip())
-    db = None
-    QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
-    assert actual == expected.replace('(port)', str(httpbin.port)).splitlines()
+@bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
+def check_history(quteproc, expected, httpbin):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, 'history')
+        quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
+        quteproc.wait_for(category='message', loglevel=logging.INFO,
+                          message='Dumped history to {}.'.format(path))
+
+        with open(path, 'r', encoding='utf-8') as f:
+            # ignore access times, they will differ in each run
+            actual = '\n'.join(re.sub('^\\d+-?', '', line).strip()
+                               for line in f.read().splitlines())
+
+    expected = expected.replace('(port)', str(httpbin.port))
+    assert actual == expected
 
 
-@bdd.then("the history file should be empty")
+@bdd.then("the history should be empty")
 def check_history_empty(quteproc, httpbin):
-    check_history(quteproc, httpbin, '')
+    check_history(quteproc, '', httpbin)

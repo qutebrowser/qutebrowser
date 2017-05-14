@@ -261,3 +261,18 @@ def test_read_invalid(hist, tmpdir, line):
 
     with pytest.raises(Exception):
         hist.read(str(histfile))
+
+
+def test_debug_dump_history(hist, tmpdir):
+    hist.add_url(QUrl('http://example.com/1'), title="Title1", atime=12345)
+    hist.add_url(QUrl('http://example.com/2'), title="Title2", atime=12346)
+    hist.add_url(QUrl('http://example.com/3'), title="Title3", atime=12347)
+    hist.add_url(QUrl('http://example.com/4'), title="Title4", atime=12348,
+                 redirect=True)
+    histfile = tmpdir / 'history'
+    hist.debug_dump_history(str(histfile))
+    expected = ['12345 http://example.com/1 Title1',
+                '12346 http://example.com/2 Title2',
+                '12347 http://example.com/3 Title3',
+                '12348-r http://example.com/4 Title4']
+    assert histfile.read() == '\n'.join(expected)

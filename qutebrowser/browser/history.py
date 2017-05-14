@@ -19,6 +19,7 @@
 
 """Simple history which gets written to disk."""
 
+import os
 import time
 
 from PyQt5.QtCore import pyqtSlot, QUrl
@@ -232,6 +233,27 @@ class WebHistory(sql.SqlTable):
                     raise Exception('Failed to parse line #{} of {}: "{}"'
                                     .format(i, path, line))
         self.insert_batch(rows)
+
+    @cmdutils.register(instance='web-history', debug=True)
+    def debug_dump_history(self, dest):
+        """Dump the history to a file in the old pre-SQL format.
+
+        Args:
+            dest: Where to write the file to.
+        """
+        dest = os.path.expanduser(dest)
+
+        lines = ('{}{} {} {}'
+                 .format(int(x.atime), '-r' * x.redirect, x.url, x.title)
+                 for x in self.select(sort_by='atime', sort_order='asc'))
+
+        with open(dest, 'w', encoding='utf-8') as f:
+            try:
+                f.write('\n'.join(lines))
+            except OSError as e:
+                message.error('Could not write history: {}'.format(e))
+            else:
+                message.info("Dumped history to {}.".format(dest))
 
 
 def init(parent=None):
