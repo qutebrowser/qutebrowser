@@ -793,7 +793,7 @@ class AbstractTab(QWidget):
     def icon(self):
         raise NotImplementedError
 
-    def set_html(self, html, base_url):
+    def set_html(self, html, base_url=QUrl()):
         raise NotImplementedError
 
     def networkaccessmanager(self):

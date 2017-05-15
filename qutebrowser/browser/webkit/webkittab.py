@@ -710,7 +710,7 @@ class WebKitTab(browsertab.AbstractTab):
         requested_url = self.url(requested=True)
         self.add_history_item.emit(url, requested_url, self.title())
 
-    def set_html(self, html, base_url):
+    def set_html(self, html, base_url=QUrl()):
         self._widget.setHtml(html, base_url)
 
     def networkaccessmanager(self):
