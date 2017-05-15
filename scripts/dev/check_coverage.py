@@ -264,7 +264,7 @@ def main_check():
         for msg in messages:
             print(msg.text)
         print()
-        filters = ','.join(msg.filename for msg in messages)
+        filters = ','.join('qutebrowser/' + msg.filename for msg in messages)
         subprocess.check_call([sys.executable, '-m', 'coverage', 'report',
                                '--show-missing', '--include', filters])
         print()
