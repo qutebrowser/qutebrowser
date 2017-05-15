@@ -646,6 +646,11 @@ class WebKitTab(browsertab.AbstractTab):
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
 
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url):
+        """Update title when URL has changed and no title is available."""
+        super()._on_url_changed(url)
+
     def _install_event_filter(self):
         self._widget.installEventFilter(self._mouse_event_filter)
 

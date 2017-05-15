@@ -304,4 +304,11 @@ class WebEnginePage(QWebEnginePage):
             msg = urlutils.get_errstring(url, "Invalid link clicked")
             message.error(msg)
             return False
+
+        # Calling this here because AbstractTab._on_url_changed is
+        # called too late when using this backend to eg set the
+        # javascript enabled for the tab and still have the setting take
+        # effect on the tab load. Hopefully this doesn't cause any other
+        # issues from eg AbstratTab.Url() returning something different.
+        self.urlChanged.emit(url)
         return True

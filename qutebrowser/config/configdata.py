@@ -1701,6 +1701,13 @@ KEY_DATA = collections.OrderedDict([
         ('repeat-command', ['.']),
         ('record-macro', ['q']),
         ('run-macro', ['@']),
+        ('domain javascript!', ['sth']),
+        ('domain javascript! -p', ['stu']),
+        ('domain javascript! -r', ['srh']),
+        ('domain javascript! -p -r', ['sru']),
+        ('domain cookies!', ['ct']),
+        ('domain cookies! -r', ['cr']),
+        ('set content allow-javascript!', ['sta']),
     ])),
 
     ('insert', collections.OrderedDict([

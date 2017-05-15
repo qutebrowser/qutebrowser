@@ -25,6 +25,13 @@ from qutebrowser.misc import objects
 
 UNSET = object()
 
+# map of
+# [sect][value] = attribute
+# lifted up from active setting class at runtime. A hack, this should be
+# attatched to a global object like config, or the instance of this
+# class should be reachable somehow. Same for get_attribute()
+MAPPINGS = {}
+
 
 class Base:
 
@@ -239,6 +246,8 @@ class StaticSetter(Setter):
 
 def init_mappings(mappings):
     """Initialize all settings based on a settings mapping."""
+    global MAPPINGS
+    MAPPINGS = mappings
     for sectname, section in mappings.items():
         for optname, mapping in section.items():
             default = mapping.save_default()
@@ -249,6 +258,14 @@ def init_mappings(mappings):
                 sectname, optname, value))
             mapping.set(value)
 
+def get_attribute(section, option):
+    """Get the Attribute wrapping the QWeb(Engine)Setting attribute that
+    the passed config option maps to for the current backend. Or None if
+    there is no mapping.
+    
+    Use return_value._attribute to get the actual value from the
+    wrapper."""
+    return MAPPINGS.get(section, {}).get(option, None)
 
 def update_mappings(mappings, section, option):
     """Update global settings when QWeb(Engine)Settings changed."""
@@ -262,12 +279,15 @@ def update_mappings(mappings, section, option):
 
 def init(args):
     """Initialize all QWeb(Engine)Settings."""
+    global GLOBAL_SETTINGS
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init(args)
+        GLOBAL_SETTINGS = webenginesettings.Attribute.GLOBAL_SETTINGS
     else:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init(args)
+        GLOBAL_SETTINGS = webkitsettings.Attribute.GLOBAL_SETTINGS
 
 
 def shutdown():

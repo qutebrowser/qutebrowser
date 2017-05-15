@@ -40,7 +40,17 @@ class RAMCookieJar(QNetworkCookieJar):
     def __repr__(self):
         return utils.get_repr(self, count=len(self.allCookies()))
 
-    def setCookiesFromUrl(self, cookies, url):
+    def cookiesForUrl(self, url):
+        global_policy = not config.get('content', 'cookies-accept') == 'never'
+        domain_policy = objreg.get('domain-manager').get_setting(url.host(),
+                                                                 "cookies",
+                                                                 global_policy)
+        if not domain_policy:
+            return []
+        else:
+            return super().cookiesForUrl(url)
+
+    def setCookiesFromUrl(self, cookies, url, test=False):
         """Add the cookies in the cookies list to this cookie jar.
 
         Args:
@@ -50,8 +60,14 @@ class RAMCookieJar(QNetworkCookieJar):
         Return:
             True if one or more cookies are set for 'url', otherwise False.
         """
-        if config.get('content', 'cookies-accept') == 'never':
+        global_policy = not config.get('content', 'cookies-accept') == 'never'
+        domain_policy = objreg.get('domain-manager').get_setting(url.host(),
+                                                                 "cookies",
+                                                                 global_policy)
+        if not domain_policy:
             return False
+        elif test:
+            return True
         else:
             self.changed.emit()
             return super().setCookiesFromUrl(cookies, url)

@@ -151,6 +151,37 @@ class WebView(QWebView):
             bridge = objreg.get('js-bridge')
             frame.addToJavaScriptWindowObject('qute', bridge)
 
+    @pyqtSlot()
+    def on_load_finished(self):
+        """Handle a finished page load.
+
+        We don't take loadFinished's ok argument here as it always seems to be
+        true when the QWebPage has an ErrorPageExtension implemented.
+        See https://github.com/The-Compiler/qutebrowser/issues/84
+        """
+        ok = not self.page().error_occurred
+        self._handle_auto_insert_mode(ok)
+
+    def _handle_auto_insert_mode(self, ok):
+        """Handle auto-insert-mode after loading finished."""
+        if not config.get('input', 'auto-insert-mode'):
+            return
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self.win_id)
+        cur_mode = mode_manager.mode
+        if cur_mode == usertypes.KeyMode.insert or not ok:
+            return
+        frame = self.page().currentFrame()
+        try:
+            elem = webkitelem.focus_elem(frame)
+        except webkitelem.IsNullError:
+            log.webview.debug("Focused element is null!")
+            return
+        log.modes.debug("focus element: {}".format(repr(elem)))
+        if elem.is_editable():
+            modeman.enter(self.win_id, usertypes.KeyMode.insert,
+                          'load finished', only_if_normal=True)
+
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Ignore attempts to focus the widget if in any status-input mode.

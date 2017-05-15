@@ -26,7 +26,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
@@ -670,6 +670,8 @@ class AbstractTab(QWidget):
         """Update title when URL has changed and no title is available."""
         if url.isValid() and not self.title():
             self.title_changed.emit(url.toDisplayString())
+        self.apply_local_js_policy(url)
+        self.apply_local_zoom_policy(url)
         self.url_changed.emit(url)
 
     @pyqtSlot()
@@ -819,3 +821,62 @@ class AbstractTab(QWidget):
         except AttributeError:
             url = '<AttributeError>'
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
+
+    def apply_local_js_policy(self, url):
+        # Apply per-domain javascript policy. Doing this in view rather
+        # than tabbed-browser or on the title changed signal so we can
+        # apply it to background tabs too.
+
+        # dwb does match(host)||match(uri)||match(scheme)
+        # QUrl has host(), path(), scheme(), matches(url),
+        # isLocalFile()
+        js_attribute = websettings.get_attribute("content",
+                                                 "allow-javascript")._attribute
+        if url.scheme() == 'qute' or url.scheme() == 'file':
+            log.webview.debug("js policy scheme match for url {}".format(url))
+            self._widget.settings().setAttribute(js_attribute, True)
+            return
+        domains = objreg.get('domain-manager')
+        js_policy = domains.get_setting(url.host()+url.path(),
+                                              'javascript')
+        if js_policy is not None:
+            log.webview.debug("js policy path match ({}) for url {}"
+                              .format(js_policy, url))
+            self._widget.settings().setAttribute(js_attribute,
+                                     js_policy)
+            return
+        js_policy = domains.get_setting(url.host(),
+                                              'javascript')
+        if js_policy is not None:
+            # TODO: What do for subdomains? Loop through
+            # domains.data looking for matches or w.x.y.z, x.y.z
+            # etc?
+            log.webview.debug("js policy url match ({}) for url {}"
+                              .format(js_policy, url))
+            self._widget.settings().setAttribute(js_attribute,
+                                     js_policy)
+            return
+
+        log.webview.debug("No js policy match for url {} {} {}".format(
+                                                 url.scheme(),
+                                                 url.host(), url.path()))
+        default_policy = websettings.GLOBAL_SETTINGS().testAttribute(
+                        js_attribute)
+
+        self._widget.settings().setAttribute(js_attribute,
+                        default_policy)
+
+    def apply_local_zoom_policy(self, url):
+        domains = objreg.get('domain-manager')
+        zoom_policy = domains.get_setting(url.host()+url.path(),
+                                          'zoom', None)
+        if not zoom_policy:
+            zoom_policy = domains.get_setting(url.host(),
+                                          'zoom', None)
+        if zoom_policy:
+            try:
+                zoom_policy = int(zoom_policy)
+            except ValueError:
+                log.webview.error("Invalid zoom value for {}".format(url))
+                return
+            self.zoom.set_factor(float(zoom_policy) / 100)
