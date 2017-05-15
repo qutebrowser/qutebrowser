@@ -1371,10 +1371,18 @@ class CommandDispatcher:
 
         def show_source_cb(source):
             """Show source as soon as it's ready."""
+            try:
+                current_url = self._current_url()
+            except cmdexc.CommandError as e:
+                message.error(str(e))
+                return
+
             lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(full=True,
-                                                          linenos='table')
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table',
+                title='Source for {}'.format(current_url.toDisplayString()))
             highlighted = pygments.highlight(source, lexer, formatter)
+
             new_tab = self._tabbed_browser.tabopen()
             new_tab.set_html(highlighted)
             new_tab.data.viewing_source = True
