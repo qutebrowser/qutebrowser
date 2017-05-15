@@ -71,7 +71,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading a data: link (issue 1214)
         When I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
-        And I open data/downloads/issue1214.html
+        And I open data/data_link.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
         And I run :leave-mode

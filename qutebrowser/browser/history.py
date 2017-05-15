@@ -257,6 +257,8 @@ class WebHistory(QObject):
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
+        if url.scheme() == 'data' or requested_url.scheme() == 'data':
+            return
         if url.isEmpty():
             # things set via setHtml
             return

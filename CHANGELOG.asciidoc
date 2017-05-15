@@ -78,6 +78,7 @@ Fixed
 - Various styling issues with the tabbar and a crash with qt5ct
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
+- data: URLs now aren't added to the history anymore.
 
 v0.10.1
 -------
