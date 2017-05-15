@@ -560,7 +560,7 @@ class CommandDispatcher:
                         tab=tab, background=bg, window=window)
             elif where in ['up', 'increment', 'decrement']:
                 new_url = handlers[where](url, count)
-                self._open(new_url, tab, bg, window)
+                self._open(new_url, tab, bg, window, explicit=False)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
                                 "`where'.".format(where))

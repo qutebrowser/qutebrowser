@@ -55,8 +55,9 @@ Changed
 - The adblocker now also blocks non-GET requests (e.g. POST)
 - `:follow-selected` now also works with QtWebEngine
 - javascript: links can now be hinted
-- :view-source and :tab-clone now don't open the tab as "explicit" anymore, i.e.
-  (with the default settings) open it next to the active tab.
+- `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
+  "explicit" anymore, i.e. (with the default settings) open it next to the
+  active tab.
 
 Fixed
 ~~~~~
