@@ -112,4 +112,3 @@ Feature: Page history
         And I run :open http://foo%40bar@baz
         Then "QFSFileEngine::open: No file name specified" should be logged
         And "Error while loading : Host  not found" should be logged
-        And "Ignoring invalid URL being added to history" should be logged
