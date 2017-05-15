@@ -80,15 +80,15 @@ class ColorFlags:
 
 
 def _generate_stylesheet():
-    flags = {
-        'private': 'statusbar.{}.private',
-        'caret': 'statusbar.{}.caret',
-        'caret-selection': 'statusbar.{}.caret-selection',
-        'prompt': 'prompts.{}',
-        'insert': 'statusbar.{}.insert',
-        'command': 'statusbar.{}.command',
-        'private-command': 'statusbar.{}.command.private',
-    }
+    flags = [
+        ('private', 'statusbar.{}.private'),
+        ('caret', 'statusbar.{}.caret'),
+        ('caret-selection', 'statusbar.{}.caret-selection'),
+        ('prompt', 'prompts.{}'),
+        ('insert', 'statusbar.{}.insert'),
+        ('command', 'statusbar.{}.command'),
+        ('private-command', 'statusbar.{}.command.private'),
+    ]
     stylesheet = """
         QWidget#StatusBar,
         QWidget#StatusBar QLabel,
@@ -98,7 +98,7 @@ def _generate_stylesheet():
             color: {{ color['statusbar.fg'] }};
         }
     """
-    for flag, option in sorted(flags.items()):
+    for flag, option in flags:
         stylesheet += """
             QWidget#StatusBar[color_flags~="%s"],
             QWidget#StatusBar[color_flags~="%s"] QLabel,
