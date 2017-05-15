@@ -282,7 +282,9 @@ class WebHistory(QObject):
         """
         if config.get('general', 'private-browsing'):
             return
-        if not url.isValid():
+        if not url.isValid():  # pragma: no cover
+            # the no cover pragma is a WORKAROUND for this not being covered in
+            # old Qt versions.
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
