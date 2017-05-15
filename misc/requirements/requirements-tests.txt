@@ -11,7 +11,7 @@ glob2==0.5
 httpbin==0.5.0
 hypothesis==3.8.3
 itsdangerous==0.24
-# Jinja2==2.9.5
+# Jinja2==2.9.6
 Mako==1.0.6
 # MarkupSafe==1.0
 parse==1.8.0
