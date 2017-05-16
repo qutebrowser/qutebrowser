@@ -150,8 +150,8 @@ def _init_stylesheet(profile):
 def _set_user_agent(profile):
     """Set the user agent for the given profile.
 
-    We override this per request in the URL interceptor (to allow for per-domain
-    user agents), but this one still gets used for things like
+    We override this per request in the URL interceptor (to allow for
+    per-domain user agents), but this one still gets used for things like
     window.navigator.userAgent in JS.
     """
     user_agent = config.get('network', 'user-agent')
