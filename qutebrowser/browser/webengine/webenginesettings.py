@@ -147,12 +147,26 @@ def _init_stylesheet(profile):
     profile.scripts().insert(script)
 
 
+def _set_user_agent(profile):
+    """Set the user agent for the given profile.
+
+    We override this per request in the URL interceptor (to allow for per-domain
+    user agents), but this one still gets used for things like
+    window.navigator.userAgent in JS.
+    """
+    user_agent = config.get('network', 'user-agent')
+    profile.setHttpUserAgent(user_agent)
+
+
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, section, option)
     if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
+    elif section == 'network' and option == 'user-agent':
+        _set_user_agent(default_profile)
+        _set_user_agent(private_profile)
 
 
 def _init_profiles():
@@ -164,10 +178,12 @@ def _init_profiles():
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
     _init_stylesheet(default_profile)
+    _set_user_agent(default_profile)
 
     private_profile = QWebEngineProfile()
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
+    _set_user_agent(private_profile)
 
 
 def init(args):

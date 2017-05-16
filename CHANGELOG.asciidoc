@@ -79,6 +79,8 @@ Fixed
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
 - data: URLs now aren't added to the history anymore.
+- window.navigator.userAgent is now set correctly when customizing the user
+  agent on QtWebEngine.
 
 v0.10.1
 -------
