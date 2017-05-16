@@ -451,6 +451,7 @@ class SessionManager(QObject):
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('with_private', flag='p')
     def session_save(self, name: str = default, current=False, quiet=False,
                      force=False, only_active_window=False, with_private=False,
                      win_id=None):

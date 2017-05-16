@@ -759,7 +759,7 @@ Save a session.
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 * +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
-* +*-w*+, +*--with-private*+: Include private windows.
+* +*-p*+, +*--with-private*+: Include private windows.
 
 [[set]]
 === set
