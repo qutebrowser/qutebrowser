@@ -33,4 +33,4 @@ pytest-warnings==0.2.0
 pytest-xvfb==1.0.0
 PyVirtualDisplay==0.2.1
 vulture==0.14
-Werkzeug==0.12.1
+Werkzeug==0.12.2
