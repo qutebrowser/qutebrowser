@@ -31,7 +31,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, browsertab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message)
+                               urlutils, message, jinja)
 
 
 UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history', 'index'])
@@ -665,21 +665,29 @@ class TabbedBrowser(tabwidget.TabWidget):
     def _on_renderer_process_terminated(self, tab, status, code):
         """Show an error when a renderer process terminated."""
         if status == browsertab.TerminationStatus.normal:
-            pass
-        elif status == browsertab.TerminationStatus.abnormal:
-            message.error("Renderer process exited with status {}".format(
-                code))
-        elif status == browsertab.TerminationStatus.crashed:
-            message.error("Renderer process crashed")
-        elif status == browsertab.TerminationStatus.killed:
-            message.error("Renderer process was killed")
-        elif status == browsertab.TerminationStatus.unknown:
-            message.error("Renderer process did not start")
-        else:
-            raise ValueError("Invalid status {}".format(status))
+           return
 
-        if not qtutils.version_check('5.9'):
+        messages = {
+            browsertab.TerminationStatus.abnormal:
+                "Renderer process exited with status {}".format(code),
+            browsertab.TerminationStatus.crashed:
+                "Renderer process crashed",
+            browsertab.TerminationStatus.killed:
+                "Renderer process was killed",
+            browsertab.TerminationStatus.unknown:
+                "Renderer process did not start",
+        }
+        msg = messages[status]
+
+        if qtutils.version_check('5.9'):
+            url_string = tab.url(requested=True).toDisplayString()
+            error_page = jinja.render(
+                'error.html', title="Error loading page".format(url_string),
+                url=url_string, error=msg, icon='')
+            QTimer.singleShot(0, lambda: tab.set_html(error_page))
+        else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+            message.error(msg)
             self._remove_tab(tab, crashed=True)
             if self.count() == 0:
                 self.tabopen(QUrl('about:blank'))
