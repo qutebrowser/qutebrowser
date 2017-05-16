@@ -665,7 +665,7 @@ class TabbedBrowser(tabwidget.TabWidget):
     def _on_renderer_process_terminated(self, tab, status, code):
         """Show an error when a renderer process terminated."""
         if status == browsertab.TerminationStatus.normal:
-           return
+            return
 
         messages = {
             browsertab.TerminationStatus.abnormal:
@@ -682,7 +682,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if qtutils.version_check('5.9'):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
-                'error.html', title="Error loading page".format(url_string),
+                'error.html', title="Error loading {}".format(url_string),
                 url=url_string, error=msg, icon='')
             QTimer.singleShot(0, lambda: tab.set_html(error_page))
         else:
