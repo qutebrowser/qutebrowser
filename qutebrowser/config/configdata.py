@@ -185,10 +185,9 @@ def data(readonly=False):
              "Encoding to use for editor."),
 
             ('private-browsing',
-             SettingValue(typ.Bool(), 'false',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Do not record visited pages in the history or store web page "
-             "icons."),
+             SettingValue(typ.Bool(), 'false'),
+             "Open new windows in private browsing mode which does not record "
+             "visited pages."),
 
             ('developer-extras',
              SettingValue(typ.Bool(), 'false',
@@ -1125,6 +1124,14 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
 
+            ('statusbar.fg.private',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in private browsing mode."),
+
+            ('statusbar.bg.private',
+             SettingValue(typ.QssColor(), '#666666'),
+             "Background color of the statusbar in private browsing mode."),
+
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in insert mode."),
@@ -1140,6 +1147,16 @@ def data(readonly=False):
             ('statusbar.bg.command',
              SettingValue(typ.QssColor(), '${statusbar.bg}'),
              "Background color of the statusbar in command mode."),
+
+            ('statusbar.fg.command.private',
+             SettingValue(typ.QssColor(), '${statusbar.fg.private}'),
+             "Foreground color of the statusbar in private browsing + command "
+             "mode."),
+
+            ('statusbar.bg.command.private',
+             SettingValue(typ.QssColor(), '${statusbar.bg.private}'),
+             "Background color of the statusbar in private browsing + command "
+             "mode."),
 
             ('statusbar.fg.caret',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),

@@ -569,26 +569,6 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
-    ## https://github.com/qutebrowser/qutebrowser/issues/1219
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
-    Scenario: Sharing cookies with private browsing
-        When I set general -> private-browsing to true
-        And I open cookies/set?qute-test=42 without waiting
-        And I wait until cookies is loaded
-        And I open cookies in a new tab
-        And I set general -> private-browsing to false
-        Then the cookie qute-test should be set to 42
-
-    ## https://github.com/qutebrowser/qutebrowser/issues/1742
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_xfail: private browsing is not implemented yet
-    Scenario: Private browsing is activated in QtWebKit without restart
-        When I set general -> private-browsing to true
-        And I open data/javascript/localstorage.html
-        And I set general -> private-browsing to false
-        Then the page should contain the plaintext "Local storage status: not working"
-
     @no_xvfb
     Scenario: :window-only
         Given I run :tab-only
@@ -680,20 +660,6 @@ Feature: Various utility commands.
         And I run :command-history-next
         And I run :command-accept
         Then the error "No command given" should be shown
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
-    Scenario: Calling previous command with private-browsing mode
-        When I run :set-cmd-text :message-info blah
-        And I run :command-accept
-        And I set general -> private-browsing to true
-        And I run :set-cmd-text :message-error "This should only be shown once"
-        And I run :command-accept
-        And I wait for the error "This should only be shown once"
-        And I run :set-cmd-text :
-        And I run :command-history-prev
-        And I run :command-accept
-        And I set general -> private-browsing to false
-        Then the message "blah" should be shown
 
     ## Modes blacklisted for :enter-mode
 

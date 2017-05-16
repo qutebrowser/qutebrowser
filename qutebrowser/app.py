@@ -195,7 +195,7 @@ def _process_args(args):
     session_manager = objreg.get('session-manager')
     if not session_manager.did_load:
         log.init.debug("Initializing main window...")
-        window = mainwindow.MainWindow()
+        window = mainwindow.MainWindow(private=None)
         if not args.nowindow:
             window.show()
         qApp.setActiveWindow(window)

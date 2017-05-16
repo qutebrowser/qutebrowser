@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,16 +17,25 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
+import json
 
-from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.browser.webkit import cookies
-
-
-pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
+import pytest_bdd as bdd
+bdd.scenarios('private.feature')
 
 
-def test_init_with_private_mode(config_stub):
-    nam = networkmanager.NetworkManager(win_id=0, tab_id=0, private=True)
-    assert isinstance(nam.cookieJar(), cookies.RAMCookieJar)
-    assert nam.cache() is None
+@bdd.then(bdd.parsers.parse('the cookie {name} should be set to {value}'))
+def check_cookie(quteproc, name, value):
+    """Check if a given cookie is set correctly.
+
+    This assumes we're on the httpbin cookies page.
+    """
+    content = quteproc.get_content()
+    data = json.loads(content)
+    print(data)
+    assert data['cookies'][name] == value
+
+
+@bdd.then(bdd.parsers.parse('the file {name} should not contain "{text}"'))
+def check_not_contain(tmpdir, name, text):
+    path = tmpdir / name
+    assert text not in path.read()

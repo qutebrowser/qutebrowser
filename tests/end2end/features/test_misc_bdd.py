@@ -18,7 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import json
 import os.path
 import subprocess
 
@@ -55,18 +54,6 @@ def update_documentation():
 
     update_script = os.path.join(script_path, 'asciidoc2html.py')
     subprocess.call([sys.executable, update_script])
-
-
-@bdd.then(bdd.parsers.parse('the cookie {name} should be set to {value}'))
-def check_cookie(quteproc, name, value):
-    """Check if a given cookie is set correctly.
-
-    This assumes we're on the httpbin cookies page.
-    """
-    content = quteproc.get_content()
-    data = json.loads(content)
-    print(data)
-    assert data['cookies'][name] == value
 
 
 @bdd.then(bdd.parsers.parse('the PDF {filename} should exist in the tmpdir'))

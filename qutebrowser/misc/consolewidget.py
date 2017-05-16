@@ -50,7 +50,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         Args:
             _namespace: The local namespace of the interpreter.
         """
-        super().__init__(parent)
+        super().__init__(parent=parent)
         self.update_font()
         objreg.get('config').changed.connect(self.update_font)
         self._history = cmdhistory.History(parent=self)

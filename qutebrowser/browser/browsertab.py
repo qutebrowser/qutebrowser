@@ -35,11 +35,12 @@ from qutebrowser.browser import mouse, hints
 tab_id_gen = itertools.count(0)
 
 
-def create(win_id, parent=None):
+def create(win_id, private, parent=None):
     """Get a QtWebKit/QtWebEngine tab object.
 
     Args:
         win_id: The window ID where the tab will be shown.
+        private: Whether the tab is a private/off the record tab.
         parent: The Qt parent to set.
     """
     # Importing modules here so we don't depend on QtWebEngine without the
@@ -51,7 +52,8 @@ def create(win_id, parent=None):
     else:
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
-    return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
+    return tab_class(win_id=win_id, mode_manager=mode_manager, private=private,
+                     parent=parent)
 
 
 def init():
@@ -542,6 +544,7 @@ class AbstractTab(QWidget):
     Attributes:
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
+        private: Whether private browsing is turned on for this tab.
 
         _load_status: loading status of this page
                       Accessible via load_status() method.
@@ -581,7 +584,8 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
 
-    def __init__(self, win_id, mode_manager, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
+        self.private = private
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)

@@ -27,7 +27,6 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
                                usertypes, message)
-from qutebrowser.config import config
 from qutebrowser.misc import lineparser, objects
 
 
@@ -280,8 +279,6 @@ class WebHistory(QObject):
                       (hidden in completion)
             atime: Override the atime used to add the entry
         """
-        if config.get('general', 'private-browsing'):
-            return
         if not url.isValid():  # pragma: no cover
             # the no cover pragma is a WORKAROUND for this not being covered in
             # old Qt versions.

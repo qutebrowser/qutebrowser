@@ -216,8 +216,10 @@ def get_tab(win_id, target):
         win_id = win_id
         bg_tab = True
     elif target == usertypes.ClickTarget.window:
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
         from qutebrowser.mainwindow import mainwindow
-        window = mainwindow.MainWindow()
+        window = mainwindow.MainWindow(private=tabbed_browser.private)
         window.show()
         win_id = window.win_id
         bg_tab = False

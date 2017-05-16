@@ -27,14 +27,14 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 # pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
-                                      QWebEngineProfile)
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 # pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
-                                           webenginedownloads)
+                                           webenginedownloads,
+                                           webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                objreg, jinja, debug)
@@ -50,21 +50,23 @@ def init():
     # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
     global _qute_scheme_handler
     app = QApplication.instance()
-    profile = QWebEngineProfile.defaultProfile()
 
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
-    _qute_scheme_handler.install(profile)
+    _qute_scheme_handler.install(webenginesettings.default_profile)
+    _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
     host_blocker = objreg.get('host-blocker')
     req_interceptor = interceptor.RequestInterceptor(
         host_blocker, parent=app)
-    req_interceptor.install(profile)
+    req_interceptor.install(webenginesettings.default_profile)
+    req_interceptor.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing QtWebEngine downloads...")
     download_manager = webenginedownloads.DownloadManager(parent=app)
-    download_manager.install(profile)
+    download_manager.install(webenginesettings.default_profile)
+    download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
 
@@ -521,10 +523,11 @@ class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
 
-    def __init__(self, win_id, mode_manager, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         parent=parent)
-        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id)
+                         private=private, parent=parent)
+        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
+                                       private=private)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
         self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
