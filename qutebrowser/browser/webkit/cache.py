@@ -33,7 +33,6 @@ class DiskCache(QNetworkDiskCache):
 
     def __init__(self, cache_dir, parent=None):
         super().__init__(parent)
-        assert not config.get('general', 'private-browsing')
         self.setCacheDirectory(os.path.join(cache_dir, 'http'))
         self._set_cache_size()
         objreg.get('config').changed.connect(self._set_cache_size)
