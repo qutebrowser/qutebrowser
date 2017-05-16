@@ -233,10 +233,3 @@ def test_cache_full(config_stub, tmpdir):
 
     assert disk_cache.metaData(QUrl(url)).lastModified() == soon
     assert disk_cache.data(QUrl(url)).readAll() == content
-
-
-def test_private_browsing(config_stub, tmpdir):
-    """Make sure the cache asserts with private browsing."""
-    config_stub.data = {'general': {'private-browsing': True}}
-    with pytest.raises(AssertionError):
-        cache.DiskCache(str(tmpdir))
