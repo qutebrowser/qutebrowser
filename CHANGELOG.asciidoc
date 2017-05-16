@@ -29,12 +29,19 @@ Added
 - New `--debug-flag` argument which replaces `--debug-exit` and
   `--pdb-postmortem`.
 - New `tabs -> favicon-scale` option to scale up/down favicons.
+- `-p` flag for `:open` to open a private window
+- `colors -> statusbar.bg/fg.private` and `.command.private` to
+  customize statusbar colors for private windows.
 
 Changed
 ~~~~~~~
 
 - To prevent elaborate phishing attacks, the Punycode version is now shown in
   addition to the decoded version for IDN domain names.
+- Private browsing is now implemented for QtWebEngine, and changed
+  it's behavior: The general -> private-browsing setting now only
+  applies to newly opened windows, and you can use the -p flag to
+  :open to open a private window.
 - When using QtWebEngine, the underlying Chromium version is now shown in the
   version info.
 - Improved `qute:history` page with lazy loading
