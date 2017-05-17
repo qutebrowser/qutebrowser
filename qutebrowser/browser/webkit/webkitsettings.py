@@ -33,33 +33,40 @@ from qutebrowser.utils import standarddir, objreg, urlutils, qtutils
 from qutebrowser.browser import shared
 
 
-class Attribute(websettings.Attribute):
+class Base(websettings.Base):
+
+    """Base settings class with appropriate _get_global_settings."""
+
+    def _get_global_settings(self):
+        return [QWebSettings.globalSettings()]
+
+
+class Attribute(Base, websettings.Attribute):
 
     """A setting set via QWebSettings::setAttribute."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
     ENUM_BASE = QWebSettings
 
 
-class Setter(websettings.Setter):
+class Setter(Base, websettings.Setter):
 
     """A setting set via QWebSettings getter/setter methods."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
-class NullStringSetter(websettings.NullStringSetter):
+class NullStringSetter(Base, websettings.NullStringSetter):
 
     """A setter for settings requiring a null QString as default."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
-class StaticSetter(websettings.StaticSetter):
+class StaticSetter(Base, websettings.StaticSetter):
 
     """A setting set via static QWebSettings getter/setter methods."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
 class CookiePolicy(websettings.Base):

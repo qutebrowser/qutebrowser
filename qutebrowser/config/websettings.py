@@ -34,24 +34,28 @@ class Base:
         _default: The default value of this setting.
     """
 
-    # Needs to be overridden by subclasses in
-    # webkitsettings.py/webenginesettings.py
-    GLOBAL_SETTINGS = None
-
     def __init__(self):
         self._default = UNSET
 
+    def _get_global_settings(self):
+        """Get a list of global QWeb(Engine)Settings to use."""
+        raise NotImplementedError
+
     def _get_settings(self, settings):
-        """Get the QWeb(Engine)Settings object to use.
+        """Get a list of QWeb(Engine)Settings objects to use.
 
         Args:
             settings: The QWeb(Engine)Settings instance to use, or None to use
                       the global instance.
+
+        Return:
+            A list of QWeb(Engine)Settings objects. The first one should be used
+            for reading.
         """
         if settings is None:
-            return self.GLOBAL_SETTINGS()  # pylint: disable=not-callable
+            return self._get_global_settings()
         else:
-            return settings
+            return [settings]
 
     def save_default(self, settings=None):
         """Save the default value based on the currently set one.
@@ -141,10 +145,11 @@ class Attribute(Base):
             constructor=True)
 
     def get(self, settings=None):
-        return self._get_settings(settings).attribute(self._attribute)
+        return self._get_settings(settings)[0].attribute(self._attribute)
 
     def _set(self, value, settings=None):
-        self._get_settings(settings).setAttribute(self._attribute, value)
+        for obj in self._get_settings(settings):
+            obj.setAttribute(self._attribute, value)
 
 
 class Setter(Base):
@@ -178,16 +183,17 @@ class Setter(Base):
     def get(self, settings=None):
         if self._getter is None:
             raise AttributeError("No getter set!")
-        return self._getter(self._get_settings(settings), *self._args)
+        return self._getter(self._get_settings(settings)[0], *self._args)
 
     def _set(self, value, settings=None):
-        args = [self._get_settings(settings)]
-        args.extend(self._args)
-        if self._unpack:
-            args.extend(value)
-        else:
-            args.append(value)
-        self._setter(*args)
+        for obj in self._get_settings(settings):
+            args = [obj]
+            args.extend(self._args)
+            if self._unpack:
+                args.extend(value)
+            else:
+                args.append(value)
+            self._setter(*args)
 
 
 class NullStringSetter(Setter):

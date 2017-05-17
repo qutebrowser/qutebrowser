@@ -117,3 +117,9 @@ Feature: Using private browsing
         And I run :session-save (tmpdir)/session.yml
         And I wait for "Saved session */session.yml." in the log
         Then the file session.yml should not contain "hello.txt"
+
+    # https://github.com/qutebrowser/qutebrowser/issues/2638
+    Scenario: Turning off javascript with private browsing
+        When I set content -> allow-javascript to false
+        And I open data/javascript/consolelog.html in a private window
+        Then the javascript message "console.log works!" should not be logged

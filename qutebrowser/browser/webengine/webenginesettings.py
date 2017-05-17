@@ -44,33 +44,26 @@ default_profile = None
 private_profile = None
 
 
-class Attribute(websettings.Attribute):
+class Base(websettings.Base):
+
+    """Base settings class with appropriate _get_global_settings."""
+
+    def _get_global_settings(self):
+        return [default_profile.settings(), private_profile.settings()]
+
+
+class Attribute(Base, websettings.Attribute):
 
     """A setting set via QWebEngineSettings::setAttribute."""
 
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
     ENUM_BASE = QWebEngineSettings
 
 
-class Setter(websettings.Setter):
+class Setter(Base, websettings.Setter):
 
     """A setting set via QWebEngineSettings getter/setter methods."""
 
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
-
-
-class NullStringSetter(websettings.NullStringSetter):
-
-    """A setter for settings requiring a null QString as default."""
-
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
-
-
-class StaticSetter(websettings.StaticSetter):
-
-    """A setting set via static QWebEngineSettings getter/setter methods."""
-
-    GLOBAL_SETTINGS = QWebEngineSettings.globalSettings
+    pass
 
 
 class DefaultProfileSetter(websettings.Base):
@@ -204,11 +197,11 @@ def init(args):
             log.misc.debug("Imported PyOpenGL as workaround")
 
     _init_profiles()
+
     # We need to do this here as a WORKAROUND for
     # https://bugreports.qt.io/browse/QTBUG-58650
     if not qtutils.version_check('5.9'):
         PersistentCookiePolicy().set(config.get('content', 'cookies-store'))
-
     Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
 
     websettings.init_mappings(MAPPINGS)
