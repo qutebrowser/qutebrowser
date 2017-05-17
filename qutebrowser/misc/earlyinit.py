@@ -35,12 +35,14 @@ import faulthandler
 import traceback
 import signal
 import importlib
-import pkg_resources
 import datetime
 try:
     import tkinter
 except ImportError:
     tkinter = None
+
+import pkg_resources
+
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
 

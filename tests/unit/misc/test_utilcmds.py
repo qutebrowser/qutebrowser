@@ -22,12 +22,12 @@
 import contextlib
 import logging
 import os
-import pytest
 import signal
 import time
 
-from qutebrowser.misc import utilcmds
+import pytest
 
+from qutebrowser.misc import utilcmds
 from qutebrowser.commands import cmdexc
 
 

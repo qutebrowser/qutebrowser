@@ -23,11 +23,12 @@ Contains:
     CompletionFilterModel -- A QSortFilterProxyModel subclass for completions.
 """
 
+import re
+
 from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex, Qt
 
 from qutebrowser.utils import log, qtutils, debug
 from qutebrowser.completion.models import base as completion
-import re
 
 
 class CompletionFilterModel(QSortFilterProxyModel):

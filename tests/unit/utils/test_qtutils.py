@@ -23,6 +23,8 @@ import io
 import os
 import sys
 import os.path
+import unittest
+import unittest.mock
 try:
     # pylint: disable=no-name-in-module,useless-suppression
     from test import test_file
@@ -31,8 +33,6 @@ except ImportError:
     test_file = None
 
 import pytest
-import unittest
-import unittest.mock
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
 

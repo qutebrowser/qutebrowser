@@ -20,8 +20,9 @@
 """Tests for qutebrowser.misc.lineparser."""
 
 import os
-import pytest
 from unittest import mock
+
+import pytest
 
 from qutebrowser.misc import lineparser as lineparsermod
 

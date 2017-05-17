@@ -39,7 +39,7 @@ except ImportError:
 check_python_version()
 from qutebrowser.utils import log
 
-import argparse
+import argparse  # pylint: disable=wrong-import-order
 from qutebrowser.misc import earlyinit
 
 

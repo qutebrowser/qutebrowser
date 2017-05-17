@@ -20,9 +20,9 @@
 """Management of sessions - saved tabs/windows."""
 
 import os
-import sip
 import os.path
 
+import sip
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
