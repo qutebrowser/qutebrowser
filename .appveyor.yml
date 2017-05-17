@@ -5,9 +5,9 @@ cache:
 build: off
 environment:
     PYTHONUNBUFFERED: 1
+    PYTHON: C:\Python36\python.exe
     matrix:
     - TESTENV: py36-pyqt58
-      PYTHON: C:\Python36\python.exe
     - TESTENV: pylint
 
 install:
