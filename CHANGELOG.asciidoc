@@ -65,10 +65,18 @@ Changed
 - `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
   "explicit" anymore, i.e. (with the default settings) open it next to the
   active tab.
+- The Windows releases are redone from scratch, which means:
+  - They now use the new QtWebEngine backend
+  - The bundled Qt is updated from 5.5 to 5.9
+  - The bundled Python is updated from 3.4 to 3.6
+  - They are now generated with PyInstaller instead of cx_Freeze
+  - The installer is now generated using NSIS instead of being a MSI
 
 Fixed
 ~~~~~
 
+- The macOS .dmg is now built against Qt 5.9 which fixes various
+  important issues (such as not being able to type dead keys).
 - Added a workaround for a black screen with QtWebEngine with some setups
   (the workaround requires PyOpenGL to be installed, but it's optional)
 - Crash when trying to retry downloads with QtWebEngine
