@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# We get various "abstract but not overridden" warnings
+# pylint: disable=abstract-method
+
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
 from qutebrowser.config import config
@@ -49,8 +52,8 @@ class Base:
                       the global instance.
 
         Return:
-            A list of QWeb(Engine)Settings objects. The first one should be used
-            for reading.
+            A list of QWeb(Engine)Settings objects. The first one should be
+            used for reading.
         """
         if settings is None:
             return self._get_global_settings()

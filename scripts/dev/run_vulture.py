@@ -162,7 +162,8 @@ def run(files):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts'])
+    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts',
+                                                     'setup.py'])
     args = parser.parse_args()
     out = run(args.files)
     for line in out:

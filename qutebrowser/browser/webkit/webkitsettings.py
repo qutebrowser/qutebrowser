@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# We get various "abstract but not overridden" warnings
+# pylint: disable=abstract-method
+
 """Bridge from QWebSettings to our own settings.
 
 Module attributes:
