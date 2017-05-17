@@ -160,6 +160,7 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Marshall Lochbaum
 * Bruno Oliveira
+* thuck
 * Martin Tournoij
 * Imran Sobir
 * Alexander Cogneau
@@ -174,6 +175,7 @@ Contributors, sorted by the number of commits in descending order:
 * Fritz Reichwald
 * Corentin Julé
 * meles5
+* Jay Kamat
 * Philipp Hansch
 * Panagiotis Ktistakis
 * Artur Shaik
@@ -191,7 +193,6 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Jay Kamat
 * Clayton Craft
 * Peter Vilim
 * Jacob Sword
@@ -225,7 +226,6 @@ Contributors, sorted by the number of commits in descending order:
 * Jussi Timperi
 * Cosmin Popescu
 * Brian Jackson
-* thuck
 * sbinix
 * rsteube
 * neeasade

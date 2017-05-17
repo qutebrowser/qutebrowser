@@ -549,7 +549,6 @@ def check_open_tabs(quteproc, request, tabs):
         assert line.startswith('- ')
         line = line[2:]  # remove "- " prefix
 
-        path = line
         active = False
         pinned = False
 

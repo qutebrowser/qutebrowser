@@ -259,7 +259,7 @@ class CommandDispatcher:
                        name='tab-pin')
     @cmdutils.argument('count', count=True)
     def tab_pin(self, count=None):
-        """Pin/Unpin the current tab.
+        """Pin/Unpin the current/[count]th tab.
 
         Args:
             count: The tab index to pin or unpin, or None
