@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Script to clean up the mess made by Python/setuptools/cx_Freeze."""
+"""Script to clean up the mess made by Python/setuptools/PyInstaller."""
 
 import os
 import os.path

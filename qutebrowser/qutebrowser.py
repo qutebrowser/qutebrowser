@@ -162,13 +162,7 @@ def debug_flag_error(flag):
 
 def main():
     parser = get_argparser()
-    if sys.platform == 'darwin' and getattr(sys, 'frozen', False):
-        # Ignore Mac OS X' idiotic -psn_* argument...
-        # http://stackoverflow.com/questions/19661298/
-        # http://sourceforge.net/p/cx-freeze/mailman/message/31041783/
-        argv = [arg for arg in sys.argv[1:] if not arg.startswith('-psn_0_')]
-    else:
-        argv = sys.argv[1:]
+    argv = sys.argv[1:]
     args = parser.parse_args(argv)
     if args.json_args is not None:
         # Restoring after a restart.

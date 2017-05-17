@@ -220,7 +220,7 @@ Documentation of used Python libraries:
 * http://pygments.org/docs/[pygments]
 * http://fdik.org/pyPEG/index.html[pyPEG2]
 * http://pythonhosted.org/setuptools/[setuptools]
-* http://cx-freeze.readthedocs.org/en/latest/overview.html[cx_Freeze]
+* http://www.pyinstaller.org/[PyInstaller]
 * https://pypi.python.org/pypi/colorama[colorama]
 
 Related RFCs and standards:

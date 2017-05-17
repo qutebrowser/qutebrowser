@@ -28,16 +28,7 @@ CI machines.
 
 from __future__ import print_function
 
-import os
-import time
 import subprocess
-import urllib
-
-
-def check_setup(executable):
-    subprocess.check_call([executable, '-c', 'import PyQt5'])
-    subprocess.check_call([executable, '-c', 'import sip'])
-    subprocess.check_call([executable, '--version'])
 
 
 def pip_install(pkg):
@@ -48,28 +39,3 @@ def pip_install(pkg):
 print("Installing tox")
 pip_install('pip')
 pip_install(r'-rmisc\requirements\requirements-tox.txt')
-
-print("Linking Python...")
-with open(r'C:\Windows\system32\python3.bat', 'w') as f:
-    f.write(r'@C:\Python34\python %*')
-
-
-if '-pyqt' not in os.environ['TESTENV']:
-    print("Getting PyQt5...")
-    qt_version = '5.5.1'
-    pyqt_version = '5.5.1'
-    pyqt_url = ('https://www.qutebrowser.org/pyqt/'
-                'PyQt5-{}-gpl-Py3.4-Qt{}-x32.exe'.format(
-                    pyqt_version, qt_version))
-
-    try:
-        urllib.urlretrieve(pyqt_url, r'C:\install-PyQt5.exe')
-    except (OSError, IOError):
-        print("Downloading PyQt failed, trying again in 10 seconds...")
-        time.sleep(10)
-        urllib.urlretrieve(pyqt_url, r'C:\install-PyQt5.exe')
-
-    print("Installing PyQt5...")
-    subprocess.check_call([r'C:\install-PyQt5.exe', '/S'])
-
-    check_setup(r'C:\Python34\python')
