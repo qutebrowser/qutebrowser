@@ -11,8 +11,9 @@ environment:
     - TESTENV: pylint
 
 install:
-  - C:\Python27\python -u scripts\dev\ci\appveyor_install.py
-  - set PATH=%PATH%;C:\Python36
+  - '%PYTHON% -m pip install -U pip'
+  - '%PYTHON% -m pip install -r misc\requirements\requirements-tox.txt'
+  - 'set PATH=%PATH%;C:\Python36'
 
 test_script:
-  - C:\Python34\Scripts\tox -e %TESTENV%
+  - '%PYTHON% -m tox -e %TESTENV%'
