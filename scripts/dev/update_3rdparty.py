@@ -121,7 +121,7 @@ def main():
                         action='store_true')
     args = parser.parse_args()
 
-    update_pdfjs(args.pdfjs)
+    # update_pdfjs(args.pdfjs)
     update_ace()
     if args.fancy_dmg:
         update_dmg_makefile()
