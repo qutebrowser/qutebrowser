@@ -25,9 +25,7 @@
 from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QApplication
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.utils import log, javascript
 from qutebrowser.browser import webelem
@@ -192,14 +190,9 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def _click_editable(self, click_target):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
-        # pylint doesn't know about Qt.MouseEventSynthesizedBySystem
-        # because it was added in Qt 5.6, but we can be sure we use that with
-        # QtWebEngine.
-        # pylint: disable=no-member,useless-suppression
         ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
                          QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
                          Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
-        # pylint: enable=no-member,useless-suppression
         self._tab.send_event(ev)
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')

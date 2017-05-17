@@ -68,7 +68,7 @@ def main():
     no_docstring_rgx = ['^__.*__$', '^setup$']
     args = (['--disable={}'.format(','.join(disabled)),
              '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx)),
-             '--ignored-modules=helpers,pytest'] +
+             '--ignored-modules=helpers,pytest,PyQt5'] +
             sys.argv[2:] + files)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(pythonpath)

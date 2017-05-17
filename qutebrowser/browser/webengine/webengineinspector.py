@@ -22,9 +22,7 @@
 import os
 
 from PyQt5.QtCore import QUrl
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import inspector
 

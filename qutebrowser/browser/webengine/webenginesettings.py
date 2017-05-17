@@ -30,10 +30,8 @@ Module attributes:
 import os
 import logging
 
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings

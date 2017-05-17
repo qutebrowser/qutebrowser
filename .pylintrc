@@ -70,7 +70,7 @@ valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
 # WORKAROUND for https://github.com/PyCQA/astroid/pull/357
-ignored-modules=pytest
+ignored-modules=pytest,PyQt5,PyQt5.QtWebKit
 # MsgType added as WORKAROUND for
 # https://bitbucket.org/logilab/pylint/issues/690/
 # UnsetObject because pylint infers any objreg.get(...) as UnsetObject.

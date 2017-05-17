@@ -51,7 +51,6 @@ def test_element_js_webkit(webview, js_enabled, expected):
 def test_simple_js_webengine(callback_checker, webengineview, js_enabled,
                              expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
-    # pylint: disable=no-name-in-module,useless-suppression
     # If we get there (because of the webengineview fixture) we can be certain
     # QtWebEngine is available
     from PyQt5.QtWebEngineWidgets import QWebEngineSettings

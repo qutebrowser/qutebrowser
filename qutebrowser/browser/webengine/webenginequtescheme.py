@@ -20,10 +20,8 @@
 """QtWebEngine specific qute://* handlers and glue code."""
 
 from PyQt5.QtCore import QBuffer, QIODevice
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
