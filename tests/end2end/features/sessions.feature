@@ -386,5 +386,5 @@ Feature: Saving and loading sessions
       Then the message "Tab is pinned!" should be shown
       And the following tabs should be open:
         - data/numbers/1.txt
-        - data/numbers/2.txt (active)
+        - data/numbers/2.txt (active) (pinned)
         - data/numbers/3.txt

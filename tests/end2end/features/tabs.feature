@@ -1037,16 +1037,17 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
-            - data/numbers/3.txt (active)
+            - data/numbers/3.txt (active) (pinned)
 
     Scenario: :tab-pin unpin
         When I open data/numbers/1.txt
+        And I run :tab-pin
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-pin
         And I run :tab-pin
         Then the following tabs should be open:
-            - data/numbers/1.txt
+            - data/numbers/1.txt (pinned)
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
 
@@ -1057,7 +1058,7 @@ Feature: Tab management
         And I run :tab-pin with count 2
         Then the following tabs should be open:
             - data/numbers/1.txt
-            - data/numbers/2.txt
+            - data/numbers/2.txt (pinned)
             - data/numbers/3.txt (active)
 
     Scenario: Pinned :tab-close prompt yes
@@ -1069,7 +1070,7 @@ Feature: Tab management
         And I wait for "*want to close a pinned tab*" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
-            - data/numbers/1.txt (active)
+            - data/numbers/1.txt (active) (pinned)
 
     Scenario: Pinned :tab-close prompt no
         When I open data/numbers/1.txt
@@ -1080,8 +1081,8 @@ Feature: Tab management
         And I wait for "*want to close a pinned tab*" in the log
         And I run :prompt-accept no
         Then the following tabs should be open:
-            - data/numbers/1.txt
-            - data/numbers/2.txt (active)
+            - data/numbers/1.txt (pinned)
+            - data/numbers/2.txt (active) (pinned)
 
     Scenario: Pinned :tab-only prompt yes
         When I open data/numbers/1.txt
@@ -1093,7 +1094,7 @@ Feature: Tab management
         And I wait for "*want to close a pinned tab*" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
-            - data/numbers/1.txt (active)
+            - data/numbers/1.txt (active) (pinned)
 
     Scenario: Pinned :tab-only prompt no
         When I open data/numbers/1.txt
@@ -1105,8 +1106,8 @@ Feature: Tab management
         And I wait for "*want to close a pinned tab*" in the log
         And I run :prompt-accept no
         Then the following tabs should be open:
-            - data/numbers/1.txt (active)
-            - data/numbers/2.txt
+            - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt (pinned)
 
     Scenario: Pinned :tab-only close all but pinned tab
         When I open data/numbers/1.txt
@@ -1114,7 +1115,7 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-only
         Then the following tabs should be open:
-            - data/numbers/2.txt (active)
+            - data/numbers/2.txt (active) (pinned)
 
     Scenario: :tab-pin open url
         When I open data/numbers/1.txt
@@ -1122,4 +1123,4 @@ Feature: Tab management
         And I open data/numbers/2.txt without waiting
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
-            - data/numbers/1.txt (active)
+            - data/numbers/1.txt (active) (pinned)
