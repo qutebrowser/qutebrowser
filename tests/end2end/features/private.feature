@@ -6,21 +6,25 @@ Feature: Using private browsing
         Given I open about:blank
         And I clean up open tabs
 
-    @qtwebkit_ng_xfail: private browsing is not implemented yet
     Scenario: Opening new tab in private window
         When I open about:blank in a private window
-        And I run :window-only
-        And I open data/javascript/localstorage.html in a new tab
-        Then the page should contain the plaintext "Local storage status: not working"
+        And I open cookies/set?qute-private-test=42 without waiting in a new tab
+        And I wait until cookies is loaded
+        And I run :close
+        And I wait for "removed: main-window" in the log
+        And I open cookies
+        Then the cookie qute-private-test should not be set
 
-    @qtwebkit_ng_xfail: private browsing is not implemented yet
     Scenario: Opening new tab in private window with :navigate next
         When I open data/navigate in a private window
-        And I run :window-only
         And I run :navigate -t next
         And I wait until data/navigate/next.html is loaded
-        And I open data/javascript/localstorage.html
-        Then the page should contain the plaintext "Local storage status: not working"
+        And I open cookies/set?qute-private-test=42 without waiting
+        And I wait until cookies is loaded
+        And I run :close
+        And I wait for "removed: main-window" in the log
+        And I open cookies
+        Then the cookie qute-private-test should not be set
 
     Scenario: Using command history in a new private browsing window
         When I run :set-cmd-text :message-info "Hello World"
@@ -123,3 +127,14 @@ Feature: Using private browsing
         When I set content -> allow-javascript to false
         And I open data/javascript/consolelog.html in a private window
         Then the javascript message "console.log works!" should not be logged
+
+    @qtwebkit_skip: Only applies to QtWebEngine
+    Scenario: Make sure local storage is isolated with private browsing
+        When I open / in a private window
+        And I run :jseval localStorage.qute_private_test = 42
+        And I wait for "42" in the log
+        And I run :close
+        And I wait for "removed: main-window" in the log
+        And I open /
+        And I run :jseval localStorage.qute_private_test
+        Then "No output or error" should be logged
