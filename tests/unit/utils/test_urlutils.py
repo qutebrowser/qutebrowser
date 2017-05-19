@@ -30,7 +30,7 @@ import pytest
 from qutebrowser.commands import cmdexc
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
-from helpers import utils
+from helpers import utils as testutils
 
 
 class FakeDNS:
@@ -756,10 +756,10 @@ def test_data_url():
     (QUrl('http://www.example.xn--p1ai'),
         '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    utils.qt58((QUrl('http://www.xn--80ak6aa92e.com'),
-                '(unparseable URL!) http://www.аррӏе.com')),
-    utils.qt59((QUrl('http://www.xn--80ak6aa92e.com'),
-                'http://www.xn--80ak6aa92e.com')),
+    testutils.qt58((QUrl('http://www.xn--80ak6aa92e.com'),
+                    '(unparseable URL!) http://www.аррӏе.com')),
+    testutils.qt59((QUrl('http://www.xn--80ak6aa92e.com'),
+                    'http://www.xn--80ak6aa92e.com')),
 ])
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected
