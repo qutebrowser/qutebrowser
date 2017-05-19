@@ -89,6 +89,7 @@ Fixed
 - Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Crash with some invalid setting values
 - Crash when cloning a view-source tab with QtWebEngine
+- Crash when a PAC file returns an invalid value with QtWebKit
 - Various rare crashes
 - Various styling issues with the tabbar and a crash with qt5ct
 - The validation for colors in stylesheets is now less strict,

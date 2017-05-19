@@ -197,10 +197,10 @@ Contributors, sorted by the number of commits in descending order:
 * Jacob Sword
 * knaggita
 * Oliver Caldwell
+* Nikolay Amiantov
 * Julian Weigt
 * Tomasz Kramkowski
 * Sebastian Frysztak
-* Nikolay Amiantov
 * Julie Engel
 * Jonas Schürmann
 * error800
