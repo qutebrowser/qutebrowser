@@ -24,12 +24,7 @@ import pytest
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginedownloads
-from qutebrowser.utils import qtutils
-
-qt58 = pytest.mark.skipif(
-    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
-qt59 = pytest.mark.skipif(
-    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
+from helpers import utils
 
 
 @pytest.mark.parametrize('path, expected', [
@@ -37,10 +32,10 @@ qt59 = pytest.mark.skipif(
     ('foo(1)', 'foo'),
     ('foo(a)', 'foo(a)'),
     ('foo1', 'foo1'),
-    qt58(('foo%20bar', 'foo bar')),
-    qt58(('foo%2Fbar', 'bar')),
-    qt59(('foo%20bar', 'foo%20bar')),
-    qt59(('foo%2Fbar', 'foo%2Fbar')),
+    utils.qt58(('foo%20bar', 'foo bar')),
+    utils.qt58(('foo%2Fbar', 'bar')),
+    utils.qt59(('foo%20bar', 'foo%20bar')),
+    utils.qt59(('foo%2Fbar', 'foo%2Fbar')),
 ])
 def test_get_suggested_filename(path, expected):
     assert webenginedownloads._get_suggested_filename(path) == expected

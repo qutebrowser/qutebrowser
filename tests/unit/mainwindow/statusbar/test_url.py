@@ -22,10 +22,11 @@
 
 import pytest
 
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.utils import usertypes, urlutils
 from qutebrowser.mainwindow.statusbar import url
-
-from PyQt5.QtCore import QUrl
+from helpers import utils
 
 
 @pytest.fixture
@@ -60,8 +61,10 @@ def url_widget(qtbot, monkeypatch, config_stub):
     ('http://username:secret%20password@test.com', 'http://username@test.com'),
     ('http://example.com%5b/', '(invalid URL!) http://example.com%5b/'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    ('http://www.xn--80ak6aa92e.com',
-     '(unparseable URL!) http://www.аррӏе.com'),
+    utils.qt58(('http://www.xn--80ak6aa92e.com',
+                '(unparseable URL!) http://www.аррӏе.com')),
+    utils.qt59(('http://www.xn--80ak6aa92e.com',
+                'http://www.xn--80ak6aa92e.com')),
     # IDN URL
     ('http://www.ä.com', '(www.xn--4ca.com) http://www.ä.com'),
     (None, ''),

@@ -685,6 +685,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 'error.html', title="Error loading {}".format(url_string),
                 url=url_string, error=msg, icon='')
             QTimer.singleShot(0, lambda: tab.set_html(error_page))
+            log.webview.error(msg)
         else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
             message.error(msg)
