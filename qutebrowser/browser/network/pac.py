@@ -312,4 +312,4 @@ class PACFetcher(QObject):
             # Later NetworkManager.createRequest will detect this and display
             # an error message.
             error_host = "pac-resolve-error.qutebrowser.invalid"
-            return QNetworkProxy(QNetworkProxy.HttpProxy, error_host, 9)
+            return [QNetworkProxy(QNetworkProxy.HttpProxy, error_host, 9)]
