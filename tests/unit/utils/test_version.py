@@ -809,16 +809,18 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
-@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit'], [
-    (True, False, True, True),  # normal
-    (False, False, True, True),  # no git commit
-    (True, True, True, True),  # frozen
-    (True, True, False, True),  # no style
-    (True, False, True, False),  # no webkit
-    (True, False, True, 'ng'),  # QtWebKit-NG
+@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit',
+                          'known_distribution'], [
+    (True, False, True, True, True),  # normal
+    (False, False, True, True, True),  # no git commit
+    (True, True, True, True, True),  # frozen
+    (True, True, False, True, True),  # no style
+    (True, False, True, False, True),  # no webkit
+    (True, False, True, 'ng', True),  # QtWebKit-NG
+    (True, False, True, True, False),  # unknown Linux distribution
 ])
-def test_version_output(git_commit, frozen, style, with_webkit, stubs,
-                        monkeypatch):
+def test_version_output(git_commit, frozen, style, with_webkit,
+                        known_distribution, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineProfile:
         def httpUserAgent(self):
@@ -843,7 +845,7 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
                          stubs.FakeQApplication(instance=None)),
-        'QLibraryInfo.location': (lambda _loc: 'QT PATH')
+        'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
     }
 
     substitutions = {
@@ -870,6 +872,18 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
+    if known_distribution:
+        patches['distribution'] = lambda: version.DistributionInfo(
+            parsed=version.Distribution.arch, version=None,
+            pretty='LINUX DISTRIBUTION', id='arch')
+        substitutions['linuxdist'] = ('\nLinux distribution: '
+                                      'LINUX DISTRIBUTION (arch)')
+        substitutions['osinfo'] = ''
+    else:
+        patches['distribution'] = lambda: None
+        substitutions['linuxdist'] = ''
+        substitutions['osinfo'] = 'OS INFO 1\nOS INFO 2\n'
+
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
@@ -891,13 +905,11 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         pdf.js: PDFJS VERSION
         SSL: SSL VERSION
         {style}
-        Platform: PLATFORM, ARCHITECTURE
+        Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
         Qt library executable path: QT PATH, data path: QT PATH
-        OS INFO 1
-        OS INFO 2
-
+        {osinfo}
         Paths:
         PATH DESC: PATH NAME
     """.lstrip('\n'))

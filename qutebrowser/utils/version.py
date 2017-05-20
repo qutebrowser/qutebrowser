@@ -349,6 +349,14 @@ def version():
     lines += [
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
+    ]
+    dist = distribution()
+    if dist is not None:
+        lines += [
+            'Linux distribution: {} ({})'.format(dist.pretty, dist.parsed.name)
+        ]
+
+    lines += [
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
         "Qt library executable path: {}, data path: {}".format(
@@ -356,7 +364,9 @@ def version():
             QLibraryInfo.location(QLibraryInfo.DataPath)
         )
     ]
-    lines += _os_info()
+
+    if not dist or dist.parsed == Distribution.unknown:
+        lines += _os_info()
 
     lines += [
         '',
