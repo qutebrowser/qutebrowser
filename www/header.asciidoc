@@ -17,8 +17,4 @@
 	<a href="https://github.com/qutebrowser/qutebrowser/releases">Releases</a>
 	<a href="http://blog.qutebrowser.org/">Blog</a>
 </div>
-<div id="crowdfunding">
-qutebrowser is currently running a crowdfunding campaign for its new configuration system, allowing for per-domain settings and much more.
-See the <a href="https://www.kickstarter.com/projects/the-compiler/qutebrowser-v10-with-per-domain-settings?ref=6zw7qz">Kickstarter campaign</a> for more information!
-</div>
 +++
