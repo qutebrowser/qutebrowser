@@ -23,6 +23,7 @@ import os
 import os.path
 import shlex
 import functools
+import re
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
@@ -2056,6 +2057,25 @@ class CommandDispatcher:
             key: mark identifier; capital indicates a global mark
         """
         self._tabbed_browser.jump_mark(key)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('where', completion=usertypes.Completion.jumps_list)
+    def jump(self, where):
+        """Go in the tab history back or forward
+
+        Args:
+            where: Where to go. The format is +|-<count>. -2 means go back 2 times
+        """
+
+        pattern = "^([\\-+>])([0-9]*)$"
+        sign = re.sub(pattern, "\\1", where)
+        if sign != ">":
+            count = int(re.sub(pattern, "\\2", where))
+
+            if sign == "-":
+                self.back(count = count)
+            elif sign == "+":
+                self.forward(count = count)
 
     def _open_if_changed(self, url=None, old_url=None, bg=False, tab=False,
                          window=False):

@@ -86,6 +86,9 @@ class Completer(QObject):
         else:
             model = instances.get(completion)
 
+        if hasattr(model, '__call__'):
+            model = model()
+
         if model is None:
             return None
         else:

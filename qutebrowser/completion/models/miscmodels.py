@@ -26,6 +26,7 @@ from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log, qtutils
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import base
+import re
 
 
 class CommandCompletionModel(base.BaseCompletionModel):
@@ -263,6 +264,30 @@ class BindCompletionModel(base.BaseCompletionModel):
         cat = self.new_category("Commands")
         for (name, desc, misc) in cmdlist:
             self.new_item(cat, name, desc, misc)
+
+class JumpsListCompletionModel(base.BaseCompletionModel):
+
+    """A Completion model filled with the jumps list of the current tab"""
+
+    COLUMN_WIDTHS = (2, 45, 45)
+
+    def __init__(self, win_id, parent = None):
+        super().__init__(parent)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window', window=win_id)
+        tab = tabbed_browser.widget(tabbed_browser.currentIndex())
+
+        cat = self.new_category("Jumps List")
+
+        history = tab.history
+        for idx, item in enumerate(history):
+            prefix = idx - history.current_idx()
+            if (prefix == 0):
+                prefix = ">"
+            prefix = str(prefix)
+            if re.match("^[0-9]", prefix):
+                prefix = "+" + prefix
+            self.new_item(cat, prefix, item.title(), item.url().toString(), sort = idx)
+        self.columns_to_filter = [0, 1, 2]
 
 
 def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
