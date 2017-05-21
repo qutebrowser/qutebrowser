@@ -364,6 +364,7 @@ def on_focus_changed(_old, new):
         # A focused window must also be visible, and in this case we should
         # consider it as the most recently looked-at window
         objreg.register('last-visible-main-window', window, update=True)
+        qApp.mainwindow_focus_changed.emit(window)
 
 
 def open_desktopservices_url(url):
@@ -756,6 +757,7 @@ class Application(QApplication):
     """
 
     new_window = pyqtSignal(mainwindow.MainWindow)
+    mainwindow_focus_changed = pyqtSignal(mainwindow.MainWindow)
 
     def __init__(self, args):
         """Constructor.
