@@ -34,7 +34,8 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message)
 
 
-UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history', 'index'])
+UndoEntry = collections.namedtuple('UndoEntry',
+                                   ['url', 'history', 'index', 'pinned'])
 
 
 class TabDeletedError(Exception):
@@ -294,7 +295,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             except browsertab.WebTabError:
                 pass  # special URL
             else:
-                entry = UndoEntry(tab.url(), history_data, idx)
+                entry = UndoEntry(tab.url(), history_data, idx,
+                                  tab.data.pinned)
                 self._undo_stack.append(entry)
 
         tab.shutdown()
@@ -325,7 +327,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        url, history_data, idx = self._undo_stack.pop()
+        url, history_data, idx, pinned = self._undo_stack.pop()
 
         if use_current_tab:
             self.openurl(url, newtab=False)
@@ -334,6 +336,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
+        self.set_tab_pinned(idx, pinned)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

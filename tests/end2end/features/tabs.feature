@@ -1124,3 +1124,23 @@ Feature: Tab management
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Cloning a pinned tab
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :tab-clone
+        And I wait until data/numbers/1.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/1.txt (pinned) (active)
+
+    Scenario: Undo a pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close --force
+        And I run :undo
+        And I wait until data/numbers/2.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (pinned) (active)
