@@ -32,6 +32,8 @@ Added
 - `-p` flag for `:open` to open a private window
 - `colors -> statusbar.bg/fg.private` and `.command.private` to
   customize statusbar colors for private windows.
+- New "pinned tabs" feature, with a new `:tab-pin` command (bound
+  to `<Ctrl-p>` by default).
 
 Changed
 ~~~~~~~
