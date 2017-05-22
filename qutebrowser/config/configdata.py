@@ -727,7 +727,7 @@ def data(readonly=False):
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
                          'id', 'scroll_pos', 'host'], none_ok=True),
                  '{index}'),
-             "The format to use for the tab title for pinned tabs."
+             "The format to use for the tab title for pinned tabs. "
              "The same placeholders like for title-format are defined."),
 
             ('title-alignment',

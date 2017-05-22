@@ -132,7 +132,7 @@
 |<<tabs-indicator-width,indicator-width>>|Width of the progress indicator (0 to disable).
 |<<tabs-tabs-are-windows,tabs-are-windows>>|Whether to open windows instead of tabs.
 |<<tabs-title-format,title-format>>|The format to use for the tab title. The following placeholders are defined:
-|<<tabs-title-format-pinned,title-format-pinned>>|The format to use for the tab title for pinned tabs.The same placeholders like for title-format are defined.
+|<<tabs-title-format-pinned,title-format-pinned>>|The format to use for the tab title for pinned tabs. The same placeholders like for title-format are defined.
 |<<tabs-title-alignment,title-alignment>>|Alignment of the text inside of tabs
 |<<tabs-mousewheel-tab-switching,mousewheel-tab-switching>>|Switch between tabs using the mouse wheel.
 |<<tabs-padding,padding>>|Padding for tabs (top, bottom, left, right).
@@ -1262,7 +1262,7 @@ Default: +pass:[{index}: {title}]+
 
 [[tabs-title-format-pinned]]
 === title-format-pinned
-The format to use for the tab title for pinned tabs.The same placeholders like for title-format are defined.
+The format to use for the tab title for pinned tabs. The same placeholders like for title-format are defined.
 
 Default: +pass:[{index}]+
 

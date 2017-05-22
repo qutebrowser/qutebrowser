@@ -261,6 +261,10 @@ class CommandDispatcher:
     def tab_pin(self, count=None):
         """Pin/Unpin the current/[count]th tab.
 
+        Pinning a tab shrinks it to tabs->pinned-width size.
+        Attempting to close a pinned tab will cause a confirmation,
+        unless --force is passed.
+
         Args:
             count: The tab index to pin or unpin, or None
         """
@@ -473,7 +477,6 @@ class CommandDispatcher:
         """
         cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
-        pinned = curtab.data.pinned
         cur_title = self._tabbed_browser.page_title(self._current_index())
         try:
             history = curtab.history.serialize()
@@ -500,7 +503,7 @@ class CommandDispatcher:
         newtab.data.keep_icon = True
         newtab.history.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
-        new_tabbed_browser.set_tab_pinned(idx, pinned)
+        new_tabbed_browser.set_tab_pinned(idx, curtab.data.pinned)
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

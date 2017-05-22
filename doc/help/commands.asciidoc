@@ -907,6 +907,8 @@ Close all tabs except for the current one.
 === tab-pin
 Pin/Unpin the current/[count]th tab.
 
+Pinning a tab shrinks it to tabs->pinned-width size. Attempting to close a pinned tab will cause a confirmation, unless --force is passed.
+
 ==== count
 The tab index to pin or unpin
 
