@@ -373,3 +373,10 @@ class CompletionView(QTreeView):
             self.model().srcmodel.delete_cur_item(self)
         except NotImplementedError:
             raise cmdexc.CommandError("Cannot delete this item.")
+
+    def rowsInserted(self, parent, first, last):
+        """Override rowsInserted to auto-expand any new category."""
+        super().rowsInserted(parent, first, last)
+        if first == 0 and last == 0:
+            # first child of a new category
+            self.expand(parent)
