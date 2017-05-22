@@ -268,12 +268,10 @@ class CommandDispatcher:
         if tab is None:
             return
 
-        tab.data.pinned = not tab.data.pinned
-
+        to_pin = not tab.data.pinned
         tab_index = self._current_index() if count is None else count - 1
         cmdutils.check_overflow(tab_index + 1, 'int')
-        self._tabbed_browser.set_tab_pinned(tab_index,
-                                            tab.data.pinned)
+        self._tabbed_browser.set_tab_pinned(tab_index, to_pin)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -475,6 +473,7 @@ class CommandDispatcher:
         """
         cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
+        pinned = curtab.data.pinned
         cur_title = self._tabbed_browser.page_title(self._current_index())
         try:
             history = curtab.history.serialize()
@@ -501,6 +500,7 @@ class CommandDispatcher:
         newtab.data.keep_icon = True
         newtab.history.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
+        new_tabbed_browser.set_tab_pinned(idx, pinned)
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

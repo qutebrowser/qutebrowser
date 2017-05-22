@@ -94,21 +94,29 @@ class TabWidget(QTabWidget):
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
-    def set_tab_pinned(self, idx, pinned):
+    def set_tab_pinned(self, idx, pinned, *, loading=False):
         """Set the tab status as pinned.
 
         Args:
             idx: The tab index.
             pinned: Pinned tab state to set.
+            loading: Whether to ignore current data state when
+                     counting pinned_count.
         """
         bar = self.tabBar()
-        bar.set_tab_data(idx, 'pinned', pinned)
-        self.update_tab_title(idx)
+        tab = self.widget(idx)
 
-        if pinned:
-            bar.pinned_count += 1
-        else:
-            bar.pinned_count -= 1
+        # Only modify pinned_count if we had a change
+        # always modify pinned_count if we are loading
+        if tab.data.pinned != pinned or loading:
+            if pinned:
+                bar.pinned_count += 1
+            elif not pinned:
+                bar.pinned_count -= 1
+
+        bar.set_tab_data(idx, 'pinned', pinned)
+        tab.data.pinned = pinned
+        self.update_tab_title(idx)
 
         bar.refresh()
 
