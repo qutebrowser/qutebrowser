@@ -96,6 +96,7 @@ class TabData:
         viewing_source: Set if we're currently showing a source view.
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
+        pinned: Flag to pin the tab.
     """
 
     def __init__(self):
@@ -103,6 +104,7 @@ class TabData:
         self.viewing_source = False
         self.inspector = None
         self.override_target = None
+        self.pinned = False
 
 
 class AbstractAction:

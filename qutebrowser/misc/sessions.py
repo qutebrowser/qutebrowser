@@ -195,6 +195,9 @@ class SessionManager(QObject):
             if 'scroll-pos' in user_data:
                 pos = user_data['scroll-pos']
                 data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+
+        data['pinned'] = tab.data.pinned
+
         return data
 
     def _save_tab(self, tab, active):
@@ -352,6 +355,9 @@ class SessionManager(QObject):
                 pos = histentry['scroll-pos']
                 user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
 
+            if 'pinned' in histentry:
+                new_tab.data.pinned = histentry['pinned']
+
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
@@ -397,6 +403,9 @@ class SessionManager(QObject):
                 self._load_tab(new_tab, tab)
                 if tab.get('active', False):
                     tab_to_focus = i
+                if new_tab.data.pinned:
+                    tabbed_browser.set_tab_pinned(
+                        i, new_tab.data.pinned, loading=True)
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):

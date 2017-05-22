@@ -159,8 +159,8 @@ def clean_open_tabs(quteproc):
     """Clean up open windows and tabs."""
     quteproc.set_setting('tabs', 'last-close', 'blank')
     quteproc.send_cmd(':window-only')
-    quteproc.send_cmd(':tab-only')
-    quteproc.send_cmd(':tab-close')
+    quteproc.send_cmd(':tab-only --force')
+    quteproc.send_cmd(':tab-close --force')
     quteproc.wait_for_load_finished_url('about:blank')
 
 
@@ -543,30 +543,45 @@ def check_open_tabs(quteproc, request, tabs):
     """
     session = quteproc.get_session()
     active_suffix = ' (active)'
+    pinned_suffix = ' (pinned)'
     tabs = tabs.splitlines()
     assert len(session['windows']) == 1
     assert len(session['windows'][0]['tabs']) == len(tabs)
 
     # If we don't have (active) anywhere, don't check it
-    has_active = any(line.endswith(active_suffix) for line in tabs)
+    has_active = any(active_suffix in line for line in tabs)
+    has_pinned = any(pinned_suffix in line for line in tabs)
 
     for i, line in enumerate(tabs):
         line = line.strip()
         assert line.startswith('- ')
         line = line[2:]  # remove "- " prefix
-        if line.endswith(active_suffix):
-            path = line[:-len(active_suffix)]
-            active = True
-        else:
-            path = line
-            active = False
+
+        active = False
+        pinned = False
+
+        while line.endswith(active_suffix) or line.endswith(pinned_suffix):
+            if line.endswith(active_suffix):
+                # active
+                line = line[:-len(active_suffix)]
+                active = True
+            else:
+                # pinned
+                line = line[:-len(pinned_suffix)]
+                pinned = True
 
         session_tab = session['windows'][0]['tabs'][i]
-        assert session_tab['history'][-1]['url'] == quteproc.path_to_url(path)
+        current_page = session_tab['history'][-1]
+        assert current_page['url'] == quteproc.path_to_url(line)
         if active:
             assert session_tab['active']
         elif has_active:
             assert 'active' not in session_tab
+
+        if pinned:
+            assert current_page['pinned']
+        elif has_pinned:
+            assert not current_page['pinned']
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
