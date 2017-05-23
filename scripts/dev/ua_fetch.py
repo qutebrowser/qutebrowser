@@ -87,7 +87,10 @@ def add_diversity(table):
         ('Wget/1.16.1 (linux-gnu)',
          "wget 1.16.1"),
         ('curl/7.40.0',
-         "curl 7.40.0")
+         "curl 7.40.0"),
+        ('Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 '
+         '(KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+         "Mobile Generic Android")
     ]
     return table
 
