@@ -44,6 +44,7 @@ exclude codecov.yml
 exclude .pydocstylerc
 exclude misc/appveyor_install.py
 exclude misc/qutebrowser.spec
+exclude misc/qutebrowser.nsi
 exclude .flake8
 
 global-exclude __pycache__ *.pyc *.pyo
