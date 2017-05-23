@@ -239,9 +239,8 @@ class TestWebKitElement:
 
     def test_double_wrap(self, elem):
         """Test wrapping a WebKitElement."""
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError, match="Trying to wrap a wrapper!"):
             webkitelem.WebKitElement(elem, tab=None)
-        assert str(excinfo.value) == "Trying to wrap a wrapper!"
 
     @pytest.mark.parametrize('code', [
         pytest.param(str, id='str'),

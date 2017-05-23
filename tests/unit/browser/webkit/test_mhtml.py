@@ -104,9 +104,8 @@ def test_refuses_non_ascii_header_value(checker, header, value):
     }
     defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
-    with pytest.raises(UnicodeEncodeError) as excinfo:
+    with pytest.raises(UnicodeEncodeError, match="'ascii' codec can't encode"):
         writer.write_to(checker.fp)
-    assert "'ascii' codec can't encode" in str(excinfo.value)
 
 
 def test_file_encoded_as_base64(checker):
@@ -325,9 +324,8 @@ class TestNoCloseBytesIO:
         fp = mhtml._NoCloseBytesIO()
         fp.write(b'Value')
         fp.actual_close()
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="I/O operation on closed file."):
             fp.getvalue()
-        assert str(excinfo.value) == 'I/O operation on closed file.'
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="I/O operation on closed file."):
+            fp.getvalue()
             fp.write(b'Closed')
-        assert str(excinfo.value) == 'I/O operation on closed file.'

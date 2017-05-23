@@ -263,10 +263,9 @@ class TestSave:
         mocker.patch('qutebrowser.misc.sessions.yaml.dump',
                      side_effect=exception)
 
-        with pytest.raises(sessions.SessionError) as excinfo:
+        with pytest.raises(sessions.SessionError, match=str(exception)):
             sess_man.save(str(tmpdir / 'foo.yml'))
 
-        assert str(excinfo.value) == str(exception)
         assert not tmpdir.listdir()
 
     def test_load_next_time(self, tmpdir, state_config, sess_man):

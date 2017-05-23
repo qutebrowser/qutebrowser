@@ -113,15 +113,13 @@ def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock):
 
 
 def test_quteproc_skip_via_js(qtbot, quteproc):
-    with pytest.raises(pytest.skip.Exception) as excinfo:
+    with pytest.raises(pytest.skip.Exception, match='test'):
         quteproc.send_cmd(':jseval console.log("[SKIP] test");')
         quteproc.wait_for_js('[SKIP] test')
 
         # Usually we wouldn't call this from inside a test, but here we force
         # the error to occur during the test rather than at teardown time.
         quteproc.after_test()
-
-    assert str(excinfo.value) == 'test'
 
 
 def test_quteproc_skip_and_wait_for(qtbot, quteproc):
@@ -312,14 +310,12 @@ class TestClickElementByText:
         quteproc.wait_for_js('click_element special chars')
 
     def test_duplicate(self, quteproc):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='not unique'):
             quteproc.click_element_by_text('Duplicate')
-        assert 'not unique' in str(excinfo.value)
 
     def test_nonexistent(self, quteproc):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='No element'):
             quteproc.click_element_by_text('no element exists with this text')
-        assert 'No element' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('string, expected', [

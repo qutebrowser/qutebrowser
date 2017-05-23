@@ -128,11 +128,9 @@ class TestReadConfig:
         assert keyparser._modename is None
 
         # No config set so self._modename is None
-        with pytest.raises(AssertionError) as excinfo:
+        with pytest.raises(AssertionError, match="on_keyconfig_changed called "
+                                                 "but no section defined!"):
             keyparser.on_keyconfig_changed('normal')
-
-        expected_text = "on_keyconfig_changed called but no section defined!"
-        assert str(excinfo.value) == expected_text
 
     @pytest.mark.parametrize('mode,changed_mode, expected', [
         ('normal', 'normal', True), ('normal', 'normal2', False),

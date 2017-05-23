@@ -471,13 +471,12 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
         urlutils.raise_cmdexc_if_invalid(qurl)
     else:
         assert bool(qurl.errorString()) == has_err_string
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            urlutils.raise_cmdexc_if_invalid(qurl)
         if has_err_string:
             expected_text = "Invalid URL - " + qurl.errorString()
         else:
             expected_text = "Invalid URL"
-        assert str(excinfo.value) == expected_text
+        with pytest.raises(cmdexc.CommandError, match=expected_text):
+            urlutils.raise_cmdexc_if_invalid(qurl)
 
 
 @pytest.mark.parametrize('qurl, output', [

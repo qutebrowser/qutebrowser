@@ -41,9 +41,8 @@ def _trapped_segv(handler):
 
 def test_debug_crash_exception():
     """Verify that debug_crash crashes as intended."""
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(Exception, match="Forced crash"):
         utilcmds.debug_crash(typ='exception')
-    assert str(excinfo.value) == 'Forced crash'
 
 
 @pytest.mark.skipif(os.name == 'nt',
@@ -60,11 +59,10 @@ def test_debug_crash_segfault():
     with _trapped_segv(_handler):
         # since we handle the segfault, execution will continue and run into
         # the "Segfault failed (wat.)" Exception
-        with pytest.raises(Exception) as excinfo:
+        with pytest.raises(Exception, match="Segfault failed"):
             utilcmds.debug_crash(typ='segfault')
         time.sleep(0.001)
     assert caught
-    assert 'Segfault failed' in str(excinfo.value)
 
 
 def test_debug_trace(mocker):
@@ -84,18 +82,16 @@ def test_debug_trace_exception(mocker):
 
     hunter_mock = mocker.patch('qutebrowser.misc.utilcmds.hunter')
     hunter_mock.trace.side_effect = _mock_exception
-    with pytest.raises(cmdexc.CommandError) as excinfo:
+    with pytest.raises(cmdexc.CommandError, match='Exception: message'):
         utilcmds.debug_trace()
-    assert str(excinfo.value) == 'Exception: message'
 
 
 def test_debug_trace_no_hunter(monkeypatch):
     """Test that an error is shown if debug_trace is called without hunter."""
     monkeypatch.setattr(utilcmds, 'hunter', None)
-    with pytest.raises(cmdexc.CommandError) as excinfo:
+    with pytest.raises(cmdexc.CommandError, match="You need to install "
+                       "'hunter' to use this command!"):
         utilcmds.debug_trace()
-    assert str(excinfo.value) == "You need to install 'hunter' to use this " \
-                                 "command!"
 
 
 def test_repeat_command_initial(mocker, mode_manager):
@@ -106,9 +102,9 @@ def test_repeat_command_initial(mocker, mode_manager):
     """
     objreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')
     objreg_mock.get.return_value = mode_manager
-    with pytest.raises(cmdexc.CommandError) as excinfo:
+    with pytest.raises(cmdexc.CommandError,
+                       match="You didn't do anything yet."):
         utilcmds.repeat_command(win_id=0)
-    assert str(excinfo.value) == "You didn't do anything yet."
 
 
 def test_debug_log_level(mocker):
