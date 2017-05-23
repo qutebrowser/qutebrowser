@@ -4,10 +4,10 @@ Unicode true
 RequestExecutionLevel admin
 
 !ifdef X64
-  OutFile "dist\qutebrowser-${VERSION}-amd64.exe"
+  OutFile "..\dist\qutebrowser-${VERSION}-amd64.exe"
   InstallDir "$ProgramFiles64\qutebrowser"
 !else
-  OutFile "dist\qutebrowser-${VERSION}-win32.exe"
+  OutFile "..\dist\qutebrowser-${VERSION}-win32.exe"
   InstallDir "$ProgramFiles\qutebrowser"
 !endif
 
@@ -19,10 +19,10 @@ RequestExecutionLevel admin
 !define MUI_ABORTWARNING
 ;!define MULTIUSER_MUI
 ;!define MULTIUSER_INSTALLMODE_COMMANDLINE
-!define MUI_ICON "icons/qutebrowser.ico"
-!define MUI_UNICON "icons/qutebrowser.ico"
+!define MUI_ICON "../icons/qutebrowser.ico"
+!define MUI_UNICON "../icons/qutebrowser.ico"
 
-!insertmacro MUI_PAGE_LICENSE "COPYING"
+!insertmacro MUI_PAGE_LICENSE "..\COPYING"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -43,9 +43,9 @@ Section "Install"
   SetOutPath "$INSTDIR"
   
   !ifdef X64
-	file /r "dist\qutebrowser-${VERSION}-x64\*.*"
+	file /r "..\dist\qutebrowser-${VERSION}-x64\*.*"
   !else
-	file /r "dist\qutebrowser-${VERSION}-x86\*.*"
+	file /r "..\dist\qutebrowser-${VERSION}-x86\*.*"
   !endif
 
   SetShellVarContext all
