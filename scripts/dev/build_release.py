@@ -193,15 +193,26 @@ def build_windows():
     shutil.move(out_pyinstaller, out_64)
     patch_windows(out_64)
 
-    # name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
-    # name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
+    utils.print_title("Building installers")
+    subprocess.check_call(['makensis.exe',
+                           '/DVERSION={}'.format(qutebrowser.__version__),
+                           'misc/qutebrowser.nsi'])
+    subprocess.check_call(['makensis.exe',
+                           '/DX64',
+                           '/DVERSION={}'.format(qutebrowser.__version__),
+                           'misc/qutebrowser.nsi'])
 
-    # artifacts += [
-    #     (os.path.join('dist', name_32), 'application/x-msi',
-    #      'Windows 32bit installer'),
-    #     (os.path.join('dist', name_64), 'application/x-msi',
-    #      'Windows 64bit installer'),
-    # ]
+    name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
+    name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
+
+    artifacts += [
+        (os.path.join('dist', name_32),
+         'application/vnd.microsoft.portable-executable',
+         'Windows 32bit installer'),
+        (os.path.join('dist', name_64),
+         'application/vnd.microsoft.portable-executable',
+         'Windows 64bit installer'),
+    ]
 
     utils.print_title("Running 32bit smoke test")
     smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
