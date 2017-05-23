@@ -78,6 +78,19 @@ class WebHistory(sql.SqlTable):
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
+        self._between_query = sql.Query('SELECT * FROM History '
+                                        'where not redirect '
+                                        'and not url like "qute://%" '
+                                        'and atime > ? '
+                                        'and atime <= ? '
+                                        'ORDER BY atime desc')
+
+        self._before_query = sql.Query('SELECT * FROM History '
+                                       'where not redirect '
+                                       'and not url like "qute://%" '
+                                       'and atime <= ? '
+                                       'ORDER BY atime desc '
+                                       'limit ? offset ?')
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
@@ -101,16 +114,8 @@ class WebHistory(sql.SqlTable):
             earliest: Omit timestamps earlier than this.
             latest: Omit timestamps later than this.
         """
-        result = sql.run_query('SELECT * FROM History '
-                               'where not redirect '
-                               'and not url like "qute://%" '
-                               'and atime > {} '
-                               'and atime <= {} '
-                               'ORDER BY atime desc'
-                               .format(earliest, latest))
-        while result.next():
-            rec = result.record()
-            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
+        self._between_query.run([earliest, latest])
+        return iter(self._between_query)
 
     def entries_before(self, latest, limit, offset):
         """Iterate non-redirect, non-qute entries occurring before a timestamp.
@@ -120,16 +125,8 @@ class WebHistory(sql.SqlTable):
             limit: Max number of entries to include.
             offset: Number of entries to skip.
         """
-        result = sql.run_query('SELECT * FROM History '
-                               'where not redirect '
-                               'and not url like "qute://%" '
-                               'and atime <= {} '
-                               'ORDER BY atime desc '
-                               'limit {} offset {}'
-                               .format(latest, limit, offset))
-        while result.next():
-            rec = result.record()
-            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
+        self._before_query.run([latest, limit, offset])
+        return iter(self._before_query)
 
     @cmdutils.register(name='history-clear', instance='web-history')
     def clear(self, force=False):

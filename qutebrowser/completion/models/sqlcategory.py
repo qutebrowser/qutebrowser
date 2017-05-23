@@ -29,12 +29,13 @@ from qutebrowser.misc import sql
 class SqlCategory(QSqlQueryModel):
     """Wraps a SqlQuery for use as a completion category."""
 
-    def __init__(self, name, *, sort_by=None, sort_order=None, select='*',
-                 where=None, group_by=None, parent=None):
+    def __init__(self, name, *, filter_fields, sort_by=None, sort_order=None,
+                 select='*', where=None, group_by=None, parent=None):
         """Create a new completion category backed by a sql table.
 
         Args:
             name: Name of category, and the table in the database.
+            filter_fields: Names of fields to apply filter pattern to.
             select: A custom result column expression for the select statement.
             where: An optional clause to filter out some rows.
             sort_by: The name of the field to sort by, or None for no sorting.
@@ -42,11 +43,24 @@ class SqlCategory(QSqlQueryModel):
         """
         super().__init__(parent=parent)
         self.name = name
-        self._sort_by = sort_by
-        self._sort_order = sort_order
-        self._select = select
-        self._where = where
-        self._group_by = group_by
+
+        querystr = 'select {} from {} where ('.format(select, name)
+        # the incoming pattern will have literal % and _ escaped with '\'
+        # we need to tell sql to treat '\' as an escape character
+        querystr += ' or '.join("{} like ? escape '\\'".format(f)
+                                for f in filter_fields)
+        querystr += ')'
+
+        if where:
+            querystr += ' and ' + where
+        if group_by:
+            querystr += ' group by {}'.format(group_by)
+        if sort_by:
+            assert sort_order in ['asc', 'desc']
+            querystr += ' order by {} {}'.format(sort_by, sort_order)
+
+        self._query = sql.Query(querystr)
+        self._param_count=len(filter_fields)
         self.set_pattern('', [0])
 
     def set_pattern(self, pattern, columns_to_filter):
@@ -56,31 +70,13 @@ class SqlCategory(QSqlQueryModel):
             pattern: string pattern to filter by.
             columns_to_filter: indices of columns to apply pattern to.
         """
-        query = sql.run_query('select * from {} limit 1'.format(self.name))
-        fields = [query.record().fieldName(i) for i in columns_to_filter]
-
-        querystr = 'select {} from {} where ('.format(self._select, self.name)
-        # the incoming pattern will have literal % and _ escaped with '\'
-        # we need to tell sql to treat '\' as an escape character
-        querystr += ' or '.join("{} like ? escape '\\'".format(f)
-                                for f in fields)
-        querystr += ')'
-        if self._where:
-            querystr += ' and ' + self._where
-
-        if self._group_by:
-            querystr += ' group by {}'.format(self._group_by)
-
-        if self._sort_by:
-            assert self._sort_order in ['asc', 'desc']
-            querystr += ' order by {} {}'.format(self._sort_by,
-                                                 self._sort_order)
-
+        # TODO: eliminate columns_to_filter
+        #assert len(columns_to_filter) == self._param_count
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
         pattern = pattern.replace('_', '\\_')
         # treat spaces as wildcards to match any of the typed words
         pattern = re.sub(r' +', '%', pattern)
         pattern = '%{}%'.format(pattern)
-        query = sql.run_query(querystr, [pattern for _ in fields])
-        self.setQuery(query)
+        self._query.run([pattern] * self._param_count)
+        self.setQuery(self._query)

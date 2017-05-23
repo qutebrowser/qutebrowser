@@ -50,56 +50,45 @@ def close():
 
 def version():
     """Return the sqlite version string."""
-    result = run_query("select sqlite_version()")
-    result.next()
-    return result.record().value(0)
+    q = Query("select sqlite_version()")
+    q.run()
+    return q.value()
 
 
-def _prepare_query(querystr):
-    log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
-    database = QSqlDatabase.database()
-    query = QSqlQuery(database)
-    query.prepare(querystr)
-    return query
+class Query(QSqlQuery):
 
+    """A prepared SQL Query."""
 
-def run_query(querystr, values=None):
-    """Run the given SQL query string on the database.
+    def __init__(self, querystr):
+        super().__init__(QSqlDatabase.database())
+        log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
+        self.prepare(querystr)
 
-    Args:
-        values: A list of positional parameter bindings.
-    """
-    query = _prepare_query(querystr)
-    for val in values or []:
-        query.addBindValue(val)
-    log.sql.debug('Query bindings: {}'.format(query.boundValues()))
-    if not query.exec_():
-        raise SqlException('Failed to exec query "{}": "{}"'.format(
-                           querystr, query.lastError().text()))
-    return query
+    def __iter__(self):
+        assert self.isActive(), "Cannot iterate inactive query"
+        rec = self.record()
+        fields = [rec.fieldName(i) for i in range(rec.count())]
+        rowtype = collections.namedtuple('ResultRow', fields)
 
+        while self.next():
+            rec = self.record()
+            yield rowtype(*[rec.value(i) for i in range(rec.count())])
 
-def run_batch(querystr, values):
-    """Run the given SQL query string on the database in batch mode.
+    def run(self, values=None):
+        """Execute the prepared query."""
+        log.sql.debug('Running SQL query: "{}"'.format(self.lastQuery()))
+        for val in values or []:
+            self.addBindValue(val)
+        log.sql.debug('self bindings: {}'.format(self.boundValues()))
+        if not self.exec_():
+            raise SqlException('Failed to exec self "{}": "{}"'.format(
+                               self.lastself(), self.lastError().text()))
 
-    Args:
-        values: A list of lists, where each inner list contains positional
-                bindings for one run of the batch.
-    """
-    query = _prepare_query(querystr)
-    transposed = [list(row) for row in zip(*values)]
-    for val in transposed:
-        query.addBindValue(val)
-    log.sql.debug('Batch Query bindings: {}'.format(query.boundValues()))
-
-    db = QSqlDatabase.database()
-    db.transaction()
-    if not query.execBatch():
-        raise SqlException('Failed to exec query "{}": "{}"'.format(
-                           querystr, query.lastError().text()))
-    db.commit()
-
-    return query
+    def value(self):
+        """Return the result of a single-value query (e.g. an EXISTS)."""
+        ok = self.next()
+        assert ok, "No result for single-result query"
+        return self.record().value(0)
 
 
 class SqlTable(QObject):
@@ -127,17 +116,17 @@ class SqlTable(QObject):
         """
         super().__init__(parent)
         self._name = name
-        run_query("CREATE TABLE IF NOT EXISTS {} ({})"
+        q = Query("CREATE TABLE IF NOT EXISTS {} ({})"
                   .format(name, ','.join(fields)))
+        q.run()
         # pylint: disable=invalid-name
         self.Entry = collections.namedtuple(name + '_Entry', fields)
 
     def __iter__(self):
         """Iterate rows in the table."""
-        result = run_query("SELECT * FROM {}".format(self._name))
-        while result.next():
-            rec = result.record()
-            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
+        q = Query("SELECT * FROM {}".format(self._name))
+        q.run()
+        return iter(q)
 
     def contains(self, field, value):
         """Return whether the table contains the matching item.
@@ -146,16 +135,16 @@ class SqlTable(QObject):
             field: Field to match.
             value: Value to check for the given field.
         """
-        query = run_query("Select EXISTS(SELECT * FROM {} where {} = ?)"
-                          .format(self._name, field), [value])
-        query.next()
-        return query.value(0)
+        q = Query("Select EXISTS(SELECT * FROM {} where {} = ?)"
+                  .format(self._name, field))
+        q.run([value])
+        return q.value()
 
     def __len__(self):
         """Return the count of rows in the table."""
-        result = run_query("SELECT count(*) FROM {}".format(self._name))
-        result.next()
-        return result.value(0)
+        q = Query("SELECT count(*) FROM {}".format(self._name))
+        q.run()
+        return q.value()
 
     def delete(self, value, field):
         """Remove all rows for which `field` equals `value`.
@@ -167,9 +156,9 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        query = run_query("DELETE FROM {} where {} = ?".format(
-            self._name, field), [value])
-        if not query.numRowsAffected():
+        q = Query("DELETE FROM {} where {} = ?".format(self._name, field))
+        q.run([value])
+        if not q.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
@@ -180,8 +169,8 @@ class SqlTable(QObject):
             values: A list of values to insert.
         """
         paramstr = ','.join(['?'] * len(values))
-        run_query("INSERT INTO {} values({})".format(self._name, paramstr),
-            values)
+        q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
+        q.run(values)
         self.changed.emit()
 
     def insert_batch(self, rows):
@@ -191,13 +180,23 @@ class SqlTable(QObject):
             rows: A list of lists, where each sub-list is a row.
         """
         paramstr = ','.join(['?'] * len(rows[0]))
-        run_batch("INSERT INTO {} values({})".format(self._name, paramstr),
-            rows)
+        q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
+
+        transposed = [list(row) for row in zip(*rows)]
+        for val in transposed:
+            q.addBindValue(val)
+
+        db = QSqlDatabase.database()
+        db.transaction()
+        if not q.execBatch():
+            raise SqlException('Failed to exec query "{}": "{}"'.format(
+                               q.lastQuery(), q.lastError().text()))
+        db.commit()
         self.changed.emit()
 
     def delete_all(self):
         """Remove all row from the table."""
-        run_query("DELETE FROM {}".format(self._name))
+        Query("DELETE FROM {}".format(self._name)).run()
         self.changed.emit()
 
     def select(self, sort_by, sort_order, limit=-1):
@@ -208,8 +207,7 @@ class SqlTable(QObject):
             sort_order: 'asc' or 'desc'.
             limit: max number of rows in result, defaults to -1 (unlimited).
         """
-        result = run_query('SELECT * FROM {} ORDER BY {} {} LIMIT {}'
-                           .format(self._name, sort_by, sort_order, limit))
-        while result.next():
-            rec = result.record()
-            yield self.Entry(*[rec.value(i) for i in range(rec.count())])
+        q = Query('SELECT * FROM {} ORDER BY {} {} LIMIT ?'
+                  .format(self._name, sort_by, sort_order))
+        q.run([limit])
+        return q
