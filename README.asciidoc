@@ -243,6 +243,7 @@ Contributors, sorted by the number of commits in descending order:
 * Samir Benmendil
 * Regina Hug
 * Penaz
+* Matthias Lisin
 * Mathias Fussenegger
 * Marcelo Santos
 * Marcel Schilling
@@ -273,7 +274,6 @@ Contributors, sorted by the number of commits in descending order:
 * Rok Mandeljc
 * Noah Huesser
 * Moez Bouhlel
-* Matthias Lisin
 * Lazlow Carmichael
 * Kevin Wang
 * Ján Kobezda
