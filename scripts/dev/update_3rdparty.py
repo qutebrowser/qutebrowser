@@ -110,6 +110,16 @@ def update_ace():
     urllib.request.urlcleanup()
 
 
+def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None):
+    """Update components based on the given arguments."""
+    if pdfjs:
+        update_pdfjs(pdfjs_version)
+    if ace:
+        update_ace()
+    if fancy_dmg:
+        update_dmg_makefile()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -120,11 +130,8 @@ def main():
     parser.add_argument('--fancy-dmg', help="Update fancy-dmg Makefile",
                         action='store_true')
     args = parser.parse_args()
-
-    # update_pdfjs(args.pdfjs)
-    update_ace()
-    if args.fancy_dmg:
-        update_dmg_makefile()
+    run(ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
+        pdfjs_version=args.pdfjs)
 
 
 if __name__ == '__main__':
