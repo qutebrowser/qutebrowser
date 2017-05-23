@@ -657,17 +657,19 @@ QUALNAME_OBJ = QualnameObj()
 
 
 @pytest.mark.parametrize('obj, expected', [
-    (QUALNAME_OBJ, repr(QUALNAME_OBJ)),  # instance - unknown
-    (QualnameObj, 'test_utils.QualnameObj'),  # class
-    (QualnameObj.func, 'test_utils.QualnameObj.func'),  # unbound method
-    (QualnameObj().func, 'test_utils.QualnameObj.func'),  # bound method
-    (qualname_func, 'test_utils.qualname_func'),  # function
-    (functools.partial(qualname_func, True), 'test_utils.qualname_func'),
-    (qutebrowser, 'qutebrowser'),  # module
-    (qutebrowser.utils, 'qutebrowser.utils'),  # submodule
-    (utils, 'qutebrowser.utils.utils'),  # submodule (from-import)
-], ids=['instance', 'class', 'unbound-method', 'bound-method', 'function',
-        'partial', 'module', 'submodule', 'from-import'])
+    pytest.param(QUALNAME_OBJ, repr(QUALNAME_OBJ), id='instance'),
+    pytest.param(QualnameObj, 'test_utils.QualnameObj', id='class'),
+    pytest.param(QualnameObj.func, 'test_utils.QualnameObj.func',
+                 id='unbound-method'),
+    pytest.param(QualnameObj().func, 'test_utils.QualnameObj.func',
+                 id='bound-method'),
+    pytest.param(qualname_func, 'test_utils.qualname_func', id='function'),
+    pytest.param(functools.partial(qualname_func, True),
+                 'test_utils.qualname_func', id='partial'),
+    pytest.param(qutebrowser, 'qutebrowser', id='module'),
+    pytest.param(qutebrowser.utils, 'qutebrowser.utils', id='submodule'),
+    pytest.param(utils, 'qutebrowser.utils.utils', id='from-import'),
+])
 def test_qualname(obj, expected):
     assert utils.qualname(obj) == expected
 

@@ -180,8 +180,9 @@ class TestArguments:
 
     """Tests the --basedir argument."""
 
-    @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
-                                     pytest.mark.linux('runtime')])
+    @pytest.mark.parametrize('typ', [
+        'config', 'data', 'cache', 'download',
+        pytest.param('runtime', marks=pytest.mark.linux)])
     def test_basedir(self, tmpdir, typ):
         """Test --basedir."""
         expected = str(tmpdir / typ)

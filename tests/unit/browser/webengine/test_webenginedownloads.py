@@ -32,10 +32,10 @@ from helpers import utils
     ('foo(1)', 'foo'),
     ('foo(a)', 'foo(a)'),
     ('foo1', 'foo1'),
-    utils.qt58(('foo%20bar', 'foo bar')),
-    utils.qt58(('foo%2Fbar', 'bar')),
-    utils.qt59(('foo%20bar', 'foo%20bar')),
-    utils.qt59(('foo%2Fbar', 'foo%2Fbar')),
+    pytest.param('foo%20bar', 'foo bar', marks=utils.qt58),
+    pytest.param('foo%2Fbar', 'bar', marks=utils.qt58),
+    pytest.param('foo%20bar', 'foo%20bar', marks=utils.qt59),
+    pytest.param('foo%2Fbar', 'foo%2Fbar', marks=utils.qt59),
 ])
 def test_get_suggested_filename(path, expected):
     assert webenginedownloads._get_suggested_filename(path) == expected
