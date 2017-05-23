@@ -274,6 +274,7 @@ Contributors, sorted by the number of commits in descending order:
 * Rok Mandeljc
 * Noah Huesser
 * Moez Bouhlel
+* MikeinRealLife
 * Lazlow Carmichael
 * Kevin Wang
 * Ján Kobezda
