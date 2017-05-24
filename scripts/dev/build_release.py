@@ -63,7 +63,7 @@ def call_tox(toxenv, *args, python=sys.executable):
     env = os.environ.copy()
     env['PYTHON'] = python
     subprocess.check_call(
-        [sys.executable, '-m', 'tox', '-e', toxenv] + list(args),
+        [sys.executable, '-m', 'tox', '-v', '-e', toxenv] + list(args),
         env=env)
 
 
