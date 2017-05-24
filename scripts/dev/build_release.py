@@ -171,8 +171,8 @@ def build_windows():
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
-    python_x86 = r'C:\Program Files (x86)\Python{}-32\python.exe'.format(ver)
-    python_x64 = r'C:\Program Files\Python{}\python.exe'.format(ver)
+    python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
+    python_x64 = r'C:\Python{}\python.exe'.format(ver)
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     out_32 = os.path.join('dist',
                           'qutebrowser-{}-x86'.format(qutebrowser.__version__))
