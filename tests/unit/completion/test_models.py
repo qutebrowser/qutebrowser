@@ -580,21 +580,21 @@ def test_url_completion_benchmark(benchmark, config_stub,
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 1000}
 
-    entries = [history.Entry(
+    entries = [web_history_stub.Entry(
         atime=i,
-        url=QUrl('http://example.com/{}'.format(i)),
-        title='title{}'.format(i))
+        url='http://example.com/{}'.format(i),
+        title='title{}'.format(i),
+        redirect=False)
         for i in range(100000)]
 
-    web_history_stub.history_dict = collections.OrderedDict(
-        ((e.url_str(), e) for e in entries))
+    web_history_stub.insert_batch(entries)
 
     quickmark_manager_stub.marks = collections.OrderedDict(
-        (e.title, e.url_str())
+        (e.title, e.url)
         for e in entries[0:1000])
 
     bookmark_manager_stub.marks = collections.OrderedDict(
-        (e.url_str(), e.title)
+        (e.url, e.title)
         for e in entries[0:1000])
 
     def bench():
