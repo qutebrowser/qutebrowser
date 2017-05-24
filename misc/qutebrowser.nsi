@@ -2,6 +2,7 @@ Name "qutebrowser"
 
 Unicode true
 RequestExecutionLevel admin
+SetCompressor /solid lzma
 
 !ifdef X64
   OutFile "..\dist\qutebrowser-${VERSION}-amd64.exe"
