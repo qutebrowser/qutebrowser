@@ -61,14 +61,14 @@ Feature: Page history
         When I open data/data_link.html
         And I run :click-element id link
         And I wait until data:;base64,cXV0ZWJyb3dzZXI= is loaded
-        Then the history file should contain:
+        Then the history should contain:
             http://localhost:(port)/data/data_link.html data: link
 
     Scenario: History with view-source URL
         When I open data/title.html
         And I run :view-source
         And I wait for "Changing title for idx * to 'Source for http://localhost:*/data/title.html'" in the log
-        Then the history file should contain:
+        Then the history should contain:
             http://localhost:(port)/data/title.html Test title
 
     Scenario: Clearing history
