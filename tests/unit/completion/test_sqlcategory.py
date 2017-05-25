@@ -76,6 +76,7 @@ def test_sorting(sort_by, sort_order, data, expected):
         table.insert(row)
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], sort_by=sort_by,
                                   sort_order=sort_order)
+    cat.set_pattern('')
     _validate(cat, expected)
 
 
@@ -139,6 +140,7 @@ def test_select():
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     table.insert(['foo', 'bar', 'baz'])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], select='b, c, a')
+    cat.set_pattern('')
     _validate(cat, [('bar', 'baz', 'foo')])
 
 
@@ -147,6 +149,7 @@ def test_where():
     table.insert(['foo', 'bar', False])
     table.insert(['baz', 'biz', True])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], where='not c')
+    cat.set_pattern('')
     _validate(cat, [('foo', 'bar', False)])
 
 
@@ -158,6 +161,7 @@ def test_group():
     table.insert(['bar', 0])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'],
                                   select='a, max(b)', group_by='a')
+    cat.set_pattern('')
     _validate(cat, [('bar', 3), ('foo', 2)])
 
 
