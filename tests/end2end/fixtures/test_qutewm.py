@@ -48,8 +48,7 @@ class TestQuteWM:
     def test_single_window(self, qutewm, qtbot, qapp):
         window = Window()
         qtbot.addWidget(window)
-        with qtbot.waitSignals([qutewm.window_opened, qutewm.window_focused,
-                                window.activated]):
+        with qtbot.waitActive(window):
             window.show()
         assert window.isActiveWindow()
         with qtbot.waitSignal(qutewm.window_closed):
@@ -62,7 +61,7 @@ class TestQuteWM:
         assert new_process.wm_failed
 
     @pytest.mark.parametrize('focus_fn', [
-        (lambda windows, qapp: windows[1].close()),
+        (lambda windows, qapp: windows.pop().close()),
         pytest.mark.skipif(
             not qtutils.version_check('5.4.0'),
             (lambda windows, qapp: qapp.alert(windows[0])),
@@ -76,12 +75,13 @@ class TestQuteWM:
             qtbot.addWidget(window)
 
         for window in windows:
-            with qtbot.waitSignals([qutewm.window_opened,
-                                    qutewm.window_focused,
-                                    window.activated]):
+            with qtbot.waitActive(window, timeout=2000):
                 window.show()
             assert window.isActiveWindow()
 
-        with qtbot.waitSignals([qutewm.window_focused, window.activated]):
+        with qtbot.waitSignals([qutewm.window_focused, windows[0].activated]):
             focus_fn(windows, qapp)
         assert windows[0].isActiveWindow()
+        for window in windows:
+            with qtbot.waitSignal(qutewm.window_closed):
+                window.close()

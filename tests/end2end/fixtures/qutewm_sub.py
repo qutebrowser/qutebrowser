@@ -282,7 +282,6 @@ class QuteWM:
         if ev.event is self.root and not ev.from_configure:
             log.debug("ignoring synthetic event")
             return
-        log.info("window closed: [{:#x}]".format(ev.window.id))
         self._unmanage_window(ev.window)
         if self.window_stack:
             self.activate(self.window_stack[-1])
@@ -391,6 +390,7 @@ class QuteWM:
             log.debug("window was not in self.windows!")
         else:
             self._needs_update = True
+            log.info("window closed: [{:#x}]".format(window.id))
 
 
 def main():
