@@ -19,8 +19,8 @@
 
 """Tests for CompletionModel."""
 
-import hypothesis
 from unittest import mock
+import hypothesis
 from hypothesis import strategies
 
 from qutebrowser.completion.models import completionmodel

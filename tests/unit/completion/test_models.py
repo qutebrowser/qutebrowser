@@ -26,7 +26,6 @@ import pytest
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QTreeView
 
-from qutebrowser.browser import history
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
 from qutebrowser.misc import sql

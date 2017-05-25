@@ -19,12 +19,12 @@
 
 """Provides access to an in-memory sqlite database."""
 
+import collections
+
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery
 
 from qutebrowser.utils import log
-
-import collections
 
 
 class SqlException(Exception):

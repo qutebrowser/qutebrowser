@@ -798,6 +798,7 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
+# pylint: disable=too-many-locals
 @pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit',
                           'known_distribution'], [
     (True, False, True, True, True),  # normal

@@ -60,10 +60,10 @@ class SqlCategory(QSqlQueryModel):
             querystr += ' order by {} {}'.format(sort_by, sort_order)
 
         self._query = sql.Query(querystr)
-        self._param_count=len(filter_fields)
+        self._param_count = len(filter_fields)
         self.set_pattern('', [0])
 
-    def set_pattern(self, pattern, columns_to_filter):
+    def set_pattern(self, pattern, _columns_to_filter):
         """Set the pattern used to filter results.
 
         Args:
