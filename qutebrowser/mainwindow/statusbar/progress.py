@@ -22,7 +22,6 @@
 from PyQt5.QtCore import pyqtSlot, QSize
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.browser import browsertab
 from qutebrowser.config import style
 from qutebrowser.utils import utils, usertypes
 
@@ -60,7 +59,6 @@ class Progress(QProgressBar):
         self.setValue(0)
         self.show()
 
-    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
         if self is None:  # pragma: no branch

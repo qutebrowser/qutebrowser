@@ -27,7 +27,6 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
 from qutebrowser.commands import cmdutils
 from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
                                usertypes, message)
-from qutebrowser.config import config
 from qutebrowser.misc import lineparser, objects
 
 
@@ -257,6 +256,12 @@ class WebHistory(QObject):
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
+        if url.scheme() == 'data' or requested_url.scheme() == 'data':
+            return
+        if url.isEmpty():
+            # things set via setHtml
+            return
+
         no_formatting = QUrl.UrlFormattingOption(0)
         if (requested_url.isValid() and
                 not requested_url.matches(url, no_formatting)):
@@ -274,9 +279,9 @@ class WebHistory(QObject):
                       (hidden in completion)
             atime: Override the atime used to add the entry
         """
-        if config.get('general', 'private-browsing'):
-            return
-        if not url.isValid():
+        if not url.isValid():  # pragma: no cover
+            # the no cover pragma is a WORKAROUND for this not being covered in
+            # old Qt versions.
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 

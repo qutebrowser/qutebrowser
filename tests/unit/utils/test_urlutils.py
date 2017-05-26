@@ -30,6 +30,7 @@ import pytest
 from qutebrowser.commands import cmdexc
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
+from helpers import utils as testutils
 
 
 class FakeDNS:
@@ -339,9 +340,7 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (False, True, True, 'hello.'),
     (False, True, False, 'site:cookies.com oatmeal raisin'),
     # no DNS because bogus-IP
-    pytest.mark.xfail(qtutils.version_check('5.6.1'),
-                      reason='Qt behavior changed')(
-                          False, True, False, '31c3'),
+    (False, True, False, '31c3'),
     (False, True, False, 'foo::bar'),  # no DNS because of no host
     # Valid search term with autosearch
     (False, False, False, 'test foo'),
@@ -362,6 +361,11 @@ def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
         url: The URL to test, as a string.
         auto_search: With which auto-search setting to test
     """
+    if (url == '31c3' and
+            auto_search == 'dns' and
+            qtutils.version_check('5.6.1')):
+        pytest.xfail("Qt behavior changed")
+
     urlutils_config_stub.data['general']['auto-search'] = auto_search
     if auto_search == 'dns':
         if uses_dns:
@@ -467,13 +471,12 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
         urlutils.raise_cmdexc_if_invalid(qurl)
     else:
         assert bool(qurl.errorString()) == has_err_string
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            urlutils.raise_cmdexc_if_invalid(qurl)
         if has_err_string:
             expected_text = "Invalid URL - " + qurl.errorString()
         else:
             expected_text = "Invalid URL"
-        assert str(excinfo.value) == expected_text
+        with pytest.raises(cmdexc.CommandError, match=expected_text):
+            urlutils.raise_cmdexc_if_invalid(qurl)
 
 
 @pytest.mark.parametrize('qurl, output', [
@@ -755,8 +758,12 @@ def test_data_url():
     (QUrl('http://www.example.xn--p1ai'),
         '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
-    (QUrl('http://www.xn--80ak6aa92e.com'),
-        '(unparseable URL!) http://www.аррӏе.com'),
+    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
+                 '(unparseable URL!) http://www.аррӏе.com',
+                 marks=testutils.qt58),
+    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
+                 'http://www.xn--80ak6aa92e.com',
+                 marks=testutils.qt59),
 ])
 def test_safe_display_string(url, expected):
     assert urlutils.safe_display_string(url) == expected

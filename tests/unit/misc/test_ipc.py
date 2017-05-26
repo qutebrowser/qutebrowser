@@ -269,9 +269,9 @@ class TestListen:
     def test_remove_error(self, ipc_server, monkeypatch):
         """Simulate an error in _remove_server."""
         monkeypatch.setattr(ipc_server, '_socketname', None)
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error,
+                           match="Error while removing server None!"):
             ipc_server.listen()
-        assert str(excinfo.value) == "Error while removing server None!"
 
     def test_error(self, ipc_server, monkeypatch):
         """Simulate an error while listening."""
@@ -369,12 +369,9 @@ class TestOnError:
                             lambda: "Connection refused")
         socket.setErrorString("Connection refused.")
 
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while handling IPC "
+                           r"connection: Connection refused \(error 0\)"):
             ipc_server.on_error(QLocalSocket.ConnectionRefusedError)
-
-        expected = ("Error while handling IPC connection: Connection refused "
-                    "(error 0)")
-        assert str(excinfo.value) == expected
 
 
 class TestHandleConnection:
@@ -409,11 +406,10 @@ class TestHandleConnection:
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
         ipc_server._server = FakeServer(socket)
 
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while handling IPC "
+                           r"connection: Error string \(error 7\)"):
             ipc_server.handle_connection()
 
-        exc_msg = 'Error while handling IPC connection: Error string (error 7)'
-        assert str(excinfo.value) == exc_msg
         msg = "We got an error immediately."
         all_msgs = [r.message for r in caplog.records]
         assert msg in all_msgs
@@ -550,11 +546,9 @@ class TestSendToRunningInstance:
 
     def test_socket_error(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while writing to running "
+                           r"instance: Error string \(error 7\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
-
-        msg = "Error while writing to running instance: Error string (error 7)"
-        assert str(excinfo.value) == msg
 
     def test_not_disconnected_immediately(self):
         socket = FakeSocket()
@@ -563,12 +557,9 @@ class TestSendToRunningInstance:
     def test_socket_error_no_server(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError,
                             connect_successful=False)
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while connecting to "
+                           r"running instance: Error string \(error 7\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
-
-        msg = ("Error while connecting to running instance: Error string "
-               "(error 7)")
-        assert str(excinfo.value) == msg
 
 
 @pytest.mark.not_osx(reason="https://github.com/qutebrowser/qutebrowser/"

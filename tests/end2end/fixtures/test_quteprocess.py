@@ -113,15 +113,13 @@ def test_quteproc_error_message_did_fail(qtbot, quteproc, request_mock):
 
 
 def test_quteproc_skip_via_js(qtbot, quteproc):
-    with pytest.raises(pytest.skip.Exception) as excinfo:
+    with pytest.raises(pytest.skip.Exception, match='test'):
         quteproc.send_cmd(':jseval console.log("[SKIP] test");')
         quteproc.wait_for_js('[SKIP] test')
 
         # Usually we wouldn't call this from inside a test, but here we force
         # the error to occur during the test rather than at teardown time.
         quteproc.after_test()
-
-    assert str(excinfo.value) == 'test'
 
 
 def test_quteproc_skip_and_wait_for(qtbot, quteproc):
@@ -147,8 +145,7 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
 
 
 @pytest.mark.parametrize('data, attrs', [
-    (
-        # Normal message
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "init", '
         '"module": "earlyinit", "funcName": "init_log", "lineno": 280, '
         '"levelno": 10, "message": "Log initialized."}',
@@ -161,31 +158,31 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
             'line': 280,
             'message': 'Log initialized.',
             'expected': False,
-        }
-    ),
-    (
-        # VDEBUG
+        },
+        id='normal'),
+
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "VDEBUG", "name": "foo", '
         '"module": "foo", "funcName": "foo", "lineno": 0, "levelno": 9, '
         '"message": ""}',
-        {'loglevel': log.VDEBUG_LEVEL}
-    ),
-    (
-        # Unknown module
+        {'loglevel': log.VDEBUG_LEVEL},
+        id='vdebug'),
+
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
         '"module": null, "funcName": null, "lineno": 0, "levelno": 10, '
         '"message": "test"}',
         {'module': None, 'function': None, 'line': None},
-    ),
-    (
-        # Expected message
+        id='unknown module'),
+
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "VDEBUG", "name": "foo", '
         '"module": "foo", "funcName": "foo", "lineno": 0, "levelno": 9, '
         '"message": "SpellCheck: test"}',
         {'expected': True},
-    ),
-    (
-        # Weird Qt location
+        id='expected message'),
+
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
         '"module": "qnetworkreplyhttpimpl", "funcName": '
         '"void QNetworkReplyHttpImplPrivate::error('
@@ -197,9 +194,10 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
             'function': 'void QNetworkReplyHttpImplPrivate::error('
                         'QNetworkReply::NetworkError, const QString&)',
             'line': 1929
-        }
-    ),
-    (
+        },
+        id='weird Qt location'),
+
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "DEBUG", "name": "qt", '
         '"module": "qxcbxsettings", "funcName": "QXcbXSettings::QXcbXSettings('
         'QXcbScreen*)", "lineno": 233, "levelno": 10, "message": '
@@ -209,19 +207,18 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
             'module': 'qxcbxsettings',
             'function': 'QXcbXSettings::QXcbXSettings(QXcbScreen*)',
             'line': 233,
-        }
-    ),
-    (
-        # ResourceWarning
+        },
+        id='QXcbXSettings'),
+
+    pytest.param(
         '{"created": 86400, "msecs": 0, "levelname": "WARNING", '
         '"name": "py.warnings", "module": "app", "funcName": "qt_mainloop", '
         '"lineno": 121, "levelno": 30, "message": '
         '".../app.py:121: ResourceWarning: unclosed file <_io.TextIOWrapper '
         'name=18 mode=\'r\' encoding=\'UTF-8\'>"}',
-        {'category': 'py.warnings'}
-    ),
-], ids=['normal', 'vdebug', 'unknown module', 'expected message',
-        'weird Qt location', 'QXcbXSettings', 'resourcewarning'])
+        {'category': 'py.warnings'},
+        id='resourcewarning'),
+])
 def test_log_line_parse(data, attrs):
     line = quteprocess.LogLine(data)
     for name, expected in attrs.items():
@@ -230,15 +227,15 @@ def test_log_line_parse(data, attrs):
 
 
 @pytest.mark.parametrize('data, colorized, expect_error, expected', [
-    (
+    pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux'},
         False, False,
         '{timestamp} DEBUG    foo        bar:qux:10 quux',
-    ),
-    # Traceback attached
-    (
+        id='normal'),
+
+    pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux', 'traceback': 'Traceback (most recent call '
@@ -247,43 +244,42 @@ def test_log_line_parse(data, attrs):
         '{timestamp} DEBUG    foo        bar:qux:10 quux\n'
         'Traceback (most recent call last):\n'
         ' here be dragons',
-    ),
-    # Colorized
-    (
+        id='traceback'),
+
+    pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux'},
         True, False,
         '\033[32m{timestamp}\033[0m \033[37mDEBUG   \033[0m \033[36mfoo     '
         '   bar:qux:10\033[0m \033[37mquux\033[0m',
-    ),
-    # Expected error
-    (
+        id='colored'),
+
+    pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'ERROR', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 40,
          'message': 'quux'},
         False, True,
         '{timestamp} ERROR (expected) foo        bar:qux:10 quux',
-    ),
-    # Expected other message (i.e. should make no difference)
-    (
+        id='expected error'),
+
+    pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
          'message': 'quux'},
         False, True,
         '{timestamp} DEBUG    foo        bar:qux:10 quux',
-    ),
-    # Expected error colorized (shouldn't be red)
-    (
+        id='expected other'),
+
+    pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'ERROR', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 40,
          'message': 'quux'},
         True, True,
         '\033[32m{timestamp}\033[0m \033[37mERROR (expected)\033[0m '
         '\033[36mfoo        bar:qux:10\033[0m \033[37mquux\033[0m',
-    ),
-], ids=['normal', 'traceback', 'colored', 'expected error', 'expected other',
-        'expected error colorized'])
+        id='expected error colorized'),
+])
 def test_log_line_formatted(data, colorized, expect_error, expected):
     line = json.dumps(data)
     record = quteprocess.LogLine(line)
@@ -314,14 +310,12 @@ class TestClickElementByText:
         quteproc.wait_for_js('click_element special chars')
 
     def test_duplicate(self, quteproc):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='not unique'):
             quteproc.click_element_by_text('Duplicate')
-        assert 'not unique' in str(excinfo.value)
 
     def test_nonexistent(self, quteproc):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='No element'):
             quteproc.click_element_by_text('no element exists with this text')
-        assert 'No element' in str(excinfo.value)
 
 
 @pytest.mark.parametrize('string, expected', [

@@ -364,15 +364,16 @@ class AbstractWebElement(collections.abc.MutableMapping):
             self._click_fake_event(click_target)
             return
 
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._tab.win_id)
+
         if click_target in [usertypes.ClickTarget.tab,
                             usertypes.ClickTarget.tab_bg]:
             background = click_target == usertypes.ClickTarget.tab_bg
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self._tab.win_id)
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
             from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
+            window = mainwindow.MainWindow(private=tabbed_browser.private)
             window.show()
             window.tabbed_browser.tabopen(url)
         else:

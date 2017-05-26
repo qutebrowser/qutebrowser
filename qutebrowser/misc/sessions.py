@@ -20,9 +20,9 @@
 """Management of sessions - saved tabs/windows."""
 
 import os
-import sip
 import os.path
 
+import sip
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
@@ -195,6 +195,9 @@ class SessionManager(QObject):
             if 'scroll-pos' in user_data:
                 pos = user_data['scroll-pos']
                 data['scroll-pos'] = {'x': pos.x(), 'y': pos.y()}
+
+        data['pinned'] = tab.data.pinned
+
         return data
 
     def _save_tab(self, tab, active):
@@ -213,7 +216,7 @@ class SessionManager(QObject):
             data['history'].append(item_data)
         return data
 
-    def _save_all(self, *, only_window=None):
+    def _save_all(self, *, only_window=None, with_private=False):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
         if only_window is not None:
@@ -221,7 +224,7 @@ class SessionManager(QObject):
         else:
             winlist = objreg.window_registry
 
-        for win_id in winlist:
+        for win_id in sorted(winlist):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
             main_window = objreg.get('main-window', scope='window',
@@ -231,12 +234,17 @@ class SessionManager(QObject):
             if sip.isdeleted(main_window):
                 continue
 
+            if tabbed_browser.private and not with_private:
+                continue
+
             win_data = {}
             active_window = QApplication.instance().activeWindow()
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
             win_data['tabs'] = []
+            if tabbed_browser.private:
+                win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
@@ -260,7 +268,7 @@ class SessionManager(QObject):
         return name
 
     def save(self, name, last_window=False, load_next_time=False,
-             only_window=None):
+             only_window=None, with_private=False):
         """Save a named session.
 
         Args:
@@ -270,6 +278,7 @@ class SessionManager(QObject):
                          instead of the currently open state.
             load_next_time: If set, prepares this session to be load next time.
             only_window: If set, only tabs in the specified window is saved.
+            with_private: Include private windows.
 
         Return:
             The name of the saved session.
@@ -284,7 +293,8 @@ class SessionManager(QObject):
                 log.sessions.error("last_window_session is None while saving!")
                 return
         else:
-            data = self._save_all(only_window=only_window)
+            data = self._save_all(only_window=only_window,
+                                  with_private=with_private)
         log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
@@ -345,6 +355,9 @@ class SessionManager(QObject):
                 pos = histentry['scroll-pos']
                 user_data['scroll-pos'] = QPoint(pos['x'], pos['y'])
 
+            if 'pinned' in histentry:
+                new_tab.data.pinned = histentry['pinned']
+
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
@@ -379,7 +392,8 @@ class SessionManager(QObject):
             raise SessionError(e)
         log.sessions.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
-            window = mainwindow.MainWindow(geometry=win['geometry'])
+            window = mainwindow.MainWindow(geometry=win['geometry'],
+                                           private=win.get('private', None))
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
@@ -389,6 +403,9 @@ class SessionManager(QObject):
                 self._load_tab(new_tab, tab)
                 if tab.get('active', False):
                     tab_to_focus = i
+                if new_tab.data.pinned:
+                    tabbed_browser.set_tab_pinned(
+                        i, new_tab.data.pinned, loading=True)
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
@@ -443,8 +460,10 @@ class SessionManager(QObject):
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('with_private', flag='p')
     def session_save(self, name: str = default, current=False, quiet=False,
-                     force=False, only_active_window=False, win_id=None):
+                     force=False, only_active_window=False, with_private=False,
+                     win_id=None):
         """Save a session.
 
         Args:
@@ -454,6 +473,7 @@ class SessionManager(QObject):
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
             only_active_window: Saves only tabs of the currently active window.
+            with_private: Include private windows.
         """
         if name is not default and name.startswith('_') and not force:
             raise cmdexc.CommandError("{} is an internal session, use --force "
@@ -465,9 +485,10 @@ class SessionManager(QObject):
             assert not name.startswith('_')
         try:
             if only_active_window:
-                name = self.save(name, only_window=win_id)
+                name = self.save(name, only_window=win_id,
+                                 with_private=with_private)
             else:
-                name = self.save(name)
+                name = self.save(name, with_private=with_private)
         except SessionError as e:
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))

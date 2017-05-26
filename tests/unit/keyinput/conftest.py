@@ -19,9 +19,10 @@
 
 """pytest fixtures for tests.keyinput."""
 
+from unittest import mock
+
 import pytest
 
-from unittest import mock
 from qutebrowser.utils import objreg
 
 

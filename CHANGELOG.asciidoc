@@ -29,12 +29,21 @@ Added
 - New `--debug-flag` argument which replaces `--debug-exit` and
   `--pdb-postmortem`.
 - New `tabs -> favicon-scale` option to scale up/down favicons.
+- `-p` flag for `:open` to open a private window
+- `colors -> statusbar.bg/fg.private` and `.command.private` to
+  customize statusbar colors for private windows.
+- New "pinned tabs" feature, with a new `:tab-pin` command (bound
+  to `<Ctrl-p>` by default).
 
 Changed
 ~~~~~~~
 
 - To prevent elaborate phishing attacks, the Punycode version is now shown in
   addition to the decoded version for IDN domain names.
+- Private browsing is now implemented for QtWebEngine, and changed
+  it's behavior: The general -> private-browsing setting now only
+  applies to newly opened windows, and you can use the -p flag to
+  :open to open a private window.
 - When using QtWebEngine, the underlying Chromium version is now shown in the
   version info.
 - Improved `qute:history` page with lazy loading
@@ -58,10 +67,18 @@ Changed
 - `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
   "explicit" anymore, i.e. (with the default settings) open it next to the
   active tab.
+- The Windows releases are redone from scratch, which means:
+  - They now use the new QtWebEngine backend
+  - The bundled Qt is updated from 5.5 to 5.9
+  - The bundled Python is updated from 3.4 to 3.6
+  - They are now generated with PyInstaller instead of cx_Freeze
+  - The installer is now generated using NSIS instead of being a MSI
 
 Fixed
 ~~~~~
 
+- The macOS .dmg is now built against Qt 5.9 which fixes various
+  important issues (such as not being able to type dead keys).
 - Added a workaround for a black screen with QtWebEngine with some setups
   (the workaround requires PyOpenGL to be installed, but it's optional)
 - Crash when trying to retry downloads with QtWebEngine
@@ -74,8 +91,14 @@ Fixed
 - Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Crash with some invalid setting values
 - Crash when cloning a view-source tab with QtWebEngine
+- Crash when a PAC file returns an invalid value with QtWebKit
 - Various rare crashes
 - Various styling issues with the tabbar and a crash with qt5ct
+- The validation for colors in stylesheets is now less strict,
+  allowing for all valid Qt values.
+- data: URLs now aren't added to the history anymore.
+- window.navigator.userAgent is now set correctly when customizing the user
+  agent on QtWebEngine.
 
 v0.10.1
 -------

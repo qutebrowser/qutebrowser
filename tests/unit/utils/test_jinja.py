@@ -21,9 +21,9 @@
 
 import os
 import os.path
+import logging
 
 import pytest
-import logging
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, jinja

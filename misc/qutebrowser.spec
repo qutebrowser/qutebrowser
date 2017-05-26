@@ -18,10 +18,10 @@ def get_data_files():
         ('../qutebrowser/git-commit-id', '')
     ]
 
-    if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
-        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
-    else:
-        print("Warning: excluding pdfjs as it's not present!")
+    # if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
+    #     data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+    # else:
+    #     print("Warning: excluding pdfjs as it's not present!")
 
     return data_files
 
@@ -44,7 +44,7 @@ a = Analysis(['../qutebrowser/__main__.py'],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['tkinter'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)

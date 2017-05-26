@@ -90,21 +90,20 @@ def test_getitem(hist):
 
 def test_setitem(hist):
     """Test __setitem__."""
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(TypeError, match="'History' object does not support "
+                                        "item assignment"):
         hist[0] = 'foo'
-    expected = "'History' object does not support item assignment"
-    assert str(excinfo.value) == expected
 
 
 def test_not_browsing_error(hist):
     """Test that next/previtem throws a ValueError."""
-    with pytest.raises(ValueError) as error1:
+    with pytest.raises(ValueError, match="Currently not browsing "
+                                         "history"):
         hist.nextitem()
-    assert str(error1.value) == "Currently not browsing history"
 
-    with pytest.raises(ValueError) as error2:
+    with pytest.raises(ValueError, match="Currently not browsing "
+                                         "history"):
         hist.previtem()
-    assert str(error2.value) == "Currently not browsing history"
 
 
 def test_nextitem_single(hist, monkeypatch):
@@ -146,7 +145,7 @@ def test_previtem_index_error(hist):
 
 def test_append_private_mode(hist, config_stub):
     """Test append in private mode."""
-    hist.handle_private_mode = True
+    hist._private = True
     # We want general.private-browsing set to True
     config_stub.data = CONFIG_PRIVATE
     hist.append('new item')

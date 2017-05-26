@@ -24,13 +24,6 @@ on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
-// QUTE_WEB_HIDE
-**qutebrowser is currently running a crowdfunding campaign for its new
-configuration system, allowing for per-domain settings and much more.**
-
-See the link:https://www.kickstarter.com/projects/the-compiler/qutebrowser-v10-with-per-domain-settings?ref=6zw7qz[Kickstarter campaign] for more information!
-// QUTE_WEB_HIDE_END
-
 Screenshots
 -----------
 
@@ -160,6 +153,7 @@ Contributors, sorted by the number of commits in descending order:
 * Lamar Pavel
 * Marshall Lochbaum
 * Bruno Oliveira
+* thuck
 * Martin Tournoij
 * Imran Sobir
 * Alexander Cogneau
@@ -170,6 +164,7 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Patric Schmitz
 * Tarcisio Fedrizzi
+* Jay Kamat
 * Claude
 * Fritz Reichwald
 * Corentin Julé
@@ -191,16 +186,15 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Jay Kamat
 * Clayton Craft
 * Peter Vilim
 * Jacob Sword
 * knaggita
 * Oliver Caldwell
+* Nikolay Amiantov
 * Julian Weigt
 * Tomasz Kramkowski
 * Sebastian Frysztak
-* Nikolay Amiantov
 * Julie Engel
 * Jonas Schürmann
 * error800
@@ -222,10 +216,10 @@ Contributors, sorted by the number of commits in descending order:
 * Michał Góral
 * Michael Ilsaas
 * Martin Zimmermann
+* Link
 * Jussi Timperi
 * Cosmin Popescu
 * Brian Jackson
-* thuck
 * sbinix
 * rsteube
 * neeasade
@@ -237,7 +231,6 @@ Contributors, sorted by the number of commits in descending order:
 * Peter Michely
 * Panashe M. Fundira
 * Lucas Hoffmann
-* Link
 * Larry Hynes
 * Kirill A. Shutemov
 * Johannes Altmanninger
@@ -250,6 +243,7 @@ Contributors, sorted by the number of commits in descending order:
 * Samir Benmendil
 * Regina Hug
 * Penaz
+* Matthias Lisin
 * Mathias Fussenegger
 * Marcelo Santos
 * Marcel Schilling
@@ -280,7 +274,7 @@ Contributors, sorted by the number of commits in descending order:
 * Rok Mandeljc
 * Noah Huesser
 * Moez Bouhlel
-* Matthias Lisin
+* MikeinRealLife
 * Lazlow Carmichael
 * Kevin Wang
 * Ján Kobezda

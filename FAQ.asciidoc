@@ -152,6 +152,12 @@ For QtWebEngine:
   comment for a basic example]), so what are you waiting for and why aren't you
   hacking qutebrowser yet?
 
+How do I use Tor with qutebrowser?::
+    Start tor on your machine, and do `:set network proxy socks://localhost:9050/`
+    in qutebrowser. Note this won't give you the same amount of fingerprinting
+    protection that the Tor Browser does, but it's useful to be able to access
+    `.onion` sites.
+
 == Troubleshooting
 
 Configuration not saved after modifying config.::

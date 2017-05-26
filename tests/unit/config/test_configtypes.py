@@ -1031,16 +1031,16 @@ class TestFont:
         klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', [
-        font_xfail('green "Foobar Neue"'),
-        font_xfail('italic green "Foobar Neue"'),
-        font_xfail('bold bold "Foobar Neue"'),
-        font_xfail('bold italic "Foobar Neue"'),
-        font_xfail('10pt 20px "Foobar Neue"'),
-        font_xfail('bold'),
-        font_xfail('italic'),
-        font_xfail('green'),
-        font_xfail('10pt'),
-        font_xfail('10pt ""'),
+        pytest.param('green "Foobar Neue"', marks=font_xfail),
+        pytest.param('italic green "Foobar Neue"', marks=font_xfail),
+        pytest.param('bold bold "Foobar Neue"', marks=font_xfail),
+        pytest.param('bold italic "Foobar Neue"', marks=font_xfail),
+        pytest.param('10pt 20px "Foobar Neue"', marks=font_xfail),
+        pytest.param('bold', marks=font_xfail),
+        pytest.param('italic', marks=font_xfail),
+        pytest.param('green', marks=font_xfail),
+        pytest.param('10pt', marks=font_xfail),
+        pytest.param('10pt ""', marks=font_xfail),
         '',
     ])
     def test_validate_invalid(self, klass, val):
@@ -1134,9 +1134,11 @@ class TestRegex:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', '', '(' * 500],
-                             ids=['unmatched parens', 'empty',
-                                  'too many parens'])
+    @pytest.mark.parametrize('val', [
+        pytest.param(r'(foo|bar))?baz[fis]h', id='unmatched parens'),
+        pytest.param('', id='empty'),
+        pytest.param('(' * 500, id='too many parens'),
+    ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -1255,9 +1257,10 @@ class TestFile:
             '/home/foo/.config/', 'foobar')
 
     @pytest.mark.parametrize('configtype, value, raises', [
-        (configtypes.File(), 'foobar', True),
-        (configtypes.File(required=False), 'foobar', False),
-    ], ids=['file-foobar', 'file-optional-foobar'])
+        pytest.param(configtypes.File(), 'foobar', True, id='file-foobar'),
+        pytest.param(configtypes.File(required=False), 'foobar', False,
+                     id='file-optional-foobar'),
+    ])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
         """Test with a relative path and standarddir.config returning None."""

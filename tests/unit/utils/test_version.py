@@ -29,12 +29,146 @@ import types
 import importlib
 import logging
 import textwrap
+import pkg_resources
 
 import pytest
 
 import qutebrowser
 from qutebrowser.utils import version, usertypes
 from qutebrowser.browser import pdfjs
+
+
+@pytest.mark.parametrize('os_release, expected', [
+    # No file
+    (None, None),
+    # Invalid file
+    ("\n# foo\n foo=bar=baz",
+     version.DistributionInfo(id=None, parsed=version.Distribution.unknown,
+                              version=None, pretty='Unknown')),
+    # Archlinux
+    ("""
+        NAME="Arch Linux"
+        PRETTY_NAME="Arch Linux"
+        ID=arch
+        ID_LIKE=archlinux
+        ANSI_COLOR="0;36"
+        HOME_URL="https://www.archlinux.org/"
+        SUPPORT_URL="https://bbs.archlinux.org/"
+        BUG_REPORT_URL="https://bugs.archlinux.org/"
+     """,
+     version.DistributionInfo(
+         id='arch', parsed=version.Distribution.arch, version=None,
+         pretty='Arch Linux')),
+    # Ubuntu 14.04
+    ("""
+        NAME="Ubuntu"
+        VERSION="14.04.5 LTS, Trusty Tahr"
+        ID=ubuntu
+        ID_LIKE=debian
+        PRETTY_NAME="Ubuntu 14.04.5 LTS"
+        VERSION_ID="14.04"
+     """,
+     version.DistributionInfo(
+         id='ubuntu', parsed=version.Distribution.ubuntu,
+         version=pkg_resources.parse_version('14.4'),
+         pretty='Ubuntu 14.04.5 LTS')),
+    # Ubuntu 17.04
+    ("""
+        NAME="Ubuntu"
+        VERSION="17.04 (Zesty Zapus)"
+        ID=ubuntu
+        ID_LIKE=debian
+        PRETTY_NAME="Ubuntu 17.04"
+        VERSION_ID="17.04"
+     """,
+     version.DistributionInfo(
+         id='ubuntu', parsed=version.Distribution.ubuntu,
+         version=pkg_resources.parse_version('17.4'),
+         pretty='Ubuntu 17.04')),
+    # Debian Jessie
+    ("""
+        PRETTY_NAME="Debian GNU/Linux 8 (jessie)"
+        NAME="Debian GNU/Linux"
+        VERSION_ID="8"
+        VERSION="8 (jessie)"
+        ID=debian
+     """,
+     version.DistributionInfo(
+         id='debian', parsed=version.Distribution.debian,
+         version=pkg_resources.parse_version('8'),
+         pretty='Debian GNU/Linux 8 (jessie)')),
+    # Void Linux
+    ("""
+        NAME="void"
+        ID="void"
+        DISTRIB_ID="void"
+        PRETTY_NAME="void"
+     """,
+     version.DistributionInfo(
+         id='void', parsed=version.Distribution.void,
+         version=None, pretty='void')),
+    # Gentoo
+    ("""
+        NAME=Gentoo
+        ID=gentoo
+        PRETTY_NAME="Gentoo/Linux"
+     """,
+     version.DistributionInfo(
+         id='gentoo', parsed=version.Distribution.gentoo,
+         version=None, pretty='Gentoo/Linux')),
+    # Fedora
+    ("""
+        NAME=Fedora
+        VERSION="25 (Twenty Five)"
+        ID=fedora
+        VERSION_ID=25
+        PRETTY_NAME="Fedora 25 (Twenty Five)"
+     """,
+     version.DistributionInfo(
+         id='fedora', parsed=version.Distribution.fedora,
+         version=pkg_resources.parse_version('25'),
+         pretty='Fedora 25 (Twenty Five)')),
+    # OpenSUSE
+    ("""
+        NAME="openSUSE Leap"
+        VERSION="42.2"
+        ID=opensuse
+        ID_LIKE="suse"
+        VERSION_ID="42.2"
+        PRETTY_NAME="openSUSE Leap 42.2"
+     """,
+     version.DistributionInfo(
+         id='opensuse', parsed=version.Distribution.opensuse,
+         version=pkg_resources.parse_version('42.2'),
+         pretty='openSUSE Leap 42.2')),
+    # Linux Mint
+    ("""
+        NAME="Linux Mint"
+        VERSION="18.1 (Serena)"
+        ID=linuxmint
+        ID_LIKE=ubuntu
+        PRETTY_NAME="Linux Mint 18.1"
+        VERSION_ID="18.1"
+     """,
+     version.DistributionInfo(
+         id='linuxmint', parsed=version.Distribution.linuxmint,
+         version=pkg_resources.parse_version('18.1'),
+         pretty='Linux Mint 18.1')),
+    # Manjaro
+    ("""
+        NAME="Manjaro Linux"
+        ID=manjaro
+        PRETTY_NAME="Manjaro Linux"
+     """,
+     version.DistributionInfo(
+         id='manjaro', parsed=version.Distribution.manjaro,
+         version=None, pretty='Manjaro Linux')),
+])
+def test_distribution(tmpdir, os_release, expected):
+    os_release_file = tmpdir / 'os-release'
+    if os_release is not None:
+        os_release_file.write(textwrap.dedent(os_release))
+    assert version.distribution(str(os_release_file)) == expected
 
 
 class GitStrSubprocessFake:
@@ -675,16 +809,18 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
-@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit'], [
-    (True, False, True, True),  # normal
-    (False, False, True, True),  # no git commit
-    (True, True, True, True),  # frozen
-    (True, True, False, True),  # no style
-    (True, False, True, False),  # no webkit
-    (True, False, True, 'ng'),  # QtWebKit-NG
+@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit',
+                          'known_distribution'], [
+    (True, False, True, True, True),  # normal
+    (False, False, True, True, True),  # no git commit
+    (True, True, True, True, True),  # frozen
+    (True, True, False, True, True),  # no style
+    (True, False, True, False, True),  # no webkit
+    (True, False, True, 'ng', True),  # QtWebKit-NG
+    (True, False, True, True, False),  # unknown Linux distribution
 ])
-def test_version_output(git_commit, frozen, style, with_webkit, stubs,
-                        monkeypatch):
+def test_version_output(git_commit, frozen, style, with_webkit,
+                        known_distribution, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineProfile:
         def httpUserAgent(self):
@@ -709,7 +845,7 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
         'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
                          stubs.FakeQApplication(instance=None)),
-        'QLibraryInfo.location': (lambda _loc: 'QT PATH')
+        'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
     }
 
     substitutions = {
@@ -736,6 +872,18 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
+    if known_distribution:
+        patches['distribution'] = lambda: version.DistributionInfo(
+            parsed=version.Distribution.arch, version=None,
+            pretty='LINUX DISTRIBUTION', id='arch')
+        substitutions['linuxdist'] = ('\nLinux distribution: '
+                                      'LINUX DISTRIBUTION (arch)')
+        substitutions['osinfo'] = ''
+    else:
+        patches['distribution'] = lambda: None
+        substitutions['linuxdist'] = ''
+        substitutions['osinfo'] = 'OS INFO 1\nOS INFO 2\n'
+
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
@@ -757,13 +905,11 @@ def test_version_output(git_commit, frozen, style, with_webkit, stubs,
         pdf.js: PDFJS VERSION
         SSL: SSL VERSION
         {style}
-        Platform: PLATFORM, ARCHITECTURE
+        Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
         Qt library executable path: QT PATH, data path: QT PATH
-        OS INFO 1
-        OS INFO 2
-
+        {osinfo}
         Paths:
         PATH DESC: PATH NAME
     """.lstrip('\n'))

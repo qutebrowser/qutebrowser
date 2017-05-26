@@ -82,6 +82,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
+|<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
@@ -544,7 +545,8 @@ For `increment` and `decrement`, the number to change the URL by. For `up`, the 
 
 [[open]]
 === open
-Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] [*--secure*] ['url']+
+Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
+     ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -560,6 +562,7 @@ If the URL contains newlines, each line gets opened in its own tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
 * +*-s*+, +*--secure*+: Force HTTPS.
+* +*-p*+, +*--private*+: Open a new window in private browsing mode.
 
 ==== count
 The tab index to open the URL in.
@@ -743,6 +746,7 @@ Load a session.
 [[session-save]]
 === session-save
 Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
+             [*--with-private*]
              ['name']+
 
 Save a session.
@@ -756,6 +760,7 @@ Save a session.
 * +*-q*+, +*--quiet*+: Don't show confirmation message.
 * +*-f*+, +*--force*+: Force saving internal sessions (starting with an underline).
 * +*-o*+, +*--only-active-window*+: Saves only tabs of the currently active window.
+* +*-p*+, +*--with-private*+: Include private windows.
 
 [[set]]
 === set
@@ -831,7 +836,7 @@ Duplicate the current tab.
 
 [[tab-close]]
 === tab-close
-Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*]+
+Syntax: +:tab-close [*--prev*] [*--next*] [*--opposite*] [*--force*]+
 
 Close the current/[count]th tab.
 
@@ -840,6 +845,7 @@ Close the current/[count]th tab.
 * +*-n*+, +*--next*+: Force selecting the tab after the current tab.
 * +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
 
+* +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
 
 ==== count
 The tab index to close
@@ -892,13 +898,23 @@ How many tabs to switch forward.
 
 [[tab-only]]
 === tab-only
-Syntax: +:tab-only [*--prev*] [*--next*]+
+Syntax: +:tab-only [*--prev*] [*--next*] [*--force*]+
 
 Close all tabs except for the current one.
 
 ==== optional arguments
 * +*-p*+, +*--prev*+: Keep tabs before the current.
 * +*-n*+, +*--next*+: Keep tabs after the current.
+* +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
+
+[[tab-pin]]
+=== tab-pin
+Pin/Unpin the current/[count]th tab.
+
+Pinning a tab shrinks it to tabs->pinned-width size. Attempting to close a pinned tab will cause a confirmation, unless --force is passed.
+
+==== count
+The tab index to pin or unpin
 
 [[tab-prev]]
 === tab-prev

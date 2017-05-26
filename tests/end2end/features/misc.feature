@@ -471,12 +471,16 @@ Feature: Various utility commands.
     Scenario: Setting a custom user-agent header
         When I set network -> user-agent to toaster
         And I open headers
+        And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
+        And the javascript message "toaster" should be logged
 
     Scenario: Setting the default user-agent header
         When I set network -> user-agent to <empty>
         And I open headers
+        And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to Mozilla/5.0 *
+        And the javascript message "Mozilla/5.0 *" should be logged
 
     ## :messages
 
@@ -568,26 +572,6 @@ Feature: Various utility commands.
         When I run :set-cmd-text :message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
-
-    ## https://github.com/qutebrowser/qutebrowser/issues/1219
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
-    Scenario: Sharing cookies with private browsing
-        When I set general -> private-browsing to true
-        And I open cookies/set?qute-test=42 without waiting
-        And I wait until cookies is loaded
-        And I open cookies in a new tab
-        And I set general -> private-browsing to false
-        Then the cookie qute-test should be set to 42
-
-    ## https://github.com/qutebrowser/qutebrowser/issues/1742
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_xfail: private browsing is not implemented yet
-    Scenario: Private browsing is activated in QtWebKit without restart
-        When I set general -> private-browsing to true
-        And I open data/javascript/localstorage.html
-        And I set general -> private-browsing to false
-        Then the page should contain the plaintext "Local storage status: not working"
 
     @no_xvfb
     Scenario: :window-only
@@ -681,20 +665,6 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
-    Scenario: Calling previous command with private-browsing mode
-        When I run :set-cmd-text :message-info blah
-        And I run :command-accept
-        And I set general -> private-browsing to true
-        And I run :set-cmd-text :message-error "This should only be shown once"
-        And I run :command-accept
-        And I wait for the error "This should only be shown once"
-        And I run :set-cmd-text :
-        And I run :command-history-prev
-        And I run :command-accept
-        And I set general -> private-browsing to false
-        Then the message "blah" should be shown
-
     ## Modes blacklisted for :enter-mode
 
     Scenario: Trying to enter command mode with :enter-mode
@@ -704,15 +674,28 @@ Feature: Various utility commands.
     ## Renderer crashes
 
     # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix
+    @qtwebkit_skip @no_invalid_lines @posix @qt<5.9
     Scenario: Renderer crash
         When I run :open -t chrome://crash
         Then the error "Renderer process crashed" should be shown
 
-    @qtwebkit_skip @no_invalid_lines
+    @qtwebkit_skip @no_invalid_lines @qt<5.9
     Scenario: Renderer kill
         When I run :open -t chrome://kill
         Then the error "Renderer process was killed" should be shown
+
+    # Skipped on Windows as "... has stopped working" hangs.
+    @qtwebkit_skip @no_invalid_lines @posix @qt>=5.9
+    Scenario: Renderer crash (5.9)
+        When I run :open -t chrome://crash
+        Then "Renderer process crashed" should be logged
+        And "* 'Error loading chrome://crash/'" should be logged
+
+    @qtwebkit_skip @no_invalid_lines @qt>=5.9
+    Scenario: Renderer kill (5.9)
+        When I run :open -t chrome://kill
+        Then "Renderer process was killed" should be logged
+        And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
     @qtwebkit_skip @no_invalid_lines
@@ -724,5 +707,3 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
-        And the following tabs should be open:
-            - data/numbers/3.txt (active)

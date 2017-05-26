@@ -629,10 +629,13 @@ class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
-    def __init__(self, win_id, mode_manager, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         parent=parent)
-        widget = webview.WebView(win_id, self.tab_id, tab=self)
+                         private=private, parent=parent)
+        widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
+                                 private=private, tab=self)
+        if private:
+            self._make_private(widget)
         self.history = WebKitHistory(self)
         self.scroller = WebKitScroller(self, parent=self)
         self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
@@ -648,6 +651,10 @@ class WebKitTab(browsertab.AbstractTab):
 
     def _install_event_filter(self):
         self._widget.installEventFilter(self._mouse_event_filter)
+
+    def _make_private(self, widget):
+        settings = widget.settings()
+        settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
     def openurl(self, url):
         self._openurl_prepare(url)
@@ -710,7 +717,7 @@ class WebKitTab(browsertab.AbstractTab):
         requested_url = self.url(requested=True)
         self.add_history_item.emit(url, requested_url, self.title())
 
-    def set_html(self, html, base_url):
+    def set_html(self, html, base_url=QUrl()):
         self._widget.setHtml(html, base_url)
 
     def networkaccessmanager(self):

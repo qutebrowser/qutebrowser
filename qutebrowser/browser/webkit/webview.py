@@ -55,7 +55,7 @@ class WebView(QWebView):
     scroll_pos_changed = pyqtSignal(int, int)
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, tab_id, tab, parent=None):
+    def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
         if sys.platform == 'darwin' and qtutils.version_check('5.4'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
@@ -71,7 +71,8 @@ class WebView(QWebView):
         self._set_bg_color()
         self._tab_id = tab_id
 
-        page = webpage.BrowserPage(self.win_id, self._tab_id, tab.data,
+        page = webpage.BrowserPage(win_id=self.win_id, tab_id=self._tab_id,
+                                   tabdata=tab.data, private=private,
                                    parent=self)
 
         try:

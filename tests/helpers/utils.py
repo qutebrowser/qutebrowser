@@ -26,6 +26,14 @@ import os.path
 
 import pytest
 
+from qutebrowser.utils import qtutils
+
+
+qt58 = pytest.mark.skipif(
+    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
+qt59 = pytest.mark.skipif(
+    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
+
 
 class PartialCompareOutcome:
 

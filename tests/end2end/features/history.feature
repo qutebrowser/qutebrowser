@@ -57,6 +57,19 @@ Feature: Page history
         And I run :click-element id open-invalid
         Then "Changing title for idx 1 to 'about:blank'" should be logged
 
+    Scenario: History with data URL
+        When I open data/data_link.html
+        And I run :click-element id link
+        And I wait until data:;base64,cXV0ZWJyb3dzZXI= is loaded
+        Then the history file should contain:
+            http://localhost:(port)/data/data_link.html data: link
+
+    Scenario: History with view-source URL
+        When I open data/title.html
+        And I run :view-source
+        Then the history file should contain:
+            http://localhost:(port)/data/title.html Test title
+
     Scenario: Clearing history
         When I open data/title.html
         And I run :history-clear --force
@@ -99,4 +112,3 @@ Feature: Page history
         And I run :open http://foo%40bar@baz
         Then "QFSFileEngine::open: No file name specified" should be logged
         And "Error while loading : Host  not found" should be logged
-        And "Ignoring invalid URL being added to history" should be logged

@@ -134,7 +134,8 @@ def read_file(filename, binary=False):
         The file contents as string.
     """
     if hasattr(sys, 'frozen'):
-        # cx_Freeze doesn't support pkg_resources :(
+        # PyInstaller doesn't support pkg_resources :(
+        # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
             with open(fn, 'rb') as f:

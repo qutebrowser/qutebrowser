@@ -112,11 +112,7 @@ def get_all_names():
     """Get all requirement names based on filenames."""
     for filename in glob.glob(os.path.join(REQ_DIR, 'requirements-*.txt-raw')):
         basename = os.path.basename(filename)
-        name = basename[len('requirements-'):-len('.txt-raw')]
-        if name == 'cxfreeze' and sys.hexversion >= 0x030600:
-            print("Warning: Skipping cxfreeze")
-        else:
-            yield name
+        yield basename[len('requirements-'):-len('.txt-raw')]
     yield 'pip'
 
 

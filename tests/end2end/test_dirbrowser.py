@@ -20,10 +20,10 @@
 """Test the built-in directory browser."""
 
 import os
-import bs4
 import collections
 
 import pytest
+import bs4
 
 from PyQt5.QtCore import QUrl
 from qutebrowser.utils import urlutils

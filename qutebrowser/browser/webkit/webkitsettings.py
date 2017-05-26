@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# We get various "abstract but not overridden" warnings
+# pylint: disable=abstract-method
+
 """Bridge from QWebSettings to our own settings.
 
 Module attributes:
@@ -29,37 +32,44 @@ import os.path
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg, urlutils, qtutils, message
+from qutebrowser.utils import standarddir, objreg, urlutils, qtutils
 from qutebrowser.browser import shared
 
 
-class Attribute(websettings.Attribute):
+class Base(websettings.Base):
+
+    """Base settings class with appropriate _get_global_settings."""
+
+    def _get_global_settings(self):
+        return [QWebSettings.globalSettings()]
+
+
+class Attribute(Base, websettings.Attribute):
 
     """A setting set via QWebSettings::setAttribute."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
     ENUM_BASE = QWebSettings
 
 
-class Setter(websettings.Setter):
+class Setter(Base, websettings.Setter):
 
     """A setting set via QWebSettings getter/setter methods."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
-class NullStringSetter(websettings.NullStringSetter):
+class NullStringSetter(Base, websettings.NullStringSetter):
 
     """A setter for settings requiring a null QString as default."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
-class StaticSetter(websettings.StaticSetter):
+class StaticSetter(Base, websettings.StaticSetter):
 
     """A setting set via static QWebSettings getter/setter methods."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
 class CookiePolicy(websettings.Base):
@@ -88,21 +98,9 @@ def _set_user_stylesheet():
     QWebSettings.globalSettings().setUserStyleSheetUrl(url)
 
 
-def _init_private_browsing():
-    if config.get('general', 'private-browsing'):
-        if qtutils.is_qtwebkit_ng():
-            message.warning("Private browsing is not fully implemented by "
-                            "QtWebKit-NG!")
-        QWebSettings.setIconDatabasePath('')
-    else:
-        QWebSettings.setIconDatabasePath(standarddir.cache())
-
-
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
-    if (section, option) == ('general', 'private-browsing'):
-        _init_private_browsing()
-    elif section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
+    if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
         _set_user_stylesheet()
 
     websettings.update_mappings(MAPPINGS, section, option)
@@ -113,14 +111,20 @@ def init(_args):
     cache_path = standarddir.cache()
     data_path = standarddir.data()
 
-    _init_private_browsing()
-
+    QWebSettings.setIconDatabasePath(standarddir.cache())
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(cache_path, 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
         os.path.join(data_path, 'local-storage'))
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
+
+    if (config.get('general', 'private-browsing') and
+            not qtutils.version_check('5.4.2')):
+        # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
+        # Won't work when private browsing is not enabled globally, but that's
+        # the best we can do...
+        QWebSettings.setIconDatabasePath('')
 
     websettings.init_mappings(MAPPINGS)
     _set_user_stylesheet()
@@ -254,8 +258,6 @@ MAPPINGS = {
                 setter=QWebSettings.setOfflineWebApplicationCacheQuota),
     },
     'general': {
-        'private-browsing':
-            Attribute(QWebSettings.PrivateBrowsingEnabled),
         'developer-extras':
             Attribute(QWebSettings.DeveloperExtrasEnabled),
         'print-element-backgrounds':

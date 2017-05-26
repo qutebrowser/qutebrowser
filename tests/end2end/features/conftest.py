@@ -159,8 +159,8 @@ def clean_open_tabs(quteproc):
     """Clean up open windows and tabs."""
     quteproc.set_setting('tabs', 'last-close', 'blank')
     quteproc.send_cmd(':window-only')
-    quteproc.send_cmd(':tab-only')
-    quteproc.send_cmd(':tab-close')
+    quteproc.send_cmd(':tab-only --force')
+    quteproc.send_cmd(':tab-close --force')
     quteproc.wait_for_load_finished_url('about:blank')
 
 
@@ -177,21 +177,25 @@ def pdfjs_available():
 def open_path(quteproc, httpbin, path):
     """Open a URL.
 
-    If used like "When I open ... in a new tab", the URL is opened in a new
-    tab. With "... in a new window", it's opened in a new window. With
-    "... as a URL", it's opened according to new-instance-open-target.
+    - If used like "When I open ... in a new tab", the URL is opened in a new
+      tab.
+    - With "... in a new window", it's opened in a new window.
+    - With "... in a private window" it's opened in a new private window.
+    - With "... as a URL", it's opened according to new-instance-open-target.
     """
     path = path.replace('(port)', str(httpbin.port))
 
     new_tab = False
     new_bg_tab = False
     new_window = False
+    private = False
     as_url = False
     wait = True
 
     new_tab_suffix = ' in a new tab'
     new_bg_tab_suffix = ' in a new background tab'
     new_window_suffix = ' in a new window'
+    private_suffix = ' in a private window'
     do_not_wait_suffix = ' without waiting'
     as_url_suffix = ' as a URL'
 
@@ -205,6 +209,9 @@ def open_path(quteproc, httpbin, path):
         elif path.endswith(new_window_suffix):
             path = path[:-len(new_window_suffix)]
             new_window = True
+        elif path.endswith(private_suffix):
+            path = path[:-len(private_suffix)]
+            private = True
         elif path.endswith(as_url_suffix):
             path = path[:-len(as_url_suffix)]
             as_url = True
@@ -215,7 +222,8 @@ def open_path(quteproc, httpbin, path):
             break
 
     quteproc.open_path(path, new_tab=new_tab, new_bg_tab=new_bg_tab,
-                       new_window=new_window, as_url=as_url, wait=wait)
+                       new_window=new_window, private=private, as_url=as_url,
+                       wait=wait)
 
 
 @bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
@@ -535,30 +543,45 @@ def check_open_tabs(quteproc, request, tabs):
     """
     session = quteproc.get_session()
     active_suffix = ' (active)'
+    pinned_suffix = ' (pinned)'
     tabs = tabs.splitlines()
     assert len(session['windows']) == 1
     assert len(session['windows'][0]['tabs']) == len(tabs)
 
     # If we don't have (active) anywhere, don't check it
-    has_active = any(line.endswith(active_suffix) for line in tabs)
+    has_active = any(active_suffix in line for line in tabs)
+    has_pinned = any(pinned_suffix in line for line in tabs)
 
     for i, line in enumerate(tabs):
         line = line.strip()
         assert line.startswith('- ')
         line = line[2:]  # remove "- " prefix
-        if line.endswith(active_suffix):
-            path = line[:-len(active_suffix)]
-            active = True
-        else:
-            path = line
-            active = False
+
+        active = False
+        pinned = False
+
+        while line.endswith(active_suffix) or line.endswith(pinned_suffix):
+            if line.endswith(active_suffix):
+                # active
+                line = line[:-len(active_suffix)]
+                active = True
+            else:
+                # pinned
+                line = line[:-len(pinned_suffix)]
+                pinned = True
 
         session_tab = session['windows'][0]['tabs'][i]
-        assert session_tab['history'][-1]['url'] == quteproc.path_to_url(path)
+        current_page = session_tab['history'][-1]
+        assert current_page['url'] == quteproc.path_to_url(line)
         if active:
             assert session_tab['active']
         elif has_active:
             assert 'active' not in session_tab
+
+        if pinned:
+            assert current_page['pinned']
+        elif has_pinned:
+            assert not current_page['pinned']
 
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '

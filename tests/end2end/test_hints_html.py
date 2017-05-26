@@ -21,12 +21,12 @@
 
 import os
 import os.path
+import textwrap
+import collections
 
 import yaml
 import pytest
 import bs4
-import textwrap
-import collections
 
 
 def collect_tests():

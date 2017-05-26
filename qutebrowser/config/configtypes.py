@@ -1452,7 +1452,11 @@ class UserAgent(BaseType):
 
             ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
              'Gecko',
-             "IE 11.0 for Desktop Win7 64-bit")
+             "IE 11.0 for Desktop Win7 64-bit"),
+
+            ('Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 '
+             '(KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+             "Mobile Generic Android")
         ]
         return out
 

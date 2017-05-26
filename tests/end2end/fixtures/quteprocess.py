@@ -314,7 +314,8 @@ class QuteProc(testprocess.Process):
         URLs like about:... and qute:... are handled specially and returned
         verbatim.
         """
-        special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:']
+        special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:',
+                           'data:']
         if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:
@@ -497,18 +498,20 @@ class QuteProc(testprocess.Process):
         self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, *, new_tab=False, new_bg_tab=False,
-                  new_window=False, as_url=False, port=None, https=False,
-                  wait=True):
+                  new_window=False, private=False, as_url=False, port=None,
+                  https=False, wait=True):
         """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path, port=port, https=https)
         self.open_url(url, new_tab=new_tab, new_bg_tab=new_bg_tab,
-                      new_window=new_window, as_url=as_url, wait=wait)
+                      new_window=new_window, private=private, as_url=as_url,
+                      wait=wait)
 
     def open_url(self, url, *, new_tab=False, new_bg_tab=False,
-                 new_window=False, as_url=False, wait=True):
+                 new_window=False, private=False, as_url=False, wait=True):
         """Open the given url in qutebrowser."""
-        if new_tab and new_window:
-            raise ValueError("new_tab and new_window given!")
+        if sum(1 for opt in [new_tab, new_bg_tab, new_window, private, as_url]
+               if opt) > 1:
+            raise ValueError("Conflicting options given!")
 
         if as_url:
             self.send_cmd(url, invalid=True)
@@ -518,6 +521,8 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':open -b ' + url)
         elif new_window:
             self.send_cmd(':open -w ' + url)
+        elif private:
+            self.send_cmd(':open -p ' + url)
         else:
             self.send_cmd(':open ' + url)
 
@@ -576,7 +581,7 @@ class QuteProc(testprocess.Process):
         """Save the session and get the parsed session data."""
         with tempfile.TemporaryDirectory() as tmpdir:
             session = os.path.join(tmpdir, 'session.yml')
-            self.send_cmd(':session-save "{}"'.format(session))
+            self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
             with open(session, encoding='utf-8') as f:

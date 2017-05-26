@@ -239,37 +239,34 @@ class TestWebKitElement:
 
     def test_double_wrap(self, elem):
         """Test wrapping a WebKitElement."""
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError, match="Trying to wrap a wrapper!"):
             webkitelem.WebKitElement(elem, tab=None)
-        assert str(excinfo.value) == "Trying to wrap a wrapper!"
 
     @pytest.mark.parametrize('code', [
-        str,
-        lambda e: e[None],
-        lambda e: operator.setitem(e, None, None),
-        lambda e: operator.delitem(e, None),
-        lambda e: None in e,
-        list,  # __iter__
-        len,
-        lambda e: e.has_frame(),
-        lambda e: e.geometry(),
-        lambda e: e.value(),
-        lambda e: e.set_value('foo'),
-        lambda e: e.insert_text('foo'),
-        lambda e: e.is_writable(),
-        lambda e: e.is_content_editable(),
-        lambda e: e.is_editable(),
-        lambda e: e.is_text_input(),
-        lambda e: e.remove_blank_target(),
-        lambda e: e.outer_xml(),
-        lambda e: e.tag_name(),
-        lambda e: e.rect_on_view(),
-        lambda e: e._is_visible(None),
-    ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
-            'frame', 'geometry', 'value', 'set_value', 'insert_text',
-            'is_writable', 'is_content_editable', 'is_editable',
-            'is_text_input', 'remove_blank_target', 'outer_xml', 'tag_name',
-            'rect_on_view', 'is_visible'])
+        pytest.param(str, id='str'),
+        pytest.param(lambda e: e[None], id='getitem'),
+        pytest.param(lambda e: operator.setitem(e, None, None), id='setitem'),
+        pytest.param(lambda e: operator.delitem(e, None), id='delitem'),
+        pytest.param(lambda e: None in e, id='contains'),
+        pytest.param(list, id='iter'),
+        pytest.param(len, id='len'),
+        pytest.param(lambda e: e.has_frame(), id='has_frame'),
+        pytest.param(lambda e: e.geometry(), id='geometry'),
+        pytest.param(lambda e: e.value(), id='value'),
+        pytest.param(lambda e: e.set_value('foo'), id='set_value'),
+        pytest.param(lambda e: e.insert_text('foo'), id='insert_text'),
+        pytest.param(lambda e: e.is_writable(), id='is_writable'),
+        pytest.param(lambda e: e.is_content_editable(),
+                     id='is_content_editable'),
+        pytest.param(lambda e: e.is_editable(), id='is_editable'),
+        pytest.param(lambda e: e.is_text_input(), id='is_text_input'),
+        pytest.param(lambda e: e.remove_blank_target(),
+                     id='remove_blank_target'),
+        pytest.param(lambda e: e.outer_xml(), id='outer_xml'),
+        pytest.param(lambda e: e.tag_name(), id='tag_name'),
+        pytest.param(lambda e: e.rect_on_view(), id='rect_on_view'),
+        pytest.param(lambda e: e._is_visible(None), id='is_visible'),
+    ])
     def test_vanished(self, elem, code):
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True

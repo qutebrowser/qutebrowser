@@ -69,7 +69,7 @@ class CommandLineEdit(QLineEdit):
         _promptlen: The length of the current prompt.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent)
         self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)

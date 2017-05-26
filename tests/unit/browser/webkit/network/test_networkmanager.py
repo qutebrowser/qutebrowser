@@ -22,20 +22,11 @@ import pytest
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.browser.webkit import cookies
 
+
 pytestmark = pytest.mark.usefixtures('cookiejar_and_cache')
 
 
-class TestPrivateMode:
-
-    def test_init_with_private_mode(self, config_stub):
-        config_stub.data = {'general': {'private-browsing': True}}
-        nam = networkmanager.NetworkManager(0, 0)
-        assert isinstance(nam.cookieJar(), cookies.RAMCookieJar)
-
-    def test_setting_private_mode_later(self, config_stub):
-        config_stub.data = {'general': {'private-browsing': False}}
-        nam = networkmanager.NetworkManager(0, 0)
-        assert not isinstance(nam.cookieJar(), cookies.RAMCookieJar)
-        config_stub.data = {'general': {'private-browsing': True}}
-        nam.on_config_changed()
-        assert isinstance(nam.cookieJar(), cookies.RAMCookieJar)
+def test_init_with_private_mode(config_stub):
+    nam = networkmanager.NetworkManager(win_id=0, tab_id=0, private=True)
+    assert isinstance(nam.cookieJar(), cookies.RAMCookieJar)
+    assert nam.cache() is None

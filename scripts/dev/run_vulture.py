@@ -54,9 +54,7 @@ def whitelist_generator():
                                                                         attr)
 
     # PyQt properties
-    for attr in ['prompt_active', 'command_active', 'insert_active',
-                 'caret_mode']:
-        yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.' + attr
+    yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.color_flags'
     yield 'qutebrowser.mainwindow.statusbar.url.UrlText.urltype'
 
     # Not used yet, but soon (or when debugging)
@@ -164,7 +162,8 @@ def run(files):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts'])
+    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts',
+                                                     'setup.py'])
     args = parser.parse_args()
     out = run(args.files)
     for line in out:

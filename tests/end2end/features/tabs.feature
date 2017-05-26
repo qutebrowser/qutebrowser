@@ -1026,3 +1026,121 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+
+    # :tab-pin
+
+    Scenario: :tab-pin command
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active) (pinned)
+
+    Scenario: :tab-pin unpin
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-pin to index 2
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (pinned)
+            - data/numbers/3.txt (active)
+
+    Scenario: Pinned :tab-close prompt yes
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Pinned :tab-close prompt no
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept no
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/2.txt (active) (pinned)
+
+    Scenario: Pinned :tab-only prompt yes
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Pinned :tab-only prompt no
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept no
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt (pinned)
+
+    Scenario: Pinned :tab-only close all but pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-only
+        Then the following tabs should be open:
+            - data/numbers/2.txt (active) (pinned)
+
+    Scenario: :tab-pin open url
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt without waiting
+        Then the message "Tab is pinned!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Cloning a pinned tab
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :tab-clone
+        And I wait until data/numbers/1.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/1.txt (pinned) (active)
+
+    Scenario: Undo a pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close --force
+        And I run :undo
+        And I wait until data/numbers/2.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (pinned) (active)

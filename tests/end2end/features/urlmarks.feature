@@ -76,7 +76,7 @@ Feature: quickmarks and bookmarks
 
     Scenario: Loading a bookmark with -t and -b
         When I run :bookmark-load -t -b about:blank
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a bookmark which does not exist
         When I run :bookmark-del doesnotexist
@@ -200,7 +200,7 @@ Feature: quickmarks and bookmarks
     Scenario: Loading a quickmark with -t and -b
         When I run :quickmark-add http://localhost:(port)/data/numbers/17.txt seventeen
         When I run :quickmark-load -t -b seventeen
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a quickmark which does not exist
         When I run :quickmark-del doesnotexist

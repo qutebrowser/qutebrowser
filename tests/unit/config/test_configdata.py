@@ -39,6 +39,6 @@ def test_data():
 
 def test_readonly_data():
     """Make sure DATA is readonly."""
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="Trying to modify a read-only "
+                                         "config!"):
         configdata.DATA['general'].setv('temp', 'ignore-case', 'true', 'true')
-    assert str(excinfo.value) == "Trying to modify a read-only config!"

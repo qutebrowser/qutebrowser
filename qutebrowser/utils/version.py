@@ -27,6 +27,7 @@ import platform
 import subprocess
 import importlib
 import collections
+import pkg_resources
 
 from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
                           QLibraryInfo)
@@ -47,6 +48,53 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
 from qutebrowser.misc import objects
 from qutebrowser.browser import pdfjs
+
+
+DistributionInfo = collections.namedtuple(
+    'DistributionInfo', ['id', 'parsed', 'version', 'pretty'])
+
+
+Distribution = usertypes.enum(
+    'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
+                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
+
+
+def distribution(filename='/etc/os-release'):
+    """Get some information about the running Linux distribution.
+
+    Returns:
+        A DistributionInfo object, or None if no info could be determined.
+            parsed: A Distribution enum member
+            version: A Version object, or None
+            pretty: Always a string (might be "Unknown")
+    """
+    info = {}
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if (not line) or line.startswith('#'):
+                    continue
+                k, v = line.split("=", maxsplit=1)
+                info[k] = v.strip('"')
+    except (OSError, UnicodeDecodeError):
+        return None
+
+    pretty = info.get('PRETTY_NAME', 'Unknown')
+
+    if 'VERSION_ID' in info:
+        dist_version = pkg_resources.parse_version(info['VERSION_ID'])
+    else:
+        dist_version = None
+
+    dist_id = info.get('ID', None)
+    try:
+        parsed = Distribution[dist_id]
+    except KeyError:
+        parsed = Distribution.unknown
+
+    return DistributionInfo(parsed=parsed, version=dist_version, pretty=pretty,
+                            id=dist_id)
 
 
 def _git_str():
@@ -301,6 +349,14 @@ def version():
     lines += [
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
+    ]
+    dist = distribution()
+    if dist is not None:
+        lines += [
+            'Linux distribution: {} ({})'.format(dist.pretty, dist.parsed.name)
+        ]
+
+    lines += [
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
         "Qt library executable path: {}, data path: {}".format(
@@ -308,7 +364,9 @@ def version():
             QLibraryInfo.location(QLibraryInfo.DataPath)
         )
     ]
-    lines += _os_info()
+
+    if not dist or dist.parsed == Distribution.unknown:
+        lines += _os_info()
 
     lines += [
         '',
