@@ -58,7 +58,7 @@ class TabWidget(QTabWidget):
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self.update_tab_titles))
-        bar.currentChanged.connect(self.emit_tab_index_changed)
+        bar.currentChanged.connect(self._on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -264,9 +264,9 @@ class TabWidget(QTabWidget):
         return new_idx
 
     @pyqtSlot(int)
-    def emit_tab_index_changed(self, index):
+    def _on_current_changed(self, index):
         """Emit the tab_index_changed signal if the current tab changed."""
-        self.tabBar().on_change()
+        self.tabBar().on_current_changed()
         self.tab_index_changed.emit(index, self.count())
 
     def tab_url(self, idx):
@@ -345,7 +345,7 @@ class TabBar(QTabBar):
         self._page_fullscreen = on
         self._tabhide()
 
-    def on_change(self):
+    def on_current_changed(self):
         """Show tab bar when current tab got changed."""
         show = config.get('tabs', 'show')
         if show == 'switching' or self._page_fullscreen:
