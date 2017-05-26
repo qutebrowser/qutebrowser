@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -673,11 +673,11 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             raise ValueError("Invalid status {}".format(status))
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
-        # FIXME:qtwebengine can we disable this with Qt 5.8.1?
-        self._remove_tab(tab, crashed=True)
-        if self.count() == 0:
-            self.tabopen(QUrl('about:blank'))
+        if not qtutils.version_check('5.9'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+            self._remove_tab(tab, crashed=True)
+            if self.count() == 0:
+                self.tabopen(QUrl('about:blank'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

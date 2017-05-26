@@ -52,6 +52,12 @@ Changed
   closes the current tab.
 - With Qt 5.9, `content -> cookies-store` can now be set on QtWebEngine without
   a restart.
+- The adblocker now also blocks non-GET requests (e.g. POST)
+- `:follow-selected` now also works with QtWebEngine
+- javascript: links can now be hinted
+- `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
+  "explicit" anymore, i.e. (with the default settings) open it next to the
+  active tab.
 
 Fixed
 ~~~~~
@@ -67,6 +73,7 @@ Fixed
 - Crash when unbinding an unbound key in the key config
 - Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Crash with some invalid setting values
+- Crash when cloning a view-source tab with QtWebEngine
 - Various rare crashes
 - Various styling issues with the tabbar and a crash with qt5ct
 

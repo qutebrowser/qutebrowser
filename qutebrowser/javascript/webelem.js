@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -167,6 +167,15 @@ window._qutebrowser.webelem = (function() {
         }
 
         return serialize_elem(elem);
+    };
+
+    // Function for returning a selection to python (so we can click it)
+    funcs.find_selected_link = function() {
+        var elem = window.getSelection().anchorNode;
+        if (!elem) {
+            return null;
+        }
+        return serialize_elem(elem.parentNode);
     };
 
     funcs.set_value = function(id, value) {

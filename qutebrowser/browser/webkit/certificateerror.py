@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,7 +41,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         try:
             # Qt >= 5.4
             return hash(self._error)
-        except TypeError:
+        except TypeError:  # pragma: no cover
             return hash((self._error.certificate().toDer(),
                          self._error.error()))
 

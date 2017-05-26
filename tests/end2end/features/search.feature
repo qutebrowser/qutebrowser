@@ -191,3 +191,50 @@ Feature: Searching on a page
 
     # TODO: wrapping message with scrolling
     # TODO: wrapping message without scrolling
+
+    ## follow searched links
+    Scenario: Follow a searched link
+        When I run :search follow
+        And I wait for "search found follow" in the log
+        And I run :follow-selected
+        Then data/hello.txt should be loaded
+
+    Scenario: Follow a searched link in a new tab
+        When I run :window-only
+        And I run :search follow
+        And I wait for "search found follow" in the log
+        And I run :follow-selected -t
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/search.html
+            - data/hello.txt (active)
+
+    Scenario: Don't follow searched text
+        When I run :window-only
+        And I run :search foo
+        And I wait for "search found foo" in the log
+        And I run :follow-selected
+        Then the following tabs should be open:
+            - data/search.html (active)
+
+    Scenario: Don't follow searched text in a new tab
+        When I run :window-only
+        And I run :search foo
+        And I wait for "search found foo" in the log
+        And I run :follow-selected -t
+        Then the following tabs should be open:
+            - data/search.html (active)
+
+    Scenario: Follow a manually selected link
+        When I run :jseval --file (testdata)/search_select.js
+        And I run :follow-selected
+        Then data/hello.txt should be loaded
+
+    Scenario: Follow a manually selected link in a new tab
+        When I run :window-only
+        And I run :jseval --file (testdata)/search_select.js
+        And I run :follow-selected -t
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/search.html
+            - data/hello.txt (active)

@@ -607,11 +607,24 @@ Feature: Tab management
                   title: Test title
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
-    @qtwebkit_skip @qt>=5.8
+
+    @qtwebkit_skip @qt==5.8.0
     Scenario: Cloning a tab with a special URL
         When I open chrome://gpu
         And I run :tab-clone
         Then the error "Can't serialize special URL!" should be shown
+
+    @qtwebkit_skip @qt<5.9
+    Scenario: Cloning a tab with a view-source URL
+        When I open view-source:http://localhost:(port)
+        And I run :tab-clone
+        Then the error "Can't serialize special URL!" should be shown
+
+    @qtwebkit_skip @qt>=5.9
+    Scenario: Cloning a tab with a special URL (Qt 5.9)
+        When I open chrome://gpu
+        And I run :tab-clone
+        Then no crash should happen
 
     # :tab-detach
 
@@ -767,18 +780,6 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
-
-    # https://github.com/qutebrowser/qutebrowser/issues/2289
-    @qtwebkit_skip @qt>=5.8
-    Scenario: Undoing a tab with a special URL
-        Given I have a fresh instance
-        When I open data/numbers/1.txt
-        And I open chrome://gpu in a new tab
-        And I run :tab-close
-        And I run :undo
-        Then the error "Nothing to undo!" should be shown
-        And the following tabs should be open:
-            - data/numbers/1.txt (active)
 
     # last-close
 

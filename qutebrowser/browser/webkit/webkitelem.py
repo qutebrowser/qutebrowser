@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -285,8 +285,7 @@ class WebKitElement(webelem.AbstractWebElement):
         for _ in range(5):
             if elem is None:
                 break
-            tag = elem.tag_name()
-            if tag == 'a' or tag == 'area':
+            if elem.is_link():
                 if elem.get('target', None) == '_blank':
                     elem['target'] = '_top'
                 break

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -147,7 +147,7 @@ def _get_suggested_filename(path):
     """
     filename = os.path.basename(path)
     filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
-    if not qtutils.version_check('5.8.1'):
+    if not qtutils.version_check('5.9'):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
         # Doing basename a *second* time because there could be a %2F in

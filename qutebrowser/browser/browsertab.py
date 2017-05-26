@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
 
@@ -105,7 +105,15 @@ class TabData:
 
 class AbstractAction:
 
-    """Attribute of AbstractTab for Qt WebActions."""
+    """Attribute of AbstractTab for Qt WebActions.
+
+    Class attributes (overridden by subclasses):
+        action_class: The class actions are defined on (QWeb{Engine,}Page)
+        action_base: The type of the actions (QWeb{Engine,}Page.WebAction)
+    """
+
+    action_class = None
+    action_base = None
 
     def __init__(self):
         self._widget = None
@@ -117,6 +125,13 @@ class AbstractAction:
     def save_page(self):
         """Save the current page."""
         raise NotImplementedError
+
+    def run_string(self, name):
+        """Run a webaction based on its name."""
+        member = getattr(self.action_class, name, None)
+        if not isinstance(member, self.action_base):
+            raise WebTabError("{} is not a valid web action!".format(name))
+        self._widget.triggerPageAction(member)
 
 
 class AbstractPrinting:
@@ -155,6 +170,8 @@ class AbstractSearch(QObject):
 
     Attributes:
         text: The last thing this view was searched for.
+        search_displayed: Whether we're currently displaying search results in
+                          this view.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
     """
@@ -163,6 +180,7 @@ class AbstractSearch(QObject):
         super().__init__(parent)
         self._widget = None
         self.text = None
+        self.search_displayed = False
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
@@ -738,6 +756,10 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def clear_ssl_errors(self):
+        raise NotImplementedError
+
+    def key_press(self, key, modifier=Qt.NoModifier):
+        """Send a fake key event to this tab."""
         raise NotImplementedError
 
     def dump_async(self, callback, *, plain=False):

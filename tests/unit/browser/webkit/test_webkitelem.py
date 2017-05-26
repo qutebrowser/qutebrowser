@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -147,21 +147,18 @@ class SelectionAndFilterTests:
 
         ('<a />', [webelem.Group.all]),
         ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
-                              webelem.Group.prevnext, webelem.Group.url]),
+                              webelem.Group.url]),
         ('<a href="javascript://foo" />', [webelem.Group.all,
+                                           webelem.Group.links,
                                            webelem.Group.url]),
 
         ('<area />', [webelem.Group.all]),
         ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.prevnext, webelem.Group.url]),
-        ('<area href="javascript://foo" />', [webelem.Group.all,
-                                              webelem.Group.url]),
+                                 webelem.Group.url]),
 
         ('<link />', [webelem.Group.all]),
         ('<link href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.prevnext, webelem.Group.url]),
-        ('<link href="javascript://foo" />', [webelem.Group.all,
-                                              webelem.Group.url]),
+                                 webelem.Group.url]),
 
         ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
         ('<select />', [webelem.Group.all]),
@@ -178,10 +175,7 @@ class SelectionAndFilterTests:
         ('<input type="search" />', [webelem.Group.inputs, webelem.Group.all]),
 
         ('<button />', [webelem.Group.all]),
-        ('<button href="foo" />', [webelem.Group.all, webelem.Group.prevnext,
-                                   webelem.Group.url]),
-        ('<button href="javascript://foo" />', [webelem.Group.all,
-                                                webelem.Group.url]),
+        ('<button href="foo" />', [webelem.Group.all, webelem.Group.url]),
 
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
@@ -191,7 +185,6 @@ class SelectionAndFilterTests:
         ('<p role="option" foo="bar"/>', [webelem.Group.all]),
         ('<p role="button" foo="bar"/>', [webelem.Group.all]),
         ('<p role="button" href="bar"/>', [webelem.Group.all,
-                                           webelem.Group.prevnext,
                                            webelem.Group.url]),
     ]
 
@@ -224,8 +217,6 @@ class TestSelectorsAndFilters:
         assert len(webframe.findAllElements('*')) == 3
         elems = webframe.findAllElements(webelem.SELECTORS[group])
         elems = [webkitelem.WebKitElement(e, tab=None) for e in elems]
-        filterfunc = webelem.FILTERS.get(group, lambda e: True)
-        elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
 
 
@@ -434,25 +425,28 @@ class TestRemoveBlankTarget:
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     @pytest.mark.parametrize('target', ['_self', '_parent', '_top', ''])
     def test_keep_target(self, tagname, target):
-        elem = get_webelem(tagname=tagname, attributes={'target': target})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': target, 'href': '#'})
         elem.remove_blank_target()
         assert elem['target'] == target
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_no_target(self, tagname):
-        elem = get_webelem(tagname=tagname)
+        elem = get_webelem(tagname=tagname, attributes={'href': '#'})
         elem.remove_blank_target()
         assert 'target' not in elem
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': '_blank', 'href': '#'})
         elem.remove_blank_target()
         assert elem['target'] == '_top'
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_ancestor_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': '_blank', 'href': '#'})
         elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()

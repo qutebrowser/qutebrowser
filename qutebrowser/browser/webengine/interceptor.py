@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -57,8 +57,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             info: QWebEngineUrlRequestInfo &info
         """
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        if (bytes(info.requestMethod()) == b'GET' and
-                self._host_blocker.is_blocked(info.requestUrl())):
+        if self._host_blocker.is_blocked(info.requestUrl()):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 info.requestUrl().host()))
             info.block(True)
