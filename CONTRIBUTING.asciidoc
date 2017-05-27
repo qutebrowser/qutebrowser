@@ -495,8 +495,9 @@ the user did enter it.
       message to the user.
 * Convert a `QUrl` object to a string as late as possible, i.e., before
 displaying it to the user.
-    - If you want to display the URL to the user, use `url.toDisplayString()`
-      so password information is removed.
+    - If you want to display the URL to the user, use `urlutils.safe_display_string()`
+      so password information is removed and the Punycode URL is shown for IDN pages
+      in addition to decoded one.
     - If you want to get the URL as string for some other reason, you most
       likely want to add the `QUrl.EncodeFully` and `QUrl.RemovePassword`
       flags.
