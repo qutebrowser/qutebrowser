@@ -92,6 +92,9 @@
 |<<completion-shrink,shrink>>|Whether to shrink the completion to be smaller than the configured size if there are no scrollbars.
 |<<completion-scrollbar-width,scrollbar-width>>|Width of the scrollbar in the completion window (in px).
 |<<completion-scrollbar-padding,scrollbar-padding>>|Padding of scrollbar handle in completion window (in px).
+|<<completion-url-complete-bookmarks,url-complete-bookmarks>>|Whether to complete from bookmarks when completing URLs.
+|<<completion-url-complete-history,url-complete-history>>|Whether to complete from history when completing URLs.
+|<<completion-url-complete-quickmarks,url-complete-quickmarks>>|Whether to complete from quickmarks when completing URLs.
 |==============
 
 .Quick reference for section ``input''
@@ -962,6 +965,39 @@ Default: +pass:[12]+
 Padding of scrollbar handle in completion window (in px).
 
 Default: +pass:[2]+
+
+[[completion-url-complete-bookmarks]]
+=== url-complete-bookmarks
+Whether to complete from bookmarks when completing URLs.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[completion-url-complete-history]]
+=== url-complete-history
+Whether to complete from history when completing URLs.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[completion-url-complete-quickmarks]]
+=== url-complete-quickmarks
+Whether to complete from quickmarks when completing URLs.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
 
 == input
 Options related to input modes.
