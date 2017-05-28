@@ -285,3 +285,22 @@ def test_initial_private_browsing(request, quteproc_new):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_loading_empty_session(tmpdir, request, quteproc_new):
+    """Make sure loading an empty session opens a window."""
+    session = tmpdir / 'session.yml'
+    session.write('windows: []')
+
+    args = _base_args(request.config) + ['--temp-basedir', '-r', str(session)]
+    quteproc_new.start(args)
+
+    quteproc_new.compare_session("""
+        windows:
+            - tabs:
+              - history:
+                - url: about:blank
+    """)
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()

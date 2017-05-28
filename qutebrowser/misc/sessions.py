@@ -390,6 +390,7 @@ class SessionManager(QObject):
                 data = yaml.load(f, Loader=YamlLoader)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
             raise SessionError(e)
+
         log.sessions.debug("Loading session {} from {}...".format(name, path))
         for win in data['windows']:
             window = mainwindow.MainWindow(geometry=win['geometry'],
@@ -410,7 +411,9 @@ class SessionManager(QObject):
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
-        self.did_load = True
+
+        if data['windows']:
+            self.did_load = True
         if not name.startswith('_') and not temp:
             self._current = name
 
