@@ -186,16 +186,16 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_started, tab))
         tab.scroller.perc_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
-        tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
         tab.url_changed.connect(
             self._filter.create(self.cur_url_changed, tab))
         tab.load_status_changed.connect(
             self._filter.create(self.cur_load_status_changed, tab))
         tab.fullscreen_requested.connect(
             self._filter.create(self.cur_fullscreen_requested, tab))
+        # misc
+        tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
         tab.url_changed.connect(
             functools.partial(self.on_url_changed, tab))
-        # misc
         tab.title_changed.connect(
             functools.partial(self.on_title_changed, tab))
         tab.icon_changed.connect(
