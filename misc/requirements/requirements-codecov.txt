@@ -2,4 +2,4 @@
 
 codecov==2.0.9
 coverage==4.4.1
-requests==2.14.2
+requests==2.16.4
