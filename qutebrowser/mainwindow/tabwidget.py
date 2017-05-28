@@ -52,7 +52,7 @@ class TabWidget(QTabWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        bar = TabBar(win_id)
+        bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
@@ -298,8 +298,6 @@ class TabBar(QTabBar):
     Attributes:
         vertical: When the tab bar is currently vertical.
         win_id: The window ID this TabBar belongs to.
-        _page_fullscreen: Whether the webpage (e.g. a video) is shown
-                          fullscreen.
     """
 
     def __init__(self, win_id, parent=None):
@@ -311,17 +309,16 @@ class TabBar(QTabBar):
         config_obj.changed.connect(self.set_font)
         config_obj.changed.connect(self.set_icon_size)
         self.vertical = False
-        self._page_fullscreen = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
         self._auto_hide_timer.setInterval(
             config.get('tabs', 'show-switching-delay'))
-        self._auto_hide_timer.timeout.connect(self._tabhide)
+        self._auto_hide_timer.timeout.connect(self.maybe_hide)
         self.setAutoFillBackground(True)
         self.set_colors()
         self.pinned_count = 0
         config_obj.changed.connect(self.set_colors)
-        QTimer.singleShot(0, self._tabhide)
+        QTimer.singleShot(0, self.maybe_hide)
         config_obj.changed.connect(self.on_tab_colors_changed)
         config_obj.changed.connect(self.on_show_switching_delay_changed)
         config_obj.changed.connect(self.tabs_show)
@@ -329,10 +326,14 @@ class TabBar(QTabBar):
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
+    def _current_tab(self):
+        """Get the current tab object."""
+        return self.parent().currentWidget()
+
     @config.change_filter('tabs', 'show')
     def tabs_show(self):
         """Hide or show tab bar if needed when tabs->show got changed."""
-        self._tabhide()
+        self.maybe_hide()
 
     @config.change_filter('tabs', 'show-switching-delay')
     def on_show_switching_delay_changed(self):
@@ -340,24 +341,22 @@ class TabBar(QTabBar):
         self._auto_hide_timer.setInterval(
             config.get('tabs', 'show-switching-delay'))
 
-    @pyqtSlot(bool)
-    def on_page_fullscreen_requested(self, on):
-        self._page_fullscreen = on
-        self._tabhide()
-
     def on_current_changed(self):
         """Show tab bar when current tab got changed."""
+        self.maybe_hide()  # for fullscreen tabs
         show = config.get('tabs', 'show')
-        if show == 'switching' or self._page_fullscreen:
+        if show == 'switching':
             self.show()
             self._auto_hide_timer.start()
 
-    def _tabhide(self):
+    @pyqtSlot()
+    def maybe_hide(self):
         """Hide the tab bar if needed."""
         show = config.get('tabs', 'show')
+        tab = self._current_tab()
         if (show in ['never', 'switching'] or
                 (show == 'multiple' and self.count() == 1) or
-                self._page_fullscreen):
+                (tab and tab.data.fullscreen)):
             self.hide()
         else:
             self.show()
@@ -579,12 +578,12 @@ class TabBar(QTabBar):
     def tabInserted(self, idx):
         """Update visibility when a tab was inserted."""
         super().tabInserted(idx)
-        self._tabhide()
+        self.maybe_hide()
 
     def tabRemoved(self, idx):
         """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
-        self._tabhide()
+        self.maybe_hide()
 
     def wheelEvent(self, e):
         """Override wheelEvent to make the action configurable.

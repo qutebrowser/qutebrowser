@@ -694,6 +694,8 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_fullscreen_requested(self, request):
         request.accept()
         on = request.toggleOn()
+
+        self.data.fullscreen = on
         self.fullscreen_requested.emit(on)
         if on:
             notification = miscwidgets.FullscreenNotification(self)

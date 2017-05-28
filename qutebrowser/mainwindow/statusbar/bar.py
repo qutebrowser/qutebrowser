@@ -125,8 +125,6 @@ class StatusBar(QWidget):
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _win_id: The window ID the statusbar is associated with.
-        _page_fullscreen: Whether the webpage (e.g. a video) is shown
-                          fullscreen.
 
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
@@ -155,13 +153,11 @@ class StatusBar(QWidget):
 
         self._win_id = win_id
         self._option = None
-        self._page_fullscreen = False
         self._color_flags = ColorFlags()
         self._color_flags.private = private
 
         self._hbox = QHBoxLayout(self)
-        self.set_hbox_padding()
-        objreg.get('config').changed.connect(self.set_hbox_padding)
+        self._set_hbox_padding()
         self._hbox.setSpacing(5)
 
         self._stack = QStackedLayout()
@@ -198,23 +194,32 @@ class StatusBar(QWidget):
         self.prog = progress.Progress(self)
         self._hbox.addWidget(self.prog)
 
-        objreg.get('config').changed.connect(self.maybe_hide)
+        objreg.get('config').changed.connect(self._on_config_changed)
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    @config.change_filter('ui', 'hide-statusbar')
+    @pyqtSlot(str, str)
+    def _on_config_changed(self, section, option):
+        if section != 'ui':
+            return
+        if option == 'hide-statusbar':
+            self.maybe_hide()
+        elif option == 'statusbar-pdading':
+            self._set_hbox_padding()
+
+    @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
         hide = config.get('ui', 'hide-statusbar')
-        if hide or self._page_fullscreen:
+        tab = self._current_tab()
+        if hide or (tab is not None and tab.data.fullscreen):
             self.hide()
         else:
             self.show()
 
-    @config.change_filter('ui', 'statusbar-padding')
-    def set_hbox_padding(self):
+    def _set_hbox_padding(self):
         padding = config.get('ui', 'statusbar-padding')
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
@@ -222,6 +227,12 @@ class StatusBar(QWidget):
     def color_flags(self):
         """Getter for self.color_flags, so it can be used as Qt property."""
         return self._color_flags.to_stringlist()
+
+    def _current_tab(self):
+        """Get the currently displayed tab."""
+        window = objreg.get('tabbed-browser', scope='window',
+                            window=self._win_id)
+        return window.currentWidget()
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,command,caret}_active.
@@ -239,8 +250,7 @@ class StatusBar(QWidget):
             log.statusbar.debug("Setting prompt flag to {}".format(val))
             self._color_flags.prompt = val
         elif mode == usertypes.KeyMode.caret:
-            tab = objreg.get('tabbed-browser', scope='window',
-                             window=self._win_id).currentWidget()
+            tab = self._current_tab()
             log.statusbar.debug("Setting caret flag - val {}, selection "
                                 "{}".format(val, tab.caret.selection_enabled))
             if val:
@@ -306,17 +316,13 @@ class StatusBar(QWidget):
                         usertypes.KeyMode.yesno]:
             self.set_mode_active(old_mode, False)
 
-    @pyqtSlot(bool)
-    def on_page_fullscreen_requested(self, on):
-        self._page_fullscreen = on
-        self.maybe_hide()
-
     @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Notify sub-widgets when the tab has been changed."""
         self.url.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
+        self.maybe_hide()
         assert tab.private == self._color_flags.private
 
     def resizeEvent(self, e):

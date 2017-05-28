@@ -96,11 +96,11 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
+    cur_fullscreen_requested = pyqtSignal(bool)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
-    page_fullscreen_requested = pyqtSignal(bool)
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(win_id, parent)
@@ -111,6 +111,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
+        self.cur_fullscreen_requested.connect(self.tabBar().maybe_hide)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
@@ -190,6 +191,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_url_changed, tab))
         tab.load_status_changed.connect(
             self._filter.create(self.cur_load_status_changed, tab))
+        tab.fullscreen_requested.connect(
+            self._filter.create(self.cur_fullscreen_requested, tab))
         tab.url_changed.connect(
             functools.partial(self.on_url_changed, tab))
         # misc
@@ -211,9 +214,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         if not self.private:
             web_history = objreg.get('web-history')
             tab.add_history_item.connect(web_history.add_from_tab)
-        tab.fullscreen_requested.connect(self.page_fullscreen_requested)
-        tab.fullscreen_requested.connect(
-            self.tabBar().on_page_fullscreen_requested)
 
     def current_url(self):
         """Get the URL of the current tab.
