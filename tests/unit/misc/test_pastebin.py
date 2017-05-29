@@ -77,7 +77,7 @@ def test_paste_with_parent(data, pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"], data["reply"])
     assert http_stub.data == data
-    assert http_stub.url == QUrl('http://paste.the-compiler.org/api/create')
+    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 @pytest.mark.parametrize('data', [
@@ -98,7 +98,7 @@ def test_paste_without_parent(data, pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"])
     assert pbclient._client.data == data
-    assert http_stub.url == QUrl('http://paste.the-compiler.org/api/create')
+    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 @pytest.mark.parametrize('http', [
