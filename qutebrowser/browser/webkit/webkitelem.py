@@ -113,7 +113,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def value(self):
         self._check_vanished()
         val = self._elem.evaluateJavaScript('this.value')
-        assert isinstance(val, (int, float, str)), val
+        assert isinstance(val, (int, float, str, type(None))), val
         return val
 
     def set_value(self, value):
