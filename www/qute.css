@@ -44,9 +44,13 @@ p {
 	text-align: right;
 }
 
-#headline .text h1 {
+#headline .text .heading-text {
 	color: #1e89c6;
+	font-weight: bold;
+	font-size: 2em;
 	border: none;
+	display: block;
+	white-space: pre-line;
 }
 
 #headline .text {

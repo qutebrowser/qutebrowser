@@ -2,7 +2,7 @@
 <div id="headline">
 	<img class="qutebrowser-logo" src="/icons/qutebrowser.svg" alt="qutebrowser" />
 	<div class="text">
-		<h1>qutebrowser</h1>
+		<span class="heading-text">qutebrowser</span>
 		A keyboard-driven browser.
 	</div>
 </div>
