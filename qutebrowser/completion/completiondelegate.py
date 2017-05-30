@@ -197,7 +197,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         if index.parent().isValid():
             pattern = index.model().pattern
-            columns_to_filter = index.model().columns_to_filter
+            columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
                 repl = r'<span class="highlight">\g<0></span>'
                 text = re.sub(re.escape(pattern).replace(r'\ ', r'|'),

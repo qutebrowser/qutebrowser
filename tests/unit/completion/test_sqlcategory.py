@@ -132,7 +132,7 @@ def test_set_pattern(pattern, filter_cols, before, after):
         table.insert(row)
     filter_fields = [['a', 'b', 'c'][i] for i in filter_cols]
     cat = sqlcategory.SqlCategory('Foo', filter_fields=filter_fields)
-    cat.set_pattern(pattern, filter_cols)
+    cat.set_pattern(pattern)
     _validate(cat, after)
 
 

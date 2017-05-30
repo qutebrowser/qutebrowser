@@ -63,15 +63,16 @@ def url():
     """
     model = completionmodel.CompletionModel(
         column_widths=(40, 50, 10),
-        columns_to_filter=[_URLCOL, _TEXTCOL],
         delete_cur_item=_delete_url)
 
     quickmarks = ((url, name) for (name, url)
                   in objreg.get('quickmark-manager').marks.items())
     bookmarks = objreg.get('bookmark-manager').marks.items()
 
-    model.add_category(listcategory.ListCategory('Quickmarks', quickmarks))
-    model.add_category(listcategory.ListCategory('Bookmarks', bookmarks))
+    model.add_category(listcategory.ListCategory('Quickmarks', quickmarks,
+                                                 columns_to_filter=[0, 1]))
+    model.add_category(listcategory.ListCategory('Bookmarks', bookmarks,
+                                                 columns_to_filter=[0, 1]))
 
     timefmt = config.get('completion', 'timestamp-format')
     select_time = "strftime('{}', max(atime), 'unixepoch')".format(timefmt)

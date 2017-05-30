@@ -65,6 +65,7 @@ def _validate(cat, expected):
 ])
 def test_set_pattern(pattern, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
-    cat = listcategory.ListCategory('Foo', before)
-    cat.set_pattern(pattern, filter_cols)
+    cat = listcategory.ListCategory('Foo', before,
+                                    columns_to_filter=filter_cols)
+    cat.set_pattern(pattern)
     _validate(cat, after)

@@ -34,15 +34,13 @@ class CompletionModel(QAbstractItemModel):
     Attributes:
         column_widths: The width percentages of the columns used in the
                        completion view.
-        columns_to_filter: A list of indices of columns to apply the filter to.
         pattern: Current filter pattern, used for highlighting.
         _categories: The sub-categories.
     """
 
-    def __init__(self, *, column_widths=(30, 70, 0), columns_to_filter=None,
+    def __init__(self, *, column_widths=(30, 70, 0),
                  delete_cur_item=None, parent=None):
         super().__init__(parent)
-        self.columns_to_filter = columns_to_filter or [0]
         self.column_widths = column_widths
         self._categories = []
         self.pattern = ''
@@ -173,8 +171,6 @@ class CompletionModel(QAbstractItemModel):
     def set_pattern(self, pattern):
         """Set the filter pattern for all categories.
 
-        This will apply to the fields indicated in columns_to_filter.
-
         Args:
             pattern: The filter pattern to set.
         """
@@ -182,7 +178,7 @@ class CompletionModel(QAbstractItemModel):
         # TODO: should pattern be saved in the view layer instead?
         self.pattern = pattern
         for cat in self._categories:
-            cat.set_pattern(pattern, self.columns_to_filter)
+            cat.set_pattern(pattern)
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""
@@ -204,3 +200,14 @@ class CompletionModel(QAbstractItemModel):
                 qtutils.ensure_valid(index)
                 return index
         return QModelIndex()
+
+    def columns_to_filter(self, index):
+        """Return the column indices the filter pattern applies to.
+
+        Args:
+            index: index of the item to check.
+
+        Return: A list of integers.
+        """
+        cat = self._cat_from_idx(index.parent())
+        return cat.columns_to_filter if cat else []

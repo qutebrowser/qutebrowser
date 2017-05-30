@@ -35,25 +35,24 @@ class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
-    def __init__(self, name, items, parent=None):
+    def __init__(self, name, items, columns_to_filter=None, parent=None):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)
         self.pattern = ''
         self.pattern_re = None
-        self.columns_to_filter = None
+        self.columns_to_filter = columns_to_filter or [0]
         for item in items:
             self.srcmodel.appendRow([QStandardItem(x) for x in item])
         self.setSourceModel(self.srcmodel)
 
-    def set_pattern(self, val, columns_to_filter):
+    def set_pattern(self, val):
         """Setter for pattern.
 
         Args:
             val: The value to set.
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
-            self.columns_to_filter = columns_to_filter
             self.pattern = val
             val = re.sub(r' +', r' ', val)  # See #1919
             val = re.escape(val)

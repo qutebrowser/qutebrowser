@@ -65,11 +65,10 @@ def test_count(counts):
 @hypothesis.given(strategies.text())
 def test_set_pattern(pat):
     """Validate the filtering and sorting results of set_pattern."""
-    cols = [1, 2, 3]
-    model = completionmodel.CompletionModel(columns_to_filter=cols)
+    model = completionmodel.CompletionModel()
     cats = [mock.Mock(spec=['set_pattern'])] * 3
     for c in cats:
         c.set_pattern = mock.Mock()
         model.add_category(c)
     model.set_pattern(pat)
-    assert all(c.set_pattern.called_with([pat, cols]) for c in cats)
+    assert all(c.set_pattern.called_with([pat]) for c in cats)

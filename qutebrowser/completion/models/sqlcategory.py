@@ -61,8 +61,11 @@ class SqlCategory(QSqlQueryModel):
 
         self._query = sql.Query(querystr)
         self._param_count = len(filter_fields)
+        rec = self._query.record()
+        # will this work?
+        self.columns_to_filter = [rec.indexOf(n) for n in filter_fields]
 
-    def set_pattern(self, pattern, _columns_to_filter=None):
+    def set_pattern(self, pattern):
         """Set the pattern used to filter results.
 
         Args:

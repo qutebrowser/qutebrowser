@@ -110,8 +110,7 @@ def buffer():
 
     model = completionmodel.CompletionModel(
         column_widths=(6, 40, 54),
-        delete_cur_item=delete_buffer,
-        columns_to_filter=[idx_column, url_column, text_column])
+        delete_cur_item=delete_buffer)
 
     for win_id in objreg.window_registry:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -124,8 +123,10 @@ def buffer():
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
                          tabbed_browser.page_title(idx)))
-        cat = listcategory.ListCategory("{}".format(win_id), tabs)
+        cat = listcategory.ListCategory("{}".format(win_id), tabs,
+            columns_to_filter=[idx_column, url_column, text_column])
         model.add_category(cat)
+
     return model
 
 
