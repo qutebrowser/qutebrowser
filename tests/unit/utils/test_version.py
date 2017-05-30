@@ -164,11 +164,13 @@ from qutebrowser.browser import pdfjs
          id='manjaro', parsed=version.Distribution.manjaro,
          version=None, pretty='Manjaro Linux')),
 ])
-def test_distribution(tmpdir, os_release, expected):
+def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
     if os_release is not None:
         os_release_file.write(textwrap.dedent(os_release))
-    assert version.distribution(str(os_release_file)) == expected
+    monkeypatch.setenv('QUTE_FAKE_OS_RELEASE', str(os_release_file))
+
+    assert version.distribution() == expected
 
 
 class GitStrSubprocessFake:

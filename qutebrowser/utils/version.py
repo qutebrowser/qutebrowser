@@ -59,7 +59,7 @@ Distribution = usertypes.enum(
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
 
 
-def distribution(filename='/etc/os-release'):
+def distribution():
     """Get some information about the running Linux distribution.
 
     Returns:
@@ -68,6 +68,7 @@ def distribution(filename='/etc/os-release'):
             version: A Version object, or None
             pretty: Always a string (might be "Unknown")
     """
+    filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
     info = {}
     try:
         with open(filename, 'r', encoding='utf-8') as f:
