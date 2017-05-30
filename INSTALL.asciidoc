@@ -1,6 +1,8 @@
 Installing qutebrowser
 ======================
 
+toc::[]
+
 On Debian / Ubuntu
 ------------------
 

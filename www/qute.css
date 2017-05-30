@@ -44,9 +44,13 @@ p {
 	text-align: right;
 }
 
-#headline .text h1 {
+#headline .text .heading-text {
 	color: #1e89c6;
+	font-weight: bold;
+	font-size: 2em;
 	border: none;
+	display: block;
+	white-space: pre-line;
 }
 
 #headline .text {
@@ -220,6 +224,34 @@ table td {
 	}
 }
 
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #0A396E;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <link href="/media/font.css" rel="stylesheet" type="text/css" />
