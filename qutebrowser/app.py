@@ -136,7 +136,7 @@ def init(args, crash_handler):
 
     try:
         _init_modules(args, crash_handler)
-    except (OSError, UnicodeDecodeError) as e:
+    except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
         error.handle_fatal_exc(e, args, "Error while initializing!",
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)

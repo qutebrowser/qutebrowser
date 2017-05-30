@@ -377,3 +377,33 @@ def version():
         lines += ['{}: {}'.format(name, path)]
 
     return '\n'.join(lines)
+
+
+def opengl_vendor():  # pragma: no cover
+    """Get the OpenGL vendor used."""
+    # We're doing those imports here because this is only available with Qt 5.4
+    # or newer.
+    from PyQt5.QtWidgets import QOpenGLWidget
+    from PyQt5.QtOpenGL import QGLWidget
+    from PyQt5.QtGui import QOpenGLContext, QSurfaceFormat, QOpenGLVersionProfile, QOffscreenSurface
+    assert QApplication.instance()
+    assert QOpenGLContext.currentContext() is None
+
+    surface = QOffscreenSurface()
+    surface.create()
+
+    ctx = QOpenGLContext()
+    ok = ctx.create()
+    assert ok
+
+    ok = ctx.makeCurrent(surface)
+    assert ok
+
+    vp = QOpenGLVersionProfile()
+    vp.setVersion(2, 0)
+
+    vf = ctx.versionFunctions(vp)
+    vendor = vf.glGetString(vf.GL_VENDOR)
+    ctx.doneCurrent()
+
+    return vendor
