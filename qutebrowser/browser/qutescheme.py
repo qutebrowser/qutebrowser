@@ -435,7 +435,7 @@ def qute_help(url):
 
 
 @add_handler('backend-warning')
-def qute_backend_warning(url):
+def qute_backend_warning(_url):
     """Handler for qute://backend-warning."""
     html = jinja.render('backend-warning.html',
                         distribution=version.distribution(),

@@ -74,6 +74,7 @@ def whitelist_generator():
 
     ## qute://... handlers
     for name in qutescheme._HANDLERS:  # pylint: disable=protected-access
+        name = name.replace('-', '_')
         yield 'qutebrowser.browser.qutescheme.qute_' + name
 
     # Other false-positives
