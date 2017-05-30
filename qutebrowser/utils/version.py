@@ -380,12 +380,15 @@ def version():
 
 
 def opengl_vendor():  # pragma: no cover
-    """Get the OpenGL vendor used."""
+    """Get the OpenGL vendor used.
+
+    This returns a string such as 'nouveau' or
+    'Intel Open Source Technology Center'; or None if the vendor can't be
+    determined.
+    """
     # We're doing those imports here because this is only available with Qt 5.4
     # or newer.
-    from PyQt5.QtWidgets import QOpenGLWidget
-    from PyQt5.QtOpenGL import QGLWidget
-    from PyQt5.QtGui import QOpenGLContext, QSurfaceFormat, QOpenGLVersionProfile, QOffscreenSurface
+    from PyQt5.QtGui import QOpenGLContext, QOpenGLVersionProfile, QOffscreenSurface
     assert QApplication.instance()
     assert QOpenGLContext.currentContext() is None
 
@@ -393,6 +396,10 @@ def opengl_vendor():  # pragma: no cover
     surface.create()
 
     ctx = QOpenGLContext()
+    if ctx.isOpenGLES():
+        # Can't use versionFunctions there
+        return None
+
     ok = ctx.create()
     assert ok
 
