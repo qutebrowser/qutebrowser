@@ -397,15 +397,15 @@ def opengl_vendor():  # pragma: no cover
     surface.create()
 
     ctx = QOpenGLContext()
-    if ctx.isOpenGLES():
-        # Can't use versionFunctions there
-        return None
-
     ok = ctx.create()
     assert ok
 
     ok = ctx.makeCurrent(surface)
     assert ok
+
+    if ctx.isOpenGLES():
+        # Can't use versionFunctions there
+        return None
 
     vp = QOpenGLVersionProfile()
     vp.setVersion(2, 0)
