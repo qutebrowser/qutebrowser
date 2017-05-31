@@ -388,7 +388,8 @@ def opengl_vendor():  # pragma: no cover
     """
     # We're doing those imports here because this is only available with Qt 5.4
     # or newer.
-    from PyQt5.QtGui import QOpenGLContext, QOpenGLVersionProfile, QOffscreenSurface
+    from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+                             QOffscreenSurface)
     assert QApplication.instance()
     assert QOpenGLContext.currentContext() is None
 
