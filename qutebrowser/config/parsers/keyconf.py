@@ -264,6 +264,7 @@ class KeyConfigParser(QObject):
             bindings_to_add[sectname] = collections.OrderedDict()
             for command, keychains in sect.items():
                 for e in keychains:
+                    e = e.lower()
                     if not only_new or self._is_new(sectname, command, e):
                         assert e not in bindings_to_add[sectname]
                         bindings_to_add[sectname][e] = command
