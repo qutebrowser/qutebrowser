@@ -924,4 +924,5 @@ def test_version_output(git_commit, frozen, style, with_webkit,
                     reason="Needs Qt >= 5.4.")
 def test_opengl_vendor():
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
+    pytest.importorskip("PyQt5.QtOpenGL")
     return version.opengl_vendor()
