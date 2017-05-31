@@ -191,15 +191,14 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
-    assert completion_widget_stub.set_model.call_count == 1
-    args = completion_widget_stub.set_model.call_args[0]
     if kind is None:
-        assert args[0] is None
+        assert completion_widget_stub.set_pattern.call_count == 0
     else:
-        model = args[0]
+        assert completion_widget_stub.set_model.call_count == 1
+        model = completion_widget_stub.set_model.call_args[0][0]
         assert model.kind == kind
         assert model.pos_args == pos_args
-        assert args[1] == pattern
+        completion_widget_stub.set_pattern.assert_called_once_with(pattern)
 
 
 @pytest.mark.parametrize('before, newtxt, after', [

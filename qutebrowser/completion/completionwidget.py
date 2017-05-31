@@ -261,32 +261,29 @@ class CompletionView(QTreeView):
         elif config.get('completion', 'show') == 'auto':
             self.show()
 
-    def set_model(self, model, pattern=None):
+    def set_model(self, model):
         """Switch completion to a new model.
 
         Called from on_update_completion().
 
         Args:
             model: The model to use.
-            pattern: The filter pattern to set (what the user entered).
         """
         if model is None:
             self._active = False
             self.hide()
             return
 
+        if self.model() is not None:
+            self.model().deleteLater()
+            self.selectionModel().deleteLater()
+
         model.setParent(self)
-        old_model = self.model()
-        if model is not old_model:
-            sel_model = self.selectionModel()
+        self.setModel(model)
+        self._column_widths = model.column_widths
+        self._active = True
 
-            self.setModel(model)
-            self._active = True
-
-            if sel_model is not None:
-                sel_model.deleteLater()
-            if old_model is not None:
-                old_model.deleteLater()
+        self.set_pattern('')
 
         if (config.get('completion', 'show') == 'always' and
                 model.count() > 0):
@@ -297,12 +294,11 @@ class CompletionView(QTreeView):
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
-        if pattern is not None:
-            model.set_pattern(pattern)
-
-        self._column_widths = model.column_widths
+    def set_pattern(self, pattern):
+        self.model().set_pattern(pattern)
         self._resize_columns()
         self._maybe_update_geometry()
+        self.show()
 
     def _maybe_update_geometry(self):
         """Emit the update_geometry signal if the config says so."""

@@ -84,7 +84,8 @@ def test_set_model(completionview):
 def test_set_pattern(completionview):
     model = completionmodel.CompletionModel()
     model.set_pattern = mock.Mock()
-    completionview.set_model(model, 'foo')
+    completionview.set_model(model)
+    completionview.set_pattern('foo')
     model.set_pattern.assert_called_with('foo')
 
 

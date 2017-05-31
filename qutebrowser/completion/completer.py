@@ -39,6 +39,7 @@ class Completer(QObject):
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
+        _last_completion_func: The completion function used for the last text.
     """
 
     def __init__(self, cmd, win_id, parent=None):
@@ -52,6 +53,7 @@ class Completer(QObject):
         self._timer.timeout.connect(self._update_completion)
         self._last_cursor_pos = None
         self._last_text = None
+        self._last_completion_func = None
         self._cmd.update_completion.connect(self.schedule_completion_update)
 
     def __repr__(self):
@@ -63,7 +65,7 @@ class Completer(QObject):
         return completion.model()
 
     def _get_new_completion(self, before_cursor, under_cursor):
-        """Get a new completion.
+        """Get the completion function based on the current command text.
 
         Args:
             before_cursor: The command chunks before the cursor.
@@ -81,7 +83,7 @@ class Completer(QObject):
         if not before_cursor:
             # '|' or 'set|'
             log.completion.debug('Starting command completion')
-            return miscmodels.command()
+            return miscmodels.command
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]
         except KeyError:
@@ -90,17 +92,11 @@ class Completer(QObject):
             return None
         argpos = len(before_cursor) - 1
         try:
-            completion = cmd.get_pos_arg_info(argpos).completion
+            func = cmd.get_pos_arg_info(argpos).completion
         except IndexError:
             log.completion.debug("No completion in position {}".format(argpos))
             return None
-        if completion is None:
-            return None
-
-        model = completion(*before_cursor[1:])
-        log.completion.debug('Starting {} completion'
-                             .format(completion.__name__))
-        return model
+        return func
 
     def _quote(self, s):
         """Quote s if it needs quoting for the commandline.
@@ -223,9 +219,24 @@ class Completer(QObject):
             before_cursor, pattern, after_cursor))
 
         pattern = pattern.strip("'\"")
-        model = self._get_new_completion(before_cursor, pattern)
-        log.completion.debug("Setting pattern to '{}'".format(pattern))
-        completion.set_model(model, pattern)
+        func = self._get_new_completion(before_cursor, pattern)
+
+        if func is None:
+            log.completion.debug('Clearing completion')
+            completion.set_model(None)
+        elif func != self._last_completion_func:
+            self._last_completion_func = func
+            args = (x for x in before_cursor[1:] if not x.startswith('-'))
+            model = func(*args)
+            log.completion.debug('Starting {} completion'
+                                 .format(func.__name__))
+            completion.set_model(model)
+            completion.set_pattern(pattern)
+        else:
+            log.completion.debug('Setting pattern {}'.format(pattern))
+            completion.set_pattern(pattern)
+
+        self._last_completion_func = None
 
     def _change_completed_part(self, newtext, before, after, immediate=False):
         """Change the part we're currently completing in the commandline.
