@@ -103,7 +103,7 @@ def get_all_names():
 
 def main():
     """Re-compile the given (or all) requirement files."""
-    names = sys.argv[1:] if len(sys.argv) > 1 else get_all_names()
+    names = sys.argv[1:] if len(sys.argv) > 1 else sorted(get_all_names())
 
     for name in names:
         utils.print_title(name)
