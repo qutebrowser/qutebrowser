@@ -65,15 +65,7 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
-    if webengine:
-        lines = [
-            ('Note QtWebEngine is not available for some distributions '
-                '(like Ubuntu), so you need to start without --backend '
-                'webengine there.'),
-            ('QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/qutebrowser/qutebrowser/issues/1692'),
-        ]
-    else:
+    if not webengine:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
     blocks.append('<br />'.join(lines))
