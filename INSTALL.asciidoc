@@ -185,8 +185,9 @@ with:
 # xbps-install qutebrowser
 ----
 
-It's currently recommended to install `python-PyQt5-webengine` and start with
-`--backend webengine` to use the new backend.
+It's currently recommended to install `python3-PyQt5-webengine` and
+`python3-PyQt5-opengl`, then start with `--backend webengine` to use the new
+backend.
 
 On NixOS
 --------

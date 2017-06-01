@@ -17,6 +17,15 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v0.11.0 (unreleased)
 --------------------
 
+New dependencies
+~~~~~~~~~~~~~~~~
+
+- New dependency on `PyQt5.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
+  on QtOpenGL already, but on distributions packaging split PyQt5 wrappers, the
+  wrappers for QtOpenGL are now required.
+- New optional (but recommended) `PyOpenGL` dependency with QtWebEngine to work
+  around a bug where a black screen is shown with some setups.
+
 Added
 ~~~~~
 
@@ -87,7 +96,7 @@ Fixed
 - (QtWebEngine) Added a workaround for a black screen with some setups
   (the workaround requires PyOpenGL to be installed, but it's optional)
 - (QtWebEngine) Starting with Nouveau graphics now shows an error message
-  instead of crashing in Qt.
+  instead of crashing in Qt. This adds a new dependency on `PyQt5.QtOpenGL`.
 - (QtWebEngine) Retrying downloads now shows an error instead of crashing.
 - (QtWebEngine) Cloning a view-source tab now doesn't crash anymore.
 - (QtWebKit) The HTTP cache is disabled on Qt 5.7.1 and 5.8 now as it leads to
