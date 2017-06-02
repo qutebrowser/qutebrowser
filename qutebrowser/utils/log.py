@@ -394,12 +394,10 @@ def qt_message_handler(msg_type, context, msg):
         "Image of format '' blocked because it is not considered safe. If you "
             "are sure it is safe to do so, you can white-list the format by "
             "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
-        # Installing Qt from the installer may cause it looking for SSL3 which
-        # may not be available on the system
-        "QSslSocket: cannot resolve SSLv2_client_method",
-        "QSslSocket: cannot resolve SSLv2_server_method",
-        "QSslSocket: cannot resolve SSLv3_client_method",
-        "QSslSocket: cannot resolve SSLv3_server_method",
+        # Installing Qt from the installer may cause it looking for SSL3 or
+        # OpenSSL 1.0 which may not be available on the system
+        "QSslSocket: cannot resolve ",
+        "QSslSocket: cannot call unresolved function ",
         # When enabling debugging with QtWebEngine
         "Remote debugging server started successfully. Try pointing a "
             "Chromium-based browser to ",
