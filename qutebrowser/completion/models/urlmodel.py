@@ -75,9 +75,9 @@ def url():
                                                  columns_to_filter=[0, 1]))
 
     timefmt = config.get('completion', 'timestamp-format')
-    select_time = "strftime('{}', max(atime), 'unixepoch')".format(timefmt)
+    select_time = "strftime('{}', atime, 'unixepoch')".format(timefmt)
     hist_cat = sqlcategory.SqlCategory(
-        'History', sort_order='desc', sort_by='atime', group_by='url',
+        'History', sort_order='desc', sort_by='atime',
         filter_fields=['url', 'title'],
         select='url, title, {}'.format(select_time), where='not redirect')
     model.add_category(hist_cat)
