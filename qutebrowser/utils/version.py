@@ -398,10 +398,14 @@ def opengl_vendor():  # pragma: no cover
 
     ctx = QOpenGLContext()
     ok = ctx.create()
-    assert ok
+    if not ok:
+        log.init.debug("opengl_vendor: Creating context failed!")
+        return None
 
     ok = ctx.makeCurrent(surface)
-    assert ok
+    if not ok:
+        log.init.debug("opengl_vendor: Making context current failed!")
+        return None
 
     if ctx.isOpenGLES():
         # Can't use versionFunctions there
