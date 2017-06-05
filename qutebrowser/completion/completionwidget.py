@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, objreg
+from qutebrowser.utils import utils, usertypes, objreg, debug, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -295,10 +295,11 @@ class CompletionView(QTreeView):
             self.expand(model.index(i, 0))
 
     def set_pattern(self, pattern):
-        self.model().set_pattern(pattern)
-        self._resize_columns()
-        self._maybe_update_geometry()
-        self.show()
+        with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
+            self.model().set_pattern(pattern)
+            self._resize_columns()
+            self._maybe_update_geometry()
+            self.show()
 
     def _maybe_update_geometry(self):
         """Emit the update_geometry signal if the config says so."""

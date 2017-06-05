@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, debug
 from qutebrowser.completion.models import miscmodels
 
 
@@ -227,10 +227,11 @@ class Completer(QObject):
         elif func != self._last_completion_func:
             self._last_completion_func = func
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
-            model = func(*args)
-            log.completion.debug('Starting {} completion'
-                                 .format(func.__name__))
-            completion.set_model(model)
+            with debug.log_time(log.completion,
+                    'Instantiate {} completion'.format(func.__name__)):
+                model = func(*args)
+            with debug.log_time(log.completion, 'Set completion model'):
+                completion.set_model(model)
             completion.set_pattern(pattern)
         else:
             log.completion.debug('Setting pattern {}'.format(pattern))

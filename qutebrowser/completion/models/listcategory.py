@@ -52,15 +52,14 @@ class ListCategory(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
-        with debug.log_time(log.completion, 'Setting filter pattern'):
-            self.pattern = val
-            val = re.sub(r' +', r' ', val)  # See #1919
-            val = re.escape(val)
-            val = val.replace(r'\ ', '.*')
-            self.pattern_re = re.compile(val, re.IGNORECASE)
-            self.invalidate()
-            sortcol = 0
-            self.sort(sortcol)
+        self.pattern = val
+        val = re.sub(r' +', r' ', val)  # See #1919
+        val = re.escape(val)
+        val = val.replace(r'\ ', '.*')
+        self.pattern_re = re.compile(val, re.IGNORECASE)
+        self.invalidate()
+        sortcol = 0
+        self.sort(sortcol)
 
     def filterAcceptsRow(self, row, parent):
         """Custom filter implementation.
