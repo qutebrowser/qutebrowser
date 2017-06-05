@@ -101,6 +101,7 @@ Fixed
 - (QtWebEngine) Cloning a view-source tab now doesn't crash anymore.
 - (QtWebKit) The HTTP cache is disabled on Qt 5.7.1 and 5.8 now as it leads to
   frequent crashes due to a Qt bug.
+- Fixed crash with `:download` on PyQt 5.9.
 - Cloning a page without history doesn't crash anymore.
 - When a download results in a HTTP error, it now shows the error correctly
   instead of crashing.
@@ -124,6 +125,8 @@ Fixed
   means it's not possible anymore to accidentally get stuck in fullscreen state
   by closing a tab with a fullscreen video.
 - Various other rare crashes should now be fixed.
+- The settings documentation was truncated with v0.10.1 which should now be
+  fixed.
 
 v0.10.1
 -------
