@@ -71,7 +71,7 @@ def test_debug_trace(mocker):
     pytest.importorskip('hunter')
     hunter_mock = mocker.patch('qutebrowser.misc.utilcmds.hunter')
     utilcmds.debug_trace(1)
-    assert hunter_mock.trace.assert_called_with(1)
+    hunter_mock.trace.assert_called_with(1)
 
 
 def test_debug_trace_exception(mocker):
