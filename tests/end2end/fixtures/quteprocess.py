@@ -57,11 +57,21 @@ def is_ignored_lowlevel_message(message):
     """Check if we want to ignore a lowlevel process output."""
     if 'Running without the SUID sandbox!' in message:
         return True
+    if 'No usable sandbox! Update your kernel or see' in message:
+        # [27289:27289:0605/195958.776146:INFO:zygote_host_impl_linux.cc(107)]
+        # No usable sandbox! Update your kernel or see
+        # https://chromium.googlesource.com/chromium/src/+/master/docs/linux_suid_sandbox_development.md
+        # for more information on developing with the SUID sandbox. If you want
+        # to live dangerously and need an immediate workaround, you can try
+        # using --no-sandbox.
+        return True
     elif message.startswith('Xlib: sequence lost'):
         # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
         # ???
         return True
     elif 'CERT_PKIXVerifyCert for localhost failed' in message:
+        # [30981:30992:0605/200633.041364:ERROR:cert_verify_proc_nss.cc(918)]
+        # CERT_PKIXVerifyCert for localhost failed err=-8179
         return True
     elif 'Invalid node channel message' in message:
         # Started appearing in sessions.feature with Qt 5.8...
@@ -77,9 +87,34 @@ def is_ignored_lowlevel_message(message):
         return True
     elif 'Unable to locate theme engine in module_path:' in message:
         return True
-    elif 'getrlimit(RLIMIT_NOFILE) failed' in message:
+    elif message == 'getrlimit(RLIMIT_NOFILE) failed':
         return True
     elif 'Could not bind NETLINK socket: Address already in use' in message:
+        return True
+    elif ':INFO:CONSOLE(' in message:
+        # console.log Chromium logging in debug builds
+        return True
+    elif 'locale_file_path.empty() for locale' in message:
+        # Qt 5.9 debug Chromium stuff
+        # [28121:28121:0605/191637.407848:WARNING:resource_bundle_qt.cpp(114)]
+        # locale_file_path.empty() for locale
+        return True
+    elif 'Multiple instances of AudioManager detected' in message:
+        # Qt 5.9 debug Chromium stuff
+        # [26598:26598:0605/191429.639416:WARNING:audio_manager.cc(317)]
+        # Multiple instances of AudioManager detected
+        return True
+    elif 'Could not set extended attribute user.xdg' in message:
+        # On Qt 5.9 with debug Chromium:
+        # [25775:25788:0605/191240.931551:ERROR:quarantine_linux.cc(33)]
+        # Could not set extended attribute user.xdg.origin.url on file
+        # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/downloads/download.bin:
+        # Operation not supported
+        return True
+    elif 'WebFrame LEAKED 1 TIMES' in message:
+        # Qt 5.9 debug Chromium stuff
+        # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
+        # WebFrame LEAKED 1 TIMES
         return True
     return False
 
