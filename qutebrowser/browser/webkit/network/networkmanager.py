@@ -121,7 +121,6 @@ class NetworkManager(QNetworkAccessManager):
                            reparented to the DownloadManager. This counts the
                            still running downloads, so the QNAM can clean
                            itself up when this reaches zero again.
-        _requests: Pending requests.
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
@@ -146,7 +145,6 @@ class NetworkManager(QNetworkAccessManager):
         self.adopted_downloads = 0
         self._win_id = win_id
         self._tab_id = tab_id
-        self._requests = []
         self._private = private
         self._scheme_handlers = {
             'qute': webkitqutescheme.QuteSchemeHandler(win_id),
@@ -201,9 +199,6 @@ class NetworkManager(QNetworkAccessManager):
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
-        for request in self._requests:
-            request.abort()
-            request.deleteLater()
         self.shutting_down.emit()
 
     # No @pyqtSlot here, see
@@ -370,9 +365,6 @@ class NetworkManager(QNetworkAccessManager):
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
 
-        Extend QNetworkAccessManager::createRequest to save requests in
-        self._requests and handle custom schemes.
-
         Args:
              op: Operation op
              req: const QNetworkRequest & req
@@ -437,6 +429,4 @@ class NetworkManager(QNetworkAccessManager):
                 reply = super().createRequest(op, req, outgoing_data)
         else:
             reply = super().createRequest(op, req, outgoing_data)
-        self._requests.append(reply)
-        reply.destroyed.connect(self._requests.remove)
         return reply
