@@ -98,6 +98,9 @@ class DefaultProfileSetter(websettings.Base):
         super().__init__(default)
         self._setter = setter
 
+    def __repr__(self):
+        return utils.get_repr(self, setter=self._setter, constructor=True)
+
     def _set(self, value, settings=None):
         utils.unused(settings)
         setter = getattr(default_profile, self._setter)
