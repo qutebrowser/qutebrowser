@@ -145,7 +145,7 @@
 |<<storage-prompt-download-directory,prompt-download-directory>>|Whether to prompt the user for the download location.
 |<<storage-remember-download-directory,remember-download-directory>>|Whether to remember the last used download directory.
 |<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
-|<<storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
+|<<storage-offline-web-application-cache,offline-web-application-cache>>|Whether support for the HTML 5 web application cache feature is enabled.
 |<<storage-local-storage,local-storage>>|Whether support for HTML 5 local storage and Web SQL is enabled.
 |<<storage-cache-size,cache-size>>|Size of the HTTP network cache. Empty to use the default value.
 |==============
@@ -1319,8 +1319,8 @@ Default: +pass:[0]+
 
 This setting is only available with the QtWebKit backend.
 
-[[storage-offline-web-application-storage]]
-=== offline-web-application-storage
+[[storage-offline-web-application-cache]]
+=== offline-web-application-cache
 Whether support for the HTML 5 web application cache feature is enabled.
 
 An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
