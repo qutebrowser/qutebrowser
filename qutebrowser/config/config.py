@@ -444,7 +444,22 @@ class ConfigManager(QObject):
                 'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
                 '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
             }),
-        ('contents', 'cache-size'): _get_value_transformer({'52428800': ''}),
+        ('general', 'default-encoding'):
+            _get_value_transformer({'': 'iso-8859-1'}),
+        ('contents', 'cache-size'):
+            _get_value_transformer({'52428800': ''}),
+        ('storage', 'maximum-pages-in-cache'):
+            _get_value_transformer({'': '0'}),
+        ('storage', 'offline-storage-default-quota'):
+            _get_value_transformer({'': str(5 * 1024 * 1024)}),
+        ('fonts', 'web-size-minimum'):
+            _get_value_transformer({'': '0'}),
+        ('fonts', 'web-size-minimum-logical'):
+            _get_value_transformer({'': '6'}),
+        ('fonts', 'web-size-default'):
+            _get_value_transformer({'': '16'}),
+        ('fonts', 'web-size-default-fixed'):
+            _get_value_transformer({'': '13'}),
     }
 
     changed = pyqtSignal(str, str)

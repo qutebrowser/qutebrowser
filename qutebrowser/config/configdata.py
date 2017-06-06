@@ -221,11 +221,10 @@ def data(readonly=False):
              "Enable QtWebKit workarounds for broken sites."),
 
             ('default-encoding',
-             SettingValue(typ.String(none_ok=True), ''),
+             SettingValue(typ.String(), 'iso-8859-1'),
              "Default encoding to use for websites.\n\n"
              "The encoding must be a string describing an encoding such as "
-             "_utf-8_, _iso-8859-1_, etc. If left empty a default value will "
-             "be used."),
+             "_utf-8_, _iso-8859-1_, etc."),
 
             ('new-instance-open-target',
              SettingValue(typ.String(
@@ -764,10 +763,12 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to remember the last used download directory."),
 
+            # Defaults from QWebSettings::QWebSettings() in
+            # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
             ('maximum-pages-in-cache',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), '',
-                 backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '0',
+                          backends=[usertypes.Backend.QtWebKit]),
              "The maximum number of pages to hold in the global memory page "
              "cache.\n\n"
              "The Page Cache allows for a nicer user experience when "
@@ -793,8 +794,8 @@ def data(readonly=False):
              "that the cache should consume *overall*."),
 
             ('offline-storage-default-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), '',
+             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']),
+                          str(5 * 1024 * 1024),
                           backends=[usertypes.Backend.QtWebKit]),
              "Default quota for new offline storage databases."),
 
@@ -1453,25 +1454,28 @@ def data(readonly=False):
              SettingValue(typ.FontFamily(none_ok=True), ''),
              "Font family for fantasy fonts."),
 
+            # Defaults for web-size-* from WebEngineSettings::initDefaults in
+            # qtwebengine/src/core/web_engine_settings.cpp and
+            # QWebSettings::QWebSettings() in
+            # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
             ('web-size-minimum',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '0'),
              "The hard minimum font size."),
 
+            # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
+            # just go for 6 here.
             ('web-size-minimum-logical',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '6'),
              "The minimum logical font size that is applied when zooming "
              "out."),
 
             ('web-size-default',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=1, maxval=MAXVALS['int']), '16'),
              "The default font size for regular text."),
 
             ('web-size-default-fixed',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=1, maxval=MAXVALS['int']), '13'),
              "The default font size for fixed-pitch text."),
 
             ('keyhint',
