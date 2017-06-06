@@ -109,9 +109,9 @@ class Attribute(Base):
         self._attributes = list(attributes)
 
     def __repr__(self):
-        return utils.get_repr(
-            self, attributes=[debug.qenum_key(self.ENUM_BASE, attr)
-                              for attr in self._attributes], constructor=True)
+        attributes = [debug.qenum_key(self.ENUM_BASE, attr)
+                      for attr in self._attributes]
+        return utils.get_repr(self, attributes=attributes, constructor=True)
 
     def _set(self, value, settings=None):
         for obj in self._get_settings(settings):
