@@ -915,60 +915,6 @@ class FormatString(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-class WebKitBytes(BaseType):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        maxsize: The maximum size to be used.
-
-    Class attributes:
-        SUFFIXES: A mapping of size suffixes to multiplicators.
-    """
-
-    SUFFIXES = {
-        'k': 1024 ** 1,
-        'm': 1024 ** 2,
-        'g': 1024 ** 3,
-        't': 1024 ** 4,
-        'p': 1024 ** 5,
-        'e': 1024 ** 6,
-        'z': 1024 ** 7,
-        'y': 1024 ** 8,
-    }
-
-    def __init__(self, maxsize=None, none_ok=False):
-        super().__init__(none_ok)
-        self.maxsize = maxsize
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            val = self.transform(value)
-        except ValueError:
-            raise configexc.ValidationError(value, "must be a valid integer "
-                                            "with optional suffix!")
-        if self.maxsize is not None and val > self.maxsize:
-            raise configexc.ValidationError(value, "must be {} "
-                                            "maximum!".format(self.maxsize))
-        if val < 0:
-            raise configexc.ValidationError(value, "must be 0 minimum!")
-
-    def transform(self, value):
-        if not value:
-            return None
-        elif any(value.lower().endswith(c) for c in self.SUFFIXES):
-            suffix = value[-1].lower()
-            val = value[:-1]
-            multiplicator = self.SUFFIXES[suffix]
-        else:
-            val = value
-            multiplicator = 1
-        return int(val) * multiplicator
-
-
 class ShellCommand(BaseType):
 
     """A shellcommand which is split via shlex.

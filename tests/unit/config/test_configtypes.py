@@ -1387,48 +1387,6 @@ class TestDirectory:
         assert klass().transform('') is None
 
 
-class TestWebKitByte:
-
-    """Test WebKitBytes."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.WebKitBytes
-
-    @pytest.mark.parametrize('maxsize, val', [
-        (None, ''),
-        (None, '42'),
-        (None, '56k'),
-        (None, '56K'),
-        (10, '10'),
-        (2048, '2k'),
-    ])
-    def test_validate_valid(self, klass, maxsize, val):
-        klass(none_ok=True, maxsize=maxsize).validate(val)
-
-    @pytest.mark.parametrize('maxsize, val', [
-        (None, ''),
-        (None, '-1'),
-        (None, '-1k'),
-        (None, '56x'),
-        (None, '56kk'),
-        (10, '11'),
-        (999, '1k'),
-    ])
-    def test_validate_invalid(self, klass, maxsize, val):
-        with pytest.raises(configexc.ValidationError):
-            klass(maxsize=maxsize).validate(val)
-
-    @pytest.mark.parametrize('val, expected', [
-        ('', None),
-        ('10', 10),
-        ('1k', 1024),
-        ('1t', 1024 ** 4),
-    ])
-    def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
-
-
 class TestShellCommand:
 
     """Test ShellCommand."""
