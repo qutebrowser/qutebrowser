@@ -179,6 +179,7 @@ Contributors, sorted by the number of commits in descending order:
 * Niklas Haas
 * Maciej Wołczyk
 * sandrosc
+* Clayton Craft
 * Alexey "Averrin" Nabrodov
 * pkill9
 * nanjekyejoannah
@@ -186,7 +187,6 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Clayton Craft
 * Peter Vilim
 * Jacob Sword
 * knaggita

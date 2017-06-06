@@ -44,6 +44,8 @@ Added
 - New `tabs -> favicon-scale` option to scale up/down favicons.
 - `colors -> statusbar.bg/fg.private` and `.command.private` to
   customize statusbar colors for private windows.
+- New `{private}` field displaying `[Private Mode]` for
+  `ui -> window-title-format`.
 
 Changed
 ~~~~~~~
