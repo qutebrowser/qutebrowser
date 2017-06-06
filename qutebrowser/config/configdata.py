@@ -366,7 +366,7 @@ def data(readonly=False):
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
                                                    'scroll_pos', 'host',
-                                                   'backend']),
+                                                   'backend', 'private']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -378,7 +378,8 @@ def data(readonly=False):
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
-             "* `{backend}`: Either 'webkit' or 'webengine'"),
+             "* `{backend}`: Either 'webkit' or 'webengine'"
+             "* `{private}` : Indicates when private mode is enabled.\n"),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
