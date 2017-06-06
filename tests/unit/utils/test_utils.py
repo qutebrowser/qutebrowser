@@ -925,10 +925,6 @@ class TestOpenFile:
         m.assert_called_with(QUrl('file:///foo/bar'))
 
 
-def test_unused():
-    utils.unused(None)
-
-
 @pytest.mark.parametrize('path, expected', [
     ('E:', 'E:\\'),
     ('e:', 'e:\\'),

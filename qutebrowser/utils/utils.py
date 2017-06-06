@@ -860,11 +860,6 @@ def open_file(filename, cmdline=None):
     proc.start_detached(cmd, args)
 
 
-def unused(_arg):
-    """Function which does nothing to avoid pylint complaining."""
-    pass
-
-
 def expand_windows_drive(path):
     r"""Expand a drive-path like E: into E:\.
 
