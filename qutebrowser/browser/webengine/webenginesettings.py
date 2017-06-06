@@ -102,7 +102,9 @@ class DefaultProfileSetter(websettings.Base):
         return utils.get_repr(self, setter=self._setter, constructor=True)
 
     def _set(self, value, settings=None):
-        utils.unused(settings)
+        if settings is not None:
+            raise ValueError("'settings' may not be set with "
+                             "DefaultProfileSetters!")
         setter = getattr(default_profile, self._setter)
         setter(value)
 
@@ -119,7 +121,9 @@ class PersistentCookiePolicy(DefaultProfileSetter):
         return config.get('content', 'cookies-store')
 
     def _set(self, value, settings=None):
-        utils.unused(settings)
+        if settings is not None:
+            raise ValueError("'settings' may not be set with "
+                             "PersistentCookiePolicy!")
         setter = getattr(QWebEngineProfile.defaultProfile(), self._setter)
         setter(
             QWebEngineProfile.AllowPersistentCookies if value else

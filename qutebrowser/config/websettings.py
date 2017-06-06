@@ -163,7 +163,7 @@ class StaticSetter(Setter):
 
     def _set(self, value, settings=None):
         if settings is not None:
-            raise ValueError("'settings' may not be set with GlobalSetters!")
+            raise ValueError("'settings' may not be set with StaticSetters!")
         args = list(self._args)
         if self._unpack:
             args.extend(value)
