@@ -89,14 +89,6 @@ Changed
   - The installer is now generated using NSIS instead of being a MSI
 - Texts in prompts are now selectable.
 - Renderer process crashes now show an error page.
-- (QtWebKit) Various rarely customized settings were removed:
-  - `ui -> css-media-type` (defaults to desktop)
-  - `general -> site-specific-quirks` (now always turned on)
-  - `storage -> offline-storage-default-quota` (defaults to 5MB)
-  - `storage -> offline-web-application-cache-quota` (defaults to no quota)
-  - `storage -> object-cache-capacities` (default depends on disk space)
-  - `content -> css-regions` (now always turned off)
-  - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
 - (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
 
 
@@ -198,6 +190,18 @@ Changed
 - `input -> mouse-zoom-divider` can now be 0 to disable zooming by mouse wheel
 - `network -> proxy` can also be set to `pac+file://...` now to
   use a local proxy autoconfig file (on QtWebKit)
+
+Removed
+~~~~~~~
+
+- (QtWebKit) Various rarely customized settings were removed:
+  - `ui -> css-media-type` (defaults to desktop)
+  - `general -> site-specific-quirks` (now always turned on)
+  - `storage -> offline-storage-default-quota` (defaults to 5MB)
+  - `storage -> offline-web-application-cache-quota` (defaults to no quota)
+  - `storage -> object-cache-capacities` (default depends on disk space)
+  - `content -> css-regions` (now always turned off)
+  - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
 
 Fixed
 ~~~~~
