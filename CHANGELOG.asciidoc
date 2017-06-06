@@ -96,6 +96,7 @@ Changed
   - `storage -> offline-web-application-cache-quota` (defaults to no quota)
   - `storage -> object-cache-capacities` (default depends on disk space)
   - `content -> css-regions` (now always turned off)
+  - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
 
 
 Fixed

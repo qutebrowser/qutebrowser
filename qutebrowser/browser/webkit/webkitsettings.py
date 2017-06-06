@@ -228,12 +228,11 @@ MAPPINGS = {
         #   Attribute(QWebSettings.TiledBackingStoreEnabled),
     },
     'storage': {
-        'offline-storage-database':
-            Attribute(QWebSettings.OfflineStorageDatabaseEnabled),
         'offline-web-application-storage':
             Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),
         'local-storage':
-            Attribute(QWebSettings.LocalStorageEnabled),
+            Attribute(QWebSettings.LocalStorageEnabled,
+                      QWebSettings.OfflineStorageDatabaseEnabled),
         'maximum-pages-in-cache':
             StaticSetter(QWebSettings.setMaximumPagesInCache),
     },

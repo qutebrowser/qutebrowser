@@ -409,6 +409,7 @@ class ConfigManager(QObject):
         ('hints', 'opacity'),
         ('completion', 'auto-open'),
         ('storage', 'object-cache-capacities'),
+        ('storage', 'offline-storage-database'),
         ('storage', 'offline-storage-default-quota'),
         ('storage', 'offline-web-application-cache-quota'),
         ('content', 'css-regions'),

@@ -767,12 +767,6 @@ def data(readonly=False):
              "For more information about the feature, please refer to: "
              "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
 
-            ('offline-storage-database',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Whether support for the HTML 5 offline storage feature is "
-             "enabled."),
-
             ('offline-web-application-storage',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
@@ -787,7 +781,7 @@ def data(readonly=False):
 
             ('local-storage',
              SettingValue(typ.Bool(), 'true'),
-             "Whether support for the HTML 5 local storage feature is "
+             "Whether support for HTML 5 local storage and Web SQL is "
              "enabled."),
 
             ('cache-size',

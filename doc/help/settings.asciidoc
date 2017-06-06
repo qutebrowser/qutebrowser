@@ -145,9 +145,8 @@
 |<<storage-prompt-download-directory,prompt-download-directory>>|Whether to prompt the user for the download location.
 |<<storage-remember-download-directory,remember-download-directory>>|Whether to remember the last used download directory.
 |<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
-|<<storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
 |<<storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
-|<<storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
+|<<storage-local-storage,local-storage>>|Whether support for HTML 5 local storage and Web SQL is enabled.
 |<<storage-cache-size,cache-size>>|Size of the HTTP network cache. Empty to use the default value.
 |==============
 
@@ -1320,19 +1319,6 @@ Default: +pass:[0]+
 
 This setting is only available with the QtWebKit backend.
 
-[[storage-offline-storage-database]]
-=== offline-storage-database
-Whether support for the HTML 5 offline storage feature is enabled.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
-
 [[storage-offline-web-application-storage]]
 === offline-web-application-storage
 Whether support for the HTML 5 web application cache feature is enabled.
@@ -1352,7 +1338,7 @@ This setting is only available with the QtWebKit backend.
 
 [[storage-local-storage]]
 === local-storage
-Whether support for the HTML 5 local storage feature is enabled.
+Whether support for HTML 5 local storage and Web SQL is enabled.
 
 Valid values:
 

@@ -99,23 +99,24 @@ class Attribute(Base):
     """A setting set via QWeb(Engine)Settings::setAttribute.
 
     Attributes:
-        self._attribute: A QWeb(Engine)Settings::WebAttribute instance.
+        self._attributes: A list of QWeb(Engine)Settings::WebAttribute members.
     """
 
     ENUM_BASE = None
 
-    def __init__(self, attribute, default=UNSET):
+    def __init__(self, *attributes, default=UNSET):
         super().__init__(default=default)
-        self._attribute = attribute
+        self._attributes = list(attributes)
 
     def __repr__(self):
         return utils.get_repr(
-            self, attribute=debug.qenum_key(self.ENUM_BASE, self._attribute),
-            constructor=True)
+            self, attributes=[debug.qenum_key(self.ENUM_BASE, attr)
+                              for attr in self._attributes], constructor=True)
 
     def _set(self, value, settings=None):
         for obj in self._get_settings(settings):
-            obj.setAttribute(self._attribute, value)
+            for attribute in self._attributes:
+                obj.setAttribute(attribute, value)
 
 
 class Setter(Base):
