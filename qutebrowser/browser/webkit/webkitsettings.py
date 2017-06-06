@@ -88,7 +88,7 @@ class FontFamilySetter(Base, websettings.FontFamilySetter):
                          qfont=font_to_qfont[font])
 
 
-class CookiePolicy(websettings.Base):
+class CookiePolicy(Base):
 
     """The ThirdPartyCookiePolicy setting is different from other settings."""
 
@@ -100,8 +100,8 @@ class CookiePolicy(websettings.Base):
     }
 
     def _set(self, value, settings=None):
-        QWebSettings.globalSettings().setThirdPartyCookiePolicy(
-            self.MAPPING[value])
+        for obj in self._get_settings(settings):
+            obj.setThirdPartyCookiePolicy(self.MAPPING[value])
 
 
 def _set_user_stylesheet():
