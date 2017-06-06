@@ -163,8 +163,6 @@ MAPPINGS = {
             Attribute(QWebSettings.JavascriptCanCloseWindows),
         'javascript-can-access-clipboard':
             Attribute(QWebSettings.JavascriptCanAccessClipboard),
-        #'allow-java':
-        #   Attribute(QWebSettings.JavaEnabled),
         'allow-plugins':
             Attribute(QWebSettings.PluginsEnabled),
         'webgl':

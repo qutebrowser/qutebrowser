@@ -242,7 +242,6 @@ def shutdown():
 # - AllowRunningInsecureContent (5.8)
 #
 # Missing QtWebEngine fonts:
-# - FantasyFont
 # - PictographFont
 
 
