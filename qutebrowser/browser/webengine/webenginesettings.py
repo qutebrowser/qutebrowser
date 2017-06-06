@@ -116,10 +116,6 @@ class PersistentCookiePolicy(DefaultProfileSetter):
     def __init__(self):
         super().__init__('setPersistentCookiesPolicy')
 
-    def get(self, settings=None):
-        utils.unused(settings)
-        return config.get('content', 'cookies-store')
-
     def _set(self, value, settings=None):
         if settings is not None:
             raise ValueError("'settings' may not be set with "
