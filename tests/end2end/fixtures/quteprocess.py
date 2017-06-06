@@ -72,7 +72,7 @@ def is_ignored_lowlevel_message(message):
 def is_ignored_chromium_message(line):
     msg_re = re.compile(r"""
         \[
-        \d+:\d+:  # Process/Thread ID
+        (\d+:\d+:)?  # Process/Thread ID
         \d{4}/[\d.]+:  # MMDD/Time
         (?P<loglevel>[A-Z]+):  # Log level
         [^ :]+    # filename / line
