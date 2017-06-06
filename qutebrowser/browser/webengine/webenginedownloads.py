@@ -77,7 +77,12 @@ class DownloadItem(downloads.AbstractDownloadItem):
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
             # https://bugreports.qt.io/browse/QTBUG-56839
-            self._die("Download failed")
+            try:
+                reason = self._qt_item.interruptReasonString()
+            except AttributeError:
+                # Qt < 5.9
+                reason = "Download failed"
+            self._die(reason)
         else:
             raise ValueError("_on_state_changed was called with unknown state "
                              "{}".format(state_name))

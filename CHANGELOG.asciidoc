@@ -70,6 +70,8 @@ Changed
   closes the current tab.
 - (QtWebEngine) With Qt 5.9, `content -> cookies-store` can now be set without
   a restart.
+- (QtWebEngine) With Qt 5.9, better error messages are now shown for failed
+  downloads.
 - The adblocker now also blocks non-GET requests (e.g. POST).
 - `javascript:` links can now be hinted.
 - `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
