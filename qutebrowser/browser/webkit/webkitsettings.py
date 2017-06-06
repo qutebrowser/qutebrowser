@@ -228,7 +228,7 @@ MAPPINGS = {
         #   Attribute(QWebSettings.TiledBackingStoreEnabled),
     },
     'storage': {
-        'offline-web-application-storage':
+        'offline-web-application-cache':
             Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),
         'local-storage':
             Attribute(QWebSettings.LocalStorageEnabled,

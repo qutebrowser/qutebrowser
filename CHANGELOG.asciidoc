@@ -97,6 +97,7 @@ Changed
   - `storage -> object-cache-capacities` (default depends on disk space)
   - `content -> css-regions` (now always turned off)
   - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
+- (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
 
 
 Fixed

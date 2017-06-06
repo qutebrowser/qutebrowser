@@ -767,7 +767,7 @@ def data(readonly=False):
              "For more information about the feature, please refer to: "
              "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
 
-            ('offline-web-application-storage',
+            ('offline-web-application-cache',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
              "Whether support for the HTML 5 web application cache feature is "
