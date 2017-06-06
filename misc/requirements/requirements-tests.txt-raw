@@ -20,4 +20,4 @@ pytest-travis-fold
 pytest-xvfb
 vulture
 
-#@ ignore: Jinja2, MarkupSafe
+#@ ignore: Jinja2, MarkupSafe, colorama
