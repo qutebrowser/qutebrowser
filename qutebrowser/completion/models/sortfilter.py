@@ -48,7 +48,6 @@ class CompletionFilterModel(QSortFilterProxyModel):
         super().setSourceModel(source)
         self.srcmodel = source
         self.pattern = ''
-        self.pattern_re = None
 
         dumb_sort = self.srcmodel.DUMB_SORT
         if dumb_sort is None:
@@ -68,11 +67,11 @@ class CompletionFilterModel(QSortFilterProxyModel):
             val: The value to set.
         """
         with debug.log_time(log.completion, 'Setting filter pattern'):
+            # empty value clears cache (not necessary for correctness, but
+            # helps with keeping memory requirements relatively low)
+            if not val:
+                self.srcmodel.filtered_out_cache = {}
             self.pattern = val
-            val = re.sub(r' +', r' ', val)  # See #1919
-            val = re.escape(val)
-            val = val.replace(r'\ ', '.*')
-            self.pattern_re = re.compile(val, re.IGNORECASE)
             self.invalidate()
             sortcol = 0
             self.sort(sortcol)
@@ -135,16 +134,33 @@ class CompletionFilterModel(QSortFilterProxyModel):
         if parent == QModelIndex() or not self.pattern:
             return True
 
+        # first check the cache
+        if (parent.row(), row) in self.srcmodel.filtered_out_cache and self.pattern.startswith(self.srcmodel.filtered_out_cache[parent.row(), row]):
+            log.completion.debug("According to the cache, row {} in {} has been filtered out.".format(row, parent.data()))
+            return False
+
+        data_to_filter = []
         for col in self.srcmodel.columns_to_filter:
             idx = self.srcmodel.index(row, col, parent)
             if not idx.isValid():  # pragma: no cover
                 # this is a sanity check not hit by any test case
                 continue
             data = self.srcmodel.data(idx)
-            if not data:
-                continue
-            elif self.pattern_re.search(data):
+            if data:
+                data_to_filter.append(data)
+
+        # Run the filter on all columns to accept partial matches on each
+        # column if they match as a whole.
+        # See https://github.com/The-Compiler/qutebrowser/issues/1649
+        if data_to_filter:
+            data = " ".join(data_to_filter).lower()
+            # We know from the cache that if we got here, the row contains all
+            # previous terms, so we only need to check the last.
+            term = self.pattern.split()[-1].lower()
+            if term in data:
                 return True
+
+        self.srcmodel.filtered_out_cache[parent.row(), row] = self.pattern
         return False
 
     def intelligentLessThan(self, lindex, rindex):
