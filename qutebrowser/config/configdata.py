@@ -215,11 +215,6 @@ def data(readonly=False):
              "inspector's JavaScript console. Enabling this feature might "
              "have an impact on performance."),
 
-            ('site-specific-quirks',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Enable QtWebKit workarounds for broken sites."),
-
             ('default-encoding',
              SettingValue(typ.String(), 'iso-8859-1'),
              "Default encoding to use for websites.\n\n"
@@ -348,11 +343,6 @@ def data(readonly=False):
             ('hide-scrollbar',
              SettingValue(typ.Bool(), 'true'),
              "Hide the main scrollbar."),
-
-            ('css-media-type',
-             SettingValue(typ.String(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Set the CSS media type."),
 
             ('smooth-scrolling',
              SettingValue(typ.Bool(), 'false'),
@@ -777,34 +767,6 @@ def data(readonly=False):
              "For more information about the feature, please refer to: "
              "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
 
-            ('object-cache-capacities',
-             SettingValue(
-                 typ.List(typ.WebKitBytes(maxsize=MAXVALS['int'],
-                          none_ok=True), none_ok=True, length=3), '',
-                 backends=[usertypes.Backend.QtWebKit]),
-             "The capacities for the global memory cache for dead objects "
-             "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
-             "cacheMaxDead, totalCapacity.\n\n"
-             "The _cacheMinDeadCapacity_ specifies the minimum number of "
-             "bytes that dead objects should consume when the cache is under "
-             "pressure.\n\n"
-             "_cacheMaxDead_ is the maximum number of bytes that dead objects "
-             "should consume when the cache is *not* under pressure.\n\n"
-             "_totalCapacity_ specifies the maximum number of bytes "
-             "that the cache should consume *overall*."),
-
-            ('offline-storage-default-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64']),
-                          str(5 * 1024 * 1024),
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Default quota for new offline storage databases."),
-
-            ('offline-web-application-cache-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Quota for the offline web application cache."),
-
             ('offline-storage-database',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
@@ -855,11 +817,6 @@ def data(readonly=False):
             ('webgl',
              SettingValue(typ.Bool(), 'true'),
              "Enables or disables WebGL."),
-
-            ('css-regions',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Enable or disable support for CSS regions."),
 
             ('hyperlink-auditing',
              SettingValue(typ.Bool(), 'false'),

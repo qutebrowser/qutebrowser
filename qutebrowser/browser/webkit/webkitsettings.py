@@ -59,14 +59,6 @@ class Setter(Base, websettings.Setter):
     pass
 
 
-class NullStringSetter(Base, websettings.Setter):
-
-    """A setter for settings requiring a null QString as default."""
-
-    def set_default(self, settings=None):
-        self._set(None, settings=settings)
-
-
 class StaticSetter(Base, websettings.StaticSetter):
 
     """A setting set via a static QWebSettings setter method."""
@@ -177,8 +169,6 @@ MAPPINGS = {
             Attribute(QWebSettings.PluginsEnabled),
         'webgl':
             Attribute(QWebSettings.WebGLEnabled),
-        'css-regions':
-            Attribute(QWebSettings.CSSRegionsEnabled),
         'hyperlink-auditing':
             Attribute(QWebSettings.HyperlinkAuditingEnabled),
         'local-content-can-access-remote-urls':
@@ -230,8 +220,6 @@ MAPPINGS = {
         'frame-flattening':
             Attribute(QWebSettings.FrameFlatteningEnabled),
         # user-stylesheet is handled separately
-        'css-media-type':
-            NullStringSetter(QWebSettings.setCSSMediaType),
         'smooth-scrolling':
             Attribute(QWebSettings.ScrollAnimatorEnabled),
         #'accelerated-compositing':
@@ -248,16 +236,6 @@ MAPPINGS = {
             Attribute(QWebSettings.LocalStorageEnabled),
         'maximum-pages-in-cache':
             StaticSetter(QWebSettings.setMaximumPagesInCache),
-        'object-cache-capacities':
-            StaticSetter(QWebSettings.setObjectCacheCapacities,
-                         unpack=True),
-        'offline-storage-default-quota':
-            StaticSetter(QWebSettings.setOfflineStorageDefaultQuota),
-        # Default from ApplicationCacheStorage::ApplicationCacheStorage in
-        # qtwebkit/Source/WebCore/loader/appcache/ApplicationCacheStorage.cpp
-        'offline-web-application-cache-quota':
-            StaticSetter(QWebSettings.setOfflineWebApplicationCacheQuota,
-                         default=qtutils.MAXVALS['int64']),  # no quota
     },
     'general': {
         'developer-extras':
@@ -266,8 +244,6 @@ MAPPINGS = {
             Attribute(QWebSettings.PrintElementBackgrounds),
         'xss-auditing':
             Attribute(QWebSettings.XSSAuditingEnabled),
-        'site-specific-quirks':
-            Attribute(QWebSettings.SiteSpecificQuirksEnabled),
         'default-encoding':
             Setter(QWebSettings.setDefaultTextEncoding),
     }

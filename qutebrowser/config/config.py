@@ -403,9 +403,15 @@ class ConfigManager(QObject):
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
         ('ui', 'hide-mouse-cursor'),
+        ('ui', 'css-media-type'),
         ('general', 'wrap-search'),
+        ('general', 'site-specific-quirks'),
         ('hints', 'opacity'),
         ('completion', 'auto-open'),
+        ('storage', 'object-cache-capacities'),
+        ('storage', 'offline-storage-default-quota'),
+        ('storage', 'offline-web-application-cache-quota'),
+        ('content', 'css-regions'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -450,8 +456,6 @@ class ConfigManager(QObject):
             _get_value_transformer({'52428800': ''}),
         ('storage', 'maximum-pages-in-cache'):
             _get_value_transformer({'': '0'}),
-        ('storage', 'offline-storage-default-quota'):
-            _get_value_transformer({'': str(5 * 1024 * 1024)}),
         ('fonts', 'web-size-minimum'):
             _get_value_transformer({'': '0'}),
         ('fonts', 'web-size-minimum-logical'):
