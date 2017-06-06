@@ -19,7 +19,7 @@ Mako==1.0.6
 # MarkupSafe==1.0
 parse==1.8.2
 parse-type==0.3.4
-py==1.4.33
+py==1.4.34
 pytest==3.1.1
 pytest-bdd==2.18.2
 pytest-benchmark==3.0.0
