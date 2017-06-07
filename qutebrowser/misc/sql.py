@@ -106,7 +106,8 @@ class SqlTable(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, name, fields, parent=None):
+    def __init__(self, name, fields, constraints=None, fkeys=None,
+                 parent=None):
         """Create a new table in the sql database.
 
         Raises SqlException if the table already exists.
@@ -114,11 +115,23 @@ class SqlTable(QObject):
         Args:
             name: Name of the table.
             fields: A list of field names.
+            constraints: A dict mapping field names to constraint strings.
+            fkeys: A dict mapping field names to foreign keys.
         """
         super().__init__(parent)
         self._name = name
+
+        constraints = constraints or {}
+        fkeys = fkeys or {}
+
+        column_defs = ['{} {}'.format(field, constraints.get(field, ''))
+                       for field in fields]
+        for field, fkey in sorted(fkeys.items()):
+            column_defs.append('FOREIGN KEY({}) REFERENCES {}'.format(
+                field, fkey))
+
         q = Query("CREATE TABLE IF NOT EXISTS {} ({})"
-                  .format(name, ','.join(fields)))
+                  .format(name, ','.join(column_defs)))
         q.run()
         # pylint: disable=invalid-name
         self.Entry = collections.namedtuple(name + '_Entry', fields)
@@ -171,25 +184,29 @@ class SqlTable(QObject):
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
-    def insert(self, values):
+    def insert(self, values, replace=False):
         """Append a row to the table.
 
         Args:
             values: A list of values to insert.
+            replace: If set, replace existing values.
         """
         paramstr = ','.join(['?'] * len(values))
-        q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
+        q = Query("INSERT {} INTO {} values({})".format(
+            'OR REPLACE' if replace else '', self._name, paramstr))
         q.run(values)
         self.changed.emit()
 
-    def insert_batch(self, rows):
+    def insert_batch(self, rows, replace=False):
         """Performantly append multiple rows to the table.
 
         Args:
             rows: A list of lists, where each sub-list is a row.
+            replace: If set, replace existing values.
         """
         paramstr = ','.join(['?'] * len(rows[0]))
-        q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
+        q = Query("INSERT {} INTO {} values({})".format(
+            'OR REPLACE' if replace else '', self._name, paramstr))
 
         transposed = [list(row) for row in zip(*rows)]
         for val in transposed:

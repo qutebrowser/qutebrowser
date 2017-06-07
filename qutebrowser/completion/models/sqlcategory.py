@@ -30,7 +30,7 @@ class SqlCategory(QSqlQueryModel):
     """Wraps a SqlQuery for use as a completion category."""
 
     def __init__(self, name, *, filter_fields, sort_by=None, sort_order=None,
-                 select='*', where=None, group_by=None, parent=None):
+                 select='*', where=None, group_by=None, suffix=None, parent=None):
         """Create a new completion category backed by a sql table.
 
         Args:
