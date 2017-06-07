@@ -141,6 +141,8 @@ unsafeWindow = window
         self._includes = []
         self._excludes = []
         self._description = None
+        self._Name = None
+        self._run_at = None
         for name, value in properties:
             if name == 'name':
                 self._name = value
@@ -241,7 +243,9 @@ class GreasemonkeyManager(QObject):
                     log.greasemonkey.warning(
                         "Script {} has invalid run-at defined".format(
                             script_path))
-                    continue
+                    # Default as per
+                    # https://wiki.greasespot.net/Metadata_Block#.40run-at
+                    self._run_end.append(script)
                 log.greasemonkey.debug("Loaded script: {}".format(
                     script.name()))
         self.scripts_reloaded.emit()
