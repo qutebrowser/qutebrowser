@@ -81,8 +81,8 @@ class Query(QSqlQuery):
             self.addBindValue(val)
         log.sql.debug('self bindings: {}'.format(self.boundValues()))
         if not self.exec_():
-            raise SqlException('Failed to exec self "{}": "{}"'.format(
-                               self.lastself(), self.lastError().text()))
+            raise SqlException('Failed to exec query "{}": "{}"'.format(
+                               self.lastQuery(), self.lastError().text()))
 
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
