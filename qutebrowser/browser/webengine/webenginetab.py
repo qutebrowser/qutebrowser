@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
-from qutebrowser.browser import browsertab, mouse, shared
+from qutebrowser.browser import browsertab, mouse, shared, greasemonkey
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            webenginedownloads,
@@ -77,6 +77,9 @@ def init():
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
+    greasemonkey = objreg.get('greasemonkey')
+    greasemonkey.scripts_reloaded.connect(inject_userscripts)
+    inject_userscripts()
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
@@ -85,6 +88,45 @@ _JS_WORLD_MAP = {
     usertypes.JsWorld.user: QWebEngineScript.UserWorld,
     usertypes.JsWorld.jseval: QWebEngineScript.UserWorld + 1,
 }
+
+def inject_userscripts():
+    # The greasemonkey metadata block support in qtwebengine only starts at 5.8
+    # Otherwise have to handle injecting the scripts into the page at very
+    # early load, probs same place in view as the enableJS check.
+    if not qtutils.version_check('5.8'):
+        return
+
+    #XXX: Docs say world other than main should also be able to
+    # access the DOM but my scripts aren't working. Needs more testing.
+    userjs_worldid = _JS_WORLD_MAP[usertypes.JsWorld.main]
+
+    # Since we are inserting scripts into profile.scripts they won't
+    # just get replaced by new gm scripts like if we were injecting them
+    # ourselves so we need to remove all gm scripts, while not removing
+    # any other stuff that might have been added. Like the one for
+    # stylsheets.
+    # Could either use a different world for gm scripts, check for gm metadata
+    # values (would mean no non-gm userscripts), or check the code for
+    # _qute_script_id
+    for profile in [webenginesettings.default_profile,
+                    webenginesettings.private_profile]:
+        scripts = profile.scripts()
+        for script in scripts.toList():
+            if script.worldId() == userjs_worldid:
+                scripts.remove(script)
+
+    # Should we be adding to private profile too?
+    for profile in [webenginesettings.default_profile,
+                    webenginesettings.private_profile]:
+        scripts = profile.scripts()
+        greasemonkey = objreg.get('greasemonkey')
+        for script in greasemonkey.all_scripts():
+            new_script = QWebEngineScript()
+            new_script.setWorldId(userjs_worldid)
+            new_script.setSourceCode(script.code())
+            log.greasemonkey.debug('adding script: {}'.format(
+                new_script.name()))
+            scripts.insert(new_script)
 
 
 class WebEngineAction(browsertab.AbstractAction):
