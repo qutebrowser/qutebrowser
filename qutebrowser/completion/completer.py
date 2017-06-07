@@ -224,20 +224,19 @@ class Completer(QObject):
         if func is None:
             log.completion.debug('Clearing completion')
             completion.set_model(None)
-        elif func != self._last_completion_func:
+            self._last_completion_func = None
+            return
+
+        if func != self._last_completion_func:
             self._last_completion_func = func
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
             with debug.log_time(log.completion,
-                    'Instantiate {} completion'.format(func.__name__)):
+                    'Starting {} completion'.format(func.__name__)):
                 model = func(*args)
             with debug.log_time(log.completion, 'Set completion model'):
                 completion.set_model(model)
-            completion.set_pattern(pattern)
-        else:
-            log.completion.debug('Setting pattern {}'.format(pattern))
-            completion.set_pattern(pattern)
 
-        self._last_completion_func = None
+        completion.set_pattern(pattern)
 
     def _change_completed_part(self, newtext, before, after, immediate=False):
         """Change the part we're currently completing in the commandline.

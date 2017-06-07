@@ -283,8 +283,6 @@ class CompletionView(QTreeView):
         self._column_widths = model.column_widths
         self._active = True
 
-        self.set_pattern('')
-
         if (config.get('completion', 'show') == 'always' and
                 model.count() > 0):
             self.show()

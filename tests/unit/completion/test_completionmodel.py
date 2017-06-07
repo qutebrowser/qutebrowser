@@ -56,7 +56,7 @@ def test_first_last_item(counts):
 def test_count(counts):
     model = completionmodel.CompletionModel()
     for c in counts:
-        cat = mock.Mock(spec=['rowCount'])
+        cat = mock.Mock(spec=['rowCount', 'layoutChanged'])
         cat.rowCount = mock.Mock(return_value=c)
         model.add_category(cat)
     assert model.count() == sum(counts)
@@ -66,7 +66,7 @@ def test_count(counts):
 def test_set_pattern(pat):
     """Validate the filtering and sorting results of set_pattern."""
     model = completionmodel.CompletionModel()
-    cats = [mock.Mock(spec=['set_pattern'])] * 3
+    cats = [mock.Mock(spec=['set_pattern', 'layoutChanged'])] * 3
     for c in cats:
         c.set_pattern = mock.Mock()
         model.add_category(c)

@@ -63,6 +63,7 @@ class CompletionModel(QAbstractItemModel):
     def add_category(self, cat):
         """Add a completion category to the model."""
         self._categories.append(cat)
+        cat.layoutChanged.connect(self.layoutChanged)
 
     def data(self, index, role=Qt.DisplayRole):
         """Return the item data for index.
