@@ -155,24 +155,22 @@ def bookmarks(bookmark_manager_stub):
 
 @pytest.fixture
 def web_history_stub(stubs, init_sql):
-    return sql.SqlTable("History", ['url', 'title', 'atime', 'redirect'])
+    return sql.SqlTable("CompletionHistory", ['url', 'title', 'last_atime'])
 
 
 @pytest.fixture
 def web_history(web_history_stub, init_sql):
     """Pre-populate the web-history database."""
-    web_history_stub.insert(['http://some-redirect.example.com', 'redirect',
-                            datetime(2016, 9, 5).timestamp(), True])
     web_history_stub.insert(['http://qutebrowser.org', 'qutebrowser',
-                            datetime(2015, 9, 5).timestamp(), False])
+                            datetime(2015, 9, 5).timestamp()])
     web_history_stub.insert(['https://python.org', 'Welcome to Python.org',
-                            datetime(2016, 2, 8).timestamp(), False])
+                            datetime(2016, 2, 8).timestamp()])
     web_history_stub.insert(['https://python.org', 'Welcome to Python.org',
-                            datetime(2016, 3, 8).timestamp(), False])
+                            datetime(2016, 3, 8).timestamp()])
     web_history_stub.insert(['https://python.org', 'Welcome to Python.org',
-                            datetime(2014, 3, 8).timestamp(), False])
+                            datetime(2014, 3, 8).timestamp()])
     web_history_stub.insert(['https://github.com', 'https://github.com',
-                            datetime(2016, 5, 1).timestamp(), False])
+                            datetime(2016, 5, 1).timestamp()])
     return web_history_stub
 
 
@@ -336,7 +334,7 @@ def test_url_completion_pattern(config_stub, web_history_stub,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
-    web_history_stub.insert([url, title, 0, False])
+    web_history_stub.insert([url, title, 0])
     model = urlmodel.url()
     model.set_pattern(pattern)
     # 2, 0 is History
@@ -582,10 +580,9 @@ def test_url_completion_benchmark(benchmark, config_stub,
                                       'web-history-max-items': 1000}
 
     entries = [web_history_stub.Entry(
-        atime=i,
+        last_atime=i,
         url='http://example.com/{}'.format(i),
-        title='title{}'.format(i),
-        redirect=False)
+        title='title{}'.format(i))
         for i in range(100000)]
 
     web_history_stub.insert_batch(entries)

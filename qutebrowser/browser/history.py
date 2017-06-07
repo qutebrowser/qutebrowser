@@ -72,13 +72,13 @@ class Entry:
         return self.url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
 
 
-class HistoryVisits(sql.SqlTable):
+class CompletionHistory(sql.SqlTable):
 
-    """Secondary table with visited URLs and timestamps."""
+    """History which only has the newest entry for each URL."""
 
     def __init__(self, parent=None):
-        super().__init__("Visits", ['url', 'atime'],
-                         fkeys={'url': 'History(url)'})
+        super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
+                         constraints={'url': 'PRIMARY KEY'}, parent=parent)
 
 
 class WebHistory(sql.SqlTable):
@@ -86,14 +86,11 @@ class WebHistory(sql.SqlTable):
     """The global history of visited pages."""
 
     def __init__(self, parent=None):
-        super().__init__("History",
-                         ['url', 'title', 'last_atime', 'redirect'],
-                         constraints={'url': 'PRIMARY KEY'},
+        super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
-        self.visits = HistoryVisits(parent=self)
+        self.completion = CompletionHistory(parent=self)
         self.create_index('HistoryIndex', 'url')
         self._contains_query = self.contains_query('url')
-        # FIXME
         self._between_query = sql.Query('SELECT * FROM History '
                                         'where not redirect '
                                         'and not url like "qute://%" '
@@ -117,8 +114,10 @@ class WebHistory(sql.SqlTable):
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
         self.insert([entry.url_str(), entry.title, int(entry.atime),
-                     entry.redirect], replace=True)
-        self.visits.insert([entry.url_str(), int(entry.atime)])
+                     entry.redirect])
+        if not entry.redirect:
+            self.completion.insert([entry.url_str(), entry.title,
+                                    int(entry.atime)], replace=True)
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -229,9 +228,10 @@ class WebHistory(sql.SqlTable):
             raise ValueError("Invalid flags {!r}".format(flags))
 
         redirect = 'r' in flags
+        row = (url, title, float(atime), redirect)
+        completion_row = None if redirect else (url, title, float(atime))
 
-        return ((url, float(atime)),
-                (url, title, float(atime), bool(redirect)))
+        return (row, completion_row)
 
     def import_txt(self):
         """Import a history text file into sqlite if it exists.
@@ -258,20 +258,21 @@ class WebHistory(sql.SqlTable):
         """Import a text file into the sql database."""
         with open(path, 'r', encoding='utf-8') as f:
             rows = []
-            visit_rows = []
+            completion_rows = []
             for (i, line) in enumerate(f):
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    visit_row, row = self._parse_entry(line.strip())
+                    row, completion_row = self._parse_entry(line.strip())
                     rows.append(row)
-                    visit_rows.append(visit_row)
+                    if completion_row is not None:
+                        completion_rows.append(completion_row)
                 except ValueError:
                     raise Exception('Failed to parse line #{} of {}: "{}"'
                                     .format(i, path, line))
-        self.insert_batch(rows, replace=True)
-        self.visits.insert_batch(visit_rows)
+        self.insert_batch(rows)
+        self.completion.insert_batch(completion_rows, replace=True)
 
     @cmdutils.register(instance='web-history', debug=True)
     def debug_dump_history(self, dest):
@@ -280,7 +281,6 @@ class WebHistory(sql.SqlTable):
         Args:
             dest: Where to write the file to.
         """
-        # FIXME
         dest = os.path.expanduser(dest)
 
         lines = ('{}{} {} {}'
