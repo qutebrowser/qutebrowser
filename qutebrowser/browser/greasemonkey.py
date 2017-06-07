@@ -219,6 +219,7 @@ class GreasemonkeyManager(QObject):
         """Re-Read greasemonkey scripts from disk"""
         self._run_start = []
         self._run_end = []
+        self._run_idle = []
 
         scripts_dir = QDir(_scripts_dir())
         log.greasemonkey.debug("Reading scripts from: {}".format(
@@ -239,6 +240,8 @@ class GreasemonkeyManager(QObject):
                     self._run_start.append(script)
                 elif script.run_at() == 'document-end':
                     self._run_end.append(script)
+                elif script.run_at() == 'document-idle':
+                    self._run_idle.append(script)
                 else:
                     log.greasemonkey.warning(
                         "Script {} has invalid run-at defined".format(
@@ -255,7 +258,8 @@ class GreasemonkeyManager(QObject):
         tester = lambda script: any(map(match, script.includes())) \
                         and not any(map(match, script.excludes()))
         return list(filter(tester, self._run_start)), \
-               list(filter(tester, self._run_end))
+               list(filter(tester, self._run_end)), \
+               list(filter(tester, self._run_idle))
 
     def all_scripts(self):
-        return self._run_start + self._run_end
+        return self._run_start + self._run_end + self._run_idle
