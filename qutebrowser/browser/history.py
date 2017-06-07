@@ -78,7 +78,7 @@ class WebHistory(sql.SqlTable):
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
-        self.create_index('HistoryIndex', 'url', where='not redirect')
+        self.create_index('HistoryIndex', 'url')
         self._contains_query = self.contains_query('url')
         self._between_query = sql.Query('SELECT * FROM History '
                                         'where not redirect '
