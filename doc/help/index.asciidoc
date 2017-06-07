@@ -4,15 +4,31 @@ qutebrowser help
 Documentation
 -------------
 
-The following help pages are currently available:
+The following documentation is currently available:
 
-* link:../quickstart.html[Quick start guide]
-* link:../../FAQ.html[Frequently asked questions]
+`qutebrowser/`:
+
 * link:../../CHANGELOG.html[Change Log]
-* link:commands.html[Documentation of commands]
-* link:settings.html[Documentation of settings]
-* link:../userscripts.html[How to write userscripts]
-* link:../../CONTRIBUTING.html[Contributing to qutebrowser]
+* link:../../CONTRIBUTING.html[How to contribute]
+* link:../../FAQ.html[Frequently asked questions]
+* link:../../INSTALL.html[Installing qutebrowser]
+* link:../../README.html[General overview on qutebrowser]
+
+`qutebrowser/doc/`:
+
+* link:../backers.html[People who helped crowdfund qutebrowser]
+* link:../quickstart.html[Quick start guide]
+* link:../qutebrowser.1.html[qutebrowser manpage]
+* link:../stacktrace.html[How to get a stacktrace if qutebrowser crashes]
+* link:../stacktrace.html[How to write userscripts]
+
+`qutebrowser/doc/help`:
+
+* link:commands.html[Documentation of available commands]
+* link:settings.html[Documentation of available settings]
+* link:index.html[The page you're currently on]
+
+If you want to rebuild the website, run `./scripts/asciidoc2html.py --website <outputdir>`.
 
 Getting help
 ------------
