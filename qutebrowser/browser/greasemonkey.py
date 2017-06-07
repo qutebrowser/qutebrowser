@@ -238,6 +238,7 @@ class GreasemonkeyManager(QObject):
         """Re-Read greasemonkey scripts from disk."""
         self._run_start = []
         self._run_end = []
+        self._run_idle = []
 
         scripts_dir = os.path.abspath(_scripts_dir())
         log.greasemonkey.debug("Reading scripts from: {}".format(scripts_dir))
@@ -254,6 +255,8 @@ class GreasemonkeyManager(QObject):
                     self._run_start.append(script)
                 elif script.run_at == 'document-end':
                     self._run_end.append(script)
+                elif script.run_at == 'document-idle':
+                    self._run_idle.append(script)
                 else:
                     log.greasemonkey.warning("Script {} has invalid run-at "
                                              "defined, defaulting to "
@@ -269,15 +272,18 @@ class GreasemonkeyManager(QObject):
         """Fetch scripts that are registered to run for url.
 
         returns a tuple of lists of scripts meant to run at (document-start,
-        document-end)
+        document-end, document-idle)
         """
         match = functools.partial(fnmatch.fnmatch, url)
         tester = (lambda script:
-                  any(map(match, script.includes())) and not
-                  any(map(match, script.excludes())))
-        return (list(filter(tester, self._run_start)),
-                list(filter(tester, self._run_end)))
+                  any([match(pat) for pat in script.includes]) and
+                  not any([match(pat) for pat in script.excludes]))
+        return (
+            [script for script in self._run_start if tester(script)],
+            [script for script in self._run_end if tester(script)],
+            [script for script in self._run_idle if tester(script)]
+        )
 
     def all_scripts(self):
         """Return all scripts found in the configured script directory."""
-        return self._run_start + self._run_end
+        return self._run_start + self._run_end + self._run_idle
