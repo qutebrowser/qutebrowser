@@ -90,6 +90,8 @@ class BrowserPage(QWebPage):
             functools.partial(self.inject_userjs, load='start'))
         self.mainFrame().initialLayoutCompleted.connect(
             functools.partial(self.inject_userjs, load='end'))
+        self.mainFrame().loadFinished.connect(
+            functools.partial(self.inject_userjs, load='idle'))
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
@@ -292,20 +294,20 @@ class BrowserPage(QWebPage):
         """Inject user javascripts into the page.
 
         param: The page load stage to inject the corresponding scripts
-               for. Support values are "start" and "end",
+               for. Support values are "start", "end" and "idle",
                corresponding to the allowed values of the `@run-at`
                directive in the greasemonkey metadata spec.
         """
         greasemonkey = objreg.get('greasemonkey')
         url = self.currentFrame().url()
-        start_scripts, end_scripts = greasemonkey.scripts_for(url.toDisplayString())
-        log.greasemonkey.debug('scripts: {}'.format(start_scripts if start else end_scripts))
-
-        toload = []
+        start_scripts, end_scripts, idle_scripts = \
+            greasemonkey.scripts_for(url.toDisplayString())
         if load == "start":
             toload = start_scripts
         elif load == "end":
             toload = end_scripts
+        elif load == "idle":
+            toload = idle_scripts
 
         for script in toload:
             log.webview.debug('Running GM script: {}'.format(script.name))
