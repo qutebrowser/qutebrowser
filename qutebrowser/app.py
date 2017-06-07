@@ -47,7 +47,7 @@ from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
 from qutebrowser.config.parsers import keyconf
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
-                                 downloads)
+                                 downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
@@ -468,6 +468,10 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing cache...")
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
+
+    log.init.debug("Initializing Greasemonkey...")
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
 
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
