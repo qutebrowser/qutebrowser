@@ -29,6 +29,7 @@ import glob
 from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.utils import log, standarddir
+from qutebrowser.commands import cmdutils
 
 # TODO: GM_ bootstrap
 
@@ -215,10 +216,26 @@ unsafeWindow = window;
         })
 
 
-class GreasemonkeyManager:
+class GreasemonkeyManager(QObject):
+
+    """Manager of userscripts and a greasemonkey compatible environment.
+
+    Signals:
+        scripts_reloaded: Emitted when scripts are reloaded from disk.
+            Any any cached or already-injected scripts should be
+            considered obselete.
+    """
+
+    scripts_reloaded = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.load_scripts()
+
+    @cmdutils.register(name='greasemonkey-reload',
+                       instance='greasemonkey')
+    def load_scripts(self):
+        """Re-Read greasemonkey scripts from disk."""
         self._run_start = []
         self._run_end = []
 
@@ -243,6 +260,7 @@ class GreasemonkeyManager:
                                              .format(script_path))
                     continue
                 log.greasemonkey.debug("Loaded script: {}".format(script.name))
+        self.scripts_reloaded.emit()
 
     def scripts_for(self, url):
         """Fetch scripts that are registered to run for url.
