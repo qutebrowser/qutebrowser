@@ -230,8 +230,9 @@ def test_init(backend, qapp, tmpdir, monkeypatch, cleanup_init):
         assert default_interface is None
 
 
-def test_read(hist, tmpdir):
-    histfile = tmpdir / 'history'
+def test_read(hist, data_tmpdir, monkeypatch, stubs):
+    monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
+    histfile = data_tmpdir / 'history'
     # empty line is deliberate, to test skipping empty lines
     histfile.write('''12345 http://example.com/ title
                       12346 http://qutebrowser.org/
@@ -239,7 +240,7 @@ def test_read(hist, tmpdir):
 
                       68891-r http://example.com/path/other ''')
 
-    hist.read(str(histfile))
+    hist.import_txt()
 
     assert list(hist) == [
         ('http://example.com/', 'title', 12345, False),
@@ -248,6 +249,8 @@ def test_read(hist, tmpdir):
         ('http://example.com/path/other', '', 68891, True)
     ]
 
+    assert not histfile.exists()
+
 
 @pytest.mark.parametrize('line', [
     'xyz http://example.com/bad-timestamp',
@@ -255,12 +258,15 @@ def test_read(hist, tmpdir):
     'http://example.com/no-timestamp',
     '68891-r-r http://example.com/double-flag',
 ])
-def test_read_invalid(hist, tmpdir, line):
-    histfile = tmpdir / 'history'
+def test_read_invalid(hist, data_tmpdir, line, monkeypatch, stubs):
+    monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
+    histfile = data_tmpdir / 'history'
     histfile.write(line)
 
     with pytest.raises(Exception):
-        hist.read(str(histfile))
+        hist.import_txt()
+
+    assert histfile.exists()
 
 
 def test_debug_dump_history(hist, tmpdir):

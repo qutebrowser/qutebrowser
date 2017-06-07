@@ -22,10 +22,11 @@
 import os
 import time
 
-from PyQt5.QtCore import pyqtSlot, QUrl
+from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, objreg, log, qtutils, usertypes, message
+from qutebrowser.utils import (utils, objreg, log, qtutils, usertypes, message,
+                               debug, standarddir)
 from qutebrowser.misc import objects, sql
 
 
@@ -217,7 +218,28 @@ class WebHistory(sql.SqlTable):
 
         return (url, title, float(atime), bool(redirect))
 
-    def read(self, path):
+    def import_txt(self):
+        """Import a history text file into sqlite if it exists.
+
+        In older versions of qutebrowser, history was stored in a text format.
+        This converts that file into the new sqlite format and removes it.
+        """
+        path = os.path.join(standarddir.data(), 'history')
+        if not os.path.isfile(path):
+            return
+
+        def action():
+            with debug.log_time(log.init, 'Import old history file to sqlite'):
+                self._read(path)
+                message.info('History import complete. Removing {}'
+                             .format(path))
+                os.remove(path)
+
+        # delay to give message time to appear before locking down for import
+        message.info('Converting {} to sqlite...'.format(path))
+        QTimer.singleShot(100, action)
+
+    def _read(self, path):
         """Import a text file into the sql database."""
         with open(path, 'r', encoding='utf-8') as f:
             rows = []

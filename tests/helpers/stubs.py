@@ -385,6 +385,10 @@ class InstaTimer(QObject):
     def setInterval(self, interval):
         pass
 
+    @staticmethod
+    def singleShot(_interval, fun):
+        fun()
+
 
 class FakeConfigType:
 
