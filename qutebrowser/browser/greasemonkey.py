@@ -25,10 +25,11 @@ import json
 from fnmatch import fnmatch
 from functools import partial
 
-from PyQt5.QtCore import QDir
+from PyQt5.QtCore import QDir, pyqtSignal, QObject
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
+from qutebrowser.commands import cmdutils
 
 # TODO: GM_ bootstrap
 
@@ -214,9 +215,26 @@ unsafeWindow = window;
         pass
 
 
-class GreasemonkeyManager:
+class GreasemonkeyManager(QObject):
+
+    """Manager of userscripts and a greasemonkey compatible environment.
+
+    Signals:
+        scripts_reloaded: Emitted when scripts are reloaded from disk.
+            Any any cached or already-injected scripts should be
+            considered obselete.
+    """
+
+    scripts_reloaded = pyqtSignal()
 
     def __init__(self):
+        super().__init__()
+        self.load_scripts()
+
+    @cmdutils.register(name='greasemonkey-reload',
+                       instance='greasemonkey')
+    def load_scripts(self):
+        """Re-Read greasemonkey scripts from disk."""
         self._run_start = []
         self._run_end = []
 
@@ -244,6 +262,7 @@ class GreasemonkeyManager:
                                               "document-end"), script_path)
                     continue
                 log.greasemonkey.debug("Loaded script: %s", script.name())
+        self.scripts_reloaded.emit()
 
     def scripts_for(self, url):
         match = partial(fnmatch, url)
