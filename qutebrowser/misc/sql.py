@@ -122,6 +122,18 @@ class SqlTable(QObject):
         # pylint: disable=invalid-name
         self.Entry = collections.namedtuple(name + '_Entry', fields)
 
+    def create_index(self, name, field, where):
+        """Create an index over this table.
+
+        Args:
+            name: Name of the index, should be unique.
+            field: Name of the field to index.
+            where: WHERE clause for a partial index.
+        """
+        q = Query("CREATE INDEX IF NOT EXISTS {} ON {} ({}) WHERE {}"
+                  .format(name, self._name, field, where))
+        q.run()
+
     def __iter__(self):
         """Iterate rows in the table."""
         q = Query("SELECT * FROM {}".format(self._name))
