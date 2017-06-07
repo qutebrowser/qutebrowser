@@ -61,8 +61,11 @@ class SqlCategory(QSqlQueryModel):
 
         self._query = sql.Query(querystr)
         self._param_count = len(filter_fields)
-        rec = self._query.record()
-        # will this work?
+        self.columns_to_filter = None
+
+        # map filter_fields to indices
+        col_query = sql.Query('SELECT * FROM {} LIMIT 1'.format(name))
+        rec = col_query.run().record()
         self.columns_to_filter = [rec.indexOf(n) for n in filter_fields]
 
     def set_pattern(self, pattern):
@@ -72,8 +75,6 @@ class SqlCategory(QSqlQueryModel):
             pattern: string pattern to filter by.
             columns_to_filter: indices of columns to apply pattern to.
         """
-        # TODO: eliminate columns_to_filter
-        #assert len(columns_to_filter) == self._param_count
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
         pattern = pattern.replace('_', '\\_')
