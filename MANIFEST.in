@@ -30,21 +30,15 @@ prune tests
 prune qutebrowser/3rdparty
 prune misc/requirements
 prune misc/docker
-exclude .editorconfig
 exclude pytest.ini
 exclude qutebrowser.rcc
-exclude .coveragerc
-exclude .pylintrc
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
-exclude .appveyor.yml
-exclude .travis.yml
+exclude .*
 exclude codecov.yml
-exclude .pydocstylerc
 exclude misc/appveyor_install.py
 exclude misc/qutebrowser.spec
 exclude misc/qutebrowser.nsi
-exclude .flake8
 
 global-exclude __pycache__ *.pyc *.pyo
