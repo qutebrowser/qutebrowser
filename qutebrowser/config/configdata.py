@@ -696,7 +696,7 @@ def data(readonly=False):
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos', 'host'], none_ok=True),
+                         'id', 'scroll_pos', 'host', 'private'], none_ok=True),
                  '{index}: {title}'),
              "The format to use for the tab title. The following placeholders "
              "are defined:\n\n"
@@ -709,12 +709,13 @@ def data(readonly=False):
              "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
-             "* `{backend}`: Either 'webkit' or 'webengine'"),
+             "* `{backend}`: Either 'webkit' or 'webengine'\n"
+             "* `{private}` : Indicates when private mode is enabled.\n"),
 
             ('title-format-pinned',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos', 'host'], none_ok=True),
+                         'id', 'scroll_pos', 'host', 'private'], none_ok=True),
                  '{index}'),
              "The format to use for the tab title for pinned tabs. "
              "The same placeholders like for title-format are defined."),
