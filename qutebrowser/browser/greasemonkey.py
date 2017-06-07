@@ -256,9 +256,12 @@ class GreasemonkeyManager(QObject):
                     self._run_end.append(script)
                 else:
                     log.greasemonkey.warning("Script {} has invalid run-at "
-                                             "defined, ignoring."
+                                             "defined, defaulting to "
+                                             "document-end"
                                              .format(script_path))
-                    continue
+                    # Default as per
+                    # https://wiki.greasespot.net/Metadata_Block#.40run-at
+                    self._run_end.append(script)
                 log.greasemonkey.debug("Loaded script: {}".format(script.name))
         self.scripts_reloaded.emit()
 
