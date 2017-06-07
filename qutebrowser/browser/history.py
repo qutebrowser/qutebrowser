@@ -79,6 +79,7 @@ class WebHistory(sql.SqlTable):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
         self.create_index('HistoryIndex', 'url', where='not redirect')
+        self._contains_query = self.contains_query('url')
         self._between_query = sql.Query('SELECT * FROM History '
                                         'where not redirect '
                                         'and not url like "qute://%" '
@@ -97,7 +98,7 @@ class WebHistory(sql.SqlTable):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
-        return self.contains('url', url)
+        return self._contains_query.run([url]).value()
 
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""

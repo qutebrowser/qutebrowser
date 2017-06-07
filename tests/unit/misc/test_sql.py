@@ -94,15 +94,20 @@ def test_contains():
     table.insert(['one', 1, False])
     table.insert(['nine', 9, False])
     table.insert(['thirteen', 13, True])
-    assert table.contains('name', 'one')
-    assert table.contains('name', 'thirteen')
-    assert table.contains('val', 9)
-    assert table.contains('lucky', False)
-    assert table.contains('lucky', True)
-    assert not table.contains('name', 'oone')
-    assert not table.contains('name', 1)
-    assert not table.contains('name', '*')
-    assert not table.contains('val', 10)
+
+    name_query = table.contains_query('name')
+    val_query = table.contains_query('val')
+    lucky_query = table.contains_query('lucky')
+
+    assert name_query.run(['one']).value()
+    assert name_query.run(['thirteen']).value()
+    assert val_query.run([9]).value()
+    assert lucky_query.run([False]).value()
+    assert lucky_query.run([True]).value()
+    assert not name_query.run(['oone']).value()
+    assert not name_query.run([1]).value()
+    assert not name_query.run(['*']).value()
+    assert not val_query.run([10]).value()
 
 
 def test_delete_all(qtbot):

@@ -83,6 +83,7 @@ class Query(QSqlQuery):
         if not self.exec_():
             raise SqlException('Failed to exec query "{}": "{}"'.format(
                                self.lastQuery(), self.lastError().text()))
+        return self
 
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
@@ -140,17 +141,14 @@ class SqlTable(QObject):
         q.run()
         return iter(q)
 
-    def contains(self, field, value):
-        """Return whether the table contains the matching item.
+    def contains_query(self, field):
+        """Return a prepared query that checks for the existence of an item.
 
         Args:
             field: Field to match.
-            value: Value to check for the given field.
         """
-        q = Query("Select EXISTS(SELECT * FROM {} where {} = ?)"
-                  .format(self._name, field))
-        q.run([value])
-        return q.value()
+        return Query("Select EXISTS(SELECT * FROM {} where {} = ?)"
+                     .format(self._name, field))
 
     def __len__(self):
         """Return the count of rows in the table."""
