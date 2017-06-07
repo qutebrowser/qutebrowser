@@ -22,6 +22,8 @@
 
 from PyQt5.QtWebKit import QWebHistoryInterface
 
+from qutebrowser.utils import debug
+
 
 class WebHistoryInterface(QWebHistoryInterface):
 
@@ -48,7 +50,8 @@ class WebHistoryInterface(QWebHistoryInterface):
         Return:
             True if the url is in the history, False otherwise.
         """
-        return url_string in self._history
+        with debug.log_time('sql', 'historyContains'):
+            return url_string in self._history
 
 
 def init(history):

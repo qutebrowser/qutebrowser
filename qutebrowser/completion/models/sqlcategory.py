@@ -24,6 +24,7 @@ import re
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
+from qutebrowser.utils import debug
 
 
 class SqlCategory(QSqlQueryModel):
@@ -81,5 +82,6 @@ class SqlCategory(QSqlQueryModel):
         # treat spaces as wildcards to match any of the typed words
         pattern = re.sub(r' +', '%', pattern)
         pattern = '%{}%'.format(pattern)
-        self._query.run([pattern] * self._param_count)
+        with debug.log_time('sql', 'Running completion query'):
+            self._query.run([pattern] * self._param_count)
         self.setQuery(self._query)
