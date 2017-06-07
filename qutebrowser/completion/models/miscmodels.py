@@ -137,7 +137,6 @@ def bind(_key):
         _key: the key being bound.
     """
     # TODO: offer a 'Current binding' completion based on the key.
-    print(_key)
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
