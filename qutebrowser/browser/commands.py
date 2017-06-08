@@ -1548,7 +1548,7 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def messages(self, level='error', plain=False, tab=False, bg=False,
+    def messages(self, level='info', plain=False, tab=False, bg=False,
                  window=False):
         """Show a log of past messages.
 

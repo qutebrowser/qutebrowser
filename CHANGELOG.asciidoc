@@ -92,7 +92,7 @@ Changed
 - Texts in prompts are now selectable.
 - Renderer process crashes now show an error page.
 - (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
-
+- The default level for `:messages` is now `info`, not `error`
 
 Fixed
 ~~~~~
