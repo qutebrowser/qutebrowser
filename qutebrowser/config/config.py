@@ -37,7 +37,7 @@ import collections.abc
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import configdata, configexc, textwrapper
+from qutebrowser.config import configdata, configexc, textwrapper, newconfig
 from qutebrowser.config.parsers import keyconf
 from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
@@ -132,7 +132,8 @@ def get(*args, **kwargs):
 
 def section(sect):
     """Get a config section from the global config."""
-    return objreg.get('config')[sect]
+    config = objreg.get('config')
+    return newconfig.SectionStub(config, sect)
 
 
 def _init_main_config(parent=None):
@@ -242,13 +243,20 @@ def _init_misc():
         QSettings.setPath(fmt, QSettings.UserScope, path)
 
 
+def _init_new_config(parent):
+    new_config = newconfig.NewConfigManager(parent)
+    new_config.read_defaults()
+    objreg.register('config', new_config)
+
+
 def init(parent=None):
     """Initialize the config.
 
     Args:
         parent: The parent to pass to QObjects which get initialized.
     """
-    _init_main_config(parent)
+    # _init_main_config(parent)
+    _init_new_config(parent)
     _init_key_config(parent)
     _init_misc()
 

@@ -285,9 +285,10 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
             bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 
-    if include_aliases:
-        for name, cmd in config.section('aliases').items():
-            bindings = ', '.join(cmd_to_keys.get(name, []))
-            cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
+    # FIXME:conf
+    # if include_aliases:
+    #     for name, cmd in config.section('aliases').items():
+    #         bindings = ', '.join(cmd_to_keys.get(name, []))
+    #         cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
 
     return cmdlist

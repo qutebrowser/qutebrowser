@@ -40,7 +40,7 @@ def get_stylesheet(template_str):
     Return:
         The formatted template as string.
     """
-    colordict = ColorDict(config.section('colors'))
+    colordict = ColorDict(config)
     template = jinja2.Template(template_str)
     return template.render(color=colordict, font=config.section('fonts'),
                            config=objreg.get('config'))
@@ -70,9 +70,12 @@ def _update_stylesheet(obj):
         obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
 
 
-class ColorDict(collections.UserDict):
+class ColorDict:
 
     """A dict aimed at Qt stylesheet colors."""
+
+    def __init__(self, config):
+        self._config = config
 
     def __getitem__(self, key):
         """Override dict __getitem__.
@@ -86,11 +89,7 @@ class ColorDict(collections.UserDict):
 
             else, return the plain value.
         """
-        try:
-            val = self.data[key]
-        except KeyError:
-            log.config.exception("No color defined for {}!".format(key))
-            return ''
+        val = self._config.get('colors', key)
         if isinstance(val, QColor):
             # This could happen when accidentally declaring something as
             # QtColor instead of Color in the config, and it'd go unnoticed as

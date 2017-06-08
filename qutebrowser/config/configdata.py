@@ -27,6 +27,8 @@ DATA: A global read-only copy of the default config, an OrderedDict of
       sections.
 """
 
+# FIXME:conf reintroduce interpolation?
+
 import sys
 import re
 import collections
@@ -121,6 +123,13 @@ SECTION_DESC = {
 
 
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
+# FIXME:conf what to do about this?
+MONOSPACE = (' xos4 Terminus, Terminus, Monospace, '
+             '"DejaVu Sans Mono", Monaco, '
+             '"Bitstream Vera Sans Mono", "Andale Mono", '
+             '"Courier New", Courier, "Liberation Mono", '
+             'monospace, Fixed, Consolas, Terminal')
+
 
 
 def data(readonly=False):
@@ -155,7 +164,7 @@ def data(readonly=False):
             "the filename will be appended."),
 
             ('default-page',
-             SettingValue(typ.FuzzyUrl(), '${startpage}'),
+             SettingValue(typ.FuzzyUrl(), 'https://start.duckduckgo.com/'),
              "The page to open if :open -t/-b/-w is used without URL. Use "
              "`about:blank` for a blank page."),
 
@@ -1051,7 +1060,7 @@ def data(readonly=False):
              "Top border color of the completion widget category headers."),
 
             ('completion.category.border.bottom',
-             SettingValue(typ.QssColor(), '${completion.category.border.top}'),
+             SettingValue(typ.QssColor(), 'black'),
              "Bottom border color of the completion widget category headers."),
 
             ('completion.item.selected.fg',
@@ -1068,7 +1077,7 @@ def data(readonly=False):
 
             ('completion.item.selected.border.bottom',
              SettingValue(
-                 typ.QssColor(), '${completion.item.selected.border.top}'),
+                 typ.QssColor(), '#bbbb00'),
              "Bottom border color of the selected completion item."),
 
             ('completion.match.fg',
@@ -1076,11 +1085,11 @@ def data(readonly=False):
              "Foreground color of the matched text in the completion."),
 
             ('completion.scrollbar.fg',
-             SettingValue(typ.QssColor(), '${completion.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Color of the scrollbar handle in completion view."),
 
             ('completion.scrollbar.bg',
-             SettingValue(typ.QssColor(), '${completion.bg}'),
+             SettingValue(typ.QssColor(), '#333333'),
              "Color of the scrollbar in completion view"),
 
             ('statusbar.fg',
@@ -1092,7 +1101,7 @@ def data(readonly=False):
              "Background color of the statusbar."),
 
             ('statusbar.fg.private',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in private browsing mode."),
 
             ('statusbar.bg.private',
@@ -1100,7 +1109,7 @@ def data(readonly=False):
              "Background color of the statusbar in private browsing mode."),
 
             ('statusbar.fg.insert',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in insert mode."),
 
             ('statusbar.bg.insert',
@@ -1108,25 +1117,25 @@ def data(readonly=False):
              "Background color of the statusbar in insert mode."),
 
             ('statusbar.fg.command',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in command mode."),
 
             ('statusbar.bg.command',
-             SettingValue(typ.QssColor(), '${statusbar.bg}'),
+             SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar in command mode."),
 
             ('statusbar.fg.command.private',
-             SettingValue(typ.QssColor(), '${statusbar.fg.private}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in private browsing + command "
              "mode."),
 
             ('statusbar.bg.command.private',
-             SettingValue(typ.QssColor(), '${statusbar.bg.private}'),
+             SettingValue(typ.QssColor(), 'grey'),
              "Background color of the statusbar in private browsing + command "
              "mode."),
 
             ('statusbar.fg.caret',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in caret mode."),
 
             ('statusbar.bg.caret',
@@ -1134,7 +1143,7 @@ def data(readonly=False):
              "Background color of the statusbar in caret mode."),
 
             ('statusbar.fg.caret-selection',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Foreground color of the statusbar in caret mode with a "
              "selection"),
 
@@ -1148,7 +1157,7 @@ def data(readonly=False):
              "Background color of the progress bar."),
 
             ('statusbar.url.fg',
-             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             SettingValue(typ.QssColor(), 'white'),
              "Default foreground color of the URL in the statusbar."),
 
             ('statusbar.url.fg.success',
@@ -1200,11 +1209,11 @@ def data(readonly=False):
              "Background color of selected odd tabs."),
 
             ('tabs.fg.selected.even',
-             SettingValue(typ.QtColor(), '${tabs.fg.selected.odd}'),
+             SettingValue(typ.QtColor(), 'white'),
              "Foreground color of selected even tabs."),
 
             ('tabs.bg.selected.even',
-             SettingValue(typ.QtColor(), '${tabs.bg.selected.odd}'),
+             SettingValue(typ.QtColor(), 'black'),
              "Background color of selected even tabs."),
 
             ('tabs.bg.bar',
@@ -1255,7 +1264,7 @@ def data(readonly=False):
              "Color gradient start for download backgrounds."),
 
             ('downloads.fg.stop',
-             SettingValue(typ.QtColor(), '${downloads.fg.start}'),
+             SettingValue(typ.QtColor(), '#0000aa'),
              "Color gradient end for download text."),
 
             ('downloads.bg.stop',
@@ -1356,23 +1365,23 @@ def data(readonly=False):
              "Default monospace fonts."),
 
             ('completion',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used in the completion widget."),
 
             ('completion.category',
-             SettingValue(typ.Font(), 'bold ${completion}'),
+             SettingValue(typ.Font(), 'bold ' + DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used in the completion categories."),
 
             ('tabbar',
-             SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used in the tab bar."),
 
             ('statusbar',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used in the statusbar."),
 
             ('downloads',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used for the downloadbar."),
 
             ('hints',
@@ -1380,7 +1389,7 @@ def data(readonly=False):
              "Font used for the hints."),
 
             ('debug-console',
-             SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.QtFont(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used for the debugging console."),
 
             ('web-family-standard',
@@ -1432,19 +1441,19 @@ def data(readonly=False):
              "The default font size for fixed-pitch text."),
 
             ('keyhint',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used in the keyhint widget."),
 
             ('messages.error',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used for error messages."),
 
             ('messages.warning',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used for warning messages."),
 
             ('messages.info',
-             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + ' ${_monospace}'),
+             SettingValue(typ.Font(), DEFAULT_FONT_SIZE + MONOSPACE),
              "Font used for info messages."),
 
             ('prompts',
