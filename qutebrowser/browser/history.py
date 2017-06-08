@@ -79,6 +79,7 @@ class CompletionHistory(sql.SqlTable):
     def __init__(self, parent=None):
         super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
                          constraints={'url': 'PRIMARY KEY'}, parent=parent)
+        self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
 
 
 class WebHistory(sql.SqlTable):
@@ -90,6 +91,7 @@ class WebHistory(sql.SqlTable):
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
         self.create_index('HistoryIndex', 'url')
+        self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
         self._between_query = sql.Query('SELECT * FROM History '
                                         'where not redirect '
