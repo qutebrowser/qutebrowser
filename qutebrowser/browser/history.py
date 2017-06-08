@@ -24,7 +24,7 @@ import time
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import (utils, objreg, log, qtutils, usertypes, message,
                                debug, standarddir)
 from qutebrowser.misc import objects, sql
@@ -245,10 +245,14 @@ class WebHistory(sql.SqlTable):
 
         def action():
             with debug.log_time(log.init, 'Import old history file to sqlite'):
-                self._read(path)
-                message.info('History import complete. Removing {}'
-                             .format(path))
-                os.remove(path)
+                try:
+                    self._read(path)
+                except ValueError as ex:
+                    message.error('Failed to import history: {}'.format(ex))
+                else:
+                    message.info('History import complete. Removing {}'
+                                 .format(path))
+                    os.remove(path)
 
         # delay to give message time to appear before locking down for import
         message.info('Converting {} to sqlite...'.format(path))
@@ -268,9 +272,9 @@ class WebHistory(sql.SqlTable):
                     rows.append(row)
                     if completion_row is not None:
                         completion_rows.append(completion_row)
-                except ValueError:
-                    raise Exception('Failed to parse line #{} of {}: "{}"'
-                                    .format(i, path, line))
+                except ValueError as ex:
+                    raise ValueError('Failed to parse line #{} of {}: "{}"'
+                                     .format(i, path, ex))
         self.insert_batch(rows)
         self.completion.insert_batch(completion_rows, replace=True)
 
@@ -283,6 +287,10 @@ class WebHistory(sql.SqlTable):
         """
         dest = os.path.expanduser(dest)
 
+        dirname = os.path.dirname(dest)
+        if not os.path.exists(dirname):
+            raise cmdexc.CommandError('Path does not exist', dirname)
+
         lines = ('{}{} {} {}'
                  .format(int(x.atime), '-r' * x.redirect, x.url, x.title)
                  for x in self.select(sort_by='atime', sort_order='asc'))
@@ -291,9 +299,8 @@ class WebHistory(sql.SqlTable):
             try:
                 f.write('\n'.join(lines))
             except OSError as e:
-                message.error('Could not write history: {}'.format(e))
-            else:
-                message.info("Dumped history to {}.".format(dest))
+                raise cmdexc.CommandError('Could not write history: {}', e)
+            message.info("Dumped history to {}.".format(dest))
 
 
 def init(parent=None):
