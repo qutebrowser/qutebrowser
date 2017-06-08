@@ -170,8 +170,15 @@ def debug_cache_stats():
     """Print LRU cache stats."""
     config_info = objreg.get('config').get.cache_info()
     style_info = style.get_stylesheet.cache_info()
+    try:
+        from PyQt5.QtWebKit import QWebHistoryInterface
+        interface = QWebHistoryInterface.defaultInterface()
+        history_info = interface.historyContains.cache_info()
+    except ImportError:
+        history_info = None
     log.misc.debug('config: {}'.format(config_info))
     log.misc.debug('style: {}'.format(style_info))
+    log.misc.debug('history: {}'.format(history_info))
 
 
 @cmdutils.register(debug=True)

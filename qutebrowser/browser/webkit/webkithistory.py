@@ -19,6 +19,7 @@
 
 """QtWebKit specific part of history."""
 
+import functools
 
 from PyQt5.QtWebKit import QWebHistoryInterface
 
@@ -36,11 +37,13 @@ class WebHistoryInterface(QWebHistoryInterface):
     def __init__(self, webhistory, parent=None):
         super().__init__(parent)
         self._history = webhistory
+        self._history.changed.connect(self.historyContains.cache_clear)
 
     def addHistoryEntry(self, url_string):
         """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
         pass
 
+    @functools.lru_cache(maxsize=32768)
     def historyContains(self, url_string):
         """Called by WebKit to determine if a URL is contained in the history.
 
