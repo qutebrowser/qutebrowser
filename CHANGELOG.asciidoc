@@ -45,7 +45,7 @@ Added
 - `colors -> statusbar.bg/fg.private` and `.command.private` to
   customize statusbar colors for private windows.
 - New `{private}` field displaying `[Private Mode]` for
-  `ui -> window-title-format`.
+  `ui -> window-title-format` and `tabs -> title-format`.
 
 Changed
 ~~~~~~~
