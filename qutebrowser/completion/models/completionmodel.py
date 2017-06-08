@@ -134,7 +134,7 @@ class CompletionModel(QAbstractItemModel):
             # categories have no parent
             return QModelIndex()
         row = self._categories.index(parent_cat)
-        return self.createIndex(row, index.column(), None)
+        return self.createIndex(row, 0, None)
 
     def rowCount(self, parent=QModelIndex()):
         """Override QAbstractItemModel::rowCount."""
