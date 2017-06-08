@@ -71,8 +71,7 @@ class ListCategory(QSortFilterProxyModel):
             parent: The parent item QModelIndex.
 
         Return:
-            True if self.pattern is contained in item, or if it's a root item
-            (category). False in all other cases
+            True if self.pattern is contained in item.
         """
         if not self.pattern:
             return True

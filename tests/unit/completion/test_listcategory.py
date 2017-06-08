@@ -21,20 +21,8 @@
 
 import pytest
 
+from helpers import utils
 from qutebrowser.completion.models import listcategory
-
-
-def _validate(cat, expected):
-    """Check that a category contains the expected items in the given order.
-
-    Args:
-        cat: The category to inspect.
-        expected: A list of tuples containing the expected items.
-    """
-    assert cat.rowCount() == len(expected)
-    for row, items in enumerate(expected):
-        for col, item in enumerate(items):
-            assert cat.data(cat.index(row, col)) == item
 
 
 @pytest.mark.parametrize('pattern, filter_cols, before, after', [
@@ -68,4 +56,4 @@ def test_set_pattern(pattern, filter_cols, before, after):
     cat = listcategory.ListCategory('Foo', before,
                                     columns_to_filter=filter_cols)
     cat.set_pattern(pattern)
-    _validate(cat, after)
+    utils.validate_model(cat, after)

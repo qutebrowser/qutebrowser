@@ -213,7 +213,7 @@ def qute_history(url):
             offset = QUrlQuery(url).queryItemValue("offset")
             offset = int(offset) if offset else None
         except ValueError as e:
-            raise QuteSchemeError("Query parameter start_time is invalid", e)
+            raise QuteSchemeError("Query parameter offset is invalid", e)
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")

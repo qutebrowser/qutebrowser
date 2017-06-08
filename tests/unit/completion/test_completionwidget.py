@@ -229,7 +229,7 @@ def test_completion_item_del_no_selection(completionview):
     model = completionmodel.CompletionModel(delete_cur_item=func)
     model.add_category(listcategory.ListCategory('', [('foo',)]))
     completionview.set_model(model)
-    with pytest.raises(cmdexc.CommandError):
+    with pytest.raises(cmdexc.CommandError, match='No item selected!'):
         completionview.completion_item_del()
     assert not func.called
 
@@ -240,5 +240,5 @@ def test_completion_item_del_no_func(completionview):
     model.add_category(listcategory.ListCategory('', [('foo',)]))
     completionview.set_model(model)
     completionview.completion_item_focus('next')
-    with pytest.raises(cmdexc.CommandError):
+    with pytest.raises(cmdexc.CommandError, match='Cannot delete this item.'):
         completionview.completion_item_del()

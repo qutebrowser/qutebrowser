@@ -21,24 +21,12 @@
 
 import pytest
 
+from helpers import utils
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import sqlcategory
 
 
 pytestmark = pytest.mark.usefixtures('init_sql')
-
-
-def _validate(cat, expected):
-    """Check that a category contains the expected items in the given order.
-
-    Args:
-        cat: The category to inspect.
-        expected: A list of tuples containing the expected items.
-    """
-    assert cat.rowCount() == len(expected)
-    for row, items in enumerate(expected):
-        for col, item in enumerate(items):
-            assert cat.data(cat.index(row, col)) == item
 
 
 @pytest.mark.parametrize('sort_by, sort_order, data, expected', [
@@ -77,7 +65,7 @@ def test_sorting(sort_by, sort_order, data, expected):
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], sort_by=sort_by,
                                   sort_order=sort_order)
     cat.set_pattern('')
-    _validate(cat, expected)
+    utils.validate_model(cat, expected)
 
 
 @pytest.mark.parametrize('pattern, filter_cols, before, after', [
@@ -133,7 +121,7 @@ def test_set_pattern(pattern, filter_cols, before, after):
     filter_fields = [['a', 'b', 'c'][i] for i in filter_cols]
     cat = sqlcategory.SqlCategory('Foo', filter_fields=filter_fields)
     cat.set_pattern(pattern)
-    _validate(cat, after)
+    utils.validate_model(cat, after)
 
 
 def test_select():
@@ -141,7 +129,7 @@ def test_select():
     table.insert(['foo', 'bar', 'baz'])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], select='b, c, a')
     cat.set_pattern('')
-    _validate(cat, [('bar', 'baz', 'foo')])
+    utils.validate_model(cat, [('bar', 'baz', 'foo')])
 
 
 def test_where():
@@ -150,7 +138,7 @@ def test_where():
     table.insert(['baz', 'biz', True])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], where='not c')
     cat.set_pattern('')
-    _validate(cat, [('foo', 'bar', False)])
+    utils.validate_model(cat, [('foo', 'bar', False)])
 
 
 def test_group():
@@ -162,7 +150,7 @@ def test_group():
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'],
                                   select='a, max(b)', group_by='a')
     cat.set_pattern('')
-    _validate(cat, [('bar', 3), ('foo', 2)])
+    utils.validate_model(cat, [('bar', 3), ('foo', 2)])
 
 
 def test_entry():

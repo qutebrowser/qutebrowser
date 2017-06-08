@@ -78,12 +78,14 @@ class CompletionModel(QAbstractItemModel):
         if not index.isValid() or role != Qt.DisplayRole:
             return None
         if not index.parent().isValid():
+            # category header
             if index.column() == 0:
                 return self._categories[index.row()].name
-        else:
-            cat = self._categories[index.parent().row()]
-            idx = cat.index(index.row(), index.column())
-            return cat.data(idx)
+            return None
+        # item
+        cat = self._categories[index.parent().row()]
+        idx = cat.index(index.row(), index.column())
+        return cat.data(idx)
 
     def flags(self, index):
         """Return the item flags for index.
@@ -132,7 +134,7 @@ class CompletionModel(QAbstractItemModel):
             # categories have no parent
             return QModelIndex()
         row = self._categories.index(parent_cat)
-        return self.createIndex(row, 0, None)
+        return self.createIndex(row, index.column(), None)
 
     def rowCount(self, parent=QModelIndex()):
         """Override QAbstractItemModel::rowCount."""

@@ -59,13 +59,23 @@ class Query(QSqlQuery):
 
     """A prepared SQL Query."""
 
-    def __init__(self, querystr):
+    def __init__(self, querystr, forward_only=True):
+        """Prepare a new sql query.
+
+        Args:
+            querystr: String to prepare query from.
+            forward_only: Optimization for queries that will only step forward.
+                          Must be false for completion queries.
+        """
         super().__init__(QSqlDatabase.database())
         log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
-        self.prepare(querystr)
+        if not self.prepare(querystr):
+            raise SqlException('Failed to prepare query "{}"'.format(querystr))
+        self.setForwardOnly(forward_only)
 
     def __iter__(self):
-        assert self.isActive(), "Cannot iterate inactive query"
+        if not self.isActive():
+            raise SqlException("Cannot iterate inactive query")
         rec = self.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
         rowtype = collections.namedtuple('ResultRow', fields)
@@ -87,8 +97,8 @@ class Query(QSqlQuery):
 
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
-        ok = self.next()
-        assert ok, "No result for single-result query"
+        if not self.next():
+            raise SqlException("No result for single-result query")
         return self.record().value(0)
 
 
@@ -152,7 +162,7 @@ class SqlTable(QObject):
         Args:
             field: Field to match.
         """
-        return Query("Select EXISTS(SELECT * FROM {} where {} = ?)"
+        return Query("SELECT EXISTS(SELECT * FROM {} WHERE {} = ?)"
                      .format(self._name, field))
 
     def __len__(self):
@@ -214,17 +224,19 @@ class SqlTable(QObject):
         self.changed.emit()
 
     def delete_all(self):
-        """Remove all row from the table."""
+        """Remove all rows from the table."""
         Query("DELETE FROM {}".format(self._name)).run()
         self.changed.emit()
 
     def select(self, sort_by, sort_order, limit=-1):
-        """Remove all row from the table.
+        """Prepare, run, and return a select statement on this table.
 
         Args:
             sort_by: name of column to sort by.
             sort_order: 'asc' or 'desc'.
             limit: max number of rows in result, defaults to -1 (unlimited).
+
+        Return: A prepared and executed select query.
         """
         q = Query('SELECT * FROM {} ORDER BY {} {} LIMIT ?'
                   .format(self._name, sort_by, sort_order))

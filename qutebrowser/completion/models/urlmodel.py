@@ -74,7 +74,8 @@ def url():
     model.add_category(listcategory.ListCategory('Bookmarks', bookmarks,
                                                  columns_to_filter=[0, 1]))
 
-    timefmt = config.get('completion', 'timestamp-format')
+    # replace 's to avoid breaking the query
+    timefmt = config.get('completion', 'timestamp-format').replace("'", "`")
     select_time = "strftime('{}', last_atime, 'unixepoch')".format(timefmt)
     hist_cat = sqlcategory.SqlCategory(
         'CompletionHistory', sort_order='desc', sort_by='last_atime',

@@ -107,14 +107,6 @@ def test_entries_before(hist):
     assert times == [12348, 12347, 12346]
 
 
-def test_save(tmpdir, hist):
-    hist.add_url(QUrl('http://example.com/'), atime=12345)
-    hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
-
-    hist2 = history.WebHistory()
-    assert list(hist2) == [('http://example.com/', '', 12345, False),
-                           ('http://www.qutebrowser.org/', '', 67890, False)]
-
 
 def test_clear(qtbot, tmpdir, hist, mocker):
     hist.add_url(QUrl('http://example.com/'))
@@ -132,12 +124,11 @@ def test_clear_force(qtbot, tmpdir, hist):
     assert not len(hist)
 
 
-@pytest.mark.parametrize('item', [
+@pytest.mark.parametrize('url, atime, title, redirect', [
     ('http://www.example.com', 12346, 'the title', False),
     ('http://www.example.com', 12346, 'the title', True)
 ])
-def test_add_item(qtbot, hist, item):
-    (url, atime, title, redirect) = item
+def test_add_item(qtbot, hist, url, atime, title, redirect):
     hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
     assert list(hist) == [(url, title, atime, redirect)]
 
@@ -188,13 +179,14 @@ def test_history_interface(qtbot, webview, hist_interface):
 def cleanup_init():
     # prevent test_init from leaking state
     yield
-    try:
-        hist = objreg.get('web-history')
+    hist = objreg.get('web-history', None)
+    if hist is not None:
         hist.setParent(None)
         objreg.delete('web-history')
+    try:
         from PyQt5.QtWebKit import QWebHistoryInterface
         QWebHistoryInterface.setDefaultInterface(None)
-    except:
+    except Exception:
         pass
 
 

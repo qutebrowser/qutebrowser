@@ -111,7 +111,6 @@ class CompletionView(QTreeView):
         # objreg.get('config').changed.connect(self.init_command_completion)
         objreg.get('config').changed.connect(self._on_config_changed)
 
-        self._column_widths = (30, 70, 0)
         self._active = False
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
@@ -150,7 +149,8 @@ class CompletionView(QTreeView):
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
         width = self.size().width()
-        pixel_widths = [(width * perc // 100) for perc in self._column_widths]
+        column_widths = self.model.column_widths
+        pixel_widths = [(width * perc // 100) for perc in column_widths]
 
         if self.verticalScrollBar().isVisible():
             delta = self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
@@ -280,14 +280,8 @@ class CompletionView(QTreeView):
 
         model.setParent(self)
         self.setModel(model)
-        self._column_widths = model.column_widths
         self._active = True
-
-        if (config.get('completion', 'show') == 'always' and
-                model.count() > 0):
-            self.show()
-        else:
-            self.hide()
+        self._maybe_show()
 
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
@@ -297,7 +291,14 @@ class CompletionView(QTreeView):
             self.model().set_pattern(pattern)
             self._resize_columns()
             self._maybe_update_geometry()
+            self._maybe_show()
+
+    def _maybe_show(self):
+        if (config.get('completion', 'show') == 'always' and
+                model.count() > 0):
             self.show()
+        else:
+            self.hide()
 
     def _maybe_update_geometry(self):
         """Emit the update_geometry signal if the config says so."""

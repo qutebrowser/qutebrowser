@@ -122,7 +122,6 @@ class TestHistoryHandler:
         url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
-        items = [item for item in items if 'time' in item]  # skip 'next' item
 
         assert len(items) == expected_item_count
 
@@ -131,27 +130,6 @@ class TestHistoryHandler:
         for item in items:
             assert item['time'] <= start_time * 1000
             assert item['time'] > end_time * 1000
-
-    @pytest.mark.skip("TODO: do we need next?")
-    @pytest.mark.parametrize("start_time_offset, next_time", [
-        (0, 24*60*60),
-        (24*60*60, 48*60*60),
-        (48*60*60, -1),
-        (72*60*60, -1)
-    ])
-    def test_qutehistory_next(self, start_time_offset, next_time, now):
-        """Ensure qute://history/data returns correct items."""
-        start_time = now - start_time_offset
-        url = QUrl("qute://history/data?start_time=" + str(start_time))
-        _mimetype, data = qutescheme.qute_history(url)
-        items = json.loads(data)
-        items = [item for item in items if 'next' in item]  # 'next' items
-        assert len(items) == 1
-
-        if next_time == -1:
-            assert items[0]["next"] == -1
-        else:
-            assert items[0]["next"] == now - next_time
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
         entries = []

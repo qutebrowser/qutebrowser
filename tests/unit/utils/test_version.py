@@ -798,7 +798,6 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
-# pylint: disable=too-many-locals
 @pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit',
                           'known_distribution'], [
     (True, False, True, True, True),  # normal
@@ -812,6 +811,7 @@ def test_chromium_version_unpatched(qapp):
 def test_version_output(git_commit, frozen, style, with_webkit,
                         known_distribution, stubs, monkeypatch, init_sql):
     """Test version.version()."""
+    # pylint: disable=too-many-locals
     class FakeWebEngineProfile:
         def httpUserAgent(self):
             return 'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'

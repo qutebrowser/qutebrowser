@@ -170,3 +170,16 @@ def abs_datapath():
     """Get the absolute path to the end2end data directory."""
     file_abs = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(file_abs, '..', 'end2end', 'data')
+
+
+def validate_model(cat, expected):
+    """Check that a category contains the expected items in the given order.
+
+    Args:
+        cat: The category to inspect.
+        expected: A list of tuples containing the expected items.
+    """
+    assert cat.rowCount() == len(expected)
+    for row, items in enumerate(expected):
+        for col, item in enumerate(items):
+            assert cat.data(cat.index(row, col)) == item

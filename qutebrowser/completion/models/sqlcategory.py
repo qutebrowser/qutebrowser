@@ -28,6 +28,7 @@ from qutebrowser.utils import debug
 
 
 class SqlCategory(QSqlQueryModel):
+
     """Wraps a SqlQuery for use as a completion category."""
 
     def __init__(self, name, *, filter_fields, sort_by=None, sort_order=None,
@@ -57,12 +58,11 @@ class SqlCategory(QSqlQueryModel):
         if group_by:
             querystr += ' group by {}'.format(group_by)
         if sort_by:
-            assert sort_order in ['asc', 'desc']
+            assert sort_order in ['asc', 'desc'], sort_order
             querystr += ' order by {} {}'.format(sort_by, sort_order)
 
-        self._query = sql.Query(querystr)
+        self._query = sql.Query(querystr, forward_only=False)
         self._param_count = len(filter_fields)
-        self.columns_to_filter = None
 
         # map filter_fields to indices
         col_query = sql.Query('SELECT * FROM {} LIMIT 1'.format(name))
