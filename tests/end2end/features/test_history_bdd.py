@@ -44,5 +44,5 @@ def check_history(quteproc, httpbin, tmpdir, expected):
 
 
 @bdd.then("the history should be empty")
-def check_history_empty(quteproc, httpbin):
-    check_history(quteproc, '', httpbin)
+def check_history_empty(quteproc, httpbin, tmpdir):
+    check_history(quteproc, httpbin, tmpdir, '')

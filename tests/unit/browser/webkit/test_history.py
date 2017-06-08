@@ -107,7 +107,6 @@ def test_entries_before(hist):
     assert times == [12348, 12347, 12346]
 
 
-
 def test_clear(qtbot, tmpdir, hist, mocker):
     hist.add_url(QUrl('http://example.com/'))
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
@@ -186,7 +185,7 @@ def cleanup_init():
     try:
         from PyQt5.QtWebKit import QWebHistoryInterface
         QWebHistoryInterface.setDefaultInterface(None)
-    except Exception:
+    except ImportError:
         pass
 
 

@@ -149,7 +149,7 @@ class CompletionView(QTreeView):
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
         width = self.size().width()
-        column_widths = self.model.column_widths
+        column_widths = self.model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
         if self.verticalScrollBar().isVisible():
@@ -295,7 +295,7 @@ class CompletionView(QTreeView):
 
     def _maybe_show(self):
         if (config.get('completion', 'show') == 'always' and
-                model.count() > 0):
+                self.model().count() > 0):
             self.show()
         else:
             self.hide()
