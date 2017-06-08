@@ -152,7 +152,6 @@ class StatusBar(QWidget):
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
         self._win_id = win_id
-        self._option = None
         self._color_flags = ColorFlags()
         self._color_flags.private = private
 
