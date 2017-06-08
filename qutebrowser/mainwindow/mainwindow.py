@@ -471,10 +471,8 @@ class MainWindow(QWidget):
         tabs.cur_url_changed.connect(status.url.set_url)
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
-        tabs.page_fullscreen_requested.connect(
-            self._on_page_fullscreen_requested)
-        tabs.page_fullscreen_requested.connect(
-            status.on_page_fullscreen_requested)
+        tabs.cur_fullscreen_requested.connect(self._on_fullscreen_requested)
+        tabs.cur_fullscreen_requested.connect(status.maybe_hide)
 
         # command input / completion
         mode_manager.left.connect(tabs.on_mode_left)
@@ -483,7 +481,7 @@ class MainWindow(QWidget):
         cmd.hide_completion.connect(completion_obj.hide)
 
     @pyqtSlot(bool)
-    def _on_page_fullscreen_requested(self, on):
+    def _on_fullscreen_requested(self, on):
         if on:
             self.showFullScreen()
         else:

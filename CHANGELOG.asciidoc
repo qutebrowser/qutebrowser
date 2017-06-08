@@ -17,9 +17,22 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v0.11.0 (unreleased)
 --------------------
 
+New dependencies
+~~~~~~~~~~~~~~~~
+
+- New dependency on `PyQt5.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
+  on QtOpenGL already, but on distributions packaging split PyQt5 wrappers, the
+  wrappers for QtOpenGL are now required.
+- New optional (but recommended) `PyOpenGL` dependency with QtWebEngine to work
+  around a bug where a black screen is shown with some setups.
+
 Added
 ~~~~~
 
+- New `-p` flag for `:open` to open a private window.
+- New "pinned tabs" feature, with a new `:tab-pin` command (bound
+  to `<Ctrl-p>` by default).
+- (QtWebEngine) Implemented `:follow-selected`.
 - New `:clear-messages` command to clear shown messages.
 - New `ui -> keyhint-delay` setting to configure the delay until
   the keyhint overlay pops up.
@@ -29,76 +42,97 @@ Added
 - New `--debug-flag` argument which replaces `--debug-exit` and
   `--pdb-postmortem`.
 - New `tabs -> favicon-scale` option to scale up/down favicons.
-- `-p` flag for `:open` to open a private window
 - `colors -> statusbar.bg/fg.private` and `.command.private` to
   customize statusbar colors for private windows.
-- New "pinned tabs" feature, with a new `:tab-pin` command (bound
-  to `<Ctrl-p>` by default).
+- New `{private}` field displaying `[Private Mode]` for
+  `ui -> window-title-format` and `tabs -> title-format`.
 
 Changed
 ~~~~~~~
 
-- To prevent elaborate phishing attacks, the Punycode version is now shown in
-  addition to the decoded version for IDN domain names.
-- Private browsing is now implemented for QtWebEngine, and changed
-  it's behavior: The general -> private-browsing setting now only
-  applies to newly opened windows, and you can use the -p flag to
-  :open to open a private window.
-- When using QtWebEngine, the underlying Chromium version is now shown in the
-  version info.
-- Improved `qute:history` page with lazy loading
-- Messages are now hidden when clicked
+- To prevent elaborate phishing attacks, the Punycode version (`xn--*`) is now
+  shown in addition to the decoded version for international domain names
+  (IDN).
+- Private browsing is now implemented for QtWebEngine, and changed it's
+  behavior: The `general -> private-browsing` setting now only applies to newly
+  opened windows, and you can use the `-p` flag to `:open` to open a private
+  window.
+- Improved `qute://history` page (with lazy loading)
+- Starting with legacy QtWebKit now shows a warning message once.
+- Crash reports are not public anymore.
 - Paths like `C:` are now treated as absolute paths on Windows for downloads,
   and invalid paths are handled properly.
 - PAC on QtWebKit now supports SOCKS5 as type.
-- Comments in the config file are now before the individual
-  options instead of being before sections.
-- The HTTP cache is disabled with QtWebKit on Qt 5.7.1 and 5.8 now as it leads
-  to frequent crashes due to a Qt bug.
-- stdin is now closed immediately for processes spawned from qutebrowser
-- When ui -> message-timeout is set to 0, messages are now never cleared.
+- Comments in the config file are now before the individual options instead of
+  being before sections.
+- Messages are now hidden when clicked.
+- stdin is now closed immediately for processes spawned from qutebrowser.
+- When `ui -> message-timeout` is set to 0, messages are now never cleared.
 - Middle/right-clicking the blank parts of the tab bar (when vertical) now
   closes the current tab.
-- With Qt 5.9, `content -> cookies-store` can now be set on QtWebEngine without
+- (QtWebEngine) With Qt 5.9, `content -> cookies-store` can now be set without
   a restart.
-- The adblocker now also blocks non-GET requests (e.g. POST)
-- `:follow-selected` now also works with QtWebEngine
-- javascript: links can now be hinted
+- (QtWebEngine) With Qt 5.9, better error messages are now shown for failed
+  downloads.
+- The adblocker now also blocks non-GET requests (e.g. POST).
+- `javascript:` links can now be hinted.
 - `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
   "explicit" anymore, i.e. (with the default settings) open it next to the
   active tab.
+- (QtWebEngine) The underlying Chromium version is now shown in the version
+  info.
+- `qute:*` pages now use `qute://*` instead (e.g. `qute://version` instead of
+  `qute:version`), but the old versions are automatically redirected.
 - The Windows releases are redone from scratch, which means:
   - They now use the new QtWebEngine backend
   - The bundled Qt is updated from 5.5 to 5.9
   - The bundled Python is updated from 3.4 to 3.6
   - They are now generated with PyInstaller instead of cx_Freeze
   - The installer is now generated using NSIS instead of being a MSI
+- Texts in prompts are now selectable.
+- Renderer process crashes now show an error page.
+- (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
+- The default level for `:messages` is now `info`, not `error`
 
 Fixed
 ~~~~~
 
 - The macOS .dmg is now built against Qt 5.9 which fixes various
   important issues (such as not being able to type dead keys).
-- Added a workaround for a black screen with QtWebEngine with some setups
+- (QtWebEngine) Added a workaround for a black screen with some setups
   (the workaround requires PyOpenGL to be installed, but it's optional)
-- Crash when trying to retry downloads with QtWebEngine
-- Crash when cloning page without history
-- Continuing a search after clearing it
-- Crash when downloading a download resulting in a HTTP error
-- Crash when pressing ctrl-c while a config error is shown
-- Crash when the key config isn't writable
-- Crash when unbinding an unbound key in the key config
-- Crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
-- Crash with some invalid setting values
-- Crash when cloning a view-source tab with QtWebEngine
-- Crash when a PAC file returns an invalid value with QtWebKit
-- Various rare crashes
-- Various styling issues with the tabbar and a crash with qt5ct
+- (QtWebEngine) Starting with Nouveau graphics now shows an error message
+  instead of crashing in Qt. This adds a new dependency on `PyQt5.QtOpenGL`.
+- (QtWebEngine) Retrying downloads now shows an error instead of crashing.
+- (QtWebEngine) Cloning a view-source tab now doesn't crash anymore.
+- (QtWebKit) The HTTP cache is disabled on Qt 5.7.1 and 5.8 now as it leads to
+  frequent crashes due to a Qt bug.
+- Fixed crash with `:download` on PyQt 5.9.
+- Cloning a page without history doesn't crash anymore.
+- When a download results in a HTTP error, it now shows the error correctly
+  instead of crashing.
+- Pressing ctrl-c while a config error is shown works as intended now.
+- When the key config isn't writable, we now show an error instead of crashing.
+- Fixed crash when unbinding an unbound key in the key config.
+- Fixed crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
+- Fixed crash with some invalid setting values.
+- (QtWebKit) Fixed Crash when a PAC file returns an invalid value.
+- Continuing a search after clearing it now works correctly.
+- The tabbar and completion should now be more consistently and correctly
+  styled with various system styles.
+- Applying styiles in `qt5ct` now shouldn't crash anymore.
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
-- data: URLs now aren't added to the history anymore.
-- window.navigator.userAgent is now set correctly when customizing the user
-  agent on QtWebEngine.
+- `data:` URLs now aren't added to the history anymore.
+- (QtWebEngine) `window.navigator.userAgent` is now set correctly when
+  customizing the user agent.
+- Accidentally starting with Python 2 now shows a proper error message again.
+- (QtWebEngine) HTML fullscreen is now tracked for each tab separately, which
+  means it's not possible anymore to accidentally get stuck in fullscreen state
+  by closing a tab with a fullscreen video.
+- Various other rare crashes should now be fixed.
+- The settings documentation was truncated with v0.10.1 which should now be
+  fixed.
 
 v0.10.1
 -------
@@ -158,6 +192,18 @@ Changed
 - `input -> mouse-zoom-divider` can now be 0 to disable zooming by mouse wheel
 - `network -> proxy` can also be set to `pac+file://...` now to
   use a local proxy autoconfig file (on QtWebKit)
+
+Removed
+~~~~~~~
+
+- (QtWebKit) Various rarely customized settings were removed:
+  - `ui -> css-media-type` (defaults to desktop)
+  - `general -> site-specific-quirks` (now always turned on)
+  - `storage -> offline-storage-default-quota` (defaults to 5MB)
+  - `storage -> offline-web-application-cache-quota` (defaults to no quota)
+  - `storage -> object-cache-capacities` (default depends on disk space)
+  - `content -> css-regions` (now always turned off)
+  - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
 
 Fixed
 ~~~~~

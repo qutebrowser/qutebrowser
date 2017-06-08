@@ -30,6 +30,7 @@ import sys
 import time
 import urllib.parse
 import datetime
+import pkg_resources
 
 from PyQt5.QtCore import QUrlQuery, QUrl
 
@@ -431,3 +432,13 @@ def qute_help(url):
     else:
         data = utils.read_file(path)
         return 'text/html', data
+
+
+@add_handler('backend-warning')
+def qute_backend_warning(_url):
+    """Handler for qute://backend-warning."""
+    html = jinja.render('backend-warning.html',
+                        distribution=version.distribution(),
+                        Distribution=version.Distribution,
+                        version=pkg_resources.parse_version)
+    return 'text/html', html

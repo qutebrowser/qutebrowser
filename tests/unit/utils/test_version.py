@@ -34,7 +34,7 @@ import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes
+from qutebrowser.utils import version, usertypes, qtutils
 from qutebrowser.browser import pdfjs
 
 
@@ -164,11 +164,13 @@ from qutebrowser.browser import pdfjs
          id='manjaro', parsed=version.Distribution.manjaro,
          version=None, pretty='Manjaro Linux')),
 ])
-def test_distribution(tmpdir, os_release, expected):
+def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
     if os_release is not None:
         os_release_file.write(textwrap.dedent(os_release))
-    assert version.distribution(str(os_release_file)) == expected
+    monkeypatch.setenv('QUTE_FAKE_OS_RELEASE', str(os_release_file))
+
+    assert version.distribution() == expected
 
 
 class GitStrSubprocessFake:
@@ -916,3 +918,11 @@ def test_version_output(git_commit, frozen, style, with_webkit,
 
     expected = template.rstrip('\n').format(**substitutions)
     assert version.version() == expected
+
+
+@pytest.mark.skipif(not qtutils.version_check('5.4'),
+                    reason="Needs Qt >= 5.4.")
+def test_opengl_vendor():
+    """Simply call version.opengl_vendor() and see if it doesn't crash."""
+    pytest.importorskip("PyQt5.QtOpenGL")
+    return version.opengl_vendor()

@@ -98,11 +98,11 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* http://www.python.org/[Python] 3.4 or newer
-* http://qt.io/[Qt] 5.2.0 or newer (5.5.1 recommended)
+* http://www.python.org/[Python] 3.4 or newer (3.5 recommended)
+* http://qt.io/[Qt] 5.2.0 or newer (5.9.0 recommended)
 * QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG) or QtWebEngine
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-(5.5.1 recommended) for Python 3
+(5.8.1 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -166,10 +166,10 @@ Contributors, sorted by the number of commits in descending order:
 * Tarcisio Fedrizzi
 * Jay Kamat
 * Claude
+* Philipp Hansch
 * Fritz Reichwald
 * Corentin Julé
 * meles5
-* Philipp Hansch
 * Panagiotis Ktistakis
 * Artur Shaik
 * Nathan Isom
@@ -179,6 +179,7 @@ Contributors, sorted by the number of commits in descending order:
 * Niklas Haas
 * Maciej Wołczyk
 * sandrosc
+* Clayton Craft
 * Alexey "Averrin" Nabrodov
 * pkill9
 * nanjekyejoannah
@@ -186,7 +187,6 @@ Contributors, sorted by the number of commits in descending order:
 * ZDarian
 * Milan Svoboda
 * John ShaggyTwoDope Jenkins
-* Clayton Craft
 * Peter Vilim
 * Jacob Sword
 * knaggita

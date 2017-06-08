@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 class PastebinClient(QObject):
 
-    """A client for http://p.cmpl.cc/ using HTTPClient.
+    """A client for Stikked pastebins using HTTPClient.
 
     Attributes:
         _client: The HTTPClient used.
@@ -41,7 +41,7 @@ class PastebinClient(QObject):
                arg: The error message, as string.
     """
 
-    API_URL = 'http://paste.the-compiler.org/api/'
+    API_URL = 'https://crashes.qutebrowser.org/api/'
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 

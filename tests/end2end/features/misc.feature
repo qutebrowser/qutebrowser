@@ -484,17 +484,17 @@ Feature: Various utility commands.
 
     ## :messages
 
-    Scenario: Showing error messages
+    Scenario: :messages without level
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages
-        Then qute://log?level=error should be loaded
+        Then qute://log?level=info should be loaded
         And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
-        And the page should not contain the plaintext "the-warning-message"
-        And the page should not contain the plaintext "the-info-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should contain the plaintext "the-info-message"
 
     Scenario: Showing messages of type 'warning' or greater
         When I run :message-error the-error-message
@@ -540,7 +540,7 @@ Feature: Various utility commands.
     Scenario: Using :messages without messages
         Given I have a fresh instance
         When I run :messages
-        Then qute://log?level=error should be loaded
+        Then qute://log?level=info should be loaded
         And the page should contain the plaintext "No messages to show."
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523

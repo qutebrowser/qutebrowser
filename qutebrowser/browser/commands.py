@@ -124,7 +124,7 @@ class CommandDispatcher:
         urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window, private), 'tbwp')
-        if private is None:
+        if window and private is None:
             private = self._tabbed_browser.private
 
         if window or private:
@@ -1548,7 +1548,7 @@ class CommandDispatcher:
         self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def messages(self, level='error', plain=False, tab=False, bg=False,
+    def messages(self, level='info', plain=False, tab=False, bg=False,
                  window=False):
         """Show a log of past messages.
 

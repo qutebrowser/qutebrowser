@@ -215,17 +215,11 @@ def data(readonly=False):
              "inspector's JavaScript console. Enabling this feature might "
              "have an impact on performance."),
 
-            ('site-specific-quirks',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Enable QtWebKit workarounds for broken sites."),
-
             ('default-encoding',
-             SettingValue(typ.String(none_ok=True), ''),
+             SettingValue(typ.String(), 'iso-8859-1'),
              "Default encoding to use for websites.\n\n"
              "The encoding must be a string describing an encoding such as "
-             "_utf-8_, _iso-8859-1_, etc. If left empty a default value will "
-             "be used."),
+             "_utf-8_, _iso-8859-1_, etc."),
 
             ('new-instance-open-target',
              SettingValue(typ.String(
@@ -350,11 +344,6 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Hide the main scrollbar."),
 
-            ('css-media-type',
-             SettingValue(typ.String(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Set the CSS media type."),
-
             ('smooth-scrolling',
              SettingValue(typ.Bool(), 'false'),
              "Whether to enable smooth scrolling for web pages. Note smooth "
@@ -377,7 +366,7 @@ def data(readonly=False):
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
                                                    'scroll_pos', 'host',
-                                                   'backend']),
+                                                   'backend', 'private']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -389,7 +378,8 @@ def data(readonly=False):
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
-             "* `{backend}`: Either 'webkit' or 'webengine'"),
+             "* `{backend}`: Either 'webkit' or 'webengine'\n"
+             "* `{private}` : Indicates when private mode is enabled.\n"),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -706,7 +696,7 @@ def data(readonly=False):
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos', 'host'], none_ok=True),
+                         'id', 'scroll_pos', 'host', 'private'], none_ok=True),
                  '{index}: {title}'),
              "The format to use for the tab title. The following placeholders "
              "are defined:\n\n"
@@ -719,12 +709,13 @@ def data(readonly=False):
              "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
-             "* `{backend}`: Either 'webkit' or 'webengine'"),
+             "* `{backend}`: Either 'webkit' or 'webengine'\n"
+             "* `{private}` : Indicates when private mode is enabled.\n"),
 
             ('title-format-pinned',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos', 'host'], none_ok=True),
+                         'id', 'scroll_pos', 'host', 'private'], none_ok=True),
                  '{index}'),
              "The format to use for the tab title for pinned tabs. "
              "The same placeholders like for title-format are defined."),
@@ -764,10 +755,12 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to remember the last used download directory."),
 
+            # Defaults from QWebSettings::QWebSettings() in
+            # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
             ('maximum-pages-in-cache',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), '',
-                 backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '0',
+                          backends=[usertypes.Backend.QtWebKit]),
              "The maximum number of pages to hold in the global memory page "
              "cache.\n\n"
              "The Page Cache allows for a nicer user experience when "
@@ -776,41 +769,7 @@ def data(readonly=False):
              "For more information about the feature, please refer to: "
              "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
 
-            ('object-cache-capacities',
-             SettingValue(
-                 typ.List(typ.WebKitBytes(maxsize=MAXVALS['int'],
-                          none_ok=True), none_ok=True, length=3), '',
-                 backends=[usertypes.Backend.QtWebKit]),
-             "The capacities for the global memory cache for dead objects "
-             "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
-             "cacheMaxDead, totalCapacity.\n\n"
-             "The _cacheMinDeadCapacity_ specifies the minimum number of "
-             "bytes that dead objects should consume when the cache is under "
-             "pressure.\n\n"
-             "_cacheMaxDead_ is the maximum number of bytes that dead objects "
-             "should consume when the cache is *not* under pressure.\n\n"
-             "_totalCapacity_ specifies the maximum number of bytes "
-             "that the cache should consume *overall*."),
-
-            ('offline-storage-default-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Default quota for new offline storage databases."),
-
-            ('offline-web-application-cache-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Quota for the offline web application cache."),
-
-            ('offline-storage-database',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Whether support for the HTML 5 offline storage feature is "
-             "enabled."),
-
-            ('offline-web-application-storage',
+            ('offline-web-application-cache',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
              "Whether support for the HTML 5 web application cache feature is "
@@ -824,7 +783,7 @@ def data(readonly=False):
 
             ('local-storage',
              SettingValue(typ.Bool(), 'true'),
-             "Whether support for the HTML 5 local storage feature is "
+             "Whether support for HTML 5 local storage and Web SQL is "
              "enabled."),
 
             ('cache-size',
@@ -854,11 +813,6 @@ def data(readonly=False):
             ('webgl',
              SettingValue(typ.Bool(), 'true'),
              "Enables or disables WebGL."),
-
-            ('css-regions',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Enable or disable support for CSS regions."),
 
             ('hyperlink-auditing',
              SettingValue(typ.Bool(), 'false'),
@@ -1453,25 +1407,28 @@ def data(readonly=False):
              SettingValue(typ.FontFamily(none_ok=True), ''),
              "Font family for fantasy fonts."),
 
+            # Defaults for web-size-* from WebEngineSettings::initDefaults in
+            # qtwebengine/src/core/web_engine_settings.cpp and
+            # QWebSettings::QWebSettings() in
+            # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
             ('web-size-minimum',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '0'),
              "The hard minimum font size."),
 
+            # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
+            # just go for 6 here.
             ('web-size-minimum-logical',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '6'),
              "The minimum logical font size that is applied when zooming "
              "out."),
 
             ('web-size-default',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=1, maxval=MAXVALS['int']), '16'),
              "The default font size for regular text."),
 
             ('web-size-default-fixed',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=1, maxval=MAXVALS['int']), '13'),
              "The default font size for fixed-pitch text."),
 
             ('keyhint',

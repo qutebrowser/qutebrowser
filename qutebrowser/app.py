@@ -53,7 +53,7 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit)
+                              crashsignal, earlyinit, objects)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir, error, debug)
@@ -136,7 +136,7 @@ def init(args, crash_handler):
 
     try:
         _init_modules(args, crash_handler)
-    except (OSError, UnicodeDecodeError) as e:
+    except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
         error.handle_fatal_exc(e, args, "Error while initializing!",
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)
@@ -202,7 +202,7 @@ def _process_args(args):
 
     process_pos_args(args.command)
     _open_startpage()
-    _open_quickstart(args)
+    _open_special_pages(args)
 
     delta = datetime.datetime.now() - earlyinit.START_TIME
     log.init.debug("Init finished after {}s".format(delta.total_seconds()))
@@ -319,23 +319,40 @@ def _open_startpage(win_id=None):
                     tabbed_browser.tabopen(url)
 
 
-def _open_quickstart(args):
-    """Open quickstart if it's the first start.
+def _open_special_pages(args):
+    """Open special notification pages which are only shown once.
+
+    Currently this is:
+      - Quickstart page if it's the first start.
+      - Legacy QtWebKit warning if needed.
 
     Args:
         args: The argparse namespace.
     """
     if args.basedir is not None:
-        # With --basedir given, don't open quickstart.
+        # With --basedir given, don't open anything.
         return
+
     state_config = objreg.get('state-config')
-    try:
-        quickstart_done = state_config['general']['quickstart-done'] == '1'
-    except KeyError:
-        quickstart_done = False
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+
+    # Legacy QtWebKit warning
+
+    needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
+                     not qtutils.is_qtwebkit_ng())
+    warning_shown = state_config['general'].get('backend-warning-shown') == '1'
+
+    if not warning_shown and needs_warning:
+        tabbed_browser.tabopen(QUrl('qute://backend-warning'),
+                               background=False)
+        state_config['general']['backend-warning-shown'] = '1'
+
+    # Quickstart page
+
+    quickstart_done = state_config['general'].get('quickstart-done') == '1'
+
     if not quickstart_done:
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='last-focused')
         tabbed_browser.tabopen(
             QUrl('https://www.qutebrowser.org/quickstart.html'))
         state_config['general']['quickstart-done'] = '1'

@@ -97,6 +97,7 @@ class TabData:
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
+        fullscreen: Whether the tab has a video shown fullscreen currently.
     """
 
     def __init__(self):
@@ -105,6 +106,7 @@ class TabData:
         self.inspector = None
         self.override_target = None
         self.pinned = False
+        self.fullscreen = False
 
 
 class AbstractAction:

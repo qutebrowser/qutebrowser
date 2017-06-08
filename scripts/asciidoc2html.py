@@ -184,7 +184,8 @@ class AsciiDoc:
         with open(modified_src, 'w+', encoding='utf-8') as final_version:
             final_version.write(title + "\n\n" + header + current_lines)
 
-        self.call(modified_src, dst, '--theme=qute')
+        asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual']
+        self.call(modified_src, dst, *asciidoc_args)
 
     def _build_website(self):
         """Prepare and build the website."""

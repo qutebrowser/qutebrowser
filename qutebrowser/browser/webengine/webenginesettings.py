@@ -30,6 +30,7 @@ Module attributes:
 import os
 import logging
 
+from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
 
@@ -62,27 +63,48 @@ class Attribute(Base, websettings.Attribute):
 
 class Setter(Base, websettings.Setter):
 
-    """A setting set via QWebEngineSettings getter/setter methods."""
+    """A setting set via a QWebEngineSettings setter method."""
 
     pass
+
+
+class FontFamilySetter(Base, websettings.FontFamilySetter):
+
+    """A setter for a font family.
+
+    Gets the default value from QFont.
+    """
+
+    def __init__(self, font):
+        # Mapping from WebEngineSettings::initDefaults in
+        # qtwebengine/src/core/web_engine_settings.cpp
+        font_to_qfont = {
+            QWebEngineSettings.StandardFont: QFont.Serif,
+            QWebEngineSettings.FixedFont: QFont.Monospace,
+            QWebEngineSettings.SerifFont: QFont.Serif,
+            QWebEngineSettings.SansSerifFont: QFont.SansSerif,
+            QWebEngineSettings.CursiveFont: QFont.Cursive,
+            QWebEngineSettings.FantasyFont: QFont.Fantasy,
+        }
+        super().__init__(setter=QWebEngineSettings.setFontFamily, font=font,
+                         qfont=font_to_qfont[font])
 
 
 class DefaultProfileSetter(websettings.Base):
 
     """A setting set on the QWebEngineProfile."""
 
-    def __init__(self, getter, setter):
-        super().__init__()
-        self._getter = getter
+    def __init__(self, setter, default=websettings.UNSET):
+        super().__init__(default)
         self._setter = setter
 
-    def get(self, settings=None):
-        utils.unused(settings)
-        getter = getattr(default_profile, self._getter)
-        return getter()
+    def __repr__(self):
+        return utils.get_repr(self, setter=self._setter, constructor=True)
 
     def _set(self, value, settings=None):
-        utils.unused(settings)
+        if settings is not None:
+            raise ValueError("'settings' may not be set with "
+                             "DefaultProfileSetters!")
         setter = getattr(default_profile, self._setter)
         setter(value)
 
@@ -92,15 +114,12 @@ class PersistentCookiePolicy(DefaultProfileSetter):
     """The cookies -> store setting is different from other settings."""
 
     def __init__(self):
-        super().__init__(getter='persistentCookiesPolicy',
-                         setter='setPersistentCookiesPolicy')
-
-    def get(self, settings=None):
-        utils.unused(settings)
-        return config.get('content', 'cookies-store')
+        super().__init__('setPersistentCookiesPolicy')
 
     def _set(self, value, settings=None):
-        utils.unused(settings)
+        if settings is not None:
+            raise ValueError("'settings' may not be set with "
+                             "PersistentCookiePolicy!")
         setter = getattr(QWebEngineProfile.defaultProfile(), self._setter)
         setter(
             QWebEngineProfile.AllowPersistentCookies if value else
@@ -223,7 +242,6 @@ def shutdown():
 # - AllowRunningInsecureContent (5.8)
 #
 # Missing QtWebEngine fonts:
-# - FantasyFont
 # - PictographFont
 
 
@@ -256,44 +274,28 @@ MAPPINGS = {
     },
     'fonts': {
         'web-family-standard':
-            Setter(getter=QWebEngineSettings.fontFamily,
-                   setter=QWebEngineSettings.setFontFamily,
-                   args=[QWebEngineSettings.StandardFont]),
+            FontFamilySetter(QWebEngineSettings.StandardFont),
         'web-family-fixed':
-            Setter(getter=QWebEngineSettings.fontFamily,
-                   setter=QWebEngineSettings.setFontFamily,
-                   args=[QWebEngineSettings.FixedFont]),
+            FontFamilySetter(QWebEngineSettings.FixedFont),
         'web-family-serif':
-            Setter(getter=QWebEngineSettings.fontFamily,
-                   setter=QWebEngineSettings.setFontFamily,
-                   args=[QWebEngineSettings.SerifFont]),
+            FontFamilySetter(QWebEngineSettings.SerifFont),
         'web-family-sans-serif':
-            Setter(getter=QWebEngineSettings.fontFamily,
-                   setter=QWebEngineSettings.setFontFamily,
-                   args=[QWebEngineSettings.SansSerifFont]),
+            FontFamilySetter(QWebEngineSettings.SansSerifFont),
         'web-family-cursive':
-            Setter(getter=QWebEngineSettings.fontFamily,
-                   setter=QWebEngineSettings.setFontFamily,
-                   args=[QWebEngineSettings.CursiveFont]),
+            FontFamilySetter(QWebEngineSettings.CursiveFont),
         'web-family-fantasy':
-            Setter(getter=QWebEngineSettings.fontFamily,
-                   setter=QWebEngineSettings.setFontFamily,
-                   args=[QWebEngineSettings.FantasyFont]),
+            FontFamilySetter(QWebEngineSettings.FantasyFont),
         'web-size-minimum':
-            Setter(getter=QWebEngineSettings.fontSize,
-                   setter=QWebEngineSettings.setFontSize,
+            Setter(QWebEngineSettings.setFontSize,
                    args=[QWebEngineSettings.MinimumFontSize]),
         'web-size-minimum-logical':
-            Setter(getter=QWebEngineSettings.fontSize,
-                   setter=QWebEngineSettings.setFontSize,
+            Setter(QWebEngineSettings.setFontSize,
                    args=[QWebEngineSettings.MinimumLogicalFontSize]),
         'web-size-default':
-            Setter(getter=QWebEngineSettings.fontSize,
-                   setter=QWebEngineSettings.setFontSize,
+            Setter(QWebEngineSettings.setFontSize,
                    args=[QWebEngineSettings.DefaultFontSize]),
         'web-size-default-fixed':
-            Setter(getter=QWebEngineSettings.fontSize,
-                   setter=QWebEngineSettings.setFontSize,
+            Setter(QWebEngineSettings.setFontSize,
                    args=[QWebEngineSettings.DefaultFixedFontSize]),
     },
     'ui': {
@@ -304,15 +306,14 @@ MAPPINGS = {
         'local-storage':
             Attribute(QWebEngineSettings.LocalStorageEnabled),
         'cache-size':
-            DefaultProfileSetter(getter='httpCacheMaximumSize',
-                                 setter='setHttpCacheMaximumSize')
+            # 0: automatically managed by QtWebEngine
+            DefaultProfileSetter('setHttpCacheMaximumSize', default=0),
     },
     'general': {
         'xss-auditing':
             Attribute(QWebEngineSettings.XSSAuditingEnabled),
         'default-encoding':
-            Setter(getter=QWebEngineSettings.defaultTextEncoding,
-                   setter=QWebEngineSettings.setDefaultTextEncoding),
+            Setter(QWebEngineSettings.setDefaultTextEncoding),
     }
 }
 

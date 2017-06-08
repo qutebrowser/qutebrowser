@@ -390,6 +390,8 @@ class ConfigManager(QObject):
         ('colors', 'statusbar.bg.warning'): 'messages.bg.warning',
         ('colors', 'statusbar.fg.prompt'): 'prompts.fg',
         ('colors', 'statusbar.bg.prompt'): 'prompts.bg',
+        ('storage', 'offline-web-application-storage'):
+            'offline-web-application-cache',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
@@ -403,9 +405,16 @@ class ConfigManager(QObject):
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
         ('ui', 'hide-mouse-cursor'),
+        ('ui', 'css-media-type'),
         ('general', 'wrap-search'),
+        ('general', 'site-specific-quirks'),
         ('hints', 'opacity'),
         ('completion', 'auto-open'),
+        ('storage', 'object-cache-capacities'),
+        ('storage', 'offline-storage-database'),
+        ('storage', 'offline-storage-default-quota'),
+        ('storage', 'offline-web-application-cache-quota'),
+        ('content', 'css-regions'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -444,7 +453,20 @@ class ConfigManager(QObject):
                 'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
                 '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
             }),
-        ('contents', 'cache-size'): _get_value_transformer({'52428800': ''}),
+        ('general', 'default-encoding'):
+            _get_value_transformer({'': 'iso-8859-1'}),
+        ('contents', 'cache-size'):
+            _get_value_transformer({'52428800': ''}),
+        ('storage', 'maximum-pages-in-cache'):
+            _get_value_transformer({'': '0'}),
+        ('fonts', 'web-size-minimum'):
+            _get_value_transformer({'': '0'}),
+        ('fonts', 'web-size-minimum-logical'):
+            _get_value_transformer({'': '6'}),
+        ('fonts', 'web-size-default'):
+            _get_value_transformer({'': '16'}),
+        ('fonts', 'web-size-default-fixed'):
+            _get_value_transformer({'': '13'}),
     }
 
     changed = pyqtSignal(str, str)

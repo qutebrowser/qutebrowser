@@ -59,7 +59,8 @@ def temp_basedir_env(tmpdir, short_tmpdir):
     runtime_dir.chmod(0o700)
 
     (data_dir / 'qutebrowser' / 'state').write_text(
-        '[general]\nquickstart-done = 1', encoding='utf-8', ensure=True)
+        '[general]\nquickstart-done = 1\nbackend-warning-shown=1',
+        encoding='utf-8', ensure=True)
 
     env = {
         'XDG_DATA_HOME': str(data_dir),
@@ -279,6 +280,25 @@ def test_initial_private_browsing(request, quteproc_new):
         windows:
             - private: True
               tabs:
+              - history:
+                - url: about:blank
+    """)
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+def test_loading_empty_session(tmpdir, request, quteproc_new):
+    """Make sure loading an empty session opens a window."""
+    session = tmpdir / 'session.yml'
+    session.write('windows: []')
+
+    args = _base_args(request.config) + ['--temp-basedir', '-r', str(session)]
+    quteproc_new.start(args)
+
+    quteproc_new.compare_session("""
+        windows:
+            - tabs:
               - history:
                 - url: about:blank
     """)

@@ -199,7 +199,10 @@ class WebEngineElement(webelem.AbstractWebElement):
         self._move_text_cursor()
 
     def _click_js(self, _click_target):
-        settings = QWebEngineSettings.globalSettings()
+        # FIXME:qtwebengine Have a proper API for this
+        # pylint: disable=protected-access
+        settings = self._tab._widget.settings()
+        # pylint: enable=protected-access
         attribute = QWebEngineSettings.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)

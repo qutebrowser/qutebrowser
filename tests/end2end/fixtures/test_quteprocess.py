@@ -337,3 +337,20 @@ def test_set(quteproc, value):
     quteproc.set_setting('general', 'default-encoding', value)
     read_back = quteproc.get_setting('general', 'default-encoding')
     assert read_back == value
+
+
+@pytest.mark.parametrize('message, ignored', [
+    # Unparseable
+    ('Hello World', False),
+    # Without process/thread ID
+    ('[0606/135039:ERROR:cert_verify_proc_nss.cc(925)] CERT_PKIXVerifyCert '
+     'for localhost failed err=-8179', True),
+    # Random ignored message
+    ('[26598:26598:0605/191429.639416:WARNING:audio_manager.cc(317)] Multiple '
+     'instances of AudioManager detected', True),
+    # Not ignored
+    ('[26598:26598:0605/191429.639416:WARNING:audio_manager.cc(317)] Test',
+     False),
+])
+def test_is_ignored_chromium_message(message, ignored):
+    assert quteprocess.is_ignored_chromium_message(message) == ignored

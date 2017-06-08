@@ -860,11 +860,6 @@ def open_file(filename, cmdline=None):
     proc.start_detached(cmd, args)
 
 
-def unused(_arg):
-    """Function which does nothing to avoid pylint complaining."""
-    pass
-
-
 def parse_numsettxt_into_numints(txtset, nummax):
     """Parse the given numbers set in text format, and return it as a list of
     number intervals [[start1, end2], [start2, end2], ..., [startn, endn]].

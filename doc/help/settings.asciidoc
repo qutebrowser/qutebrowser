@@ -22,7 +22,6 @@
 |<<general-developer-extras,developer-extras>>|Enable extra tools for Web developers.
 |<<general-print-element-backgrounds,print-element-backgrounds>>|Whether the background color and images are also drawn when the page is printed.
 |<<general-xss-auditing,xss-auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
-|<<general-site-specific-quirks,site-specific-quirks>>|Enable QtWebKit workarounds for broken sites.
 |<<general-default-encoding,default-encoding>>|Default encoding to use for websites.
 |<<general-new-instance-open-target,new-instance-open-target>>|How to open links in an existing instance if a new one is launched.
 |<<general-new-instance-open-target.window,new-instance-open-target.window>>|Which window to choose when opening links as new tabs.
@@ -48,7 +47,6 @@
 |<<ui-frame-flattening,frame-flattening>>|Whether to  expand each subframe to its contents.
 |<<ui-user-stylesheet,user-stylesheet>>|User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
 |<<ui-hide-scrollbar,hide-scrollbar>>|Hide the main scrollbar.
-|<<ui-css-media-type,css-media-type>>|Set the CSS media type.
 |<<ui-smooth-scrolling,smooth-scrolling>>|Whether to enable smooth scrolling for web pages. Note smooth scrolling does not work with the :scroll-px command.
 |<<ui-remove-finished-downloads,remove-finished-downloads>>|Number of milliseconds to wait before removing finished downloads. Will not be removed if value is -1.
 |<<ui-hide-statusbar,hide-statusbar>>|Whether to hide the statusbar unless a message is shown.
@@ -147,12 +145,8 @@
 |<<storage-prompt-download-directory,prompt-download-directory>>|Whether to prompt the user for the download location.
 |<<storage-remember-download-directory,remember-download-directory>>|Whether to remember the last used download directory.
 |<<storage-maximum-pages-in-cache,maximum-pages-in-cache>>|The maximum number of pages to hold in the global memory page cache.
-|<<storage-object-cache-capacities,object-cache-capacities>>|The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
-|<<storage-offline-storage-default-quota,offline-storage-default-quota>>|Default quota for new offline storage databases.
-|<<storage-offline-web-application-cache-quota,offline-web-application-cache-quota>>|Quota for the offline web application cache.
-|<<storage-offline-storage-database,offline-storage-database>>|Whether support for the HTML 5 offline storage feature is enabled.
-|<<storage-offline-web-application-storage,offline-web-application-storage>>|Whether support for the HTML 5 web application cache feature is enabled.
-|<<storage-local-storage,local-storage>>|Whether support for the HTML 5 local storage feature is enabled.
+|<<storage-offline-web-application-cache,offline-web-application-cache>>|Whether support for the HTML 5 web application cache feature is enabled.
+|<<storage-local-storage,local-storage>>|Whether support for HTML 5 local storage and Web SQL is enabled.
 |<<storage-cache-size,cache-size>>|Size of the HTTP network cache. Empty to use the default value.
 |==============
 
@@ -164,7 +158,6 @@
 |<<content-allow-javascript,allow-javascript>>|Enables or disables the running of JavaScript programs.
 |<<content-allow-plugins,allow-plugins>>|Enables or disables plugins in Web pages.
 |<<content-webgl,webgl>>|Enables or disables WebGL.
-|<<content-css-regions,css-regions>>|Enable or disable support for CSS regions.
 |<<content-hyperlink-auditing,hyperlink-auditing>>|Enable or disable hyperlink auditing (<a ping>).
 |<<content-geolocation,geolocation>>|Allow websites to request geolocations.
 |<<content-notifications,notifications>>|Allow websites to show notifications.
@@ -450,26 +443,13 @@ Valid values:
 
 Default: +pass:[false]+
 
-[[general-site-specific-quirks]]
-=== site-specific-quirks
-Enable QtWebKit workarounds for broken sites.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
-
 [[general-default-encoding]]
 === default-encoding
 Default encoding to use for websites.
 
-The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-1_, etc. If left empty a default value will be used.
+The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-1_, etc.
 
-Default: empty
+Default: +pass:[iso-8859-1]+
 
 [[general-new-instance-open-target]]
 === new-instance-open-target
@@ -659,14 +639,6 @@ Valid values:
 
 Default: +pass:[true]+
 
-[[ui-css-media-type]]
-=== css-media-type
-Set the CSS media type.
-
-Default: empty
-
-This setting is only available with the QtWebKit backend.
-
 [[ui-smooth-scrolling]]
 === smooth-scrolling
 Whether to enable smooth scrolling for web pages. Note smooth scrolling does not work with the :scroll-px command.
@@ -713,6 +685,8 @@ The format to use for the window title. The following placeholders are defined:
 * `{scroll_pos}`: The page scroll position.
 * `{host}`: The host of the current web page.
 * `{backend}`: Either 'webkit' or 'webengine'
+* `{private}` : Indicates when private mode is enabled.
+
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
 
@@ -1343,55 +1317,12 @@ The Page Cache allows for a nicer user experience when navigating forth or back 
 
 For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
-Default: empty
+Default: +pass:[0]+
 
 This setting is only available with the QtWebKit backend.
 
-[[storage-object-cache-capacities]]
-=== object-cache-capacities
-The capacities for the global memory cache for dead objects such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, cacheMaxDead, totalCapacity.
-
-The _cacheMinDeadCapacity_ specifies the minimum number of bytes that dead objects should consume when the cache is under pressure.
-
-_cacheMaxDead_ is the maximum number of bytes that dead objects should consume when the cache is *not* under pressure.
-
-_totalCapacity_ specifies the maximum number of bytes that the cache should consume *overall*.
-
-Default: empty
-
-This setting is only available with the QtWebKit backend.
-
-[[storage-offline-storage-default-quota]]
-=== offline-storage-default-quota
-Default quota for new offline storage databases.
-
-Default: empty
-
-This setting is only available with the QtWebKit backend.
-
-[[storage-offline-web-application-cache-quota]]
-=== offline-web-application-cache-quota
-Quota for the offline web application cache.
-
-Default: empty
-
-This setting is only available with the QtWebKit backend.
-
-[[storage-offline-storage-database]]
-=== offline-storage-database
-Whether support for the HTML 5 offline storage feature is enabled.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
-
-[[storage-offline-web-application-storage]]
-=== offline-web-application-storage
+[[storage-offline-web-application-cache]]
+=== offline-web-application-cache
 Whether support for the HTML 5 web application cache feature is enabled.
 
 An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
@@ -1409,7 +1340,7 @@ This setting is only available with the QtWebKit backend.
 
 [[storage-local-storage]]
 === local-storage
-Whether support for the HTML 5 local storage feature is enabled.
+Whether support for HTML 5 local storage and Web SQL is enabled.
 
 Valid values:
 
@@ -1472,19 +1403,6 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
-
-[[content-css-regions]]
-=== css-regions
-Enable or disable support for CSS regions.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content-hyperlink-auditing]]
 === hyperlink-auditing
@@ -2398,25 +2316,25 @@ Default: empty
 === web-size-minimum
 The hard minimum font size.
 
-Default: empty
+Default: +pass:[0]+
 
 [[fonts-web-size-minimum-logical]]
 === web-size-minimum-logical
 The minimum logical font size that is applied when zooming out.
 
-Default: empty
+Default: +pass:[6]+
 
 [[fonts-web-size-default]]
 === web-size-default
 The default font size for regular text.
 
-Default: empty
+Default: +pass:[16]+
 
 [[fonts-web-size-default-fixed]]
 === web-size-default-fixed
 The default font size for fixed-pitch text.
 
-Default: empty
+Default: +pass:[13]+
 
 [[fonts-keyhint]]
 === keyhint

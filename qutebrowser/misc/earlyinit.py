@@ -65,15 +65,7 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
-    if webengine:
-        lines = [
-            ('Note QtWebEngine is not available for some distributions '
-                '(like Ubuntu), so you need to start without --backend '
-                'webengine there.'),
-            ('QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/qutebrowser/qutebrowser/issues/1692'),
-        ]
-    else:
+    if not webengine:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
     blocks.append('<br />'.join(lines))
@@ -280,17 +272,28 @@ def check_qt_version(backend):
         _die(text)
 
 
-def check_ssl_support():
+def check_ssl_support(backend):
     """Check if SSL support is available."""
+    from qutebrowser.utils import log
+
     try:
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
-        ok = False
-    else:
-        ok = QSslSocket.supportsSsl()
-    if not ok:
-        text = "Fatal error: Your Qt is built without SSL support."
-        _die(text)
+        _die("Fatal error: Your Qt is built without SSL support.")
+
+    text = ("Could not initialize QtNetwork SSL support. If you use "
+            "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
+            "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
+            "of OpenSSL 1.0.")
+    if backend == 'webengine':
+        text += " This only affects downloads."
+
+    if not QSslSocket.supportsSsl():
+        if backend == 'webkit':
+            _die("Could not initialize SSL support.")
+        else:
+            assert backend == 'webengine'
+            log.init.warning(text)
 
 
 def check_libraries(backend):
@@ -322,6 +325,7 @@ def check_libraries(backend):
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
+        modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
     else:
         assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
@@ -411,6 +415,6 @@ def earlyinit(args):
     check_qt_version(backend)
     remove_inputhook()
     check_libraries(backend)
-    check_ssl_support()
+    check_ssl_support(backend)
     check_optimize_flag()
     set_backend(backend)
