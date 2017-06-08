@@ -1,0 +1,1732 @@
+# general
+
+ignore_case:
+  type: IgnoreCase
+  default: smart
+  desc: Whether to find text on a page case-insensitively.
+
+startpage:
+  type:
+    name: List
+    elemtype: String
+  default: ["https://start.duckduckgo.com"]
+  desc: The default page(s) to open at the start.
+
+yank_ignored_url_parameters:
+  type:
+    name: List
+    elemtype: String
+  default:
+    - ref
+    - utm_source
+    - utm_medium
+    - utm_campaign
+    - utm_term
+    - utm_content
+  desc: The URL parameters to strip with :yank url.
+
+default_open_dispatcher:
+  type:
+    name: String
+    none_ok: true
+  default: ""
+  desc: >-
+    The default program used to open downloads. Set to an empty string to use
+    the default internal handler.
+
+    Any `{}` in the string will be expanded to the filename, else the filename
+    will be appended.
+
+default_page:
+  type: FuzzyUrl
+  default: https://start.duckduckgo.com/
+  desc: >-
+    The page to open if :open -t/-b/-w is used without URL. Use `about:blank`
+    for a blank page.
+
+auto_search:
+  type: AutoSearch
+  default: naive
+  desc: Whether to start a search when something else than a URL is entered.
+
+auto_save_config:
+  type: Bool
+  default: true
+  desc: Whether to save the config automatically on quit.
+
+auto_save_interval:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 15000
+  desc: How often (in milliseconds) to auto-save config/cookies/etc.
+
+editor:
+  type:
+    name: ShellCommand
+    placeholder: true
+  default: "gvim -f '{}'"
+  desc: >-
+    The editor (and arguments) to use for the `open-editor` command.
+
+    The arguments get split like in a shell, so you can use `\"` or `\'` to quote
+    them.
+
+    `{}` gets replaced by the filename of the file to be edited.
+
+editor_encoding:
+  type: Encoding
+  default: utf-8
+  desc: Encoding to use for the editor.
+
+private_browsing:
+  type: Bool
+  default: false
+  desc: Open new windows in private browsing mode which does not record visited
+    pages.
+
+developer_extras:
+  type: Bool
+  default: false
+  backend: QtWebKit
+  desc: >-
+    Enable extra tools for Web developers.
+
+    This needs to be enabled for `:inspector` to work and also adds an _Inspect_
+    entry to the context menu. For QtWebEngine, see `qutebrowser --help`
+    instead.
+
+print_element_backgrounds:
+  type: Bool
+  default: true
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.8
+  desc: >-
+    Whether the background color and images are also drawn when the page is
+    printed.
+
+    # FIXME:conf This should be added automatically:
+    # This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
+
+xss_auditing:
+  type: Bool
+  default: false
+  desc: >-
+    Whether load requests should be monitored for cross-site cripting attempts.
+
+    Suspicious scripts will be blocked and reported in the inspector\'s
+    JavaScript console. Enabling this feature might have an impact on
+    performance.
+
+default_encoding:
+  type: String
+  default: iso-8859-1
+  desc: >-
+    Default encoding to use for websites.
+
+    The encoding must be a string describing an encoding such as _utf-8_,
+    _iso-8859-1_, etc.
+
+new_instance_open_target:
+  type:
+    name: String
+    valid_values:
+      - tab: Open a new tab in the existing window and activate the window.
+      - tab-bg: Open a new background tab in the existing window and activate
+          the window.
+      - tab-silent: Open a new tab in the existing window without activating the
+          window.
+      - tab-bg-silent: Open a new background tab in the existing window without
+          activating the window.
+      - window: Open in a new window.
+  default: tab
+  desc: How to open links in an existing instance if a new one is launched.
+
+new_instance_open_target_window:
+  type:
+    name: String
+    valid_values:
+      - first-opened: Open new tabs in the first (oldest) opened window.
+      - last-opened: Open new tabs in the last (newest) opened window.
+      - last-focused: Open new tabs in the most recently focused window.
+      - last-visible: Open new tabs in the most recently visible window.
+  default: last-focused
+  desc: Which window to choose when opening links as new tabs.
+
+log_javascript_console:
+  type:
+    name: String
+    valid_values:
+      - none: "Don't log messages."
+      - debug: Log messages with debug level.
+      - info: Log messages with info level.
+  default: debug
+  desc: How to log javascript console messages.
+
+save_session:
+  type: Bool
+  default: false
+  desc: Whether to always save the open pages.
+
+session_default_name:
+  type:
+    name: SessionName
+    none_ok: true
+  default: ""
+  desc: The name of the session to save by default, or empty for the last loaded
+    session.
+
+url_incdec_segments:
+  type:
+    name: FlagList
+    valid_values: [host, path, query, anchor]
+  default: [path, query]
+  desc: The URL segments where `:navigate increment/decrement` will search for a
+    number.
+
+
+# ui
+
+history_session_interval:
+  type: Int
+  default: 30
+  desc: The maximum time in minutes between two history items for them to be considered
+    being from the same session. Use -1 to disable separation.
+
+zoom_levels:
+  type:
+    name: List
+    elemtype:
+      name: Perc
+      minval: 0
+  default:
+    - 25%
+    - 33%
+    - 50%
+    - 67%
+    - 75%
+    - 90%
+    - 100%
+    - 110%
+    - 125%
+    - 150%
+    - 175%
+    - 200%
+    - 250%
+    - 300%
+    - 400%
+    - 500%
+  desc: The available zoom levels.
+
+default_zoom:
+  type: Perc
+  default: 100%
+  desc: The default zoom level.
+
+downloads_position:
+  type: VerticalPosition
+  default: top
+  desc: Where to show the downloaded files.
+
+status_position:
+  type: VerticalPosition
+  default: bottom
+  desc: The position of the status bar.
+
+message_timeout:
+  type:
+    name: Int
+    minval: 0
+  default: 2000
+  desc: >-
+    Time (in ms) to show messages in the statusbar for.
+
+    Set to 0 to never clear messages.
+
+message_unfocused:
+  type: Bool
+  default: false
+  desc: Whether to show messages in unfocused windows.
+
+confirm_quit:
+  type: ConfirmQuit
+  default: never
+  desc: Whether to confirm quitting the application.
+
+zoom_text_only:
+  type: Bool
+  default: false
+  backend: QtWebKit
+  desc: Whether the zoom factor on a frame applies only to the text or to all
+    content.
+
+frame_flattening:
+  default: false
+  type: Bool
+  backend: QtWebKit
+  desc: >-
+    Whether to  expand each subframe to its contents.
+
+    This will flatten all the frames to become one scrollable page.
+
+user_stylesheet:
+  type:
+    name: File
+    none_ok: True
+  default: ""
+  desc: User stylesheet to use (absolute filename or filename relative to the config
+    directory). Will expand environment variables.
+
+hide_scrollbar:
+  type: Bool
+  default: true
+  desc: Hide the main scrollbar.
+
+smooth_scrolling:
+  type: Bool
+  default: false
+  desc: Whether to enable smooth scrolling for web pages. Note smooth scrolling does
+    not work with the `:scroll-px` command.
+
+remove_finished_downloads:
+  default: -1
+  type:
+    name: Int
+    minval: -1
+  desc: Number of milliseconds to wait before removing finished downloads. Will not
+    be removed if value is -1.
+
+hide_statusbar:
+  type: Bool
+  default: false
+  desc: Whether to hide the statusbar unless a message is shown.
+
+statusbar_padding:
+  type: Padding
+  default:
+    top: 1
+    bottom: 1
+    left: 0
+    right: 0
+  desc: Padding for the statusbar.
+
+window_title_format:
+  type:
+    name: FormatString
+    fields:
+      - perc
+      - perc_raw
+      - title
+      - title_sep
+      - id
+      - scroll_pos
+      - host
+      - backend
+      - private
+  default: '{perc}{title}{title_sep}qutebrowser'
+  desc: |
+    The format to use for the window title. The following placeholders are defined:
+
+    * `{perc}`: The percentage as a string like `[10%]`.
+    * `{perc_raw}`: The raw percentage, e.g. `10`
+    * `{title}`: The title of the current web page
+    * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
+    * `{id}`: The internal window ID of this window.
+    * `{scroll_pos}`: The page scroll position.
+    * `{host}`: The host of the current web page.
+    * `{backend}`: Either ''webkit'' or ''webengine''
+    * `{private}` : Indicates when private mode is enabled.
+
+
+modal_js_dialog:
+  type: Bool
+  default: false
+  desc: Use the standard JavaScript modal dialog for `alert()` and `confirm()`
+
+hide_wayland_decoration:
+  type: Bool
+  default: false
+  desc: Hide the window decoration when using wayland (requires restart)
+
+keyhint_blacklist:
+  type:
+    name: List
+    elemtype:
+      name: String
+      none_ok: true
+  default: ""
+  desc: >-
+    Keychains that shouldn\'t be shown in the keyhint dialog.
+
+    Globs are supported, so `;*` will blacklist all keychains starting with `;`.
+    Use `*` to disable keyhints.
+
+keyhint_delay:
+  type:
+    name: Int
+    minval: 0
+  default: 500
+  desc: Time from pressing a key to seeing the keyhint dialog (ms)
+
+prompt_radius:
+  type:
+    name: Int
+    minval: 0
+  default: 8
+  desc: The rounding radius for the edges of prompts.
+
+prompt_filebrowser:
+  type: Bool
+  default: true
+  desc: Show a filebrowser in upload/download prompts.
+
+
+# network
+
+do_not_track:
+  type: Bool
+  default: true
+  desc: Value to send in the `DNT` header.
+
+accept_language:
+  type: String
+  default: en-US,en
+  desc: Value to send in the `accept-language` header.
+
+referer_header:
+  default: same-domain
+  type:
+    name: String
+    valid_values:
+      - always: "Always send."
+      - never: "Never send; this is not recommended, as some sites may break."
+      - same-domain: "Only send for the same domain. This will still protect
+          your privacy, but shouldn't break any sites."
+  backend: QtWebKit
+  desc: Send the Referer header
+
+user_agent:
+  default: ""
+  type:
+    name: UserAgent
+    none_ok: true
+  desc: User agent to send. Empty to send the default.
+
+proxy:
+  default: system
+  type:
+    name: Proxy
+    valid_values:
+    - system: "Use the system wide proxy."
+    - none: "Don't use any proxy"
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.8
+  desc: >-
+    The proxy to use.
+
+    In addition to the listed values, you can use a `socks://...` or `http://...`
+    URL.
+
+    # FIXME:conf This should be added automatically:
+    # This setting only works with Qt 5.8 or newer when using the QtWebEngine
+    # backend.
+
+proxy_dns_requests:
+  default: true
+  type: Bool
+  backend: QtWebKit
+  desc: Whether to send DNS requests over the configured proxy.
+
+ssl_strict:
+  default: ask
+  type: BoolAsk
+  desc: Whether to validate SSL handshakes.
+
+dns_prefetch:
+  default: true
+  type: Bool
+  backend: QtWebKit
+  desc: Whether to try to pre-fetch DNS entries to speed up browsing.
+
+custom_headers:
+  default: {}
+  type:
+    name: Dict
+    keytype: String
+    valtype: String
+    none_ok: true
+  desc: Set custom headers for qutebrowser HTTP requests.
+
+netrc_file:
+  default: ""
+  type:
+    name: File
+    none_ok: true
+  desc: Set location of a netrc-file for HTTP authentication. If empty, ~/.netrc
+    is used.
+
+
+# completion
+
+show:
+  default: always
+  type:
+    name: String
+    valid_values:
+      - always: Whenever a completion is available.
+      - auto: Whenever a completion is requested.
+      - never: Never.
+  desc: When to show the autocompletion window.
+
+download_path_suggestion:
+  default: path
+  type:
+    name: String
+    valid_values:
+      - path: Show only the download path.
+      - filename: Show only download filename.
+      - both: Show download path and filename.
+  desc: What to display in the download filename input.
+
+timestamp_format:
+  type:
+    name: TimestampTemplate
+    none_ok: true
+  default: '%Y-%m-%d'
+  desc: How to format timestamps (e.g. for history)
+
+height:
+  type:
+    name: PercOrInt
+    minperc: 0
+    maxperc: 100
+    minint: 1
+  default: 50%
+  desc: The height of the completion, in px or as percentage of the window.
+
+cmd_history_max_items:
+  default: 100
+  type:
+    name: Int
+    minval: -1
+  desc: >-
+    How many commands to save in the command history.
+
+    0: no history / -1: unlimited
+
+web_history_max_items:
+  default: 1000
+  type:
+    name: Int
+    minval: -1
+  desc: >-
+    How many URLs to show in the web history.
+
+    0: no history / -1: unlimited
+
+quick_complete:
+  default: true
+  type: Bool
+  desc: "Whether to move on to the next part when there's only one possible completion
+    left."
+
+shrink:
+  default: false
+  type: Bool
+  desc: Whether to shrink the completion to be smaller than the configured size if
+    there are no scrollbars.
+
+scrollbar_width:
+  default: 12
+  type:
+    name: Int
+    minval: 0
+  desc: Width of the scrollbar in the completion window (in px).
+
+scrollbar_padding:
+  default: 2
+  type:
+    name: Int
+    minval: 0
+  desc: Padding of scrollbar handle in completion window (in px).
+
+
+# input
+
+timeout:
+  default: 500
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  desc: >-
+    Timeout (in milliseconds) for ambiguous key bindings.
+
+    If the current input forms both a complete match and a partial match, the complete
+    match will be executed after this time.
+
+partial_timeout:
+  default: 5000
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  desc: >-
+    Timeout (in milliseconds) for partially typed key bindings.
+
+    If the current input forms only partial matches, the keystring will be cleared
+    after this time.
+
+insert_mode_on_plugins:
+  default: false
+  type: Bool
+  desc: Whether to switch to insert mode when clicking flash and other plugins.
+
+auto_leave_insert_mode:
+  default: true
+  type: Bool
+  desc: Whether to leave insert mode if a non-editable element is clicked.
+
+auto_insert_mode:
+  default: false
+  type: Bool
+  desc: Whether to automatically enter insert mode if an editable element is focused
+    after page load.
+
+forward_unbound_keys:
+  default: auto
+  type:
+    name: String
+    valid_values:
+    - all: "Forward all unbound keys."
+    - auto: "Forward unbound non-alphanumeric keys."
+    - none: "Don't forward any keys."
+  desc: Whether to forward unbound keys to the webview in normal mode.
+
+spatial_navigation:
+  default: false
+  type: Bool
+  desc: >-
+    Enables or disables the Spatial Navigation feature.
+
+    Spatial navigation consists in the ability to navigate between focusable elements
+    in a Web page, such as hyperlinks and form controls, by using Left, Right, Up
+    and Down arrow keys. For example, if a user presses the Right key, heuristics
+    determine whether there is an element he might be trying to reach towards the
+    right and which element he probably wants.
+
+links_included_in_focus_chain:
+  default: true
+  type: Bool
+  desc: Whether hyperlinks should be included in the keyboard focus chain.
+
+rocker_gestures:
+  default: false
+  type: Bool
+  desc: Whether to enable Opera-like mouse rocker gestures. This disables the context
+    menu.
+
+mouse_zoom_divider:
+  default: 512
+  type:
+    name: Int
+    minval: 0
+  desc: How much to divide the mouse wheel movements to translate them into zoom increments.
+
+
+# tabs
+
+background_tabs:
+  default: false
+  type: Bool
+  desc: Whether to open new tabs (middleclick/ctrl+click) in background.
+
+select_on_remove:
+  default: 'next'
+  type: SelectOnRemove
+  desc: Which tab to select when the focused tab is removed.
+
+new_tab_position:
+  default: next
+  type: NewTabPosition
+  desc: How new tabs are positioned.
+
+new_tab_position_explicit:
+  default: last
+  type: NewTabPosition
+  desc: How new tabs opened explicitly are positioned.
+
+last_close:
+  default: ignore
+  type:
+    name: String
+    valid_values:
+      - ignore: "Don't do anything."
+      - blank: "Load a blank page."
+      - startpage: "Load the start page."
+      - default-page: "Load the default page."
+      - close: "Close the window."
+  desc: Behavior when the last tab is closed.
+
+show:
+  default: always
+  type:
+    name: String
+    valid_values:
+    - always: Always show the tab bar.
+    - never: Always hide the tab bar.
+    - multiple: Hide the tab bar if only one tab is open.
+    - switching: Show the tab bar when switching tabs.
+  desc: When to show the tab bar.
+
+show_switching_delay:
+  default: 800
+  type: Int
+  desc: "Time to show the tab bar before hiding it when tabs->show is set to
+    'switching'."
+
+wrap:
+  default: true
+  type: Bool
+  desc: Whether to wrap when changing tabs.
+
+movable:
+  default: true
+  type: Bool
+  desc: Whether tabs should be movable.
+
+close_mouse_button:
+  default: middle
+  type:
+    name: String
+    valid_values:
+      - right: "Close tabs on right-click."
+      - middle: "Close tabs on middle-click."
+      - none: "Don't close tabs using the mouse."
+  desc: On which mouse button to close tabs.
+
+position:
+  default: top
+  type: Position
+  desc: The position of the tab bar.
+
+show_favicons:
+  default: true
+  desc: Whether to show favicons in the tab bar.
+  type: Bool
+
+favicon_scale:
+  default: 1.0
+  type:
+    name: Float
+    minval: 0.0
+  desc: Scale for favicons in the tab bar. The tab size is unchanged, so big favicons
+    also require extra `tabs->padding`.
+
+width:
+  default: 20%
+  type:
+    name: PercOrInt
+    minperc: 0
+    maxperc: 100
+    minint: 1
+  desc: "The width of the tab bar if it's vertical, in px or as percentage of the window."
+
+pinned_width:
+  default: 43
+  type:
+    name: Int
+    minval: 10
+  desc: The width for pinned tabs with a horizontal tabbar, in px.
+
+indicator_width:
+  default: 3
+  type:
+    name: Int
+    minval: 0
+  desc: Width of the progress indicator (0 to disable).
+
+tabs_are_windows:
+  default: false
+  type: Bool
+  desc: Whether to open windows instead of tabs.
+
+title_format:
+  default: '{index}: {title}'
+  type:
+    name: FormatString
+    fields:
+      - perc
+      - perc_raw
+      - title
+      - title_sep
+      - index
+      - id
+      - scroll_pos
+      - host
+      - private
+    none_ok: true
+  desc: |
+    The format to use for the tab title. The following placeholders are defined:
+
+    * `{perc}`: The percentage as a string like `[10%]`.
+    * `{perc_raw}`: The raw percentage, e.g. `10`
+    * `{title}`: The title of the current web page
+    * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
+    * `{index}`: The index of this tab.
+    * `{id}`: The internal tab ID of this tab.
+    * `{scroll_pos}`: The page scroll position.
+    * `{host}`: The host of the current web page.
+    * `{backend}`: Either ''webkit'' or ''webengine''
+    * `{private}` : Indicates when private mode is enabled.
+
+title_format_pinned:
+  default: '{index}'
+  type:
+    name: FormatString
+    fields:
+      - perc
+      - perc_raw
+      - title
+      - title_sep
+      - index
+      - id
+      - scroll_pos
+      - host
+      - private
+    none_ok: true
+  desc: The format to use for the tab title for pinned tabs. The same placeholders
+    like for title-format are defined.
+
+title_alignment:
+  default: left
+  type: TextAlignment
+  desc: Alignment of the text inside of tabs
+
+mousewheel_tab_switching:
+  default: true
+  type: Bool
+  desc: Switch between tabs using the mouse wheel.
+
+padding:
+  default:
+    top: 0
+    bottom: 0
+    left: 5
+    right: 5
+  type: Padding
+  desc: Padding for tabs
+
+indicator_padding:
+  default:
+    top: 2
+    bottom: 2
+    left: 0
+    right: 4
+  type: Padding
+  desc: Padding for indicators
+
+
+# storage
+
+download_directory:
+  default: ""
+  type:
+    name: Directory
+    none_ok: true
+  desc: The directory to save downloads to. An empty value selects a sensible os-specific
+    default. Will expand environment variables.
+
+prompt_download_directory:
+  default: true
+  type: Bool
+  desc: >-
+    Whether to prompt the user for the download location.
+
+    If set to false, `download-directory` will be used.
+
+remember_download_directory:
+  default: true
+  type: Bool
+  desc: Whether to remember the last used download directory.
+
+# Defaults from QWebSettings::QWebSettings() in
+# qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
+maximum_pages_in_cache:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  backend: QtWebKit
+  desc: >-
+    The maximum number of pages to hold in the global memory page cache.
+
+    The Page Cache allows for a nicer user experience when navigating forth or back
+    to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+
+    For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+
+offline_web_application_cache:
+  default: true
+  type: Bool
+  backend: QtWebKit
+  desc: >-
+    Whether support for the HTML 5 web application cache feature is enabled.
+
+    An application cache acts like an HTTP cache in some sense. For documents that
+    use the application cache via JavaScript, the loader engine will first ask the
+    application cache for the contents, before hitting the network.
+
+    The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
+
+local_storage:
+  default: true
+  type: Bool
+  desc: Whether support for HTML 5 local storage and Web SQL is enabled.
+
+cache_size:
+  default: null
+  type:
+    name: Int
+    none_ok: true
+    minval: 0
+    maxval: maxint64
+  desc: Size of the HTTP network cache. Empty to use the default value.
+
+
+# content
+
+allow_images:
+  default: true
+  type: Bool
+  desc: Whether images are automatically loaded in web pages.
+
+allow_javascript:
+  default: true
+  type: Bool
+  desc: Enables or disables the running of JavaScript programs.
+
+allow_plugins:
+  default: false
+  type: Bool
+  desc: Enables or disables plugins in Web pages.
+
+webgl:
+  default: true
+  type: Bool
+  desc: Enables or disables WebGL.
+
+hyperlink_auditing:
+  default: false
+  type: Bool
+  desc: Enable or disable hyperlink auditing (`<a ping>`).
+
+geolocation:
+  default: ask
+  type: BoolAsk
+  desc: Allow websites to request geolocations.
+
+notifications:
+  default: ask
+  type: BoolAsk
+  desc: Allow websites to show notifications.
+
+media_capture:
+  default: ask
+  type: BoolAsk
+  backend: QtWebEngine
+  desc: Allow websites to record audio/video.
+
+javascript_can_open_windows_automatically:
+  default: false
+  type: Bool
+  desc: Whether JavaScript programs can open new windows without user
+    interaction.
+
+javascript_can_close_windows:
+  default: false
+  type: Bool
+  backend: QtWebKit
+  desc: Whether JavaScript programs can close windows.
+
+javascript_can_access_clipboard:
+  default: false
+  type: Bool
+  desc: >-
+    Whether JavaScript programs can read or write to the clipboard.
+
+    With QtWebEngine, writing the clipboard as response to a user interaction is always
+    allowed.
+
+ignore_javascript_prompt:
+  default: false
+  type: Bool
+  desc: Whether all javascript prompts should be ignored.
+
+ignore_javascript_alert:
+  default: false
+  type: Bool
+  desc: Whether all javascript alerts should be ignored.
+
+local_content_can_access_remote_urls:
+  default: false
+  type: Bool
+  desc: Whether locally loaded documents are allowed to access remote urls.
+
+local_content_can_access_file_urls:
+  default: true
+  type: Bool
+  desc: Whether locally loaded documents are allowed to access other local urls.
+
+cookies_accept:
+  default: no-3rdparty
+  backend: QtWebKit
+  type:
+    name: String
+    valid_values:
+      - all: "Accept all cookies."
+      - no-3rdparty: "Accept cookies from the same origin only."
+      - no-unknown-3rdparty: "Accept cookies from the same origin only, unless a
+          cookie is already set for the domain."
+      - never: "Don't accept cookies at all."
+  desc: Control which cookies to accept.
+
+cookies_store:
+  default: true
+  type: Bool
+  desc: Whether to store cookies. Note this option needs a restart with QtWebEngine
+    on Qt < 5.9.
+
+host_block_lists:
+  default:
+    - "https://www.malwaredomainlist.com/hostslist/hosts.txt"
+    - "http://someonewhocares.org/hosts/hosts"
+    - "http://winhelp2002.mvps.org/hosts.zip"
+    - "http://malwaredomains.lehigh.edu/files/justdomains.zip"
+    - "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&mimetype=plaintext"
+  type:
+    name: List
+    elemtype: Url
+    none_ok: true
+  desc: |
+    List of URLs of lists which contain hosts to block.
+
+    The file can be in one of the following formats:
+
+    - An `/etc/hosts`-like file
+    - One host per line
+    - A zip-file of any of the above, with either only one file, or a file named
+      `hosts` (with any extension).
+
+host_blocking_enabled:
+  default: true
+  type: Bool
+  desc: Whether host blocking is enabled.
+
+host_blocking_whitelist:
+  default:
+  - piwik.org
+  type:
+    name: List
+    valtype: string
+    none_ok: true
+  desc: >-
+    List of domains that should always be loaded, despite being ad-blocked.
+
+    Domains may contain * and ? wildcards and are otherwise required to exactly match
+    the requested domain.
+
+    Local domains are always exempt from hostblocking.
+
+enable_pdfjs:
+  default: false
+  type: Bool
+  desc: >-
+    Enable pdf.js to view PDF files in the browser.
+
+    Note that the files can still be downloaded by clicking the download button in
+    the pdf.js viewer.
+
+
+# hints
+
+border:
+  default: '1px solid #E3BE23'
+  type: String
+  desc: CSS border value for hints.
+
+mode:
+  default: letter
+  type:
+    name: String
+    valid_values:
+      - number: Use numeric hints. (In this mode you can also type letters from
+          the hinted element to filter and reduce the number of elements that
+          are hinted.)
+      - letter: Use the chars in the hints -> chars setting.
+      - word: Use hints words based on the html elements and the extra words.
+  desc: Mode to use for hints.
+
+chars:
+  default: asdfghjkl
+  type:
+    name: UniqueCharString
+    minlen: 2
+    completions:
+      - ['asdfghjkl', "Home row"]
+      - ['aoeuidnths', "Home row (Dvorak)"]
+      - ['abcdefghijklmnopqrstuvwxyz', "All letters"]
+  desc: Chars used for hint strings.
+
+min_chars:
+  default: 1
+  type:
+    name: Int
+    minval: 1
+  desc: Minimum number of chars used for hint strings.
+
+scatter:
+  default: true
+  type: Bool
+  desc: Whether to scatter hint key chains (like Vimium) or not (like dwb). Ignored
+    for number hints.
+
+uppercase:
+  default: false
+  type: Bool
+  desc: Make chars in hint strings uppercase.
+
+dictionary:
+  default: /usr/share/dict/words
+  type:
+    name: File
+    required: false
+  desc: The dictionary file to be used by the word hints.
+
+auto_follow:
+  default: unique-match
+  type:
+    name: String
+    valid_values:
+      - always: "Auto-follow whenever there is only a single hint on a page."
+      - unique-match: "Auto-follow whenever there is a unique non-empty match in
+          either the hint string (word mode) or filter (number mode)."
+      - full-match: "Follow the hint when the user typed the whole hint (letter,
+          word or number mode) or the element's text (only in number mode)."
+      - never: "The user will always need to press Enter to follow a hint."
+  desc: Controls when a hint can be automatically followed without the user
+    pressing Enter.
+
+auto_follow_timeout:
+  default: 0
+  type: Int
+  desc: A timeout (in milliseconds) to inhibit normal-mode key bindings after a
+    successful auto-follow.
+
+next_regexes:
+  default:
+    - "\\bnext\\b"
+    - "\\bmore\\b"
+    - "\\bnewer\\b"
+    - "\\b[>\u2192\u226B]\\b"
+    - "\\b(>>|\xBB)\\b"
+    - "\\bcontinue\\b"
+  type:
+    name: List
+    valtype:
+      name: Regex
+      flags: IGNORECASE
+  desc: "A comma-separated list of regexes to use for 'next' links."
+
+prev_regexes:
+  default:
+    - "\\bprev(ious)?\\b"
+    - "\\bback\\b"
+    - "\\bolder\\b"
+    - "\\b[<\u2190\u226A]\\b"
+    - "\\b(<<|\xAB)\\b"
+  type:
+    name: List
+    valtype:
+      name: Regex
+      flags: IGNORECASE
+  desc: A comma-separated list of regexes to use for 'prev' links.
+
+find_implementation:
+  default: python
+  type:
+    name: String
+    valid_values:
+    - javascript: Better but slower
+    - python: Slightly worse but faster
+  desc: Which implementation to use to find elements to hint.
+
+hide_unmatched_rapid_hints:
+  default: true
+  type: Bool
+  desc: Controls hiding unmatched hints in rapid mode.
+
+# searchengines
+
+searchengines:
+  default:
+    DEFAULT: https://duckduckgo.com/?q={}
+  type:
+    name: Dict
+    keytype: SearchEngineName
+    valtype: SearchEngineUrl
+  desc: FIXME
+
+# aliases
+
+aliases:
+  default: {}
+  type:
+    name: Dict
+    keytype:
+      name: String
+      forbidden: ' '
+    valtype: Command
+  desc: Command aliases FIXME
+
+# colors
+
+colors.completion.fg:
+  default: white
+  type: QtColor
+  desc: Text color of the completion widget.
+
+colors.completion.bg:
+  default: '#333333'
+  type: QssColor
+  desc: Background color of the completion widget.
+
+colors.completion.alternate_bg:
+  default: '#444444'
+  type: QssColor
+  desc: Alternating background color of the completion widget.
+
+colors.completion.category.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of completion widget category headers.
+
+colors.completion.category.bg:
+  default: 'qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #888888, stop:1 #505050)'
+  type: QssColor
+  desc: Background color of the completion widget category headers.
+
+colors.completion.category.border.top:
+  default: black
+  type: QssColor
+  desc: Top border color of the completion widget category headers.
+
+colors.completion.category.border.bottom:
+  default: black
+  type: QssColor
+  desc: Bottom border color of the completion widget category headers.
+
+colors.completion.item.selected.fg:
+  default: black
+  type: QtColor
+  desc: Foreground color of the selected completion item.
+
+colors.completion.item.selected.bg:
+  default: '#e8c000'
+  type: QssColor
+  desc: Background color of the selected completion item.
+
+colors.completion.item.selected.border.top:
+  default: '#bbbb00'
+  type: QssColor
+  desc: Top border color of the completion widget category headers.
+
+colors.completion.item.selected.border.bottom:
+  default: '#bbbb00'
+  type: QssColor
+  desc: Bottom border color of the selected completion item.
+
+colors.completion.match.fg:
+  default: '#ff4444'
+  type: QssColor
+  desc: Foreground color of the matched text in the completion.
+
+colors.completion.scrollbar.fg:
+  default: white
+  type: QssColor
+  desc: Color of the scrollbar handle in completion view.
+
+colors.completion.scrollbar.bg:
+  default: '#333333'
+  type: QssColor
+  desc: Color of the scrollbar in completion view
+
+colors.statusbar.fg:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar.
+
+colors.statusbar.bg:
+  default: black
+  type: QssColor
+  desc: Background color of the statusbar.
+
+colors.statusbar.fg.private:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in private browsing mode.
+
+colors.statusbar.bg.private:
+  default: '#666666'
+  type: QssColor
+  desc: Background color of the statusbar in private browsing mode.
+
+colors.statusbar.fg.insert:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in insert mode.
+
+colors.statusbar.bg.insert:
+  default: darkgreen
+  type: QssColor
+  desc: Background color of the statusbar in insert mode.
+
+colors.statusbar.fg.command:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in command mode.
+
+colors.statusbar.bg.command:
+  default: black
+  type: QssColor
+  desc: Background color of the statusbar in command mode.
+
+colors.statusbar.fg.command.private:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in private browsing + command mode.
+
+colors.statusbar.bg.command.private:
+  default: grey
+  type: QssColor
+  desc: Background color of the statusbar in private browsing + command mode.
+
+colors.statusbar.fg.caret:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in caret mode.
+
+colors.statusbar.bg.caret:
+  default: purple
+  type: QssColor
+  desc: Background color of the statusbar in caret mode.
+
+colors.statusbar.fg.caret_selection:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in caret mode with a selection
+
+colors.statusbar.bg.caret_selection:
+  default: '#a12dff'
+  type: QssColor
+  desc: Background color of the statusbar in caret mode with a selection
+
+colors.statusbar.progress.bg:
+  default: white
+  type: QssColor
+  desc: Background color of the progress bar.
+
+colors.statusbar.url.fg:
+  default: white
+  type: QssColor
+  desc: Default foreground color of the URL in the statusbar.
+
+colors.statusbar.url.fg.success:
+  default: white
+  type: QssColor
+  desc: Foreground color of the URL in the statusbar on successful load (http).
+
+colors.statusbar.url.fg.success.https:
+  default: lime
+  type: QssColor
+  desc: Foreground color of the URL in the statusbar on successful load (https).
+
+colors.statusbar.url.fg.error:
+  default: orange
+  type: QssColor
+  desc: Foreground color of the URL in the statusbar on error.
+
+colors.statusbar.url.fg.warn:
+  default: yellow
+  type: QssColor
+  desc: "Foreground color of the URL in the statusbar when there's a warning."
+
+colors.statusbar.url.fg.hover:
+  default: aqua
+  desc: Foreground color of the URL in the statusbar for hovered links.
+  type: QssColor
+
+colors.tabs.fg.odd:
+  default: white
+  type: QtColor
+  desc: Foreground color of unselected odd tabs.
+
+colors.tabs.bg.odd:
+  default: grey
+  type: QtColor
+  desc: Background color of unselected odd tabs.
+
+colors.tabs.fg.even:
+  default: white
+  type: QtColor
+  desc: Foreground color of unselected even tabs.
+
+colors.tabs.bg.even:
+  default: darkgrey
+  type: QtColor
+  desc: Background color of unselected even tabs.
+
+colors.tabs.fg.selected.odd:
+  default: white
+  type: QtColor
+  desc: Foreground color of selected odd tabs.
+
+colors.tabs.bg.selected.odd:
+  default: black
+  type: QtColor
+  desc: Background color of selected odd tabs.
+
+colors.tabs.fg.selected.even:
+  default: white
+  type: QtColor
+  desc: Foreground color of selected even tabs.
+
+colors.tabs.bg.selected.even:
+  default: black
+  type: QtColor
+  desc: Background color of selected even tabs.
+
+colors.tabs.bg.bar:
+  default: '#555555'
+  type: QtColor
+  desc: Background color of the tab bar.
+
+colors.tabs.indicator.start:
+  default: '#0000aa'
+  type: QtColor
+  desc: Color gradient start for the tab indicator.
+
+colors.tabs.indicator.stop:
+  default: '#00aa00'
+  type: QtColor
+  desc: Color gradient end for the tab indicator.
+
+colors.tabs.indicator.error:
+  default: '#ff0000'
+  type: QtColor
+  desc: Color for the tab indicator on errors..
+
+colors.tabs.indicator.system:
+  default: rgb
+  type: ColorSystem
+  desc: Color gradient interpolation system for the tab indicator.
+
+colors.hints.fg:
+  default: black
+  type: QssColor
+  desc: Font color for hints.
+
+colors.hints.bg:
+  default: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 247, 133, 0.8),
+    stop:1 rgba(255, 197, 66, 0.8))
+  type: QssColor
+  desc: Background color for hints. Note that you can use a `rgba(...)` value for
+    transparency.
+
+colors.hints.fg.match:
+  default: green
+  type: QssColor
+  desc: Font color for the matched part of hints.
+
+colors.downloads.bg.bar:
+  default: black
+  type: QssColor
+  desc: Background color for the download bar.
+
+colors.downloads.fg.start:
+  default: white
+  type: QtColor
+  desc: Color gradient start for download text.
+
+colors.downloads.bg.start:
+  default: '#0000aa'
+  type: QtColor
+  desc: Color gradient start for download backgrounds.
+
+colors.downloads.fg.stop:
+  default: '#0000aa'
+  type: QtColor
+  desc: Color gradient end for download text.
+
+colors.downloads.bg.stop:
+  default: '#00aa00'
+  type: QtColor
+  desc: Color gradient stop for download backgrounds.
+
+colors.downloads.fg.system:
+  default: rgb
+  type: ColorSystem
+  desc: Color gradient interpolation system for download text.
+
+colors.downloads.bg.system:
+  default: rgb
+  type: ColorSystem
+  desc: Color gradient interpolation system for download backgrounds.
+
+colors.downloads.fg.error:
+  default: white
+  type: QtColor
+  desc: Foreground color for downloads with errors.
+
+colors.downloads.bg.error:
+  default: red
+  type: QtColor
+  desc: Background color for downloads with errors.
+
+colors.webpage.bg:
+  default: white
+  type:
+    name: QtColor
+    none_ok: true
+  desc: "Background color for webpages if unset (or empty to use the theme's color)"
+
+colors.keyhint.fg:
+  default: '#FFFFFF'
+  type: QssColor
+  desc: Text color for the keyhint widget.
+
+colors.keyhint.fg.suffix:
+  default: '#FFFF00'
+  type: CssColor
+  desc: Highlight color for keys to complete the current keychain
+
+colors.keyhint.bg:
+  default: rgba(0, 0, 0, 80%)
+  type: QssColor
+  desc: Background color of the keyhint widget.
+
+colors.messages.fg.error:
+  default: white
+  type: QssColor
+  desc: Foreground color of an error message.
+
+colors.messages.bg.error:
+  default: red
+  type: QssColor
+  desc: Background color of an error message.
+
+colors.messages.border.error:
+  default: '#bb0000'
+  type: QssColor
+  desc: Border color of an error message.
+
+colors.messages.fg.warning:
+  default: white
+  type: QssColor
+  desc: Foreground color a warning message.
+
+colors.messages.bg.warning:
+  default: darkorange
+  type: QssColor
+  desc: Background color of a warning message.
+
+colors.messages.border.warning:
+  default: '#d47300'
+  type: QssColor
+  desc: Border color of an error message.
+
+colors.messages.fg.info:
+  default: white
+  type: QssColor
+  desc: Foreground color an info message.
+
+colors.messages.bg.info:
+  default: black
+  type: QssColor
+  desc: Background color of an info message.
+
+colors.messages.border.info:
+  default: '#333333'
+  type: QssColor
+  desc: Border color of an info message.
+
+colors.prompts.fg:
+  default: white
+  type: QssColor
+  desc: Foreground color for prompts.
+
+colors.prompts.bg:
+  default: darkblue
+  type: QssColor
+  desc: Background color for prompts.
+
+colors.prompts.selected.bg:
+  default: '#308cc6'
+  type: QssColor
+  desc: Background color for the selected item in filename prompts.
+
+
+# fonts
+
+fonts.monospace:
+  default: xos4 Terminus, Terminus, Monospace, "DejaVu Sans Mono", Monaco, "Bitstream
+    Vera Sans Mono", "Andale Mono", "Courier New", Courier, "Liberation Mono", monospace,
+    Fixed, Consolas, Terminal
+  type: Font
+  desc: Default monospace fonts.
+
+fonts.completion:
+  default: 8pt monospace
+  type: Font
+  desc: Font used in the completion widget.
+
+fonts.completion.category:
+  default: bold 8pt monospace
+  type: Font
+  desc: Font used in the completion categories.
+
+fonts.tabbar:
+  default: 8pt monospace
+  type: QtFont
+  desc: Font used in the tab bar.
+
+fonts.statusbar:
+  default: 8pt monospace
+  type: Font
+  desc: Font used in the statusbar.
+
+fonts.downloads:
+  default: 8pt monospace
+  type: Font
+  desc: Font used for the downloadbar.
+
+fonts.hints:
+  default: bold 13px monospace
+  type: Font
+  desc: Font used for the hints.
+
+fonts.debug_console:
+  default: 8pt monospace
+  type: QtFont
+  desc: Font used for the debugging console.
+
+fonts.web_family_standard:
+  default: ''
+  type:
+    name: FontFamily
+    none_ok: true
+  desc: Font family for standard fonts.
+
+fonts.web_family_fixed:
+  default: ''
+  type:
+    name: FontFamily
+    none_ok: true
+  desc: Font family for fixed fonts.
+
+fonts.web_family_serif:
+  default: ''
+  type:
+    name: FontFamily
+    none_ok: true
+  desc: Font family for serif fonts.
+
+fonts.web_family_sans_serif:
+  default: ''
+  type:
+    name: FontFamily
+    none_ok: true
+  desc: Font family for sans-serif fonts.
+
+fonts.web_family_cursive:
+  default: ''
+  type:
+    name: FontFamily
+    none_ok: true
+  desc: Font family for cursive fonts.
+
+fonts.web_family_fantasy:
+  default: ''
+  type:
+    name: FontFamily
+    none_ok: true
+  desc: Font family for fantasy fonts.
+
+# Defaults for web_size_* from WebEngineSettings::initDefaults in
+# qtwebengine/src/core/web_engine_settings.cpp and
+# QWebSettings::QWebSettings() in
+# qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
+fonts.web_size_minimum:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  desc: The hard minimum font size.
+
+fonts.web_size_minimum_logical:
+  # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
+  # just go for 6 here.
+  default: 6
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  desc: The minimum logical font size that is applied when zooming out.
+
+fonts.web_size_default:
+  default: 16
+  type:
+    name: Int
+    minval: 1
+    maxval: maxint
+  desc: The default font size for regular text.
+
+fonts.web_size_default_fixed:
+  default: 13
+  type:
+    name: Int
+    minval: 1
+    maxval: maxint
+  desc: The default font size for fixed-pitch text.
+
+fonts.keyhint:
+  default: 8pt monospace
+  type: Font
+  desc: Font used in the keyhint widget.
+
+fonts.messages.error:
+  default: 8pt monospace
+  type: Font
+  desc: Font used for error messages.
+
+fonts.messages.warning:
+  default: 8pt monospace
+  type: Font
+  desc: Font used for warning messages.
+
+fonts.messages.info:
+  default: 8pt monospace
+  type: Font
+  desc: Font used for info messages.
+
+fonts.prompts:
+  default: 8pt sans-serif
+  type: Font
+  desc: Font used for prompts.
