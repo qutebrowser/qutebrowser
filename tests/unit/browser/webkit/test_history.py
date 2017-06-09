@@ -152,7 +152,7 @@ def test_add_from_tab(hist, level, url, req_url, expected, mock_time, caplog):
 
 
 @pytest.fixture
-def hist_interface():
+def hist_interface(hist):
     # pylint: disable=invalid-name
     QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
     from qutebrowser.browser.webkit import webkithistory
@@ -160,8 +160,7 @@ def hist_interface():
     # pylint: enable=invalid-name
     entry = history.Entry(atime=0, url=QUrl('http://www.example.com/'),
                           title='example')
-    history_dict = {'http://www.example.com/': entry}
-    interface = webkithistory.WebHistoryInterface(history_dict)
+    interface = webkithistory.WebHistoryInterface(hist)
     QWebHistoryInterface.setDefaultInterface(interface)
     yield
     QWebHistoryInterface.setDefaultInterface(None)
