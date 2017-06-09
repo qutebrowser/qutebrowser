@@ -537,12 +537,6 @@ Feature: Various utility commands.
         And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
-    Scenario: Using :messages without messages
-        Given I have a fresh instance
-        When I run :messages
-        Then qute://log?level=info should be loaded
-        And the page should contain the plaintext "No messages to show."
-
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
     Scenario: Completing a single option argument
