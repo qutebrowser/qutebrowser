@@ -36,8 +36,11 @@ class ConfigChecker(checkers.BaseChecker):
     __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
-        'E0000': ('"%s -> %s" is no valid config option.',  # flake8: disable=S001
+        'E0000': ('%s is no valid config option.',  # flake8: disable=S001
                   'bad-config-call',
+                  None),
+        'E0001': ('old config call',  # flake8: disable=S001
+                  'old-config-call',
                   None),
     }
     priority = -1
@@ -53,23 +56,25 @@ class ConfigChecker(checkers.BaseChecker):
 
     def _check_config(self, node):
         """Check that the arguments to config.get(...) are valid."""
-        try:
-            sect_arg = utils.get_argument_from_call(node, position=0,
-                                                    keyword='sectname')
-            opt_arg = utils.get_argument_from_call(node, position=1,
-                                                   keyword='optname')
-        except utils.NoSuchArgumentError:
-            return
-        sect_arg = utils.safe_infer(sect_arg)
-        opt_arg = utils.safe_infer(opt_arg)
-        if not (isinstance(sect_arg, astroid.Const) and
-                isinstance(opt_arg, astroid.Const)):
-            return
-        try:
-            configdata.DATA[sect_arg.value][opt_arg.value]
-        except KeyError:
-            self.add_message('bad-config-call', node=node,
-                             args=(sect_arg.value, opt_arg.value))
+        # try:
+        #     sect_arg = utils.get_argument_from_call(node, position=0,
+        #                                             keyword='sectname')
+        #     opt_arg = utils.get_argument_from_call(node, position=1,
+        #                                            keyword='optname')
+        # except utils.NoSuchArgumentError:
+        #     return
+        # sect_arg = utils.safe_infer(sect_arg)
+        # opt_arg = utils.safe_infer(opt_arg)
+        # if not (isinstance(sect_arg, astroid.Const) and
+        #         isinstance(opt_arg, astroid.Const)):
+        #     return
+        # try:
+        #     configdata.DATA[sect_arg.value][opt_arg.value]
+        # except KeyError:
+        #     self.add_message('bad-config-call', node=node,
+        #                      args=(sect_arg.value, opt_arg.value))
+
+        self.add_message('old-config-call', node=node)
 
 
 def register(linter):
