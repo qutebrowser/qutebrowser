@@ -1233,6 +1233,8 @@ The format to use for the tab title. The following placeholders are defined:
 * `{scroll_pos}`: The page scroll position.
 * `{host}`: The host of the current web page.
 * `{backend}`: Either 'webkit' or 'webengine'
+* `{private}` : Indicates when private mode is enabled.
+
 
 Default: +pass:[{index}: {title}]+
 

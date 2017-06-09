@@ -409,18 +409,21 @@ def opengl_vendor():  # pragma: no cover
         log.init.debug("opengl_vendor: Making context current failed!")
         return None
 
-    if ctx.isOpenGLES():
-        # Can't use versionFunctions there
-        return None
+    try:
+        if ctx.isOpenGLES():
+            # Can't use versionFunctions there
+            return None
 
-    vp = QOpenGLVersionProfile()
-    vp.setVersion(2, 0)
+        vp = QOpenGLVersionProfile()
+        vp.setVersion(2, 0)
 
-    vf = ctx.versionFunctions(vp)
-    vendor = vf.glGetString(vf.GL_VENDOR)
-    ctx.doneCurrent()
+        vf = ctx.versionFunctions(vp)
+        if vf is None:
+            log.init.debug("opengl_vendor: Getting version functions failed!")
+            return None
 
-    if old_context and old_surface:
-        old_context.makeCurrent(old_surface)
-
-    return vendor
+        return vf.glGetString(vf.GL_VENDOR)
+    finally:
+        ctx.doneCurrent()
+        if old_context and old_surface:
+            old_context.makeCurrent(old_surface)

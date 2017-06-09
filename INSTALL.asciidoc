@@ -98,8 +98,7 @@ qutebrowser is available in the official [community] repository.
 ----
 
 It's also recommended to install `qt5-webkit-ng` or `qt5-webengine` (and start
-with `--backend webengine`) to use an up-to-date backend. Note that private
-browsing won't work with QtWebKit-NG yet.
+with `--backend webengine`) to use an up-to-date backend.
 
 There is also a -git version available in the AUR:
 https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
@@ -168,7 +167,6 @@ necessary.
 It's also recommended to install QtWebKit-NG via
 https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild],
 or install Qt >= 5.7.1 with QtWebEngine in order to use an up-to-date backend.
-Note that private browsing won't work with QtWebKit-NG yet.
 
 If video or sound don't seem to work, try installing the gstreamer plugins:
 

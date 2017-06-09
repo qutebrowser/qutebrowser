@@ -178,8 +178,8 @@ Contributors, sorted by the number of commits in descending order:
 * Jimmy
 * Niklas Haas
 * Maciej Wołczyk
-* sandrosc
 * Clayton Craft
+* sandrosc
 * Alexey "Averrin" Nabrodov
 * pkill9
 * nanjekyejoannah
