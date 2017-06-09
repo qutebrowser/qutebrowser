@@ -35,7 +35,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, qtutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -313,27 +313,27 @@ class List(BaseType):
 
     """Base class for a (string-)list setting."""
 
-    _show_inner_type = True
+    _show_valtype = True
 
-    def __init__(self, inner_type, none_ok=False, length=None):
+    def __init__(self, valtype, none_ok=False, length=None):
         super().__init__(none_ok)
-        self.inner_type = inner_type
+        self.valtype = valtype
         self.length = length
 
     def get_name(self):
         name = super().get_name()
-        if self._show_inner_type:
-            name += " of " + self.inner_type.get_name()
+        if self._show_valtype:
+            name += " of " + self.valtype.get_name()
         return name
 
     def get_valid_values(self):
-        return self.inner_type.get_valid_values()
+        return self.valtype.get_valid_values()
 
     def transform(self, value):
         if not value:
             return None
         else:
-            return [self.inner_type.transform(v.strip())
+            return [self.valtype.transform(v.strip())
                     for v in value.split(',')]
 
     def validate(self, value):
@@ -345,7 +345,7 @@ class List(BaseType):
             raise configexc.ValidationError(value, "Exactly {} values need to "
                                             "be set!".format(self.length))
         for val in vals:
-            self.inner_type.validate(val.strip())
+            self.valtype.validate(val.strip())
 
 
 class FlagList(List):
@@ -358,14 +358,14 @@ class FlagList(List):
 
     combinable_values = None
 
-    _show_inner_type = False
+    _show_valtype = False
 
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(BaseType(), none_ok)
-        self.inner_type.valid_values = valid_values
+        self.valtype.valid_values = valid_values
 
     def validate(self, value):
-        if self.inner_type.valid_values is not None:
+        if self.valtype.valid_values is not None:
             super().validate(value)
         else:
             self._basic_validation(value)
@@ -379,7 +379,7 @@ class FlagList(List):
                 value, "List contains duplicate values!")
 
     def complete(self):
-        valid_values = self.inner_type.valid_values
+        valid_values = self.valtype.valid_values
         if valid_values is None:
             return None
 
@@ -453,11 +453,22 @@ class Int(BaseType):
 
     def __init__(self, minval=None, maxval=None, none_ok=False):
         super().__init__(none_ok)
-        if maxval is not None and minval is not None and maxval < minval:
-            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
-                minval, maxval))
-        self.minval = minval
-        self.maxval = maxval
+        self.minval = self._parse_limit(minval)
+        self.maxval = self._parse_limit(maxval)
+        if self.maxval is not None and self.minval is not None:
+            if self.maxval < self.minval:
+                raise ValueError("minval ({}) needs to be <= maxval ({})!"
+                                 .format(self.minval, self.maxval))
+
+    def _parse_limit(self, value):
+        if value == 'maxint':
+            return qtutils.MAXVALS['int']
+        elif value == 'maxint64':
+            return qtutils.MAXVALS['int64']
+        else:
+            if value is not None:
+                assert isinstance(value, int), value
+            return value
 
     def transform(self, value):
         if not value:
@@ -1056,12 +1067,12 @@ class Padding(List):
 
     """Setting for paddings around elements."""
 
-    _show_inner_type = False
+    _show_valtype = False
 
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(Int(minval=0, none_ok=none_ok),
                          none_ok=none_ok, length=4)
-        self.inner_type.valid_values = valid_values
+        self.valtype.valid_values = valid_values
 
     def transform(self, value):
         elems = super().transform(value)
@@ -1179,9 +1190,16 @@ class Url(BaseType):
                                             "{}".format(val.errorString()))
 
 
-class HeaderDict(BaseType):
+class Dict(BaseType):
 
     """A JSON-like dictionary for custom HTTP headers."""
+
+    # FIXME:conf validate correctly
+
+    def __init__(self, keytype, valtype, none_ok=False):
+        super().__init__(none_ok)
+        self.keytype = keytype
+        self.valtype = valtype
 
     def _validate_str(self, value, what):
         """Check if the given thing is an ascii-only string.
@@ -1274,8 +1292,8 @@ class ConfirmQuit(FlagList):
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
-        self.inner_type.none_ok = none_ok
-        self.inner_type.valid_values = ValidValues(
+        self.valtype.none_ok = none_ok
+        self.valtype.valid_values = ValidValues(
             ('always', "Always show a confirmation."),
             ('multiple-tabs', "Show a confirmation if "
              "multiple tabs are opened."),

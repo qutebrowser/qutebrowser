@@ -73,10 +73,11 @@ class change_filter:  # pylint: disable=invalid-name
             optname: The option to be filtered.
             function: Whether a function rather than a method is decorated.
         """
-        if sectname not in configdata.DATA:
-            raise configexc.NoSectionError(sectname)
-        if optname is not None and optname not in configdata.DATA[sectname]:
-            raise configexc.NoOptionError(optname, sectname)
+        # FIXME:conf
+        # if sectname not in configdata.DATA:
+        #     raise configexc.NoSectionError(sectname)
+        # if optname is not None and optname not in configdata.DATA[sectname]:
+        #     raise configexc.NoOptionError(optname, sectname)
         self._sectname = sectname
         self._optname = optname
         self._function = function
@@ -256,6 +257,7 @@ def init(parent=None):
         parent: The parent to pass to QObjects which get initialized.
     """
     # _init_main_config(parent)
+    configdata.init()
     _init_new_config(parent)
     _init_key_config(parent)
     _init_misc()

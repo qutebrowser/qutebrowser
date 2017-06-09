@@ -23,15 +23,10 @@ import sys
 import os
 import os.path
 
+import yaml
 import astroid
 from pylint import interfaces, checkers
 from pylint.checkers import utils
-
-sys.path.insert(
-    0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir,
-                    os.pardir))
-
-from qutebrowser.config import configdata
 
 
 class ConfigChecker(checkers.BaseChecker):

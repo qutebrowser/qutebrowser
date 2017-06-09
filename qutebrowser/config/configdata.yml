@@ -8,14 +8,14 @@ ignore_case:
 start_page:
   type:
     name: List
-    elemtype: String
+    valtype: String
   default: ["https://start.duckduckgo.com"]
   desc: The default page(s) to open at the start.
 
 yank_ignored_url_parameters:
   type:
     name: List
-    elemtype: String
+    valtype: String
   default:
     - ref
     - utm_source
@@ -78,7 +78,7 @@ editor.command:
 editor.encoding:
   type: Encoding
   default: utf-8
-  desc: Encoding to use for the editor.
+  desc : Encoding to use for the editor.
 
 content.private_browsing:
   type: Bool
@@ -198,7 +198,7 @@ history_session_interval:
 zoom.levels:
   type:
     name: List
-    elemtype:
+    valtype:
       name: Perc
       minval: 0
   default:
@@ -354,7 +354,7 @@ window.hide_wayland_decoration:
 keyhint.blacklist:
   type:
     name: List
-    elemtype:
+    valtype:
       name: String
       none_ok: true
   default: ""
@@ -417,11 +417,7 @@ content.user_agent:
 
 content.proxy:
   default: system
-  type:
-    name: Proxy
-    valid_values:
-    - system: "Use the system wide proxy."
-    - none: "Don't use any proxy"
+  type: Proxy
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.8
@@ -1015,7 +1011,7 @@ content.host_blocking.lists:
     - "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&mimetype=plaintext"
   type:
     name: List
-    elemtype: Url
+    valtype: Url
     none_ok: true
   desc: |
     List of URLs of lists which contain hosts to block.
@@ -1037,7 +1033,7 @@ content.host_blocking.whitelist:
   - piwik.org
   type:
     name: List
-    valtype: string
+    valtype: String
     none_ok: true
   desc: >-
     List of domains that should always be loaded, despite being ad-blocked.

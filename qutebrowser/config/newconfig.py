@@ -48,14 +48,16 @@ class NewConfigManager(QObject):
         super().__init__(parent)
         self._values = {}
 
-    def _key(self, sect, opt):
-        return sect + ' -> ' + opt
+    def _key(self, sect, opt=None):
+        if opt is None:
+            # New usage
+            return sect
+        return sect + '.' + opt
 
     def read_defaults(self):
-        for name, section in configdata.data().items():
-            for key, value in section.items():
-                self._values[self._key(name, key)] = value
+        for name, option in configdata.DATA.items():
+            self._values[name] = option
 
     def get(self, section, option):
         val = self._values[self._key(section, option)]
-        return val.typ.transform(val.value())
+        return val.typ.transform(val.default)
