@@ -35,39 +35,53 @@ def test_init():
 def test_insert(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     with qtbot.waitSignal(table.changed):
-        table.insert(['one', 1, False])
+        table.insert(name='one', val=1, lucky=False)
     with qtbot.waitSignal(table.changed):
-        table.insert(['wan', 1, False])
+        table.insert(name='wan', val=1, lucky=False)
+
+
+def test_insert_or_replace(qtbot):
+    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
+                         constraints={'name': 'PRIMARY KEY'})
+    with qtbot.waitSignal(table.changed):
+        table.insert_or_replace(name='one', val=1, lucky=False)
+    with qtbot.waitSignal(table.changed):
+        table.insert_or_replace(name='one', val=11, lucky=True)
+    assert list(table) == [('one', 11, True)]
 
 
 def test_iter():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(['one', 1, False])
-    table.insert(['nine', 9, False])
-    table.insert(['thirteen', 13, True])
+    table.insert(name='one', val=1, lucky=False)
+    table.insert(name='nine', val=9, lucky=False)
+    table.insert(name='thirteen', val=13, lucky=True)
     assert list(table) == [('one', 1, False),
                            ('nine', 9, False),
                            ('thirteen', 13, True)]
 
 
 @pytest.mark.parametrize('rows, sort_by, sort_order, limit, result', [
-    ([[2, 5], [1, 6], [3, 4]], 'a', 'asc', 5, [(1, 6), (2, 5), (3, 4)]),
-    ([[2, 5], [1, 6], [3, 4]], 'a', 'desc', 3, [(3, 4), (2, 5), (1, 6)]),
-    ([[2, 5], [1, 6], [3, 4]], 'b', 'desc', 2, [(1, 6), (2, 5)]),
-    ([[2, 5], [1, 6], [3, 4]], 'a', 'asc', -1, [(1, 6), (2, 5), (3, 4)]),
+    ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', 5,
+        [(1, 6), (2, 5), (3, 4)]),
+    ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'desc', 3,
+        [(3, 4), (2, 5), (1, 6)]),
+    ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'b', 'desc', 2,
+        [(1, 6), (2, 5)]),
+    ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', -1,
+        [(1, 6), (2, 5), (3, 4)]),
 ])
 def test_select(rows, sort_by, sort_order, limit, result):
     table = sql.SqlTable('Foo', ['a', 'b'])
     for row in rows:
-        table.insert(row)
+        table.insert(**row)
     assert list(table.select(sort_by, sort_order, limit)) == result
 
 
 def test_delete(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(['one', 1, False])
-    table.insert(['nine', 9, False])
-    table.insert(['thirteen', 13, True])
+    table.insert(name='one', val=1, lucky=False)
+    table.insert(name='nine', val=9, lucky=False)
+    table.insert(name='thirteen', val=13, lucky=True)
     with pytest.raises(KeyError):
         table.delete('nope', 'name')
     with qtbot.waitSignal(table.changed):
@@ -81,40 +95,40 @@ def test_delete(qtbot):
 def test_len():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0
-    table.insert(['one', 1, False])
+    table.insert(name='one', val=1, lucky=False)
     assert len(table) == 1
-    table.insert(['nine', 9, False])
+    table.insert(name='nine', val=9, lucky=False)
     assert len(table) == 2
-    table.insert(['thirteen', 13, True])
+    table.insert(name='thirteen', val=13, lucky=True)
     assert len(table) == 3
 
 
 def test_contains():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(['one', 1, False])
-    table.insert(['nine', 9, False])
-    table.insert(['thirteen', 13, True])
+    table.insert(name='one', val=1, lucky=False)
+    table.insert(name='nine', val=9, lucky=False)
+    table.insert(name='thirteen', val=13, lucky=True)
 
     name_query = table.contains_query('name')
     val_query = table.contains_query('val')
     lucky_query = table.contains_query('lucky')
 
-    assert name_query.run(['one']).value()
-    assert name_query.run(['thirteen']).value()
-    assert val_query.run([9]).value()
-    assert lucky_query.run([False]).value()
-    assert lucky_query.run([True]).value()
-    assert not name_query.run(['oone']).value()
-    assert not name_query.run([1]).value()
-    assert not name_query.run(['*']).value()
-    assert not val_query.run([10]).value()
+    assert name_query.run(val='one').value()
+    assert name_query.run(val='thirteen').value()
+    assert val_query.run(val=9).value()
+    assert lucky_query.run(val=False).value()
+    assert lucky_query.run(val=True).value()
+    assert not name_query.run(val='oone').value()
+    assert not name_query.run(val=1).value()
+    assert not name_query.run(val='*').value()
+    assert not val_query.run(val=10).value()
 
 
 def test_delete_all(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(['one', 1, False])
-    table.insert(['nine', 9, False])
-    table.insert(['thirteen', 13, True])
+    table.insert(name='one', val=1, lucky=False)
+    table.insert(name='nine', val=9, lucky=False)
+    table.insert(name='thirteen', val=13, lucky=True)
     with qtbot.waitSignal(table.changed):
         table.delete_all()
     assert list(table) == []

@@ -96,30 +96,31 @@ class WebHistory(sql.SqlTable):
         self._between_query = sql.Query('SELECT * FROM History '
                                         'where not redirect '
                                         'and not url like "qute://%" '
-                                        'and atime > ? '
-                                        'and atime <= ? '
+                                        'and atime > :earliest '
+                                        'and atime <= :latest '
                                         'ORDER BY atime desc')
 
         self._before_query = sql.Query('SELECT * FROM History '
                                        'where not redirect '
                                        'and not url like "qute://%" '
-                                       'and atime <= ? '
+                                       'and atime <= :latest '
                                        'ORDER BY atime desc '
-                                       'limit ? offset ?')
+                                       'limit :limit offset :offset')
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
-        return self._contains_query.run([url]).value()
+        return self._contains_query.run(val=url).value()
 
     def _add_entry(self, entry):
         """Add an entry to the in-memory database."""
-        self.insert([entry.url_str(), entry.title, int(entry.atime),
-                     entry.redirect])
+        self.insert(url=entry.url_str(), title=entry.title,
+                    atime=int(entry.atime), redirect=entry.redirect)
         if not entry.redirect:
-            self.completion.insert([entry.url_str(), entry.title,
-                                    int(entry.atime)], replace=True)
+            self.completion.insert_or_replace(url=entry.url_str(),
+                                              title=entry.title,
+                                              last_atime=int(entry.atime))
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -132,7 +133,7 @@ class WebHistory(sql.SqlTable):
             earliest: Omit timestamps earlier than this.
             latest: Omit timestamps later than this.
         """
-        self._between_query.run([earliest, latest])
+        self._between_query.run(earliest=earliest, latest=latest)
         return iter(self._between_query)
 
     def entries_before(self, latest, limit, offset):
@@ -143,7 +144,7 @@ class WebHistory(sql.SqlTable):
             limit: Max number of entries to include.
             offset: Number of entries to skip.
         """
-        self._before_query.run([latest, limit, offset])
+        self._before_query.run(latest=latest, limit=limit, offset=offset)
         return iter(self._before_query)
 
     @cmdutils.register(name='history-clear', instance='web-history')

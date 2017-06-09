@@ -61,7 +61,7 @@ pytestmark = pytest.mark.usefixtures('init_sql')
 def test_sorting(sort_by, sort_order, data, expected):
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in data:
-        table.insert(row)
+        table.insert(a=row[0], b=row[1], c=row[2])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], sort_by=sort_by,
                                   sort_order=sort_order)
     cat.set_pattern('')
@@ -117,7 +117,7 @@ def test_set_pattern(pattern, filter_cols, before, after):
     """Validate the filtering and sorting results of set_pattern."""
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in before:
-        table.insert(row)
+        table.insert(a=row[0], b=row[1], c=row[2])
     filter_fields = [['a', 'b', 'c'][i] for i in filter_cols]
     cat = sqlcategory.SqlCategory('Foo', filter_fields=filter_fields)
     cat.set_pattern(pattern)
@@ -126,7 +126,7 @@ def test_set_pattern(pattern, filter_cols, before, after):
 
 def test_select():
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
-    table.insert(['foo', 'bar', 'baz'])
+    table.insert({'a': 'foo', 'b': 'bar', 'c': 'baz'})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], select='b, c, a')
     cat.set_pattern('')
     utils.validate_model(cat, [('bar', 'baz', 'foo')])
@@ -134,8 +134,8 @@ def test_select():
 
 def test_where():
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
-    table.insert(['foo', 'bar', False])
-    table.insert(['baz', 'biz', True])
+    table.insert({'a': 'foo', 'b': 'bar', 'c': False})
+    table.insert({'a': 'baz', 'b': 'biz', 'c': True})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], where='not c')
     cat.set_pattern('')
     utils.validate_model(cat, [('foo', 'bar', False)])
@@ -143,10 +143,10 @@ def test_where():
 
 def test_group():
     table = sql.SqlTable('Foo', ['a', 'b'])
-    table.insert(['foo', 1])
-    table.insert(['bar', 3])
-    table.insert(['foo', 2])
-    table.insert(['bar', 0])
+    table.insert({'a': 'foo', 'b': 1})
+    table.insert({'a': 'bar', 'b': 3})
+    table.insert({'a': 'foo', 'b': 2})
+    table.insert({'a': 'bar', 'b': 0})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'],
                                   select='a, max(b)', group_by='a')
     cat.set_pattern('')

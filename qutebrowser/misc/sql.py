@@ -84,11 +84,11 @@ class Query(QSqlQuery):
             rec = self.record()
             yield rowtype(*[rec.value(i) for i in range(rec.count())])
 
-    def run(self, values=None):
+    def run(self, **values):
         """Execute the prepared query."""
         log.sql.debug('Running SQL query: "{}"'.format(self.lastQuery()))
-        for val in values or []:
-            self.addBindValue(val)
+        for key, val in values.items():
+            self.bindValue(':{}'.format(key), val)
         log.sql.debug('self bindings: {}'.format(self.boundValues()))
         if not self.exec_():
             raise SqlException('Failed to exec query "{}": "{}"'.format(
@@ -162,7 +162,7 @@ class SqlTable(QObject):
         Args:
             field: Field to match.
         """
-        return Query("SELECT EXISTS(SELECT * FROM {} WHERE {} = ?)"
+        return Query("SELECT EXISTS(SELECT * FROM {} WHERE {} = :val)"
                      .format(self._name, field))
 
     def __len__(self):
@@ -181,23 +181,34 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        q = Query("DELETE FROM {} where {} = ?".format(self._name, field))
-        q.run([value])
+        q = Query("DELETE FROM {} where {} = :val".format(self._name, field))
+        q.run(val=value)
         if not q.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
-    def insert(self, values, replace=False):
+    def insert(self, **values):
         """Append a row to the table.
 
         Args:
             values: A list of values to insert.
             replace: If set, replace existing values.
         """
-        paramstr = ','.join(['?'] * len(values))
-        q = Query("INSERT {} INTO {} values({})".format(
-            'OR REPLACE' if replace else '', self._name, paramstr))
-        q.run(values)
+        paramstr = ','.join(':{}'.format(key) for key in values.keys())
+        q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
+        q.run(**values)
+        self.changed.emit()
+
+    def insert_or_replace(self, **values):
+        """Append a row to the table.
+
+        Args:
+            values: A list of values to insert.
+            replace: If set, replace existing values.
+        """
+        paramstr = ','.join(':{}'.format(key) for key in values.keys())
+        q = Query("REPLACE INTO {} values({})".format(self._name, paramstr))
+        q.run(**values)
         self.changed.emit()
 
     def insert_batch(self, rows, replace=False):
@@ -238,7 +249,7 @@ class SqlTable(QObject):
 
         Return: A prepared and executed select query.
         """
-        q = Query('SELECT * FROM {} ORDER BY {} {} LIMIT ?'
+        q = Query('SELECT * FROM {} ORDER BY {} {} LIMIT :limit'
                   .format(self._name, sort_by, sort_order))
-        q.run([limit])
+        q.run(limit=limit)
         return q

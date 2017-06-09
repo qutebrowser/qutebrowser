@@ -49,7 +49,7 @@ class SqlCategory(QSqlQueryModel):
         querystr = 'select {} from {} where ('.format(select, name)
         # the incoming pattern will have literal % and _ escaped with '\'
         # we need to tell sql to treat '\' as an escape character
-        querystr += ' or '.join("{} like ? escape '\\'".format(f)
+        querystr += ' or '.join("{} like :pattern escape '\\'".format(f)
                                 for f in filter_fields)
         querystr += ')'
 
@@ -83,5 +83,5 @@ class SqlCategory(QSqlQueryModel):
         pattern = re.sub(r' +', '%', pattern)
         pattern = '%{}%'.format(pattern)
         with debug.log_time('sql', 'Running completion query'):
-            self._query.run([pattern] * self._param_count)
+            self._query.run(pattern=pattern)
         self.setQuery(self._query)
