@@ -269,17 +269,18 @@ class CompletionView(QTreeView):
         Args:
             model: The model to use.
         """
+        if self.model() is not None and model is not self.model():
+            self.model().deleteLater()
+            self.selectionModel().deleteLater()
+
+        self.setModel(model)
+
         if model is None:
             self._active = False
             self.hide()
             return
 
-        if self.model() is not None:
-            self.model().deleteLater()
-            self.selectionModel().deleteLater()
-
         model.setParent(self)
-        self.setModel(model)
         self._active = True
         self._maybe_show()
 

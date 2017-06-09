@@ -211,6 +211,7 @@ class Completer(QObject):
             # FIXME complete searches
             # https://github.com/qutebrowser/qutebrowser/issues/32
             completion.set_model(None)
+            self._last_completion_func = None
             return
 
         before_cursor, pattern, after_cursor = self._partition()
