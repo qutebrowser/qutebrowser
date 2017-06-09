@@ -37,7 +37,7 @@ def check_history(quteproc, httpbin, tmpdir, expected):
     with open(path, 'r', encoding='utf-8') as f:
         # ignore access times, they will differ in each run
         actual = '\n'.join(re.sub('^\\d+-?', '', line).strip()
-                           for line in f.read())
+                           for line in f.read().splitlines())
 
     expected = expected.replace('(port)', str(httpbin.port))
     assert actual == expected
