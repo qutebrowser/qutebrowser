@@ -161,16 +161,15 @@ def web_history_stub(stubs, init_sql):
 @pytest.fixture
 def web_history(web_history_stub, init_sql):
     """Pre-populate the web-history database."""
-    web_history_stub.insert(['http://qutebrowser.org', 'qutebrowser',
-                            datetime(2015, 9, 5).timestamp()])
-    web_history_stub.insert(['https://python.org', 'Welcome to Python.org',
-                            datetime(2016, 2, 8).timestamp()])
-    web_history_stub.insert(['https://python.org', 'Welcome to Python.org',
-                            datetime(2016, 3, 8).timestamp()])
-    web_history_stub.insert(['https://python.org', 'Welcome to Python.org',
-                            datetime(2014, 3, 8).timestamp()])
-    web_history_stub.insert(['https://github.com', 'https://github.com',
-                            datetime(2016, 5, 1).timestamp()])
+    web_history_stub.insert(url='http://qutebrowser.org',
+                            title='qutebrowser',
+                            last_atime=datetime(2015, 9, 5).timestamp())
+    web_history_stub.insert(url='https://python.org',
+                            title='Welcome to Python.org',
+                            last_atime=datetime(2016, 3, 8).timestamp())
+    web_history_stub.insert(url='https://github.com',
+                            title='https://github.com',
+                            last_atime=datetime(2016, 5, 1).timestamp())
     return web_history_stub
 
 
@@ -304,9 +303,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
-            ('https://python.org', 'Welcome to Python.org', '2016-02-08'),
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
-            ('https://python.org', 'Welcome to Python.org', '2014-03-08'),
         ],
     })
 
@@ -334,7 +331,7 @@ def test_url_completion_pattern(config_stub, web_history_stub,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
-    web_history_stub.insert([url, title, 0])
+    web_history_stub.insert(url=url, title=title, last_atime=0)
     model = urlmodel.url()
     model.set_pattern(pattern)
     # 2, 0 is History

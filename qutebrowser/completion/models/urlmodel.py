@@ -78,7 +78,8 @@ def url():
     timefmt = config.get('completion', 'timestamp-format').replace("'", "`")
     select_time = "strftime('{}', last_atime, 'unixepoch')".format(timefmt)
     hist_cat = sqlcategory.SqlCategory(
-        'CompletionHistory', sort_order='desc', sort_by='last_atime',
+        'CompletionHistory', title='History',
+        sort_order='desc', sort_by='last_atime',
         filter_fields=['url', 'title'],
         select='url, title, {}'.format(select_time))
     model.add_category(hist_cat)
