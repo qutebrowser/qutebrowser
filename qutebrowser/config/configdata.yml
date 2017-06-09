@@ -5,7 +5,7 @@ ignore_case:
   default: smart
   desc: Whether to find text on a page case-insensitively.
 
-startpage:
+start_page:
   type:
     name: List
     elemtype: String
@@ -25,7 +25,7 @@ yank_ignored_url_parameters:
     - utm_content
   desc: The URL parameters to strip with :yank url.
 
-default_open_dispatcher:
+downloads.open_dispatcher:
   type:
     name: String
     none_ok: true
@@ -49,12 +49,12 @@ auto_search:
   default: naive
   desc: Whether to start a search when something else than a URL is entered.
 
-auto_save_config:
+auto_save.config:
   type: Bool
   default: true
   desc: Whether to save the config automatically on quit.
 
-auto_save_interval:
+auto_save.interval:
   type:
     name: Int
     minval: 0
@@ -62,7 +62,7 @@ auto_save_interval:
   default: 15000
   desc: How often (in milliseconds) to auto-save config/cookies/etc.
 
-editor:
+editor.command:
   type:
     name: ShellCommand
     placeholder: true
@@ -75,18 +75,18 @@ editor:
 
     `{}` gets replaced by the filename of the file to be edited.
 
-editor_encoding:
+editor.encoding:
   type: Encoding
   default: utf-8
   desc: Encoding to use for the editor.
 
-private_browsing:
+content.private_browsing:
   type: Bool
   default: false
   desc: Open new windows in private browsing mode which does not record visited
     pages.
 
-developer_extras:
+content.developer_extras:
   type: Bool
   default: false
   backend: QtWebKit
@@ -97,7 +97,7 @@ developer_extras:
     entry to the context menu. For QtWebEngine, see `qutebrowser --help`
     instead.
 
-print_element_backgrounds:
+content.print_element_backgrounds:
   type: Bool
   default: true
   backend:
@@ -110,17 +110,17 @@ print_element_backgrounds:
     # FIXME:conf This should be added automatically:
     # This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
 
-xss_auditing:
+content.xss_auditing:
   type: Bool
   default: false
   desc: >-
-    Whether load requests should be monitored for cross-site cripting attempts.
+    Whether load requests should be monitored for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector\'s
     JavaScript console. Enabling this feature might have an impact on
     performance.
 
-default_encoding:
+content.default_encoding:
   type: String
   default: iso-8859-1
   desc: >-
@@ -155,7 +155,7 @@ new_instance_open_target_window:
   default: last-focused
   desc: Which window to choose when opening links as new tabs.
 
-log_javascript_console:
+content.javascript.log:
   type:
     name: String
     valid_values:
@@ -165,7 +165,7 @@ log_javascript_console:
   default: debug
   desc: How to log javascript console messages.
 
-save_session:
+auto_save.session:
   type: Bool
   default: false
   desc: Whether to always save the open pages.
@@ -195,7 +195,7 @@ history_session_interval:
   desc: The maximum time in minutes between two history items for them to be considered
     being from the same session. Use -1 to disable separation.
 
-zoom_levels:
+zoom.levels:
   type:
     name: List
     elemtype:
@@ -220,22 +220,22 @@ zoom_levels:
     - 500%
   desc: The available zoom levels.
 
-default_zoom:
+zoom.default:
   type: Perc
   default: 100%
   desc: The default zoom level.
 
-downloads_position:
+downloads.position:
   type: VerticalPosition
   default: top
   desc: Where to show the downloaded files.
 
-status_position:
+statusbar.position:
   type: VerticalPosition
   default: bottom
   desc: The position of the status bar.
 
-message_timeout:
+messages.timeout:
   type:
     name: Int
     minval: 0
@@ -245,7 +245,7 @@ message_timeout:
 
     Set to 0 to never clear messages.
 
-message_unfocused:
+messages.unfocused:
   type: Bool
   default: false
   desc: Whether to show messages in unfocused windows.
@@ -255,14 +255,14 @@ confirm_quit:
   default: never
   desc: Whether to confirm quitting the application.
 
-zoom_text_only:
+zoom.text_only:
   type: Bool
   default: false
   backend: QtWebKit
   desc: Whether the zoom factor on a frame applies only to the text or to all
     content.
 
-frame_flattening:
+content.frame_flattening:
   default: false
   type: Bool
   backend: QtWebKit
@@ -271,7 +271,7 @@ frame_flattening:
 
     This will flatten all the frames to become one scrollable page.
 
-user_stylesheet:
+content.user_stylesheet:
   type:
     name: File
     none_ok: True
@@ -279,18 +279,19 @@ user_stylesheet:
   desc: User stylesheet to use (absolute filename or filename relative to the config
     directory). Will expand environment variables.
 
-hide_scrollbar:
+scrolling.bar:
+  # FIXME:conf meaning changed!
   type: Bool
-  default: true
-  desc: Hide the main scrollbar.
+  default: false
+  desc: Show a scrollbar.
 
-smooth_scrolling:
+scrolling.smooth:
   type: Bool
   default: false
   desc: Whether to enable smooth scrolling for web pages. Note smooth scrolling does
     not work with the `:scroll-px` command.
 
-remove_finished_downloads:
+downloads.remove_finished:
   default: -1
   type:
     name: Int
@@ -298,12 +299,12 @@ remove_finished_downloads:
   desc: Number of milliseconds to wait before removing finished downloads. Will not
     be removed if value is -1.
 
-hide_statusbar:
+statusbar.hide:
   type: Bool
   default: false
   desc: Whether to hide the statusbar unless a message is shown.
 
-statusbar_padding:
+statusbar.padding:
   type: Padding
   default:
     top: 1
@@ -312,7 +313,7 @@ statusbar_padding:
     right: 0
   desc: Padding for the statusbar.
 
-window_title_format:
+window.title_format:
   type:
     name: FormatString
     fields:
@@ -340,17 +341,17 @@ window_title_format:
     * `{private}` : Indicates when private mode is enabled.
 
 
-modal_js_dialog:
+content.javascript.modal_dialog:
   type: Bool
   default: false
   desc: Use the standard JavaScript modal dialog for `alert()` and `confirm()`
 
-hide_wayland_decoration:
+window.hide_wayland_decoration:
   type: Bool
   default: false
   desc: Hide the window decoration when using wayland (requires restart)
 
-keyhint_blacklist:
+keyhint.blacklist:
   type:
     name: List
     elemtype:
@@ -363,21 +364,21 @@ keyhint_blacklist:
     Globs are supported, so `;*` will blacklist all keychains starting with `;`.
     Use `*` to disable keyhints.
 
-keyhint_delay:
+keyhint.delay:
   type:
     name: Int
     minval: 0
   default: 500
   desc: Time from pressing a key to seeing the keyhint dialog (ms)
 
-prompt_radius:
+prompt.radius:
   type:
     name: Int
     minval: 0
   default: 8
   desc: The rounding radius for the edges of prompts.
 
-prompt_filebrowser:
+prompt.filebrowser:
   type: Bool
   default: true
   desc: Show a filebrowser in upload/download prompts.
@@ -385,17 +386,17 @@ prompt_filebrowser:
 
 # network
 
-do_not_track:
+content.do_not_track:
   type: Bool
   default: true
   desc: Value to send in the `DNT` header.
 
-accept_language:
+content.accept_language:
   type: String
   default: en-US,en
   desc: Value to send in the `accept-language` header.
 
-referer_header:
+content.referer_header:
   default: same-domain
   type:
     name: String
@@ -407,14 +408,14 @@ referer_header:
   backend: QtWebKit
   desc: Send the Referer header
 
-user_agent:
+content.user_agent:
   default: ""
   type:
     name: UserAgent
     none_ok: true
   desc: User agent to send. Empty to send the default.
 
-proxy:
+content.proxy:
   default: system
   type:
     name: Proxy
@@ -434,24 +435,24 @@ proxy:
     # This setting only works with Qt 5.8 or newer when using the QtWebEngine
     # backend.
 
-proxy_dns_requests:
+content.proxy_dns_requests:
   default: true
   type: Bool
   backend: QtWebKit
   desc: Whether to send DNS requests over the configured proxy.
 
-ssl_strict:
+content.ssl_strict:
   default: ask
   type: BoolAsk
   desc: Whether to validate SSL handshakes.
 
-dns_prefetch:
+content.dns_prefetch:
   default: true
   type: Bool
   backend: QtWebKit
   desc: Whether to try to pre-fetch DNS entries to speed up browsing.
 
-custom_headers:
+content.custom_headers:
   default: {}
   type:
     name: Dict
@@ -460,7 +461,7 @@ custom_headers:
     none_ok: true
   desc: Set custom headers for qutebrowser HTTP requests.
 
-netrc_file:
+content.netrc_file:
   default: ""
   type:
     name: File
@@ -471,7 +472,7 @@ netrc_file:
 
 # completion
 
-show:
+completion.show:
   default: always
   type:
     name: String
@@ -481,7 +482,7 @@ show:
       - never: Never.
   desc: When to show the autocompletion window.
 
-download_path_suggestion:
+downloads.path_suggestion:
   default: path
   type:
     name: String
@@ -491,14 +492,14 @@ download_path_suggestion:
       - both: Show download path and filename.
   desc: What to display in the download filename input.
 
-timestamp_format:
+completion.timestamp_format:
   type:
     name: TimestampTemplate
     none_ok: true
   default: '%Y-%m-%d'
   desc: How to format timestamps (e.g. for history)
 
-height:
+completion.height:
   type:
     name: PercOrInt
     minperc: 0
@@ -507,7 +508,7 @@ height:
   default: 50%
   desc: The height of the completion, in px or as percentage of the window.
 
-cmd_history_max_items:
+completion.cmd_history_max_items:
   default: 100
   type:
     name: Int
@@ -517,7 +518,7 @@ cmd_history_max_items:
 
     0: no history / -1: unlimited
 
-web_history_max_items:
+completion.web_history_max_items:
   default: 1000
   type:
     name: Int
@@ -527,26 +528,26 @@ web_history_max_items:
 
     0: no history / -1: unlimited
 
-quick_complete:
+completion.quick:
   default: true
   type: Bool
   desc: "Whether to move on to the next part when there's only one possible completion
     left."
 
-shrink:
+completion.shrink:
   default: false
   type: Bool
   desc: Whether to shrink the completion to be smaller than the configured size if
     there are no scrollbars.
 
-scrollbar_width:
+completion.scrollbar.width:
   default: 12
   type:
     name: Int
     minval: 0
   desc: Width of the scrollbar in the completion window (in px).
 
-scrollbar_padding:
+completion.scrollbar.padding:
   default: 2
   type:
     name: Int
@@ -556,7 +557,8 @@ scrollbar_padding:
 
 # input
 
-timeout:
+# FIXME:conf get rid of this?
+input.ambiguous_timeout:
   default: 500
   type:
     name: Int
@@ -568,7 +570,7 @@ timeout:
     If the current input forms both a complete match and a partial match, the complete
     match will be executed after this time.
 
-partial_timeout:
+input.partial_timeout:
   default: 5000
   type:
     name: Int
@@ -580,23 +582,23 @@ partial_timeout:
     If the current input forms only partial matches, the keystring will be cleared
     after this time.
 
-insert_mode_on_plugins:
+input.insert_mode.plugins:
   default: false
   type: Bool
   desc: Whether to switch to insert mode when clicking flash and other plugins.
 
-auto_leave_insert_mode:
+input.insert_mode.auto_leave:
   default: true
   type: Bool
   desc: Whether to leave insert mode if a non-editable element is clicked.
 
-auto_insert_mode:
+input.insert_mode.auto_focused:
   default: false
   type: Bool
   desc: Whether to automatically enter insert mode if an editable element is focused
     after page load.
 
-forward_unbound_keys:
+input.forward_unbound_keys:
   default: auto
   type:
     name: String
@@ -606,7 +608,7 @@ forward_unbound_keys:
     - none: "Don't forward any keys."
   desc: Whether to forward unbound keys to the webview in normal mode.
 
-spatial_navigation:
+input.spatial_navigation:
   default: false
   type: Bool
   desc: >-
@@ -618,18 +620,18 @@ spatial_navigation:
     determine whether there is an element he might be trying to reach towards the
     right and which element he probably wants.
 
-links_included_in_focus_chain:
+input.links_included_in_focus_chain:
   default: true
   type: Bool
   desc: Whether hyperlinks should be included in the keyboard focus chain.
 
-rocker_gestures:
+input.rocker_gestures:
   default: false
   type: Bool
   desc: Whether to enable Opera-like mouse rocker gestures. This disables the context
     menu.
 
-mouse_zoom_divider:
+zoom.mouse_divider:
   default: 512
   type:
     name: Int
@@ -639,27 +641,27 @@ mouse_zoom_divider:
 
 # tabs
 
-background_tabs:
+tabs.background:
   default: false
   type: Bool
   desc: Whether to open new tabs (middleclick/ctrl+click) in background.
 
-select_on_remove:
+tabs.select_on_remove:
   default: 'next'
   type: SelectOnRemove
   desc: Which tab to select when the focused tab is removed.
 
-new_tab_position:
+tabs.new_position:
   default: next
   type: NewTabPosition
   desc: How new tabs are positioned.
 
-new_tab_position_explicit:
+tabs.new_position_explicit:
   default: last
   type: NewTabPosition
   desc: How new tabs opened explicitly are positioned.
 
-last_close:
+tabs.last_close:
   default: ignore
   type:
     name: String
@@ -671,7 +673,7 @@ last_close:
       - close: "Close the window."
   desc: Behavior when the last tab is closed.
 
-show:
+tabs.show:
   default: always
   type:
     name: String
@@ -682,23 +684,23 @@ show:
     - switching: Show the tab bar when switching tabs.
   desc: When to show the tab bar.
 
-show_switching_delay:
+tabs.show_switching_delay:
   default: 800
   type: Int
   desc: "Time to show the tab bar before hiding it when tabs->show is set to
     'switching'."
 
-wrap:
+tabs.wrap:
   default: true
   type: Bool
   desc: Whether to wrap when changing tabs.
 
-movable:
+tabs.movable:
   default: true
   type: Bool
   desc: Whether tabs should be movable.
 
-close_mouse_button:
+tabs.close_mouse_button:
   default: middle
   type:
     name: String
@@ -708,17 +710,17 @@ close_mouse_button:
       - none: "Don't close tabs using the mouse."
   desc: On which mouse button to close tabs.
 
-position:
+tabs.position:
   default: top
   type: Position
   desc: The position of the tab bar.
 
-show_favicons:
+tabs.favicons.show:
   default: true
   desc: Whether to show favicons in the tab bar.
   type: Bool
 
-favicon_scale:
+tabs.favicons.scale:
   default: 1.0
   type:
     name: Float
@@ -726,7 +728,7 @@ favicon_scale:
   desc: Scale for favicons in the tab bar. The tab size is unchanged, so big favicons
     also require extra `tabs->padding`.
 
-width:
+tabs.width.bar:
   default: 20%
   type:
     name: PercOrInt
@@ -735,26 +737,26 @@ width:
     minint: 1
   desc: "The width of the tab bar if it's vertical, in px or as percentage of the window."
 
-pinned_width:
+tabs.width.pinned:
   default: 43
   type:
     name: Int
     minval: 10
   desc: The width for pinned tabs with a horizontal tabbar, in px.
 
-indicator_width:
+tabs.width.indicator:
   default: 3
   type:
     name: Int
     minval: 0
   desc: Width of the progress indicator (0 to disable).
 
-tabs_are_windows:
+tabs.tabs_are_windows:
   default: false
   type: Bool
   desc: Whether to open windows instead of tabs.
 
-title_format:
+tabs.title.format:
   default: '{index}: {title}'
   type:
     name: FormatString
@@ -783,7 +785,7 @@ title_format:
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
 
-title_format_pinned:
+tabs.title.format_pinned:
   default: '{index}'
   type:
     name: FormatString
@@ -801,17 +803,17 @@ title_format_pinned:
   desc: The format to use for the tab title for pinned tabs. The same placeholders
     like for title-format are defined.
 
-title_alignment:
+tabs.title.alignment:
   default: left
   type: TextAlignment
   desc: Alignment of the text inside of tabs
 
-mousewheel_tab_switching:
+tabs.mousewheel_switching:
   default: true
   type: Bool
   desc: Switch between tabs using the mouse wheel.
 
-padding:
+tabs.padding:
   default:
     top: 0
     bottom: 0
@@ -820,7 +822,7 @@ padding:
   type: Padding
   desc: Padding for tabs
 
-indicator_padding:
+tabs.indicator_padding:
   default:
     top: 2
     bottom: 2
@@ -832,7 +834,7 @@ indicator_padding:
 
 # storage
 
-download_directory:
+downloads.location.directory:
   default: ""
   type:
     name: Directory
@@ -840,7 +842,7 @@ download_directory:
   desc: The directory to save downloads to. An empty value selects a sensible os-specific
     default. Will expand environment variables.
 
-prompt_download_directory:
+downloads.location.prompt:
   default: true
   type: Bool
   desc: >-
@@ -848,7 +850,7 @@ prompt_download_directory:
 
     If set to false, `download-directory` will be used.
 
-remember_download_directory:
+downloads.location.remember:
   default: true
   type: Bool
   desc: Whether to remember the last used download directory.
@@ -856,7 +858,7 @@ remember_download_directory:
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
 
-maximum_pages_in_cache:
+content.maximum_pages_in_cache:
   default: 0
   type:
     name: Int
@@ -871,7 +873,7 @@ maximum_pages_in_cache:
 
     For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
-offline_web_application_cache:
+content.offline_web_application_cache:
   default: true
   type: Bool
   backend: QtWebKit
@@ -884,12 +886,12 @@ offline_web_application_cache:
 
     The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
 
-local_storage:
+content.local_storage:
   default: true
   type: Bool
   desc: Whether support for HTML 5 local storage and Web SQL is enabled.
 
-cache_size:
+content.cache_size:
   default: null
   type:
     name: Int
@@ -901,60 +903,60 @@ cache_size:
 
 # content
 
-allow_images:
+content.images:
   default: true
   type: Bool
   desc: Whether images are automatically loaded in web pages.
 
-allow_javascript:
+content.javascript:
   default: true
   type: Bool
   desc: Enables or disables the running of JavaScript programs.
 
-allow_plugins:
+content.plugins:
   default: false
   type: Bool
   desc: Enables or disables plugins in Web pages.
 
-webgl:
+content.webgl:
   default: true
   type: Bool
   desc: Enables or disables WebGL.
 
-hyperlink_auditing:
+content.hyperlink_auditing:
   default: false
   type: Bool
   desc: Enable or disable hyperlink auditing (`<a ping>`).
 
-geolocation:
+content.geolocation:
   default: ask
   type: BoolAsk
   desc: Allow websites to request geolocations.
 
-notifications:
+content.notifications:
   default: ask
   type: BoolAsk
   desc: Allow websites to show notifications.
 
-media_capture:
+content.media_capture:
   default: ask
   type: BoolAsk
   backend: QtWebEngine
   desc: Allow websites to record audio/video.
 
-javascript_can_open_windows_automatically:
+content.javascript.can_open_windows_automatically:
   default: false
   type: Bool
   desc: Whether JavaScript programs can open new windows without user
     interaction.
 
-javascript_can_close_windows:
+content.javascript.can_close_windows:
   default: false
   type: Bool
   backend: QtWebKit
   desc: Whether JavaScript programs can close windows.
 
-javascript_can_access_clipboard:
+content.javascript.can_access_clipboard:
   default: false
   type: Bool
   desc: >-
@@ -963,27 +965,29 @@ javascript_can_access_clipboard:
     With QtWebEngine, writing the clipboard as response to a user interaction is always
     allowed.
 
-ignore_javascript_prompt:
+content.javascript.prompt:
+  # FIXME:conf meaning changed!
+  default: true
+  type: Bool
+  desc: Show javascript prompts.
+
+content.javascript.alert:
+  # FIXME:conf meaning changed!
   default: false
   type: Bool
-  desc: Whether all javascript prompts should be ignored.
+  desc: Show javascript.
 
-ignore_javascript_alert:
-  default: false
-  type: Bool
-  desc: Whether all javascript alerts should be ignored.
-
-local_content_can_access_remote_urls:
+content.local_content_can_access_remote_urls:
   default: false
   type: Bool
   desc: Whether locally loaded documents are allowed to access remote urls.
 
-local_content_can_access_file_urls:
+content.local_content_can_access_file_urls:
   default: true
   type: Bool
   desc: Whether locally loaded documents are allowed to access other local urls.
 
-cookies_accept:
+content.cookies.accept:
   default: no-3rdparty
   backend: QtWebKit
   type:
@@ -996,13 +1000,13 @@ cookies_accept:
       - never: "Don't accept cookies at all."
   desc: Control which cookies to accept.
 
-cookies_store:
+cookies.cookies.store:
   default: true
   type: Bool
   desc: Whether to store cookies. Note this option needs a restart with QtWebEngine
     on Qt < 5.9.
 
-host_block_lists:
+content.host_blocking.lists:
   default:
     - "https://www.malwaredomainlist.com/hostslist/hosts.txt"
     - "http://someonewhocares.org/hosts/hosts"
@@ -1023,12 +1027,12 @@ host_block_lists:
     - A zip-file of any of the above, with either only one file, or a file named
       `hosts` (with any extension).
 
-host_blocking_enabled:
+content.host_blocking.enabled:
   default: true
   type: Bool
   desc: Whether host blocking is enabled.
 
-host_blocking_whitelist:
+content.host_blocking.whitelist:
   default:
   - piwik.org
   type:
@@ -1043,7 +1047,7 @@ host_blocking_whitelist:
 
     Local domains are always exempt from hostblocking.
 
-enable_pdfjs:
+content.pdfjs:
   default: false
   type: Bool
   desc: >-
@@ -1055,12 +1059,12 @@ enable_pdfjs:
 
 # hints
 
-border:
+hints.border:
   default: '1px solid #E3BE23'
   type: String
   desc: CSS border value for hints.
 
-mode:
+hints.mode:
   default: letter
   type:
     name: String
@@ -1072,7 +1076,7 @@ mode:
       - word: Use hints words based on the html elements and the extra words.
   desc: Mode to use for hints.
 
-chars:
+hints.chars:
   default: asdfghjkl
   type:
     name: UniqueCharString
@@ -1083,32 +1087,32 @@ chars:
       - ['abcdefghijklmnopqrstuvwxyz', "All letters"]
   desc: Chars used for hint strings.
 
-min_chars:
+hints.min_chars:
   default: 1
   type:
     name: Int
     minval: 1
   desc: Minimum number of chars used for hint strings.
 
-scatter:
+hints.scatter:
   default: true
   type: Bool
   desc: Whether to scatter hint key chains (like Vimium) or not (like dwb). Ignored
     for number hints.
 
-uppercase:
+hints.uppercase:
   default: false
   type: Bool
   desc: Make chars in hint strings uppercase.
 
-dictionary:
+hints.dictionary:
   default: /usr/share/dict/words
   type:
     name: File
     required: false
   desc: The dictionary file to be used by the word hints.
 
-auto_follow:
+hints.auto_follow:
   default: unique-match
   type:
     name: String
@@ -1122,13 +1126,13 @@ auto_follow:
   desc: Controls when a hint can be automatically followed without the user
     pressing Enter.
 
-auto_follow_timeout:
+hints.auto_follow_timeout:
   default: 0
   type: Int
   desc: A timeout (in milliseconds) to inhibit normal-mode key bindings after a
     successful auto-follow.
 
-next_regexes:
+hints.next_regexes:
   default:
     - "\\bnext\\b"
     - "\\bmore\\b"
@@ -1143,7 +1147,7 @@ next_regexes:
       flags: IGNORECASE
   desc: "A comma-separated list of regexes to use for 'next' links."
 
-prev_regexes:
+hints.prev_regexes:
   default:
     - "\\bprev(ious)?\\b"
     - "\\bback\\b"
@@ -1157,7 +1161,7 @@ prev_regexes:
       flags: IGNORECASE
   desc: A comma-separated list of regexes to use for 'prev' links.
 
-find_implementation:
+hints.find_implementation:
   default: python
   type:
     name: String
@@ -1166,7 +1170,7 @@ find_implementation:
     - python: Slightly worse but faster
   desc: Which implementation to use to find elements to hint.
 
-hide_unmatched_rapid_hints:
+hints.hide_unmatched_rapid_hints:
   default: true
   type: Bool
   desc: Controls hiding unmatched hints in rapid mode.
@@ -1266,12 +1270,12 @@ colors.completion.scrollbar.bg:
   type: QssColor
   desc: Color of the scrollbar in completion view
 
-colors.statusbar.fg:
+colors.statusbar.fg.normal:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar.
 
-colors.statusbar.bg:
+colors.statusbar.bg.normal:
   default: black
   type: QssColor
   desc: Background color of the statusbar.
@@ -1306,12 +1310,12 @@ colors.statusbar.bg.command:
   type: QssColor
   desc: Background color of the statusbar in command mode.
 
-colors.statusbar.fg.command.private:
+colors.statusbar.fg.command_private:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in private browsing + command mode.
 
-colors.statusbar.bg.command.private:
+colors.statusbar.bg.command_private:
   default: grey
   type: QssColor
   desc: Background color of the statusbar in private browsing + command mode.
@@ -1346,12 +1350,12 @@ colors.statusbar.url.fg:
   type: QssColor
   desc: Default foreground color of the URL in the statusbar.
 
-colors.statusbar.url.fg.success:
+colors.statusbar.url.success.http.fg:
   default: white
   type: QssColor
   desc: Foreground color of the URL in the statusbar on successful load (http).
 
-colors.statusbar.url.fg.success.https:
+colors.statusbar.url.success.https.bg:
   default: lime
   type: QssColor
   desc: Foreground color of the URL in the statusbar on successful load (https).
@@ -1448,7 +1452,7 @@ colors.hints.bg:
   desc: Background color for hints. Note that you can use a `rgba(...)` value for
     transparency.
 
-colors.hints.fg.match:
+colors.hints.match.fg:
   default: green
   type: QssColor
   desc: Font color for the matched part of hints.
@@ -1510,7 +1514,7 @@ colors.keyhint.fg:
   type: QssColor
   desc: Text color for the keyhint widget.
 
-colors.keyhint.fg.suffix:
+colors.keyhint.suffix.fg:
   default: '#FFFF00'
   type: CssColor
   desc: Highlight color for keys to complete the current keychain
@@ -1590,7 +1594,7 @@ fonts.monospace:
   type: Font
   desc: Default monospace fonts.
 
-fonts.completion:
+fonts.completion.entry:
   default: 8pt monospace
   type: Font
   desc: Font used in the completion widget.
@@ -1625,42 +1629,42 @@ fonts.debug_console:
   type: QtFont
   desc: Font used for the debugging console.
 
-fonts.web_family_standard:
+fonts.web.family.standard:
   default: ''
   type:
     name: FontFamily
     none_ok: true
   desc: Font family for standard fonts.
 
-fonts.web_family_fixed:
+fonts.web.family.fixed:
   default: ''
   type:
     name: FontFamily
     none_ok: true
   desc: Font family for fixed fonts.
 
-fonts.web_family_serif:
+fonts.web.family.serif:
   default: ''
   type:
     name: FontFamily
     none_ok: true
   desc: Font family for serif fonts.
 
-fonts.web_family_sans_serif:
+fonts.web.family.sans_serif:
   default: ''
   type:
     name: FontFamily
     none_ok: true
   desc: Font family for sans-serif fonts.
 
-fonts.web_family_cursive:
+fonts.web.family.cursive:
   default: ''
   type:
     name: FontFamily
     none_ok: true
   desc: Font family for cursive fonts.
 
-fonts.web_family_fantasy:
+fonts.web.family.fantasy:
   default: ''
   type:
     name: FontFamily
@@ -1672,7 +1676,7 @@ fonts.web_family_fantasy:
 # QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
 
-fonts.web_size_minimum:
+fonts.web.size.minimum:
   default: 0
   type:
     name: Int
@@ -1680,7 +1684,7 @@ fonts.web_size_minimum:
     maxval: maxint
   desc: The hard minimum font size.
 
-fonts.web_size_minimum_logical:
+fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
   # just go for 6 here.
   default: 6
@@ -1690,7 +1694,7 @@ fonts.web_size_minimum_logical:
     maxval: maxint
   desc: The minimum logical font size that is applied when zooming out.
 
-fonts.web_size_default:
+fonts.web.size.default:
   default: 16
   type:
     name: Int
@@ -1698,7 +1702,7 @@ fonts.web_size_default:
     maxval: maxint
   desc: The default font size for regular text.
 
-fonts.web_size_default_fixed:
+fonts.web.size.default_fixed:
   default: 13
   type:
     name: Int
