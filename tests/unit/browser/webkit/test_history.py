@@ -240,6 +240,7 @@ def test_read(hist, data_tmpdir, monkeypatch, stubs):
     ]
 
     assert not histfile.exists()
+    assert (data_tmpdir / 'history.bak').exists()
 
 
 @pytest.mark.parametrize('line', [
