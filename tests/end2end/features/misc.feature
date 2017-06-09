@@ -363,7 +363,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: pdfjs is not implemented yet @qtwebkit_ng_xfail: https://github.com/annulen/webkit/issues/428
+    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
