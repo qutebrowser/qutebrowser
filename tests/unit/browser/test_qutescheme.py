@@ -89,8 +89,9 @@ class TestHistoryHandler:
         items = []
         for i in range(entry_count):
             entry_atime = now - i * interval
-            entry = history.Entry(atime=str(entry_atime),
-                url=QUrl("www.x.com/" + str(i)), title="Page " + str(i))
+            entry = {"atime": str(entry_atime),
+                     "url": QUrl("www.x.com/" + str(i)),
+                     "title": "Page " + str(i)}
             items.insert(0, entry)
 
         return items
@@ -107,7 +108,7 @@ class TestHistoryHandler:
     def fake_history(self, fake_web_history, entries):
         """Create fake history."""
         for item in entries:
-            fake_web_history._add_entry(item)
+            fake_web_history.add_url(**item)
 
     @pytest.mark.parametrize("start_time_offset, expected_item_count", [
         (0, 4),

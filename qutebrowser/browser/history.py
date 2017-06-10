@@ -30,48 +30,6 @@ from qutebrowser.utils import (utils, objreg, log, qtutils, usertypes, message,
 from qutebrowser.misc import objects, sql
 
 
-class Entry:
-
-    """A single entry in the web history.
-
-    Attributes:
-        atime: The time the page was accessed.
-        url: The URL which was accessed as QUrl.
-        redirect: If True, don't show this entry in completion
-    """
-
-    def __init__(self, atime, url, title, redirect=False):
-        self.atime = float(atime)
-        self.url = url
-        self.title = title
-        self.redirect = redirect
-        qtutils.ensure_valid(url)
-
-    def __repr__(self):
-        return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url_str(), title=self.title,
-                              redirect=self.redirect)
-
-    def __str__(self):
-        atime = str(int(self.atime))
-        if self.redirect:
-            atime += '-r'  # redirect flag
-        elems = [atime, self.url_str()]
-        if self.title:
-            elems.append(self.title)
-        return ' '.join(elems)
-
-    def __eq__(self, other):
-        return (self.atime == other.atime and
-                self.title == other.title and
-                self.url == other.url and
-                self.redirect == other.redirect)
-
-    def url_str(self):
-        """Get the URL as a lossless string."""
-        return self.url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-
-
 class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
@@ -112,15 +70,6 @@ class WebHistory(sql.SqlTable):
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
-
-    def _add_entry(self, entry):
-        """Add an entry to the in-memory database."""
-        self.insert(url=entry.url_str(), title=entry.title,
-                    atime=int(entry.atime), redirect=entry.redirect)
-        if not entry.redirect:
-            self.completion.insert_or_replace(url=entry.url_str(),
-                                              title=entry.title,
-                                              last_atime=int(entry.atime))
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -199,10 +148,13 @@ class WebHistory(sql.SqlTable):
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
-        if atime is None:
-            atime = time.time()
-        entry = Entry(atime, url, title, redirect=redirect)
-        self._add_entry(entry)
+        atime = int(atime) if (atime is not None) else int(time.time())
+        url_str = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+        self.insert(url=url_str, title=title, atime=atime, redirect=redirect)
+        if not redirect:
+            self.completion.insert_or_replace(url=url_str,
+                                              title=title,
+                                              last_atime=atime)
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
