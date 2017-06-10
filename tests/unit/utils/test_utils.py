@@ -929,6 +929,8 @@ class TestOpenFile:
     ('0-5,9-100,last', 500, [(0, 5), (9, 100), (500, 500)]),
     ('0-5,9-100,last-3', 500, [(0, 5), (9, 100), (500, 3)]),
     ('0-5,9-100,last-7000', 500, [(0, 5), (9, 100), (500, 7000)]),
+    ('6-9,3-5', 500, [(6, 9), (3, 5)]),
+    ('5-7,0-10', 500, [(5, 7), (0, 10)]),
 ])
 def test_parse_numsettxt_into_numints(txtset, nummax, expected):
     assert utils.parse_numsettxt_into_numints(txtset, nummax) == expected
@@ -938,8 +940,10 @@ def test_parse_numsettxt_into_numints(txtset, nummax, expected):
     ([501], [(0, 5), (9, 100), (500, 500)], []),
     ([3, 6, 50], [(0, 5), (9, 100), (500, 3)], [3, 50]),
     ([501, 0], [(0, 5), (9, 100), (500, 7000)], [0, 501]),
+    ([501, 0, 6, 9, 3, 5, 8, 4], [(6, 9), (3, 5)], [6, 9, 3, 5, 8, 4]),
+    ([501, 0, 5, 7, 10, 5, 8, 4], [(5, 7), (0, 10)], [0, 5, 7, 10, 5, 8, 4]),
 ])
-def which_nums_in_numints(nums, numints, expected):
+def test_which_nums_in_numints(nums, numints, expected):
     assert utils.which_nums_in_numints(nums, numints) == expected
 
 
