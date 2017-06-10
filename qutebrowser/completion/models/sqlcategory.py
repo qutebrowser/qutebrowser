@@ -64,7 +64,6 @@ class SqlCategory(QSqlQueryModel):
             querystr += ' order by {} {}'.format(sort_by, sort_order)
 
         self._query = sql.Query(querystr, forward_only=False)
-        self._param_count = len(filter_fields)
 
         # map filter_fields to indices
         col_query = sql.Query('SELECT * FROM {} LIMIT 1'.format(name))

@@ -194,7 +194,7 @@ class SqlTable(QObject):
             values: A list of values to insert.
             replace: If set, replace existing values.
         """
-        paramstr = ','.join(':{}'.format(key) for key in values.keys())
+        paramstr = ','.join(':{}'.format(key) for key in values)
         q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
         q.run(**values)
         self.changed.emit()
@@ -206,7 +206,7 @@ class SqlTable(QObject):
             values: A list of values to insert.
             replace: If set, replace existing values.
         """
-        paramstr = ','.join(':{}'.format(key) for key in values.keys())
+        paramstr = ','.join(':{}'.format(key) for key in values)
         q = Query("REPLACE INTO {} values({})".format(self._name, paramstr))
         q.run(**values)
         self.changed.emit()

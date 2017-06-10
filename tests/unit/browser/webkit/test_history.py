@@ -158,8 +158,7 @@ def hist_interface(hist):
     from qutebrowser.browser.webkit import webkithistory
     QWebHistoryInterface = QtWebKit.QWebHistoryInterface
     # pylint: enable=invalid-name
-    entry = history.Entry(atime=0, url=QUrl('http://www.example.com/'),
-                          title='example')
+    hist.add_url(url=QUrl('http://www.example.com/'), title='example')
     interface = webkithistory.WebHistoryInterface(hist)
     QWebHistoryInterface.setDefaultInterface(interface)
     yield

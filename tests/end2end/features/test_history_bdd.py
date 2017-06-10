@@ -18,9 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os.path
 import re
-import tempfile
 
 import pytest_bdd as bdd
 

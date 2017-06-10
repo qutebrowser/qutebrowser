@@ -57,7 +57,7 @@ from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit, objects, sql)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error, debug)
+                               objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 

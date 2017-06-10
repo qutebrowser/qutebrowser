@@ -28,7 +28,7 @@ import re
 from PyQt5.QtCore import QSortFilterProxyModel
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
-from qutebrowser.utils import qtutils, debug, log
+from qutebrowser.utils import qtutils
 
 
 class ListCategory(QSortFilterProxyModel):
