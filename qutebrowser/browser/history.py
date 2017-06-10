@@ -25,7 +25,7 @@ import time
 from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import (utils, objreg, log, qtutils, usertypes, message,
+from qutebrowser.utils import (utils, objreg, log, usertypes, message,
                                debug, standarddir)
 from qutebrowser.misc import objects, sql
 
@@ -257,7 +257,7 @@ class WebHistory(sql.SqlTable):
                 f.write('\n'.join(lines))
             except OSError as e:
                 raise cmdexc.CommandError('Could not write history: {}', e)
-            message.info("Dumped history to {}.".format(dest))
+            message.info("Dumped history to {}".format(dest))
 
 
 def init(parent=None):

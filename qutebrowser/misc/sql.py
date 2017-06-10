@@ -89,7 +89,7 @@ class Query(QSqlQuery):
         log.sql.debug('Running SQL query: "{}"'.format(self.lastQuery()))
         for key, val in values.items():
             self.bindValue(':{}'.format(key), val)
-        log.sql.debug('self bindings: {}'.format(self.boundValues()))
+        log.sql.debug('query bindings: {}'.format(self.boundValues()))
         if not self.exec_():
             raise SqlException('Failed to exec query "{}": "{}"'.format(
                                self.lastQuery(), self.lastError().text()))
@@ -107,7 +107,6 @@ class SqlTable(QObject):
     """Interface to a sql table.
 
     Attributes:
-        Entry: The class wrapping row data from this table.
         _name: Name of the SQL table this wraps.
 
     Signals:
@@ -136,8 +135,6 @@ class SqlTable(QObject):
                   .format(name, ','.join(column_defs)))
 
         q.run()
-        # pylint: disable=invalid-name
-        self.Entry = collections.namedtuple(name + '_Entry', fields)
 
     def create_index(self, name, field):
         """Create an index over this table.
