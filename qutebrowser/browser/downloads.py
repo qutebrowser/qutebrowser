@@ -920,7 +920,7 @@ class DownloadModel(QAbstractListModel):
         if all_ == True:
             indexset = '1-last'
             message.warning(
-                "'--all/-a' will be deprecated. Kindly use '0-last' instead."
+                "'--all/-a' will be deprecated. Kindly use '1-last' instead."
             )
 
         # support count
