@@ -931,9 +931,15 @@ class TestOpenFile:
     ('0-5,9-100,last-7000', 500, [(0, 5), (9, 100), (500, 7000)]),
     ('6-9,3-5', 500, [(6, 9), (3, 5)]),
     ('5-7,0-10', 500, [(5, 7), (0, 10)]),
+    ('-5', 500, 'malformed'),
+    ('0--5', 500, 'malformed'),
+    ('foo-bar', 500, 'malformed'),
 ])
 def test_parse_numsettxt_into_numints(txtset, nummax, expected):
-    assert utils.parse_numsettxt_into_numints(txtset, nummax) == expected
+    try:
+        assert utils.parse_numsettxt_into_numints(txtset, nummax) == expected
+    except ValueError:
+        assert expected == 'malformed'
 
 
 @pytest.mark.parametrize('nums, numints, expected', [
