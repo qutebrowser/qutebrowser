@@ -130,7 +130,6 @@ Fixed
 - (QtWebEngine) HTML fullscreen is now tracked for each tab separately, which
   means it's not possible anymore to accidentally get stuck in fullscreen state
   by closing a tab with a fullscreen video.
-- For some people, running some userscripts crashed - this should now be fixed.
 - Various other rare crashes should now be fixed.
 - The settings documentation was truncated with v0.10.1 which should now be
   fixed.
