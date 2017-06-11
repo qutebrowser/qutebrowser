@@ -40,6 +40,7 @@ class _QtFIFOReader(QObject):
         _filepath: The path to the opened FIFO.
         _fifo: The Python file object for the FIFO.
         _notifier: The QSocketNotifier used.
+        _finished: Set after cleanup() has been called.
 
     Signals:
         got_line: Emitted when a whole line arrived.
@@ -59,11 +60,18 @@ class _QtFIFOReader(QObject):
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)
+        self._finished = False
 
     @pyqtSlot()
     def read_line(self):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
+        if self._finished:
+            # For unknown reasons, read_line can still get called after
+            # cleanup() was, and the QSocketNotifier was already deleted...
+            log.procs.debug("QtFIFOReader finished already...")
+            return
+
         self._notifier.setEnabled(False)
         try:
             for line in self._fifo:
@@ -75,6 +83,7 @@ class _QtFIFOReader(QObject):
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
+        self._finished = True
         self._notifier.setEnabled(False)
         for line in self._fifo:
             self.got_line.emit(line.rstrip('\r\n'))
