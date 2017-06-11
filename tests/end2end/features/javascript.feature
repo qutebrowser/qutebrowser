@@ -72,6 +72,7 @@ Feature: Javascript stuff
     Scenario: Executing jseval when javascript is disabled
         When I set content -> allow-javascript to false
         And I run :jseval console.log('jseval executed')
+        And I set content -> allow-javascript to true
         Then the javascript message "jseval executed" should be logged
 
     ## webelement issues (mostly with QtWebEngine)
@@ -100,3 +101,18 @@ Feature: Javascript stuff
         And I run :click-element id listitem
         And I wait for "Sending fake click to *" in the log
         Then no crash should happen
+
+    # We load the tab in the background, and the HTML sets the window size for
+    # when it's hidden.
+    # Then, "the window sizes should be the same" uses :jseval to set the size
+    # when it's shown, and compares the two.
+    # https://github.com/qutebrowser/qutebrowser/issues/1190
+    # https://github.com/qutebrowser/qutebrowser/issues/2495
+
+    Scenario: Checking visible/invisible window size
+        When I run :tab-only
+        And I set general -> log-javascript-console to info
+        And I open data/javascript/windowsize.html in a new background tab
+        And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
+        And I run :tab-next
+        Then the window sizes should be the same

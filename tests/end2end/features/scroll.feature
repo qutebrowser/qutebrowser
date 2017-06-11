@@ -314,3 +314,12 @@ Feature: Scrolling
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
+
+    Scenario: Scrolling to anchor in background tab
+        When I set general -> log-javascript-console to info
+        And I open about:blank
+        And I run :tab-only
+        And I open data/scroll/simple.html#anchor in a new background tab
+        And I run :tab-next
+        And I run :jseval --world main checkAnchor()
+        Then "[*] [PASS] Positions equal: *" should be logged

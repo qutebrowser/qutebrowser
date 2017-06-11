@@ -23,7 +23,7 @@ import functools
 import collections
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QSize
 from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
@@ -426,12 +426,20 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         if url is not None:
             tab.openurl(url)
+
         if background is None:
             background = config.get('tabs', 'background-tabs')
         if background:
+            # Make sure the background tab has the correct initial size.
+            # With a foreground tab, it's going to be resized correctly by the
+            # layout anyways.
+            tab_size = QSize(self.width(),
+                             self.height() - self.tabBar().height())
+            tab.resize(tab_size)
             self.tab_index_changed.emit(self.currentIndex(), self.count())
         else:
             self.setCurrentWidget(tab)
+
         tab.show()
         self.new_tab.emit(tab, idx)
         return tab

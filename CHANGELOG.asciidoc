@@ -134,6 +134,8 @@ Fixed
 - Various other rare crashes should now be fixed.
 - The settings documentation was truncated with v0.10.1 which should now be
   fixed.
+- Scrolling to an anchor in a background tab now works correctly, and javascript
+  gets the correct window size for background tabs.
 
 v0.10.1
 -------
