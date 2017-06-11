@@ -150,11 +150,15 @@ class WebHistory(sql.SqlTable):
 
         atime = int(atime) if (atime is not None) else int(time.time())
         url_str = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        self.insert(url=url_str, title=title, atime=atime, redirect=redirect)
+        self.insert({'url': url_str,
+                     'title': title,
+                     'atime': atime,
+                     'redirect': redirect})
         if not redirect:
-            self.completion.insert_or_replace(url=url_str,
-                                              title=title,
-                                              last_atime=atime)
+            self.completion.insert({'url': url_str,
+                                    'title': title,
+                                    'last_atime': atime},
+                                    replace=True)
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
@@ -183,10 +187,7 @@ class WebHistory(sql.SqlTable):
             raise ValueError("Invalid flags {!r}".format(flags))
 
         redirect = 'r' in flags
-        row = (url, title, float(atime), redirect)
-        completion_row = None if redirect else (url, title, float(atime))
-
-        return (row, completion_row)
+        return (url, title, int(atime), redirect)
 
     def import_txt(self):
         """Import a history text file into sqlite if it exists.
@@ -218,22 +219,27 @@ class WebHistory(sql.SqlTable):
     def _read(self, path):
         """Import a text file into the sql database."""
         with open(path, 'r', encoding='utf-8') as f:
-            rows = []
-            completion_rows = []
+            data = {'url': [], 'title': [], 'atime': [], 'redirect': []}
+            completion_data = {'url': [], 'title': [], 'last_atime': []}
             for (i, line) in enumerate(f):
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    row, completion_row = self._parse_entry(line.strip())
-                    rows.append(row)
-                    if completion_row is not None:
-                        completion_rows.append(completion_row)
+                    url, title, atime, redirect = self._parse_entry(line)
+                    data['url'].append(url)
+                    data['title'].append(title)
+                    data['atime'].append(atime)
+                    data['redirect'].append(redirect)
+                    if not redirect:
+                        completion_data['url'].append(url)
+                        completion_data['title'].append(title)
+                        completion_data['last_atime'].append(atime)
                 except ValueError as ex:
                     raise ValueError('Failed to parse line #{} of {}: "{}"'
                                      .format(i, path, ex))
-        self.insert_batch(rows)
-        self.completion.insert_batch(completion_rows, replace=True)
+        self.insert_batch(data)
+        self.completion.insert_batch(completion_data, replace=True)
 
     @cmdutils.register(instance='web-history', debug=True)
     def debug_dump_history(self, dest):

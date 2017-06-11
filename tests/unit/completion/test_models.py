@@ -161,15 +161,15 @@ def web_history_stub(stubs, init_sql):
 @pytest.fixture
 def web_history(web_history_stub, init_sql):
     """Pre-populate the web-history database."""
-    web_history_stub.insert(url='http://qutebrowser.org',
-                            title='qutebrowser',
-                            last_atime=datetime(2015, 9, 5).timestamp())
-    web_history_stub.insert(url='https://python.org',
-                            title='Welcome to Python.org',
-                            last_atime=datetime(2016, 3, 8).timestamp())
-    web_history_stub.insert(url='https://github.com',
-                            title='https://github.com',
-                            last_atime=datetime(2016, 5, 1).timestamp())
+    web_history_stub.insert({'url': 'http://qutebrowser.org',
+                            'title': 'qutebrowser',
+                            'last_atime': datetime(2015, 9, 5).timestamp()})
+    web_history_stub.insert({'url': 'https://python.org',
+                            'title': 'Welcome to Python.org',
+                            'last_atime': datetime(2016, 3, 8).timestamp()})
+    web_history_stub.insert({'url': 'https://github.com',
+                            'title': 'https://github.com',
+                            'last_atime': datetime(2016, 5, 1).timestamp()})
     return web_history_stub
 
 
@@ -331,7 +331,7 @@ def test_url_completion_pattern(config_stub, web_history_stub,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
-    web_history_stub.insert(url=url, title=title, last_atime=0)
+    web_history_stub.insert({'url': url, 'title': title, 'last_atime': 0})
     model = urlmodel.url()
     model.set_pattern(pattern)
     # 2, 0 is History
@@ -576,21 +576,22 @@ def test_url_completion_benchmark(benchmark, config_stub,
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 1000}
 
-    entries = [web_history_stub.Entry(
-        last_atime=i,
-        url='http://example.com/{}'.format(i),
-        title='title{}'.format(i))
-        for i in range(100000)]
+    r = range(100000)
+    entries = {
+        'last_atime': list(r),
+        'url': ['http://example.com/{}'.format(i) for i in r],
+        'title': ['title{}'.format(i) for i in r]
+    }
 
     web_history_stub.insert_batch(entries)
 
-    quickmark_manager_stub.marks = collections.OrderedDict(
-        (e.title, e.url)
-        for e in entries[0:1000])
+    quickmark_manager_stub.marks = collections.OrderedDict([
+        ('title{}'.format(i), 'example.com/{}'.format(i))
+        for i in range(1000)])
 
-    bookmark_manager_stub.marks = collections.OrderedDict(
-        (e.url, e.title)
-        for e in entries[0:1000])
+    bookmark_manager_stub.marks = collections.OrderedDict([
+        ('example.com/{}'.format(i), 'title{}'.format(i))
+        for i in range(1000)])
 
     def bench():
         model = urlmodel.url()

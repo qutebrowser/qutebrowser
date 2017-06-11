@@ -184,44 +184,32 @@ class SqlTable(QObject):
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
-    def insert(self, **values):
+    def _insert_query(self, values, replace):
+        params = ','.join(':{}'.format(key) for key in values)
+        verb = "REPLACE" if replace else "INSERT"
+        return Query("{} INTO {} values({})".format(verb, self._name, params))
+
+    def insert(self, values, replace=False):
         """Append a row to the table.
 
         Args:
-            values: A list of values to insert.
+            values: A dict with a value to insert for each field name.
             replace: If set, replace existing values.
         """
-        paramstr = ','.join(':{}'.format(key) for key in values)
-        q = Query("INSERT INTO {} values({})".format(self._name, paramstr))
+        q = self._insert_query(values, replace)
         q.run(**values)
         self.changed.emit()
 
-    def insert_or_replace(self, **values):
-        """Append a row to the table.
-
-        Args:
-            values: A list of values to insert.
-            replace: If set, replace existing values.
-        """
-        paramstr = ','.join(':{}'.format(key) for key in values)
-        q = Query("REPLACE INTO {} values({})".format(self._name, paramstr))
-        q.run(**values)
-        self.changed.emit()
-
-    def insert_batch(self, rows, replace=False):
+    def insert_batch(self, values, replace=False):
         """Performantly append multiple rows to the table.
 
         Args:
             rows: A list of lists, where each sub-list is a row.
-            replace: If set, replace existing values.
+            values: A dict with a list of values to insert for each field name.
         """
-        paramstr = ','.join(['?'] * len(rows[0]))
-        q = Query("INSERT {} INTO {} values({})".format(
-            'OR REPLACE' if replace else '', self._name, paramstr))
-
-        transposed = [list(row) for row in zip(*rows)]
-        for val in transposed:
-            q.addBindValue(val)
+        q = self._insert_query(values, replace)
+        for key, val in values.items():
+            q.bindValue(':{}'.format(key), val)
 
         db = QSqlDatabase.database()
         db.transaction()

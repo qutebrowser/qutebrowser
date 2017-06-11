@@ -133,14 +133,13 @@ class TestHistoryHandler:
             assert item['time'] > end_time * 1000
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
-        entries = []
-        for t in range(100000):  # one history per second
-            entry = fake_web_history.Entry(
-                atime=str(now - t),
-                url=QUrl('www.x.com/{}'.format(t)),
-                title='x at {}'.format(t),
-                redirect=False)
-            entries.append(entry)
+        r = range(100000)
+        entries = {
+            'atime': [int(now - t) for t in r],
+            'url': ['www.x.com/{}'.format(t) for t in r],
+            'title': ['x at {}'.format(t) for t in r],
+            'redirect': [False for _ in r],
+        }
 
         fake_web_history.insert_batch(entries)
         url = QUrl("qute://history/data?start_time={}".format(now))

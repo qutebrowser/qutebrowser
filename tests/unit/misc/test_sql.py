@@ -35,26 +35,67 @@ def test_init():
 def test_insert(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     with qtbot.waitSignal(table.changed):
-        table.insert(name='one', val=1, lucky=False)
+        table.insert({'name': 'one', 'val': 1, 'lucky': False})
     with qtbot.waitSignal(table.changed):
-        table.insert(name='wan', val=1, lucky=False)
+        table.insert({'name': 'wan', 'val': 1, 'lucky': False})
 
 
-def test_insert_or_replace(qtbot):
+def test_insert_replace(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
                          constraints={'name': 'PRIMARY KEY'})
     with qtbot.waitSignal(table.changed):
-        table.insert_or_replace(name='one', val=1, lucky=False)
+        table.insert({'name': 'one', 'val': 1, 'lucky': False}, replace=True)
     with qtbot.waitSignal(table.changed):
-        table.insert_or_replace(name='one', val=11, lucky=True)
+        table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
+
+    with pytest.raises(sql.SqlException):
+        table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
+
+
+def test_insert_batch(qtbot):
+    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
+
+    with qtbot.waitSignal(table.changed):
+        table.insert_batch({'name': ['one', 'nine', 'thirteen'],
+                            'val': [1, 9, 13],
+                            'lucky': [False, False, True]})
+
+    assert list(table) == [('one', 1, False),
+                           ('nine', 9, False),
+                           ('thirteen', 13, True)]
+
+
+def test_insert_batch_replace(qtbot):
+    table = sql.SqlTable('Foo', ['name', 'val', 'lucky'],
+                         constraints={'name': 'PRIMARY KEY'})
+
+    with qtbot.waitSignal(table.changed):
+        table.insert_batch({'name': ['one', 'nine', 'thirteen'],
+                            'val': [1, 9, 13],
+                            'lucky': [False, False, True]})
+
+    with qtbot.waitSignal(table.changed):
+        table.insert_batch({'name': ['one', 'nine'],
+                            'val': [11, 19],
+                            'lucky': [True, True]},
+                            replace=True)
+
+    assert list(table) == [('thirteen', 13, True),
+                           ('one', 11, True),
+                           ('nine', 19, True)]
+
+    with pytest.raises(sql.SqlException):
+        table.insert_batch({'name': ['one', 'nine'],
+                            'val': [11, 19],
+                            'lucky': [True, True]})
 
 
 def test_iter():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(name='one', val=1, lucky=False)
-    table.insert(name='nine', val=9, lucky=False)
-    table.insert(name='thirteen', val=13, lucky=True)
+    table.insert({'name': 'one', 'val': 1, 'lucky': False})
+    table.insert({'name': 'nine', 'val': 9, 'lucky': False})
+    table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     assert list(table) == [('one', 1, False),
                            ('nine', 9, False),
                            ('thirteen', 13, True)]
@@ -73,15 +114,15 @@ def test_iter():
 def test_select(rows, sort_by, sort_order, limit, result):
     table = sql.SqlTable('Foo', ['a', 'b'])
     for row in rows:
-        table.insert(**row)
+        table.insert(row)
     assert list(table.select(sort_by, sort_order, limit)) == result
 
 
 def test_delete(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(name='one', val=1, lucky=False)
-    table.insert(name='nine', val=9, lucky=False)
-    table.insert(name='thirteen', val=13, lucky=True)
+    table.insert({'name': 'one', 'val': 1, 'lucky': False})
+    table.insert({'name': 'nine', 'val': 9, 'lucky': False})
+    table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     with pytest.raises(KeyError):
         table.delete('nope', 'name')
     with qtbot.waitSignal(table.changed):
@@ -95,19 +136,19 @@ def test_delete(qtbot):
 def test_len():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     assert len(table) == 0
-    table.insert(name='one', val=1, lucky=False)
+    table.insert({'name': 'one', 'val': 1, 'lucky': False})
     assert len(table) == 1
-    table.insert(name='nine', val=9, lucky=False)
+    table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     assert len(table) == 2
-    table.insert(name='thirteen', val=13, lucky=True)
+    table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     assert len(table) == 3
 
 
 def test_contains():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(name='one', val=1, lucky=False)
-    table.insert(name='nine', val=9, lucky=False)
-    table.insert(name='thirteen', val=13, lucky=True)
+    table.insert({'name': 'one', 'val': 1, 'lucky': False})
+    table.insert({'name': 'nine', 'val': 9, 'lucky': False})
+    table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
 
     name_query = table.contains_query('name')
     val_query = table.contains_query('val')
@@ -126,9 +167,9 @@ def test_contains():
 
 def test_delete_all(qtbot):
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
-    table.insert(name='one', val=1, lucky=False)
-    table.insert(name='nine', val=9, lucky=False)
-    table.insert(name='thirteen', val=13, lucky=True)
+    table.insert({'name': 'one', 'val': 1, 'lucky': False})
+    table.insert({'name': 'nine', 'val': 9, 'lucky': False})
+    table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     with qtbot.waitSignal(table.changed):
         table.delete_all()
     assert list(table) == []
