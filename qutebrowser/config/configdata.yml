@@ -1266,72 +1266,72 @@ colors.completion.scrollbar.bg:
   type: QssColor
   desc: Color of the scrollbar in completion view
 
-colors.statusbar.fg.normal:
+colors.statusbar.normal.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar.
 
-colors.statusbar.bg.normal:
+colors.statusbar.normal.bg:
   default: black
   type: QssColor
   desc: Background color of the statusbar.
 
-colors.statusbar.fg.private:
+colors.statusbar.private.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in private browsing mode.
 
-colors.statusbar.bg.private:
+colors.statusbar.private.bg:
   default: '#666666'
   type: QssColor
   desc: Background color of the statusbar in private browsing mode.
 
-colors.statusbar.fg.insert:
+colors.statusbar.insert.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in insert mode.
 
-colors.statusbar.bg.insert:
+colors.statusbar.insert.bg:
   default: darkgreen
   type: QssColor
   desc: Background color of the statusbar in insert mode.
 
-colors.statusbar.fg.command:
+colors.statusbar.command.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in command mode.
 
-colors.statusbar.bg.command:
+colors.statusbar.command.bg:
   default: black
   type: QssColor
   desc: Background color of the statusbar in command mode.
 
-colors.statusbar.fg.command_private:
+colors.statusbar.command.private.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in private browsing + command mode.
 
-colors.statusbar.bg.command_private:
+colors.statusbar.command.private.bg:
   default: grey
   type: QssColor
   desc: Background color of the statusbar in private browsing + command mode.
 
-colors.statusbar.fg.caret:
+colors.statusbar.caret.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in caret mode.
 
-colors.statusbar.bg.caret:
+colors.statusbar.caret.bg:
   default: purple
   type: QssColor
   desc: Background color of the statusbar in caret mode.
 
-colors.statusbar.fg.caret_selection:
+colors.statusbar.caret.selection.fg:
   default: white
   type: QssColor
   desc: Foreground color of the statusbar in caret mode with a selection
 
-colors.statusbar.bg.caret_selection:
+colors.statusbar.caret.selection.bg:
   default: '#a12dff'
   type: QssColor
   desc: Background color of the statusbar in caret mode with a selection
@@ -1356,62 +1356,62 @@ colors.statusbar.url.success.https.bg:
   type: QssColor
   desc: Foreground color of the URL in the statusbar on successful load (https).
 
-colors.statusbar.url.fg.error:
+colors.statusbar.url.error.fg:
   default: orange
   type: QssColor
   desc: Foreground color of the URL in the statusbar on error.
 
-colors.statusbar.url.fg.warn:
+colors.statusbar.url.warn.fg:
   default: yellow
   type: QssColor
   desc: "Foreground color of the URL in the statusbar when there's a warning."
 
-colors.statusbar.url.fg.hover:
+colors.statusbar.url.hover.fg:
   default: aqua
   desc: Foreground color of the URL in the statusbar for hovered links.
   type: QssColor
 
-colors.tabs.fg.odd:
+colors.tabs.odd.fg:
   default: white
   type: QtColor
   desc: Foreground color of unselected odd tabs.
 
-colors.tabs.bg.odd:
+colors.tabs.odd.bg:
   default: grey
   type: QtColor
   desc: Background color of unselected odd tabs.
 
-colors.tabs.fg.even:
+colors.tabs.even.fg:
   default: white
   type: QtColor
   desc: Foreground color of unselected even tabs.
 
-colors.tabs.bg.even:
+colors.tabs.even.bg:
   default: darkgrey
   type: QtColor
   desc: Background color of unselected even tabs.
 
-colors.tabs.fg.selected.odd:
+colors.tabs.selected.odd.fg:
   default: white
   type: QtColor
   desc: Foreground color of selected odd tabs.
 
-colors.tabs.bg.selected.odd:
+colors.tabs.selected.odd.bg:
   default: black
   type: QtColor
   desc: Background color of selected odd tabs.
 
-colors.tabs.fg.selected.even:
+colors.tabs.selected.even.fg:
   default: white
   type: QtColor
   desc: Foreground color of selected even tabs.
 
-colors.tabs.bg.selected.even:
+colors.tabs.selected.even.bg:
   default: black
   type: QtColor
   desc: Background color of selected even tabs.
 
-colors.tabs.bg.bar:
+colors.tabs.bar.bg:
   default: '#555555'
   type: QtColor
   desc: Background color of the tab bar.
@@ -1453,47 +1453,47 @@ colors.hints.match.fg:
   type: QssColor
   desc: Font color for the matched part of hints.
 
-colors.downloads.bg.bar:
+colors.downloads.bar.bg:
   default: black
   type: QssColor
   desc: Background color for the download bar.
 
-colors.downloads.fg.start:
+colors.downloads.start.fg:
   default: white
   type: QtColor
   desc: Color gradient start for download text.
 
-colors.downloads.bg.start:
+colors.downloads.start.bg:
   default: '#0000aa'
   type: QtColor
   desc: Color gradient start for download backgrounds.
 
-colors.downloads.fg.stop:
+colors.downloads.stop.fg:
   default: '#0000aa'
   type: QtColor
   desc: Color gradient end for download text.
 
-colors.downloads.bg.stop:
+colors.downloads.stop.bg:
   default: '#00aa00'
   type: QtColor
   desc: Color gradient stop for download backgrounds.
 
-colors.downloads.fg.system:
+colors.downloads.system.fg:
   default: rgb
   type: ColorSystem
   desc: Color gradient interpolation system for download text.
 
-colors.downloads.bg.system:
+colors.downloads.system.bg:
   default: rgb
   type: ColorSystem
   desc: Color gradient interpolation system for download backgrounds.
 
-colors.downloads.fg.error:
+colors.downloads.error.fg:
   default: white
   type: QtColor
   desc: Foreground color for downloads with errors.
 
-colors.downloads.bg.error:
+colors.downloads.error.bg:
   default: red
   type: QtColor
   desc: Background color for downloads with errors.
@@ -1520,47 +1520,47 @@ colors.keyhint.bg:
   type: QssColor
   desc: Background color of the keyhint widget.
 
-colors.messages.fg.error:
+colors.messages.error.fg:
   default: white
   type: QssColor
   desc: Foreground color of an error message.
 
-colors.messages.bg.error:
+colors.messages.error.bg:
   default: red
   type: QssColor
   desc: Background color of an error message.
 
-colors.messages.border.error:
+colors.messages.error.border:
   default: '#bb0000'
   type: QssColor
   desc: Border color of an error message.
 
-colors.messages.fg.warning:
+colors.messages.warning.fg:
   default: white
   type: QssColor
   desc: Foreground color a warning message.
 
-colors.messages.bg.warning:
+colors.messages.warning.bg:
   default: darkorange
   type: QssColor
   desc: Background color of a warning message.
 
-colors.messages.border.warning:
+colors.messages.warning.border:
   default: '#d47300'
   type: QssColor
   desc: Border color of an error message.
 
-colors.messages.fg.info:
+colors.messages.info.fg:
   default: white
   type: QssColor
   desc: Foreground color an info message.
 
-colors.messages.bg.info:
+colors.messages.info.bg:
   default: black
   type: QssColor
   desc: Background color of an info message.
 
-colors.messages.border.info:
+colors.messages.info.border:
   default: '#333333'
   type: QssColor
   desc: Border color of an info message.
