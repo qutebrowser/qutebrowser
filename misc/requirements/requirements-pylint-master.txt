@@ -2,7 +2,7 @@
 
 -e git+https://github.com/PyCQA/astroid.git#egg=astroid
 certifi==2017.4.17
-chardet==3.0.3
+chardet==3.0.4
 github3.py==0.9.6
 idna==2.5
 isort==4.2.15
