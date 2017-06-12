@@ -67,6 +67,7 @@ Feature: Page history
     Scenario: History with view-source URL
         When I open data/title.html
         And I run :view-source
+        And I wait for "Changing title for idx * to 'Source for http://localhost:*/data/title.html'" in the log
         Then the history file should contain:
             http://localhost:(port)/data/title.html Test title
 

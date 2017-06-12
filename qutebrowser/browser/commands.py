@@ -1450,14 +1450,14 @@ class CommandDispatcher:
         if tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
 
+        try:
+            current_url = self._current_url()
+        except cmdexc.CommandError as e:
+            message.error(str(e))
+            return
+
         def show_source_cb(source):
             """Show source as soon as it's ready."""
-            try:
-                current_url = self._current_url()
-            except cmdexc.CommandError as e:
-                message.error(str(e))
-                return
-
             lexer = pygments.lexers.HtmlLexer()
             formatter = pygments.formatters.HtmlFormatter(
                 full=True, linenos='table',
