@@ -904,7 +904,7 @@ content.images:
   type: Bool
   desc: Whether images are automatically loaded in web pages.
 
-content.javascript:
+content.javascript.enabled:
   default: true
   type: Bool
   desc: Enables or disables the running of JavaScript programs.

@@ -663,6 +663,12 @@ def _read_yaml(yaml_data):
             backends=_parse_yaml_backends(name, option.get('backend', None)),
             description=option['desc'])
 
+    # Make sure no key shadows another.
+    for key1 in parsed:
+        for key2 in parsed:
+            if key2.startswith(key1 + '.'):
+                raise ValueError("Shadowing keys {} and {}".format(key1, key2))
+
     return parsed
 
 

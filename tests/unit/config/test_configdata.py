@@ -69,6 +69,31 @@ class TestReadYaml:
         with pytest.raises(ValueError, match='Invalid keys'):
             configdata._read_yaml(data)
 
+    @pytest.mark.parametrize('first, second, shadowing', [
+        ('foo', 'foo.bar', True),
+        ('foo.bar', 'foo', True),
+        ('foo.bar', 'foo.bar.baz', True),
+        ('foo.bar', 'foo.baz', False),
+    ])
+    def test_shadowing(self, first, second, shadowing):
+        """Make sure a setting can't shadow another."""
+        data = textwrap.dedent("""
+            {first}:
+                type: Bool
+                default: true
+                desc: Hello World
+
+            {second}:
+                type: Bool
+                default: true
+                desc: Hello World
+        """.format(first=first, second=second))
+        if shadowing:
+            with pytest.raises(ValueError, match='Shadowing keys'):
+                configdata._read_yaml(data)
+        else:
+            configdata._read_yaml(data)
+
 
 class TestParseYamlType:
 
