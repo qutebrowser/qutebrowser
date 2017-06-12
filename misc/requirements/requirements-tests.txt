@@ -12,7 +12,7 @@ Flask==0.12.2
 glob2==0.5
 httpbin==0.5.0
 hunter==1.4.1
-hypothesis==3.11.1
+hypothesis==3.11.3
 itsdangerous==0.24
 # Jinja2==2.9.6
 Mako==1.0.6
