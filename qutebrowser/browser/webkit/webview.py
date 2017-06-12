@@ -110,7 +110,7 @@ class WebView(QWebView):
     @config.change_filter('colors', 'webpage.bg')
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
-        col = config.get('colors', 'webpage.bg')
+        col = config.val.colors.webpage.bg
         palette = self.palette()
         if col is None:
             col = self.style().standardPalette().color(QPalette.Base)
@@ -285,7 +285,7 @@ class WebView(QWebView):
         This is implemented here as we don't need it for QtWebEngine.
         """
         if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
-            background_tabs = config.get('tabs', 'background-tabs')
+            background_tabs = config.val.tabs.background_tabs
             if e.modifiers() & Qt.ShiftModifier:
                 background_tabs = not background_tabs
             if background_tabs:

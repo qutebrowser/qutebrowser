@@ -68,7 +68,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         bookmark_manager.removed.connect(self.on_bookmark_removed)
 
         self._history = objreg.get('web-history')
-        self._max_history = config.get('completion', 'web-history-max-items')
+        self._max_history = config.val.completion.web_history_max_items
         history = utils.newest_slice(self._history, self._max_history)
         for entry in history:
             if not entry.redirect:
@@ -80,7 +80,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
 
     def _fmt_atime(self, atime):
         """Format an atime to a human-readable string."""
-        fmt = config.get('completion', 'timestamp-format')
+        fmt = config.val.completion.timestamp_format
         if fmt is None:
             return ''
         try:

@@ -99,7 +99,7 @@ def _get_search_url(txt):
     engine, term = _parse_search_term(txt)
     assert term
     if engine is None:
-        template = config.get('searchengines', 'DEFAULT')
+        template = config.val.searchengines.DEFAULT
     else:
         template = config.get('searchengines', engine)
     url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
@@ -194,7 +194,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    if do_search and config.get('general', 'auto-search') and urlstr:
+    if do_search and config.val.auto_search and urlstr:
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
@@ -239,7 +239,7 @@ def is_url(urlstr):
     Return:
         True if it is a valid URL, False otherwise.
     """
-    autosearch = config.get('general', 'auto-search')
+    autosearch = config.val.auto_search
 
     log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
                   urlstr, autosearch))

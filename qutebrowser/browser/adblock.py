@@ -67,7 +67,7 @@ def is_whitelisted_host(host):
     Args:
         host: The host of the request as string.
     """
-    whitelist = config.get('content', 'host-blocking-whitelist')
+    whitelist = config.val.content.host_blocking_whitelist
     if whitelist is None:
         return False
 
@@ -123,7 +123,7 @@ class HostBlocker:
 
     def is_blocked(self, url):
         """Check if the given URL (as QUrl) is blocked."""
-        if not config.get('content', 'host-blocking-enabled'):
+        if not config.val.content.host_blocking_enabled:
             return False
         host = url.host()
         return ((host in self._blocked_hosts or
@@ -164,9 +164,9 @@ class HostBlocker:
 
         if not found:
             args = objreg.get('args')
-            if (config.get('content', 'host-block-lists') is not None and
+            if (config.val.content.host_block_lists is not None and
                     args.basedir is None and
-                    config.get('content', 'host-blocking-enabled')):
+                    config.val.content.host_blocking_enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker')
@@ -180,7 +180,7 @@ class HostBlocker:
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        urls = config.get('content', 'host-block-lists')
+        urls = config.val.content.host_block_lists
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window='last-focused')
         if urls is None:
@@ -295,7 +295,7 @@ class HostBlocker:
     @config.change_filter('content', 'host-block-lists')
     def on_config_changed(self):
         """Update files when the config changed."""
-        urls = config.get('content', 'host-block-lists')
+        urls = config.val.content.host_block_lists
         if urls is None:
             try:
                 os.remove(self._local_hosts_file)

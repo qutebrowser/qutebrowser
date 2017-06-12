@@ -194,7 +194,7 @@ class Completer(QObject):
         if maxsplit is None:
             text = self._quote(text)
         model = self._model()
-        if model.count() == 1 and config.get('completion', 'quick-complete'):
+        if model.count() == 1 and config.val.completion.quick_complete:
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
             self._change_completed_part(text, before, after, immediate=True)

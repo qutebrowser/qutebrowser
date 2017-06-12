@@ -24,6 +24,15 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 
 from qutebrowser.config import configdata
+from qutebrowser.utils import utils
+
+# An easy way to access the config from other code via config.val.foo
+val = None
+
+
+class UnknownOptionError(Exception):
+
+    """Raised by NewConfigManager when an option is unknown."""
 
 
 class SectionStub:
@@ -48,16 +57,61 @@ class NewConfigManager(QObject):
         super().__init__(parent)
         self._values = {}
 
-    def _key(self, sect, opt=None):
-        if opt is None:
-            # New usage
-            return sect
-        return sect + '.' + opt
-
     def read_defaults(self):
         for name, option in configdata.DATA.items():
             self._values[name] = option
 
-    def get(self, section, option):
-        val = self._values[self._key(section, option)]
+    def get(self, option):
+        try:
+            val = self._values[option]
+        except KeyError as e:
+            raise UnknownOptionError(e)
         return val.typ.transform(val.default)
+
+    def is_valid_prefix(self, prefix):
+        """Check whether the given prefix is a valid prefix for some option."""
+        return any(key.startswith(prefix + '.') for key in self._values)
+
+
+class ConfigContainer:
+
+    """An object implementing config access via __getattr__.
+
+    Attributes:
+        _manager: The ConfigManager object.
+        _prefix: The __getattr__ chain leading up to this object.
+    """
+
+    def __init__(self, manager, prefix=''):
+        self._manager = manager
+        self._prefix = prefix
+
+    def __repr__(self):
+        return utils.get_repr(self, constructor=True, manager=self._manager,
+                              prefix=self._prefix)
+
+    def __getattr__(self, attr):
+        """Get an option or a new ConfigContainer with the added prefix.
+
+        If we get an option which exists, we return the value for it.
+        If we get a part of an option name, we return a new ConfigContainer.
+
+        Those two never overlap as configdata.py ensures there are no shadowing
+        options.
+        """
+        name = self._join(attr)
+        if self._manager.is_valid_prefix(name):
+            return ConfigContainer(manager=self._manager, prefix=name)
+        # If it's not a valid prefix, this will raise NoOptionError.
+        self._manager.get(name)
+
+    def __setattr__(self, attr, value):
+        if attr.startswith('_'):
+            return super().__setattr__(attr, value)
+        self._handler(self._join(attr), value)
+
+    def _join(self, attr):
+        if self._prefix:
+            return '{}.{}'.format(self._prefix, attr)
+        else:
+            return attr

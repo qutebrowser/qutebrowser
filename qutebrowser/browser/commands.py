@@ -190,7 +190,7 @@ class CommandDispatcher:
         elif next_:
             return QTabBar.SelectRightTab
         elif opposite:
-            conf_selection = config.get('tabs', 'select-on-remove')
+            conf_selection = config.val.tabs.select_on_remove
             if conf_selection == QTabBar.SelectLeftTab:
                 return QTabBar.SelectRightTab
             elif conf_selection == QTabBar.SelectRightTab:
@@ -307,7 +307,7 @@ class CommandDispatcher:
             private: Open a new window in private browsing mode.
         """
         if url is None:
-            urls = [config.get('general', 'default-page')]
+            urls = [config.val.default_page]
         else:
             urls = self._parse_url_input(url)
 
@@ -507,9 +507,9 @@ class CommandDispatcher:
         idx = new_tabbed_browser.indexOf(newtab)
 
         new_tabbed_browser.set_page_title(idx, cur_title)
-        if config.get('tabs', 'show-favicons'):
+        if config.val.tabs.show_favicons:
             new_tabbed_browser.setTabIcon(idx, curtab.icon())
-            if config.get('tabs', 'tabs-are-windows'):
+            if config.val.tabs.tabs_are_windows:
                 new_tabbed_browser.window().setWindowIcon(curtab.icon())
 
         newtab.data.keep_icon = True
@@ -778,7 +778,7 @@ class CommandDispatcher:
             url_query.setQueryDelimiters('=', ';')
         url_query.setQuery(url_query_str)
         for key in dict(url_query.queryItems()):
-            if key in config.get('general', 'yank-ignored-url-parameters'):
+            if key in config.val.yank_ignored_url_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
         return url.toString(flags)
@@ -888,7 +888,7 @@ class CommandDispatcher:
 
         level = count if count is not None else zoom
         if level is None:
-            level = config.get('ui', 'default-zoom')
+            level = config.val.ui.default_zoom
         tab = self._current_widget()
 
         try:
@@ -953,7 +953,7 @@ class CommandDispatcher:
         newidx = self._current_index() - count
         if newidx >= 0:
             self._set_current_index(newidx)
-        elif config.get('tabs', 'wrap'):
+        elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
             raise cmdexc.CommandError("First tab")
@@ -973,7 +973,7 @@ class CommandDispatcher:
         newidx = self._current_index() + count
         if newidx < self._count():
             self._set_current_index(newidx)
-        elif config.get('tabs', 'wrap'):
+        elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
             raise cmdexc.CommandError("Last tab")
@@ -1131,7 +1131,7 @@ class CommandDispatcher:
             elif index == '+':  # pragma: no branch
                 new_idx += delta
 
-            if config.get('tabs', 'wrap'):
+            if config.val.tabs.wrap:
                 new_idx %= self._count()
         else:
             # absolute moving
@@ -1192,7 +1192,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
-        self.openurl(config.get('general', 'startpage')[0])
+        self.openurl(config.val.startpage[0])
 
     def _run_userscript(self, cmd, *args, verbose=False):
         """Run a userscript given as argument.
@@ -1746,7 +1746,7 @@ class CommandDispatcher:
             return
 
         options = {
-            'ignore_case': config.get('general', 'ignore-case'),
+            'ignore_case': config.val.ignore_case,
             'reverse': reverse,
         }
 

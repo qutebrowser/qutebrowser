@@ -75,7 +75,7 @@ class ExternalEditor(QObject):
         try:
             if exitcode != 0:
                 return
-            encoding = config.get('general', 'editor-encoding')
+            encoding = config.val.editor_encoding
             try:
                 with open(self._file.name, 'r', encoding=encoding) as f:
                     text = f.read()
@@ -102,7 +102,7 @@ class ExternalEditor(QObject):
         if self._text is not None:
             raise ValueError("Already editing a file!")
         self._text = text
-        encoding = config.get('general', 'editor-encoding')
+        encoding = config.val.editor_encoding
         try:
             # Close while the external process is running, as otherwise systems
             # with exclusive write access (e.g. Windows) may fail to update
@@ -120,7 +120,7 @@ class ExternalEditor(QObject):
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)
-        editor = config.get('general', 'editor')
+        editor = config.val.editor
         executable = editor[0]
         args = [arg.replace('{}', self._file.name) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))

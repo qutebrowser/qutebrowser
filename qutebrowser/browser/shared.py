@@ -35,16 +35,16 @@ class CallSuper(Exception):
 def custom_headers():
     """Get the combined custom headers."""
     headers = {}
-    dnt = b'1' if config.get('network', 'do-not-track') else b'0'
+    dnt = b'1' if config.val.network.do_not_track else b'0'
     headers[b'DNT'] = dnt
     headers[b'X-Do-Not-Track'] = dnt
 
-    config_headers = config.get('network', 'custom-headers')
+    config_headers = config.val.network.custom_headers
     if config_headers is not None:
         for header, value in config_headers.items():
             headers[header.encode('ascii')] = value.encode('ascii')
 
-    accept_language = config.get('network', 'accept-language')
+    accept_language = config.val.network.accept_language
     if accept_language is not None:
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 
@@ -72,7 +72,7 @@ def authentication_required(url, authenticator, abort_on):
 def javascript_confirm(url, js_msg, abort_on):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
-    if config.get('ui', 'modal-js-dialog'):
+    if config.val.ui.modal_js_dialog:
         raise CallSuper
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
@@ -86,9 +86,9 @@ def javascript_confirm(url, js_msg, abort_on):
 def javascript_prompt(url, js_msg, default, abort_on):
     """Display a javascript prompt."""
     log.js.debug("prompt: {}".format(js_msg))
-    if config.get('ui', 'modal-js-dialog'):
+    if config.val.ui.modal_js_dialog:
         raise CallSuper
-    if config.get('content', 'ignore-javascript-prompt'):
+    if config.val.content.ignore_javascript_prompt:
         return (False, "")
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
@@ -107,10 +107,10 @@ def javascript_prompt(url, js_msg, default, abort_on):
 def javascript_alert(url, js_msg, abort_on):
     """Display a javascript alert."""
     log.js.debug("alert: {}".format(js_msg))
-    if config.get('ui', 'modal-js-dialog'):
+    if config.val.ui.modal_js_dialog:
         raise CallSuper
 
-    if config.get('content', 'ignore-javascript-alert'):
+    if config.val.content.ignore_javascript_alert:
         return
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
@@ -129,7 +129,7 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.get('network', 'ssl-strict')
+    ssl_strict = config.val.network.ssl_strict
     log.webview.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 
@@ -233,7 +233,7 @@ def get_tab(win_id, target):
 
 def get_user_stylesheet():
     """Get the combined user-stylesheet."""
-    filename = config.get('ui', 'user-stylesheet')
+    filename = config.val.ui.user_stylesheet
 
     if filename is None:
         css = ''
@@ -241,7 +241,7 @@ def get_user_stylesheet():
         with open(filename, 'r', encoding='utf-8') as f:
             css = f.read()
 
-    if config.get('ui', 'hide-scrollbar'):
+    if config.val.ui.hide_scrollbar:
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css

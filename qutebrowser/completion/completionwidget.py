@@ -85,13 +85,13 @@ class CompletionView(QTreeView):
         }
 
         QTreeView QScrollBar {
-            width: {{ config.get('completion', 'scrollbar-width') }}px;
+            width: {{ config.val.completion.scrollbar_width }}px;
             background: {{ color['completion.scrollbar.bg'] }};
         }
 
         QTreeView QScrollBar::handle {
             background: {{ color['completion.scrollbar.fg'] }};
-            border: {{ config.get('completion', 'scrollbar-padding') }}px solid
+            border: {{ config.val.completion.scrollbar_padding }}px solid
                     {{ color['completion.scrollbar.bg'] }};
             min-height: 10px;
         }
@@ -257,9 +257,9 @@ class CompletionView(QTreeView):
         count = self.model().count()
         if count == 0:
             self.hide()
-        elif count == 1 and config.get('completion', 'quick-complete'):
+        elif count == 1 and config.val.completion.quick_complete:
             self.hide()
-        elif config.get('completion', 'show') == 'auto':
+        elif config.val.completion.show == 'auto':
             self.show()
 
     def set_model(self, model, pattern=None):
@@ -288,7 +288,7 @@ class CompletionView(QTreeView):
             if old_model is not None:
                 old_model.deleteLater()
 
-        if (config.get('completion', 'show') == 'always' and
+        if (config.val.completion.show == 'always' and
                 model.count() > 0):
             self.show()
         else:
@@ -306,7 +306,7 @@ class CompletionView(QTreeView):
 
     def _maybe_update_geometry(self):
         """Emit the update_geometry signal if the config says so."""
-        if config.get('completion', 'shrink'):
+        if config.val.completion.shrink:
             self.update_geometry.emit()
 
     @pyqtSlot()
@@ -321,14 +321,14 @@ class CompletionView(QTreeView):
     def sizeHint(self):
         """Get the completion size according to the config."""
         # Get the configured height/percentage.
-        confheight = str(config.get('completion', 'height'))
+        confheight = str(config.val.completion.height)
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
             height = self.window().height() * perc / 100
         else:
             height = int(confheight)
         # Shrink to content size if needed and shrinking is enabled
-        if config.get('completion', 'shrink'):
+        if config.val.completion.shrink:
             contents_height = (
                 self.viewportSizeHint().height() +
                 self.horizontalScrollBar().sizeHint().height())

@@ -836,7 +836,7 @@ def open_file(filename, cmdline=None):
     from qutebrowser.config import config
     # the default program to open downloads with - will be empty string
     # if we want to use the default
-    override = config.get('general', 'default-open-dispatcher')
+    override = config.val.default_open_dispatcher
 
     # precedence order: cmdline > default-open-dispatcher > openUrl
 

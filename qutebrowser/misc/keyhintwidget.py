@@ -51,7 +51,7 @@ class KeyHintView(QLabel):
             color: {{ color['keyhint.fg'] }};
             background-color: {{ color['keyhint.bg'] }};
             padding: 6px;
-            {% if config.get('ui', 'status-position') == 'top' %}
+            {% if config.val.ui.status_position == 'top' %}
                 border-bottom-right-radius: 6px;
             {% else %}
                 border-top-right-radius: 6px;
@@ -90,7 +90,7 @@ class KeyHintView(QLabel):
             self.hide()
             return
 
-        blacklist = config.get('ui', 'keyhint-blacklist') or []
+        blacklist = config.val.ui.keyhint_blacklist or []
         keyconf = objreg.get('key-config')
 
         def blacklisted(keychain):
@@ -107,9 +107,9 @@ class KeyHintView(QLabel):
             return
 
         # delay so a quickly typed keychain doesn't display hints
-        self._show_timer.setInterval(config.get('ui', 'keyhint-delay'))
+        self._show_timer.setInterval(config.val.ui.keyhint_delay)
         self._show_timer.start()
-        suffix_color = html.escape(config.get('colors', 'keyhint.fg.suffix'))
+        suffix_color = html.escape(config.val.colors.keyhint.fg.suffix)
 
         text = ''
         for key, cmd in bindings:

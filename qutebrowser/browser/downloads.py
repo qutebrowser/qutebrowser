@@ -69,8 +69,8 @@ class UnsupportedOperationError(Exception):
 
 def download_dir():
     """Get the download directory to use."""
-    directory = config.get('storage', 'download-directory')
-    remember_dir = config.get('storage', 'remember-download-directory')
+    directory = config.val.storage.download_directory
+    remember_dir = config.val.storage.remember_download_directory
 
     if remember_dir and last_used_directory is not None:
         return last_used_directory
@@ -104,7 +104,7 @@ def _path_suggestion(filename):
     Args:
         filename: The filename to use if included in the suggestion.
     """
-    suggestion = config.get('completion', 'download-path-suggestion')
+    suggestion = config.val.completion.download_path_suggestion
     if suggestion == 'path':
         # add trailing '/' if not present
         return os.path.join(download_dir(), '')
@@ -735,7 +735,7 @@ class AbstractDownloadManager(QObject):
         download.remove_requested.connect(functools.partial(
             self._remove_item, download))
 
-        delay = config.get('ui', 'remove-finished-downloads')
+        delay = config.val.ui.remove_finished_downloads
         if delay > -1:
             download.finished.connect(
                 lambda: QTimer.singleShot(delay, download.remove))

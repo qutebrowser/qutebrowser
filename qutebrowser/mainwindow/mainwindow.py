@@ -60,7 +60,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         # Initial main window
         return 0
 
-    open_target = config.get('general', 'new-instance-open-target')
+    open_target = config.val.new_instance_open_target
 
     # Apply any target overrides, ordered by precedence
     if force_target is not None:
@@ -98,7 +98,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
     try:
-        win_mode = config.get('general', 'new-instance-open-target.window')
+        win_mode = config.val.new_instance_open_target.window
         if win_mode == 'last-focused':
             return objreg.last_focused_window()
         elif win_mode == 'first-opened':
@@ -163,7 +163,7 @@ class MainWindow(QWidget):
         self._init_downloadmanager()
         self._downloadview = downloadview.DownloadView(self.win_id)
 
-        if config.get('general', 'private-browsing'):
+        if config.val.private_browsing:
             # This setting always trumps what's passed in.
             private = True
         else:
@@ -250,7 +250,7 @@ class MainWindow(QWidget):
             left = (self.width() - width) / 2 if centered else 0
 
         height_padding = 20
-        status_position = config.get('ui', 'status-position')
+        status_position = config.val.ui.status_position
         if status_position == 'bottom':
             if self.status.isVisible():
                 status_height = self.status.height()
@@ -341,8 +341,8 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        downloads_position = config.get('ui', 'downloads-position')
-        status_position = config.get('ui', 'status-position')
+        downloads_position = config.val.ui.downloads_position
+        status_position = config.val.ui.status_position
         widgets = [self.tabbed_browser]
 
         if downloads_position == 'top':
@@ -536,7 +536,7 @@ class MainWindow(QWidget):
         if crashsignal.is_crashing:
             e.accept()
             return
-        confirm_quit = config.get('ui', 'confirm-quit')
+        confirm_quit = config.val.ui.confirm_quit
         tab_count = self.tabbed_browser.count()
         download_model = objreg.get('download-model', scope='window',
                                     window=self.win_id)

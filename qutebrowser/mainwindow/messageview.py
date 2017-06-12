@@ -98,7 +98,7 @@ class MessageView(QWidget):
     @config.change_filter('ui', 'message-timeout')
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
-        interval = config.get('ui', 'message-timeout')
+        interval = config.val.ui.message_timeout
         if interval != 0:
             self._clear_timer.setInterval(interval)
 
@@ -127,7 +127,7 @@ class MessageView(QWidget):
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)
         widget.show()
-        if config.get('ui', 'message-timeout') != 0:
+        if config.val.ui.message_timeout != 0:
             self._clear_timer.start()
         self._messages.append(widget)
         self._last_text = text

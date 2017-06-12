@@ -50,7 +50,7 @@ class RAMCookieJar(QNetworkCookieJar):
         Return:
             True if one or more cookies are set for 'url', otherwise False.
         """
-        if config.get('content', 'cookies-accept') == 'never':
+        if config.val.content.cookies_accept == 'never':
             return False
         else:
             self.changed.emit()
@@ -77,7 +77,7 @@ class CookieJar(RAMCookieJar):
         objreg.get('config').changed.connect(self.cookies_store_changed)
         objreg.get('save-manager').add_saveable(
             'cookies', self.save, self.changed,
-            config_opt=('content', 'cookies-store'))
+            config_opt='content.cookies_store')
 
     def parse_cookies(self):
         """Parse cookies from lineparser and store them."""
@@ -108,7 +108,7 @@ class CookieJar(RAMCookieJar):
     @config.change_filter('content', 'cookies-store')
     def cookies_store_changed(self):
         """Delete stored cookies if cookies-store changed."""
-        if not config.get('content', 'cookies-store'):
+        if not config.val.content.cookies_store:
             self._lineparser.data = []
             self._lineparser.save()
             self.changed.emit()

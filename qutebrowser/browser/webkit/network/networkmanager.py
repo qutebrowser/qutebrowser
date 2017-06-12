@@ -274,7 +274,7 @@ class NetworkManager(QNetworkAccessManager):
             # altogether.
             reply.netrc_used = True
             try:
-                net = netrc.netrc(config.get('network', 'netrc-file'))
+                net = netrc.netrc(config.val.network.netrc_file)
                 authenticators = net.authenticators(reply.url().host())
                 if authenticators is not None:
                     (user, _account, password) = authenticators
@@ -338,7 +338,7 @@ class NetworkManager(QNetworkAccessManager):
 
     def set_referer(self, req, current_url):
         """Set the referer header."""
-        referer_header_conf = config.get('network', 'referer-header')
+        referer_header_conf = config.val.network.referer_header
 
         try:
             if referer_header_conf == 'never':

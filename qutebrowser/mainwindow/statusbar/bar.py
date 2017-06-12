@@ -211,7 +211,7 @@ class StatusBar(QWidget):
     @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
-        hide = config.get('ui', 'hide-statusbar')
+        hide = config.val.ui.hide_statusbar
         tab = self._current_tab()
         if hide or (tab is not None and tab.data.fullscreen):
             self.hide()
@@ -219,7 +219,7 @@ class StatusBar(QWidget):
             self.show()
 
     def _set_hbox_padding(self):
-        padding = config.get('ui', 'statusbar-padding')
+        padding = config.val.ui.statusbar_padding
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
     @pyqtProperty('QStringList')
@@ -344,7 +344,7 @@ class StatusBar(QWidget):
 
     def minimumSizeHint(self):
         """Set the minimum height to the text height plus some padding."""
-        padding = config.get('ui', 'statusbar-padding')
+        padding = config.val.ui.statusbar_padding
         width = super().minimumSizeHint().width()
         height = self.fontMetrics().height() + padding.top + padding.bottom
         return QSize(width, height)

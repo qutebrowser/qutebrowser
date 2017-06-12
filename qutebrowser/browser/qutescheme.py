@@ -278,14 +278,14 @@ def qute_history(url):
         return 'text/html', json.dumps(history_data(start_time))
     else:
         if (
-            config.get('content', 'allow-javascript') and
+            config.val.content.allow_javascript and
             (objects.backend == usertypes.Backend.QtWebEngine or
              qtutils.is_qtwebkit_ng())
         ):
             return 'text/html', jinja.render(
                 'history.html',
                 title='History',
-                session_interval=config.get('ui', 'history-session-interval')
+                session_interval=config.val.ui.history_session_interval
             )
         else:
             # Get current date from query parameter, if not given choose today.

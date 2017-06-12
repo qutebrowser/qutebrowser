@@ -274,7 +274,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
             else:
-                open_target = config.get('general', 'new-instance-open-target')
+                open_target = config.val.new_instance_open_target
             win_id = mainwindow.get_window(via_ipc, force_target=open_target)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
@@ -310,7 +310,7 @@ def _open_startpage(win_id=None):
                                     window=cur_win_id)
         if tabbed_browser.count() == 0:
             log.init.debug("Opening startpage")
-            for urlstr in config.get('general', 'startpage'):
+            for urlstr in config.val.startpage:
                 try:
                     url = urlutils.fuzzy_url(urlstr, do_search=False)
                 except urlutils.InvalidUrlError as e:
@@ -464,7 +464,7 @@ def _init_modules(args, crash_handler):
     completionmodels.init()
 
     log.init.debug("Misc initialization...")
-    if config.get('ui', 'hide-wayland-decoration'):
+    if config.val.ui.hide_wayland_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
@@ -674,7 +674,7 @@ class Quitter:
             if session is not None:
                 session_manager.save(session, last_window=last_window,
                                      load_next_time=True)
-            elif config.get('general', 'save-session'):
+            elif config.val.save_session:
                 session_manager.save(sessions.default, last_window=last_window,
                                      load_next_time=True)
 

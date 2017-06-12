@@ -80,7 +80,7 @@ class WebEngineView(QWebEngineView):
             The new QWebEngineView object.
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
-        background_tabs = config.get('tabs', 'background-tabs')
+        background_tabs = config.val.tabs.background_tabs
 
         log.webview.debug("createWindow with type {}, background_tabs "
                           "{}".format(debug_type, background_tabs))
@@ -139,7 +139,7 @@ class WebEnginePage(QWebEnginePage):
 
     @config.change_filter('colors', 'webpage.bg')
     def _set_bg_color(self):
-        col = config.get('colors', 'webpage.bg')
+        col = config.val.colors.webpage.bg
         if col is None:
             col = self._theme_color
         self.setBackgroundColor(col)
@@ -277,7 +277,7 @@ class WebEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
         # FIXME:qtwebengine maybe unify this in the tab api somehow?
-        setting = config.get('general', 'log-javascript-console')
+        setting = config.val.log_javascript_console
         if setting == 'none':
             return
 

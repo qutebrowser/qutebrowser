@@ -50,6 +50,10 @@ from qutebrowser.utils.usertypes import Completion
 UNSET = object()
 
 
+# FIXME:conf for new config
+val = None
+
+
 class change_filter:  # pylint: disable=invalid-name
 
     """Decorator to filter calls based on a config section/option matching.
@@ -167,7 +171,7 @@ def _init_main_config(parent=None):
         save_manager = objreg.get('save-manager')
         save_manager.add_saveable(
             'config', config_obj.save, config_obj.changed,
-            config_opt=('general', 'auto-save-config'), filename=filename)
+            config_opt='auto_save.config', filename=filename)
         for sect in config_obj.sections.values():
             for opt in sect.values.values():
                 if opt.values['conf'] is None:
@@ -204,7 +208,7 @@ def _init_key_config(parent):
         filename = os.path.join(standarddir.config(), 'keys.conf')
         save_manager.add_saveable(
             'key-config', key_config.save, key_config.config_dirty,
-            config_opt=('general', 'auto-save-config'), filename=filename,
+            config_opt='auto_save.config', filename=filename,
             dirty=key_config.is_dirty)
 
 
@@ -256,9 +260,11 @@ def init(parent=None):
     Args:
         parent: The parent to pass to QObjects which get initialized.
     """
+    global val
     # _init_main_config(parent)
     configdata.init()
     _init_new_config(parent)
+    val = newconfig.val
     _init_key_config(parent)
     _init_misc()
 

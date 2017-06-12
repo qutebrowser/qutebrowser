@@ -74,7 +74,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             return self.Match.none
         match = super()._handle_single_key(e)
         if match == self.Match.partial:
-            timeout = config.get('input', 'partial-timeout')
+            timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
                 self._partial_timer.timeout.connect(self._clear_partial_match)

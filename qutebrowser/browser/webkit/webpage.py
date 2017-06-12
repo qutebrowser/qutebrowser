@@ -277,7 +277,7 @@ class BrowserPage(QWebPage):
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
         elif (mimetype in ['application/pdf', 'application/x-pdf'] and
-              config.get('content', 'enable-pdfjs')):
+              config.val.content.enable_pdfjs):
             # Use pdf.js to display the page
             self._show_pdfjs(reply)
         else:
@@ -384,7 +384,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.get('network', 'user-agent')
+        ua = config.val.network.user_agent
         if ua is None:
             return super().userAgentForUrl(url)
         else:

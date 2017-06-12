@@ -163,7 +163,7 @@ def _set_user_agent(profile):
     per-domain user agents), but this one still gets used for things like
     window.navigator.userAgent in JS.
     """
-    user_agent = config.get('network', 'user-agent')
+    user_agent = config.val.network.user_agent
     profile.setHttpUserAgent(user_agent)
 
 
@@ -212,7 +212,7 @@ def init(args):
     # We need to do this here as a WORKAROUND for
     # https://bugreports.qt.io/browse/QTBUG-58650
     if not qtutils.version_check('5.9'):
-        PersistentCookiePolicy().set(config.get('content', 'cookies-store'))
+        PersistentCookiePolicy().set(config.val.content.cookies_store)
     Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
 
     websettings.init_mappings(MAPPINGS)

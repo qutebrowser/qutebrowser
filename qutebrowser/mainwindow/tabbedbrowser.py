@@ -170,7 +170,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields = self.get_tab_fields(idx)
         fields['id'] = self._win_id
 
-        fmt = config.get('ui', 'window-title-format')
+        fmt = config.val.ui.window_title_format
         self.window().setWindowTitle(fmt.format(**fields))
 
     def _connect_tab_signals(self, tab):
@@ -239,7 +239,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
         """
-        last_close = config.get('tabs', 'last-close')
+        last_close = config.val.tabs.last_close
         count = self.count()
 
         if last_close == 'ignore' and count == 1:
@@ -257,10 +257,10 @@ class TabbedBrowser(tabwidget.TabWidget):
             elif last_close == 'blank':
                 self.openurl(QUrl('about:blank'), newtab=True)
             elif last_close == 'startpage':
-                url = QUrl(config.get('general', 'startpage')[0])
+                url = QUrl(config.val.startpage[0])
                 self.openurl(url, newtab=True)
             elif last_close == 'default-page':
-                url = config.get('general', 'default-page')
+                url = config.val.default_page
                 self.openurl(url, newtab=True)
 
     def _remove_tab(self, tab, *, add_undo=True, crashed=False):
@@ -316,15 +316,15 @@ class TabbedBrowser(tabwidget.TabWidget):
     def undo(self):
         """Undo removing of a tab."""
         # Remove unused tab which may be created after the last tab is closed
-        last_close = config.get('tabs', 'last-close')
+        last_close = config.val.tabs.last_close
         use_current_tab = False
         if last_close in ['blank', 'startpage', 'default-page']:
             only_one_tab_open = self.count() == 1
             no_history = len(self.widget(0).history) == 1
             urls = {
                 'blank': QUrl('about:blank'),
-                'startpage': QUrl(config.get('general', 'startpage')[0]),
-                'default-page': config.get('general', 'default-page'),
+                'startpage': QUrl(config.val.startpage[0]),
+                'default_page': config.val.default_page,
             }
             first_tab_url = self.widget(0).url()
             last_close_urlstr = urls[last_close].toString().rstrip('/')
@@ -409,7 +409,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                           "explicit {}, idx {}".format(
                               url, background, explicit, idx))
 
-        if (config.get('tabs', 'tabs-are-windows') and self.count() > 0 and
+        if (config.val.tabs.tabs_are_windows and self.count() > 0 and
                 not ignore_tabs_are_windows):
             from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=self.private)
@@ -430,7 +430,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.openurl(url)
 
         if background is None:
-            background = config.get('tabs', 'background-tabs')
+            background = config.val.tabs.background_tabs
         if background:
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
@@ -460,9 +460,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             The index of the new tab.
         """
         if explicit:
-            pos = config.get('tabs', 'new-tab-position-explicit')
+            pos = config.val.tabs.new_tab_position_explicit
         else:
-            pos = config.get('tabs', 'new-tab-position')
+            pos = config.val.tabs.new_tab_position
         if pos == 'prev':
             idx = self._tab_insert_idx_left
             # On first sight, we'd think we have to decrement
@@ -488,8 +488,8 @@ class TabbedBrowser(tabwidget.TabWidget):
     @config.change_filter('tabs', 'show-favicons')
     def update_favicons(self):
         """Update favicons when config was changed."""
-        show = config.get('tabs', 'show-favicons')
-        tabs_are_wins = config.get('tabs', 'tabs-are-windows')
+        show = config.val.tabs.show_favicons
+        tabs_are_wins = config.val.tabs.tabs_are_windows
         for i, tab in enumerate(self.widgets()):
             if show:
                 self.setTabIcon(i, tab.icon())
@@ -517,8 +517,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.data.keep_icon = False
         else:
             self.setTabIcon(idx, QIcon())
-            if (config.get('tabs', 'tabs-are-windows') and
-                    config.get('tabs', 'show-favicons')):
+            if (config.val.tabs.tabs_are_windows and
+                    config.val.tabs.show_favicons):
                 self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
             self.update_window_title()
@@ -582,7 +582,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The WebView where the title was changed.
             icon: The new icon
         """
-        if not config.get('tabs', 'show-favicons'):
+        if not config.val.tabs.show_favicons:
             return
         try:
             idx = self._tab_index(tab)
@@ -590,7 +590,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         self.setTabIcon(idx, icon)
-        if config.get('tabs', 'tabs-are-windows'):
+        if config.val.tabs.tabs_are_windows:
             self.window().setWindowIcon(icon)
 
     @pyqtSlot(usertypes.KeyMode)
@@ -643,9 +643,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        start = config.get('colors', 'tabs.indicator.start')
-        stop = config.get('colors', 'tabs.indicator.stop')
-        system = config.get('colors', 'tabs.indicator.system')
+        start = config.val.colors.tabs.indicator.start
+        stop = config.val.colors.tabs.indicator.stop
+        system = config.val.colors.tabs.indicator.system
         color = utils.interpolate_color(start, stop, perc, system)
         self.set_tab_indicator_color(idx, color)
         self.update_tab_title(idx)
@@ -660,12 +660,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             # We can get signals for tabs we already deleted...
             return
         if ok:
-            start = config.get('colors', 'tabs.indicator.start')
-            stop = config.get('colors', 'tabs.indicator.stop')
-            system = config.get('colors', 'tabs.indicator.system')
+            start = config.val.colors.tabs.indicator.start
+            stop = config.val.colors.tabs.indicator.stop
+            system = config.val.colors.tabs.indicator.system
             color = utils.interpolate_color(start, stop, 100, system)
         else:
-            color = config.get('colors', 'tabs.indicator.error')
+            color = config.val.colors.tabs.indicator.error
         self.set_tab_indicator_color(idx, color)
         self.update_tab_title(idx)
         if idx == self.currentIndex():

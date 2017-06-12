@@ -68,7 +68,7 @@ class HintLabel(QLabel):
             background-color: {{ color['hints.bg'] }};
             color: {{ color['hints.fg'] }};
             font: {{ font['hints'] }};
-            border: {{ config.get('hints', 'border') }};
+            border: {{ config.val.hints.border }};
             padding-left: -3px;
             padding-right: -3px;
         }
@@ -100,7 +100,7 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
-        if (config.get('hints', 'uppercase') and
+        if (config.val.hints.uppercase and
                 self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
@@ -108,7 +108,7 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.get('colors', 'hints.fg.match'))
+        match_color = html.escape(config.val.colors.hints.fg.match)
         self.setText('<font color="{}">{}</font>{}'.format(
             match_color, matched, unmatched))
         self.adjustSize()
@@ -121,7 +121,7 @@ class HintLabel(QLabel):
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
             return
-        no_js = config.get('hints', 'find-implementation') != 'javascript'
+        no_js = config.val.hints.find_implementation != 'javascript'
         rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
 
@@ -203,7 +203,7 @@ class HintActions:
             Target.window: usertypes.ClickTarget.window,
             Target.hover: usertypes.ClickTarget.normal,
         }
-        if config.get('tabs', 'background-tabs'):
+        if config.val.tabs.background_tabs:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab_bg
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
@@ -421,9 +421,9 @@ class HintManager(QObject):
         if hint_mode == 'number':
             chars = '0123456789'
         else:
-            chars = config.get('hints', 'chars')
-        min_chars = config.get('hints', 'min-chars')
-        if config.get('hints', 'scatter') and hint_mode != 'number':
+            chars = config.val.hints.chars
+        min_chars = config.val.hints.min_chars
+        if config.val.hints.scatter and hint_mode != 'number':
             return self._hint_scattered(min_chars, chars, elems)
         else:
             return self._hint_linear(min_chars, chars, elems)
@@ -685,7 +685,7 @@ class HintManager(QObject):
                           Target.download, Target.normal, Target.current]:
                 pass
             elif (target == Target.tab and
-                  config.get('tabs', 'background-tabs')):
+                  config.val.tabs.background_tabs):
                 pass
             else:
                 name = target.name.replace('_', '-')
@@ -693,7 +693,7 @@ class HintManager(QObject):
                                           "target {}!".format(name))
 
         if mode is None:
-            mode = config.get('hints', 'mode')
+            mode = config.val.hints.mode
 
         self._check_args(target, *args)
         self._context = HintContext()
@@ -729,7 +729,7 @@ class HintManager(QObject):
         if len(visible) != 1:
             return
 
-        auto_follow = config.get('hints', 'auto-follow')
+        auto_follow = config.val.hints.auto_follow
 
         if auto_follow == "always":
             follow = True
@@ -747,7 +747,7 @@ class HintManager(QObject):
 
         if follow:
             # apply auto-follow-timeout
-            timeout = config.get('hints', 'auto-follow-timeout')
+            timeout = config.val.hints.auto_follow_timeout
             keyparsers = objreg.get('keyparsers', scope='window',
                                     window=self._win_id)
             normal_parser = keyparsers[usertypes.KeyMode.normal]
@@ -773,7 +773,7 @@ class HintManager(QObject):
                     # element doesn't match anymore -> hide it, unless in rapid
                     # mode and hide-unmatched-rapid-hints is false (see #1799)
                     if (not self._context.rapid or
-                            config.get('hints', 'hide-unmatched-rapid-hints')):
+                            config.val.hints.hide_unmatched_rapid_hints):
                         label.hide()
             except webelem.Error:
                 pass

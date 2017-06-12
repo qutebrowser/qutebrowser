@@ -42,7 +42,7 @@ def incdec(url, count, inc_or_dec):
         background: Open the link in a new background tab.
         window: Open the link in a new window.
     """
-    segments = set(config.get('general', 'url-incdec-segments'))
+    segments = set(config.val.url_incdec_segments)
     try:
         new_url = urlutils.incdec_number(url, inc_or_dec, count,
                                          segments=segments)

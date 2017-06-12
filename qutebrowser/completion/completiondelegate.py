@@ -156,7 +156,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         try:
             self._painter.setPen(config.get('colors', option))
         except configexc.NoOptionError:
-            self._painter.setPen(config.get('colors', 'completion.fg'))
+            self._painter.setPen(config.val.colors.completion.fg)
         ctx = QAbstractTextDocumentLayout.PaintContext()
         ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
         if clip.isValid():
@@ -208,7 +208,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         else:
             self._doc.setHtml(
                 '<span style="font: {};">{}</span>'.format(
-                    html.escape(config.get('fonts', 'completion.category')),
+                    html.escape(config.val.fonts.completion.category),
                     html.escape(self._opt.text)))
 
     def _draw_focus_rect(self):

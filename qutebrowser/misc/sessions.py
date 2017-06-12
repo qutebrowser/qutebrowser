@@ -259,7 +259,7 @@ class SessionManager(QObject):
                   object.
         """
         if name is default:
-            name = config.get('general', 'session-default-name')
+            name = config.val.session_default_name
             if name is None:
                 if self._current is not None:
                     name = self._current

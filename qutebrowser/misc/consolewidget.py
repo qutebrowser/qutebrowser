@@ -105,7 +105,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
     @config.change_filter('fonts', 'debug-console')
     def update_font(self):
         """Set the correct font."""
-        self.setFont(config.get('fonts', 'debug-console'))
+        self.setFont(config.val.fonts.debug_console)
 
 
 class ConsoleTextEdit(QTextEdit):
@@ -126,7 +126,7 @@ class ConsoleTextEdit(QTextEdit):
     @config.change_filter('fonts', 'debug-console')
     def update_font(self):
         """Update font when config changed."""
-        self.setFont(config.get('fonts', 'debug-console'))
+        self.setFont(config.val.fonts.debug_console)
 
     def append_text(self, text):
         """Append new text and scroll output to bottom.

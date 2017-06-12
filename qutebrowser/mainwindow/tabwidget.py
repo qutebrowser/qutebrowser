@@ -74,10 +74,10 @@ class TabWidget(QTabWidget):
             # WORKAROUND for PyQt 5.2
             return
         tabbar = self.tabBar()
-        self.setMovable(config.get('tabs', 'movable'))
+        self.setMovable(config.val.tabs.movable)
         self.setTabsClosable(False)
-        position = config.get('tabs', 'position')
-        selection_behavior = config.get('tabs', 'select-on-remove')
+        position = config.val.tabs.position
+        selection_behavior = config.val.tabs.select_on_remove
         self.setTabPosition(position)
         tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
@@ -140,8 +140,8 @@ class TabWidget(QTabWidget):
         fields['title'] = fields['title'].replace('&', '&&')
         fields['index'] = idx + 1
 
-        fmt = config.get('tabs', 'title-format')
-        fmt_pinned = config.get('tabs', 'title-format-pinned')
+        fmt = config.val.tabs.title_format
+        fmt_pinned = config.val.tabs.title_format_pinned
 
         if tab.data.pinned:
             title = '' if fmt_pinned is None else fmt_pinned.format(**fields)
@@ -313,7 +313,7 @@ class TabBar(QTabBar):
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
         self._auto_hide_timer.setInterval(
-            config.get('tabs', 'show-switching-delay'))
+            config.val.tabs.show_switching_delay)
         self._auto_hide_timer.timeout.connect(self.maybe_hide)
         self.setAutoFillBackground(True)
         self.set_colors()
@@ -340,12 +340,12 @@ class TabBar(QTabBar):
     def on_show_switching_delay_changed(self):
         """Set timer interval when tabs->show-switching-delay got changed."""
         self._auto_hide_timer.setInterval(
-            config.get('tabs', 'show-switching-delay'))
+            config.val.tabs.show_switching_delay)
 
     def on_current_changed(self):
         """Show tab bar when current tab got changed."""
         self.maybe_hide()  # for fullscreen tabs
-        show = config.get('tabs', 'show')
+        show = config.val.tabs.show
         if show == 'switching':
             self.show()
             self._auto_hide_timer.start()
@@ -353,7 +353,7 @@ class TabBar(QTabBar):
     @pyqtSlot()
     def maybe_hide(self):
         """Hide the tab bar if needed."""
-        show = config.get('tabs', 'show')
+        show = config.val.tabs.show
         tab = self._current_tab()
         if (show in ['never', 'switching'] or
                 (show == 'multiple' and self.count() == 1) or
@@ -411,21 +411,21 @@ class TabBar(QTabBar):
     @config.change_filter('fonts', 'tabbar')
     def set_font(self):
         """Set the tab bar font."""
-        self.setFont(config.get('fonts', 'tabbar'))
+        self.setFont(config.val.fonts.tabbar)
         self.set_icon_size()
 
     @config.change_filter('tabs', 'favicon-scale')
     def set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
-        size *= config.get('tabs', 'favicon-scale')
+        size *= config.val.tabs.favicon_scale
         self.setIconSize(QSize(size, size))
 
     @config.change_filter('colors', 'tabs.bg.bar')
     def set_colors(self):
         """Set the tab bar colors."""
         p = self.palette()
-        p.setColor(QPalette.Window, config.get('colors', 'tabs.bg.bar'))
+        p.setColor(QPalette.Window, config.val.colors.tabs.bg.bar)
         self.setPalette(p)
 
     @pyqtSlot(str, str)
@@ -436,7 +436,7 @@ class TabBar(QTabBar):
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""
-        button = config.get('tabs', 'close-mouse-button')
+        button = config.val.tabs.close_mouse_button
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
             e.accept()
@@ -457,7 +457,7 @@ class TabBar(QTabBar):
             A QSize.
         """
         icon = self.tabIcon(index)
-        padding = config.get('tabs', 'padding')
+        padding = config.val.tabs.padding
         padding_h = padding.left + padding.right
         padding_v = padding.top + padding.bottom
         if icon.isNull():
@@ -468,7 +468,7 @@ class TabBar(QTabBar):
             icon_size = icon.actualSize(QSize(extent, extent))
             padding_h += self.style().pixelMetric(
                 PixelMetrics.icon_padding, None, self)
-        indicator_width = config.get('tabs', 'indicator-width')
+        indicator_width = config.val.tabs.indicator_width
         height = self.fontMetrics().height() + padding_v
         width = (self.fontMetrics().width('\u2026') + icon_size.width() +
                  padding_h + indicator_width)
@@ -488,7 +488,7 @@ class TabBar(QTabBar):
         minimum_size = self.minimumTabSizeHint(index)
         height = minimum_size.height()
         if self.vertical:
-            confwidth = str(config.get('tabs', 'width'))
+            confwidth = str(config.val.tabs.width)
             if confwidth.endswith('%'):
                 main_window = objreg.get('main-window', scope='window',
                                          window=self._win_id)
@@ -507,7 +507,7 @@ class TabBar(QTabBar):
             # get scroll buttons as soon as needed.
             size = minimum_size
         else:
-            tab_width_pinned_conf = config.get('tabs', 'pinned-width')
+            tab_width_pinned_conf = config.val.tabs.pinned_width
 
             try:
                 pinned = self.tab_data(index, 'pinned')
@@ -596,7 +596,7 @@ class TabBar(QTabBar):
         Args:
             e: The QWheelEvent
         """
-        if config.get('tabs', 'mousewheel-tab-switching'):
+        if config.val.tabs.mousewheel_tab_switching:
             super().wheelEvent(e)
         else:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -706,7 +706,7 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabLabel:
             if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
-            alignment = (config.get('tabs', 'title-alignment') |
+            alignment = (config.val.tabs.title_alignment |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
@@ -775,8 +775,8 @@ class TabBarStyle(QCommonStyle):
         Return:
             A Layout namedtuple with two QRects.
         """
-        padding = config.get('tabs', 'padding')
-        indicator_padding = config.get('tabs', 'indicator-padding')
+        padding = config.val.tabs.padding
+        indicator_padding = config.val.tabs.indicator_padding
 
         text_rect = QRect(opt.rect)
         if not text_rect.isValid():
@@ -787,7 +787,7 @@ class TabBarStyle(QCommonStyle):
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
 
-        indicator_width = config.get('tabs', 'indicator-width')
+        indicator_width = config.val.tabs.indicator_width
         if indicator_width == 0:
             indicator_rect = QRect()
         else:
@@ -830,10 +830,10 @@ class TabBarStyle(QCommonStyle):
         icon_state = (QIcon.On if opt.state & QStyle.State_Selected
                       else QIcon.Off)
         # reserve space for favicon when tab bar is vertical (issue #1968)
-        position = config.get('tabs', 'position')
+        position = config.val.tabs.position
         if (opt.icon.isNull() and
                 position in [QTabWidget.East, QTabWidget.West] and
-                config.get('tabs', 'show-favicons')):
+                config.val.tabs.show_favicons):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
