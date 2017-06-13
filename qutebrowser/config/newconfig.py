@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 
 from qutebrowser.config import configdata
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, objreg
 
 # An easy way to access the config from other code via config.val.foo
 val = None
@@ -66,7 +66,7 @@ class NewConfigManager(QObject):
             val = self._values[option]
         except KeyError as e:
             raise UnknownOptionError(e)
-        return val.typ.transform(val.default)
+        return val.typ.from_py(val.default)
 
     def is_valid_prefix(self, prefix):
         """Check whether the given prefix is a valid prefix for some option."""
@@ -115,3 +115,11 @@ class ConfigContainer:
             return '{}.{}'.format(self._prefix, attr)
         else:
             return attr
+
+
+def init(parent):
+    new_config = NewConfigManager(parent)
+    new_config.read_defaults()
+    objreg.register('config', new_config)
+    global val
+    val = ConfigContainer(new_config)

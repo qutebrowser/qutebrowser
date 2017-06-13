@@ -248,12 +248,6 @@ def _init_misc():
         QSettings.setPath(fmt, QSettings.UserScope, path)
 
 
-def _init_new_config(parent):
-    new_config = newconfig.NewConfigManager(parent)
-    new_config.read_defaults()
-    objreg.register('config', new_config)
-
-
 def init(parent=None):
     """Initialize the config.
 
@@ -263,7 +257,7 @@ def init(parent=None):
     global val
     # _init_main_config(parent)
     configdata.init()
-    _init_new_config(parent)
+    newconfig.init(parent)
     val = newconfig.val
     _init_key_config(parent)
     _init_misc()
