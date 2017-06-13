@@ -257,7 +257,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             elif last_close == 'blank':
                 self.openurl(QUrl('about:blank'), newtab=True)
             elif last_close == 'startpage':
-                url = QUrl(config.val.startpage[0])
+                url = QUrl(config.val.start_page[0])
                 self.openurl(url, newtab=True)
             elif last_close == 'default-page':
                 url = config.val.default_page
@@ -323,7 +323,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             no_history = len(self.widget(0).history) == 1
             urls = {
                 'blank': QUrl('about:blank'),
-                'startpage': QUrl(config.val.startpage[0]),
+                'startpage': QUrl(config.val.start_page[0]),
                 'default_page': config.val.default_page,
             }
             first_tab_url = self.widget(0).url()

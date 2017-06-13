@@ -1192,7 +1192,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
-        self.openurl(config.val.startpage[0])
+        self.openurl(config.val.start_page[0])
 
     def _run_userscript(self, cmd, *args, verbose=False):
         """Run a userscript given as argument.
