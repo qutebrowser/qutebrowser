@@ -33,8 +33,6 @@ import sys
 import re
 import collections
 
-import yaml
-
 from qutebrowser.config import configtypes, sections
 from qutebrowser.utils import usertypes, qtutils, utils
 
@@ -648,7 +646,7 @@ def _read_yaml(yaml_data):
         A dict mapping option names to Option elements.
     """
     parsed = {}
-    data = yaml.load(yaml_data)
+    data = utils.yaml_load(yaml_data)
 
     keys = {'type', 'default', 'desc', 'backend'}
 

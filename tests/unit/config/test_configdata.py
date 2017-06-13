@@ -34,6 +34,10 @@ def test_init():
     assert 'ignore_case' in configdata.DATA
 
 
+def test_init_benchmark(benchmark):
+    benchmark(configdata.init)
+
+
 class TestReadYaml:
 
 

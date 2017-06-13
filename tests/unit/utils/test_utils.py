@@ -936,3 +936,11 @@ class TestOpenFile:
 ])
 def test_expand_windows_drive(path, expected):
     assert utils.expand_windows_drive(path) == expected
+
+
+def test_yaml_load():
+    assert utils.yaml_load("[1, 2]") == [1, 2]
+
+
+def test_yaml_dump():
+    assert utils.yaml_dump([1, 2]) == b'- 1\n- 2\n'

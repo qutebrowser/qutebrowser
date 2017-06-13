@@ -36,6 +36,11 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
+import yaml
+try:
+    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+except ImportError:  # pragma: no cover
+    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log
@@ -876,3 +881,14 @@ def expand_windows_drive(path):
         return path + "\\"
     else:
         return path
+
+
+def yaml_load(f):
+    """Wrapper over yaml.load using the C loader if possible."""
+    return yaml.load(f, Loader=YamlLoader)
+
+
+def yaml_dump(data, f=None):
+    """Wrapper over yaml.dump using the C dumper if possible."""
+    return yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
+                     encoding='utf-8', allow_unicode=True)

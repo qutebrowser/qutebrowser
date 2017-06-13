@@ -26,10 +26,6 @@ import sip
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
-try:
-    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
-except ImportError:  # pragma: no cover
-    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
                                message, utils)
@@ -298,8 +294,7 @@ class SessionManager(QObject):
         log.sessions.vdebug("Saving data: {}".format(data))
         try:
             with qtutils.savefile_open(path) as f:
-                yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
-                          encoding='utf-8', allow_unicode=True)
+                utils.yaml_dump(data, f)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
         else:
@@ -387,7 +382,7 @@ class SessionManager(QObject):
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
-                data = yaml.load(f, Loader=YamlLoader)
+                data = utils.yaml_load(f, Loader=YamlLoader)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 
