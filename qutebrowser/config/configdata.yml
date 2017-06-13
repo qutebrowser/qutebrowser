@@ -34,10 +34,10 @@ downloads.open_dispatcher:
   type:
     name: String
     none_ok: true
-  default: ""
+  default: null
   desc: >-
-    The default program used to open downloads. Set to an empty string to use
-    the default internal handler.
+    The default program used to open downloads. If unset, the default internal
+    handler is used.
 
     Any `{}` in the string will be expanded to the filename, else the filename
     will be appended.
@@ -184,8 +184,8 @@ session_default_name:
   type:
     name: SessionName
     none_ok: true
-  default: ""
-  desc: The name of the session to save by default, or empty for the last loaded
+  default: null
+  desc: The name of the session to save by default, or unset for the last loaded
     session.
 
 url_incdec_segments:
@@ -285,7 +285,7 @@ content.user_stylesheet:
   type:
     name: File
     none_ok: True
-  default: ""
+  default: null
   desc: User stylesheet to use (absolute filename or filename relative to the config
     directory). Will expand environment variables.
 
@@ -367,7 +367,7 @@ keyhint.blacklist:
     valtype:
       name: String
       none_ok: true
-  default: ""
+  default: null
   desc: >-
     Keychains that shouldn\'t be shown in the keyhint dialog.
 
@@ -419,7 +419,7 @@ content.referer_header:
   desc: Send the Referer header
 
 content.user_agent:
-  default: ""
+  default: null
   type:
     name: String
     none_ok: true
@@ -467,7 +467,7 @@ content.user_agent:
       - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
         - IE 11.0 for Desktop Win7 64-bit
 
-  desc: User agent to send. Empty to send the default.
+  desc: User agent to send. Unset to send the default.
 
 content.proxy:
   default: system
@@ -516,11 +516,11 @@ content.custom_headers:
   desc: Set custom headers for qutebrowser HTTP requests.
 
 content.netrc_file:
-  default: ""
+  default: null
   type:
     name: File
     none_ok: true
-  desc: Set location of a netrc-file for HTTP authentication. If empty, ~/.netrc
+  desc: Set location of a netrc-file for HTTP authentication. If unset, ~/.netrc
     is used.
 
 
@@ -889,12 +889,12 @@ tabs.indicator_padding:
 # storage
 
 downloads.location.directory:
-  default: ""
+  default: null
   type:
     name: Directory
     none_ok: true
-  desc: The directory to save downloads to. An empty value selects a sensible os-specific
-    default. Will expand environment variables.
+  desc: The directory to save downloads to. If unset,  a sensible os-specific
+    default is used. Will expand environment variables.
 
 downloads.location.prompt:
   default: true

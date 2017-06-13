@@ -116,7 +116,11 @@ class BaseType:
             value: The value to check.
             pytype: If given, a Python type to check the value against.
         """
-        if pytype is not None and not isinstance(value, pytype):
+        if value is None and not self.none_ok:
+            raise configexc.ValidationError(value, "may not be empty!")
+
+        if (value is not None and pytype is not None and
+                not isinstance(value, pytype)):
             raise configexc.ValidationError(
                 value, "expected a value of type {} but got {}".format(
                     pytype, type(value)))
