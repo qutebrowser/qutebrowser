@@ -460,9 +460,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             The index of the new tab.
         """
         if explicit:
-            pos = config.val.tabs.new_tab_position_explicit
+            pos = config.val.tabs.new_position_explicit
         else:
-            pos = config.val.tabs.new_tab_position
+            pos = config.val.tabs.new_position
         if pos == 'prev':
             idx = self._tab_insert_idx_left
             # On first sight, we'd think we have to decrement

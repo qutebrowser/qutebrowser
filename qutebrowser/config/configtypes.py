@@ -252,8 +252,9 @@ class String(BaseType):
         completions: completions to be used, or None
     """
 
-    def __init__(self, minlen=None, maxlen=None, forbidden=None, encoding=None,
-                 none_ok=False, completions=None, valid_values=None):
+    def __init__(self, *, minlen=None, maxlen=None, forbidden=None,
+                 encoding=None, none_ok=False, completions=None,
+                 valid_values=None):
         super().__init__(none_ok)
         self.valid_values = valid_values
 
@@ -1181,12 +1182,12 @@ class TextAlignment(MappingType):
             valid_values=ValidValues('left', 'right', 'center'))
 
 
-class VerticalPosition(BaseType):
+class VerticalPosition(String):
 
     """The position of the download bar."""
 
     def __init__(self, none_ok=False):
-        super().__init__(none_ok)
+        super().__init__(none_ok=none_ok)
         self.valid_values = ValidValues('top', 'bottom')
 
 
@@ -1282,12 +1283,12 @@ class ConfirmQuit(FlagList):
         return values
 
 
-class NewTabPosition(BaseType):
+class NewTabPosition(String):
 
     """How new tabs are positioned."""
 
     def __init__(self, none_ok=False):
-        super().__init__(none_ok)
+        super().__init__(none_ok=none_ok)
         self.valid_values = ValidValues(
             ('prev', "Before the current tab."),
             ('next', "After the current tab."),
