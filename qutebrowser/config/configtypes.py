@@ -122,8 +122,8 @@ class BaseType:
         if (value is not None and pytype is not None and
                 not isinstance(value, pytype)):
             raise configexc.ValidationError(
-                value, "expected a value of type {} but got {}".format(
-                    pytype, type(value)))
+                value, "expected a value of type {} but got {}.".format(
+                    pytype.__name__, type(value).__name__))
 
         if isinstance(value, str):
             if not value and not self.none_ok:
