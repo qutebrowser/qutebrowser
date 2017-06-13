@@ -466,10 +466,9 @@ class TabBar(QTabBar):
             icon_size = icon.actualSize(QSize(extent, extent))
             padding_h += self.style().pixelMetric(
                 PixelMetrics.icon_padding, None, self)
-        indicator_width = config.val.tabs.indicator_width
         height = self.fontMetrics().height() + padding_v
         width = (self.fontMetrics().width('\u2026') + icon_size.width() +
-                 padding_h + indicator_width)
+                 padding_h + config.val.tabs.width.indicator)
         return QSize(width, height)
 
     def tabSizeHint(self, index):
@@ -505,19 +504,30 @@ class TabBar(QTabBar):
             # get scroll buttons as soon as needed.
             size = minimum_size
         else:
-            tab_width_pinned_conf = config.val.tabs.pinned_width
-
             try:
                 pinned = self.tab_data(index, 'pinned')
             except KeyError:
                 pinned = False
 
             no_pinned_count = self.count() - self.pinned_count
-            pinned_width = tab_width_pinned_conf * self.pinned_count
+            pinned_width = config.val.tabs.width.pinned * self.pinned_count
             no_pinned_width = self.width() - pinned_width
 
             if pinned:
-                width = tab_width_pinned_conf
+                size = QSize(config.val.tabs.width.pinned, height)
+                qtutils.ensure_valid(size)
+                return size
+
+            # If we *do* have enough space, tabs should occupy the whole window
+            # width. If there are pinned tabs their size will be subtracted
+            # from the total window width.
+            # During shutdown the self.count goes down,
+            # but the self.pinned_count not - this generates some odd behavior.
+            # To avoid this we compare self.count against self.pinned_count.
+            if self.pinned_count > 0 and self.count() > self.pinned_count:
+                pinned_width = config.val.tabs.width.pinned * self.pinned_count
+                no_pinned_width = self.width() - pinned_width
+                width = no_pinned_width / (self.count() - self.pinned_count)
             else:
 
                 # If we *do* have enough space, tabs should occupy the whole
@@ -785,7 +795,7 @@ class TabBarStyle(QCommonStyle):
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
 
-        indicator_width = config.val.tabs.indicator_width
+        indicator_width = config.val.tabs.width.indicator
         if indicator_width == 0:
             indicator_rect = QRect()
         else:
