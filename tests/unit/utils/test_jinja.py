@@ -55,6 +55,9 @@ def patch_read_file(monkeypatch):
         elif path == os.path.join('html', 'undef_error.html'):
             assert not binary
             return real_read_file(path)
+        elif path == os.path.join('html', 'attributeerror.html'):
+            assert not binary
+            return """{{ obj.foobar }}"""
         else:
             raise IOError("Invalid path {}!".format(path))
 
@@ -137,6 +140,12 @@ def test_undefined_function(caplog):
     assert caplog.records[0].msg == "UndefinedError while rendering undef.html"
 
 
+def test_attribute_error():
+    """Make sure accessing an unknown attribute fails."""
+    with pytest.raises(AttributeError):
+        jinja.render('attributeerror.html', obj=object())
+
+
 @pytest.mark.parametrize('name, expected', [
     (None, False),
     ('foo', False),
@@ -147,4 +156,4 @@ def test_undefined_function(caplog):
     ('foo.bar.html', True),
 ])
 def test_autoescape(name, expected):
-    assert jinja._guess_autoescape(name) == expected
+    assert jinja.environment._guess_autoescape(name) == expected

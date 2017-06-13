@@ -24,13 +24,13 @@ import base64
 import itertools
 import functools
 
-import jinja2
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
+from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
+                               jinja)
 from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget, completer
@@ -552,7 +552,7 @@ class MainWindow(QWidget):
                 "download is" if download_count == 1 else "downloads are"))
         # Process all quit messages that user must confirm
         if quit_texts or 'always' in config.val.confirm_quit:
-            msg = jinja2.Template("""
+            msg = jinja.environment.from_string("""
                 <ul>
                 {% for text in quit_texts %}
                    <li>{{text}}</li>

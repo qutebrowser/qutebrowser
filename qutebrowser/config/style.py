@@ -22,12 +22,11 @@
 import functools
 import collections
 
-import jinja2
 import sip
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, objreg
+from qutebrowser.utils import log, objreg, jinja
 
 
 @functools.lru_cache(maxsize=16)
@@ -40,7 +39,7 @@ def get_stylesheet(template_str):
     Return:
         The formatted template as string.
     """
-    template = jinja2.Template(template_str)
+    template = jinja.environment.from_string(template_str)
     return template.render(conf=config.val)
 
 

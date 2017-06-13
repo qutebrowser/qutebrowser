@@ -21,10 +21,8 @@
 
 import html
 
-import jinja2
-
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, message, log, objreg
+from qutebrowser.utils import usertypes, message, log, objreg, jinja
 
 
 class CallSuper(Exception):
@@ -137,7 +135,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         assert error.is_overridable(), repr(error)
 
     if ssl_strict == 'ask':
-        err_template = jinja2.Template("""
+        err_template = jinja.environment.from_string("""
             Errors while loading <b>{{url.toDisplayString()}}</b>:<br/>
             <ul>
             {% for err in errors %}
