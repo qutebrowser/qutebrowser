@@ -690,23 +690,26 @@ class QtColor(BaseType):
             raise configexc.ValidationError(value, "must be a valid color")
 
 
-class QssColor(QtColor):
+class QssColor(BaseType):
 
     """Color used in a Qt stylesheet."""
 
     def from_py(self, value):
-        functions = ['rgb', 'rgba', 'hsv', 'hsva', 'qlineargradient',
-                     'qradialgradient', 'qconicalgradient']
         self._basic_validation(value, pytype=str)
         if not value:
             return None
 
+        functions = ['rgb', 'rgba', 'hsv', 'hsva', 'qlineargradient',
+                     'qradialgradient', 'qconicalgradient']
         if (any(value.startswith(func + '(') for func in functions) and
                 value.endswith(')')):
             # QColor doesn't handle these
             return value
 
-        return super().from_py(value)
+        if not QColor.isValidColor(value):
+            raise configexc.ValidationError(value, "must be a valid color")
+
+        return value
 
 
 class Font(BaseType):
