@@ -141,17 +141,11 @@ class BaseType:
         Args:
             value: The value to validate.
         """
-        # FIXME:conf still needed?
-        if not value:
-            return
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise configexc.ValidationError(
                     value,
                     "valid values: {}".format(', '.join(self.valid_values)))
-        else:
-            raise NotImplementedError("{} does not implement validate.".format(
-                self.__class__.__name__))
 
     def from_str(self, value):
         """Get the setting value from a string.
