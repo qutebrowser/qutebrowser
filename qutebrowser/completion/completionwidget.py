@@ -141,11 +141,9 @@ class CompletionView(QTreeView):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str, str)
-    def _on_config_changed(self, section, option):
-        if section != 'completion':
-            return
-        if option in ['height', 'shrink']:
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option in ['completion.height', 'completion.shrink']:
             self.update_geometry.emit()
 
     def _resize_columns(self):

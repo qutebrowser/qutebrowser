@@ -189,10 +189,9 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
-    def update_tab_titles(self, section='tabs', option='title-format'):
+    def update_tab_titles(self, option='tabs.title.format'):
         """Update all texts."""
-        if section == 'tabs' and option in ['title-format',
-                                            'title-format-pinned']:
+        if option in ['tabs.title.format', 'tabs.title.format_pinned']:
             for idx in range(self.count()):
                 self.update_tab_title(idx)
 
@@ -426,10 +425,10 @@ class TabBar(QTabBar):
         p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
 
-    @pyqtSlot(str, str)
-    def on_tab_colors_changed(self, section, option):
+    @pyqtSlot(str)
+    def on_tab_colors_changed(self, option):
         """Set the tab colors."""
-        if section == 'colors' and option.startswith('tabs.'):
+        if option.startswith('colors.tabs.'):
             self.update()
 
     def mousePressEvent(self, e):

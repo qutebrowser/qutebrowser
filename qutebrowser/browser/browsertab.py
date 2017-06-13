@@ -260,9 +260,9 @@ class AbstractZoom(QObject):
         # self.destroyed.connect(functools.partial(
         #     cfg.changed.disconnect, self.init_neighborlist))
 
-    @pyqtSlot(str, str)
-    def _on_config_changed(self, section, option):
-        if section == 'ui' and option in ['zoom-levels', 'default-zoom']:
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option in ['zoom.levels', 'zoom.default']:
             if not self._default_zoom_changed:
                 factor = float(config.val.zoom.default) / 100
                 self._set_factor_internal(factor)

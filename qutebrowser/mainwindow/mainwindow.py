@@ -323,16 +323,14 @@ class MainWindow(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    @pyqtSlot(str)
+    def on_config_changed(self, option):
         """Resize the completion if related config options changed."""
-        if section != 'ui':
-            return
-        if option == 'statusbar-padding':
+        if option == 'statusbar.padding':
             self._update_overlay_geometries()
-        elif option == 'downloads-position':
+        elif option == 'downloads.position':
             self._add_widgets()
-        elif option == 'status-position':
+        elif option == 'statusbar.position':
             self._add_widgets()
             self._update_overlay_geometries()
 

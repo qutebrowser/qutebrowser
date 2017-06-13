@@ -199,13 +199,11 @@ class StatusBar(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str, str)
-    def _on_config_changed(self, section, option):
-        if section != 'ui':
-            return
-        if option == 'hide-statusbar':
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option == 'statusbar.hide':
             self.maybe_hide()
-        elif option == 'statusbar-pdading':
+        elif option == 'statusbar.padding':
             self._set_hbox_padding()
 
     @pyqtSlot()
