@@ -462,9 +462,12 @@ content.custom_headers:
   default: {}
   type:
     name: Dict
-    keytype: String
-    valtype: String
-    encoding: ascii
+    keytype:
+      - name: String
+      - encoding: ascii
+    valtype:
+      - name: String
+      - encoding: ascii
     none_ok: true
   desc: Set custom headers for qutebrowser HTTP requests.
 

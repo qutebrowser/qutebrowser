@@ -255,10 +255,10 @@ class String(BaseType):
         minlen: Minimum length (inclusive).
         maxlen: Maximum length (inclusive).
         forbidden: Forbidden chars in the string.
-        _completions: completions to be used, or None
+        completions: completions to be used, or None
     """
 
-    def __init__(self, minlen=None, maxlen=None, forbidden=None,
+    def __init__(self, minlen=None, maxlen=None, forbidden=None, encoding=None,
                  none_ok=False, completions=None, valid_values=None):
         super().__init__(none_ok)
         self.valid_values = valid_values
@@ -274,6 +274,25 @@ class String(BaseType):
         self.maxlen = maxlen
         self.forbidden = forbidden
         self._completions = completions
+        self.encoding = encoding
+
+    def _validate_encoding(self, value):
+        """Check if the given value fits into the configured encoding.
+
+        Raises ValidationError if not.
+
+        Args:
+            value: The value to check.
+        """
+        if self.encoding is None:
+            return
+
+        try:
+            value.encode(self.encoding)
+        except UnicodeEncodeError as e:
+            msg = "{!r} contains non-{} characters: {}".format(
+                value, self.encoding, e)
+            raise configexc.ValidationError(value, msg)
 
     def from_py(self, value):
         self._basic_validation(value, pytype=str)
@@ -380,12 +399,19 @@ class FlagList(List):
         super().__init__(BaseType(), none_ok)
         self.valtype.valid_values = valid_values
 
+    def _check_duplicates(self, values):
+        if len(set(values)) != len(values):
+            raise configexc.ValidationError(
+                values, "List contains duplicate values!")
+
+    def from_str(self, value):
+        vals = super().from_str(value)
+        self._check_duplicates(vals)
+        return vals
+
     def from_py(self, value):
         vals = super().from_py(value)
-        # Check for duplicate values
-        if len(set(vals)) != len(vals):
-            raise configexc.ValidationError(
-                value, "List contains duplicate values!")
+        self._check_duplicates(vals)
         return vals
 
     def complete(self):
@@ -849,34 +875,11 @@ class Dict(BaseType):
 
     """A JSON-like dictionary for custom HTTP headers."""
 
-    def __init__(self, keytype, valtype, *, encoding=None, fixed_keys=None,
-                 none_ok=False):
+    def __init__(self, keytype, valtype, *, fixed_keys=None, none_ok=False):
         super().__init__(none_ok)
         self.keytype = keytype
         self.valtype = valtype
-        self.encoding = encoding
         self.fixed_keys = fixed_keys
-
-    def _validate_encoding(self, value, what):
-        """Check if the given value fits into the configured encoding.
-
-        Raises ValidationError if not.
-
-        Args:
-            value: The value to check.
-            what: Either 'key' or 'value'.
-        """
-        if self.encoding is None:
-            return
-        # Should be checked by keytype/valtype already.
-        assert isinstance(value, str), value
-
-        try:
-            value.encode(self.encoding)
-        except UnicodeEncodeError as e:
-            msg = "{} {!r} contains non-{} characters: {}".format(
-                what.capitalize(), value, self.encoding, e)
-            raise configexc.ValidationError(value, msg)
 
     def _validate_keys(self, value):
         if (self.fixed_keys is not None and
@@ -897,13 +900,9 @@ class Dict(BaseType):
             return None
 
         self._validate_keys(json_val)
-        converted = {}
-        for key, val in json_val.items():
-            self._validate_encoding(key, 'key')
-            self._validate_encoding(val, 'value')
-            converted[self.keytype.from_str(key)] = self.valtype.from_str(val)
 
-        return converted
+        return {self.keytype.from_str(key): self.valtype.from_str(val)
+                for key, val in json_val.items()}
 
     def from_py(self, value):
         self._basic_validation(value, pytype=dict)
@@ -911,13 +910,9 @@ class Dict(BaseType):
             return None
 
         self._validate_keys(value)
-        converted = {}
-        for key, val in value.items():
-            self._validate_encoding(key, 'key')
-            self._validate_encoding(val, 'value')
-            converted[self.keytype.from_py(key)] = self.valtype.from_py(val)
 
-        return converted
+        return {self.keytype.from_py(key): self.valtype.from_py(val)
+                for key, val in value.items()}
 
 
 class File(BaseType):
@@ -1205,30 +1200,27 @@ class Url(BaseType):
 
     """A URL."""
 
-    def transform(self, value):
+    def from_py(self, value):
+        self._basic_validation(value, pytype=str)
         if not value:
             return None
-        else:
-            return QUrl.fromUserInput(value)
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        val = self.transform(value)
-        if not val.isValid():
+        qurl = QUrl.fromUserInput(value)
+        if not qurl.isValid():
             raise configexc.ValidationError(value, "invalid URL - "
-                                            "{}".format(val.errorString()))
+                                            "{}".format(qurl.errorString()))
+        return qurl
 
 
 class SessionName(BaseType):
 
     """The name of a session."""
 
-    def validate(self, value):
-        self._basic_validation(value)
+    def from_py(self, value):
+        self._basic_validation(value, pytype=str)
         if value.startswith('_'):
             raise configexc.ValidationError(value, "may not start with '_'!")
+        return value
 
 
 class SelectOnRemove(MappingType):
@@ -1270,20 +1262,30 @@ class ConfirmQuit(FlagList):
              "downloads are running"),
             ('never', "Never show a confirmation."))
 
-    def validate(self, value):
-        super().validate(value)
-        if not value:
-            return
-        values = [x for x in self.transform(value) if x]
-
+    def _check_values(self, values):
+        """Check whether the values can be combined in the way they are."""
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
-                value, "List cannot contain never!")
+                values, "List cannot contain never!")
         # Always can't be set with other options
         elif 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
-                value, "List cannot contain always!")
+                values, "List cannot contain always!")
+
+    def from_py(self, value):
+        values = super().from_py(value)
+        if not values:
+            return None
+        self._check_values(values)
+        return values
+
+    def from_str(self, value):
+        values = super().from_str(value)
+        if not values:
+            return None
+        self._check_values(values)
+        return values
 
 
 class NewTabPosition(BaseType):
@@ -1302,6 +1304,8 @@ class NewTabPosition(BaseType):
 class UserAgent(BaseType):
 
     """The user agent to use."""
+
+    # FIXME:conf refactor
 
     def validate(self, value):
         self._basic_validation(value)
@@ -1375,10 +1379,11 @@ class TimestampTemplate(BaseType):
     for reference.
     """
 
-    def validate(self, value):
-        self._basic_validation(value)
+    def from_py(self, value):
+        self._basic_validation(value, pytype=str)
         if not value:
-            return
+            return None
+
         try:
             # Dummy check to see if the template is valid
             datetime.datetime.now().strftime(value)
@@ -1386,3 +1391,5 @@ class TimestampTemplate(BaseType):
             # thrown on invalid template string
             raise configexc.ValidationError(
                 value, "Invalid format string: {}".format(error))
+
+        return value
