@@ -139,7 +139,7 @@ class NewConfigManager(QObject):
         try:
             val = self._values[option]
         except KeyError as e:
-            raise configexc.NoOptionError(e)
+            raise configexc.NoOptionError(option)
         return val.typ.from_py(val.default)
 
 
@@ -173,7 +173,7 @@ class ConfigContainer:
         if configdata.is_valid_prefix(name):
             return ConfigContainer(manager=self._manager, prefix=name)
         # If it's not a valid prefix, this will raise NoOptionError.
-        self._manager.get(name)
+        return self._manager.get(name)
 
     def __setattr__(self, attr, value):
         if attr.startswith('_'):

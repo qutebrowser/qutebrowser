@@ -412,11 +412,11 @@ class TabBar(QTabBar):
         self.setFont(config.val.fonts.tabbar)
         self.set_icon_size()
 
-    @config.change_filter('tabs.favicon.scale')
+    @config.change_filter('tabs.favicons.scale')
     def set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
-        size *= config.val.tabs.favicon.scale
+        size *= config.val.tabs.favicons.scale
         self.setIconSize(QSize(size, size))
 
     @config.change_filter('colors.tabs.bar.bg')

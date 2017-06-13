@@ -292,7 +292,7 @@ class HostBlocker:
             message.info("adblock: Read {} hosts from {} sources.".format(
                 len(self._blocked_hosts), self._done_count))
 
-    @config.change_filter('content.host-blocking.lists')
+    @config.change_filter('content.host_blocking.lists')
     def on_config_changed(self):
         """Update files when the config changed."""
         if config.val.content.host_blocking.lists is None:

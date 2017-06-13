@@ -1054,7 +1054,7 @@ content.cookies.accept:
       - never: "Don't accept cookies at all."
   desc: Control which cookies to accept.
 
-cookies.cookies.store:
+content.cookies.store:
   default: true
   type: Bool
   desc: Whether to store cookies. Note this option needs a restart with QtWebEngine
