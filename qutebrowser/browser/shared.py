@@ -171,7 +171,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
 
     Args:
         url: The URL the request was done for.
-        option: A (section, option) tuple for the option to check.
+        option: An option name to check.
         msg: A string like "show notifications"
         yes_action: A callable to call if the request was approved
         no_action: A callable to call if the request was denied
