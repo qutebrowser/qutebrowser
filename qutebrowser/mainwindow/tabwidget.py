@@ -140,8 +140,8 @@ class TabWidget(QTabWidget):
         fields['title'] = fields['title'].replace('&', '&&')
         fields['index'] = idx + 1
 
-        fmt = config.val.tabs.title_format
-        fmt_pinned = config.val.tabs.title_format_pinned
+        fmt = config.val.tabs.title.format
+        fmt_pinned = config.val.tabs.title.format_pinned
 
         if tab.data.pinned:
             title = '' if fmt_pinned is None else fmt_pinned.format(**fields)
@@ -714,7 +714,7 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabLabel:
             if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
-            alignment = (config.val.tabs.title_alignment |
+            alignment = (config.val.tabs.title.alignment |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
