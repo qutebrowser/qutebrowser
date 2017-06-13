@@ -19,20 +19,17 @@
 
 """New qutebrowser configuration code."""
 
+import functools
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, configexc
 from qutebrowser.utils import utils, objreg
 
 # An easy way to access the config from other code via config.val.foo
 val = None
 
-
-class UnknownOptionError(Exception):
-
-    """Raised by NewConfigManager when an option is unknown."""
+_change_filters = []
 
 
 class SectionStub:
@@ -45,6 +42,83 @@ class SectionStub:
 
     def __getitem__(self, item):
         return self._conf.get(self._name, item)
+
+
+class change_filter:  # pylint: disable=invalid-name
+
+    """Decorator to filter calls based on a config section/option matching.
+
+    This could also be a function, but as a class (with a "wrong" name) it's
+    much cleaner to implement.
+
+    Attributes:
+        _option: An option or prefix to be filtered
+        _function: Whether a function rather than a method is decorated.
+    """
+
+    def __init__(self, option, function=False):
+        """Save decorator arguments.
+
+        Gets called on parse-time with the decorator arguments.
+
+        Args:
+            option: The option to be filtered.
+            function: Whether a function rather than a method is decorated.
+        """
+        self._option = option
+        self._function = function
+        _change_filters.append(self)
+
+    def validate(self):
+        """Make sure the configured option or prefix exists.
+
+        We can't do this in __init__ as configdata isn't ready yet.
+        """
+        if (self._option not in configdata.DATA and
+                not configdata.is_valid_prefix(self._option)):
+            raise configexc.NoOptionError(self._option)
+
+    def _check_match(self, option):
+        """Check if the given option matches the filter."""
+        if option is None:
+            # Called directly, not from a config change event.
+            return True
+        elif option == self._option:
+            return True
+        elif option.startswith(self._option + '.'):
+            # prefix match
+            return True
+        else:
+            return False
+
+    def __call__(self, func):
+        """Filter calls to the decorated function.
+
+        Gets called when a function should be decorated.
+
+        Adds a filter which returns if we're not interested in the change-event
+        and calls the wrapped function if we are.
+
+        We assume the function passed doesn't take any parameters.
+
+        Args:
+            func: The function to be decorated.
+
+        Return:
+            The decorated function.
+        """
+        if self._function:
+            @functools.wraps(func)
+            def wrapper(option=None):
+                if self._check_match(option):
+                    return func()
+        else:
+            @functools.wraps(func)
+            def wrapper(wrapper_self, option=None):
+                if self._check_match(option):
+                    return func(wrapper_self)
+
+        return wrapper
 
 
 class NewConfigManager(QObject):
@@ -65,7 +139,7 @@ class NewConfigManager(QObject):
         try:
             val = self._values[option]
         except KeyError as e:
-            raise UnknownOptionError(e)
+            raise configexc.NoOptionError(e)
         return val.typ.from_py(val.default)
 
 
@@ -117,5 +191,9 @@ def init(parent):
     new_config = NewConfigManager(parent)
     new_config.read_defaults()
     objreg.register('config', new_config)
+
     global val
     val = ConfigContainer(new_config)
+
+    for cf in _change_filters:
+        cf.validate()

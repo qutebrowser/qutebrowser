@@ -29,7 +29,7 @@ import urllib.parse
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
-from qutebrowser.config import config, configexc
+from qutebrowser.config import config
 from qutebrowser.utils import log, qtutils, message, utils
 from qutebrowser.commands import cmdexc
 from qutebrowser.browser.network import pac
@@ -70,8 +70,8 @@ def _parse_search_term(s):
     if len(split) == 2:
         engine = split[0]
         try:
-            config.get('searchengines', engine)
-        except configexc.NoOptionError:
+            config.val.searchengines[engine]
+        except KeyError:
             engine = None
             term = s
         else:

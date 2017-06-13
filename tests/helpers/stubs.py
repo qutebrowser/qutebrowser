@@ -419,6 +419,8 @@ class ConfigStub(QObject):
         data: The config data to return.
     """
 
+    # FIXME:conf refactor...
+
     changed = pyqtSignal(str, str)
 
     def __init__(self, parent=None):

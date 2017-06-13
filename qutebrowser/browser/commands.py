@@ -1541,6 +1541,7 @@ class CommandDispatcher:
                     command))
             path = 'commands.html#{}'.format(command)
         elif '->' in topic:
+            # FIXME:conf refactor
             parts = topic.split('->')
             if len(parts) != 2:
                 raise cmdexc.CommandError("Invalid help topic {}!".format(

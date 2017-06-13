@@ -46,6 +46,9 @@ from qutebrowser.utils import (message, objreg, utils, standarddir, log,
 from qutebrowser.misc import objects
 from qutebrowser.utils.usertypes import Completion
 
+# FIXME:conf compat
+from qutebrowser.config.newconfig import change_filter
+
 
 UNSET = object()
 
@@ -54,74 +57,6 @@ UNSET = object()
 val = None
 
 
-class change_filter:  # pylint: disable=invalid-name
-
-    """Decorator to filter calls based on a config section/option matching.
-
-    This could also be a function, but as a class (with a "wrong" name) it's
-    much cleaner to implement.
-
-    Attributes:
-        _option: An option or prefix to be filtered
-        _function: Whether a function rather than a method is decorated.
-    """
-
-    def __init__(self, option, function=False):
-        """Save decorator arguments.
-
-        Gets called on parse-time with the decorator arguments.
-
-        Args:
-            option: The option to be filtered.
-            function: Whether a function rather than a method is decorated.
-        """
-        if (option not in configdata.DATA and
-                not configdata.is_valid_prefix(option)):
-            raise configexc.NoOptionError(option)
-        self._option = option
-        self._function = function
-
-    def _check_match(self, option):
-        """Check if the given option matches the filter."""
-        if option is None:
-            # Called directly, not from a config change event.
-            return True
-        elif option == self._option:
-            return True
-        elif option.startswith(self._option + '.'):
-            # prefix match
-            return True
-        else:
-            return False
-
-    def __call__(self, func):
-        """Filter calls to the decorated function.
-
-        Gets called when a function should be decorated.
-
-        Adds a filter which returns if we're not interested in the change-event
-        and calls the wrapped function if we are.
-
-        We assume the function passed doesn't take any parameters.
-
-        Args:
-            func: The function to be decorated.
-
-        Return:
-            The decorated function.
-        """
-        if self._function:
-            @functools.wraps(func)
-            def wrapper(option=None):
-                if self._check_match(option):
-                    return func()
-        else:
-            @functools.wraps(func)
-            def wrapper(wrapper_self, option=None):
-                if self._check_match(option):
-                    return func(wrapper_self)
-
-        return wrapper
 
 
 def get(*args, **kwargs):

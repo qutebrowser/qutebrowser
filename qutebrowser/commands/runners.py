@@ -110,8 +110,8 @@ class CommandRunner(QObject):
         return default
         parts = text.strip().split(maxsplit=1)
         try:
-            alias = config.get('aliases', parts[0])
-        except (configexc.NoOptionError, configexc.NoSectionError):
+            alias = config.val.aliases[parts[0]]
+        except KeyError:
             return default
         try:
             new_cmd = '{} {}'.format(alias, parts[1])

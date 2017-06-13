@@ -52,35 +52,10 @@ class ValidationError(Error):
         self.option = None
 
 
-class NoSectionError(Error):
-
-    """Raised when no section matches a requested option."""
-
-    def __init__(self, section):
-        super().__init__("Section {!r} does not exist!".format(section))
-        self.section = section
-
-
 class NoOptionError(Error):
 
     """Raised when an option was not found."""
 
-    def __init__(self, option, section):
-        super().__init__("No option {!r} in section {!r}".format(
-            option, section))
+    def __init__(self, option):
+        super().__init__("No option {!r}".format(option))
         self.option = option
-        self.section = section
-
-
-class InterpolationSyntaxError(Error):
-
-    """Raised when the source text contains invalid syntax.
-
-    Current implementation raises this exception when the source text into
-    which substitutions are made does not conform to the required syntax.
-    """
-
-    def __init__(self, option, section, msg):
-        super().__init__(msg)
-        self.option = option
-        self.section = section

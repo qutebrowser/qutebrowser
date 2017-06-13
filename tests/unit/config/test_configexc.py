@@ -29,24 +29,10 @@ def test_validation_error():
     assert str(e) == "Invalid value 'val' - msg"
 
 
-def test_no_section_error():
-    e = configexc.NoSectionError('sect')
-    assert e.section == 'sect'
-    assert str(e) == "Section 'sect' does not exist!"
-
-
 def test_no_option_error():
-    e = configexc.NoOptionError('opt', 'sect')
-    assert e.section == 'sect'
+    e = configexc.NoOptionError('opt')
     assert e.option == 'opt'
-    assert str(e) == "No option 'opt' in section 'sect'"
-
-
-def test_interpolation_syntax_error():
-    e = configexc.InterpolationSyntaxError('opt', 'sect', 'msg')
-    assert e.section == 'sect'
-    assert e.option == 'opt'
-    assert str(e) == 'msg'
+    assert str(e) == "No option 'opt'"
 
 
 def test_backend_error():

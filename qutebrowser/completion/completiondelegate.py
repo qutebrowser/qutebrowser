@@ -147,16 +147,15 @@ class CompletionItemDelegate(QStyledItemDelegate):
         # We can't use drawContents because then the color would be ignored.
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
+
         if self._opt.state & QStyle.State_Selected:
-            option = 'completion.item.selected.fg'
+            color = config.val.completion.item.selected.fg
         elif not self._opt.state & QStyle.State_Enabled:
-            option = 'completion.category.fg'
+            color = config.val.completion.category.fg
         else:
-            option = 'completion.fg'
-        try:
-            self._painter.setPen(config.get('colors', option))
-        except configexc.NoOptionError:
-            self._painter.setPen(config.val.colors.completion.fg)
+            color = config.val.completion.fg
+        self._painter.setPen(color)
+
         ctx = QAbstractTextDocumentLayout.PaintContext()
         ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
         if clip.isValid():
