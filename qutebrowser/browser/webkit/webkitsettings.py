@@ -132,7 +132,7 @@ def init(_args):
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
 
-    if (config.val.private_browsing and
+    if (config.val.content.private_browsing and
             not qtutils.version_check('5.4.2')):
         # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
         # Won't work when private browsing is not enabled globally, but that's

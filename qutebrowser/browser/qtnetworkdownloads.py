@@ -368,7 +368,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         super().__init__(parent)
         self._networkmanager = networkmanager.NetworkManager(
             win_id=win_id, tab_id=None,
-            private=config.val.private_browsing, parent=self)
+            private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
     def get(self, url, *, user_agent=None, **kwargs):

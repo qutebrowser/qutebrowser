@@ -888,7 +888,7 @@ class CommandDispatcher:
 
         level = count if count is not None else zoom
         if level is None:
-            level = config.val.ui.default_zoom
+            level = config.val.zoom.default
         tab = self._current_widget()
 
         try:

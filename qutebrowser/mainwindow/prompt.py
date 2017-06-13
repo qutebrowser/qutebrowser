@@ -233,14 +233,13 @@ class PromptContainer(QWidget):
     """
 
     STYLESHEET = """
-        {% set prompt_radius = config.val.ui.prompt_radius %}
         QWidget#PromptContainer {
-            {% if config.val.ui.status_position == 'top' %}
-                border-bottom-left-radius: {{ prompt_radius }}px;
-                border-bottom-right-radius: {{ prompt_radius }}px;
+            {% if config.val.statusbar.position == 'top' %}
+                border-bottom-left-radius: {{ config.val.prompt.radius }}px;
+                border-bottom-right-radius: {{ config.val.prompt.radius }}px;
             {% else %}
-                border-top-left-radius: {{ prompt_radius }}px;
-                border-top-right-radius: {{ prompt_radius }}px;
+                border-top-left-radius: {{ config.val.prompt.radius }}px;
+                border-top-right-radius: {{ config.val.prompt.radius }}px;
             {% endif %}
         }
 
@@ -566,7 +565,7 @@ class FilenamePrompt(_BasePrompt):
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
 
-        if config.val.ui.prompt_filebrowser:
+        if config.val.ui.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
@@ -628,7 +627,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
-        if config.val.ui.prompt_filebrowser:
+        if config.val.ui.prompt.filebrowser:
             self._vbox.addWidget(self._file_view)
         else:
             self._file_view.hide()

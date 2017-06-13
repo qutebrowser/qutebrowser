@@ -464,7 +464,7 @@ def _init_modules(args, crash_handler):
     completionmodels.init()
 
     log.init.debug("Misc initialization...")
-    if config.val.ui.hide_wayland_decoration:
+    if config.val.window.hide_wayland_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)

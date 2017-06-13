@@ -72,7 +72,7 @@ def authentication_required(url, authenticator, abort_on):
 def javascript_confirm(url, js_msg, abort_on):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
-    if config.val.ui.modal_js_dialog:
+    if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
@@ -86,7 +86,7 @@ def javascript_confirm(url, js_msg, abort_on):
 def javascript_prompt(url, js_msg, default, abort_on):
     """Display a javascript prompt."""
     log.js.debug("prompt: {}".format(js_msg))
-    if config.val.ui.modal_js_dialog:
+    if config.val.content.javascript.modal_dialog:
         raise CallSuper
     if config.val.content.ignore_javascript_prompt:
         return (False, "")
@@ -107,7 +107,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
 def javascript_alert(url, js_msg, abort_on):
     """Display a javascript alert."""
     log.js.debug("alert: {}".format(js_msg))
-    if config.val.ui.modal_js_dialog:
+    if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
     if config.val.content.ignore_javascript_alert:
@@ -233,7 +233,7 @@ def get_tab(win_id, target):
 
 def get_user_stylesheet():
     """Get the combined user-stylesheet."""
-    filename = config.val.ui.user_stylesheet
+    filename = config.val.content.user_stylesheet
 
     if filename is None:
         css = ''
@@ -241,7 +241,7 @@ def get_user_stylesheet():
         with open(filename, 'r', encoding='utf-8') as f:
             css = f.read()
 
-    if config.val.ui.hide_scrollbar:
+    if config.val.scrolling.bar:
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css

@@ -163,7 +163,7 @@ class MainWindow(QWidget):
         self._init_downloadmanager()
         self._downloadview = downloadview.DownloadView(self.win_id)
 
-        if config.val.private_browsing:
+        if config.val.content.private_browsing:
             # This setting always trumps what's passed in.
             private = True
         else:
@@ -250,7 +250,7 @@ class MainWindow(QWidget):
             left = (self.width() - width) / 2 if centered else 0
 
         height_padding = 20
-        status_position = config.val.ui.status_position
+        status_position = config.val.statusbar.position
         if status_position == 'bottom':
             if self.status.isVisible():
                 status_height = self.status.height()
@@ -341,10 +341,9 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        downloads_position = config.val.ui.downloads_position
-        status_position = config.val.ui.status_position
         widgets = [self.tabbed_browser]
 
+        downloads_position = config.val.downloads.position
         if downloads_position == 'top':
             widgets.insert(0, self._downloadview)
         elif downloads_position == 'bottom':
@@ -352,6 +351,7 @@ class MainWindow(QWidget):
         else:
             raise ValueError("Invalid position {}!".format(downloads_position))
 
+        status_position = config.val.statusbar.position
         if status_position == 'top':
             widgets.insert(0, self.status)
         elif status_position == 'bottom':
@@ -536,23 +536,22 @@ class MainWindow(QWidget):
         if crashsignal.is_crashing:
             e.accept()
             return
-        confirm_quit = config.val.ui.confirm_quit
         tab_count = self.tabbed_browser.count()
         download_model = objreg.get('download-model', scope='window',
                                     window=self.win_id)
         download_count = download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
-        if 'multiple-tabs' in confirm_quit and tab_count > 1:
+        if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
             quit_texts.append("{} {} open.".format(
                 tab_count, "tab is" if tab_count == 1 else "tabs are"))
         # Ask if multiple downloads running
-        if 'downloads' in confirm_quit and download_count > 0:
+        if 'downloads' in config.val.confirm_quit and download_count > 0:
             quit_texts.append("{} {} running.".format(
                 download_count,
                 "download is" if download_count == 1 else "downloads are"))
         # Process all quit messages that user must confirm
-        if quit_texts or 'always' in confirm_quit:
+        if quit_texts or 'always' in config.val.confirm_quit:
             msg = jinja2.Template("""
                 <ul>
                 {% for text in quit_texts %}

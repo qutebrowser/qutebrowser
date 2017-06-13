@@ -432,7 +432,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._chk_log = QCheckBox("Include a debug log in the report",
                                   checked=True)
         try:
-            if config.val.private_browsing:
+            if config.val.content.private_browsing:
                 self._chk_log.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -524,7 +524,7 @@ class FatalCrashDialog(_CrashDialog):
                                       "accessed pages in the report.",
                                       checked=True)
         try:
-            if config.val.private_browsing:
+            if config.val.content.private_browsing:
                 self._chk_history.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")

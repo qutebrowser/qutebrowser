@@ -735,7 +735,7 @@ class AbstractDownloadManager(QObject):
         download.remove_requested.connect(functools.partial(
             self._remove_item, download))
 
-        delay = config.val.ui.remove_finished_downloads
+        delay = config.val.downloads.remove_finished
         if delay > -1:
             download.finished.connect(
                 lambda: QTimer.singleShot(delay, download.remove))

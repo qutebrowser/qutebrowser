@@ -264,17 +264,17 @@ class AbstractZoom(QObject):
     def _on_config_changed(self, section, option):
         if section == 'ui' and option in ['zoom-levels', 'default-zoom']:
             if not self._default_zoom_changed:
-                factor = float(config.val.ui.default_zoom) / 100
+                factor = float(config.val.zoom.default) / 100
                 self._set_factor_internal(factor)
             self._default_zoom_changed = False
             self._init_neighborlist()
 
     def _init_neighborlist(self):
         """Initialize self._neighborlist."""
-        levels = config.val.ui.zoom_levels
+        levels = config.val.zoom.levels
         self._neighborlist = usertypes.NeighborList(
             levels, mode=usertypes.NeighborList.Modes.edge)
-        self._neighborlist.fuzzyval = config.val.ui.default_zoom
+        self._neighborlist.fuzzyval = config.val.zoom.default
 
     def offset(self, offset):
         """Increase/Decrease the zoom level by the given offset.
@@ -310,8 +310,7 @@ class AbstractZoom(QObject):
         raise NotImplementedError
 
     def set_default(self):
-        default_zoom = config.val.ui.default_zoom
-        self._set_factor_internal(float(default_zoom) / 100)
+        self._set_factor_internal(float(config.val.zoom.default) / 100)
 
 
 class AbstractCaret(QObject):

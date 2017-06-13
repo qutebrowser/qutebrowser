@@ -126,7 +126,7 @@ class MessageView(QWidget):
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)
         widget.show()
-        if config.val.ui.message_timeout != 0:
+        if config.val.messages.timeout != 0:
             self._clear_timer.start()
         self._messages.append(widget)
         self._last_text = text
