@@ -446,15 +446,14 @@ class BrowserPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
-        log_javascript_console = config.get('general',
-                                            'log-javascript-console')
         logstring = "[{}:{}] {}".format(source, line, msg)
         logmap = {
             'debug': log.js.debug,
             'info': log.js.info,
             'none': lambda arg: None
         }
-        logmap[log_javascript_console](logstring)
+        logger = logmap[config.val.content.javascript.log]
+        logger(logstring)
 
     def acceptNavigationRequest(self,
                                 _frame: QWebFrame,

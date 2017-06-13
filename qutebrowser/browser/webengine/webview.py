@@ -276,8 +276,7 @@ class WebEnginePage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
         # FIXME:qtwebengine maybe unify this in the tab api somehow?
-        setting = config.val.log_javascript_console
-        if setting == 'none':
+        if config.val.content.javascript.log == 'none':
             return
 
         level_to_logger = {
