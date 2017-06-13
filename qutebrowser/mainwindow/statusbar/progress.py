@@ -35,11 +35,11 @@ class Progress(QProgressBar):
             border-radius: 0px;
             border: 2px solid transparent;
             background-color: transparent;
-            font: {{ font['statusbar'] }};
+            font: {{ conf.fonts.statusbar }};
         }
 
         QProgressBar::chunk {
-            background-color: {{ color['statusbar.progress.bg'] }};
+            background-color: {{ conf.colors.statusbar.progress.bg }};
         }
     """
 

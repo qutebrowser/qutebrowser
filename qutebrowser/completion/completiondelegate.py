@@ -189,7 +189,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDefaultTextOption(text_option)
         self._doc.setDefaultStyleSheet(style.get_stylesheet("""
             .highlight {
-                color: {{ color['completion.match.fg'] }};
+                color: {{ conf.colors.completion.match.fg }};
             }
         """))
         self._doc.setDocumentMargin(2)

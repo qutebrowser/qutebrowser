@@ -47,11 +47,11 @@ class KeyHintView(QLabel):
 
     STYLESHEET = """
         QLabel {
-            font: {{ font['keyhint'] }};
-            color: {{ color['keyhint.fg'] }};
-            background-color: {{ color['keyhint.bg'] }};
+            font: {{ conf.fonts.keyhint }};
+            color: {{ conf.colors.keyhint.fg }};
+            background-color: {{ conf.colors.keyhint.bg }};
             padding: 6px;
-            {% if config.val.statusbar.position == 'top' %}
+            {% if conf.statusbar.position == 'top' %}
                 border-bottom-right-radius: 6px;
             {% else %}
                 border-top-right-radius: 6px;
@@ -109,7 +109,7 @@ class KeyHintView(QLabel):
         # delay so a quickly typed keychain doesn't display hints
         self._show_timer.setInterval(config.val.keyhint.delay)
         self._show_timer.start()
-        suffix_color = html.escape(config.val.colors.keyhint.fg.suffix)
+        suffix_color = html.escape(config.val.colors.keyhint.suffix.fg)
 
         text = ''
         for key, cmd in bindings:

@@ -57,27 +57,27 @@ class CompletionView(QTreeView):
     # don't define that in this stylesheet.
     STYLESHEET = """
         QTreeView {
-            font: {{ font['completion'] }};
-            background-color: {{ color['completion.bg'] }};
-            alternate-background-color: {{ color['completion.alternate-bg'] }};
+            font: {{ conf.fonts.completion.entry }};
+            background-color: {{ conf.colors.completion.bg }};
+            alternate-background-color: {{ conf.colors.completion.alternate_bg }};
             outline: 0;
             border: 0px;
         }
 
         QTreeView::item:disabled {
-            background-color: {{ color['completion.category.bg'] }};
+            background-color: {{ conf.colors.completion.category.bg }};
             border-top: 1px solid
-                {{ color['completion.category.border.top'] }};
+                {{ conf.colors.completion.category.border.top }};
             border-bottom: 1px solid
-                {{ color['completion.category.border.bottom'] }};
+                {{ conf.colors.completion.category.border.bottom }};
         }
 
         QTreeView::item:selected, QTreeView::item:selected:hover {
             border-top: 1px solid
-                {{ color['completion.item.selected.border.top'] }};
+                {{ conf.colors.completion.item.selected.border.top }};
             border-bottom: 1px solid
-                {{ color['completion.item.selected.border.bottom'] }};
-            background-color: {{ color['completion.item.selected.bg'] }};
+                {{ conf.colors.completion.item.selected.border.bottom }};
+            background-color: {{ conf.colors.completion.item.selected.bg }};
         }
 
         QTreeView:item::hover {
@@ -85,14 +85,14 @@ class CompletionView(QTreeView):
         }
 
         QTreeView QScrollBar {
-            width: {{ config.val.completion.scrollbar_width }}px;
-            background: {{ color['completion.scrollbar.bg'] }};
+            width: {{ conf.completion.scrollbar.width }}px;
+            background: {{ conf.colors.completion.scrollbar.bg }};
         }
 
         QTreeView QScrollBar::handle {
-            background: {{ color['completion.scrollbar.fg'] }};
-            border: {{ config.val.completion.scrollbar_padding }}px solid
-                    {{ color['completion.scrollbar.bg'] }};
+            background: {{ conf.colors.completion.scrollbar.fg }};
+            border: {{ conf.completion.scrollbar.padding }}px solid
+                    {{ conf.colors.completion.scrollbar.bg }};
             min-height: 10px;
         }
 

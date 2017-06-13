@@ -40,10 +40,8 @@ def get_stylesheet(template_str):
     Return:
         The formatted template as string.
     """
-    colordict = ColorDict(config)
     template = jinja2.Template(template_str)
-    return template.render(color=colordict, font=config.section('fonts'),
-                           config=objreg.get('config'))
+    return template.render(conf=config.val)
 
 
 def set_register_stylesheet(obj):
@@ -68,32 +66,3 @@ def _update_stylesheet(obj):
     get_stylesheet.cache_clear()
     if not sip.isdeleted(obj):
         obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))
-
-
-class ColorDict:
-
-    """A dict aimed at Qt stylesheet colors."""
-
-    def __init__(self, config):
-        self._config = config
-
-    def __getitem__(self, key):
-        """Override dict __getitem__.
-
-        Args:
-            key: The key to get from the dict.
-
-        Return:
-            If a value wasn't found, return an empty string.
-            (Color not defined, so no output in the stylesheet)
-
-            else, return the plain value.
-        """
-        val = self._config.get('colors', key)
-        if isinstance(val, QColor):
-            # This could happen when accidentally declaring something as
-            # QtColor instead of Color in the config, and it'd go unnoticed as
-            # the CSS is invalid then.
-            raise TypeError("QColor passed to ColorDict!")
-        else:
-            return val

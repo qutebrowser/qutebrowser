@@ -53,27 +53,27 @@ class UrlText(textbase.TextBase):
 
     STYLESHEET = """
         QLabel#UrlText[urltype="normal"] {
-            color: {{ color['statusbar.url.fg'] }};
+            color: {{ conf.colors.statusbar.url.fg }};
         }
 
         QLabel#UrlText[urltype="success"] {
-            color: {{ color['statusbar.url.fg.success'] }};
+            color: {{ conf.colors.statusbar.url.success.http.fg }};
         }
 
         QLabel#UrlText[urltype="success_https"] {
-            color: {{ color['statusbar.url.fg.success.https'] }};
+            color: {{ conf.colors.statusbar.url.success.https.fg }};
         }
 
         QLabel#UrlText[urltype="error"] {
-            color: {{ color['statusbar.url.fg.error'] }};
+            color: {{ conf.colors.statusbar.url.error.fg }};
         }
 
         QLabel#UrlText[urltype="warn"] {
-            color: {{ color['statusbar.url.fg.warn'] }};
+            color: {{ conf.colors.statusbar.url.warn.fg }};
         }
 
         QLabel#UrlText[urltype="hover"] {
-            color: {{ color['statusbar.url.fg.hover'] }};
+            color: {{ conf.colors.statusbar.url.hover.fg }};
         }
     """
 

@@ -1409,7 +1409,7 @@ colors.statusbar.url.success.http.fg:
   type: QssColor
   desc: Foreground color of the URL in the statusbar on successful load (http).
 
-colors.statusbar.url.success.https.bg:
+colors.statusbar.url.success.https.fg:
   default: lime
   type: QssColor
   desc: Foreground color of the URL in the statusbar on successful load (https).

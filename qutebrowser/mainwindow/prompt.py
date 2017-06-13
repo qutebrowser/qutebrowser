@@ -234,27 +234,27 @@ class PromptContainer(QWidget):
 
     STYLESHEET = """
         QWidget#PromptContainer {
-            {% if config.val.statusbar.position == 'top' %}
-                border-bottom-left-radius: {{ config.val.prompt.radius }}px;
-                border-bottom-right-radius: {{ config.val.prompt.radius }}px;
+            {% if conf.statusbar.position == 'top' %}
+                border-bottom-left-radius: {{ conf.prompt.radius }}px;
+                border-bottom-right-radius: {{ conf.prompt.radius }}px;
             {% else %}
-                border-top-left-radius: {{ config.val.prompt.radius }}px;
-                border-top-right-radius: {{ config.val.prompt.radius }}px;
+                border-top-left-radius: {{ conf.prompt.radius }}px;
+                border-top-right-radius: {{ conf.prompt.radius }}px;
             {% endif %}
         }
 
         QWidget {
-            font: {{ font['prompts'] }};
-            color: {{ color['prompts.fg'] }};
-            background-color: {{ color['prompts.bg'] }};
+            font: {{ conf.fonts.prompts }};
+            color: {{ conf.colors.prompts.fg }};
+            background-color: {{ conf.colors.prompts.bg }};
         }
 
         QTreeView {
-            selection-background-color: {{ color['prompts.selected.bg'] }};
+            selection-background-color: {{ conf.colors.prompts.selected.bg }};
         }
 
         QTreeView::item:selected, QTreeView::item:selected:hover {
-            background-color: {{ color['prompts.selected.bg'] }};
+            background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
     update_geometry = pyqtSignal()

@@ -81,21 +81,21 @@ class ColorFlags:
 
 def _generate_stylesheet():
     flags = [
-        ('private', 'statusbar.{}.private'),
-        ('caret', 'statusbar.{}.caret'),
-        ('caret-selection', 'statusbar.{}.caret-selection'),
-        ('prompt', 'prompts.{}'),
-        ('insert', 'statusbar.{}.insert'),
-        ('command', 'statusbar.{}.command'),
-        ('private-command', 'statusbar.{}.command.private'),
+        ('private', 'statusbar.private'),
+        ('caret', 'statusbar.caret'),
+        ('caret-selection', 'statusbar.caret.selection'),
+        ('prompt', 'prompts'),
+        ('insert', 'statusbar.insert'),
+        ('command', 'statusbar.command'),
+        ('private-command', 'statusbar.command.private'),
     ]
     stylesheet = """
         QWidget#StatusBar,
         QWidget#StatusBar QLabel,
         QWidget#StatusBar QLineEdit {
-            font: {{ font['statusbar'] }};
-            background-color: {{ color['statusbar.bg'] }};
-            color: {{ color['statusbar.fg'] }};
+            font: {{ conf.fonts.statusbar }};
+            background-color: {{ conf.colors.statusbar.normal.bg }};
+            color: {{ conf.colors.statusbar.normal.fg }};
         }
     """
     for flag, option in flags:
@@ -103,11 +103,11 @@ def _generate_stylesheet():
             QWidget#StatusBar[color_flags~="%s"],
             QWidget#StatusBar[color_flags~="%s"] QLabel,
             QWidget#StatusBar[color_flags~="%s"] QLineEdit {
-                color: {{ color['%s'] }};
-                background-color: {{ color['%s'] }};
+                color: {{ conf.colors.%s }};
+                background-color: {{ conf.colors.%s }};
             }
         """ % (flag, flag, flag,  # flake8: disable=S001
-               option.format('fg'), option.format('bg'))
+               option + '.fg', option + '.bg')
     return stylesheet
 
 

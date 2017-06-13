@@ -65,10 +65,10 @@ class HintLabel(QLabel):
 
     STYLESHEET = """
         QLabel {
-            background-color: {{ color['hints.bg'] }};
-            color: {{ color['hints.fg'] }};
-            font: {{ font['hints'] }};
-            border: {{ config.val.hints.border }};
+            background-color: {{ conf.colors.hints.bg }};
+            color: {{ conf.colors.hints.fg }};
+            font: {{ conf.fonts.hints }};
+            border: {{ conf.hints.border }};
             padding-left: -3px;
             padding-right: -3px;
         }
@@ -108,7 +108,7 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.val.colors.hints.fg.match)
+        match_color = html.escape(config.val.colors.hints.match.fg)
         self.setText('<font color="{}">{}</font>{}'.format(
             match_color, matched, unmatched))
         self.adjustSize()

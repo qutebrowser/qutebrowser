@@ -41,25 +41,25 @@ class Message(QLabel):
         """
         if level == usertypes.MessageLevel.error:
             stylesheet += """
-                background-color: {{ color['messages.bg.error'] }};
-                color: {{ color['messages.fg.error'] }};
-                font: {{ font['messages.error'] }};
-                border-bottom: 1px solid {{ color['messages.border.error'] }};
+                background-color: {{ conf.colors.messages.error.bg }};
+                color: {{ conf.colors.messages.error.fg }};
+                font: {{ conf.fonts.messages.error }};
+                border-bottom: 1px solid {{ conf.colors.messages.error.border }};
             """
         elif level == usertypes.MessageLevel.warning:
             stylesheet += """
-                background-color: {{ color['messages.bg.warning'] }};
-                color: {{ color['messages.fg.warning'] }};
-                font: {{ font['messages.warning'] }};
+                background-color: {{ conf.colors.messages.warning.bg }};
+                color: {{ conf.colors.messages.warning.fg }};
+                font: {{ conf.fonts.messages.warning }};
                 border-bottom:
-                    1px solid {{ color['messages.border.warning'] }};
+                    1px solid {{ conf.colors.messages.warning.border }};
             """
         elif level == usertypes.MessageLevel.info:
             stylesheet += """
-                background-color: {{ color['messages.bg.info'] }};
-                color: {{ color['messages.fg.info'] }};
-                font: {{ font['messages.info'] }};
-                border-bottom: 1px solid {{ color['messages.border.info'] }}
+                background-color: {{ conf.colors.messages.info.bg }};
+                color: {{ conf.colors.messages.info.fg }};
+                font: {{ conf.fonts.messages.info }};
+                border-bottom: 1px solid {{ conf.colors.messages.info.border }}
             """
         else:  # pragma: no cover
             raise ValueError("Invalid level {!r}".format(level))
