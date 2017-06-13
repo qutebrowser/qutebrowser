@@ -67,7 +67,7 @@ def is_whitelisted_host(host):
     Args:
         host: The host of the request as string.
     """
-    whitelist = config.val.content.host_blocking_whitelist
+    whitelist = config.val.content.host_blocking.whitelist
     if whitelist is None:
         return False
 
@@ -123,7 +123,7 @@ class HostBlocker:
 
     def is_blocked(self, url):
         """Check if the given URL (as QUrl) is blocked."""
-        if not config.val.content.host_blocking_enabled:
+        if not config.val.content.host_blocking.enabled:
             return False
         host = url.host()
         return ((host in self._blocked_hosts or
@@ -164,9 +164,9 @@ class HostBlocker:
 
         if not found:
             args = objreg.get('args')
-            if (config.val.content.host_block_lists is not None and
+            if (config.val.content.host_blocking.lists is not None and
                     args.basedir is None and
-                    config.val.content.host_blocking_enabled):
+                    config.val.content.host_blocking.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
     @cmdutils.register(instance='host-blocker')
