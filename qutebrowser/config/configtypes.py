@@ -549,24 +549,19 @@ class Perc(_Numeric):
 
     """A percentage, as a string ending with %."""
 
-    def from_str(self, value):
+    def from_py(self, value):
+        self._basic_validation(value, pytype=str)
         if not value:
             return None
-        elif not value.endswith('%'):
-            raise configexc.ValidationError(value, "does not end with %")
 
+        if not value.endswith('%'):
+            raise configexc.ValidationError(value, "does not end with %")
         try:
             floatval = float(value[:-1])
         except ValueError:
             raise configexc.ValidationError(value, "must be a percentage!")
-        return self.from_py(floatval)
-
-    def from_py(self, value):
-        self._basic_validation(value, pytype=float)
-        if not value:
-            return None
-        self._validate_bounds(value, suffix='%')
-        return value
+        self._validate_bounds(floatval, suffix='%')
+        return floatval
 
 
 class PercOrInt(_Numeric):
