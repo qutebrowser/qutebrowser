@@ -507,11 +507,11 @@ content.custom_headers:
   type:
     name: Dict
     keytype:
-      - name: String
-      - encoding: ascii
+      name: String
+      encoding: ascii
     valtype:
-      - name: String
-      - encoding: ascii
+      name: String
+      encoding: ascii
     none_ok: true
   desc: Set custom headers for qutebrowser HTTP requests.
 

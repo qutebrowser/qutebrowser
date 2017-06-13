@@ -1122,7 +1122,7 @@ class Padding(Dict):
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(keytype=String(), valtype=Int(minval=0),
                          fixed_keys=['top', 'bottom', 'left', 'right'],
-                         none_ok=none_ok, length=4)
+                         none_ok=none_ok)
         # FIXME:conf
         assert valid_values is None, valid_values
 
