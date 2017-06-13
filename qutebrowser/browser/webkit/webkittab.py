@@ -140,24 +140,21 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
-    def search(self, text, *, ignore_case=False, reverse=False,
+    def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
         self.search_displayed = True
-        flags = QWebPage.FindWrapsAroundDocument
-        if ignore_case == 'smart':
-            if not text.islower():
-                flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            flags |= QWebPage.FindCaseSensitively
+        self.text = text
+        self._flags = QWebPage.FindWrapsAroundDocument
+        if self._is_case_sensitive(ignore_case):
+            self._flags |= QWebPage.FindCaseSensitively
         if reverse:
-            flags |= QWebPage.FindBackward
+            self._flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
-        found = self._widget.findText(text, flags)
-        self._widget.findText(text, flags | QWebPage.HighlightAllOccurrences)
-        self.text = text
-        self._flags = flags
-        self._call_cb(result_cb, found, text, flags, 'search')
+        found = self._widget.findText(text, self._flags)
+        self._widget.findText(text,
+                              self._flags | QWebPage.HighlightAllOccurrences)
+        self._call_cb(result_cb, found, text, self._flags, 'search')
 
     def next_result(self, *, result_cb=None):
         self.search_displayed = True

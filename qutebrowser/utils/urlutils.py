@@ -194,7 +194,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    if do_search and config.val.auto_search and urlstr:
+    if do_search and config.val.auto_search != 'never' and urlstr:
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
@@ -248,7 +248,7 @@ def is_url(urlstr):
     qurl = QUrl(urlstr)
     qurl_userinput = qurl_from_user_input(urlstr)
 
-    if not autosearch:
+    if autosearch == 'never':
         # no autosearch, so everything is a URL unless it has an explicit
         # search engine.
         try:
@@ -270,7 +270,7 @@ def is_url(urlstr):
         log.url.debug("Is localhost.")
         url = True
     elif is_special_url(qurl):
-        # Special URLs are always URLs, even with autosearch=False
+        # Special URLs are always URLs, even with autosearch=never
         log.url.debug("Is a special URL.")
         url = True
     elif autosearch == 'dns':

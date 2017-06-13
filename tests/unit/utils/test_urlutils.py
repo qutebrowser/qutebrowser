@@ -347,7 +347,7 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     # autosearch = False
     (False, True, False, 'This is a URL without autosearch'),
 ])
-@pytest.mark.parametrize('auto_search', ['dns', 'naive', False])
+@pytest.mark.parametrize('auto_search', ['dns', 'naive', 'never'])
 def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
                 uses_dns, url, auto_search):
     """Test is_url().
@@ -384,11 +384,9 @@ def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
             assert not fake_dns.used
             assert result == is_url
     elif auto_search == 'naive':
-        urlutils_config_stub.data['general']['auto-search'] = 'naive'
         assert urlutils.is_url(url) == is_url
         assert not fake_dns.used
-    elif not auto_search:
-        urlutils_config_stub.data['general']['auto-search'] = False
+    elif auto_search == 'never':
         assert urlutils.is_url(url) == is_url_no_autosearch
         assert not fake_dns.used
     else:

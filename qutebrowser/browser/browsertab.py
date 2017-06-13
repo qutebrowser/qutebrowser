@@ -188,13 +188,28 @@ class AbstractSearch(QObject):
         self.text = None
         self.search_displayed = False
 
-    def search(self, text, *, ignore_case=False, reverse=False,
+    def _is_case_sensitive(self, ignore_case):
+        """Check if case-sensitivity should be used.
+
+        This assumes self.text is already set properly.
+
+        Arguments:
+            ignore_case: The ignore_case value from the config.
+        """
+        mapping = {
+            'smart': not self.text.islower(),
+            'never': False,
+            'always': True,
+        }
+        return mapping[ignore_case]
+
+    def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
         """Find the given text on the page.
 
         Args:
             text: The text to search for.
-            ignore_case: Search case-insensitively. (True/False/'smart')
+            ignore_case: Search case-insensitively. ('always'/'never/'smart')
             reverse: Reverse search direction.
             result_cb: Called with a bool indicating whether a match was found.
         """

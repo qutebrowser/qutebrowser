@@ -152,20 +152,16 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 callback(found)
         self._widget.findText(text, flags, wrapped_callback)
 
-    def search(self, text, *, ignore_case=False, reverse=False,
+    def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
-        flags = QWebEnginePage.FindFlags(0)
-        if ignore_case == 'smart':
-            if not text.islower():
-                flags |= QWebEnginePage.FindCaseSensitively
-        elif not ignore_case:
-            flags |= QWebEnginePage.FindCaseSensitively
-        if reverse:
-            flags |= QWebEnginePage.FindBackward
-
         self.text = text
-        self._flags = flags
-        self._find(text, flags, result_cb, 'search')
+        self._flags = QWebEnginePage.FindFlags(0)
+        if self._is_case_sensitive(ignore_case):
+            self._flags |= QWebEnginePage.FindCaseSensitively
+        if reverse:
+            self._flags |= QWebEnginePage.FindBackward
+
+        self._find(text, self._flags, result_cb, 'search')
 
     def clear(self):
         self.search_displayed = False

@@ -1159,44 +1159,6 @@ class Encoding(BaseType):
         return value
 
 
-class AutoSearch(BaseType):
-
-    """Whether to start a search when something else than a URL is entered."""
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.booltype = Bool(none_ok=none_ok)
-        self.valid_values = ValidValues(
-            ('naive', "Use simple/naive check."),
-            ('dns', "Use DNS requests (might be slow!)."),
-            ('false', "Never search automatically."))
-
-    def from_py(self, value):
-        self._basic_validation(value, pytype=(str, bool))
-        if not value:
-            return None
-
-        if isinstance(value, bool):
-            if self.booltype.from_py(value):
-                # boolean true is an alias for naive matching
-                return 'naive'
-            else:
-                return False
-        elif value.lower() in ['naive', 'dns']:
-            return value.lower()
-        else:
-            # Should be prevented by valid_values
-            assert False, value
-
-    def transform(self, value):
-        if not value:
-            return None
-        elif value.lower() in ['naive', 'dns']:
-            return value.lower()
-        elif self.booltype.transform(value):
-            pass
-
-
 class Position(MappingType):
 
     """The position of the tab bar."""
@@ -1335,34 +1297,6 @@ class NewTabPosition(BaseType):
             ('next', "After the current tab."),
             ('first', "At the beginning."),
             ('last', "At the end."))
-
-
-class IgnoreCase(Bool):
-
-    """Whether to ignore case when searching."""
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.valid_values = ValidValues(
-            ('true', "Search case-insensitively"),
-            ('false', "Search case-sensitively"),
-            ('smart', "Search case-sensitively if there "
-             "are capital chars"))
-
-    def transform(self, value):
-        if value.lower() == 'smart':
-            return 'smart'
-        else:
-            return super().transform(value)
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        if value.lower() == 'smart':
-            return
-        else:
-            super().validate(value)
 
 
 class UserAgent(BaseType):

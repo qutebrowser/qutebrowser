@@ -1,7 +1,12 @@
 # general
 
 ignore_case:
-  type: IgnoreCase
+  type:
+    name: String
+    valid_values:
+      - always: Search case-insensitively
+      - never: Search case-sensitively
+      - smart: Search case-sensitively if there are capital chars
   default: smart
   desc: Whether to find text on a page case-insensitively.
 
@@ -45,7 +50,12 @@ default_page:
     for a blank page.
 
 auto_search:
-  type: AutoSearch
+  type:
+    name: String
+    valid_values:
+      - naive: Use simple/naive check.
+      - dns: Use DNS requests (might be slow!).
+      - never: Never search automatically.
   default: naive
   desc: Whether to start a search when something else than a URL is entered.
 
