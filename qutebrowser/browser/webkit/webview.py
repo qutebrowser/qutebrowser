@@ -107,7 +107,7 @@ class WebView(QWebView):
             # deleted
             pass
 
-    @config.change_filter('colors', 'webpage.bg')
+    @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
         col = config.val.colors.webpage.bg

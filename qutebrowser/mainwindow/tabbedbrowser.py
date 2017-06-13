@@ -159,7 +159,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 widgets.append(widget)
         return widgets
 
-    @config.change_filter('ui', 'window-title-format')
+    @config.change_filter('window.title_format')
     def update_window_title(self):
         """Change the window title to match the current tab."""
         idx = self.currentIndex()
@@ -170,8 +170,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields = self.get_tab_fields(idx)
         fields['id'] = self._win_id
 
-        fmt = config.val.ui.window_title_format
-        self.window().setWindowTitle(fmt.format(**fields))
+        title = config.val.window.title_format.format(**fields)
+        self.window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -485,19 +485,17 @@ class TabbedBrowser(tabwidget.TabWidget):
                               self._tab_insert_idx_right))
         return idx
 
-    @config.change_filter('tabs', 'show-favicons')
+    @config.change_filter('tabs.favicons.show')
     def update_favicons(self):
         """Update favicons when config was changed."""
-        show = config.val.tabs.show_favicons
-        tabs_are_wins = config.val.tabs.tabs_are_windows
         for i, tab in enumerate(self.widgets()):
-            if show:
+            if config.val.tabs.favicons.show:
                 self.setTabIcon(i, tab.icon())
-                if tabs_are_wins:
+                if config.val.tabs.tabs_are_windows:
                     self.window().setWindowIcon(tab.icon())
             else:
                 self.setTabIcon(i, QIcon())
-                if tabs_are_wins:
+                if config.val.tabs.tabs_are_windows:
                     self.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()

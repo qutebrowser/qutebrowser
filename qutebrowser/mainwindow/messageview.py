@@ -95,12 +95,11 @@ class MessageView(QWidget):
         # The width isn't really relevant as we're expanding anyways.
         return QSize(-1, height)
 
-    @config.change_filter('ui', 'message-timeout')
+    @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
-        interval = config.val.ui.message_timeout
-        if interval != 0:
-            self._clear_timer.setInterval(interval)
+        if config.val.messages.timeout != 0:
+            self._clear_timer.setInterval(config.val.messages.timeout)
 
     @pyqtSlot()
     def clear_messages(self):

@@ -68,10 +68,6 @@ class NewConfigManager(QObject):
             raise UnknownOptionError(e)
         return val.typ.from_py(val.default)
 
-    def is_valid_prefix(self, prefix):
-        """Check whether the given prefix is a valid prefix for some option."""
-        return any(key.startswith(prefix + '.') for key in self._values)
-
 
 class ConfigContainer:
 
@@ -100,7 +96,7 @@ class ConfigContainer:
         options.
         """
         name = self._join(attr)
-        if self._manager.is_valid_prefix(name):
+        if configdata.is_valid_prefix(name):
             return ConfigContainer(manager=self._manager, prefix=name)
         # If it's not a valid prefix, this will raise NoOptionError.
         self._manager.get(name)

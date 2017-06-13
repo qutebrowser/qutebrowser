@@ -180,7 +180,7 @@ class HostBlocker:
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        urls = config.val.content.host_block_lists
+        urls = config.val.content.host_blocking.lists
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window='last-focused')
         if urls is None:
@@ -292,11 +292,10 @@ class HostBlocker:
             message.info("adblock: Read {} hosts from {} sources.".format(
                 len(self._blocked_hosts), self._done_count))
 
-    @config.change_filter('content', 'host-block-lists')
+    @config.change_filter('content.host-blocking.lists')
     def on_config_changed(self):
         """Update files when the config changed."""
-        urls = config.val.content.host_block_lists
-        if urls is None:
+        if config.val.content.host_blocking.lists is None:
             try:
                 os.remove(self._local_hosts_file)
             except FileNotFoundError:

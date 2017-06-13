@@ -331,22 +331,20 @@ class TabBar(QTabBar):
         """Get the current tab object."""
         return self.parent().currentWidget()
 
-    @config.change_filter('tabs', 'show')
+    @config.change_filter('tabs.show')
     def tabs_show(self):
         """Hide or show tab bar if needed when tabs->show got changed."""
         self.maybe_hide()
 
-    @config.change_filter('tabs', 'show-switching-delay')
+    @config.change_filter('tabs.show_switching_delay')
     def on_show_switching_delay_changed(self):
         """Set timer interval when tabs->show-switching-delay got changed."""
-        self._auto_hide_timer.setInterval(
-            config.val.tabs.show_switching_delay)
+        self._auto_hide_timer.setInterval(config.val.tabs.show_switching_delay)
 
     def on_current_changed(self):
         """Show tab bar when current tab got changed."""
         self.maybe_hide()  # for fullscreen tabs
-        show = config.val.tabs.show
-        if show == 'switching':
+        if config.val.tabs.show == 'switching':
             self.show()
             self._auto_hide_timer.start()
 
@@ -408,24 +406,24 @@ class TabBar(QTabBar):
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
 
-    @config.change_filter('fonts', 'tabbar')
+    @config.change_filter('fonts.tabbar')
     def set_font(self):
         """Set the tab bar font."""
         self.setFont(config.val.fonts.tabbar)
         self.set_icon_size()
 
-    @config.change_filter('tabs', 'favicon-scale')
+    @config.change_filter('tabs.favicon.scale')
     def set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
-        size *= config.val.tabs.favicon_scale
+        size *= config.val.tabs.favicon.scale
         self.setIconSize(QSize(size, size))
 
-    @config.change_filter('colors', 'tabs.bg.bar')
+    @config.change_filter('colors.tabs.bar.bg')
     def set_colors(self):
         """Set the tab bar colors."""
         p = self.palette()
-        p.setColor(QPalette.Window, config.val.colors.tabs.bg.bar)
+        p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
 
     @pyqtSlot(str, str)

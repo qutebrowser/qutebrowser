@@ -62,29 +62,37 @@ class change_filter:  # pylint: disable=invalid-name
     much cleaner to implement.
 
     Attributes:
-        _sectname: The section to be filtered.
-        _optname: The option to be filtered.
+        _option: An option or prefix to be filtered
         _function: Whether a function rather than a method is decorated.
     """
 
-    def __init__(self, sectname, optname=None, function=False):
+    def __init__(self, option, function=False):
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
 
         Args:
-            sectname: The section to be filtered.
-            optname: The option to be filtered.
+            option: The option to be filtered.
             function: Whether a function rather than a method is decorated.
         """
-        # FIXME:conf
-        # if sectname not in configdata.DATA:
-        #     raise configexc.NoSectionError(sectname)
-        # if optname is not None and optname not in configdata.DATA[sectname]:
-        #     raise configexc.NoOptionError(optname, sectname)
-        self._sectname = sectname
-        self._optname = optname
+        if (option not in configdata.DATA and
+                not configdata.is_valid_prefix(option)):
+            raise configexc.NoOptionError(option)
+        self._option = option
         self._function = function
+
+    def _check_match(self, option):
+        """Check if the given option matches the filter."""
+        if option is None:
+            # Called directly, not from a config change event.
+            return True
+        elif option == self._option:
+            return True
+        elif option.startswith(self._option + '.'):
+            # prefix match
+            return True
+        else:
+            return False
 
     def __call__(self, func):
         """Filter calls to the decorated function.
@@ -104,27 +112,13 @@ class change_filter:  # pylint: disable=invalid-name
         """
         if self._function:
             @functools.wraps(func)
-            def wrapper(sectname=None, optname=None):
-                if sectname is None and optname is None:
-                    # Called directly, not from a config change event.
-                    return func()
-                elif sectname != self._sectname:
-                    return
-                elif self._optname is not None and optname != self._optname:
-                    return
-                else:
+            def wrapper(option=None):
+                if self._check_match(option):
                     return func()
         else:
             @functools.wraps(func)
-            def wrapper(wrapper_self, sectname=None, optname=None):
-                if sectname is None and optname is None:
-                    # Called directly, not from a config change event.
-                    return func(wrapper_self)
-                elif sectname != self._sectname:
-                    return
-                elif self._optname is not None and optname != self._optname:
-                    return
-                else:
+            def wrapper(wrapper_self, option=None):
+                if self._check_match(option):
                     return func(wrapper_self)
 
         return wrapper

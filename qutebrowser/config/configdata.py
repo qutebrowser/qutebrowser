@@ -672,6 +672,11 @@ def _read_yaml(yaml_data):
     return parsed
 
 
+def is_valid_prefix(prefix):
+    """Check whether the given prefix is a valid prefix for some option."""
+    return any(key.startswith(prefix + '.') for key in DATA)
+
+
 def init():
     """Initialize configdata from the YAML file."""
     global DATA

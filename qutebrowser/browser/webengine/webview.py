@@ -137,7 +137,7 @@ class WebEnginePage(QWebEnginePage):
         self._set_bg_color()
         objreg.get('config').changed.connect(self._set_bg_color)
 
-    @config.change_filter('colors', 'webpage.bg')
+    @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
         col = config.val.colors.webpage.bg
         if col is None:

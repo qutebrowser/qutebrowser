@@ -126,7 +126,7 @@ class SaveManager(QObject):
         self.set_autosave_interval()
         objreg.get('config').changed.connect(self.set_autosave_interval)
 
-    @config.change_filter('general', 'auto-save-interval')
+    @config.change_filter('auto_save.interval')
     def set_autosave_interval(self):
         """Set the auto-save interval."""
         interval = config.val.auto_save.interval

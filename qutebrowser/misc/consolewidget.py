@@ -102,7 +102,7 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
-    @config.change_filter('fonts', 'debug-console')
+    @config.change_filter('fonts.debug_console')
     def update_font(self):
         """Set the correct font."""
         self.setFont(config.val.fonts.debug_console)
@@ -123,7 +123,7 @@ class ConsoleTextEdit(QTextEdit):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @config.change_filter('fonts', 'debug-console')
+    @config.change_filter('fonts.debug_console')
     def update_font(self):
         """Update font when config changed."""
         self.setFont(config.val.fonts.debug_console)

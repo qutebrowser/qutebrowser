@@ -107,7 +107,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
                 self._history_cat.rowCount() > self._max_history):
             self._remove_oldest_history()
 
-    @config.change_filter('completion', 'timestamp-format')
+    @config.change_filter('completion.timestamp_format')
     def reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
         for i in range(self._history_cat.rowCount()):

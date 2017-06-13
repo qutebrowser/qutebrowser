@@ -144,9 +144,6 @@ class ModeManager(QObject):
         self._parsers = {}
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()
-        self._forward_unbound_keys = config.get(
-            'input', 'forward-unbound-keys')
-        objreg.get('config').changed.connect(self.set_forward_unbound_keys)
 
     def __repr__(self):
         return utils.get_repr(self, mode=self.mode)
@@ -171,10 +168,12 @@ class ModeManager(QObject):
             event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
             not event.text().strip())
 
+        forward_unbound_keys = config.val.input.forward_unbound_keys
+
         if handled:
             filter_this = True
-        elif (parser.passthrough or self._forward_unbound_keys == 'all' or
-              (self._forward_unbound_keys == 'auto' and is_non_alnum)):
+        elif (parser.passthrough or forward_unbound_keys == 'all' or
+              (forward_unbound_keys == 'auto' and is_non_alnum)):
             filter_this = False
         else:
             filter_this = True
@@ -187,7 +186,7 @@ class ModeManager(QObject):
             log.modes.debug("handled: {}, forward-unbound-keys: {}, "
                             "passthrough: {}, is_non_alnum: {} --> "
                             "filter: {} (focused: {!r})".format(
-                                handled, self._forward_unbound_keys,
+                                handled, forward_unbound_keys,
                                 parser.passthrough, is_non_alnum, filter_this,
                                 focus_widget))
         return filter_this
@@ -312,12 +311,6 @@ class ModeManager(QObject):
         if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode, 'leave current')
-
-    @config.change_filter('input', 'forward-unbound-keys')
-    def set_forward_unbound_keys(self):
-        """Update local setting when config changed."""
-        self._forward_unbound_keys = config.get(
-            'input', 'forward-unbound-keys')
 
     def eventFilter(self, event):
         """Filter all events based on the currently set mode.
