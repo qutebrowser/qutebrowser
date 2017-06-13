@@ -674,7 +674,7 @@ class Quitter:
             if session is not None:
                 session_manager.save(session, last_window=last_window,
                                      load_next_time=True)
-            elif config.val.save_session:
+            elif config.val.auto_save.session:
                 session_manager.save(sessions.default, last_window=last_window,
                                      load_next_time=True)
 

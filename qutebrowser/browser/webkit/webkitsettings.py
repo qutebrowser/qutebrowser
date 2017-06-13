@@ -175,7 +175,7 @@ MAPPINGS = {
         CookiePolicy(),
     'content.dns_prefetch':
         Attribute(QWebSettings.DnsPrefetchEnabled),
-    'content.frame-flattening':
+    'content.frame_flattening':
         Attribute(QWebSettings.FrameFlatteningEnabled),
     'content.offline_web_application_cache':
         Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),

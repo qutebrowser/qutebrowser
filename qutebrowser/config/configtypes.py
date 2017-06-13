@@ -397,7 +397,7 @@ class FlagList(List):
     _show_valtype = False
 
     def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(BaseType(), none_ok)
+        super().__init__(String(), none_ok)
         self.valtype.valid_values = valid_values
 
     def _check_duplicates(self, values):

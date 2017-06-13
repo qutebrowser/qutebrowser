@@ -262,7 +262,7 @@ messages.unfocused:
 
 confirm_quit:
   type: ConfirmQuit
-  default: never
+  default: [never]
   desc: Whether to confirm quitting the application.
 
 zoom.text_only:
