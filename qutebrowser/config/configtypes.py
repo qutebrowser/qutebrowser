@@ -116,21 +116,17 @@ class BaseType:
             value: The value to check.
             pytype: If given, a Python type to check the value against.
         """
-        if not value:
-            if self.none_ok:
-                return
-            else:
-                raise configexc.ValidationError(value, "may not be empty!")
-
-        if isinstance(value, str):
-            if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
-                raise configexc.ValidationError(value, "may not contain "
-                                                "unprintable chars!")
-
         if pytype is not None and not isinstance(value, pytype):
             raise configexc.ValidationError(
                 value, "expected a value of type {} but got {}".format(
                     pytype, type(value)))
+
+        if isinstance(value, str):
+            if not value and not self.none_ok:
+                raise configexc.ValidationError(value, "may not be empty!")
+            if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
+                raise configexc.ValidationError(value, "may not contain "
+                                                "unprintable chars!")
 
     def _validate_valid_values(self, value):
         """Validate value against possible values.
