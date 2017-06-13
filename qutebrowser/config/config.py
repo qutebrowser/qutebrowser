@@ -158,7 +158,7 @@ def _init_misc():
     from qutebrowser.misc import lineparser
     command_history = lineparser.LimitLineParser(
         standarddir.data(), 'cmd-history',
-        limit=('completion', 'cmd-history-max-items'),
+        limit='completion.cmd_history_max_items',
         parent=objreg.get('config'))
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
