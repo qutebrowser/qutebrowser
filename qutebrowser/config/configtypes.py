@@ -54,19 +54,25 @@ class ValidValues:
         descriptions: A dict with value/desc mappings.
     """
 
-    def __init__(self, *vals):
-        if not vals:
+    def __init__(self, *values):
+        if not values:
             raise ValueError("ValidValues with no values makes no sense!")
         self.descriptions = {}
         self.values = []
-        for v in vals:
-            if isinstance(v, str):
+        for value in values:
+            if isinstance(value, str):
                 # Value without description
-                self.values.append(v)
+                self.values.append(value)
+            elif isinstance(value, dict):
+                # List of dicts from configdata.yml
+                assert len(value) == 1, value
+                value, desc = list(value.items())[0]
+                self.values.append(value)
+                self.descriptions[value] = desc
             else:
                 # (value, description) tuple
-                self.values.append(v[0])
-                self.descriptions[v[0]] = v[1]
+                self.values.append(value[0])
+                self.descriptions[value[0]] = value[1]
 
     def __contains__(self, val):
         return val in self.values

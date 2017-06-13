@@ -553,6 +553,9 @@ def _parse_yaml_type(name, node):
         # -> create the type object and pass arguments
         type_name = node.pop('name')
         kwargs = node
+        valid_values = kwargs.get('valid_values', None)
+        if valid_values is not None:
+            kwargs['valid_values'] = configtypes.ValidValues(*valid_values)
     else:
         _raise_invalid_node(name, 'type', node)
 
