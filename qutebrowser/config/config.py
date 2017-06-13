@@ -55,8 +55,7 @@ UNSET = object()
 
 # FIXME:conf for new config
 val = None
-
-
+instance = None
 
 
 def get(*args, **kwargs):
@@ -183,11 +182,12 @@ def init(parent=None):
     Args:
         parent: The parent to pass to QObjects which get initialized.
     """
-    global val
+    global val, instance
     # _init_main_config(parent)
     configdata.init()
     newconfig.init(parent)
     val = newconfig.val
+    instance = newconfig.instance
     _init_key_config(parent)
     _init_misc()
 

@@ -166,13 +166,13 @@ def _set_user_agent(profile):
     profile.setHttpUserAgent(config.val.content.user_agent)
 
 
-def update_settings(section, option):
+def update_settings(option):
     """Update global settings when qwebsettings changed."""
-    websettings.update_mappings(MAPPINGS, section, option)
-    if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
+    websettings.update_mappings(MAPPINGS, option)
+    if option in ['scrollbar.hide', 'content.user_stylesheet']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
-    elif section == 'network' and option == 'user-agent':
+    elif option == 'content.user_agent':
         _set_user_agent(default_profile)
         _set_user_agent(private_profile)
 
@@ -211,7 +211,7 @@ def init(args):
     # We need to do this here as a WORKAROUND for
     # https://bugreports.qt.io/browse/QTBUG-58650
     if not qtutils.version_check('5.9'):
-        PersistentCookiePolicy().set(config.val.content.cookies_store)
+        PersistentCookiePolicy().set(config.val.content.cookies.store)
     Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
 
     websettings.init_mappings(MAPPINGS)
@@ -236,79 +236,70 @@ def shutdown():
 
 
 MAPPINGS = {
-    'content': {
-        'allow-images':
-            Attribute(QWebEngineSettings.AutoLoadImages),
-        'allow-javascript':
-            Attribute(QWebEngineSettings.JavascriptEnabled),
-        'javascript-can-open-windows-automatically':
-            Attribute(QWebEngineSettings.JavascriptCanOpenWindows),
-        'javascript-can-access-clipboard':
-            Attribute(QWebEngineSettings.JavascriptCanAccessClipboard),
-        'allow-plugins':
-            Attribute(QWebEngineSettings.PluginsEnabled),
-        'hyperlink-auditing':
-            Attribute(QWebEngineSettings.HyperlinkAuditingEnabled),
-        'local-content-can-access-remote-urls':
-            Attribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
-        'local-content-can-access-file-urls':
-            Attribute(QWebEngineSettings.LocalContentCanAccessFileUrls),
-        'webgl':
-            Attribute(QWebEngineSettings.WebGLEnabled),
-    },
-    'input': {
-        'spatial-navigation':
-            Attribute(QWebEngineSettings.SpatialNavigationEnabled),
-        'links-included-in-focus-chain':
-            Attribute(QWebEngineSettings.LinksIncludedInFocusChain),
-    },
-    'fonts': {
-        'web-family-standard':
-            FontFamilySetter(QWebEngineSettings.StandardFont),
-        'web-family-fixed':
-            FontFamilySetter(QWebEngineSettings.FixedFont),
-        'web-family-serif':
-            FontFamilySetter(QWebEngineSettings.SerifFont),
-        'web-family-sans-serif':
-            FontFamilySetter(QWebEngineSettings.SansSerifFont),
-        'web-family-cursive':
-            FontFamilySetter(QWebEngineSettings.CursiveFont),
-        'web-family-fantasy':
-            FontFamilySetter(QWebEngineSettings.FantasyFont),
-        'web-size-minimum':
-            Setter(QWebEngineSettings.setFontSize,
-                   args=[QWebEngineSettings.MinimumFontSize]),
-        'web-size-minimum-logical':
-            Setter(QWebEngineSettings.setFontSize,
-                   args=[QWebEngineSettings.MinimumLogicalFontSize]),
-        'web-size-default':
-            Setter(QWebEngineSettings.setFontSize,
-                   args=[QWebEngineSettings.DefaultFontSize]),
-        'web-size-default-fixed':
-            Setter(QWebEngineSettings.setFontSize,
-                   args=[QWebEngineSettings.DefaultFixedFontSize]),
-    },
-    'ui': {
-        'smooth-scrolling':
-            Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
-    },
-    'storage': {
-        'local-storage':
-            Attribute(QWebEngineSettings.LocalStorageEnabled),
-        'cache-size':
-            # 0: automatically managed by QtWebEngine
-            DefaultProfileSetter('setHttpCacheMaximumSize', default=0),
-    },
-    'general': {
-        'xss-auditing':
-            Attribute(QWebEngineSettings.XSSAuditingEnabled),
-        'default-encoding':
-            Setter(QWebEngineSettings.setDefaultTextEncoding),
-    }
+    'content.images':
+        Attribute(QWebEngineSettings.AutoLoadImages),
+    'content.javascript.enabled':
+        Attribute(QWebEngineSettings.JavascriptEnabled),
+    'content.javascript.can_open_windows_automatically':
+        Attribute(QWebEngineSettings.JavascriptCanOpenWindows),
+    'content.javascript.can_access_clipboard':
+        Attribute(QWebEngineSettings.JavascriptCanAccessClipboard),
+    'content.plugins':
+        Attribute(QWebEngineSettings.PluginsEnabled),
+    'content.hyperlink_auditing':
+        Attribute(QWebEngineSettings.HyperlinkAuditingEnabled),
+    'content.local_content_can_access_remote_urls':
+        Attribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
+    'content.local_content_can_access_file_urls':
+        Attribute(QWebEngineSettings.LocalContentCanAccessFileUrls),
+    'content.webgl':
+        Attribute(QWebEngineSettings.WebGLEnabled),
+    'content.local_storage':
+        Attribute(QWebEngineSettings.LocalStorageEnabled),
+    'content.cache_size':
+        # 0: automatically managed by QtWebEngine
+        DefaultProfileSetter('setHttpCacheMaximumSize', default=0),
+    'content.xss_auditing':
+        Attribute(QWebEngineSettings.XSSAuditingEnabled),
+    'content.default_encoding':
+        Setter(QWebEngineSettings.setDefaultTextEncoding),
+
+    'input.spatial_navigation':
+        Attribute(QWebEngineSettings.SpatialNavigationEnabled),
+    'input.links_included_in_focus_chain':
+        Attribute(QWebEngineSettings.LinksIncludedInFocusChain),
+
+    'fonts.web.family.standard':
+        FontFamilySetter(QWebEngineSettings.StandardFont),
+    'fonts.web.family.fixed':
+        FontFamilySetter(QWebEngineSettings.FixedFont),
+    'fonts.web.family.serif':
+        FontFamilySetter(QWebEngineSettings.SerifFont),
+    'fonts.web.family.sans_serif':
+        FontFamilySetter(QWebEngineSettings.SansSerifFont),
+    'fonts.web.family.cursive':
+        FontFamilySetter(QWebEngineSettings.CursiveFont),
+    'fonts.web.family.fantasy':
+        FontFamilySetter(QWebEngineSettings.FantasyFont),
+    'fonts.web.size.minimum':
+        Setter(QWebEngineSettings.setFontSize,
+               args=[QWebEngineSettings.MinimumFontSize]),
+    'fonts.web.size.minimum_logical':
+        Setter(QWebEngineSettings.setFontSize,
+               args=[QWebEngineSettings.MinimumLogicalFontSize]),
+    'fonts.web.size.default':
+        Setter(QWebEngineSettings.setFontSize,
+               args=[QWebEngineSettings.DefaultFontSize]),
+    'fonts.web.size.default_fixed':
+        Setter(QWebEngineSettings.setFontSize,
+               args=[QWebEngineSettings.DefaultFixedFontSize]),
+
+    'scrolling.smooth':
+        Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
 }
 
 try:
-    MAPPINGS['general']['print-element-backgrounds'] = Attribute(
+    MAPPINGS['content.print_element_backgrounds'] = Attribute(
         QWebEngineSettings.PrintElementBackgrounds)
 except AttributeError:
     # Added in Qt 5.8
@@ -317,4 +308,4 @@ except AttributeError:
 
 if qtutils.version_check('5.9'):
     # https://bugreports.qt.io/browse/QTBUG-58650
-    MAPPINGS['content']['cookies-store'] = PersistentCookiePolicy()
+    MAPPINGS['content.cookies.store'] = PersistentCookiePolicy()

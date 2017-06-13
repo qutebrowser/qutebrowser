@@ -28,6 +28,7 @@ from qutebrowser.utils import utils, objreg
 
 # An easy way to access the config from other code via config.val.foo
 val = None
+instance = None
 
 _change_filters = []
 
@@ -192,8 +193,9 @@ def init(parent):
     new_config.read_defaults()
     objreg.register('config', new_config)
 
-    global val
+    global val, instance
     val = ConfigContainer(new_config)
+    instance = new_config
 
     for cf in _change_filters:
         cf.validate()
