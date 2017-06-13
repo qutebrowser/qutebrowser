@@ -35,16 +35,16 @@ class CallSuper(Exception):
 def custom_headers():
     """Get the combined custom headers."""
     headers = {}
-    dnt = b'1' if config.val.network.do_not_track else b'0'
+    dnt = b'1' if config.val.content.do_not_track else b'0'
     headers[b'DNT'] = dnt
     headers[b'X-Do-Not-Track'] = dnt
 
-    config_headers = config.val.network.custom_headers
+    config_headers = config.val.content.custom_headers
     if config_headers is not None:
         for header, value in config_headers.items():
             headers[header.encode('ascii')] = value.encode('ascii')
 
-    accept_language = config.val.network.accept_language
+    accept_language = config.val.content.accept_language
     if accept_language is not None:
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 
@@ -129,7 +129,7 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.val.network.ssl_strict
+    ssl_strict = config.val.content.ssl_strict
     log.webview.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 

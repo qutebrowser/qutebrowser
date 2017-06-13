@@ -163,8 +163,7 @@ def _set_user_agent(profile):
     per-domain user agents), but this one still gets used for things like
     window.navigator.userAgent in JS.
     """
-    user_agent = config.val.network.user_agent
-    profile.setHttpUserAgent(user_agent)
+    profile.setHttpUserAgent(config.val.content.user_agent)
 
 
 def update_settings(section, option):
