@@ -454,6 +454,7 @@ content.custom_headers:
     name: Dict
     keytype: String
     valtype: String
+    encoding: ascii
     none_ok: true
   desc: Set custom headers for qutebrowser HTTP requests.
 
@@ -1178,7 +1179,7 @@ searchengines:
     DEFAULT: https://duckduckgo.com/?q={}
   type:
     name: Dict
-    keytype: SearchEngineName
+    keytype: String
     valtype: SearchEngineUrl
   desc: FIXME
 
@@ -1512,7 +1513,7 @@ colors.keyhint.fg:
 
 colors.keyhint.suffix.fg:
   default: '#FFFF00'
-  type: CssColor
+  type: QssColor
   desc: Highlight color for keys to complete the current keychain
 
 colors.keyhint.bg:
