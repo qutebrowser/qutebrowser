@@ -203,7 +203,7 @@ class HintActions:
             Target.window: usertypes.ClickTarget.window,
             Target.hover: usertypes.ClickTarget.normal,
         }
-        if config.val.tabs.background_tabs:
+        if config.val.tabs.background:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab_bg
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
@@ -684,8 +684,7 @@ class HintManager(QObject):
                           Target.hover, Target.userscript, Target.spawn,
                           Target.download, Target.normal, Target.current]:
                 pass
-            elif (target == Target.tab and
-                  config.val.tabs.background_tabs):
+            elif target == Target.tab and config.val.tabs.background:
                 pass
             else:
                 name = target.name.replace('_', '-')

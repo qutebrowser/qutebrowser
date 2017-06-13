@@ -285,10 +285,10 @@ class WebView(QWebView):
         This is implemented here as we don't need it for QtWebEngine.
         """
         if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
-            background_tabs = config.val.tabs.background_tabs
+            background = config.val.tabs.background
             if e.modifiers() & Qt.ShiftModifier:
-                background_tabs = not background_tabs
-            if background_tabs:
+                background = not background
+            if background:
                 target = usertypes.ClickTarget.tab_bg
             else:
                 target = usertypes.ClickTarget.tab

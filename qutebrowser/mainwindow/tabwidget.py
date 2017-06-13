@@ -562,23 +562,13 @@ class TabBar(QTabBar):
             tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
 
-            bg_parts = ['tabs', 'bg']
-            fg_parts = ['tabs', 'fg']
+            setting = config.val.colors.tabs
             if idx == selected:
-                bg_parts.append('selected')
-                fg_parts.append('selected')
+                setting = setting.selected
+            setting = setting.odd if idx % 2 else setting.even
 
-            if idx % 2:
-                bg_parts.append('odd')
-                fg_parts.append('odd')
-            else:
-                bg_parts.append('even')
-                fg_parts.append('even')
-
-            bg_color = config.get('colors', '.'.join(bg_parts))
-            fg_color = config.get('colors', '.'.join(fg_parts))
-            tab.palette.setColor(QPalette.Window, bg_color)
-            tab.palette.setColor(QPalette.WindowText, fg_color)
+            tab.palette.setColor(QPalette.Window, setting.bg)
+            tab.palette.setColor(QPalette.WindowText, setting.fg)
 
             indicator_color = self.tab_indicator_color(idx)
             tab.palette.setColor(QPalette.Base, indicator_color)
@@ -841,7 +831,7 @@ class TabBarStyle(QCommonStyle):
         position = config.val.tabs.position
         if (opt.icon.isNull() and
                 position in [QTabWidget.East, QTabWidget.West] and
-                config.val.tabs.show_favicons):
+                config.val.tabs.favicons.show):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)

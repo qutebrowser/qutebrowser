@@ -80,10 +80,10 @@ class WebEngineView(QWebEngineView):
             The new QWebEngineView object.
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
-        background_tabs = config.val.tabs.background_tabs
+        background = config.val.tabs.background
 
-        log.webview.debug("createWindow with type {}, background_tabs "
-                          "{}".format(debug_type, background_tabs))
+        log.webview.debug("createWindow with type {}, background {}".format(
+            debug_type, background))
 
         if wintype == QWebEnginePage.WebBrowserWindow:
             # Shift-Alt-Click
@@ -95,13 +95,13 @@ class WebEngineView(QWebEngineView):
         elif wintype == QWebEnginePage.WebBrowserTab:
             # Middle-click / Ctrl-Click with Shift
             # FIXME:qtwebengine this also affects target=_blank links...
-            if background_tabs:
+            if background:
                 target = usertypes.ClickTarget.tab
             else:
                 target = usertypes.ClickTarget.tab_bg
         elif wintype == QWebEnginePage.WebBrowserBackgroundTab:
             # Middle-click / Ctrl-Click
-            if background_tabs:
+            if background:
                 target = usertypes.ClickTarget.tab_bg
             else:
                 target = usertypes.ClickTarget.tab

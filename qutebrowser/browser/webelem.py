@@ -329,7 +329,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             usertypes.ClickTarget.tab: Qt.ControlModifier,
             usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
         }
-        if config.val.tabs.background_tabs:
+        if config.val.tabs.background:
             modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
         else:
             modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
