@@ -257,7 +257,7 @@ class CompletionView(QTreeView):
         count = self.model().count()
         if count == 0:
             self.hide()
-        elif count == 1 and config.val.completion.quick_complete:
+        elif count == 1 and config.val.completion.quick:
             self.hide()
         elif config.val.completion.show == 'auto':
             self.show()

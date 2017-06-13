@@ -157,7 +157,7 @@ class MouseEventFilter(QObject):
                           'click', only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element!")
-            if config.val.input.auto_leave_insert_mode:
+            if config.val.input.insert_mode.auto_leave:
                 modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
                               'click', maybe=True)
 
@@ -179,7 +179,7 @@ class MouseEventFilter(QObject):
                               'click-delayed', only_if_normal=True)
             else:
                 log.mouse.debug("Clicked non-editable element (delayed)!")
-                if config.val.input.auto_leave_insert_mode:
+                if config.val.input.insert_mode.auto_leave:
                     modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
                                   'click-delayed', maybe=True)
 

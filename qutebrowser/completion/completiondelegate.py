@@ -149,11 +149,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._painter.save()
 
         if self._opt.state & QStyle.State_Selected:
-            color = config.val.completion.item.selected.fg
+            color = config.val.colors.completion.item.selected.fg
         elif not self._opt.state & QStyle.State_Enabled:
-            color = config.val.completion.category.fg
+            color = config.val.colors.completion.category.fg
         else:
-            color = config.val.completion.fg
+            color = config.val.colors.completion.fg
         self._painter.setPen(color)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()

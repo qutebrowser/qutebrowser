@@ -182,7 +182,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             # at least a classid attribute. Oh, and let's hope images/...
             # DON'T have a classid attribute. HTML sucks.
             log.webelem.debug("<object type='{}'> clicked.".format(objtype))
-            return config.val.input.insert_mode_on_plugins
+            return config.val.input.insert_mode.plugins
         else:
             # Image/Audio/...
             return False
@@ -247,7 +247,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return self.is_writable()
         elif tag in ['embed', 'applet']:
             # Flash/Java/...
-            return config.val.input.insert_mode_on_plugins and not strict
+            return config.val.input.insert_mode.plugins and not strict
         elif tag == 'object':
             return self._is_editable_object() and not strict
         elif tag in ['div', 'pre']:
