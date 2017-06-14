@@ -161,8 +161,11 @@ class ConfigContainer:
         name = self._join(attr)
         if configdata.is_valid_prefix(name):
             return ConfigContainer(manager=self._manager, prefix=name)
-        # If it's not a valid prefix, this will raise NoOptionError.
-        return self._manager.get(name)
+        try:
+            return self._manager.get(name)
+        except configexc.NoOptionError as e:
+            # If it's not a valid prefix - re-raise to improve error text.
+            raise configexc.NoOptionError(name)
 
     def __setattr__(self, attr, value):
         if attr.startswith('_'):
