@@ -81,7 +81,7 @@ class Saveable:
             force: Force saving, no matter what.
         """
         if (self._config_opt is not None and
-                (not config.get(self._config_opt)) and
+                (not config.instance.get(self._config_opt)) and
                 (not explicit) and (not force)):
             if not silent:
                 log.save.debug("Not saving {name} because autosaving has been "

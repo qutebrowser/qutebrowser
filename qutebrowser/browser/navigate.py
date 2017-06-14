@@ -80,10 +80,10 @@ def _find_prevnext(prev, elems):
 
     # Then check for regular links/buttons.
     elems = [e for e in elems if e.tag_name() != 'link']
-    option = 'prev-regexes' if prev else 'next-regexes'
+    option = 'prev_regexes' if prev else 'next_regexes'
     if not elems:
         return None
-    for regex in config.get('hints', option):
+    for regex in getattr(config.val.hints, option):
         log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
         for e in elems:
             text = str(e)

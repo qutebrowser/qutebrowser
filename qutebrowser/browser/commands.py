@@ -1547,7 +1547,7 @@ class CommandDispatcher:
                 raise cmdexc.CommandError("Invalid help topic {}!".format(
                     topic))
             try:
-                config.get(*parts)
+                config.instance.get(*parts)
             except configexc.NoSectionError:
                 raise cmdexc.CommandError("Invalid section {}!".format(
                     parts[0]))

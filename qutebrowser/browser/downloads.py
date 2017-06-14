@@ -91,8 +91,7 @@ def immediate_download_path(prompt_download_directory=None):
                                    storage->prompt-download-directory setting.
     """
     if prompt_download_directory is None:
-        prompt_download_directory = config.get('storage',
-                                               'prompt-download-directory')
+        prompt_download_directory = config.val.downloads.location.prompt
 
     if not prompt_download_directory:
         return download_dir()
@@ -104,7 +103,7 @@ def _path_suggestion(filename):
     Args:
         filename: The filename to use if included in the suggestion.
     """
-    suggestion = config.val.completion.downloads.location.suggestion
+    suggestion = config.val.downloads.location.suggestion
     if suggestion == 'path':
         # add trailing '/' if not present
         return os.path.join(download_dir(), '')
@@ -473,10 +472,10 @@ class AbstractDownloadItem(QObject):
             position: The color type requested, can be 'fg' or 'bg'.
         """
         assert position in ["fg", "bg"]
-        start = config.get('colors', 'downloads.{}.start'.format(position))
-        stop = config.get('colors', 'downloads.{}.stop'.format(position))
-        system = config.get('colors', 'downloads.{}.system'.format(position))
-        error = config.get('colors', 'downloads.{}.error'.format(position))
+        start = getattr(config.val.colors.downloads.start, position)
+        stop = getattr(config.val.colors.downloads.stop, position)
+        system = getattr(config.val.colors.downloads.system, position)
+        error = getattr(config.val.colors.downloads.error, position)
         if self.error_msg is not None:
             assert not self.successful
             return error

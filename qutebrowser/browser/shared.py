@@ -180,7 +180,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
     Return:
         The Question object if a question was asked, None otherwise.
     """
-    config_val = config.get(*option)
+    config_val = config.instance.get(*option)
     if config_val == 'ask':
         if url.isValid():
             text = "Allow the website at <b>{}</b> to {}?".format(

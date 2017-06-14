@@ -58,11 +58,6 @@ val = None
 instance = None
 
 
-def get(*args, **kwargs):
-    """Convenience method to call get(...) of the config instance."""
-    return instance.get(*args, **kwargs)
-
-
 def _init_main_config(parent=None):
     """Initialize the main config.
 

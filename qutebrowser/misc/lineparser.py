@@ -291,14 +291,14 @@ class LimitLineParser(LineParser):
         assert self._configfile is not None
         if option != self._limit:
             return
-        value = config.get(option)
+        value = config.instance.get(option)
         if value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)
 
     def save(self):
         """Save the config file."""
-        limit = config.get(self._limit)
+        limit = config.instance.get(self._limit)
         if limit == 0:
             return
         do_save = self._prepare_save()
