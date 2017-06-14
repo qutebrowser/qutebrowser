@@ -364,9 +364,9 @@ window.hide_wayland_decoration:
 keyhint.blacklist:
   type:
     name: List
+    none_ok: true
     valtype:
       name: String
-      none_ok: true
   default: null
   desc: >-
     Keychains that shouldn\'t be shown in the keyhint dialog.
@@ -1526,7 +1526,7 @@ colors.downloads.start.bg:
   desc: Color gradient start for download backgrounds.
 
 colors.downloads.stop.fg:
-  default: '#0000aa'
+  default: white
   type: QtColor
   desc: Color gradient end for download text.
 
