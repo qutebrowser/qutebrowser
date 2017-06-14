@@ -60,7 +60,7 @@ instance = None
 
 def get(*args, **kwargs):
     """Convenience method to call get(...) of the config instance."""
-    return objreg.get('config').get(*args, **kwargs)
+    return instance.get(*args, **kwargs)
 
 
 def _init_main_config(parent=None):
@@ -89,7 +89,7 @@ def _init_main_config(parent=None):
         sys.exit(usertypes.Exit.err_config)
     else:
         objreg.register('config', config_obj)
-        filename = os.path.join(standarddir.config(), 'qutebrowser.conf')
+
         save_manager = objreg.get('save-manager')
         save_manager.add_saveable(
             'config', config_obj.save, config_obj.changed,
@@ -153,7 +153,7 @@ def _init_misc():
     command_history = lineparser.LimitLineParser(
         standarddir.data(), 'cmd-history',
         limit='completion.cmd_history_max_items',
-        parent=objreg.get('config'))
+        parent=instance)
     objreg.register('command-history', command_history)
     save_manager.add_saveable('command-history', command_history.save,
                               command_history.changed)

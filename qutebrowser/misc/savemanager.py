@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, log, message, objreg, usertypes
+from qutebrowser.utils import utils, log, message, usertypes
 
 
 class Saveable:
@@ -123,11 +123,11 @@ class SaveManager(QObject):
         We don't do this in __init__ because the config needs to be initialized
         first, but the config needs the save manager.
         """
-        self.set_autosave_interval()
-        objreg.get('config').changed.connect(self.set_autosave_interval)
+        self._set_autosave_interval()
+        config.instance.changed.connect(self._set_autosave_interval)
 
     @config.change_filter('auto_save.interval')
-    def set_autosave_interval(self):
+    def _set_autosave_interval(self):
         """Set the auto-save interval."""
         interval = config.val.auto_save.interval
         if interval == 0:

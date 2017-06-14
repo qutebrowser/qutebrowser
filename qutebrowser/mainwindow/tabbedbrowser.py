@@ -122,12 +122,19 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._global_marks = {}
         self.default_window_icon = self.window().windowIcon()
         self.private = private
-        objreg.get('config').changed.connect(self.update_favicons)
-        objreg.get('config').changed.connect(self.update_window_title)
-        objreg.get('config').changed.connect(self.update_tab_titles)
+        config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
+
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option == 'tabs.favicons.show':
+            self._update_favicons()
+        elif option == 'window.title_format':
+            self._update_window_title()
+        elif option in ['tabs.title.format', 'tabs.title.format_pinned']:
+            self._update_tab_titles()
 
     def _tab_index(self, tab):
         """Get the index of a given tab.
@@ -159,8 +166,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 widgets.append(widget)
         return widgets
 
-    @config.change_filter('window.title_format')
-    def update_window_title(self):
+    def _update_window_title(self):
         """Change the window title to match the current tab."""
         idx = self.currentIndex()
         if idx == -1:
@@ -485,8 +491,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                               self._tab_insert_idx_right))
         return idx
 
-    @config.change_filter('tabs.favicons.show')
-    def update_favicons(self):
+    def _update_favicons(self):
         """Update favicons when config was changed."""
         for i, tab in enumerate(self.widgets()):
             if config.val.tabs.favicons.show:
@@ -510,7 +515,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        self.update_tab_title(idx)
+        self._update_tab_title(idx)
         if tab.data.keep_icon:
             tab.data.keep_icon = False
         else:
@@ -519,7 +524,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                     config.val.tabs.favicons.show):
                 self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
-            self.update_window_title()
+            self._update_window_title()
 
     @pyqtSlot()
     def on_cur_load_started(self):
@@ -551,7 +556,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             idx, text))
         self.set_page_title(idx, text)
         if idx == self.currentIndex():
-            self.update_window_title()
+            self._update_window_title()
 
     @pyqtSlot(browsertab.AbstractTab, QUrl)
     def on_url_changed(self, tab, url):
@@ -625,7 +630,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                             scope='window', window=self._win_id)
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
-        QTimer.singleShot(0, self.update_window_title)
+        QTimer.singleShot(0, self._update_window_title)
         self._tab_insert_idx_left = self.currentIndex()
         self._tab_insert_idx_right = self.currentIndex() + 1
 
@@ -646,9 +651,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         system = config.val.colors.tabs.indicator.system
         color = utils.interpolate_color(start, stop, perc, system)
         self.set_tab_indicator_color(idx, color)
-        self.update_tab_title(idx)
+        self._update_tab_title(idx)
         if idx == self.currentIndex():
-            self.update_window_title()
+            self._update_window_title()
 
     def on_load_finished(self, tab, ok):
         """Adjust tab indicator when loading finished."""
@@ -665,9 +670,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             color = config.val.colors.tabs.indicator.error
         self.set_tab_indicator_color(idx, color)
-        self.update_tab_title(idx)
+        self._update_tab_title(idx)
         if idx == self.currentIndex():
-            self.update_window_title()
+            self._update_window_title()
 
     @pyqtSlot()
     def on_scroll_pos_changed(self):
@@ -678,8 +683,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Not updating scroll position because index is "
                               "-1")
             return
-        self.update_window_title()
-        self.update_tab_title(idx)
+        self._update_window_title()
+        self._update_tab_title(idx)
 
     def _on_renderer_process_terminated(self, tab, status, code):
         """Show an error when a renderer process terminated."""

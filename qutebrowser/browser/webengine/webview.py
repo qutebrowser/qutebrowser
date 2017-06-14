@@ -28,8 +28,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
-from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
-                               objreg)
+from qutebrowser.utils import log, debug, usertypes, jinja, urlutils, message
 
 
 class WebEngineView(QWebEngineView):
@@ -135,7 +134,7 @@ class WebEnginePage(QWebEnginePage):
             self._on_feature_permission_requested)
         self._theme_color = theme_color
         self._set_bg_color()
-        objreg.get('config').changed.connect(self._set_bg_color)
+        config.instance.changed.connect(self._set_bg_color)
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):

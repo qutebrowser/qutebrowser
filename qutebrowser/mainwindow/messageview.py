@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes, objreg
+from qutebrowser.utils import usertypes
 
 
 class Message(QLabel):
@@ -84,7 +84,7 @@ class MessageView(QWidget):
         self._clear_timer = QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
         self._set_clear_timer_interval()
-        objreg.get('config').changed.connect(self._set_clear_timer_interval)
+        config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
         self._messages = []

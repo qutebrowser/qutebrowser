@@ -168,6 +168,7 @@ def debug_all_objects():
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print LRU cache stats."""
+    # FIXME:conf
     config_info = objreg.get('config').get.cache_info()
     style_info = style.get_stylesheet.cache_info()
     log.misc.debug('config: {}'.format(config_info))

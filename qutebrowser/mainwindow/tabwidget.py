@@ -57,18 +57,18 @@ class TabWidget(QTabWidget):
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
-            QTimer.singleShot, 0, self.update_tab_titles))
+            QTimer.singleShot, 0, self._update_tab_titles))
         bar.currentChanged.connect(self._on_current_changed)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
-        self.init_config()
-        objreg.get('config').changed.connect(self.init_config)
+        self._init_config()
+        config.instance.changed.connect(self._init_config)
 
     @config.change_filter('tabs')
-    def init_config(self):
+    def _init_config(self):
         """Initialize attributes based on the config."""
         if self is None:  # pragma: no cover
             # WORKAROUND for PyQt 5.2
@@ -116,7 +116,7 @@ class TabWidget(QTabWidget):
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
-        self.update_tab_title(idx)
+        self._update_tab_title(idx)
 
         bar.refresh()
 
@@ -127,13 +127,13 @@ class TabWidget(QTabWidget):
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
         self.tabBar().set_tab_data(idx, 'page-title', title)
-        self.update_tab_title(idx)
+        self._update_tab_title(idx)
 
     def page_title(self, idx):
         """Get the tab title user data."""
         return self.tabBar().page_title(idx)
 
-    def update_tab_title(self, idx):
+    def _update_tab_title(self, idx):
         """Update the tab text for the given tab."""
         tab = self.widget(idx)
         fields = self.get_tab_fields(idx)
@@ -189,21 +189,20 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
-    def update_tab_titles(self, option='tabs.title.format'):
+    def _update_tab_titles(self):
         """Update all texts."""
-        if option in ['tabs.title.format', 'tabs.title.format_pinned']:
-            for idx in range(self.count()):
-                self.update_tab_title(idx)
+        for idx in range(self.count()):
+            self._update_tab_title(idx)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
-        self.update_tab_titles()
+        self._update_tab_titles()
 
     def tabRemoved(self, idx):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
-        self.update_tab_titles()
+        self._update_tab_titles()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.
@@ -304,24 +303,17 @@ class TabBar(QTabBar):
         super().__init__(parent)
         self._win_id = win_id
         self.setStyle(TabBarStyle())
-        self.set_font()
-        config_obj = objreg.get('config')
-        config_obj.changed.connect(self.set_font)
-        config_obj.changed.connect(self.set_icon_size)
+        self._set_font()
+        config.instance.changed.connect(self._on_config_changed)
         self.vertical = False
         self._auto_hide_timer = QTimer()
         self._auto_hide_timer.setSingleShot(True)
-        self._auto_hide_timer.setInterval(
-            config.val.tabs.show_switching_delay)
         self._auto_hide_timer.timeout.connect(self.maybe_hide)
+        self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
-        self.set_colors()
+        self._set_colors()
         self.pinned_count = 0
-        config_obj.changed.connect(self.set_colors)
         QTimer.singleShot(0, self.maybe_hide)
-        config_obj.changed.connect(self.on_tab_colors_changed)
-        config_obj.changed.connect(self.on_show_switching_delay_changed)
-        config_obj.changed.connect(self.tabs_show)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -330,13 +322,23 @@ class TabBar(QTabBar):
         """Get the current tab object."""
         return self.parent().currentWidget()
 
-    @config.change_filter('tabs.show')
-    def tabs_show(self):
-        """Hide or show tab bar if needed when tabs->show got changed."""
-        self.maybe_hide()
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option == 'fonts.tabbar':
+            self._set_font()
+        elif option == 'tabs.favicons.scale':
+            self._set_icon_size()
+        elif option == 'colors.tabs.bar.bg':
+            self._set_colors()
+        elif option == 'tabs.show_switching_delay':
+            self._on_show_switching_delay_changed()
+        elif option == 'tabs.show':
+            self.maybe_hide()
 
-    @config.change_filter('tabs.show_switching_delay')
-    def on_show_switching_delay_changed(self):
+        if option.startswith('colors.tabs.'):
+            self.update()
+
+    def _on_show_switching_delay_changed(self):
         """Set timer interval when tabs->show-switching-delay got changed."""
         self._auto_hide_timer.setInterval(config.val.tabs.show_switching_delay)
 
@@ -405,31 +407,22 @@ class TabBar(QTabBar):
         # code sets layoutDirty so it actually relayouts the tabs.
         self.setIconSize(self.iconSize())
 
-    @config.change_filter('fonts.tabbar')
-    def set_font(self):
+    def _set_font(self):
         """Set the tab bar font."""
         self.setFont(config.val.fonts.tabbar)
-        self.set_icon_size()
+        self._set_icon_size()
 
-    @config.change_filter('tabs.favicons.scale')
-    def set_icon_size(self):
+    def _set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
         size *= config.val.tabs.favicons.scale
         self.setIconSize(QSize(size, size))
 
-    @config.change_filter('colors.tabs.bar.bg')
-    def set_colors(self):
+    def _set_colors(self):
         """Set the tab bar colors."""
         p = self.palette()
         p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
-
-    @pyqtSlot(str)
-    def on_tab_colors_changed(self, option):
-        """Set the tab colors."""
-        if option.startswith('colors.tabs.'):
-            self.update()
 
     def mousePressEvent(self, e):
         """Override mousePressEvent to close tabs if configured."""

@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import log, qtutils, objreg
+from qutebrowser.utils import log, qtutils
 from qutebrowser.completion.models import base
 
 
@@ -63,7 +63,7 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
         sectdata = configdata.DATA[section]
         self._misc_items = {}
         self._section = section
-        objreg.get('config').changed.connect(self.update_misc_column)
+        config.instance.changed.connect(self._update_misc_column)
         for name in sectdata:
             try:
                 desc = sectdata.descriptions[name]
@@ -79,7 +79,7 @@ class SettingOptionCompletionModel(base.BaseCompletionModel):
             self._misc_items[name] = miscitem
 
     @pyqtSlot(str, str)
-    def update_misc_column(self, section, option):
+    def _update_misc_column(self, section, option):
         """Update misc column when config changed."""
         if section != self._section:
             return
@@ -117,7 +117,7 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
         super().__init__(parent)
         self._section = section
         self._option = option
-        objreg.get('config').changed.connect(self.update_current_value)
+        config.instance.changed.connect(self._update_current_value)
         cur_cat = self.new_category("Current/Default", sort=0)
         value = config.get(section, option, raw=True)
         if not value:
@@ -143,7 +143,7 @@ class SettingValueCompletionModel(base.BaseCompletionModel):
                 self.new_item(cat, val, desc)
 
     @pyqtSlot(str, str)
-    def update_current_value(self, section, option):
+    def _update_current_value(self, section, option):
         """Update current value when config changed."""
         if (section, option) != (self._section, self._option):
             return

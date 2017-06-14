@@ -193,4 +193,4 @@ def init():
     keyconf.changed.connect(
         functools.partial(update, [usertypes.Completion.bind]))
 
-    objreg.get('config').changed.connect(_update_aliases)
+    config.instance.changed.connect(_update_aliases)

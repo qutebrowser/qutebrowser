@@ -36,7 +36,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import objreg, utils, standarddir, javascript, qtutils
+from qutebrowser.utils import utils, standarddir, javascript, qtutils
 
 
 # The default QWebEngineProfile
@@ -166,7 +166,7 @@ def _set_user_agent(profile):
     profile.setHttpUserAgent(config.val.content.user_agent)
 
 
-def update_settings(option):
+def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, option)
     if option in ['scrollbar.hide', 'content.user_stylesheet']:
@@ -215,7 +215,7 @@ def init(args):
     Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
 
     websettings.init_mappings(MAPPINGS)
-    objreg.get('config').changed.connect(update_settings)
+    config.instance.changed.connect(_update_settings)
 
 
 def shutdown():

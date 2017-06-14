@@ -24,7 +24,7 @@ import functools
 import sip
 
 from qutebrowser.config import config
-from qutebrowser.utils import log, objreg, jinja
+from qutebrowser.utils import log, jinja
 
 
 @functools.lru_cache(maxsize=16)
@@ -54,8 +54,7 @@ def set_register_stylesheet(obj):
     log.config.vdebug("stylesheet for {}: {}".format(
         obj.__class__.__name__, qss))
     obj.setStyleSheet(qss)
-    objreg.get('config').changed.connect(
-        functools.partial(_update_stylesheet, obj))
+    config.instance.changed.connect(functools.partial(_update_stylesheet, obj))
 
 
 def _update_stylesheet(obj):

@@ -33,7 +33,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg, urlutils, qtutils
+from qutebrowser.utils import standarddir, urlutils, qtutils
 from qutebrowser.browser import shared
 
 
@@ -111,7 +111,7 @@ def _set_user_stylesheet():
     QWebSettings.globalSettings().setUserStyleSheetUrl(url)
 
 
-def update_settings(option):
+def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     if option in ['scrollbar.hide', 'content.user_stylesheet']:
         _set_user_stylesheet()
@@ -140,7 +140,7 @@ def init(_args):
 
     websettings.init_mappings(MAPPINGS)
     _set_user_stylesheet()
-    objreg.get('config').changed.connect(update_settings)
+    config.instance.changed.connect(_update_settings)
 
 
 def shutdown():

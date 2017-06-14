@@ -26,7 +26,7 @@ import contextlib
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-from qutebrowser.utils import log, utils, objreg, qtutils
+from qutebrowser.utils import log, utils, qtutils
 from qutebrowser.config import config
 
 
@@ -278,7 +278,7 @@ class LimitLineParser(LineParser):
         super().__init__(configdir, fname, binary=binary, parent=parent)
         self._limit = limit
         if limit is not None and configdir is not None:
-            objreg.get('config').changed.connect(self.cleanup_file)
+            config.instance.changed.connect(self._cleanup_file)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
@@ -286,7 +286,7 @@ class LimitLineParser(LineParser):
                               limit=self._limit, binary=self._binary)
 
     @pyqtSlot(str)
-    def cleanup_file(self, option):
+    def _cleanup_file(self, option):
         """Delete the file if the limit was changed to 0."""
         assert self._configfile is not None
         if option != self._limit:

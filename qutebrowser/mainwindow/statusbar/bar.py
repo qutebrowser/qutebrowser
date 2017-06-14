@@ -193,7 +193,7 @@ class StatusBar(QWidget):
         self.prog = progress.Progress(self)
         self._hbox.addWidget(self.prog)
 
-        objreg.get('config').changed.connect(self._on_config_changed)
+        config.instance.changed.connect(self._on_config_changed)
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):

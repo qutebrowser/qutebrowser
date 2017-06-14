@@ -74,7 +74,7 @@ class CookieJar(RAMCookieJar):
             self._lineparser = lineparser.LineParser(
                 standarddir.data(), 'cookies', binary=True, parent=self)
         self.parse_cookies()
-        objreg.get('config').changed.connect(self.cookies_store_changed)
+        config.instance.changed.connect(self._on_cookies_store_changed)
         objreg.get('save-manager').add_saveable(
             'cookies', self.save, self.changed,
             config_opt='content.cookies.store')
@@ -106,7 +106,7 @@ class CookieJar(RAMCookieJar):
         self._lineparser.save()
 
     @config.change_filter('content.cookies.store')
-    def cookies_store_changed(self):
+    def _on_cookies_store_changed(self):
         """Delete stored cookies if cookies-store changed."""
         if not config.val.content.cookies.store:
             self._lineparser.data = []

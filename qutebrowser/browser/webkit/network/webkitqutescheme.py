@@ -83,6 +83,7 @@ class JSBridge(QObject):
             message.error("Refusing to disable javascript via qute://settings "
                           "as it needs javascript support.")
             return
+        # FIXME:conf
         try:
             objreg.get('config').set('conf', sectname, optname, value)
         except (configexc.Error, configparser.Error) as e:

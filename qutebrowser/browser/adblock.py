@@ -114,12 +114,12 @@ class HostBlocker:
 
         data_dir = standarddir.data()
         self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
-        self.on_config_changed()
+        self._update_files()
 
         config_dir = standarddir.config()
         self._config_hosts_file = os.path.join(config_dir, 'blocked-hosts')
 
-        objreg.get('config').changed.connect(self.on_config_changed)
+        config.instance.changed.connect(self._update_files)
 
     def is_blocked(self, url):
         """Check if the given URL (as QUrl) is blocked."""
@@ -293,7 +293,7 @@ class HostBlocker:
                 len(self._blocked_hosts), self._done_count))
 
     @config.change_filter('content.host_blocking.lists')
-    def on_config_changed(self):
+    def _update_files(self):
         """Update files when the config changed."""
         if config.val.content.host_blocking.lists is None:
             try:

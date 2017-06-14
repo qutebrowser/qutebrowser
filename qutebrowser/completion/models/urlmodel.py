@@ -76,7 +76,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
         self._history.add_completion_item.connect(self.on_history_item_added)
         self._history.cleared.connect(self.on_history_cleared)
 
-        objreg.get('config').changed.connect(self.reformat_timestamps)
+        config.instance.changed.connect(self._reformat_timestamps)
 
     def _fmt_atime(self, atime):
         """Format an atime to a human-readable string."""
@@ -108,7 +108,7 @@ class UrlCompletionModel(base.BaseCompletionModel):
             self._remove_oldest_history()
 
     @config.change_filter('completion.timestamp_format')
-    def reformat_timestamps(self):
+    def _reformat_timestamps(self):
         """Reformat the timestamps if the config option was changed."""
         for i in range(self._history_cat.rowCount()):
             url_item = self._history_cat.child(i, self.URL_COLUMN)

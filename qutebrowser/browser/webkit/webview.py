@@ -88,7 +88,7 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        objreg.get('config').changed.connect(self._set_bg_color)
+        config.instance.changed.connect(self._set_bg_color)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)

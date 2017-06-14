@@ -213,7 +213,7 @@ class MainWindow(QWidget):
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
         QTimer.singleShot(0, self._connect_overlay_signals)
-        objreg.get('config').changed.connect(self.on_config_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
         objreg.get("app").new_window.emit(self)
 
@@ -324,7 +324,7 @@ class MainWindow(QWidget):
         return utils.get_repr(self)
 
     @pyqtSlot(str)
-    def on_config_changed(self, option):
+    def _on_config_changed(self, option):
         """Resize the completion if related config options changed."""
         if option == 'statusbar.padding':
             self._update_overlay_geometries()

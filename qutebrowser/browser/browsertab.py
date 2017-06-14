@@ -251,7 +251,7 @@ class AbstractZoom(QObject):
         self._win_id = win_id
         self._default_zoom_changed = False
         self._init_neighborlist()
-        objreg.get('config').changed.connect(self._on_config_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
         # # FIXME:qtwebengine is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
