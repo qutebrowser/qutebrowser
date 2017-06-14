@@ -99,6 +99,7 @@ def _get_search_url(txt):
     engine, term = _parse_search_term(txt)
     assert term
     if engine is None:
+        # FIXME:conf
         template = config.val.searchengines.DEFAULT
     else:
         template = config.get('searchengines', engine)

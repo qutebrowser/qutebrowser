@@ -78,6 +78,8 @@ class Loader(jinja2.BaseLoader):
 
 class Environment(jinja2.Environment):
 
+    """Our own jinja environment which is more strict."""
+
     def __init__(self):
         super().__init__(loader=Loader('html'),
                          autoescape=self._guess_autoescape,

@@ -98,7 +98,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
     try:
-        win_mode = config.val.new_instance_open_target.window
+        win_mode = config.val.new_instance_open_target_window
         if win_mode == 'last-focused':
             return objreg.last_focused_window()
         elif win_mode == 'first-opened':

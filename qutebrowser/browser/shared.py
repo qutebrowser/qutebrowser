@@ -86,7 +86,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
     log.js.debug("prompt: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
-    if config.val.content.ignore_javascript_prompt:
+    if not config.val.content.javascript.prompt:
         return (False, "")
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
@@ -108,7 +108,7 @@ def javascript_alert(url, js_msg, abort_on):
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
-    if config.val.content.ignore_javascript_alert:
+    if not config.val.content.javascript.alert:
         return
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),

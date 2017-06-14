@@ -278,7 +278,7 @@ def qute_history(url):
         return 'text/html', json.dumps(history_data(start_time))
     else:
         if (
-            config.val.content.allow_javascript and
+            config.val.content.javascript.enabled and
             (objects.backend == usertypes.Backend.QtWebEngine or
              qtutils.is_qtwebkit_ng())
         ):

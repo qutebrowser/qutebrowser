@@ -30,7 +30,7 @@ from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout)
 
-from qutebrowser.config import config, configexc, style
+from qutebrowser.config import config, style
 from qutebrowser.utils import qtutils
 
 

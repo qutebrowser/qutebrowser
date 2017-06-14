@@ -33,7 +33,7 @@ import sys
 import re
 import collections
 
-from qutebrowser.config import configtypes, sections
+from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 
 DATA = None
@@ -601,8 +601,8 @@ def _parse_yaml_backends_dict(name, node):
 
     backends = []
 
-    # The value associated to the key, and whether we should add that backend or
-    # not.
+    # The value associated to the key, and whether we should add that backend
+    # or not.
     conditionals = {
         True: True,
         False: False,

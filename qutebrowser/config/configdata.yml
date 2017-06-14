@@ -536,16 +536,6 @@ completion.show:
       - never: Never.
   desc: When to show the autocompletion window.
 
-downloads.path_suggestion:
-  default: path
-  type:
-    name: String
-    valid_values:
-      - path: Show only the download path.
-      - filename: Show only download filename.
-      - both: Show download path and filename.
-  desc: What to display in the download filename input.
-
 completion.timestamp_format:
   type:
     name: TimestampTemplate
@@ -909,6 +899,17 @@ downloads.location.remember:
   type: Bool
   desc: Whether to remember the last used download directory.
 
+downloads.location.suggestion:
+  default: path
+  type:
+    name: String
+    valid_values:
+      - path: Show only the download path.
+      - filename: Show only download filename.
+      - both: Show download path and filename.
+  desc: What to display in the download filename input.
+
+
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
 
@@ -1020,13 +1021,11 @@ content.javascript.can_access_clipboard:
     allowed.
 
 content.javascript.prompt:
-  # FIXME:conf meaning changed!
   default: true
   type: Bool
   desc: Show javascript prompts.
 
 content.javascript.alert:
-  # FIXME:conf meaning changed!
   default: false
   type: Bool
   desc: Show javascript.

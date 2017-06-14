@@ -565,7 +565,7 @@ class FilenamePrompt(_BasePrompt):
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
 
-        if config.val.ui.prompt.filebrowser:
+        if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
@@ -627,7 +627,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
-        if config.val.ui.prompt.filebrowser:
+        if config.val.prompt.filebrowser:
             self._vbox.addWidget(self._file_view)
         else:
             self._file_view.hide()

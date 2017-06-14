@@ -161,8 +161,8 @@ class BaseType:
         """Get the setting value from a string.
 
         By default this tries to invoke from_py(), so if from_py() accepts a
-        string rather than something more sophisticated, this doesn't need to be
-        implemented.
+        string rather than something more sophisticated, this doesn't need to
+        be implemented.
 
         Args:
             value: The original string value.
@@ -484,21 +484,21 @@ class BoolAsk(Bool):
         self.valid_values = ValidValues('true', 'false', 'ask')
 
     def from_py(self, value):
-        # basic validation unneeded if it's == 'ask' and done by Bool if we call
-        # super().from_py
+        # basic validation unneeded if it's == 'ask' and done by Bool if we
+        # call super().from_py
         if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
         return super().from_py(value)
 
     def from_str(self, value):
-        # basic validation unneeded if it's == 'ask' and done by Bool if we call
-        # super().from_str
+        # basic validation unneeded if it's == 'ask' and done by Bool if we
+        # call super().from_str
         if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
         return super().from_str(value)
 
 
-class _Numeric(BaseType):
+class _Numeric(BaseType):  # pylint: disable=abstract-method
 
     """Base class for Float/Int.
 
@@ -658,8 +658,8 @@ class PercOrInt(_Numeric):
                 raise configexc.ValidationError(value, "must be {}% or "
                                                 "less!".format(self.maxperc))
 
-            # Note we don't actually return the integer here, as we need to know
-            # whether it was a percentage.
+            # Note we don't actually return the integer here, as we need to
+            # know whether it was a percentage.
         else:
             self._validate_bounds(value)
         return value
@@ -770,7 +770,9 @@ class Font(BaseType):
         if not value:
             return None
 
-        if not self.font_regex.match(value):  # FIXME:conf this used to have "pragma: no cover"
+        if not self.font_regex.match(value):  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
             raise configexc.ValidationError(value, "must be a valid font")
 
         return value

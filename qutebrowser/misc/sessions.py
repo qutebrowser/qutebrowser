@@ -382,7 +382,7 @@ class SessionManager(QObject):
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
-                data = utils.yaml_load(f, Loader=YamlLoader)
+                data = utils.yaml_load(f)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 

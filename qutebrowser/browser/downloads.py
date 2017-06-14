@@ -69,8 +69,8 @@ class UnsupportedOperationError(Exception):
 
 def download_dir():
     """Get the download directory to use."""
-    directory = config.val.storage.download_directory
-    remember_dir = config.val.storage.remember_download_directory
+    directory = config.val.downloads.location.directory
+    remember_dir = config.val.downloads.location.remember
 
     if remember_dir and last_used_directory is not None:
         return last_used_directory
@@ -104,7 +104,7 @@ def _path_suggestion(filename):
     Args:
         filename: The filename to use if included in the suggestion.
     """
-    suggestion = config.val.completion.download_path_suggestion
+    suggestion = config.val.completion.downloads.location.suggestion
     if suggestion == 'path':
         # add trailing '/' if not present
         return os.path.join(download_dir(), '')
@@ -472,8 +472,6 @@ class AbstractDownloadItem(QObject):
         Args:
             position: The color type requested, can be 'fg' or 'bg'.
         """
-        # pylint: disable=bad-config-call
-        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
         assert position in ["fg", "bg"]
         start = config.get('colors', 'downloads.{}.start'.format(position))
         stop = config.get('colors', 'downloads.{}.stop'.format(position))

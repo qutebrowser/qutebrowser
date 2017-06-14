@@ -484,7 +484,7 @@ class TabBar(QTabBar):
         minimum_size = self.minimumTabSizeHint(index)
         height = minimum_size.height()
         if self.vertical:
-            confwidth = str(config.val.tabs.width)
+            confwidth = str(config.val.tabs.width.bar)
             if confwidth.endswith('%'):
                 main_window = objreg.get('main-window', scope='window',
                                          window=self._win_id)
@@ -593,7 +593,7 @@ class TabBar(QTabBar):
         Args:
             e: The QWheelEvent
         """
-        if config.val.tabs.mousewheel_tab_switching:
+        if config.val.tabs.mousewheel_switching:
             super().wheelEvent(e)
         else:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',

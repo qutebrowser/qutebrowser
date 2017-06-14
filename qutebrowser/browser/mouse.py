@@ -119,7 +119,7 @@ class MouseEventFilter(QObject):
             return True
 
         if e.modifiers() & Qt.ControlModifier:
-            divider = config.val.input.mouse_zoom_divider
+            divider = config.val.zoom.mouse_divider
             if divider == 0:
                 return False
             factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)

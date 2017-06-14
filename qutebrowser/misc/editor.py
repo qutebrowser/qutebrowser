@@ -75,7 +75,7 @@ class ExternalEditor(QObject):
         try:
             if exitcode != 0:
                 return
-            encoding = config.val.editor_encoding
+            encoding = config.val.editor.encoding
             try:
                 with open(self._file.name, 'r', encoding=encoding) as f:
                     text = f.read()
@@ -102,14 +102,14 @@ class ExternalEditor(QObject):
         if self._text is not None:
             raise ValueError("Already editing a file!")
         self._text = text
-        encoding = config.val.editor_encoding
         try:
             # Close while the external process is running, as otherwise systems
             # with exclusive write access (e.g. Windows) may fail to update
             # the file from the external editor, see
             # https://github.com/qutebrowser/qutebrowser/issues/1767
             with tempfile.NamedTemporaryFile(
-                    mode='w', prefix='qutebrowser-editor-', encoding=encoding,
+                    mode='w', prefix='qutebrowser-editor-',
+                    encoding=config.val.editor.encoding,
                     delete=False) as fobj:
                 if text:
                     fobj.write(text)
@@ -120,7 +120,7 @@ class ExternalEditor(QObject):
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)
-        editor = config.val.editor
+        editor = config.val.editor.command
         executable = editor[0]
         args = [arg.replace('{}', self._file.name) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))

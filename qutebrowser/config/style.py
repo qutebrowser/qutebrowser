@@ -20,10 +20,8 @@
 """Utilities related to the look&feel of qutebrowser."""
 
 import functools
-import collections
 
 import sip
-from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, objreg, jinja

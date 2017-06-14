@@ -195,8 +195,8 @@ class TestParseYamlBackend:
     @pytest.mark.parametrize('backend, expected', [
         ('QtWebKit', [usertypes.Backend.QtWebKit]),
         ('QtWebEngine', [usertypes.Backend.QtWebEngine]),
-        # This is also what _parse_yaml_backends gets when backend: is not given
-        # at all
+        # This is also what _parse_yaml_backends gets when backend: is not
+        # given at all
         ('null', [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]),
     ])
     def test_simple(self, backend, expected):

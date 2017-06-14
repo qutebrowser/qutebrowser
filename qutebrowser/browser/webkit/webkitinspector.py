@@ -36,7 +36,7 @@ class WebKitInspector(inspector.AbstractWebInspector):
         self._set_widget(qwebinspector)
 
     def inspect(self, page):
-        if not config.val.developer_extras:
+        if not config.val.content.developer_extras:
             raise inspector.WebInspectorError(
                 "Please enable developer-extras before using the "
                 "webinspector!")

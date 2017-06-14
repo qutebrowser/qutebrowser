@@ -85,31 +85,3 @@ def test_set_register_stylesheet(delete, qtbot, config_stub, caplog):
     else:
         expected = 'baz'
     assert obj.rendered_stylesheet == expected
-
-
-class TestColorDict:
-
-    @pytest.mark.parametrize('key, expected', [
-        ('foo', 'one'),
-        ('foo.fg', 'two'),
-        ('foo.bg', 'three'),
-    ])
-    def test_values(self, key, expected):
-        d = style.ColorDict()
-        d['foo'] = 'one'
-        d['foo.fg'] = 'two'
-        d['foo.bg'] = 'three'
-        assert d[key] == expected
-
-    def test_key_error(self, caplog):
-        d = style.ColorDict()
-        with caplog.at_level(logging.ERROR):
-            d['foo']  # pylint: disable=pointless-statement
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'No color defined for foo!'
-
-    def test_qcolor(self):
-        d = style.ColorDict()
-        d['foo'] = QColor()
-        with pytest.raises(TypeError):
-            d['foo']  # pylint: disable=pointless-statement

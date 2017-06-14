@@ -22,7 +22,6 @@ import re
 import json
 import collections
 import itertools
-import os.path
 import warnings
 
 import pytest
@@ -796,7 +795,7 @@ class TestPercOrInt:
         ({'minint': 2, 'maxint': 3}, '4%', '4%'),
     ])
     def test_from_str_valid(self, klass, kwargs, val, expected):
-        klass(**kwargs).from_str(val) == expected
+        assert klass(**kwargs).from_str(val) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
         ({}, '1337%%'),
@@ -820,7 +819,7 @@ class TestPercOrInt:
 
     @pytest.mark.parametrize('val', ['1337%', 1337, None])
     def test_from_py_valid(self, klass, val):
-        klass(none_ok=True).from_py(val) == val
+        assert klass(none_ok=True).from_py(val) == val
 
     @pytest.mark.parametrize('val', ['1337%%', '1337'])
     def test_from_py_invalid(self, klass, val):
@@ -846,7 +845,7 @@ class TestCommand:
                                      'cmd2  baz fish'])
     def test_from_py_valid(self, klass, val):
         expected = None if not val else val
-        klass(none_ok=True).from_py(val) == expected
+        assert klass(none_ok=True).from_py(val) == expected
 
     @pytest.mark.parametrize('val', ['', 'cmd3', 'cmd3  foo bar', ' '])
     def test_from_py_invalid(self, klass, val):
@@ -1090,7 +1089,7 @@ class TestFontFamily:
 
     @pytest.mark.parametrize('val', TESTS)
     def test_from_py_valid(self, klass, val):
-        klass(none_ok=True).from_py(val) == val
+        assert klass(none_ok=True).from_py(val) == val
 
     @pytest.mark.parametrize('val', INVALID)
     def test_from_py_invalid(self, klass, val):
