@@ -252,6 +252,12 @@ class PACFetcher(QObject):
         self._pac = None
         self._error_message = None
 
+    def __eq__(self, other):
+        return self._pac_url == other._pac_url
+
+    def __repr__(self):
+        return utils.get_repr(self, url=self._pac_url, constructor=True)
+
     @pyqtSlot()
     def _finish(self):
         if self._reply.error() != QNetworkReply.NoError:
