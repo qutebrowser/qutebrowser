@@ -30,7 +30,7 @@ def check_history(quteproc, httpbin, tmpdir, expected):
     path = tmpdir / 'history'
     quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
     quteproc.wait_for(category='message', loglevel=logging.INFO,
-                      message='Dumped history to {}.'.format(path))
+                      message='Dumped history to {}'.format(path))
 
     with open(path, 'r', encoding='utf-8') as f:
         # ignore access times, they will differ in each run
