@@ -29,6 +29,9 @@ from pylint import interfaces, checkers
 from pylint.checkers import utils
 
 
+OPTIONS = None
+
+
 class ConfigChecker(checkers.BaseChecker):
 
     """Custom astroid checker for config calls."""
@@ -36,47 +39,36 @@ class ConfigChecker(checkers.BaseChecker):
     __implements__ = interfaces.IAstroidChecker
     name = 'config'
     msgs = {
-        'E0000': ('%s is no valid config option.',  # flake8: disable=S001
+        'E9998': ('%s is no valid config option.',  # flake8: disable=S001
                   'bad-config-call',
                   None),
-        'E0001': ('old config call',  # flake8: disable=S001
+        'E9999': ('old config call',  # flake8: disable=S001
                   'old-config-call',
                   None),
     }
     priority = -1
 
     @utils.check_messages('bad-config-call')
-    def visit_call(self, node):
-        """Visit a Call node."""
-        if hasattr(node, 'func'):
-            infer = utils.safe_infer(node.func)
-            if infer and infer.root().name == 'qutebrowser.config.config':
-                if getattr(node.func, 'attrname', None) in ['get', 'set']:
-                    self._check_config(node)
+    def visit_attribute(self, node):
+        """Visit a getattr node."""
+        # At the end of a config.val.foo.bar chain
+        if not isinstance(node.parent, astroid.Attribute):
+            # FIXME do some proper check for this...
+            node_str = node.as_string()
+            prefix = 'config.val.'
+            if node_str.startswith(prefix):
+                self._check_config(node, node_str[len(prefix):])
 
-    def _check_config(self, node):
-        """Check that the arguments to config.get(...) are valid."""
-        # try:
-        #     sect_arg = utils.get_argument_from_call(node, position=0,
-        #                                             keyword='sectname')
-        #     opt_arg = utils.get_argument_from_call(node, position=1,
-        #                                            keyword='optname')
-        # except utils.NoSuchArgumentError:
-        #     return
-        # sect_arg = utils.safe_infer(sect_arg)
-        # opt_arg = utils.safe_infer(opt_arg)
-        # if not (isinstance(sect_arg, astroid.Const) and
-        #         isinstance(opt_arg, astroid.Const)):
-        #     return
-        # try:
-        #     configdata.DATA[sect_arg.value][opt_arg.value]
-        # except KeyError:
-        #     self.add_message('bad-config-call', node=node,
-        #                      args=(sect_arg.value, opt_arg.value))
-
-        self.add_message('old-config-call', node=node)
+    def _check_config(self, node, name):
+        """Check that we're accessing proper config options."""
+        if name not in OPTIONS:
+            self.add_message('bad-config-call', node=node, args=name)
 
 
 def register(linter):
     """Register this checker."""
     linter.register_checker(ConfigChecker(linter))
+    global OPTIONS
+    yaml_file = os.path.join('qutebrowser', 'config', 'configdata.yml')
+    with open(yaml_file, 'r', encoding='utf-8') as f:
+        OPTIONS = list(yaml.load(f))
