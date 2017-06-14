@@ -158,7 +158,7 @@ class WebHistory(sql.SqlTable):
             self.completion.insert({'url': url_str,
                                     'title': title,
                                     'last_atime': atime},
-                                    replace=True)
+                                   replace=True)
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""

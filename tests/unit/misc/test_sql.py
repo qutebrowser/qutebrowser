@@ -79,7 +79,7 @@ def test_insert_batch_replace(qtbot):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]},
-                            replace=True)
+                           replace=True)
 
     assert list(table) == [('thirteen', 13, True),
                            ('one', 11, True),
