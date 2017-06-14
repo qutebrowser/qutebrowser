@@ -344,7 +344,7 @@ class CompletionView(QTreeView):
         indexes = selected.indexes()
         if not indexes:
             return
-        data = self.model().data(indexes[0])
+        data = str(self.model().data(indexes[0]))
         self.selection_changed.emit(data)
 
     def resizeEvent(self, e):
