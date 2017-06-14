@@ -127,9 +127,13 @@ class BaseType:
 
         if (value is not None and pytype is not None and
                 not isinstance(value, pytype)):
+            if isinstance(pytype, tuple):
+                expected = ' or '.join(typ.__name__ for typ in pytype)
+            else:
+                expected = pytype.__name__
             raise configexc.ValidationError(
                 value, "expected a value of type {} but got {}.".format(
-                    pytype.__name__, type(value).__name__))
+                    expected, type(value).__name__))
 
         if isinstance(value, str):
             if not value and not self.none_ok:
@@ -182,12 +186,12 @@ class BaseType:
         """
         raise NotImplementedError
 
-    def to_str(self, value):
-        """Get a string from the setting value.
+    # def to_str(self, value):
+    #     """Get a string from the setting value.
 
-        The resulting string should be parseable again by from_str.
-        """
-        raise NotImplementedError
+    #     The resulting string should be parseable again by from_str.
+    #     """
+    #     raise NotImplementedError
 
     # def to_py(self, value):
     #     """Get a Python/YAML value from the setting value.
@@ -241,10 +245,10 @@ class MappingType(BaseType):
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
 
-    def to_str(self, value):
-        reverse_mapping = {v: k for k, v in self.MAPPING.items()}
-        assert len(self.MAPPING) == len(reverse_mapping)
-        return reverse_mapping[value]
+    # def to_str(self, value):
+    #     reverse_mapping = {v: k for k, v in self.MAPPING.items()}
+    #     assert len(self.MAPPING) == len(reverse_mapping)
+    #     return reverse_mapping[value]
 
 
 class String(BaseType):
@@ -299,6 +303,8 @@ class String(BaseType):
         self._basic_validation(value, pytype=str)
         if not value:
             return None
+
+        self._validate_encoding(value)
         self._validate_valid_values(value)
 
         if self.forbidden is not None and any(c in value
@@ -364,6 +370,10 @@ class List(BaseType):
                                             "be set!".format(self.length))
 
     def from_str(self, value):
+        self._basic_validation(value, pytype=str)
+        if not value:
+            return None
+
         try:
             json_val = json.loads(value)
         except ValueError as e:
@@ -374,6 +384,7 @@ class List(BaseType):
         if not json_val:
             return None
 
+        self._validate_list(json_val)
         return [self.valtype.from_str(v) for v in json_val]
 
     def from_py(self, value):
@@ -381,6 +392,7 @@ class List(BaseType):
         if not value:
             return None
 
+        self._validate_list(value)
         return [self.valtype.from_py(v) for v in value]
 
 
@@ -396,8 +408,8 @@ class FlagList(List):
 
     _show_valtype = False
 
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(String(), none_ok)
+    def __init__(self, none_ok=False, valid_values=None, length=None):
+        super().__init__(valtype=String(), none_ok=none_ok, length=length)
         self.valtype.valid_values = valid_values
 
     def _check_duplicates(self, values):
@@ -407,12 +419,16 @@ class FlagList(List):
 
     def from_str(self, value):
         vals = super().from_str(value)
-        self._check_duplicates(vals)
+        if vals is not None:
+            self._check_duplicates(vals)
+            self._validate_list(vals)
         return vals
 
     def from_py(self, value):
         vals = super().from_py(value)
-        self._check_duplicates(vals)
+        if vals is not None:
+            self._check_duplicates(vals)
+            self._validate_list(vals)
         return vals
 
     def complete(self):
@@ -474,6 +490,13 @@ class BoolAsk(Bool):
             return 'ask'
         return super().from_py(value)
 
+    def from_str(self, value):
+        # basic validation unneeded if it's == 'ask' and done by Bool if we call
+        # super().from_str
+        if isinstance(value, str) and value.lower() == 'ask':
+            return 'ask'
+        return super().from_str(value)
+
 
 class _Numeric(BaseType):
 
@@ -521,11 +544,14 @@ class Int(_Numeric):
     """Base class for an integer setting."""
 
     def from_str(self, value):
+        self._basic_validation(value, pytype=str)
+        if not value:
+            return None
+
         try:
             intval = int(value)
         except ValueError:
             raise configexc.ValidationError(value, "must be an integer!")
-        # FIXME:conf should we check .is_integer() here?!
         return self.from_py(intval)
 
     def from_py(self, value):
@@ -539,6 +565,10 @@ class Float(_Numeric):
     """Base class for a float setting."""
 
     def from_str(self, value):
+        self._basic_validation(value, pytype=str)
+        if not value:
+            return None
+
         try:
             floatval = float(value)
         except ValueError:
@@ -546,7 +576,7 @@ class Float(_Numeric):
         return self.from_py(floatval)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=float)
+        self._basic_validation(value, pytype=(int, float))
         self._validate_bounds(value)
         return value
 
@@ -592,6 +622,7 @@ class PercOrInt(_Numeric):
                              "({})!".format(self.minperc, self.maxperc))
 
     def from_str(self, value):
+        self._basic_validation(value)
         if not value:
             return None
 
@@ -599,13 +630,14 @@ class PercOrInt(_Numeric):
             return self.from_py(value)
 
         try:
-            floatval = float(value)
+            intval = int(value)
         except ValueError:
             raise configexc.ValidationError(value,
                                             "must be integer or percentage!")
-        return self.from_py(floatval)
+        return self.from_py(intval)
 
     def from_py(self, value):
+        """Expect a value like '42%' as string, or 23 as int."""
         self._basic_validation(value, pytype=(int, str))
         if not value:
             return
@@ -615,14 +647,14 @@ class PercOrInt(_Numeric):
                 raise configexc.ValidationError(value, "does not end with %")
 
             try:
-                floatval = float(value[:-1])
+                intval = int(value[:-1])
             except ValueError:
                 raise configexc.ValidationError(value, "invalid percentage!")
 
-            if self.minperc is not None and floatval < self.minperc:
+            if self.minperc is not None and intval < self.minperc:
                 raise configexc.ValidationError(value, "must be {}% or "
                                                 "more!".format(self.minperc))
-            if self.maxperc is not None and floatval > self.maxperc:
+            if self.maxperc is not None and intval > self.maxperc:
                 raise configexc.ValidationError(value, "must be {}% or "
                                                 "less!".format(self.maxperc))
 
@@ -823,11 +855,17 @@ class QtFont(Font):
 
 class Regex(BaseType):
 
-    """A regular expression."""
+    """A regular expression.
+
+    Attributes:
+        flags: The flags to be used when a regex is passed.
+        _regex_type: The Python type of a regex object.
+    """
 
     def __init__(self, flags=0, none_ok=False):
         super().__init__(none_ok)
         self.flags = flags
+        self._regex_type = type(re.compile(''))
 
     def _compile_regex(self, pattern):
         """Check if the given regex is valid.
@@ -859,8 +897,8 @@ class Regex(BaseType):
         return compiled
 
     def from_py(self, value):
-        regex_type = type(re.compile(''))
-        self._basic_validation(value, pytype=(str, regex_type))
+        """Get a compiled regex from either a string or a regex object."""
+        self._basic_validation(value, pytype=(str, self._regex_type))
         if not value:
             return None
         elif isinstance(value, str):
@@ -872,7 +910,7 @@ class Regex(BaseType):
 
 class Dict(BaseType):
 
-    """A JSON-like dictionary for custom HTTP headers."""
+    """A dictionary of values."""
 
     def __init__(self, keytype, valtype, *, fixed_keys=None, none_ok=False):
         super().__init__(none_ok)
@@ -887,6 +925,10 @@ class Dict(BaseType):
                 value, "Expected keys {}".format(self.fixed_keys))
 
     def from_str(self, value):
+        self._basic_validation(value, pytype=str)
+        if not value:
+            return None
+
         try:
             json_val = json.loads(value)
         except ValueError as e:
@@ -981,7 +1023,7 @@ class FormatString(BaseType):
             return None
 
         try:
-            return value.format(**{k: '' for k in self.fields})
+            value.format(**{k: '' for k in self.fields})
         except (KeyError, IndexError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))
@@ -1004,6 +1046,9 @@ class ShellCommand(BaseType):
         self.placeholder = placeholder
 
     def from_str(self, value):
+        self._basic_validation(value, pytype=str)
+        if not value:
+            return None
         try:
             return self.from_py(shlex.split(value))
         except ValueError as e:
@@ -1217,6 +1262,8 @@ class SessionName(BaseType):
 
     def from_py(self, value):
         self._basic_validation(value, pytype=str)
+        if not value:
+            return None
         if value.startswith('_'):
             raise configexc.ValidationError(value, "may not start with '_'!")
         return value
