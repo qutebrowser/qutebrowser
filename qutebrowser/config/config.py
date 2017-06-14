@@ -63,12 +63,6 @@ def get(*args, **kwargs):
     return objreg.get('config').get(*args, **kwargs)
 
 
-def section(sect):
-    """Get a config section from the global config."""
-    config = objreg.get('config')
-    return newconfig.SectionStub(config, sect)
-
-
 def _init_main_config(parent=None):
     """Initialize the main config.
 

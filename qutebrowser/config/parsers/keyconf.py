@@ -363,11 +363,12 @@ class KeyConfigParser(QObject):
                     line))
         commands = [c.split(maxsplit=1)[0].strip() for c in commands]
         for cmd in commands:
-            aliases = config.section('aliases')
+            # FIXME:conf
+            # aliases = config.section('aliases')
             if cmd in cmdutils.cmd_dict:
                 cmdname = cmd
-            elif cmd in aliases:
-                cmdname = aliases[cmd].split(maxsplit=1)[0].strip()
+            # elif cmd in aliases:
+            #     cmdname = aliases[cmd].split(maxsplit=1)[0].strip()
             else:
                 raise KeyConfigError("Invalid command '{}'!".format(cmd))
             cmd_obj = cmdutils.cmd_dict[cmdname]

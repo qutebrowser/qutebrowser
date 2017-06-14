@@ -33,18 +33,6 @@ instance = None
 _change_filters = []
 
 
-class SectionStub:
-
-    # FIXME get rid of this once we get rid of sections
-
-    def __init__(self, conf, name):
-        self._conf = conf
-        self._name = name
-
-    def __getitem__(self, item):
-        return self._conf.get(self._name, item)
-
-
 class change_filter:  # pylint: disable=invalid-name
 
     """Decorator to filter calls based on a config section/option matching.
