@@ -841,7 +841,9 @@ class FontFamily(Font):
             return None
 
         match = self.font_regex.match(value)
-        if not match:  # FIXME:conf this used to have "pragma: no cover"
+        if not match:  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
             raise configexc.ValidationError(value, "must be a valid font")
         for group in 'style', 'weight', 'namedweight', 'size':
             if match.group(group):
@@ -874,7 +876,9 @@ class QtFont(Font):
         font.setWeight(QFont.Normal)
 
         match = self.font_regex.match(value)
-        if not match:  # FIXME:conf this used to have "pragma: no cover"
+        if not match:  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
             raise configexc.ValidationError(value, "must be a valid font")
 
         style = match.group('style')
@@ -913,7 +917,7 @@ class Regex(BaseType):
     """A regular expression.
 
     Attributes:
-        flags: The flags to be used when a regex is passed.
+        flags: The flags to be used when a string is passed.
         _regex_type: The Python type of a regex object.
     """
 
@@ -965,7 +969,6 @@ class Regex(BaseType):
         elif isinstance(value, str):
             return self._compile_regex(value)
         else:
-            # FIXME:conf is it okay if we ignore flags here?
             return value
 
     def to_str(self, value):
@@ -1237,12 +1240,10 @@ class Padding(Dict):
 
     _show_valtype = False
 
-    def __init__(self, none_ok=False, valid_values=None):
+    def __init__(self, none_ok=False):
         super().__init__(keytype=String(), valtype=Int(minval=0),
                          fixed_keys=['top', 'bottom', 'left', 'right'],
                          none_ok=none_ok)
-        # FIXME:conf
-        assert valid_values is None, valid_values
 
     def to_py(self, value):
         d = super().to_py(value)

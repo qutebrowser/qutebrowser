@@ -856,9 +856,7 @@ class TestFloat:
         if math.isnan(converted):
             assert math.isnan(converted_2)
         else:
-            # FIXME:conf this fails with big values...
-            # assert converted == converted_2
-            pass
+            assert converted == pytest.approx(converted_2)
 
     @hypothesis.given(val=strategies.one_of(strategies.floats(),
                                             strategies.integers()))
