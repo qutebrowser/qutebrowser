@@ -531,7 +531,7 @@ class TestList:
 
     @hypothesis.given(val=strategies.lists(strategies.just('foo')))
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val).decode('utf-8')
+        text = utils.yaml_dump(val)
         try:
             klass().from_str(text)
         except configexc.ValidationError:
@@ -746,7 +746,7 @@ class TestInt:
 
     @hypothesis.given(val=strategies.integers())
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val).decode('utf-8')
+        text = utils.yaml_dump(val)
         try:
             klass().from_str(text)
         except configexc.ValidationError:
@@ -800,7 +800,7 @@ class TestFloat:
     @hypothesis.given(val=strategies.one_of(strategies.floats(),
                                             strategies.integers()))
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val).decode('utf-8')
+        text = utils.yaml_dump(val)
         try:
             klass().from_str(text)
         except configexc.ValidationError:
@@ -1305,7 +1305,7 @@ class TestDict:
     @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
                                                   strategies.booleans()))
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val).decode('utf-8')
+        text = utils.yaml_dump(val)
         d = klass(keytype=configtypes.Bool(), valtype=configtypes.Bool())
         try:
             d.from_str(text)

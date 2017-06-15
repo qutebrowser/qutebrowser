@@ -943,4 +943,4 @@ def test_yaml_load():
 
 
 def test_yaml_dump():
-    assert utils.yaml_dump([1, 2]) == b'- 1\n- 2\n'
+    assert utils.yaml_dump([1, 2]) == '- 1\n- 2\n'

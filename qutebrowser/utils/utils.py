@@ -889,6 +889,10 @@ def yaml_load(f):
 
 
 def yaml_dump(data, f=None):
-    """Wrapper over yaml.dump using the C dumper if possible."""
-    return yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
-                     encoding='utf-8', allow_unicode=True)
+    """Wrapper over yaml.dump using the C dumper if possible.
+
+    Also returns a str instead of bytes.
+    """
+    yaml_data = yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
+                          encoding='utf-8', allow_unicode=True)
+    return yaml_data.decode('utf-8')
