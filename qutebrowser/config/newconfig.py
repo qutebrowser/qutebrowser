@@ -124,10 +124,17 @@ class NewConfigManager(QObject):
 
     def get(self, option):
         try:
-            value = self.options[option]
+            opt = self.options[option]
         except KeyError:
             raise configexc.NoOptionError(option)
-        return value.typ.to_py(value.default)
+        return opt.typ.to_py(opt.default)
+
+    def get_str(self, option):
+        try:
+            opt = self.options[option]
+        except KeyError:
+            raise configexc.NoOptionError(option)
+        return opt.typ.to_str(opt.default)
 
     def set(self, option, value):
         raise configexc.Error("Setting doesn't work yet!")

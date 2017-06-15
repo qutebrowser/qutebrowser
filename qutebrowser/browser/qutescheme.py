@@ -471,7 +471,7 @@ def qute_settings(url):
     if url.path() == '/set':
         return _qute_settings_set(url)
 
-    config_getter = config.instance.get  # FIXME to_str
     html = jinja.render('settings.html', title='settings',
-                        configdata=configdata, confget=config_getter)
+                        configdata=configdata,
+                        confget=config.instance.get_str)
     return 'text/html', html
