@@ -1370,9 +1370,9 @@ class TestDict:
             d.from_str(val)
 
     def test_from_str_int(self):
-        typ = configtypes.Dict(keytype=configtypes.Int(),
+        typ = configtypes.Dict(keytype=configtypes.String(),
                                valtype=configtypes.Int())
-        assert typ.from_str('{0: 0}') == {0: 0}
+        assert typ.from_str('{"answer": 42}') == {"answer": 42}
 
     @pytest.mark.parametrize('val', [
         {"one": "1"},  # missing key
@@ -1389,20 +1389,24 @@ class TestDict:
             else:
                 d.from_py(val)
 
-    @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
+    @hypothesis.given(val=strategies.dictionaries(strategies.text(min_size=1),
                                                   strategies.booleans()))
     def test_hypothesis(self, klass, val):
-        d = klass(keytype=configtypes.Bool(),
+        d = klass(keytype=configtypes.String(),
                   valtype=configtypes.Bool(),
                   none_ok=True)
-        converted = d.from_py(val)
-        assert d.from_str(d.to_str(converted)) == converted
+        try:
+            converted = d.from_py(val)
+            assert d.from_str(d.to_str(converted)) == converted
+        except configexc.ValidationError:
+            # Invalid unicode in the string, etc...
+            hypothesis.assume(False)
 
-    @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
+    @hypothesis.given(val=strategies.dictionaries(strategies.text(min_size=1),
                                                   strategies.booleans()))
     def test_hypothesis_text(self, klass, val):
         text = json.dumps(val)
-        d = klass(keytype=configtypes.Bool(), valtype=configtypes.Bool())
+        d = klass(keytype=configtypes.String(), valtype=configtypes.Bool())
         try:
             converted = d.from_str(text)
         except configexc.ValidationError:

@@ -952,6 +952,9 @@ class Dict(BaseType):
 
     def __init__(self, keytype, valtype, *, fixed_keys=None, none_ok=False):
         super().__init__(none_ok)
+        # If the keytype is not a string, we'll get problems with showing it as
+        # json in to_str() as json converts keys to strings.
+        assert isinstance(keytype, String), keytype
         self.keytype = keytype
         self.valtype = valtype
         self.fixed_keys = fixed_keys
