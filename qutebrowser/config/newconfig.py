@@ -112,21 +112,19 @@ class change_filter:  # pylint: disable=invalid-name
 
 class NewConfigManager(QObject):
 
-    # FIXME:conf QObject?
-
-    changed = pyqtSignal(str, str)  # FIXME:conf stub... where is this used?
+    changed = pyqtSignal(str, str)  # FIXME:conf stub...
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._values = {}
+        self.options = {}
 
     def read_defaults(self):
         for name, option in configdata.DATA.items():
-            self._values[name] = option
+            self.options[name] = option
 
     def get(self, option):
         try:
-            value = self._values[option]
+            value = self.options[option]
         except KeyError:
             raise configexc.NoOptionError(option)
         return value.typ.to_py(value.default)
