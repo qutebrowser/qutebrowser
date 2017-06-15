@@ -28,10 +28,12 @@ from qutebrowser.utils import usertypes
 
 
 def test_init():
-    """Test reading the default yaml file."""
+    """Test reading the default yaml file and validating the values."""
     configdata.init()
     assert isinstance(configdata.DATA, dict)
     assert 'ignore_case' in configdata.DATA
+    for option in configdata.DATA.values():
+        option.typ.from_py(option.default)
 
 
 def test_init_benchmark(benchmark):
@@ -39,7 +41,6 @@ def test_init_benchmark(benchmark):
 
 
 class TestReadYaml:
-
 
     def test_valid(self):
         data = textwrap.dedent("""

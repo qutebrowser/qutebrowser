@@ -76,7 +76,7 @@ editor.command:
   type:
     name: ShellCommand
     placeholder: true
-  default: "gvim -f '{}'"
+  default: ["gvim", "-f", "{}"]
   desc: >-
     The editor (and arguments) to use for the `open-editor` command.
 
