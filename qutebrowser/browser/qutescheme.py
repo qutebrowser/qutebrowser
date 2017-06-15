@@ -35,7 +35,7 @@ import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
-from qutebrowser.config import config
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, usertypes, qtutils)
 from qutebrowser.misc import objects
@@ -440,4 +440,38 @@ def qute_backend_warning(_url):
                         Distribution=version.Distribution,
                         version=pkg_resources.parse_version,
                         title="Legacy backend warning")
+    return 'text/html', html
+
+
+def _qute_settings_set(url):
+    """Handler for qute://settings/set."""
+    query = QUrlQuery(url)
+    option = query.queryItemValue('option', QUrl.FullyDecoded)
+    value = query.queryItemValue('value', QUrl.FullyDecoded)
+
+    # https://github.com/qutebrowser/qutebrowser/issues/727
+    if option == 'content.javascript.enabled' and value == 'false':
+        msg = ("Refusing to disable javascript via qute://settings "
+               "as it needs javascript support.")
+        message.error(msg)
+        return 'text/html', b'error: ' + msg.encode('utf-8')
+
+    try:
+        config.instance.set(option, value)
+        return 'text/html', b'ok'
+    except configexc.Error as e:
+        message.error(str(e))
+        return 'text/html', b'error: ' + str(e).encode('utf-8')
+
+
+@add_handler('settings')
+def qute_settings(url):
+    """Handler for qute://settings. View/change qute configuration."""
+    # FIXME:conf add a test for this
+    if url.path() == '/set':
+        return _qute_settings_set(url)
+
+    config_getter = config.instance.get  # FIXME to_str
+    html = jinja.render('settings.html', title='settings',
+                        configdata=configdata, confget=config_getter)
     return 'text/html', html

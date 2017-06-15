@@ -131,6 +131,9 @@ class NewConfigManager(QObject):
             raise configexc.NoOptionError(option)
         return value.typ.from_py(value.default)
 
+    def set(self, option, value):
+        raise configexc.Error("Setting doesn't work yet!")
+
 
 class ConfigContainer:
 

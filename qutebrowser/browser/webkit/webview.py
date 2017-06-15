@@ -135,22 +135,6 @@ class WebView(QWebView):
             url: The URL to load as QUrl
         """
         self.load(url)
-        if url.scheme() == 'qute':
-            frame = self.page().mainFrame()
-            frame.javaScriptWindowObjectCleared.connect(self.add_js_bridge)
-
-    @pyqtSlot()
-    def add_js_bridge(self):
-        """Add the javascript bridge for qute://... pages."""
-        frame = self.sender()
-        if not isinstance(frame, QWebFrame):
-            log.webview.error("Got non-QWebFrame {!r} in "
-                              "add_js_bridge!".format(frame))
-            return
-
-        if frame.url().scheme() == 'qute':
-            bridge = objreg.get('js-bridge')
-            frame.addToJavaScriptWindowObject('qute', bridge)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):

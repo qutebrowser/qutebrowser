@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 
 {% block script %}
-var cset = function(section, option, el) {
-  value = el.value;
-  window.qute.set(section, option, value);
+var cset = function(option, value) {
+  // FIXME:conf we might want some error handling here?
+  var url = "qute://settings/set?option=" + encodeURIComponent(option);
+  url += "&value=" + encodeURIComponent(value);
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", url);
+  xhr.send();
 }
 {% endblock %}
 
@@ -32,7 +36,7 @@ th pre { color: grey; text-align: left; }
       </td>
       <td>
         <input type="text"
-          onblur="cset('{{ option.name }}', this)"
+          onblur="cset('{{ option.name }}', this.value)"
           value="{{ confget(option.name) }}">
         </input>
       </td>
