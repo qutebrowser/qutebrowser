@@ -253,27 +253,30 @@ class TestBaseType:
         with pytest.raises(configexc.ValidationError):
             basetype._validate_valid_values('baz')
 
-    @pytest.mark.parametrize('val', [None, '', 'foobar', 'snowman: ☃',
-                                     'foo bar'])
-    def test_basic_validation_valid(self, klass, val):
+    @pytest.mark.parametrize('val', ['', 'foobar', 'snowman: ☃', 'foo bar'])
+    def test_basic_str_validation_valid(self, klass, val):
         """Test _basic_validation with valid values."""
         basetype = klass()
         basetype.none_ok = True
-        basetype._basic_validation(val)
+        basetype._basic_str_validation(val)
 
-    @pytest.mark.parametrize('val', [None, '', '\x00'])
+    @pytest.mark.parametrize('val', ['', '\x00'])
     def test_basic_validation_invalid(self, klass, val):
         """Test _basic_validation with invalid values."""
         with pytest.raises(configexc.ValidationError):
-            klass()._basic_validation(val)
+            klass()._basic_str_validation(val)
 
-    def test_basic_validation_pytype_valid(self, klass):
-        klass()._basic_validation([], pytype=list)
+    def test_basic_py_validation_valid(self, klass):
+        klass()._basic_py_validation([], list)
 
-    def test_basic_validation_pytype_invalid(self, klass):
+    def test_basic_py_validation_invalid(self, klass):
         with pytest.raises(configexc.ValidationError,
                            match='expected a value of type str but got list'):
-            klass()._basic_validation([], pytype=str)
+            klass()._basic_py_validation([], str)
+
+    def test_basic_py_validation_invalid_str(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass()._basic_py_validation('\x00', str)
 
     def test_complete_none(self, klass):
         """Test complete with valid_values not set."""
@@ -322,8 +325,6 @@ class MappingSubclass(configtypes.MappingType):
 class TestMappingType:
 
     TESTS = {
-        None: None,
-        '': None,
         'one': 1,
         'two': 2,
         'ONE': 1,
@@ -335,9 +336,9 @@ class TestMappingType:
 
     @pytest.mark.parametrize('val, expected', list(TESTS.items()))
     def test_from_py(self, klass, val, expected):
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == expected
 
-    @pytest.mark.parametrize('val', [None, 'one!', 'blah'])
+    @pytest.mark.parametrize('val', ['one!', 'blah'])
     def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
@@ -369,8 +370,6 @@ class TestString:
             klass(minlen=minlen, maxlen=maxlen)
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({'none_ok': True}, ''),  # Empty with none_ok
-        ({'none_ok': True}, None),  # None with none_ok
         ({}, "Test! :-)"),
         # Forbidden chars
         ({'forbidden': 'xyz'}, 'fobar'),
@@ -383,11 +382,9 @@ class TestString:
         ({'valid_values': configtypes.ValidValues('abcd')}, 'abcd'),
     ])
     def test_from_py(self, klass, kwargs, val):
-        expected = None if not val else val
-        assert klass(**kwargs).from_py(val) == expected
+        assert klass(**kwargs).from_py(val) == val
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),  # Empty without none_ok
         # Forbidden chars
         ({'forbidden': 'xyz'}, 'foybar'),
         ({'forbidden': 'xyz'}, 'foxbar'),
@@ -474,10 +471,7 @@ class TestList:
         json_val = json.dumps(val)
         assert klass().from_str(json_val) == val
 
-    def test_from_str_empty(self, klass):
-        assert klass(none_ok_outer=True).from_str('') is None
-
-    @pytest.mark.parametrize('val', ['', '[[', 'true'])
+    @pytest.mark.parametrize('val', ['[[', 'true'])
     def test_from_str_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_str(val)
@@ -577,11 +571,9 @@ class TestBool:
         'false': False,
         'FaLsE': False,
         'off': False,
-
-        '': None,
     }
 
-    INVALID = ['10', 'yess', 'false_', '']
+    INVALID = ['10', 'yess', 'false_']
 
     @pytest.fixture
     def klass(self):
@@ -589,21 +581,20 @@ class TestBool:
 
     @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_from_str_valid(self, klass, val, expected):
-        assert klass(none_ok=True).from_str(val) == expected
+        assert klass().from_str(val) == expected
 
     @pytest.mark.parametrize('val', INVALID)
     def test_from_str_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_str(val)
 
-    @pytest.mark.parametrize('val', [True, False, None])
+    @pytest.mark.parametrize('val', [True, False])
     def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) is val
+        assert klass().from_py(val) is val
 
-    @pytest.mark.parametrize('val', [None, 42])
-    def test_from_py_invalid(self, klass, val):
+    def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().from_py(val)
+            klass().from_py(42)
 
 
 class TestBoolAsk:
@@ -622,21 +613,20 @@ class TestBoolAsk:
 
     @pytest.mark.parametrize('val, expected', sorted(TESTS.items()))
     def test_from_str_valid(self, klass, val, expected):
-        assert klass(none_ok=True).from_str(val) == expected
+        assert klass().from_str(val) == expected
 
     @pytest.mark.parametrize('val', INVALID)
     def test_from_str_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_str(val)
 
-    @pytest.mark.parametrize('val', [True, False, None, 'ask'])
+    @pytest.mark.parametrize('val', [True, False, 'ask'])
     def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+        assert klass().from_py(val) == val
 
-    @pytest.mark.parametrize('val', [None, 42])
-    def test_from_py_invalid(self, klass, val):
+    def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().from_py(val)
+            klass().from_py(42)
 
 
 class TestNumeric:
@@ -694,14 +684,12 @@ class TestInt:
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '1337', 1337),
         ({}, '0', 0),
-        ({'none_ok': True}, '', None),
         ({'minval': 2}, '2', 2),
     ])
     def test_from_str_valid(self, klass, kwargs, val, expected):
         assert klass(**kwargs).from_str(val) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),
         ({}, '2.5'),
         ({}, 'foobar'),
         ({'minval': 2, 'maxval': 3}, '1'),
@@ -713,14 +701,12 @@ class TestInt:
     @pytest.mark.parametrize('kwargs, val', [
         ({}, 1337),
         ({}, 0),
-        ({'none_ok': True}, None),
         ({'minval': 2}, 2),
     ])
     def test_from_py_valid(self, klass, kwargs, val):
         assert klass(**kwargs).from_py(val) == val
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),
         ({}, 2.5),
         ({}, 'foobar'),
         ({'minval': 2, 'maxval': 3}, 1),
@@ -739,14 +725,12 @@ class TestFloat:
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '1337', 1337),
         ({}, '1337.42', 1337.42),
-        ({'none_ok': True}, '', None),
         ({'minval': 2.00}, '2.00', 2.00),
     ])
     def test_from_str_valid(self, klass, kwargs, val, expected):
         assert klass(**kwargs).from_str(val) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),
         ({}, 'foobar'),
         ({'minval': 2, 'maxval': 3}, '3.01'),
     ])
@@ -758,14 +742,12 @@ class TestFloat:
         ({}, 1337),
         ({}, 0),
         ({}, 1337.42),
-        ({'none_ok': True}, None),
         ({'minval': 2}, 2.01),
     ])
     def test_from_py_valid(self, klass, kwargs, val):
         assert klass(**kwargs).from_py(val) == val
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),
         ({}, 'foobar'),
         ({'minval': 2, 'maxval': 3}, 1.99),
     ])
@@ -783,7 +765,6 @@ class TestPerc:
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '1337%', 1337),
         ({}, '1337.42%', 1337.42),
-        ({'none_ok': True}, '', None),
         ({'maxval': 2}, '2%', 2),
     ])
     def test_from_str_valid(self, klass, kwargs, val, expected):
@@ -794,7 +775,6 @@ class TestPerc:
         ({}, '1337%%'),
         ({}, 'foobar'),
         ({}, 'foobar%'),
-        ({}, ''),
         ({'minval': 2}, '1%'),
         ({'maxval': 2}, '3%'),
         ({'minval': 2, 'maxval': 3}, '1%'),
@@ -806,14 +786,12 @@ class TestPerc:
 
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '1337.42%', 1337.42),
-        ({'none_ok': True}, None, None),
         ({'minval': 2}, '2.01%', 2.01),
     ])
     def test_from_py_valid(self, klass, kwargs, val, expected):
         assert klass(**kwargs).from_py(val) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),
         ({}, 'foobar'),
         ({}, 23),
         ({'minval': 2, 'maxval': 3}, '1.99%'),
@@ -842,7 +820,6 @@ class TestPercOrInt:
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '1337%', '1337%'),
         ({}, '1337', 1337),
-        ({'none_ok': True}, '', None),
 
         ({'minperc': 2}, '2%', '2%'),
         ({'maxperc': 2}, '2%', '2%'),
@@ -861,7 +838,6 @@ class TestPercOrInt:
         ({}, '1337%%'),
         ({}, '1337.42%'),
         ({}, 'foobar'),
-        ({}, ''),
 
         ({'minperc': 2}, '1%'),
         ({'maxperc': 2}, '3%'),
@@ -877,9 +853,9 @@ class TestPercOrInt:
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).from_str(val)
 
-    @pytest.mark.parametrize('val', ['1337%', 1337, None])
+    @pytest.mark.parametrize('val', ['1337%', 1337])
     def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+        assert klass().from_py(val) == val
 
     @pytest.mark.parametrize('val', ['1337%%', '1337'])
     def test_from_py_invalid(self, klass, val):
@@ -901,13 +877,13 @@ class TestCommand:
     def klass(self):
         return configtypes.Command
 
-    @pytest.mark.parametrize('val', ['', 'cmd1', 'cmd2', 'cmd1  foo bar',
+    @pytest.mark.parametrize('val', ['cmd1', 'cmd2', 'cmd1  foo bar',
                                      'cmd2  baz fish'])
     def test_from_py_valid(self, klass, val):
         expected = None if not val else val
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == expected
 
-    @pytest.mark.parametrize('val', ['', 'cmd3', 'cmd3  foo bar', ' '])
+    @pytest.mark.parametrize('val', ['cmd3', 'cmd3  foo bar', ' '])
     def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
@@ -932,7 +908,6 @@ class ColorTests:
         ('#111222333', TYPES),
         ('#111122223333', TYPES),
         ('red', TYPES),
-        (None, TYPES),
 
         ('#00000G', []),
         ('#123456789ABCD', []),
@@ -995,22 +970,13 @@ class TestColors:
 
     @pytest.mark.parametrize('klass, val', TESTS.valid)
     def test_from_py_valid(self, klass, val):
-        if not val:
-            expected = None
-        elif klass is configtypes.QtColor:
-            expected = QColor(val)
-        else:
-            expected = val
-        assert klass(none_ok=True).from_py(val) == expected
+        expected = QColor(val) if klass is configtypes.QtColor else val
+        assert klass().from_py(val) == expected
 
     @pytest.mark.parametrize('klass, val', TESTS.invalid)
     def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
-
-    def test_validate_invalid_empty(self, klass_fixt):
-        with pytest.raises(configexc.ValidationError):
-            klass_fixt().from_py('')
 
 
 FontDesc = collections.namedtuple('FontDesc',
@@ -1080,15 +1046,13 @@ class TestFont:
     def qtfont_class(self):
         return configtypes.QtFont
 
-    @pytest.mark.parametrize('val, desc', sorted(TESTS.items()) + [(None, None)])
+    @pytest.mark.parametrize('val, desc', sorted(TESTS.items()))
     def test_from_py_valid(self, klass, val, desc):
-        if desc is None:
-            expected = None
-        elif klass is configtypes.Font:
+        if klass is configtypes.Font:
             expected = val
         elif klass is configtypes.QtFont:
             expected = Font.fromdesc(desc)
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == expected
 
     def test_qtfont_float(self, qtfont_class):
         """Test QtFont's transform with a float as point size.
@@ -1114,8 +1078,6 @@ class TestFont:
         pytest.param('green', marks=font_xfail),
         pytest.param('10pt', marks=font_xfail),
         pytest.param('10pt ""', marks=font_xfail),
-        '',
-        None,
     ])
     def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
@@ -1124,7 +1086,7 @@ class TestFont:
 
 class TestFontFamily:
 
-    TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar', None]
+    TESTS = ['"Foobar Neue"', 'inconsolatazi4', 'Foobar']
     INVALID = [
         '10pt "Foobar Neue"',
         '10PT "Foobar Neue"',
@@ -1140,7 +1102,6 @@ class TestFontFamily:
         'oblique 10pt "Foobar Neue"',
         'normal bold 10pt "Foobar Neue"',
         'bold italic 10pt "Foobar Neue"',
-        None,  # with none_ok=False
     ]
 
     @pytest.fixture
@@ -1149,7 +1110,7 @@ class TestFontFamily:
 
     @pytest.mark.parametrize('val', TESTS)
     def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+        assert klass().from_py(val) == val
 
     @pytest.mark.parametrize('val', INVALID)
     def test_from_py_invalid(self, klass, val):
@@ -1166,15 +1127,12 @@ class TestRegex:
     @pytest.mark.parametrize('val', [
         r'(foo|bar)?baz[fis]h',
         re.compile('foobar'),
-        None
     ])
     def test_from_py_valid(self, klass, val):
-        expected = None if val is None else RegexEq(val)
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == RegexEq(val)
 
     @pytest.mark.parametrize('val', [
         pytest.param(r'(foo|bar))?baz[fis]h', id='unmatched parens'),
-        pytest.param('', id='empty'),
         pytest.param('(' * 500, id='too many parens'),
     ])
     def test_from_py_invalid(self, klass, val):
@@ -1239,8 +1197,7 @@ class TestDict:
     @pytest.mark.parametrize('val', [
         {"foo": "bar"},
         {"foo": "bar", "baz": "fish"},
-        '',  # empty value with none_ok=true
-        {},  # ditto
+        {},  # with none_ok=True
     ])
     def test_from_str_valid(self, klass, val):
         expected = None if not val else val
@@ -1253,7 +1210,6 @@ class TestDict:
     @pytest.mark.parametrize('val', [
         '["foo"]',  # valid json but not a dict
         '{"hello": 23}',  # non-string as value
-        '',  # empty value with none_ok=False
         '[invalid',  # invalid json
     ])
     def test_from_str_invalid(self, klass, val):
@@ -1293,13 +1249,6 @@ class TestFile:
     def file_class(self):
         return configtypes.File
 
-    def test_from_py_empty(self, klass):
-        with pytest.raises(configexc.ValidationError):
-            klass().from_py('')
-
-    def test_from_py_empty_none_ok(self, klass):
-        assert klass(none_ok=True).from_py('') is None
-
     def test_from_py_does_not_exist_file(self, os_mock):
         """Test from_py with a file which does not exist (File)."""
         os_mock.path.isfile.return_value = False
@@ -1315,12 +1264,11 @@ class TestFile:
         ('/foobar', '/foobar'),
         ('~/foobar', '/home/foo/foobar'),
         ('$HOME/foobar', '/home/foo/foobar'),
-        ('', None),
     ])
     def test_from_py_exists_abs(self, klass, os_mock, val, expected):
         """Test from_py with a file which does exist."""
         os_mock.path.isfile.return_value = True
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == expected
 
     def test_from_py_exists_rel(self, klass, os_mock, monkeypatch):
         """Test from_py with a relative path to an existing file."""
@@ -1361,16 +1309,6 @@ class TestDirectory:
     @pytest.fixture
     def klass(self):
         return configtypes.Directory
-
-    def test_from_py_empty(self, klass):
-        """Test from_py with empty string and none_ok = False."""
-        with pytest.raises(configexc.ValidationError):
-            klass().from_py('')
-
-    def test_from_py_empty_none_ok(self, klass):
-        """Test from_py with empty string and none_ok = True."""
-        t = configtypes.Directory(none_ok=True)
-        assert t.from_py(None) is None
 
     def test_from_py_does_not_exist(self, klass, os_mock):
         """Test from_py with a directory which does not exist."""
@@ -1425,17 +1363,14 @@ class TestFormatString:
     @pytest.mark.parametrize('val', [
         'foo bar baz',
         '{foo} {bar} baz',
-        None,
     ])
     def test_from_py_valid(self, typ, val):
-        typ.none_ok = True
         assert typ.from_py(val) == val
 
     @pytest.mark.parametrize('val', [
         '{foo} {bar} {baz}',
         '{foo} {bar',
         '{1}',
-        None,
     ])
     def test_from_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
@@ -1449,7 +1384,6 @@ class TestShellCommand:
         return configtypes.ShellCommand
 
     @pytest.mark.parametrize('kwargs, val, expected', [
-        ({'none_ok': True}, '', None),
         ({}, 'foobar', ['foobar']),
         ({'placeholder': '{}'}, 'foo {} bar', ['foo', '{}', 'bar']),
         ({'placeholder': '{}'}, 'foo{}bar', ['foo{}bar']),
@@ -1461,7 +1395,6 @@ class TestShellCommand:
         assert cmd.from_py(expected) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, ''),
         ({'placeholder': '{}'}, 'foo bar'),
         ({'placeholder': '{}'}, 'foo { } bar'),
         ({}, 'foo"'),  # not splittable with shlex
@@ -1478,7 +1411,6 @@ class TestProxy:
         return configtypes.Proxy
 
     @pytest.mark.parametrize('val, expected', [
-        (None, None),
         ('system', configtypes.SYSTEM_PROXY),
         ('none', QNetworkProxy(QNetworkProxy.NoProxy)),
         ('socks://example.com/',
@@ -1492,13 +1424,12 @@ class TestProxy:
             pac.PACFetcher(QUrl('pac+file:///tmp/proxy.pac'))),
     ])
     def test_from_py_valid(self, klass, val, expected):
-        actual = klass(none_ok=True).from_py(val)
+        actual = klass().from_py(val)
         if isinstance(actual, QNetworkProxy):
             actual = QNetworkProxy(actual)
         assert actual == expected
 
     @pytest.mark.parametrize('val', [
-        '',
         'blah',
         ':',  # invalid URL
         'ftp://example.com/',  # invalid scheme
@@ -1526,13 +1457,11 @@ class TestSearchEngineUrl:
         'http://example.com/?q={}',
         'http://example.com/?q={0}',
         'http://example.com/?q={0}&a={0}',
-        None,  # empty value with none_ok
     ])
     def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+        assert klass().from_py(val) == val
 
     @pytest.mark.parametrize('val', [
-        '',  # empty value without none_ok
         'foo',  # no placeholder
         ':{}',  # invalid URL
         'foo{bar}baz{}',  # {bar} format string variable
@@ -1551,15 +1480,13 @@ class TestFuzzyUrl:
         return configtypes.FuzzyUrl
 
     @pytest.mark.parametrize('val, expected', [
-        (None, None),
         ('http://example.com/?q={}', QUrl('http://example.com/?q={}')),
         ('example.com', QUrl('http://example.com')),
     ])
     def test_from_py_valid(self, klass, val, expected):
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == expected
 
     @pytest.mark.parametrize('val', [
-        None,
         '::foo',  # invalid URL
         'foo bar',  # invalid search term
     ])
@@ -1574,24 +1501,17 @@ class TestPadding:
     def klass(self):
         return configtypes.Padding
 
-    @pytest.mark.parametrize('val, expected', [
-        (None, None),
-        ({'top': 1, 'bottom': 2, 'left': 3, 'right': 4},
-            configtypes.PaddingValues(1, 2, 3, 4)),
-    ])
-    def test_from_py_valid(self, klass, val, expected):
-        assert klass(none_ok=True).from_py(val) == expected
+    def test_from_py_valid(self, klass):
+        val = {'top': 1, 'bottom': 2, 'left': 3, 'right': 4}
+        expected = configtypes.PaddingValues(1, 2, 3, 4)
+        assert klass().from_py(val) == expected
 
-    @pytest.mark.parametrize('val, expected', [
-        ('', None),
-        ('{"top": 1, "bottom": 2, "left": 3, "right": 4}',
-            configtypes.PaddingValues(1, 2, 3, 4)),
-    ])
-    def test_from_str_valid(self, klass, val, expected):
-        assert klass(none_ok=True).from_str(val) == expected
+    def test_from_str_valid(self, klass):
+        val = '{"top": 1, "bottom": 2, "left": 3, "right": 4}'
+        expected = configtypes.PaddingValues(1, 2, 3, 4)
+        assert klass().from_str(val) == expected
 
     @pytest.mark.parametrize('val', [
-        None,
         {'top': 1, 'bottom': 2, 'left': 3, 'right': 4, 'foo': 5},
         {'top': 1, 'bottom': 2, 'left': 3, 'right': 'four'},
         {'top': 1, 'bottom': 2},
@@ -1609,14 +1529,13 @@ class TestEncoding:
     def klass(self):
         return configtypes.Encoding
 
-    @pytest.mark.parametrize('val', ['utf-8', 'UTF-8', 'iso8859-1', None])
+    @pytest.mark.parametrize('val', ['utf-8', 'UTF-8', 'iso8859-1'])
     def test_from_py(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+        assert klass().from_py(val) == val
 
-    @pytest.mark.parametrize('val', ['blubber', ''])
-    def test_validate_invalid(self, klass, val):
+    def test_validate_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().from_py(val)
+            klass().from_py('blubber')
 
 
 class TestUrl:
@@ -1624,7 +1543,6 @@ class TestUrl:
     TESTS = {
         'http://qutebrowser.org/': QUrl('http://qutebrowser.org/'),
         'http://heise.de/': QUrl('http://heise.de/'),
-        None: None,
     }
 
     @pytest.fixture
@@ -1633,12 +1551,11 @@ class TestUrl:
 
     @pytest.mark.parametrize('val, expected', list(TESTS.items()))
     def test_from_py_valid(self, klass, val, expected):
-        assert klass(none_ok=True).from_py(val) == expected
+        assert klass().from_py(val) == expected
 
-    @pytest.mark.parametrize('val', [None, '+'])
-    def test_from_py_invalid(self, klass, val):
+    def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().from_py(val)
+            klass().from_py('+')
 
 
 class TestSessionName:
@@ -1647,20 +1564,17 @@ class TestSessionName:
     def klass(self):
         return configtypes.SessionName
 
-    @pytest.mark.parametrize('val', [None, 'foobar'])
-    def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+    def test_from_py_valid(self, klass):
+        assert klass().from_py('foobar') == 'foobar'
 
-    @pytest.mark.parametrize('val', [None, '_foo'])
-    def test_from_py_invalid(self, klass, val):
+    def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().from_py(val)
+            klass().from_py('_foo')
 
 
 class TestConfirmQuit:
 
     TESTS = [
-        None,
         ['multiple-tabs', 'downloads'],
         ['downloads', 'multiple-tabs'],
         ['downloads', None, 'multiple-tabs'],
@@ -1677,7 +1591,6 @@ class TestConfirmQuit:
         assert cq.from_str(json.dumps(val)) == val
 
     @pytest.mark.parametrize('val', [
-        None,  # with none_ok=False
         ['foo'],
         ['downloads', 'foo'],  # valid value mixed with invalid one
         ['downloads', 'multiple-tabs', 'downloads'],  # duplicate value
@@ -1707,14 +1620,13 @@ class TestTimestampTemplate:
     def klass(self):
         return configtypes.TimestampTemplate
 
-    @pytest.mark.parametrize('val', [None, 'foobar', '%H:%M', 'foo %H bar %M'])
+    @pytest.mark.parametrize('val', ['foobar', '%H:%M', 'foo %H bar %M'])
     def test_from_py_valid(self, klass, val):
-        assert klass(none_ok=True).from_py(val) == val
+        assert klass().from_py(val) == val
 
-    @pytest.mark.parametrize('val', [None, '%'])
-    def test_from_py_invalid(self, klass, val):
+    def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
-            klass().from_py(val)
+            klass().from_py('%')
 
 
 @pytest.mark.parametrize('first, second, equal', [
