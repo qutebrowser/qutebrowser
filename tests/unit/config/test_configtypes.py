@@ -22,6 +22,7 @@ import re
 import os
 import sys
 import json
+import math
 import collections
 import itertools
 import warnings
@@ -213,10 +214,31 @@ class TestAll:
     @hypothesis.given(strategies.text())
     @hypothesis.example('\x00')
     def test_from_str_hypothesis(self, klass, s):
+        typ = klass()
         try:
-            klass().from_str(s)
+            val = typ.from_str(s)
         except configexc.ValidationError:
-            pass
+            return
+
+        # For some types, we don't actually get the internal (YAML-like) value
+        # back from from_str(), so we can't convert it back.
+        if klass in [configtypes.FuzzyUrl, configtypes.QtFont,
+                     configtypes.ShellCommand, configtypes.Url]:
+            return
+
+        converted = typ.to_str(val)
+        # For those we only check that to_str doesn't crash, but we can't be
+        # sure we get the 100% same value back.
+        if klass in [
+                configtypes.Bool,  # on -> true
+                configtypes.BoolAsk,  # ditto
+                configtypes.Float,  # 1.0 -> 1
+                configtypes.Int,  # 00 -> 0
+                configtypes.PercOrInt,  # ditto
+        ]:
+            return
+
+        assert converted == s
 
     def test_none_ok_true(self, klass):
         """Test None and empty string values with none_ok=True."""
@@ -234,6 +256,9 @@ class TestAll:
         meth = getattr(klass(), method)
         with pytest.raises(configexc.ValidationError):
             meth(value)
+
+    def test_to_str_none(self, klass):
+        assert klass().to_str(None) == ''
 
     def test_invalid_python_type(self, klass):
         """Make sure every type fails when passing an invalid Python type."""
@@ -348,6 +373,9 @@ class TestMappingType:
     def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
+
+    def test_to_str(self, klass):
+        assert klass().to_str('one') == 'one'
 
     @pytest.mark.parametrize('typ', [configtypes.ColorSystem(),
                                      configtypes.Position(),
@@ -523,20 +551,29 @@ class TestList:
         expected = configtypes.ValidValues('foo', 'bar', 'baz')
         assert klass().get_valid_values() == expected
 
+    def test_to_str(self, klass):
+        assert klass().to_str(["a", True] == '["a", true]')
+
     @hypothesis.given(val=strategies.lists(strategies.just('foo')))
     def test_hypothesis(self, klass, val):
+        typ = klass(none_ok_outer=True)
         try:
-            klass().from_py(val)
+            converted = typ.from_py(val)
         except configexc.ValidationError:
             pass
+        else:
+            assert typ.from_str(typ.to_str(converted)) == converted
 
     @hypothesis.given(val=strategies.lists(strategies.just('foo')))
     def test_hypothesis_text(self, klass, val):
+        typ = klass()
         text = json.dumps(val)
         try:
-            klass().from_str(text)
+            converted = typ.from_str(text)
         except configexc.ValidationError:
             pass
+        else:
+            assert typ.to_str(converted) == text
 
 
 class TestFlagList:
@@ -622,6 +659,13 @@ class TestBool:
         with pytest.raises(configexc.ValidationError):
             klass().from_py(42)
 
+    @pytest.mark.parametrize('val, expected', [
+        (True, 'true'),
+        (False, 'false'),
+    ])
+    def test_to_str(self, klass, val, expected):
+        assert klass().to_str(val) == expected
+
 
 class TestBoolAsk:
 
@@ -653,6 +697,14 @@ class TestBoolAsk:
     def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(42)
+
+    @pytest.mark.parametrize('val, expected', [
+        (True, 'true'),
+        (False, 'false'),
+        ('ask', 'ask'),
+    ])
+    def test_to_str(self, klass, val, expected):
+        assert klass().to_str(val) == expected
 
 
 class TestNumeric:
@@ -744,12 +796,16 @@ class TestInt:
 
     @hypothesis.given(val=strategies.integers())
     def test_hypothesis(self, klass, val):
-        klass().from_py(val)
+        typ = klass()
+        converted = typ.from_py(val)
+        assert typ.from_str(typ.to_str(converted)) == converted
 
     @hypothesis.given(val=strategies.integers())
     def test_hypothesis_text(self, klass, val):
         text = json.dumps(val)
-        klass().from_str(text)
+        typ = klass()
+        converted = typ.from_str(text)
+        assert typ.to_str(converted) == text
 
 
 class TestFloat:
@@ -794,13 +850,21 @@ class TestFloat:
     @hypothesis.given(val=strategies.one_of(strategies.floats(),
                                             strategies.integers()))
     def test_hypothesis(self, klass, val):
-        klass().from_py(val)
+        typ = klass()
+        converted = typ.from_py(val)
+        converted_2 = typ.from_str(typ.to_str(converted))
+        if math.isnan(converted):
+            assert math.isnan(converted_2)
+        else:
+            assert converted == converted_2
 
     @hypothesis.given(val=strategies.one_of(strategies.floats(),
                                             strategies.integers()))
     def test_hypothesis_text(self, klass, val):
         text = json.dumps(val)
         klass().from_str(text)
+        # Can't check for string equality with to_str here, as we can get 1.0
+        # for 1.
 
 
 class TestPerc:
@@ -846,6 +910,9 @@ class TestPerc:
     def test_from_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).from_py(val)
+
+    def test_to_str(self, klass):
+        assert klass().to_str('42%') == '42%'
 
 
 class TestPercOrInt:
@@ -909,13 +976,30 @@ class TestPercOrInt:
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
 
-    @hypothesis.given(val=strategies.one_of(strategies.integers(),
-                                            strategies.text()))
+    @hypothesis.given(val=strategies.one_of(
+        strategies.integers(),
+        strategies.integers().map(lambda n: str(n) + '%'),
+        strategies.text()))
     def test_hypothesis(self, klass, val):
+        typ = klass(none_ok=True)
         try:
-            klass().from_py(val)
+            converted = typ.from_py(val)
         except configexc.ValidationError:
             pass
+        else:
+            assert typ.from_str(typ.to_str(converted)) == converted
+
+    @hypothesis.given(text=strategies.one_of(
+        strategies.integers().map(str),
+        strategies.integers().map(lambda n: str(n) + '%')))
+    def test_hypothesis_text(self, klass, text):
+        typ = klass()
+        try:
+            converted = typ.from_str(text)
+        except configexc.ValidationError:
+            pass
+        else:
+            assert typ.to_str(converted) == text
 
 
 class TestCommand:
@@ -1248,6 +1332,10 @@ class TestRegex:
         typ = klass(flags=flags)
         assert typ.flags == expected
 
+    @pytest.mark.parametrize('value', [r'foobar', re.compile(r'foobar')])
+    def test_to_str(self, klass, value):
+        assert klass().to_str(value) == 'foobar'
+
 
 class TestDict:
 
@@ -1304,8 +1392,10 @@ class TestDict:
                                                   strategies.booleans()))
     def test_hypothesis(self, klass, val):
         d = klass(keytype=configtypes.Bool(),
-                  valtype=configtypes.Bool())
-        d.from_py(val)
+                  valtype=configtypes.Bool(),
+                  none_ok=True)
+        converted = d.from_py(val)
+        assert d.from_str(d.to_str(converted)) == converted
 
     @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
                                                   strategies.booleans()))
@@ -1313,9 +1403,11 @@ class TestDict:
         text = json.dumps(val)
         d = klass(keytype=configtypes.Bool(), valtype=configtypes.Bool())
         try:
-            d.from_str(text)
+            converted = d.from_str(text)
         except configexc.ValidationError:
             pass
+        else:
+            assert d.to_str(converted) == text
 
 
 def unrequired_class(**kwargs):

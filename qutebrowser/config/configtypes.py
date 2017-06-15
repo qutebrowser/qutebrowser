@@ -29,6 +29,7 @@ import warnings
 import datetime
 import functools
 import operator
+import json
 
 import yaml
 from PyQt5.QtCore import QUrl, Qt
@@ -199,19 +200,15 @@ class BaseType:
         """
         raise NotImplementedError
 
-    # def to_str(self, value):
-    #     """Get a string from the setting value.
+    def to_str(self, value):
+        """Get a string from the setting value.
 
-    #     The resulting string should be parseable again by from_str.
-    #     """
-    #     raise NotImplementedError
-
-    # def to_py(self, value):
-    #     """Get a Python/YAML value from the setting value.
-
-    #     The resulting value should be parseable again by from_py.
-    #     """
-    #     raise NotImplementedError
+        The resulting string should be parseable again by from_str.
+        """
+        if value is None:
+            return ''
+        assert isinstance(value, str)
+        return value
 
     def complete(self):
         """Return a list of possible values for completion.
@@ -257,11 +254,6 @@ class MappingType(BaseType):
             return None
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
-
-    # def to_str(self, value):
-    #     reverse_mapping = {v: k for k, v in self.MAPPING.items()}
-    #     assert len(self.MAPPING) == len(reverse_mapping)
-    #     return reverse_mapping[value]
 
 
 class String(BaseType):
@@ -401,6 +393,11 @@ class List(BaseType):
                                             "be set!".format(self.length))
         return [self.valtype.from_py(v) for v in value]
 
+    def to_str(self, value):
+        if value is None:
+            return ''
+        return json.dumps(value)
+
 
 class FlagList(List):
 
@@ -472,6 +469,14 @@ class Bool(BaseType):
         except KeyError:
             raise configexc.ValidationError(value, "must be a boolean!")
 
+    def to_str(self, value):
+        mapping = {
+            None: '',
+            True: 'true',
+            False: 'false',
+        }
+        return mapping[value]
+
 
 class BoolAsk(Bool):
 
@@ -494,6 +499,15 @@ class BoolAsk(Bool):
         if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
         return super().from_str(value)
+
+    def to_str(self, value):
+        mapping = {
+            None: '',
+            True: 'true',
+            False: 'false',
+            'ask': 'ask',
+        }
+        return mapping[value]
 
 
 class _Numeric(BaseType):  # pylint: disable=abstract-method
@@ -535,6 +549,11 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         elif self.maxval is not None and value > self.maxval:
             raise configexc.ValidationError(
                 value, "must be {}{} or smaller!".format(self.maxval, suffix))
+
+    def to_str(self, value):
+        if value is None:
+            return ''
+        return str(value)
 
 
 class Int(_Numeric):
@@ -597,6 +616,11 @@ class Perc(_Numeric):
         self._validate_bounds(floatval, suffix='%')
         return floatval
 
+    def to_str(self, value):
+        if value is None:
+            return ''
+        return value
+
 
 class PercOrInt(_Numeric):
 
@@ -637,8 +661,8 @@ class PercOrInt(_Numeric):
     def from_py(self, value):
         """Expect a value like '42%' as string, or 23 as int."""
         self._basic_py_validation(value, (int, str))
-        if not value:
-            return
+        if value is None:
+            return None
 
         if isinstance(value, str):
             if not value.endswith('%'):
@@ -913,6 +937,14 @@ class Regex(BaseType):
             # FIXME:conf is it okay if we ignore flags here?
             return value
 
+    def to_str(self, value):
+        if value is None:
+            return ''
+        elif isinstance(value, self._regex_type):
+            return value.pattern
+        else:
+            return value
+
 
 class Dict(BaseType):
 
@@ -953,6 +985,11 @@ class Dict(BaseType):
 
         return {self.keytype.from_py(key): self.valtype.from_py(val)
                 for key, val in value.items()}
+
+    def to_str(self, value):
+        if value is None:
+            return ''
+        return json.dumps(value)
 
 
 class File(BaseType):
