@@ -27,6 +27,8 @@ import itertools
 import collections
 import warnings
 import datetime
+import functools
+import operator
 
 import yaml
 from PyQt5.QtCore import QUrl, Qt
@@ -862,8 +864,14 @@ class Regex(BaseType):
 
     def __init__(self, flags=0, none_ok=False):
         super().__init__(none_ok)
-        self.flags = flags
         self._regex_type = type(re.compile(''))
+        # Parse flags from configdata.yml
+        if flags == 0:
+            self.flags = flags
+        else:
+            self.flags = functools.reduce(
+                operator.or_,
+                (getattr(re, flag.strip()) for flag in flags.split(' | ')))
 
     def _compile_regex(self, pattern):
         """Check if the given regex is valid.

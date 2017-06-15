@@ -1239,6 +1239,15 @@ class TestRegex:
         with pytest.raises(configexc.ValidationError):
             regex.from_py('foo')
 
+    @pytest.mark.parametrize('flags, expected', [
+        (0, 0),
+        ('IGNORECASE', re.IGNORECASE),
+        ('IGNORECASE | VERBOSE', re.IGNORECASE | re.VERBOSE),
+    ])
+    def test_flag_parsing(self, klass, flags, expected):
+        typ = klass(flags=flags)
+        assert typ.flags == expected
+
 
 class TestDict:
 
