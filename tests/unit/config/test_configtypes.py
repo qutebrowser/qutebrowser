@@ -21,6 +21,7 @@
 import re
 import os
 import sys
+import json
 import collections
 import itertools
 import warnings
@@ -474,12 +475,12 @@ class TestList:
 
     @pytest.mark.parametrize('val', [['foo'], ['foo', 'bar']])
     def test_from_str(self, klass, val):
-        yaml_val = utils.yaml_dump(val)
-        assert klass().from_str(yaml_val) == val
+        json_val = json.dumps(val)
+        assert klass().from_str(json_val) == val
 
     def test_from_str_int(self):
         typ = configtypes.List(valtype=configtypes.Int())
-        assert typ.from_str(utils.yaml_dump([0])) == [0]
+        assert typ.from_str(json.dumps([0])) == [0]
 
     @pytest.mark.parametrize('val', ['[[', 'true'])
     def test_from_str_invalid(self, klass, val):
@@ -531,7 +532,7 @@ class TestList:
 
     @hypothesis.given(val=strategies.lists(strategies.just('foo')))
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val)
+        text = json.dumps(val)
         try:
             klass().from_str(text)
         except configexc.ValidationError:
@@ -746,11 +747,8 @@ class TestInt:
 
     @hypothesis.given(val=strategies.integers())
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val)
-        try:
-            klass().from_str(text)
-        except configexc.ValidationError:
-            pass
+        text = json.dumps(val)
+        klass().from_str(text)
 
 
 class TestFloat:
@@ -800,11 +798,8 @@ class TestFloat:
     @hypothesis.given(val=strategies.one_of(strategies.floats(),
                                             strategies.integers()))
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val)
-        try:
-            klass().from_str(text)
-        except configexc.ValidationError:
-            pass
+        text = json.dumps(val)
+        klass().from_str(text)
 
 
 class TestPerc:
@@ -1260,7 +1255,7 @@ class TestDict:
     def test_from_str_valid(self, klass, val):
         expected = None if not val else val
         if isinstance(val, dict):
-            val = utils.yaml_dump(val)
+            val = json.dumps(val)
         d = klass(keytype=configtypes.String(), valtype=configtypes.String(),
                   none_ok=True)
         assert d.from_str(val) == expected
@@ -1278,7 +1273,7 @@ class TestDict:
     def test_from_str_int(self):
         typ = configtypes.Dict(keytype=configtypes.Int(),
                                valtype=configtypes.Int())
-        assert typ.from_str(utils.yaml_dump({0: 0})) == {0: 0}
+        assert typ.from_str('{0: 0}') == {0: 0}
 
     @pytest.mark.parametrize('val', [
         {"one": "1"},  # missing key
@@ -1291,7 +1286,7 @@ class TestDict:
 
         with pytest.raises(configexc.ValidationError):
             if from_str:
-                d.from_str(utils.yaml_dump(val))
+                d.from_str(json.dumps(val))
             else:
                 d.from_py(val)
 
@@ -1305,7 +1300,7 @@ class TestDict:
     @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
                                                   strategies.booleans()))
     def test_hypothesis_text(self, klass, val):
-        text = utils.yaml_dump(val)
+        text = json.dumps(val)
         d = klass(keytype=configtypes.Bool(), valtype=configtypes.Bool())
         try:
             d.from_str(text)
@@ -1668,7 +1663,7 @@ class TestConfirmQuit:
     def test_from_py_valid(self, klass, val):
         cq = klass(none_ok=True)
         assert cq.from_py(val) == val
-        assert cq.from_str(utils.yaml_dump(val)) == val
+        assert cq.from_str(json.dumps(val)) == val
 
     @pytest.mark.parametrize('val', [
         ['foo'],
