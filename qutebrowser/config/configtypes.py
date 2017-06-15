@@ -20,7 +20,6 @@
 """Setting options used for qutebrowser."""
 
 import re
-import json
 import shlex
 import codecs
 import os.path
@@ -29,6 +28,7 @@ import collections
 import warnings
 import datetime
 
+import yaml
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
@@ -370,13 +370,13 @@ class List(BaseType):
             return None
 
         try:
-            json_val = json.loads(value)
-        except ValueError as e:
+            yaml_val = utils.yaml_load(value)
+        except yaml.YAMLError as e:
             raise configexc.ValidationError(value, str(e))
 
         # For the values, we actually want to call from_py, as we did parse them
-        # from JSON, so they are numbers/booleans/... already.
-        return self.from_py(json_val)
+        # from YAML, so they are numbers/booleans/... already.
+        return self.from_py(yaml_val)
 
     def from_py(self, value):
         self._basic_validation(value, pytype=list)
@@ -917,13 +917,13 @@ class Dict(BaseType):
             return None
 
         try:
-            json_val = json.loads(value)
-        except ValueError as e:
+            yaml_val = utils.yaml_load(value)
+        except yaml.YAMLError as e:
             raise configexc.ValidationError(value, str(e))
 
         # For the values, we actually want to call from_py, as we did parse them
-        # from JSON, so they are numbers/booleans/... already.
-        return self.from_py(json_val)
+        # from YAML, so they are numbers/booleans/... already.
+        return self.from_py(yaml_val)
 
     def from_py(self, value):
         self._basic_validation(value, pytype=dict)
