@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import QNetworkReply
 from qutebrowser.browser import pdfjs, qutescheme
 from qutebrowser.browser.webkit.network import schemehandler, networkreply
 from qutebrowser.utils import jinja, log, message, objreg, usertypes, qtutils
-from qutebrowser.config import configexc, configdata
+from qutebrowser.config import configexc, configdata, config
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):
@@ -84,18 +84,19 @@ class JSBridge(QObject):
                           "as it needs javascript support.")
             return
         # FIXME:conf
-        try:
-            objreg.get('config').set('conf', sectname, optname, value)
-        except (configexc.Error, configparser.Error) as e:
-            message.error(str(e))
+        message.error("Setting doesn't work yet!")
+        # try:
+        #     objreg.get('config').set('conf', sectname, optname, value)
+        # except (configexc.Error, configparser.Error) as e:
+        #     message.error(str(e))
 
 
 @qutescheme.add_handler('settings', backend=usertypes.Backend.QtWebKit)
 def qute_settings(_url):
     """Handler for qute://settings. View/change qute configuration."""
-    config_getter = functools.partial(objreg.get('config').get, raw=True)
-    html = jinja.render('settings.html', title='settings', config=configdata,
-                        confget=config_getter)
+    config_getter = config.instance.get  # FIXME to_str
+    html = jinja.render('settings.html', title='settings',
+                        configdata=configdata, confget=config_getter)
     return 'text/html', html
 
 

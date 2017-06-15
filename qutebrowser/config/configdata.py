@@ -523,8 +523,8 @@ CHANGED_KEY_COMMANDS = [
 ]
 
 
-Option = collections.namedtuple('Option', ['typ', 'default', 'backends',
-                                           'description'])
+Option = collections.namedtuple('Option', ['name', 'typ', 'default',
+                                           'backends', 'description'])
 
 
 def _raise_invalid_node(name, what, node):
@@ -660,6 +660,7 @@ def _read_yaml(yaml_data):
                 option.keys(), name))
 
         parsed[name] = Option(
+            name=name,
             typ=_parse_yaml_type(name, option['type']),
             default=option['default'],
             backends=_parse_yaml_backends(name, option.get('backend', None)),
