@@ -707,7 +707,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg, icon='')
+                url=url_string, error=msg)
             QTimer.singleShot(0, lambda: tab.set_html(error_page))
             log.webview.error(msg)
         else:

@@ -693,7 +693,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 error_page = jinja.render(
                     'error.html',
                     title="Error loading page: {}".format(url_string),
-                    url=url_string, error="Authentication required", icon='')
+                    url=url_string, error="Authentication required")
                 self.set_html(error_page)
 
     @pyqtSlot('QWebEngineFullScreenRequest')

@@ -212,7 +212,7 @@ class WebEnginePage(QWebEnginePage):
         url_string = url.toDisplayString()
         error_page = jinja.render(
             'error.html', title="Error loading page: {}".format(url_string),
-            url=url_string, error=str(error), icon='')
+            url=url_string, error=str(error))
 
         if error.is_overridable():
             ignore = shared.ignore_certificate_errors(
