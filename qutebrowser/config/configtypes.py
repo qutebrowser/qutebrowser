@@ -171,7 +171,7 @@ class BaseType:
         Arguments:
             value: The value to check.
         """
-        assert isinstance(value, str)
+        assert isinstance(value, str), value
         if not value and not self.none_ok:
             raise configexc.ValidationError(value, "may not be empty!")
         if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
@@ -233,7 +233,7 @@ class BaseType:
         """
         if value is None:
             return ''
-        assert isinstance(value, str)
+        assert isinstance(value, str), value
         return value
 
     def complete(self):
@@ -1140,6 +1140,11 @@ class ShellCommand(BaseType):
             raise configexc.ValidationError(value, "needs to contain a "
                                             "{}-placeholder.")
         return value
+
+    def to_str(self, value):
+        if not value:
+            return ''
+        return json.dumps(value)
 
 
 class Proxy(BaseType):
