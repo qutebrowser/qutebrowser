@@ -21,7 +21,6 @@
 import re
 import os
 import sys
-import json
 import collections
 import itertools
 import warnings
@@ -205,8 +204,11 @@ class TestAll:
             elif issubclass(member, configtypes.BaseType):
                 yield member
 
+    @pytest.fixture(params=list(gen_classes()))
+    def klass(self, request):
+        return request.param
+
     @pytest.mark.usefixtures('qapp', 'config_tmpdir')
-    @pytest.mark.parametrize('klass', gen_classes())
     @hypothesis.given(strategies.text())
     @hypothesis.example('\x00')
     def test_from_str_hypothesis(self, klass, s):
@@ -215,7 +217,6 @@ class TestAll:
         except configexc.ValidationError:
             pass
 
-    @pytest.mark.parametrize('klass', gen_classes())
     def test_none_ok_true(self, klass):
         """Test None and empty string values with none_ok=True."""
         typ = klass(none_ok=True)
@@ -227,12 +228,16 @@ class TestAll:
         ('from_py', ''),
         ('from_py', None)
     ])
-    @pytest.mark.parametrize('klass', gen_classes())
     def test_none_ok_false(self, klass, method, value):
         """Test None and empty string values with none_ok=False."""
         meth = getattr(klass(), method)
         with pytest.raises(configexc.ValidationError):
             meth(value)
+
+    def test_invalid_python_type(self, klass):
+        """Make sure every type fails when passing an invalid Python type."""
+        with pytest.raises(configexc.ValidationError):
+            klass().from_py(object())
 
 
 class TestBaseType:
@@ -432,9 +437,11 @@ class ListSubclass(configtypes.List):
     Valid values are 'foo', 'bar' and 'baz'.
     """
 
-    def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None):
-        super().__init__(configtypes.String(none_ok=none_ok_inner),
-                         none_ok=none_ok_outer, length=length)
+    def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
+                 elemtype=None):
+        if elemtype is None:
+            elemtype = configtypes.String(none_ok=none_ok_inner)
+        super().__init__(elemtype, none_ok=none_ok_outer, length=length)
         self.valtype.valid_values = configtypes.ValidValues(
             'foo', 'bar', 'baz')
 
@@ -459,7 +466,6 @@ class TestList:
 
     """Test List and FlagList."""
 
-    # FIXME:conf make sure from_str/from_py is called on valtype.
     # FIXME:conf how to handle []?
 
     @pytest.fixture(params=[ListSubclass, FlagListSubclass])
@@ -468,8 +474,12 @@ class TestList:
 
     @pytest.mark.parametrize('val', [['foo'], ['foo', 'bar']])
     def test_from_str(self, klass, val):
-        json_val = json.dumps(val)
-        assert klass().from_str(json_val) == val
+        yaml_val = utils.yaml_dump(val)
+        assert klass().from_str(yaml_val) == val
+
+    def test_from_str_int(self):
+        typ = configtypes.List(valtype=configtypes.Int())
+        assert typ.from_str(utils.yaml_dump([0])) == [0]
 
     @pytest.mark.parametrize('val', ['[[', 'true'])
     def test_from_str_invalid(self, klass, val):
@@ -511,6 +521,21 @@ class TestList:
     def test_get_valid_values(self, klass):
         expected = configtypes.ValidValues('foo', 'bar', 'baz')
         assert klass().get_valid_values() == expected
+
+    @hypothesis.given(val=strategies.lists(strategies.just('foo')))
+    def test_hypothesis(self, klass, val):
+        try:
+            klass().from_py(val)
+        except configexc.ValidationError:
+            pass
+
+    @hypothesis.given(val=strategies.lists(strategies.just('foo')))
+    def test_hypothesis_text(self, klass, val):
+        text = utils.yaml_dump(val).decode('utf-8')
+        try:
+            klass().from_str(text)
+        except configexc.ValidationError:
+            pass
 
 
 class TestFlagList:
@@ -715,6 +740,18 @@ class TestInt:
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).from_py(val)
 
+    @hypothesis.given(val=strategies.integers())
+    def test_hypothesis(self, klass, val):
+        klass().from_py(val)
+
+    @hypothesis.given(val=strategies.integers())
+    def test_hypothesis_text(self, klass, val):
+        text = utils.yaml_dump(val).decode('utf-8')
+        try:
+            klass().from_str(text)
+        except configexc.ValidationError:
+            pass
+
 
 class TestFloat:
 
@@ -754,6 +791,20 @@ class TestFloat:
     def test_from_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).from_py(val)
+
+    @hypothesis.given(val=strategies.one_of(strategies.floats(),
+                                            strategies.integers()))
+    def test_hypothesis(self, klass, val):
+        klass().from_py(val)
+
+    @hypothesis.given(val=strategies.one_of(strategies.floats(),
+                                            strategies.integers()))
+    def test_hypothesis_text(self, klass, val):
+        text = utils.yaml_dump(val).decode('utf-8')
+        try:
+            klass().from_str(text)
+        except configexc.ValidationError:
+            pass
 
 
 class TestPerc:
@@ -861,6 +912,14 @@ class TestPercOrInt:
     def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
+
+    @hypothesis.given(val=strategies.one_of(strategies.integers(),
+                                            strategies.text()))
+    def test_hypothesis(self, klass, val):
+        try:
+            klass().from_py(val)
+        except configexc.ValidationError:
+            pass
 
 
 class TestCommand:
@@ -1187,7 +1246,6 @@ class TestRegex:
 
 class TestDict:
 
-    # FIXME:conf make sure from_str/from_py is called on keytype/valtype.
     # FIXME:conf how to handle {}?
 
     @pytest.fixture
@@ -1202,20 +1260,25 @@ class TestDict:
     def test_from_str_valid(self, klass, val):
         expected = None if not val else val
         if isinstance(val, dict):
-            val = json.dumps(val)
+            val = utils.yaml_dump(val)
         d = klass(keytype=configtypes.String(), valtype=configtypes.String(),
                   none_ok=True)
         assert d.from_str(val) == expected
 
     @pytest.mark.parametrize('val', [
-        '["foo"]',  # valid json but not a dict
+        '["foo"]',  # valid yaml but not a dict
         '{"hello": 23}',  # non-string as value
-        '[invalid',  # invalid json
+        '[invalid',  # invalid yaml
     ])
     def test_from_str_invalid(self, klass, val):
         d = klass(keytype=configtypes.String(), valtype=configtypes.String())
         with pytest.raises(configexc.ValidationError):
             d.from_str(val)
+
+    def test_from_str_int(self):
+        typ = configtypes.Dict(keytype=configtypes.Int(),
+                               valtype=configtypes.Int())
+        assert typ.from_str(utils.yaml_dump({0: 0})) == {0: 0}
 
     @pytest.mark.parametrize('val', [
         {"one": "1"},  # missing key
@@ -1228,9 +1291,26 @@ class TestDict:
 
         with pytest.raises(configexc.ValidationError):
             if from_str:
-                d.from_str(json.dumps(val))
+                d.from_str(utils.yaml_dump(val))
             else:
                 d.from_py(val)
+
+    @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
+                                                  strategies.booleans()))
+    def test_hypothesis(self, klass, val):
+        d = klass(keytype=configtypes.Bool(),
+                  valtype=configtypes.Bool())
+        d.from_py(val)
+
+    @hypothesis.given(val=strategies.dictionaries(strategies.booleans(),
+                                                  strategies.booleans()))
+    def test_hypothesis_text(self, klass, val):
+        text = utils.yaml_dump(val).decode('utf-8')
+        d = klass(keytype=configtypes.Bool(), valtype=configtypes.Bool())
+        try:
+            d.from_str(text)
+        except configexc.ValidationError:
+            pass
 
 
 def unrequired_class(**kwargs):
@@ -1588,7 +1668,7 @@ class TestConfirmQuit:
     def test_from_py_valid(self, klass, val):
         cq = klass(none_ok=True)
         assert cq.from_py(val) == val
-        assert cq.from_str(json.dumps(val)) == val
+        assert cq.from_str(utils.yaml_dump(val)) == val
 
     @pytest.mark.parametrize('val', [
         ['foo'],
