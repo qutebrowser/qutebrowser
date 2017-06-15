@@ -245,11 +245,12 @@ class TestAll:
         typ = klass(none_ok=True)
         assert typ.from_str('') is None
         assert typ.to_py(None) is None
+        assert typ.to_str(None) == ''
 
     @pytest.mark.parametrize('method, value', [
         ('from_str', ''),
         ('to_py', ''),
-        ('to_py', None)
+        ('to_py', None),
     ])
     def test_none_ok_false(self, klass, method, value):
         """Test None and empty string values with none_ok=False."""
