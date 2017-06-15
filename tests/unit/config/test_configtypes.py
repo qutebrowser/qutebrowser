@@ -492,7 +492,7 @@ class TestList:
             klass(none_ok_inner=True).from_py(None)
 
     @pytest.mark.parametrize('val', [None, ['foo', 'bar']])
-    def test_validate_length(self, klass, val):
+    def test_from_py_length(self, klass, val):
         klass(none_ok_outer=True, length=2).from_py(val)
 
     @pytest.mark.parametrize('val', [['a'], ['a', 'b'], ['a', 'b', 'c', 'd']])
@@ -661,7 +661,7 @@ class TestNumeric:
         ({'minval': 2, 'maxval': 3}, 1, False),
         ({'minval': 2, 'maxval': 3}, 4, False),
     ])
-    def test_validate_invalid(self, klass, kwargs, val, valid):
+    def test_validate_bounds_invalid(self, klass, kwargs, val, valid):
         if valid:
             klass(**kwargs)._validate_bounds(val)
         else:
@@ -1055,7 +1055,7 @@ class TestFont:
         assert klass().from_py(val) == expected
 
     def test_qtfont_float(self, qtfont_class):
-        """Test QtFont's transform with a float as point size.
+        """Test QtFont's from_py with a float as point size.
 
         We can't test the point size for equality as Qt seems to do some
         rounding as appropriate.
@@ -1518,7 +1518,7 @@ class TestPadding:
         {'top': -1, 'bottom': 2, 'left': 3, 'right': 4},
         {'top': 0.1, 'bottom': 2, 'left': 3, 'right': 4},
     ])
-    def test_validate_invalid(self, klass, val):
+    def test_from_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_py(val)
 
@@ -1533,7 +1533,7 @@ class TestEncoding:
     def test_from_py(self, klass, val):
         assert klass().from_py(val) == val
 
-    def test_validate_invalid(self, klass):
+    def test_from_py_invalid(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass().from_py('blubber')
 
