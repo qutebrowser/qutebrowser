@@ -364,11 +364,6 @@ class List(BaseType):
     def get_valid_values(self):
         return self.valtype.get_valid_values()
 
-    def _validate_list(self, value):
-        if self.length is not None and len(value) != self.length:
-            raise configexc.ValidationError(value, "Exactly {} values need to "
-                                            "be set!".format(self.length))
-
     def from_str(self, value):
         self._basic_validation(value, pytype=str)
         if not value:
@@ -378,21 +373,19 @@ class List(BaseType):
             json_val = json.loads(value)
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
-        # Can't use self.from_py here because we don't want to call from_py on
-        # the values.
-        self._basic_validation(json_val, pytype=list)
-        if not json_val:
-            return None
 
-        self._validate_list(json_val)
-        return [self.valtype.from_str(v) for v in json_val]
+        # For the values, we actually want to call from_py, as we did parse them
+        # from JSON, so they are numbers/booleans/... already.
+        return self.from_py(json_val)
 
     def from_py(self, value):
         self._basic_validation(value, pytype=list)
         if not value:
             return None
 
-        self._validate_list(value)
+        if self.length is not None and len(value) != self.length:
+            raise configexc.ValidationError(value, "Exactly {} values need to "
+                                            "be set!".format(self.length))
         return [self.valtype.from_py(v) for v in value]
 
 
@@ -417,18 +410,10 @@ class FlagList(List):
             raise configexc.ValidationError(
                 values, "List contains duplicate values!")
 
-    def from_str(self, value):
-        vals = super().from_str(value)
-        if vals is not None:
-            self._check_duplicates(vals)
-            self._validate_list(vals)
-        return vals
-
     def from_py(self, value):
         vals = super().from_py(value)
         if vals is not None:
             self._check_duplicates(vals)
-            self._validate_list(vals)
         return vals
 
     def complete(self):
@@ -936,16 +921,9 @@ class Dict(BaseType):
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
 
-        # Can't use self.from_py here because we don't want to call from_py on
-        # the values.
-        self._basic_validation(json_val, pytype=dict)
-        if not json_val:
-            return None
-
-        self._validate_keys(json_val)
-
-        return {self.keytype.from_str(key): self.valtype.from_str(val)
-                for key, val in json_val.items()}
+        # For the values, we actually want to call from_py, as we did parse them
+        # from JSON, so they are numbers/booleans/... already.
+        return self.from_py(json_val)
 
     def from_py(self, value):
         self._basic_validation(value, pytype=dict)
@@ -1172,12 +1150,6 @@ class Padding(Dict):
         # FIXME:conf
         assert valid_values is None, valid_values
 
-    def from_str(self, value):
-        d = super().from_str(value)
-        if not d:
-            return None
-        return PaddingValues(**d)
-
     def from_py(self, value):
         d = super().from_py(value)
         if not d:
@@ -1310,8 +1282,11 @@ class ConfirmQuit(FlagList):
              "downloads are running"),
             ('never', "Never show a confirmation."))
 
-    def _check_values(self, values):
-        """Check whether the values can be combined in the way they are."""
+    def from_py(self, value):
+        values = super().from_py(value)
+        if not values:
+            return None
+
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
@@ -1321,18 +1296,6 @@ class ConfirmQuit(FlagList):
             raise configexc.ValidationError(
                 values, "List cannot contain always!")
 
-    def from_py(self, value):
-        values = super().from_py(value)
-        if not values:
-            return None
-        self._check_values(values)
-        return values
-
-    def from_str(self, value):
-        values = super().from_str(value)
-        if not values:
-            return None
-        self._check_values(values)
         return values
 
 
