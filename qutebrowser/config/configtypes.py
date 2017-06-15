@@ -978,9 +978,9 @@ class Directory(BaseType):
     """A directory on the local filesystem."""
 
     def from_py(self, value):
-        self._basic_py_validation(value, dict)
+        self._basic_py_validation(value, str)
         if not value:
-            return
+            return None
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         try:
