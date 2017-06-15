@@ -21,6 +21,7 @@ yank_ignored_url_parameters:
   type:
     name: List
     valtype: String
+    none_ok: true
   default:
     - ref
     - utm_source
@@ -1232,6 +1233,7 @@ hints.hide_unmatched_rapid_hints:
 
 searchengines:
   default:
+    # FIXME:conf what if the user deletes/renames DEFAULT?
     DEFAULT: https://duckduckgo.com/?q={}
   type:
     name: Dict
@@ -1249,6 +1251,7 @@ aliases:
       name: String
       forbidden: ' '
     valtype: Command
+    none_ok: true
   desc: Command aliases FIXME
 
 # colors

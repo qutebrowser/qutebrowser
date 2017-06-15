@@ -573,7 +573,8 @@ class TestList:
         except configexc.ValidationError:
             pass
         else:
-            assert typ.to_str(converted) == text
+            expected = '' if not val else text
+            assert typ.to_str(converted) == expected
 
 
 class TestFlagList:
@@ -1407,7 +1408,8 @@ class TestDict:
         except configexc.ValidationError:
             pass
         else:
-            assert d.to_str(converted) == text
+            expected = '' if not val else text
+            assert d.to_str(converted) == expected
 
 
 def unrequired_class(**kwargs):
