@@ -68,6 +68,7 @@ FIRST_COMMENT = r"""
 """
 
 
+# FIXME:conf where to put those?
 SECTION_DESC = {
     'general': "General/miscellaneous options.",
     'ui': "General options related to the user interface.",
