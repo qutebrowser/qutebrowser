@@ -215,6 +215,25 @@ class TestAll:
         except configexc.ValidationError:
             pass
 
+    @pytest.mark.parametrize('klass', gen_classes())
+    def test_none_ok_true(self, klass):
+        """Test None and empty string values with none_ok=True."""
+        typ = klass(none_ok=True)
+        assert typ.from_str('') is None
+        assert typ.from_py(None) is None
+
+    @pytest.mark.parametrize('method, value', [
+        ('from_str', ''),
+        ('from_py', ''),
+        ('from_py', None)
+    ])
+    @pytest.mark.parametrize('klass', gen_classes())
+    def test_none_ok_false(self, klass, method, value):
+        """Test None and empty string values with none_ok=False."""
+        meth = getattr(klass(), method)
+        with pytest.raises(configexc.ValidationError):
+            meth(value)
+
 
 class TestBaseType:
 

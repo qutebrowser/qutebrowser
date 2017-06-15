@@ -113,20 +113,17 @@ class BaseType:
         """Get the type's valid values for documentation."""
         return self.valid_values
 
-    def _basic_validation(self, value, pytype=None):
-        """Do some basic validation for the value (empty, non-printable chars).
-
-        Also does a Python typecheck on the value (if coming from YAML/Python).
+    def _basic_py_validation(self, value, pytype):
+        """Do some basic validation for Python values (emptyness, type).
 
         Arguments:
             value: The value to check.
-            pytype: If given, a Python type to check the value against.
+            pytype: A Python type to check the value against.
         """
         if value is None and not self.none_ok:
-            raise configexc.ValidationError(value, "may not be empty!")
+            raise configexc.ValidationError(value, "may not be null!")
 
-        if (value is not None and pytype is not None and
-                not isinstance(value, pytype)):
+        if value is not None and not isinstance(value, pytype):
             if isinstance(pytype, tuple):
                 expected = ' or '.join(typ.__name__ for typ in pytype)
             else:
@@ -135,12 +132,21 @@ class BaseType:
                 value, "expected a value of type {} but got {}.".format(
                     expected, type(value).__name__))
 
-        if isinstance(value, str):
-            if not value and not self.none_ok:
-                raise configexc.ValidationError(value, "may not be empty!")
-            if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
-                raise configexc.ValidationError(value, "may not contain "
-                                                "unprintable chars!")
+        if value is not None and isinstance(value, str):
+            self._basic_str_validation(value)
+
+    def _basic_str_validation(self, value):
+        """Do some basic validation for string values (empty, non-printable chars).
+
+        Arguments:
+            value: The value to check.
+        """
+        assert isinstance(value, str)
+        if not value and not self.none_ok:
+            raise configexc.ValidationError(value, "may not be empty!")
+        if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
+            raise configexc.ValidationError(
+                value, "may not contain unprintable chars!")
 
     def _validate_valid_values(self, value):
         """Validate value against possible values.
@@ -170,6 +176,7 @@ class BaseType:
         Return:
             The transformed value.
         """
+        self._basic_str_validation(value)
         return self.from_py(value)
 
     def from_py(self, value):
@@ -239,7 +246,7 @@ class MappingType(BaseType):
         self.valid_values = valid_values
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
         self._validate_valid_values(value.lower())
@@ -300,7 +307,7 @@ class String(BaseType):
             raise configexc.ValidationError(value, msg)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -365,7 +372,7 @@ class List(BaseType):
         return self.valtype.get_valid_values()
 
     def from_str(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_str_validation(value)
         if not value:
             return None
 
@@ -379,7 +386,7 @@ class List(BaseType):
         return self.from_py(yaml_val)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=list)
+        self._basic_py_validation(value, list)
         if not value:
             return None
 
@@ -446,11 +453,11 @@ class Bool(BaseType):
         self.valid_values = ValidValues('true', 'false')
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=bool)
+        self._basic_py_validation(value, bool)
         return value
 
     def from_str(self, value):
-        self._basic_validation(value)
+        self._basic_str_validation(value)
         if not value:
             return None
 
@@ -529,7 +536,7 @@ class Int(_Numeric):
     """Base class for an integer setting."""
 
     def from_str(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_str_validation(value)
         if not value:
             return None
 
@@ -540,7 +547,7 @@ class Int(_Numeric):
         return self.from_py(intval)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=int)
+        self._basic_py_validation(value, int)
         self._validate_bounds(value)
         return value
 
@@ -550,7 +557,7 @@ class Float(_Numeric):
     """Base class for a float setting."""
 
     def from_str(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_str_validation(value)
         if not value:
             return None
 
@@ -561,7 +568,7 @@ class Float(_Numeric):
         return self.from_py(floatval)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=(int, float))
+        self._basic_py_validation(value, (int, float))
         self._validate_bounds(value)
         return value
 
@@ -571,7 +578,7 @@ class Perc(_Numeric):
     """A percentage, as a string ending with %."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -607,7 +614,7 @@ class PercOrInt(_Numeric):
                              "({})!".format(self.minperc, self.maxperc))
 
     def from_str(self, value):
-        self._basic_validation(value)
+        self._basic_str_validation(value)
         if not value:
             return None
 
@@ -623,7 +630,7 @@ class PercOrInt(_Numeric):
 
     def from_py(self, value):
         """Expect a value like '42%' as string, or 23 as int."""
-        self._basic_validation(value, pytype=(int, str))
+        self._basic_py_validation(value, (int, str))
         if not value:
             return
 
@@ -656,7 +663,7 @@ class Command(BaseType):
 
     def from_py(self, value):
         # FIXME:conf require a list here?
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return
         split = value.split()
@@ -697,7 +704,7 @@ class QtColor(BaseType):
     """Base class for QColor."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -713,7 +720,7 @@ class QssColor(BaseType):
     """Color used in a Qt stylesheet."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -751,7 +758,7 @@ class Font(BaseType):
         (?P<family>.+)$  # mandatory font family""", re.VERBOSE)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -768,7 +775,7 @@ class FontFamily(Font):
     """A Qt font family."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -788,7 +795,7 @@ class QtFont(Font):
     """A Font which gets converted to a QFont."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -885,7 +892,7 @@ class Regex(BaseType):
 
     def from_py(self, value):
         """Get a compiled regex from either a string or a regex object."""
-        self._basic_validation(value, pytype=(str, self._regex_type))
+        self._basic_py_validation(value, (str, self._regex_type))
         if not value:
             return None
         elif isinstance(value, str):
@@ -912,7 +919,7 @@ class Dict(BaseType):
                 value, "Expected keys {}".format(self.fixed_keys))
 
     def from_str(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_str_validation(value)
         if not value:
             return None
 
@@ -926,7 +933,7 @@ class Dict(BaseType):
         return self.from_py(yaml_val)
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=dict)
+        self._basic_py_validation(value, dict)
         if not value:
             return None
 
@@ -945,7 +952,7 @@ class File(BaseType):
         self.required = required
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -971,7 +978,7 @@ class Directory(BaseType):
     """A directory on the local filesystem."""
 
     def from_py(self, value):
-        self._basic_validation(value)
+        self._basic_py_validation(value, dict)
         if not value:
             return
         value = os.path.expandvars(value)
@@ -998,7 +1005,7 @@ class FormatString(BaseType):
         self.fields = fields
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -1026,7 +1033,7 @@ class ShellCommand(BaseType):
         self.placeholder = placeholder
 
     def from_str(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_str_validation(value)
         if not value:
             return None
         try:
@@ -1036,7 +1043,7 @@ class ShellCommand(BaseType):
 
     def from_py(self, value):
         # FIXME:conf require a str/list here?
-        self._basic_validation(value, pytype=list)
+        self._basic_py_validation(value, list)
         if not value:
             return None
 
@@ -1058,7 +1065,7 @@ class Proxy(BaseType):
 
     def from_py(self, value):
         from qutebrowser.utils import urlutils
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -1094,7 +1101,7 @@ class SearchEngineUrl(BaseType):
     """A search engine URL."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -1123,7 +1130,7 @@ class FuzzyUrl(BaseType):
 
     def from_py(self, value):
         from qutebrowser.utils import urlutils
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -1162,7 +1169,7 @@ class Encoding(BaseType):
     """Setting for a python encoding."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
         try:
@@ -1219,7 +1226,7 @@ class Url(BaseType):
     """A URL."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
@@ -1235,7 +1242,7 @@ class SessionName(BaseType):
     """The name of a session."""
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
         if value.startswith('_'):
@@ -1322,7 +1329,7 @@ class TimestampTemplate(BaseType):
     """
 
     def from_py(self, value):
-        self._basic_validation(value, pytype=str)
+        self._basic_py_validation(value, str)
         if not value:
             return None
 
