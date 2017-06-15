@@ -895,4 +895,7 @@ def yaml_dump(data, f=None):
     """
     yaml_data = yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
                           encoding='utf-8', allow_unicode=True)
-    return yaml_data.decode('utf-8')
+    if yaml_data is None:
+        return None
+    else:
+        return yaml_data.decode('utf-8')
