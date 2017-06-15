@@ -17,7 +17,30 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Setting options used for qutebrowser."""
+"""Types for options in qutebrowser's configuration.
+
+Those types are used in configdata.yml as type of a setting.
+
+Most of them are pretty generic, but some of them are e.g. specific String
+subclasses with valid_values set, as that particular "type" is used multiple
+times in the config.
+
+A setting value can be represented in three different ways:
+
+1) As an object which can be represented in YAML:
+   str, list, dict, int, float, True/False/None
+   This is what qutebrowser actually saves internally, and also what it gets
+   from the YAML or config.py.
+2) As a string. This is e.g. used by the :set command.
+3) As the value the code which uses it expects, e.g. enum members.
+
+Config types can do different conversations:
+
+- Object to string with .to_str() (1 -> 2)
+- String to object with .from_str() (2 -> 1)
+- Object to code with .to_py() (1 -> 3)
+  This also validates whether the object is actually correct (type/value).
+"""
 
 import re
 import shlex
@@ -173,9 +196,9 @@ class BaseType:
     def from_str(self, value):
         """Get the setting value from a string.
 
-        By default this tries to invoke from_py(), so if from_py() accepts a
-        string rather than something more sophisticated, this doesn't need to
-        be implemented.
+        By default this invokes to_py() for validation and returns the unaltered
+        value. This means that if to_py() returns a string rather than something
+        more sophisticated, this doesn't need to be implemented.
 
         Args:
             value: The original string value.
@@ -184,9 +207,12 @@ class BaseType:
             The transformed value.
         """
         self._basic_str_validation(value)
-        return self.from_py(value)
+        self.to_py(value)  # for validation
+        if not value:
+            return None
+        return value
 
-    def from_py(self, value):
+    def to_py(self, value):
         """Get the setting value from a Python value.
 
         Args:
@@ -248,7 +274,7 @@ class MappingType(BaseType):
         super().__init__(none_ok)
         self.valid_values = valid_values
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -304,7 +330,7 @@ class String(BaseType):
                 value, self.encoding, e)
             raise configexc.ValidationError(value, msg)
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -336,8 +362,8 @@ class UniqueCharString(String):
 
     """A string which may not contain duplicate chars."""
 
-    def from_py(self, value):
-        value = super().from_py(value)
+    def to_py(self, value):
+        value = super().to_py(value)
         if not value:
             return None
 
@@ -379,11 +405,12 @@ class List(BaseType):
         except yaml.YAMLError as e:
             raise configexc.ValidationError(value, str(e))
 
-        # For the values, we actually want to call from_py, as we did parse them
+        # For the values, we actually want to call to_py, as we did parse them
         # from YAML, so they are numbers/booleans/... already.
-        return self.from_py(yaml_val)
+        self.to_py(yaml_val)
+        return yaml_val
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, list)
         if not value:
             return None
@@ -391,10 +418,11 @@ class List(BaseType):
         if self.length is not None and len(value) != self.length:
             raise configexc.ValidationError(value, "Exactly {} values need to "
                                             "be set!".format(self.length))
-        return [self.valtype.from_py(v) for v in value]
+        return [self.valtype.to_py(v) for v in value]
 
     def to_str(self, value):
-        if value is None:
+        if not value:
+            # An empty list is treated just like None -> empty string
             return ''
         return json.dumps(value)
 
@@ -420,8 +448,8 @@ class FlagList(List):
             raise configexc.ValidationError(
                 values, "List contains duplicate values!")
 
-    def from_py(self, value):
-        vals = super().from_py(value)
+    def to_py(self, value):
+        vals = super().to_py(value)
         if vals is not None:
             self._check_duplicates(vals)
         return vals
@@ -455,7 +483,7 @@ class Bool(BaseType):
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false')
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, bool)
         return value
 
@@ -486,12 +514,12 @@ class BoolAsk(Bool):
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false', 'ask')
 
-    def from_py(self, value):
+    def to_py(self, value):
         # basic validation unneeded if it's == 'ask' and done by Bool if we
-        # call super().from_py
+        # call super().to_py
         if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
-        return super().from_py(value)
+        return super().to_py(value)
 
     def from_str(self, value):
         # basic validation unneeded if it's == 'ask' and done by Bool if we
@@ -569,9 +597,10 @@ class Int(_Numeric):
             intval = int(value)
         except ValueError:
             raise configexc.ValidationError(value, "must be an integer!")
-        return self.from_py(intval)
+        self.to_py(intval)
+        return intval
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, int)
         self._validate_bounds(value)
         return value
@@ -590,9 +619,10 @@ class Float(_Numeric):
             floatval = float(value)
         except ValueError:
             raise configexc.ValidationError(value, "must be a float!")
-        return self.from_py(floatval)
+        self.to_py(floatval)
+        return floatval
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, (int, float))
         self._validate_bounds(value)
         return value
@@ -602,7 +632,7 @@ class Perc(_Numeric):
 
     """A percentage, as a string ending with %."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -649,16 +679,18 @@ class PercOrInt(_Numeric):
             return None
 
         if value.endswith('%'):
-            return self.from_py(value)
+            self.to_py(value)
+            return value
 
         try:
             intval = int(value)
         except ValueError:
             raise configexc.ValidationError(value,
                                             "must be integer or percentage!")
-        return self.from_py(intval)
+        self.to_py(intval)
+        return intval
 
-    def from_py(self, value):
+    def to_py(self, value):
         """Expect a value like '42%' as string, or 23 as int."""
         self._basic_py_validation(value, (int, str))
         if value is None:
@@ -691,7 +723,7 @@ class Command(BaseType):
 
     """Base class for a command value with arguments."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         # FIXME:conf require a list here?
         self._basic_py_validation(value, str)
         if not value:
@@ -733,7 +765,7 @@ class QtColor(BaseType):
 
     """Base class for QColor."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -749,7 +781,7 @@ class QssColor(BaseType):
 
     """Color used in a Qt stylesheet."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -787,7 +819,7 @@ class Font(BaseType):
         )*               # 0-inf size/weight/style tags
         (?P<family>.+)$  # mandatory font family""", re.VERBOSE)
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -804,7 +836,7 @@ class FontFamily(Font):
 
     """A Qt font family."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -824,7 +856,7 @@ class QtFont(Font):
 
     """A Font which gets converted to a QFont."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -926,7 +958,7 @@ class Regex(BaseType):
 
         return compiled
 
-    def from_py(self, value):
+    def to_py(self, value):
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))
         if not value:
@@ -975,22 +1007,24 @@ class Dict(BaseType):
         except yaml.YAMLError as e:
             raise configexc.ValidationError(value, str(e))
 
-        # For the values, we actually want to call from_py, as we did parse them
+        # For the values, we actually want to call to_py, as we did parse them
         # from YAML, so they are numbers/booleans/... already.
-        return self.from_py(yaml_val)
+        self.to_py(yaml_val)
+        return yaml_val
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, dict)
         if not value:
             return None
 
         self._validate_keys(value)
 
-        return {self.keytype.from_py(key): self.valtype.from_py(val)
+        return {self.keytype.to_py(key): self.valtype.to_py(val)
                 for key, val in value.items()}
 
     def to_str(self, value):
-        if value is None:
+        if not value:
+            # An empty Dict is treated just like None -> empty string
             return ''
         return json.dumps(value)
 
@@ -1003,7 +1037,7 @@ class File(BaseType):
         super().__init__(**kwargs)
         self.required = required
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1029,7 +1063,7 @@ class Directory(BaseType):
 
     """A directory on the local filesystem."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1056,7 +1090,7 @@ class FormatString(BaseType):
         super().__init__(none_ok)
         self.fields = fields
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1089,11 +1123,14 @@ class ShellCommand(BaseType):
         if not value:
             return None
         try:
-            return self.from_py(shlex.split(value))
+            split_val = shlex.split(value)
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
 
-    def from_py(self, value):
+        self.to_py(split_val)
+        return split_val
+
+    def to_py(self, value):
         # FIXME:conf require a str/list here?
         self._basic_py_validation(value, list)
         if not value:
@@ -1115,7 +1152,7 @@ class Proxy(BaseType):
             ('system', "Use the system wide proxy."),
             ('none', "Don't use any proxy"))
 
-    def from_py(self, value):
+    def to_py(self, value):
         from qutebrowser.utils import urlutils
         self._basic_py_validation(value, str)
         if not value:
@@ -1152,7 +1189,7 @@ class SearchEngineUrl(BaseType):
 
     """A search engine URL."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1180,7 +1217,7 @@ class FuzzyUrl(BaseType):
 
     """A single URL."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         from qutebrowser.utils import urlutils
         self._basic_py_validation(value, str)
         if not value:
@@ -1209,8 +1246,8 @@ class Padding(Dict):
         # FIXME:conf
         assert valid_values is None, valid_values
 
-    def from_py(self, value):
-        d = super().from_py(value)
+    def to_py(self, value):
+        d = super().to_py(value)
         if not d:
             return None
         return PaddingValues(**d)
@@ -1220,7 +1257,7 @@ class Encoding(BaseType):
 
     """Setting for a python encoding."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1277,7 +1314,7 @@ class Url(BaseType):
 
     """A URL."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1293,7 +1330,7 @@ class SessionName(BaseType):
 
     """The name of a session."""
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1341,8 +1378,8 @@ class ConfirmQuit(FlagList):
              "downloads are running"),
             ('never', "Never show a confirmation."))
 
-    def from_py(self, value):
-        values = super().from_py(value)
+    def to_py(self, value):
+        values = super().to_py(value)
         if not values:
             return None
 
@@ -1380,7 +1417,7 @@ class TimestampTemplate(BaseType):
     for reference.
     """
 
-    def from_py(self, value):
+    def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None

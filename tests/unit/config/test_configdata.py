@@ -33,7 +33,7 @@ def test_init():
     assert isinstance(configdata.DATA, dict)
     assert 'ignore_case' in configdata.DATA
     for option in configdata.DATA.values():
-        option.typ.from_py(option.default)
+        option.typ.to_py(option.default)
 
 
 def test_init_benchmark(benchmark):
