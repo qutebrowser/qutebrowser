@@ -724,7 +724,6 @@ class Command(BaseType):
     """Base class for a command value with arguments."""
 
     def to_py(self, value):
-        # FIXME:conf require a list here?
         self._basic_py_validation(value, str)
         if not value:
             return
@@ -1106,7 +1105,7 @@ class FormatString(BaseType):
         return value
 
 
-class ShellCommand(BaseType):
+class ShellCommand(List):
 
     """A shellcommand which is split via shlex.
 
@@ -1115,7 +1114,7 @@ class ShellCommand(BaseType):
     """
 
     def __init__(self, placeholder=False, none_ok=False):
-        super().__init__(none_ok)
+        super().__init__(valtype=String(), none_ok=none_ok)
         self.placeholder = placeholder
 
     def from_str(self, value):
@@ -1131,8 +1130,7 @@ class ShellCommand(BaseType):
         return split_val
 
     def to_py(self, value):
-        # FIXME:conf require a str/list here?
-        self._basic_py_validation(value, list)
+        value = super().to_py(value)
         if not value:
             return None
 
@@ -1140,11 +1138,6 @@ class ShellCommand(BaseType):
             raise configexc.ValidationError(value, "needs to contain a "
                                             "{}-placeholder.")
         return value
-
-    def to_str(self, value):
-        if not value:
-            return ''
-        return json.dumps(value)
 
 
 class Proxy(BaseType):
