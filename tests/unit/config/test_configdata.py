@@ -40,6 +40,13 @@ def test_init_benchmark(benchmark):
     benchmark(configdata.init)
 
 
+def test_is_valid_prefix(monkeypatch):
+    monkeypatch.setattr(configdata, 'DATA', ['foo.bar'])
+    assert configdata.is_valid_prefix('foo')
+    assert not configdata.is_valid_prefix('foo.bar')
+    assert not configdata.is_valid_prefix('foa')
+
+
 class TestReadYaml:
 
     def test_valid(self):
