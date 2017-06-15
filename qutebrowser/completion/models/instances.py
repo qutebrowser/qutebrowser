@@ -27,9 +27,8 @@ Module attributes:
 
 import functools
 
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import miscmodels, urlmodel
 from qutebrowser.utils import objreg, usertypes, log, debug
-from qutebrowser.config import configdata, config
 
 
 _instances = {}
@@ -63,22 +62,6 @@ def _init_tab_completion():
     with debug.log_time(log.completion, 'tab completion init'):
         model = miscmodels.TabCompletionModel()
         _instances[usertypes.Completion.tab] = model
-
-
-def _init_setting_completions():
-    """Initialize setting completion models."""
-    log.completion.debug("Initializing setting completion.")
-    _instances[usertypes.Completion.section] = (
-        configmodel.SettingSectionCompletionModel())
-    _instances[usertypes.Completion.option] = {}
-    _instances[usertypes.Completion.value] = {}
-    for sectname in configdata.DATA:
-        opt_model = configmodel.SettingOptionCompletionModel(sectname)
-        _instances[usertypes.Completion.option][sectname] = opt_model
-        _instances[usertypes.Completion.value][sectname] = {}
-        for opt in configdata.DATA[sectname]:
-            val_model = configmodel.SettingValueCompletionModel(sectname, opt)
-            _instances[usertypes.Completion.value][sectname][opt] = val_model
 
 
 def init_quickmark_completions():
@@ -126,9 +109,6 @@ INITIALIZERS = {
     usertypes.Completion.helptopic: _init_helptopic_completion,
     usertypes.Completion.url: _init_url_completion,
     usertypes.Completion.tab: _init_tab_completion,
-    usertypes.Completion.section: _init_setting_completions,
-    usertypes.Completion.option: _init_setting_completions,
-    usertypes.Completion.value: _init_setting_completions,
     usertypes.Completion.quickmark_by_name: init_quickmark_completions,
     usertypes.Completion.bookmark_by_url: init_bookmark_completions,
     usertypes.Completion.sessions: init_session_completion,
@@ -163,12 +143,6 @@ def update(completions):
                 did_run.append(func)
 
 
-@config.change_filter('aliases', function=True)
-def _update_aliases():
-    """Update completions that include command aliases."""
-    update([usertypes.Completion.command])
-
-
 def init():
     """Initialize completions. Note this only connects signals."""
     quickmark_manager = objreg.get('quickmark-manager')
@@ -192,5 +166,3 @@ def init():
         functools.partial(update, [usertypes.Completion.command]))
     keyconf.changed.connect(
         functools.partial(update, [usertypes.Completion.bind]))
-
-    config.instance.changed.connect(_update_aliases)

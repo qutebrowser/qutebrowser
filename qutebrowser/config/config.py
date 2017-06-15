@@ -722,9 +722,6 @@ class ConfigManager(QObject):
                 e.__class__.__name__, e))
 
     @cmdutils.register(name='set', instance='config', star_args_optional=True)
-    @cmdutils.argument('section_', completion=Completion.section)
-    @cmdutils.argument('option', completion=Completion.option)
-    @cmdutils.argument('values', completion=Completion.value)
     @cmdutils.argument('win_id', win_id=True)
     def set_command(self, win_id, section_=None, option=None, *values,
                     temp=False, print_=False):
