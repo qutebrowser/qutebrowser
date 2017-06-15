@@ -19,12 +19,18 @@
 """Tests for qutebrowser.config.configtypes."""
 
 import re
+import os
+import sys
 import json
 import collections
 import itertools
 import warnings
+import inspect
+import functools
 
 import pytest
+import hypothesis
+from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
@@ -173,6 +179,41 @@ class TestValidValues:
         assert 'bar' in vv
         assert vv.descriptions['foo'] == "foo desc"
         assert vv.descriptions['bar'] == "bar desc"
+
+
+class TestAll:
+
+    """Various tests which apply to all available config types."""
+
+    def gen_classes():
+        """Yield all configtypes classes to test.
+
+        Not a method as it's used in decorators.
+        """
+        for _name, member in inspect.getmembers(configtypes, inspect.isclass):
+            if member in [configtypes.BaseType, configtypes.MappingType,
+                          configtypes._Numeric]:
+                pass
+            elif member is configtypes.List:
+                yield functools.partial(member, valtype=configtypes.Int())
+                yield functools.partial(member, valtype=configtypes.Url())
+            elif member is configtypes.Dict:
+                yield functools.partial(member, keytype=configtypes.String(),
+                                        valtype=configtypes.String())
+            elif member is configtypes.FormatString:
+                yield functools.partial(member, fields=['a', 'b'])
+            elif issubclass(member, configtypes.BaseType):
+                yield member
+
+    @pytest.mark.usefixtures('qapp', 'config_tmpdir')
+    @pytest.mark.parametrize('klass', gen_classes())
+    @hypothesis.given(strategies.text())
+    @hypothesis.example('\x00')
+    def test_from_str_hypothesis(self, klass, s):
+        try:
+            klass().from_str(s)
+        except configexc.ValidationError:
+            pass
 
 
 class TestBaseType:
