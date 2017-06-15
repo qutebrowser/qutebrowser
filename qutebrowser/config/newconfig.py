@@ -112,32 +112,40 @@ class change_filter:  # pylint: disable=invalid-name
 
 class NewConfigManager(QObject):
 
-    changed = pyqtSignal(str, str)  # FIXME:conf stub...
+    changed = pyqtSignal(str)  # FIXME:conf stub...
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.options = {}
+        self._values = {}  # FIXME:conf stub
 
     def read_defaults(self):
         for name, option in configdata.DATA.items():
             self.options[name] = option
 
-    def get(self, option):
+    def get(self, name):
         try:
-            opt = self.options[option]
+            opt = self.options[name]
         except KeyError:
-            raise configexc.NoOptionError(option)
-        return opt.typ.to_py(opt.default)
+            raise configexc.NoOptionError(name)
+        value = self._values.get(name, opt.default)
+        return opt.typ.to_py(value)
 
-    def get_str(self, option):
+    def get_str(self, name):
         try:
-            opt = self.options[option]
+            opt = self.options[name]
         except KeyError:
-            raise configexc.NoOptionError(option)
+            raise configexc.NoOptionError(name)
         return opt.typ.to_str(opt.default)
 
-    def set(self, option, value):
-        raise configexc.Error("Setting doesn't work yet!")
+    def set(self, name, value):
+        # FIXME:conf stub
+        try:
+            opt = self.options[name]
+        except KeyError:
+            raise configexc.NoOptionError(name)
+        self._values[name] = opt.typ.from_str(value)
+        self.changed.emit(name)
 
 
 class ConfigContainer:
