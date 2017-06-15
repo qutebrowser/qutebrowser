@@ -120,10 +120,14 @@ class BaseType:
             value: The value to check.
             pytype: A Python type to check the value against.
         """
-        if value is None and not self.none_ok:
-            raise configexc.ValidationError(value, "may not be null!")
+        if value is None:
+            if not self.none_ok:
+                raise configexc.ValidationError(value, "may not be null!")
+            else:
+                return
 
-        if value is not None and not isinstance(value, pytype):
+        if (not isinstance(value, pytype) or
+                pytype is int and isinstance(value, bool)):
             if isinstance(pytype, tuple):
                 expected = ' or '.join(typ.__name__ for typ in pytype)
             else:
@@ -132,7 +136,7 @@ class BaseType:
                 value, "expected a value of type {} but got {}.".format(
                     expected, type(value).__name__))
 
-        if value is not None and isinstance(value, str):
+        if isinstance(value, str):
             self._basic_str_validation(value)
 
     def _basic_str_validation(self, value):

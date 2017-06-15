@@ -736,6 +736,7 @@ class TestInt:
         ({}, 2.5),
         ({}, 'foobar'),
         ({'minval': 2, 'maxval': 3}, 1),
+        ({}, True),
     ])
     def test_from_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
