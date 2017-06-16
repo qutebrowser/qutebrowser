@@ -331,12 +331,12 @@ Feature: Various utility commands.
     # :home
 
     Scenario: :home with single page
-        When I set start_page to http://localhost:(port)/data/hello2.txt
+        When I set start_page to ["http://localhost:(port)/data/hello2.txt"]
         And I run :home
         Then data/hello2.txt should be loaded
 
     Scenario: :home with multiple pages
-        When I set start_page to http://localhost:(port)/data/numbers/1.txt,http://localhost:(port)/data/numbers/2.txt
+        When I set start_page to ["http://localhost:(port)/data/numbers/1.txt", "http://localhost:(port)/data/numbers/2.txt"]
         And I run :home
         Then data/numbers/1.txt should be loaded
 
@@ -345,13 +345,13 @@ Feature: Various utility commands.
     @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
-        When I set content.enable_pdfjs to true
+        When I set content.pdfjs to true
         And I open data/misc/test.pdf
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
     @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: pdfjs is not used when disabled
-        When I set content.enable_pdfjs to false
+        When I set content.pdfjs to false
         And I set downloads.location.prompt to false
         And I open data/misc/test.pdf
         Then "Download test.pdf finished" should be logged
@@ -363,7 +363,7 @@ Feature: Various utility commands.
         # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
         # a weird interaction with the previous test.
         And I have a fresh instance
-        When I set content.enable_pdfjs to true
+        When I set content.pdfjs to true
         And I set downloads.location.suggestion to filename
         And I set downloads.location.prompt to true
         And I open data/misc/test.pdf

@@ -116,7 +116,7 @@ def download_prompt(tmpdir, quteproc, path):
 def default_open_dispatcher_python(quteproc, tmpdir):
     cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
         shlex.quote(sys.executable))
-    quteproc.set_setting('general', 'default-open-dispatcher', cmd)
+    quteproc.set_setting('downloads.open_dispatcher', cmd)
 
 
 @bdd.when("I open the download")

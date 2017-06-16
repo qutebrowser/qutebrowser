@@ -72,7 +72,7 @@ Feature: Prompts
 
     @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by blocking one
-        When I set content.ignore_javascript_alert to false
+        When I set content.javascript.alert to true
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
@@ -88,7 +88,7 @@ Feature: Prompts
 
     @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by async one
-        When I set content.ignore_javascript_alert to false
+        When I set content.javascript.alert to true
         And I set content.notifications to ask
         And I open data/prompt/jsalert.html
         And I run :click-element id button
@@ -121,7 +121,7 @@ Feature: Prompts
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Async question interrupted by blocking one
         When I set content.notifications to ask
-        And I set content.ignore_javascript_alert to false
+        And I set content.javascript.alert to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -369,7 +369,7 @@ Feature: Prompts
     # :prompt-accept with value argument
 
     Scenario: Javascript alert with value
-        When I set content.ignore_javascript_alert to false
+        When I set content.javascript.alert to true
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
@@ -380,7 +380,7 @@ Feature: Prompts
 
     @js_prompt
     Scenario: Javascript prompt with value
-        When I set content.ignore_javascript_prompt to false
+        When I set content.javascript.prompt to true
         And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt

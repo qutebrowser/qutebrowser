@@ -609,7 +609,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading via pdfjs
         Given pdfjs is available
         When I set downloads.location.prompt to false
-        And I set content.enable_pdfjs to true
+        And I set content.pdfjs to true
         And I open data/misc/test.pdf
         And I wait for the javascript message "PDF * [*] (PDF.js: *)"
         And I run :click-element id download

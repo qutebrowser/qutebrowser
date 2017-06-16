@@ -79,8 +79,8 @@ Feature: Opening pages
 
     Scenario: Opening in a new tab (explicit)
         Given I open about:blank
-        When I set tabs.new_tab_position_explicit to next
-        And I set tabs.new_tab_position to prev
+        When I set tabs.new_position_explicit to next
+        And I set tabs.new_position to prev
         And I run :tab-only
         And I run :open -t http://localhost:(port)/data/numbers/7.txt
         And I wait until data/numbers/7.txt is loaded
@@ -90,8 +90,8 @@ Feature: Opening pages
 
     Scenario: Opening in a new tab (implicit)
         Given I open about:blank
-        When I set tabs.new_tab_position_explicit to next
-        And I set tabs.new_tab_position to prev
+        When I set tabs.new_position_explicit to next
+        And I set tabs.new_position to prev
         And I run :tab-only
         And I run :open -t -i http://localhost:(port)/data/numbers/8.txt
         And I wait until data/numbers/8.txt is loaded

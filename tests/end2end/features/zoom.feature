@@ -4,7 +4,7 @@ Feature: Zooming in and out
 
     Background:
         Given I open data/hello.txt
-        And I set zoom.levels to 50%,90%,100%,110%,120%
+        And I set zoom.levels to [50%, 90%, 100%, 110%, 120%]
         And I run :tab-only
 
     Scenario: Zooming in

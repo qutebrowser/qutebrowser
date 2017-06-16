@@ -90,7 +90,7 @@ Feature: Using completion
 
     Scenario: Updating the value completion in realtime
         Given I set colors.statusbar.normal.bg to green
-        When I run :set-cmd-text -s :set colors statusbar.bg
+        When I run :set-cmd-text -s :set colors.statusbar.normal.bg
         And I set colors.statusbar.normal.bg to yellow
         And I run :completion-item-focus next
         And I run :completion-item-focus next

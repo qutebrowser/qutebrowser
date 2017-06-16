@@ -282,7 +282,7 @@ Feature: Yanking and pasting.
     Scenario: Inserting text into a text field at specific position
         When I set content.javascript.log to info
         And I open data/paste_primary.html
-        And I set the text field to "one two three four"
+        And I insert "one two three four" into the text field
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Move to the beginning and two characters to the right

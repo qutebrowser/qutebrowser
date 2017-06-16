@@ -57,14 +57,14 @@ Feature: Javascript stuff
 
     Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to true
         When I open data/hello.txt
-        And I set content.javascript_can_open_windows_automatically to true
+        And I set content.javascript.can_open_windows_automatically to true
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "window opened" should be logged
 
     Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to false
         When I open data/hello.txt
-        And I set content.javascript_can_open_windows_automatically to false
+        And I set content.javascript.can_open_windows_automatically to false
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "error while opening window" should be logged
@@ -72,7 +72,7 @@ Feature: Javascript stuff
     Scenario: Executing jseval when javascript is disabled
         When I set content.javascript.enabled to false
         And I run :jseval console.log('jseval executed')
-        And I set content -> allow-javascript to true
+        And I set content.javascript.enabled to true
         Then the javascript message "jseval executed" should be logged
 
     ## webelement issues (mostly with QtWebEngine)
@@ -111,7 +111,7 @@ Feature: Javascript stuff
 
     Scenario: Checking visible/invisible window size
         When I run :tab-only
-        And I set general -> log-javascript-console to info
+        And I set content.javascript.log to info
         And I open data/javascript/windowsize.html in a new background tab
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next
@@ -119,8 +119,8 @@ Feature: Javascript stuff
 
     Scenario: Checking visible/invisible window size with vertical tabbar
         When I run :tab-only
-        And I set general -> log-javascript-console to info
-        And I set tabs -> position to left
+        And I set content.javascript.log to info
+        And I set tabs.position to left
         And I open data/javascript/windowsize.html in a new background tab
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next

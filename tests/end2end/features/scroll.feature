@@ -323,7 +323,7 @@ Feature: Scrolling
         Then data/hello2.txt should be loaded
 
     Scenario: Scrolling to anchor in background tab
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open about:blank
         And I run :tab-only
         And I open data/scroll/simple.html#anchor in a new background tab

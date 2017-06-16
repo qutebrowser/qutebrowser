@@ -715,7 +715,7 @@ Feature: Tab management
         When I open data/hello.txt
         And I run :tab-only
         And I set tabs.last_close to startpage
-        And I set start_page to http://localhost:(port)/data/numbers/4.txt,http://localhost:(port)/data/numbers/5.txt
+        And I set start_page to ["http://localhost:(port)/data/numbers/4.txt", "http://localhost:(port)/data/numbers/5.txt"]
         And I run :tab-close
         And I wait until data/numbers/4.txt is loaded
         And I run :undo
@@ -807,7 +807,7 @@ Feature: Tab management
             - about:blank (active)
 
     Scenario: last-close = startpage
-        When I set start_page to http://localhost:(port)/data/numbers/7.txt,http://localhost:(port)/data/numbers/8.txt
+        When I set start_page to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
         And I set tabs.last_close to startpage
         And I open data/hello.txt
         And I run :tab-only
@@ -836,7 +836,7 @@ Feature: Tab management
     # tab settings
 
     Scenario: opening links with tabs.background true
-        When I set tabs.background_tabs to true
+        When I set tabs.background to true
         And I open data/hints/html/simple.html
         And I hint with args "all tab" and follow a
         And I wait until data/hello.txt is loaded
@@ -844,9 +844,9 @@ Feature: Tab management
             - data/hints/html/simple.html (active)
             - data/hello.txt
 
-    Scenario: opening tab with tabs.new_tab_position prev
-        When I set tabs.new_tab_position to prev
-        And I set tabs.background_tabs to false
+    Scenario: opening tab with tabs.new_position prev
+        When I set tabs.new_position to prev
+        And I set tabs.background to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
         And I run :click-element id link --target=tab
@@ -856,9 +856,9 @@ Feature: Tab management
             - data/hello.txt (active)
             - data/hints/html/simple.html
 
-    Scenario: opening tab with tabs.new_tab_position next
-        When I set tabs.new_tab_position to next
-        And I set tabs.background_tabs to false
+    Scenario: opening tab with tabs.new_position next
+        When I set tabs.new_position to next
+        And I set tabs.background to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
         And I run :click-element id link --target=tab
@@ -868,9 +868,9 @@ Feature: Tab management
             - data/hints/html/simple.html
             - data/hello.txt (active)
 
-    Scenario: opening tab with tabs.new_tab_position first
-        When I set tabs.new_tab_position to first
-        And I set tabs.background_tabs to false
+    Scenario: opening tab with tabs.new_position first
+        When I set tabs.new_position to first
+        And I set tabs.background to false
         And I open about:blank
         And I open data/hints/html/simple.html in a new tab
         And I run :click-element id link --target=tab
@@ -880,9 +880,9 @@ Feature: Tab management
             - about:blank
             - data/hints/html/simple.html
 
-    Scenario: opening tab with tabs.new_tab_position last
-        When I set tabs.new_tab_position to last
-        And I set tabs.background_tabs to false
+    Scenario: opening tab with tabs.new_position last
+        When I set tabs.new_position to last
+        And I set tabs.background to false
         And I open data/hints/html/simple.html
         And I open about:blank in a new tab
         And I run :tab-focus last
