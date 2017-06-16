@@ -283,22 +283,14 @@ Feature: Various utility commands.
     Scenario: :help with setting
         When the documentation is up to date
         And I run :tab-only
-        And I run :help general->editor
-        And I wait until qute://help/settings.html#general-editor is loaded
+        And I run :help editor.command
+        And I wait until qute://help/settings.html#editor.command is loaded
         Then the following tabs should be open:
             - qute://help/settings.html#general-editor (active)
 
-    Scenario: :help with invalid setting (2 arrows)
-        When I run :help general->editor->foo
-        Then the error "Invalid help topic general->editor->foo!" should be shown
-
-    Scenario: :help with invalid setting (unknown section)
-        When I run :help foo->bar
-        Then the error "Invalid section foo!" should be shown
-
-    Scenario: :help with invalid setting (unknown option)
-        When I run :help general->bar
-        Then the error "Invalid option bar!" should be shown
+    Scenario: :help with invalid setting
+        When I run :help foo.bar
+        Then the error "Invalid option foo.bar!" should be shown
 
     Scenario: :help with -t
         When I open about:blank

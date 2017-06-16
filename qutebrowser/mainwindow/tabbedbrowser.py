@@ -62,7 +62,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
         _tab_insert_idx_left: Where to insert a new tab with
-                         tabbar -> new-tab-position set to 'prev'.
+                              tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
         _undo_stack: List of UndoEntry namedtuples of closed tabs.
         shutting_down: Whether we're currently shutting down.

@@ -823,9 +823,8 @@ def random_port():
 def open_file(filename, cmdline=None):
     """Open the given file.
 
-    If cmdline is not given, general->default-open-dispatcher is used.
-    If default-open-dispatcher is unset, the system's default application is
-    used.
+    If cmdline is not given, downloads.open_dispatcher is used.
+    If open_dispatcher is unset, the system's default application is used.
 
     Args:
         filename: The filename to open.

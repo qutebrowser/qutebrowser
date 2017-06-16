@@ -110,7 +110,7 @@ class DefaultProfileSetter(websettings.Base):
 
 class PersistentCookiePolicy(DefaultProfileSetter):
 
-    """The cookies -> store setting is different from other settings."""
+    """The content.cookies.store setting is different from other settings."""
 
     def __init__(self):
         super().__init__('setPersistentCookiesPolicy')

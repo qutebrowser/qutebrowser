@@ -649,7 +649,7 @@ class HintManager(QObject):
             mode: The hinting mode to use.
 
                 - `number`: Use numeric hints.
-                - `letter`: Use the chars in the hints->chars settings.
+                - `letter`: Use the chars in the hints.chars setting.
                 - `word`: Use hint words based on the html elements and the
                           extra words.
 

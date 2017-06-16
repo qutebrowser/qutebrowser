@@ -119,7 +119,7 @@ Feature: Tab management
     Scenario: :tab-close with select-on-remove = last-used and --opposite
         When I set tabs.select_on_remove to last-used
         And I run :tab-close --opposite
-        Then the error "-o is not supported with 'tabs->select-on-remove' set to 'last-used'!" should be shown
+        Then the error "-o is not supported with 'tabs.select_on_remove' set to 'last-used'!" should be shown
 
     Scenario: :tab-close should restore selection behavior
         When I set tabs.select_on_remove to next
@@ -835,7 +835,7 @@ Feature: Tab management
 
     # tab settings
 
-    Scenario: opening links with tabs->background-tabs true
+    Scenario: opening links with tabs.background true
         When I set tabs.background_tabs to true
         And I open data/hints/html/simple.html
         And I hint with args "all tab" and follow a
@@ -844,7 +844,7 @@ Feature: Tab management
             - data/hints/html/simple.html (active)
             - data/hello.txt
 
-    Scenario: opening tab with tabs->new-tab-position prev
+    Scenario: opening tab with tabs.new_tab_position prev
         When I set tabs.new_tab_position to prev
         And I set tabs.background_tabs to false
         And I open about:blank
@@ -856,7 +856,7 @@ Feature: Tab management
             - data/hello.txt (active)
             - data/hints/html/simple.html
 
-    Scenario: opening tab with tabs->new-tab-position next
+    Scenario: opening tab with tabs.new_tab_position next
         When I set tabs.new_tab_position to next
         And I set tabs.background_tabs to false
         And I open about:blank
@@ -868,7 +868,7 @@ Feature: Tab management
             - data/hints/html/simple.html
             - data/hello.txt (active)
 
-    Scenario: opening tab with tabs->new-tab-position first
+    Scenario: opening tab with tabs.new_tab_position first
         When I set tabs.new_tab_position to first
         And I set tabs.background_tabs to false
         And I open about:blank
@@ -880,7 +880,7 @@ Feature: Tab management
             - about:blank
             - data/hints/html/simple.html
 
-    Scenario: opening tab with tabs->new-tab-position last
+    Scenario: opening tab with tabs.new_tab_position last
         When I set tabs.new_tab_position to last
         And I set tabs.background_tabs to false
         And I open data/hints/html/simple.html

@@ -469,7 +469,7 @@ class SessionManager(QObject):
 
         Args:
             name: The name of the session. If not given, the session configured
-                  in general -> session-default-name is saved.
+                  in session_default_name is saved.
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).

@@ -1016,7 +1016,7 @@ tabs.favicons.scale:
     name: Float
     minval: 0.0
   desc: Scale for favicons in the tab bar. The tab size is unchanged, so big favicons
-    also require extra `tabs->padding`.
+    also require extra `tabs.padding`.
 
 tabs.favicons.show:
   default: true
@@ -1092,7 +1092,7 @@ tabs.show:
 tabs.show_switching_delay:
   default: 800
   type: Int
-  desc: "Time to show the tab bar before hiding it when tabs->show is set to
+  desc: "Time to show the tab bar before hiding it when tabs.show is set to
     'switching'."
 
 tabs.tabs_are_windows:

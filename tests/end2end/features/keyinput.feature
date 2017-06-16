@@ -117,7 +117,7 @@ Feature: Keyboard input
         And I press the keys "bar"
         Then the message "test12-2" should be shown
 
-    # input -> forward-unbound-keys
+    # input.forward_unbound_keys
 
     Scenario: Forwarding all keys
         When I open data/keyinput/log.html

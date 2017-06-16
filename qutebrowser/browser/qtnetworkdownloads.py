@@ -480,7 +480,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             reply: The QNetworkReply to download.
             target: Where to save the download as downloads.DownloadTarget.
             auto_remove: Whether to remove the download even if
-                         ui -> remove-finished-downloads is set to -1.
+                         downloads.remove_finished is set to -1.
 
         Return:
             The created DownloadItem.

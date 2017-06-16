@@ -339,7 +339,7 @@ class TabBar(QTabBar):
             self.update()
 
     def _on_show_switching_delay_changed(self):
-        """Set timer interval when tabs->show-switching-delay got changed."""
+        """Set timer interval when tabs.show_switching_delay got changed."""
         self._auto_hide_timer.setInterval(config.val.tabs.show_switching_delay)
 
     def on_current_changed(self):

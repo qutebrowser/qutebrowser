@@ -338,7 +338,7 @@ Show help about a command or setting.
 * +'topic'+: The topic to show help for. 
 
  - :__command__ for commands.
- - __section__\->__option__ for settings.
+ - __option.foo.bar__ for settings.
 
 
 ==== optional arguments
@@ -408,7 +408,7 @@ Start hinting.
 * +*-m*+, +*--mode*+: The hinting mode to use. 
 
  - `number`: Use numeric hints.
- - `letter`: Use the chars in the hints->chars settings.
+ - `letter`: Use the chars in the hints.chars settings.
  - `word`: Use hint words based on the html elements and the
  extra words.
  

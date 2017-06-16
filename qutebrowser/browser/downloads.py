@@ -88,7 +88,7 @@ def immediate_download_path(prompt_download_directory=None):
     Args:
         prompt_download_directory: If this is something else than None, it
                                    will overwrite the
-                                   storage->prompt-download-directory setting.
+                                   downloads.location.prompt setting.
     """
     if prompt_download_directory is None:
         prompt_download_directory = config.val.downloads.location.prompt
