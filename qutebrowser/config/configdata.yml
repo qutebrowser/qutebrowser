@@ -1049,11 +1049,6 @@ tabs.mousewheel_switching:
   type: Bool
   desc: Switch between tabs using the mouse wheel.
 
-tabs.movable:
-  default: true
-  type: Bool
-  desc: Whether tabs should be movable.
-
 tabs.new_position:
   default: next
   type: NewTabPosition

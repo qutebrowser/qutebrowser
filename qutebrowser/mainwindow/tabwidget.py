@@ -74,7 +74,7 @@ class TabWidget(QTabWidget):
             # WORKAROUND for PyQt 5.2
             return
         tabbar = self.tabBar()
-        self.setMovable(config.val.tabs.movable)
+        self.setMovable(True)
         self.setTabsClosable(False)
         position = config.val.tabs.position
         selection_behavior = config.val.tabs.select_on_remove
