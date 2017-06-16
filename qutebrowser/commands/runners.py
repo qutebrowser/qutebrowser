@@ -106,8 +106,6 @@ class CommandRunner(QObject):
             The new command string if an alias was found. Default value
             otherwise.
         """
-        # FIXME:conf
-        return default
         parts = text.strip().split(maxsplit=1)
         try:
             alias = config.val.aliases[parts[0]]
