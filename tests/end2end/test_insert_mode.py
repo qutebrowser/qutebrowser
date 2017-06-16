@@ -38,7 +38,7 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
 
-    quteproc.set_setting('input.insert_mode.auto_focused', auto_insert)
+    quteproc.set_setting('input.insert_mode.auto_load', auto_insert)
     quteproc.send_cmd(':zoom {}'.format(zoom))
 
     quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))

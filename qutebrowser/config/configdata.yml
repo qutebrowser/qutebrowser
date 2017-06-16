@@ -856,7 +856,7 @@ input.forward_unbound_keys:
     - none: "Don't forward any keys."
   desc: Whether to forward unbound keys to the webview in normal mode.
 
-input.insert_mode.auto_focused:
+input.insert_mode.auto_load:
   default: false
   type: Bool
   desc: Whether to automatically enter insert mode if an editable element is focused
