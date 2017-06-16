@@ -42,6 +42,8 @@ Config types can do different conversations:
   This also validates whether the object is actually correct (type/value).
 """
 
+# FIXME:conf show the type docstrings in the documentation
+
 import re
 import shlex
 import codecs
@@ -741,7 +743,7 @@ class Command(BaseType):
 
 class ColorSystem(MappingType):
 
-    """Color systems for interpolation."""
+    """The color system to use for color interpolation."""
 
     def __init__(self, none_ok=False):
         super().__init__(
@@ -762,7 +764,15 @@ class ColorSystem(MappingType):
 
 class QtColor(BaseType):
 
-    """Base class for QColor."""
+    """A color value.
+
+    A value can be in one of the following formats:
+
+    * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+    * An SVG color name as specified in
+      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+    * transparent (no color)
+    """
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
@@ -778,7 +788,20 @@ class QtColor(BaseType):
 
 class QssColor(BaseType):
 
-    """Color used in a Qt stylesheet."""
+    """A color value supporting gradients.
+
+    A value can be in one of the following formats:
+
+    * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+    * An SVG color name as specified in
+      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+    * transparent (no color)
+    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
+    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
+    * A gradient as explained in
+      http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
+      under ``Gradient''
+    """
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
@@ -800,7 +823,12 @@ class QssColor(BaseType):
 
 class Font(BaseType):
 
-    """Base class for a font value."""
+    """A font family, with optional style/weight/size.
+
+    * Style: `normal`/`italic`/`oblique`
+    * Weight: `normal`, `bold`, `100`..`900`
+    * Size: _number_ `px`/`pt`
+    """
 
     font_regex = re.compile(r"""
         ^(

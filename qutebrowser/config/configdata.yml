@@ -9,7 +9,13 @@ aliases:
       forbidden: ' '
     valtype: Command
     none_ok: true
-  desc: Command aliases FIXME
+  desc: >-
+    Aliases for commands.
+
+    By default, no aliases are defined. Example which adds a new command `:qtb`
+    to open qutebrowsers website:
+
+    `{qtb: open https://www.qutebrowser.org/}`
 
 auto_search:
   type:
@@ -83,7 +89,14 @@ searchengines:
     name: Dict
     keytype: String
     valtype: SearchEngineUrl
-  desc: FIXME
+  desc: >-
+    Definitions of search engines which can be used via the address bar.
+
+    The searchengine named `DEFAULT` is used when `general -> auto-search` is
+    true and something else than a URL was entered to be opened. Other search
+    engines can be used by prepending the search engine name to the search term,
+    e.g. `:open google qutebrowser`. The string `{}` will be replaced by the
+    search term, use `{{` and `}}` for literal `{`/`}` signs.
 
 session_default_name:
   type:

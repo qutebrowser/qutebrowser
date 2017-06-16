@@ -68,60 +68,6 @@ FIRST_COMMENT = r"""
 """
 
 
-# FIXME:conf where to put those?
-SECTION_DESC = {
-    'general': "General/miscellaneous options.",
-    'ui': "General options related to the user interface.",
-    'input': "Options related to input modes.",
-    'network': "Settings related to the network.",
-    'completion': "Options related to completion and command history.",
-    'tabs': "Configuration of the tab bar.",
-    'storage': "Settings related to cache and storage.",
-    'content': "Loaded plugins/scripts and allowed actions.",
-    'hints': "Hinting settings.",
-    'searchengines': (
-        "Definitions of search engines which can be used via the address "
-        "bar.\n"
-        "The searchengine named `DEFAULT` is used when "
-        "`general -> auto-search` is true and something else than a URL was "
-        "entered to be opened. Other search engines can be used by prepending "
-        "the search engine name to the search term, e.g. "
-        "`:open google qutebrowser`. The string `{}` will be replaced by the "
-        "search term, use `{{` and `}}` for literal `{`/`}` signs."),
-    'aliases': (
-        "Aliases for commands.\n"
-        "By default, no aliases are defined. Example which adds a new command "
-        "`:qtb` to open qutebrowsers website:\n\n"
-        "`qtb = open https://www.qutebrowser.org/`"),
-    'colors': (
-        "Colors used in the UI.\n"
-        "A value can be in one of the following format:\n\n"
-        " * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`\n"
-        " * An SVG color name as specified in http://www.w3.org/TR/SVG/"
-        "types.html#ColorKeywords[the W3C specification].\n"
-        " * transparent (no color)\n"
-        " * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or "
-        "percentages)\n"
-        " * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)\n"
-        " * A gradient as explained in http://doc.qt.io/qt-5/"
-        "stylesheet-reference.html#list-of-property-types[the Qt "
-        "documentation] under ``Gradient''.\n\n"
-        "A *.system value determines the color system to use for color "
-        "interpolation between similarly-named *.start and *.stop entries, "
-        "regardless of how they are defined in the options. "
-        "Valid values are 'rgb', 'hsv', and 'hsl'.\n\n"
-        "The `hints.*` values are a special case as they're real CSS "
-        "colors, not Qt-CSS colors. There, for a gradient, you need to use "
-        "`-webkit-gradient`, see https://www.webkit.org/blog/175/introducing-"
-        "css-gradients/[the WebKit documentation]."),
-    'fonts': (
-        "Fonts used for the UI, with optional style/weight/size.\n\n"
-        " * Style: `normal`/`italic`/`oblique`\n"
-        " * Weight: `normal`, `bold`, `100`..`900`\n"
-        " * Size: _number_ `px`/`pt`"),
-}
-
-
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
 # FIXME:conf what to do about this?
 MONOSPACE = (' xos4 Terminus, Terminus, Monospace, '
