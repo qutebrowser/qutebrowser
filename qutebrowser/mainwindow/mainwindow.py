@@ -411,8 +411,6 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        key_config = objreg.get('key-config')
-
         status = self._get_object('statusbar')
         keyparsers = self._get_object('keyparsers')
         completion_obj = self._get_object('completion')
@@ -441,10 +439,6 @@ class MainWindow(QWidget):
         for mode, parser in keyparsers.items():
             parser.keystring_updated.connect(functools.partial(
                 self._keyhint.update_keyhint, mode.name))
-
-        # config
-        for obj in keyparsers.values():
-            key_config.changed.connect(obj.on_keyconfig_changed)
 
         # messages
         message.global_bridge.show_message.connect(

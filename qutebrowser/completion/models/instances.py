@@ -160,9 +160,3 @@ def init():
     history = objreg.get('web-history')
     history.async_read_done.connect(
         functools.partial(update, [usertypes.Completion.url]))
-
-    keyconf = objreg.get('key-config')
-    keyconf.changed.connect(
-        functools.partial(update, [usertypes.Completion.command]))
-    keyconf.changed.connect(
-        functools.partial(update, [usertypes.Completion.bind]))

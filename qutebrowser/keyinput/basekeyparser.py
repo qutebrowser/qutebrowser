@@ -97,6 +97,7 @@ class BaseKeyParser(QObject):
         self._warn_on_keychains = True
         self.bindings = {}
         self.special_bindings = {}
+        config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self):
         return utils.get_repr(self, supports_count=self._supports_count,
@@ -127,6 +128,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring only-modifier keyeevent.")
             return False
         binding = binding.lower()
+        binding = config.val.bindings.key_mappings.get(binding, binding)
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:
@@ -183,6 +185,7 @@ class BaseKeyParser(QObject):
             return self.Match.none
 
         self._stop_timers()
+        txt = config.val.bindings.key_mappings.get(txt, txt)
         self._keystring += txt
 
         count, cmd_input = self._split_count()
@@ -314,7 +317,11 @@ class BaseKeyParser(QObject):
             self.keystring_updated.emit(self._keystring)
         return match != self.Match.none
 
-    def read_config(self, modename=None):
+    @config.change_filter('bindings')
+    def _on_config_changed(self):
+        self._read_config()
+
+    def _read_config(self, modename=None):
         """Read the configuration.
 
         Config format: key = command, e.g.:
@@ -332,8 +339,8 @@ class BaseKeyParser(QObject):
             self._modename = modename
         self.bindings = {}
         self.special_bindings = {}
-        keyconfparser = objreg.get('key-config')
-        for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
+
+        for key, cmd in config.val.bindings.commands[modename].items():
             assert cmd
             self._parse_key_command(modename, key, cmd)
 
@@ -358,15 +365,6 @@ class BaseKeyParser(QObject):
             count: The count if given.
         """
         raise NotImplementedError
-
-    @pyqtSlot(str)
-    def on_keyconfig_changed(self, mode):
-        """Re-read the config if a key binding was changed."""
-        if self._modename is None:
-            raise AssertionError("on_keyconfig_changed called but no section "
-                                 "defined!")
-        if mode == self._modename:
-            self.read_config()
 
     def clear_keystring(self):
         """Clear the currently entered key sequence."""
