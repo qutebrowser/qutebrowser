@@ -81,29 +81,6 @@ class TestConfigParser:
         with pytest.raises(configexc.ValidationError):
             objects.cfg._validate_all()
 
-    @pytest.mark.parametrize('config, sect1, opt1, sect2, opt2', [
-        # Same section
-        ({'general': {'ignore-case': 'false',
-                      'private-browsing': '${ignore-case}'}},
-         'general', 'ignore-case', 'general', 'private-browsing'),
-        # Across sections
-        ({'general': {'ignore-case': '${network:do-not-track}'},
-          'network': {'do-not-track': 'false'}},
-         'general', 'ignore-case', 'network', 'do-not-track'),
-    ])
-    def test_interpolation(self, objects, config, sect1, opt1, sect2, opt2):
-        objects.cp.read_dict(config)
-        objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg.get(sect1, opt1)
-        assert not objects.cfg.get(sect2, opt2)
-
-    def test_invalid_interpolation(self, objects):
-        """Test an invalid interpolation."""
-        objects.cp.read_dict({'general': {'ignore-case': '${foo}'}})
-        objects.cfg._from_cp(objects.cp)
-        with pytest.raises(configparser.InterpolationError):
-            objects.cfg._validate_all()
-
     @pytest.mark.parametrize('config, exception', [
         # Invalid interpolation syntax
         ({'general': {'ignore-case': '${'}},
@@ -130,26 +107,6 @@ class TestConfigParser:
         objects.cfg._from_cp(objects.cp, relaxed=True)
         with pytest.raises(exception):
             objects.cfg.get(sect, opt)
-
-    def test_fallback(self, objects):
-        """Test getting an option with fallback.
-
-        This is done during interpolation in later Python 3.4 versions.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/968
-        """
-        assert objects.cfg.get('general', 'blabla', fallback='blub') == 'blub'
-
-    def test_sectionproxy(self, objects):
-        """Test getting an option via the section proxy."""
-        objects.cp.read_dict({'general': {'ignore-case': 'false'}})
-        objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg['general'].get('ignore-case')
-
-    def test_sectionproxy_keyerror(self, objects):
-        """Test getting an inexistent option via the section proxy."""
-        with pytest.raises(configexc.NoOptionError):
-            objects.cfg['general'].get('blahblahblub')
 
     @pytest.mark.parametrize('old_sect, new_sect',
         config.ConfigManager.RENAMED_SECTIONS.items())
@@ -182,62 +139,6 @@ class TestConfigParser:
         with pytest.raises(configexc.NoOptionError):
             objects.cfg.get('general', 'wrap-search')
         assert objects.cfg.get('general', 'save-session')
-
-
-class TestTransformers:
-
-    """Test value transformers in CHANGED_OPTIONS."""
-
-    @pytest.mark.parametrize('val, expected', [('a', 'b'), ('c', 'c')])
-    def test_get_value_transformer(self, val, expected):
-        func = config._get_value_transformer({'a': 'b'})
-        assert func(val) == expected
-
-    @pytest.mark.parametrize('val, expected', [
-        ('top', 'top'),
-        ('north', 'top'),
-        ('south', 'bottom'),
-        ('west', 'left'),
-        ('east', 'right'),
-    ])
-    def test_position(self, val, expected):
-        func = config._transform_position
-        assert func(val) == expected
-
-    OLD_GRADIENT = ('-webkit-gradient(linear, left top, left bottom, '
-                    'color-stop(0%,{}), color-stop(100%,{}))')
-    NEW_GRADIENT = ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
-                    'stop:1 {})')
-
-    @pytest.mark.parametrize('val, expected', [
-        ('-unknown-stuff', None),
-        ('blue', 'blue'),
-        ('rgba(1, 2, 3, 4)', 'rgba(1, 2, 3, 4)'),
-        ('-webkit-gradient(unknown)', None),
-        (OLD_GRADIENT.format('blah', 'blah'), None),
-        (OLD_GRADIENT.format('red', 'green'),
-         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
-        (OLD_GRADIENT.format(' red', ' green'),
-         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
-        (OLD_GRADIENT.format('#101010', ' #202020'),
-         NEW_GRADIENT.format('rgba(16, 16, 16, 0.8)',
-                             'rgba(32, 32, 32, 0.8)')),
-        (OLD_GRADIENT.format('#666', ' #777'),
-         NEW_GRADIENT.format('rgba(102, 102, 102, 0.8)',
-                             'rgba(119, 119, 119, 0.8)')),
-        (OLD_GRADIENT.format('red', 'green') + 'more stuff', None),
-    ])
-    def test_hint_color(self, val, expected):
-        assert config._transform_hint_color(val) == expected
-
-    @pytest.mark.parametrize('val, expected', [
-        ('bold 12pt Monospace', 'bold 12pt ${_monospace}'),
-        ('23pt Monospace', '23pt ${_monospace}'),
-        ('bold 12pt ${_monospace}', 'bold 12pt ${_monospace}'),
-        ('bold 12pt Comic Sans MS', 'bold 12pt Comic Sans MS'),
-    ])
-    def test_hint_font(self, val, expected):
-        assert config._transform_hint_font(val) == expected
 
 
 class TestKeyConfigParser:
