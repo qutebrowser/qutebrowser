@@ -91,16 +91,19 @@ class KeyHintView(QLabel):
             return
 
         blacklist = config.val.keyhint.blacklist or []
-        keyconf = objreg.get('key-config')
 
         def blacklisted(keychain):
             return any(fnmatch.fnmatchcase(keychain, glob)
                        for glob in blacklist)
 
-        bindings = [(k, v) for (k, v)
-                    in keyconf.get_bindings_for(modename).items()
-                    if k.startswith(prefix) and not utils.is_special_key(k) and
-                    not blacklisted(k)]
+        if config.val.bindings.commands[modename] is None:
+            bindings = []
+        else:
+            bindings = [(k, v) for (k, v)
+                        in config.val.bindings.commands[modename].items()
+                        if k.startswith(prefix) and
+                        not utils.is_special_key(k) and
+                        not blacklisted(k)]
 
         if not bindings:
             self._show_timer.stop()
