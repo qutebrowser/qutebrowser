@@ -433,8 +433,12 @@ class TabbedBrowser(tabwidget.TabWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            tab_size = QSize(self.width(),
-                             self.height() - self.tabBar().height())
+            if self.tabBar().vertical:
+                tab_size = QSize(self.width() - self.tabBar().width(),
+                                 self.height())
+            else:
+                tab_size = QSize(self.width(),
+                                 self.height() - self.tabBar().height())
             tab.resize(tab_size)
             self.tab_index_changed.emit(self.currentIndex(), self.count())
         else:

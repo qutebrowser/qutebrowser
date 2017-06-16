@@ -116,3 +116,12 @@ Feature: Javascript stuff
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next
         Then the window sizes should be the same
+
+    Scenario: Checking visible/invisible window size with vertical tabbar
+        When I run :tab-only
+        And I set general -> log-javascript-console to info
+        And I set tabs -> position to left
+        And I open data/javascript/windowsize.html in a new background tab
+        And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
+        And I run :tab-next
+        Then the window sizes should be the same
