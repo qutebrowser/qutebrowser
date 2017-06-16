@@ -720,22 +720,6 @@ class ConfigManager(QObject):
         with qtutils.savefile_open(configfile) as f:
             f.write(str(self))
 
-    def dump_userconfig(self):
-        """Get the part of the config which was changed by the user.
-
-        Return:
-            The changed config part as string.
-        """
-        lines = []
-        for sectname, sect in self.sections.items():
-            changed = sect.dump_userconfig()
-            if changed:
-                lines.append('[{}]'.format(sectname))
-                lines += ['{} = {}'.format(k, v) for k, v in changed]
-        if not lines:
-            lines = ['<Default configuration>']
-        return '\n'.join(lines)
-
     def optionxform(self, val):
         """Implemented to be compatible with ConfigParser interpolation."""
         return val

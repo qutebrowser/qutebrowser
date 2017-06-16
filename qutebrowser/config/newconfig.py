@@ -258,6 +258,18 @@ class NewConfigManager(QObject):
         self._values[name] = opt.typ.from_str(value)
         self.changed.emit(name)
 
+    def dump_userconfig(self):
+        """Get the part of the config which was changed by the user.
+
+        Return:
+            The changed config part as string.
+        """
+        lines = ['{} = {}'.format(optname, value)
+                 for optname, value in self._values.items()]
+        if not lines:
+            lines = ['<Default configuration>']
+        return '\n'.join(lines)
+
 
 class ConfigContainer:
 
