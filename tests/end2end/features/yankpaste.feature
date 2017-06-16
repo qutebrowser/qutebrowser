@@ -167,31 +167,33 @@ Feature: Yanking and pasting.
             - data/hello2.txt
             - data/hello3.txt
 
-    Scenario: Pasting multiline text
-        When I set auto_search to true
-        And I set searchengines.DEFAULT to http://localhost:(port)/data/hello.txt?q={}
-        And I put the following lines into the clipboard:
-            this url:
-            http://qutebrowser.org
-            should not open
-        And I run :open -t {clipboard}
-        And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
-        Then the following tabs should be open:
-            - about:blank
-            - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
+    # FIXME:conf
+    # Scenario: Pasting multiline text
+    #     When I set auto_search to true
+    #     And I set searchengines.DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+    #     And I put the following lines into the clipboard:
+    #         this url:
+    #         http://qutebrowser.org
+    #         should not open
+    #     And I run :open -t {clipboard}
+    #     And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
+    #     Then the following tabs should be open:
+    #         - about:blank
+    #         - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
-    Scenario: Pasting multiline whose first line looks like a URI
-        When I set auto_search to true
-        And I set searchengines.DEFAULT to http://localhost:(port)/data/hello.txt?q={}
-        And I put the following lines into the clipboard:
-            text:
-            should open
-            as search
-        And I run :open -t {clipboard}
-        And I wait until data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search is loaded
-        Then the following tabs should be open:
-            - about:blank
-            - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
+    # FIXME:conf
+    # Scenario: Pasting multiline whose first line looks like a URI
+    #     When I set auto_search to true
+    #     And I set searchengines.DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+    #     And I put the following lines into the clipboard:
+    #         text:
+    #         should open
+    #         as search
+    #     And I run :open -t {clipboard}
+    #     And I wait until data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search is loaded
+    #     Then the following tabs should be open:
+    #         - about:blank
+    #         - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
 
     # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941726
     @qtwebengine_flaky

@@ -35,11 +35,12 @@ Feature: Opening pages
         When I run :open -t -b foo.bar
         Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
-    Scenario: Searching with :open
-        When I set auto_search to naive
-        And I set searchengines.DEFAULT to http://localhost:(port)/data/numbers/{}.txt
-        And I run :open 3
-        Then data/numbers/3.txt should be loaded
+    # FIXME:conf
+    # Scenario: Searching with :open
+    #     When I set auto_search to naive
+    #     And I set searchengines.DEFAULT to http://localhost:(port)/data/numbers/{}.txt
+    #     And I run :open 3
+    #     Then data/numbers/3.txt should be loaded
 
     Scenario: Opening in a new tab
         Given I open about:blank

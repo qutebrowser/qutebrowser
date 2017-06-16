@@ -46,9 +46,11 @@ Feature: Using completion
         When I run :set-cmd-text -s :bookmark-load
         Then the completion model should be BookmarkCompletionModel
 
-    Scenario: Using bind completion
-        When I run :set-cmd-text -s :bind X
-        Then the completion model should be BindCompletionModel
+    # FIXME:conf
+
+    # Scenario: Using bind completion
+    #     When I run :set-cmd-text -s :bind X
+    #     Then the completion model should be BindCompletionModel
 
     Scenario: Using session completion
         Given I open data/hello.txt
