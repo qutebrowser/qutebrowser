@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
                              QStyleOption, QStyle, QLayout, QApplication)
 from PyQt5.QtGui import QValidator, QPainter
 
-from qutebrowser.utils import utils, objreg, qtutils, log, usertypes
+from qutebrowser.config import config
+from qutebrowser.utils import utils, qtutils, log, usertypes
 from qutebrowser.misc import cmdhistory, objects
 
 
@@ -289,8 +290,7 @@ class FullscreenNotification(QLabel):
             padding: 30px;
         """)
 
-        key_config = objreg.get('key-config')
-        all_bindings = key_config.get_reverse_bindings_for('normal')
+        all_bindings = config.key_instance.get_reverse_bindings_for('normal')
         bindings = all_bindings.get('fullscreen --leave')
         if bindings:
             key = bindings[0]

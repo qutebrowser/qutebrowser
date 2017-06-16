@@ -277,7 +277,7 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
     """
     assert cmdutils.cmd_dict
     cmdlist = []
-    cmd_to_keys = objreg.get('key-config').get_reverse_bindings_for('normal')
+    cmd_to_keys = config.key_instance.get_reverse_bindings_for('normal')
     for obj in set(cmdutils.cmd_dict.values()):
         hide_debug = obj.debug and not objreg.get('args').debug
         hide_hidden = obj.hide and not include_hidden

@@ -110,6 +110,26 @@ class change_filter:  # pylint: disable=invalid-name
         return wrapper
 
 
+class NewKeyConfig:
+
+    def get_reverse_bindings_for(self, section):
+        """Get a dict of commands to a list of bindings for the section."""
+        cmd_to_keys = {}
+        bindings = val.bindings.commands[section]
+        if bindings is None:
+            return cmd_to_keys
+        for key, full_cmd in bindings.items():
+            for cmd in full_cmd.split(';;'):
+                cmd = cmd.strip()
+                cmd_to_keys.setdefault(cmd, [])
+                # put special bindings last
+                if utils.is_special_key(key):
+                    cmd_to_keys[cmd].append(key)
+                else:
+                    cmd_to_keys[cmd].insert(0, key)
+        return cmd_to_keys
+
+
 class NewConfigManager(QObject):
 
     changed = pyqtSignal(str)  # FIXME:conf stub...
@@ -200,9 +220,10 @@ def init(parent):
     new_config.read_defaults()
     objreg.register('config', new_config)
 
-    global val, instance
+    global val, instance, key_instance
     val = ConfigContainer(new_config)
     instance = new_config
+    key_instance = NewKeyConfig()
 
     for cf in _change_filters:
         cf.validate()

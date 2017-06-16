@@ -482,9 +482,8 @@ class _BasePrompt(QWidget):
         self._key_grid = QGridLayout()
         self._key_grid.setVerticalSpacing(0)
 
-        key_config = objreg.get('key-config')
         # The bindings are all in the 'prompt' mode, even for yesno prompts
-        all_bindings = key_config.get_reverse_bindings_for('prompt')
+        all_bindings = config.key_instance.get_reverse_bindings_for('prompt')
         labels = []
 
         for cmd, text in self._allowed_commands():
