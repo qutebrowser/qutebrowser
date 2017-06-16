@@ -38,7 +38,7 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
 
-    quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
+    quteproc.set_setting('input.insert_mode.auto_focused', auto_insert)
     quteproc.send_cmd(':zoom {}'.format(zoom))
 
     quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
@@ -61,7 +61,7 @@ def test_auto_leave_insert_mode(quteproc):
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path)
 
-    quteproc.set_setting('input', 'auto-leave-insert-mode', 'true')
+    quteproc.set_setting('input.insert_mode.auto_leave', 'true')
     quteproc.send_cmd(':zoom 100')
 
     quteproc.press_keys('abcd')

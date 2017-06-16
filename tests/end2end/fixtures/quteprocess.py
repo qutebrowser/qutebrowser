@@ -451,15 +451,15 @@ class QuteProc(testprocess.Process):
     def _after_start(self):
         """Adjust some qutebrowser settings after starting."""
         settings = [
-            ('ui', 'message-timeout', '0'),
-            ('general', 'auto-save-interval', '0'),
-            ('general', 'new-instance-open-target.window', 'last-opened')
+            ('messages.timeout', '0'),
+            ('auto_save.interval', '0'),
+            ('new_instance_open_target_window', 'last-opened')
         ]
         if not self.request.config.webengine:
-            settings.append(('network', 'ssl-strict', 'false'))
+            settings.append(('content.ssl_strict', 'false'))
 
-        for sect, opt, value in settings:
-            self.set_setting(sect, opt, value)
+        for opt, value in settings:
+            self.set_setting(opt, value)
 
     def after_test(self):
         """Handle unexpected/skip logging and clean up after each test."""
@@ -524,28 +524,27 @@ class QuteProc(testprocess.Process):
             self.wait_for(category='commands', module='command',
                           function='run', message='command called: *')
 
-    def get_setting(self, sect, opt):
+    def get_setting(self, opt):
         """Get the value of a qutebrowser setting."""
-        self.send_cmd(':set {} {}?'.format(sect, opt))
+        self.send_cmd(':set {}?'.format(opt))
         msg = self.wait_for(loglevel=logging.INFO, category='message',
-                            message='{} {} = *'.format(sect, opt))
+                            message='{} = *'.format(opt))
         return msg.message.split(' = ')[1]
 
-    def set_setting(self, sect, opt, value):
+    def set_setting(self, option, value):
         # \ and " in a value should be treated literally, so escape them
         value = value.replace('\\', r'\\')
         value = value.replace('"', '\\"')
-        self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value),
-                      escape=False)
+        self.send_cmd(':set "{}" "{}"'.format(option, value), escape=False)
         self.wait_for(category='config', message='Config option changed: *')
 
     @contextlib.contextmanager
-    def temp_setting(self, sect, opt, value):
+    def temp_setting(self, opt, value):
         """Context manager to set a setting and reset it on exit."""
-        old_value = self.get_setting(sect, opt)
-        self.set_setting(sect, opt, value)
+        old_value = self.get_setting(opt)
+        self.set_setting(opt, value)
         yield
-        self.set_setting(sect, opt, old_value)
+        self.set_setting(opt, old_value)
 
     def open_path(self, path, *, new_tab=False, new_bg_tab=False,
                   new_window=False, private=False, as_url=False, port=None,

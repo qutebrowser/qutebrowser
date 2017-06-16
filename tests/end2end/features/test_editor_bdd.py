@@ -42,7 +42,7 @@ def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
             f.write(data)
     """.format(text=text, replacement=replacement)))
     editor = '"{}" "{}" {{}}'.format(sys.executable, script)
-    quteproc.set_setting('general', 'editor', editor)
+    quteproc.set_setting('editor.command', editor)
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}"'))
@@ -56,4 +56,4 @@ def set_up_editor(quteproc, httpbin, tmpdir, text):
             f.write({text!r})
     """.format(text=text)))
     editor = '"{}" "{}" {{}}'.format(sys.executable, script)
-    quteproc.set_setting('general', 'editor', editor)
+    quteproc.set_setting('editor.command', editor)

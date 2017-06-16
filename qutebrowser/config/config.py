@@ -27,7 +27,7 @@ import configparser
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 
 from qutebrowser.config import configdata, configexc, configtypes
-from qutebrowser.utils import utils, objreg, message, standarddir
+from qutebrowser.utils import utils, objreg, message, standarddir, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -262,6 +262,7 @@ class NewConfigManager(QObject):
             raise configexc.NoOptionError(name)
         self._values[name] = opt.typ.from_str(value)
         self.changed.emit(name)
+        log.config.debug("Config option changed: {} = {}".format(name, value))
 
     def dump_userconfig(self):
         """Get the part of the config which was changed by the user.

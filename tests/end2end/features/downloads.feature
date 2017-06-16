@@ -5,25 +5,25 @@ Feature: Downloading things from a website.
     Background:
         Given I set up a temporary download dir
         And I clean old downloads
-        And I set ui -> remove-finished-downloads to -1
+        And I set downloads.remove_finished to -1
 
     ## starting downloads
 
     Scenario: Clicking an unknown link
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I open data/downloads/downloads.html
         And I run :click-element id download
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
 
     Scenario: Using :download
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         When I run :download http://localhost:(port)/data/downloads/download.bin
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
 
     Scenario: Using hints
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I open data/downloads/downloads.html
         And I hint with args "links download" and follow a
         And I wait until the download is finished
@@ -31,7 +31,7 @@ Feature: Downloading things from a website.
 
     Scenario: Using rapid hints
         # We don't expect any prompts with rapid hinting even if this is true
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open data/downloads/downloads.html
         And I hint with args "--rapid links download" and follow a
         And I run :follow-hint s
@@ -43,7 +43,7 @@ Feature: Downloading things from a website.
     ## Regression tests
 
     Scenario: Downloading which redirects with closed tab (issue 889)
-        When I set tabs -> last-close to blank
+        When I set tabs.last_close to blank
         And I open data/downloads/issue889.html
         And I hint with args "links download" and follow a
         And I run :tab-close
@@ -51,7 +51,7 @@ Feature: Downloading things from a website.
         Then no crash should happen
 
     Scenario: Downloading with error in closed tab (issue 889)
-        When I set tabs -> last-close to blank
+        When I set tabs.last_close to blank
         And I open data/downloads/issue889.html
         And I hint with args "links download" and follow s
         And I run :tab-close
@@ -61,16 +61,16 @@ Feature: Downloading things from a website.
         Then no crash should happen
 
     Scenario: Downloading a link without path information (issue 1243)
-        When I set completion -> download-path-suggestion to filename
-        And I set storage -> prompt-download-directory to true
+        When I set downloads.location.suggestion to filename
+        And I set downloads.location.prompt to true
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
         Then the error "Download error: No handler found for qute://!" should be shown
 
     Scenario: Downloading a data: link (issue 1214)
-        When I set completion -> download-path-suggestion to filename
-        And I set storage -> prompt-download-directory to true
+        When I set downloads.location.suggestion to filename
+        And I set downloads.location.prompt to true
         And I open data/data_link.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
@@ -79,15 +79,15 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading with SSL errors (issue 1413)
         When I clear SSL errors
-        And I set network -> ssl-strict to ask
-        And I set storage -> prompt-download-directory to false
+        And I set content.ssl_strict to ask
+        And I set downloads.location.prompt to false
         And I download an SSL page
         And I wait for "Entering mode KeyMode.* (reason: question asked)" in the log
         And I run :prompt-accept
         Then the error "Download error: SSL handshake failed" should be shown
 
     Scenario: Closing window with remove-finished-downloads timeout (issue 1242)
-        When I set ui -> remove-finished-downloads to 500
+        When I set downloads.remove_finished to 500
         And I open data/downloads/download.bin in a new window without waiting
         And I wait until the download is finished
         And I run :close
@@ -96,8 +96,8 @@ Feature: Downloading things from a website.
 
     Scenario: Quitting with finished downloads and confirm-quit=downloads (issue 846)
         Given I have a fresh instance
-        When I set storage -> prompt-download-directory to false
-        And I set ui -> confirm-quit to downloads
+        When I set downloads.location.prompt to false
+        And I set confirm_quit to downloads
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :close
@@ -106,7 +106,7 @@ Feature: Downloading things from a website.
     # https://github.com/qutebrowser/qutebrowser/issues/2134
     @qtwebengine_skip
     Scenario: Downloading, then closing a tab
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I open about:blank
         And I open data/downloads/issue2134.html in a new tab
         # This needs to be a download connected to the tabs QNAM
@@ -139,7 +139,7 @@ Feature: Downloading things from a website.
 
     @windows
     Scenario: Downloading a file to a reserved path
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open data/downloads/download.bin without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept COM1
@@ -148,7 +148,7 @@ Feature: Downloading things from a website.
 
     @windows
     Scenario: Downloading a file to a drive-relative working directory
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open data/downloads/download.bin without waiting
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept C:foobar
@@ -259,7 +259,7 @@ Feature: Downloading things from a website.
 
     @qtwebengine_skip: https://github.com/qutebrowser/qutebrowser/issues/2288
     Scenario: Overwriting existing mhtml file
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open data/title.html
         And I run :download --mhtml
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
@@ -274,7 +274,7 @@ Feature: Downloading things from a website.
         Then the downloaded file Test title.mhtml should exist
 
     Scenario: Opening a mhtml download directly
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open html
         And I run :download --mhtml
         And I wait for the download prompt for "*"
@@ -407,7 +407,7 @@ Feature: Downloading things from a website.
         Then "Opening *download.bin* with [*python*]" should be logged
 
     Scenario: Opening a download with default-open-dispatcher set and override
-        When I set general -> default-open-dispatcher to cat
+        When I set downloads.open_dispatcher to cat
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I open the download
@@ -430,7 +430,7 @@ Feature: Downloading things from a website.
     ## opening a file directly (prompt-open-download)
 
     Scenario: Opening a download directly
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
         And I directly open the download
@@ -440,7 +440,7 @@ Feature: Downloading things from a website.
     # https://github.com/qutebrowser/qutebrowser/issues/1728
 
     Scenario: Cancelling a download that should be opened
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I run :download http://localhost:(port)/drip?numbytes=128&duration=5
         And I wait for the download prompt for "*"
         And I directly open the download
@@ -450,7 +450,7 @@ Feature: Downloading things from a website.
     # https://github.com/qutebrowser/qutebrowser/issues/1725
 
     Scenario: Directly open a download with a very long filename
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I open data/downloads/issue1725.html
         And I run :click-element id long-link
         And I wait for the download prompt for "*"
@@ -458,32 +458,32 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then "Opening * with [*python*]" should be logged
 
-    ## completion -> download-path-suggestion
+    ## downloads.location.suggestion
 
-    Scenario: completion -> download-path-suggestion = path
-        When I set storage -> prompt-download-directory to true
-        And I set completion -> download-path-suggestion to path
+    Scenario: downloads.location.suggestion = path
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to path
         And I open data/downloads/download.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/"
 
-    Scenario: completion -> download-path-suggestion = filename
-        When I set storage -> prompt-download-directory to true
-        And I set completion -> download-path-suggestion to filename
+    Scenario: downloads.location.suggestion = filename
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to filename
         And I open data/downloads/download.bin without waiting
         Then the download prompt should be shown with "download.bin"
 
-    Scenario: completion -> download-path-suggestion = both
-        When I set storage -> prompt-download-directory to true
-        And I set completion -> download-path-suggestion to both
+    Scenario: downloads.location.suggestion = both
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
         And I open data/downloads/download.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/download.bin"
 
-    ## storage -> remember-download-directory
+    ## downloads.location.remember
 
     Scenario: Remembering the last download directory
-        When I set storage -> prompt-download-directory to true
-        And I set completion -> download-path-suggestion to both
-        And I set storage -> remember-download-directory to true
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*/download.bin"
         And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
@@ -491,9 +491,9 @@ Feature: Downloading things from a website.
         Then the download prompt should be shown with "(tmpdir)/downloads/subdir/download2.bin"
 
     Scenario: Not remembering the last download directory
-        When I set storage -> prompt-download-directory to true
-        And I set completion -> download-path-suggestion to both
-        And I set storage -> remember-download-directory to false
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to false
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "(tmpdir)/downloads/download.bin"
         And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
@@ -503,9 +503,9 @@ Feature: Downloading things from a website.
     # https://github.com/qutebrowser/qutebrowser/issues/2173
 
     Scenario: Remembering the temporary download directory (issue 2173)
-        When I set storage -> prompt-download-directory to true
-        And I set completion -> download-path-suggestion to both
-        And I set storage -> remember-download-directory to true
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to true
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*"
         And I run :prompt-accept (tmpdir)(dirsep)downloads
@@ -518,7 +518,7 @@ Feature: Downloading things from a website.
     # Overwriting files
 
     Scenario: Not overwriting an existing file
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin
         And I wait until the download is finished
         And I run :download http://localhost:(port)/data/downloads/download2.bin --dest download.bin
@@ -527,7 +527,7 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should be 1 bytes big
 
     Scenario: Overwriting an existing file
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin
         And I wait until the download is finished
         And I run :download http://localhost:(port)/data/downloads/download2.bin --dest download.bin
@@ -538,7 +538,7 @@ Feature: Downloading things from a website.
 
     @linux
     Scenario: Not overwriting a special file
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest fifo
         And I wait for "Entering mode KeyMode.yesno *" in the log
         And I run :prompt-accept no
@@ -547,26 +547,26 @@ Feature: Downloading things from a website.
     ## Redirects
 
     Scenario: Downloading with infinite redirect
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/redirect/12 --dest redirection
         Then the error "Download error: Maximum redirection count reached!" should be shown
         And "Deleted *redirection" should be logged
         And the downloaded file redirection should not exist
 
     Scenario: Downloading with redirect to itself
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/custom/redirect-self
         And I wait until the download is finished
         Then the downloaded file redirect-self should exist
 
     Scenario: Downloading with absolute redirect
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/absolute-redirect/1
         And I wait until the download is finished
         Then the downloaded file 1 should exist
 
     Scenario: Downloading with relative redirect
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/relative-redirect/1
         And I wait until the download is finished
         Then the downloaded file 1 should exist
@@ -574,25 +574,25 @@ Feature: Downloading things from a website.
     ## Other
 
     Scenario: Download without a content-size
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         When I run :download http://localhost:(port)/custom/content-size
         And I wait until the download is finished
         Then the downloaded file content-size should exist
 
     @posix
     Scenario: Downloading to unwritable destination
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
         Then the error "Download error: Permission denied" should be shown
 
     Scenario: Downloading 20MB file
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/custom/twenty-mb
         And I wait until the download is finished
         Then the downloaded file twenty-mb should be 20971520 bytes big
 
     Scenario: Downloading 20MB file with late prompt confirmation
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I run :download http://localhost:(port)/custom/twenty-mb
         And I wait 1s
         And I run :prompt-accept
@@ -600,16 +600,16 @@ Feature: Downloading things from a website.
         Then the downloaded file twenty-mb should be 20971520 bytes big
 
     Scenario: Downloading invalid URL
-        When I set storage -> prompt-download-directory to false
-        And I set general -> auto-search to false
+        When I set downloads.location.prompt to false
+        And I set auto_search to false
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 
     @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: Downloading via pdfjs
         Given pdfjs is available
-        When I set storage -> prompt-download-directory to false
-        And I set content -> enable-pdfjs to true
+        When I set downloads.location.prompt to false
+        And I set content.enable_pdfjs to true
         And I open data/misc/test.pdf
         And I wait for the javascript message "PDF * [*] (PDF.js: *)"
         And I run :click-element id download
@@ -617,7 +617,7 @@ Feature: Downloading things from a website.
         Then the downloaded file test.pdf should exist
 
     Scenario: Answering a question for a cancelled download (#415)
-        When I set storage -> prompt-download-directory to true
+        When I set downloads.location.prompt to true
         And I run :download http://localhost:(port)/data/downloads/download.bin
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
         And I run :download http://localhost:(port)/data/downloads/download2.bin
@@ -629,7 +629,7 @@ Feature: Downloading things from a website.
         And the downloaded file download2.bin should not exist
 
     Scenario: Downloading a file with unknown size
-       When I set storage -> prompt-download-directory to false
+       When I set downloads.location.prompt to false
        And I open stream-bytes/1024 without waiting
        And I wait until the download is finished
        Then the downloaded file 1024 should exist
@@ -643,7 +643,7 @@ Feature: Downloading things from a website.
 
     @qtwebengine_skip: We can't get the UA from the page there
     Scenario: user-agent when using hints
-        When I set hints -> mode to number
+        When I set hints.mode to number
         And I open /
         And I run :hint links download
         And I press the keys "us"  # user-agent
@@ -653,6 +653,6 @@ Feature: Downloading things from a website.
 
     @qtwebengine_skip: Handled by QtWebEngine, not by us
     Scenario: Downloading a "Internal server error" with disposition: inline (#2304)
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I open custom/500-inline
         Then the error "Download error: *INTERNAL SERVER ERROR" should be shown

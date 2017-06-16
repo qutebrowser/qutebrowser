@@ -50,19 +50,19 @@ Feature: Various utility commands.
     ## :jseval
 
     Scenario: :jseval
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I run :jseval console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then the message "No output or error" should be shown
 
     Scenario: :jseval without logging
-        When I set general -> log-javascript-console to none
+        When I set content.javascript.log to none
         And I run :jseval console.log("Hello from JS!");
         Then the message "No output or error" should be shown
         And "[:*] Hello from JS!" should not be logged
 
     Scenario: :jseval with --quiet
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I run :jseval --quiet console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "No output or error" should not be logged
@@ -77,7 +77,7 @@ Feature: Various utility commands.
 
     @qtwebengine_skip
     Scenario: :jseval with --world on QtWebKit
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I run :jseval --world=1 console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
@@ -85,7 +85,7 @@ Feature: Various utility commands.
 
     @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open data/misc/jseval.html
         And I run :jseval do_log()
         Then the javascript message "Hello from the page!" should not be logged
@@ -94,7 +94,7 @@ Feature: Various utility commands.
 
     @qtwebkit_skip
     Scenario: :jseval using the main world
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
@@ -102,14 +102,14 @@ Feature: Various utility commands.
 
     @qtwebkit_skip
     Scenario: :jseval using the main world as name
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open data/misc/jseval.html
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that exists as js-code
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
         And the javascript message "Hello again from JS!" should be logged
@@ -150,7 +150,7 @@ Feature: Various utility commands.
 
     @qtwebengine_skip
     Scenario: Inspector without developer extras
-        When I set general -> developer-extras to false
+        When I set content.developer_extras to false
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
@@ -161,7 +161,7 @@ Feature: Various utility commands.
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
-        When I set general -> developer-extras to true
+        When I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
@@ -171,14 +171,14 @@ Feature: Various utility commands.
     # Different code path as an inspector got created now
     @qtwebengine_skip
     Scenario: Inspector without developer extras (after smoke)
-        When I set general -> developer-extras to false
+        When I set content.developer_extras to false
         And I run :inspector
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
-        When I set general -> developer-extras to true
+        When I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
@@ -339,12 +339,12 @@ Feature: Various utility commands.
     # :home
 
     Scenario: :home with single page
-        When I set general -> startpage to http://localhost:(port)/data/hello2.txt
+        When I set start_page to http://localhost:(port)/data/hello2.txt
         And I run :home
         Then data/hello2.txt should be loaded
 
     Scenario: :home with multiple pages
-        When I set general -> startpage to http://localhost:(port)/data/numbers/1.txt,http://localhost:(port)/data/numbers/2.txt
+        When I set start_page to http://localhost:(port)/data/numbers/1.txt,http://localhost:(port)/data/numbers/2.txt
         And I run :home
         Then data/numbers/1.txt should be loaded
 
@@ -353,14 +353,14 @@ Feature: Various utility commands.
     @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
-        When I set content -> enable-pdfjs to true
+        When I set content.enable_pdfjs to true
         And I open data/misc/test.pdf
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
     @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: pdfjs is not used when disabled
-        When I set content -> enable-pdfjs to false
-        And I set storage -> prompt-download-directory to false
+        When I set content.enable_pdfjs to false
+        And I set downloads.location.prompt to false
         And I open data/misc/test.pdf
         Then "Download test.pdf finished" should be logged
 
@@ -371,9 +371,9 @@ Feature: Various utility commands.
         # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
         # a weird interaction with the previous test.
         And I have a fresh instance
-        When I set content -> enable-pdfjs to true
-        And I set completion -> download-path-suggestion to filename
-        And I set storage -> prompt-download-directory to true
+        When I set content.enable_pdfjs to true
+        And I set downloads.location.suggestion to filename
+        And I set downloads.location.prompt to true
         And I open data/misc/test.pdf
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
@@ -448,36 +448,36 @@ Feature: Various utility commands.
     ## Custom headers
 
     Scenario: Setting a custom header
-        When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
+        When I set content.custom_headers to {"X-Qute-Test": "testvalue"}
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
 
     Scenario: DNT header
-        When I set network -> do-not-track to true
+        When I set content.do_not_track to true
         And I open headers
         Then the header Dnt should be set to 1
         And the header X-Do-Not-Track should be set to 1
 
     Scenario: DNT header (off)
-        When I set network -> do-not-track to false
+        When I set content.do_not_track to false
         And I open headers
         Then the header Dnt should be set to 0
         And the header X-Do-Not-Track should be set to 0
 
     Scenario: Accept-Language header
-        When I set network -> accept-language to en,de
+        When I set content.accept_language to en,de
         And I open headers
         Then the header Accept-Language should be set to en,de
 
     Scenario: Setting a custom user-agent header
-        When I set network -> user-agent to toaster
+        When I set content.user_agent to toaster
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
         And the javascript message "toaster" should be logged
 
     Scenario: Setting the default user-agent header
-        When I set network -> user-agent to <empty>
+        When I set content.user_agent to <empty>
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to Mozilla/5.0 *

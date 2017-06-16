@@ -115,8 +115,8 @@ def pytest_runtest_makereport(item, call):
 ## Given
 
 
-@bdd.given(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
-def set_setting_given(quteproc, httpbin, sect, opt, value):
+@bdd.given(bdd.parsers.parse("I set {opt} to {value}"))
+def set_setting_given(quteproc, httpbin, opt, value):
     """Set a qutebrowser setting.
 
     This is available as "Given:" step so it can be used as "Background:".
@@ -124,7 +124,7 @@ def set_setting_given(quteproc, httpbin, sect, opt, value):
     if value == '<empty>':
         value = ''
     value = value.replace('(port)', str(httpbin.port))
-    quteproc.set_setting(sect, opt, value)
+    quteproc.set_setting(opt, value)
 
 
 @bdd.given(bdd.parsers.parse("I open {path}"))
@@ -157,7 +157,7 @@ def fresh_instance(quteproc):
 @bdd.given("I clean up open tabs")
 def clean_open_tabs(quteproc):
     """Clean up open windows and tabs."""
-    quteproc.set_setting('tabs', 'last-close', 'blank')
+    quteproc.set_setting('tabs.last_close', 'blank')
     quteproc.send_cmd(':window-only')
     quteproc.send_cmd(':tab-only --force')
     quteproc.send_cmd(':tab-close --force')
@@ -226,13 +226,13 @@ def open_path(quteproc, httpbin, path):
                        wait=wait)
 
 
-@bdd.when(bdd.parsers.parse("I set {sect} -> {opt} to {value}"))
-def set_setting(quteproc, httpbin, sect, opt, value):
+@bdd.when(bdd.parsers.parse("I set {opt} to {value}"))
+def set_setting(quteproc, httpbin, opt, value):
     """Set a qutebrowser setting."""
     if value == '<empty>':
         value = ''
     value = value.replace('(port)', str(httpbin.port))
-    quteproc.set_setting(sect, opt, value)
+    quteproc.set_setting(opt, value)
 
 
 @bdd.when(bdd.parsers.parse("I run {command}"))

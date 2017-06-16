@@ -109,7 +109,7 @@ Feature: Page history
 
     @qtwebengine_skip @qtwebkit_ng_skip
     Scenario: Opening a valid URL which turns out invalid
-        When I set general -> auto-search to true
+        When I set auto_search to true
         And I run :open http://foo%40bar@baz
         Then "QFSFileEngine::open: No file name specified" should be logged
         And "Error while loading : Host  not found" should be logged

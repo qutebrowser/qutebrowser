@@ -5,7 +5,7 @@ Feature: Javascript stuff
     Integration with javascript.
 
     Scenario: Using console.log
-        When I set general -> log-javascript-console to debug
+        When I set content.javascript.log to debug
         And I open data/javascript/consolelog.html
         Then the javascript message "console.log works!" should be logged
 
@@ -57,20 +57,20 @@ Feature: Javascript stuff
 
     Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to true
         When I open data/hello.txt
-        And I set content -> javascript-can-open-windows-automatically to true
+        And I set content.javascript_can_open_windows_automatically to true
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "window opened" should be logged
 
     Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to false
         When I open data/hello.txt
-        And I set content -> javascript-can-open-windows-automatically to false
+        And I set content.javascript_can_open_windows_automatically to false
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "error while opening window" should be logged
 
     Scenario: Executing jseval when javascript is disabled
-        When I set content -> allow-javascript to false
+        When I set content.javascript.enabled to false
         And I run :jseval console.log('jseval executed')
         And I set content -> allow-javascript to true
         Then the javascript message "jseval executed" should be logged

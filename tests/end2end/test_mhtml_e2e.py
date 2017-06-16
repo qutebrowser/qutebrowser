@@ -104,9 +104,8 @@ def _test_mhtml_requests(test_dir, test_path, httpbin):
 
 @pytest.mark.parametrize('test_name', collect_tests())
 def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
-    quteproc.set_setting('storage', 'download-directory',
-                         download_dir.location)
-    quteproc.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc.set_setting('downloads.location.directory', download_dir.location)
+    quteproc.set_setting('downloads.location.prompt', 'false')
 
     test_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                             'data', 'downloads', 'mhtml', test_name)

@@ -99,9 +99,8 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
 
     # setup
     if not request.config.webengine:
-        quteproc.set_setting('ui', 'zoom-text-only', str(zoom_text_only))
-        quteproc.set_setting('hints', 'find-implementation',
-                             find_implementation)
+        quteproc.set_setting('zoom.text_only', str(zoom_text_only))
+        quteproc.set_setting('hints.find_implementation', find_implementation)
     quteproc.send_cmd(':zoom {}'.format(zoom_level))
     # follow hint
     quteproc.send_cmd(':hint links normal')
@@ -111,8 +110,8 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
     # reset
     quteproc.send_cmd(':zoom 100')
     if not request.config.webengine:
-        quteproc.set_setting('ui', 'zoom-text-only', 'false')
-        quteproc.set_setting('hints', 'find-implementation', 'javascript')
+        quteproc.set_setting('zoom.text_only', 'false')
+        quteproc.set_setting('hints.find_implementation', 'javascript')
 
 
 def test_word_hints_issue1393(quteproc, tmpdir):
@@ -135,8 +134,8 @@ def test_word_hints_issue1393(quteproc, tmpdir):
         ('epsi', 'l33t.txt'),
     ]
 
-    quteproc.set_setting('hints', 'mode', 'word')
-    quteproc.set_setting('hints', 'dictionary', str(dict_file))
+    quteproc.set_setting('hints.mode', 'word')
+    quteproc.set_setting('hints.dictionary', str(dict_file))
 
     for hint, target in targets:
         quteproc.open_path('data/hints/issue1393.html')

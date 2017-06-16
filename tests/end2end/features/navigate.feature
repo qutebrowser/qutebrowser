@@ -98,7 +98,7 @@ Feature: Using :navigate
         Then data/numbers/3.txt should be loaded
 
     Scenario: Setting url-incdec-segments
-        When I set general -> url-incdec-segments to anchor
+        When I set url_incdec_segments to anchor
         And I open data/numbers/1.txt
         And I run :navigate increment
         Then the error "No number found in URL!" should be shown

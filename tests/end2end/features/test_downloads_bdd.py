@@ -34,9 +34,9 @@ PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
 def temporary_download_dir(quteproc, tmpdir):
     download_dir = tmpdir / 'downloads'
     download_dir.ensure(dir=True)
-    quteproc.set_setting('storage', 'prompt-download-directory', 'false')
-    quteproc.set_setting('storage', 'remember-download-directory', 'false')
-    quteproc.set_setting('storage', 'download-directory', str(download_dir))
+    quteproc.set_setting('downloads.location.prompt', 'false')
+    quteproc.set_setting('downloads.location.remember', 'false')
+    quteproc.set_setting('downloads.location.directory', str(download_dir))
     (download_dir / 'subdir').ensure(dir=True)
     try:
         os.mkfifo(str(download_dir / 'fifo'))

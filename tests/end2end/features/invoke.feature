@@ -7,7 +7,7 @@ Feature: Invoking a new process
         Given I clean up open tabs
 
     Scenario: Using new-instance-open-target = tab
-        When I set general -> new-instance-open-target to tab
+        When I set new_instance_open_target to tab
         And I open data/title.html
         And I open data/search.html as a URL
         Then the following tabs should be open:
@@ -15,7 +15,7 @@ Feature: Invoking a new process
             - data/search.html (active)
 
     Scenario: Using new-instance-open-target = tab-bg
-        When I set general -> new-instance-open-target to tab-bg
+        When I set new_instance_open_target to tab-bg
         And I open data/title.html
         And I open data/search.html as a URL
         Then the following tabs should be open:
@@ -23,7 +23,7 @@ Feature: Invoking a new process
             - data/search.html
 
     Scenario: Using new-instance-open-target = window
-        When I set general -> new-instance-open-target to window
+        When I set new_instance_open_target to window
         And I open data/title.html
         And I open data/search.html as a URL
         Then the session should look like:
@@ -36,9 +36,9 @@ Feature: Invoking a new process
               - history:
                 - url: http://localhost:*/data/search.html
 
-    Scenario: Using new-instance-open-target.window = last-opened
-        When I set general -> new-instance-open-target to tab
-        And I set general -> new-instance-open-target.window to last-opened
+    Scenario: Using new-instance-open-target_window = last-opened
+        When I set new_instance_open_target to tab
+        And I set new_instance_open_target_window to last-opened
         And I open data/title.html
         And I open data/search.html in a new window
         And I open data/hello.txt as a URL
@@ -54,9 +54,9 @@ Feature: Invoking a new process
               - history:
                 - url: http://localhost:*/data/hello.txt
 
-    Scenario: Using new-instance-open-target.window = first-opened
-        When I set general -> new-instance-open-target to tab
-        And I set general -> new-instance-open-target.window to first-opened
+    Scenario: Using new-instance-open-target_window = first-opened
+        When I set new_instance_open_target to tab
+        And I set new_instance_open_target_window to first-opened
         And I open data/title.html
         And I open data/search.html in a new window
         And I open data/hello.txt as a URL
@@ -74,9 +74,9 @@ Feature: Invoking a new process
 
     # issue #1060
 
-    Scenario: Using target.window = first-opened after tab-detach
-        When I set general -> new-instance-open-target to tab
-        And I set general -> new-instance-open-target.window to first-opened
+    Scenario: Using target_window = first-opened after tab-detach
+        When I set new_instance_open_target to tab
+        And I set new_instance_open_target_window to first-opened
         And I open data/title.html
         And I open data/search.html in a new tab
         And I run :tab-detach
@@ -95,8 +95,8 @@ Feature: Invoking a new process
                 - url: http://localhost:*/data/search.html
 
     Scenario: Opening a new qutebrowser instance with no parameters
-        When I set general -> new-instance-open-target to tab
-        And I set general -> startpage to http://localhost:(port)/data/hello.txt
+        When I set new_instance_open_target to tab
+        And I set start_page to http://localhost:(port)/data/hello.txt
         And I open data/title.html
         And I spawn a new window
         And I wait until data/hello.txt is loaded

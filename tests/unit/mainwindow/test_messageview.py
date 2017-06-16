@@ -97,7 +97,7 @@ def test_show_message_twice_after_first_disappears(qtbot, view):
 
 
 def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
-    """When we change ui -> message-timeout, the timer should be restarted."""
+    """When we change messages.timeout, the timer should be restarted."""
     config_stub['ui']['message-timeout'] = 900000  # 15s
     view.show_message(usertypes.MessageLevel.info, 'test')
     with qtbot.waitSignal(view._clear_timer.timeout):

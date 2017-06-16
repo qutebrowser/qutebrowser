@@ -80,10 +80,10 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     """
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
+    quteproc_new.set_setting('downloads.location.directory', str(tmpdir))
 
     # Test a normal download
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
         port=httpbin.port)
     quteproc_new.send_cmd(':download {}'.format(url))
@@ -91,7 +91,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
                           message='Download ?-issue908.bin finished')
 
     # Test :prompt-open-download
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'true')
+    quteproc_new.set_setting('downloads.location.prompt', 'true')
     quteproc_new.send_cmd(':download {}'.format(url))
     quteproc_new.send_cmd(':prompt-open-download "{}" -c pass'
                           .format(sys.executable))
@@ -122,7 +122,7 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
     quteproc_new.start(_base_args(request.config), env=temp_basedir_env)
 
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/download.bin'.format(
         port=httpbin.port)
     quteproc_new.send_cmd(':download {}'.format(url))
@@ -233,9 +233,8 @@ def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     args = (['--temp-basedir'] + _base_args(request.config))
     quteproc_new.start(args, env=env)
 
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
-    quteproc_new.set_setting('storage', 'download-directory',
-                             str(download_dir))
+    quteproc_new.set_setting('downloads.location.prompt', 'false')
+    quteproc_new.set_setting('downloads.location.directory', str(download_dir))
     quteproc_new.open_path('data/downloads/download.bin', wait=False)
     quteproc_new.wait_for(category='downloads', message='Download * finished')
     quteproc_new.open_path('data/downloads/download.bin', wait=False)

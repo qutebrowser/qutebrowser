@@ -145,7 +145,7 @@ Feature: Yanking and pasting.
                   url: http://localhost:*/data/hello.txt
 
     Scenario: Pasting an invalid URL
-        When I set general -> auto-search to false
+        When I set auto_search to false
         And I put "foo bar" into the clipboard
         And I run :open {clipboard}
         Then the error "Invalid URL" should be shown
@@ -168,8 +168,8 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiline text
-        When I set general -> auto-search to true
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set auto_search to true
+        And I set searchengines.DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             this url:
             http://qutebrowser.org
@@ -181,8 +181,8 @@ Feature: Yanking and pasting.
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
     Scenario: Pasting multiline whose first line looks like a URI
-        When I set general -> auto-search to true
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set auto_search to true
+        And I set searchengines.DEFAULT to http://localhost:(port)/data/hello.txt?q={}
         And I put the following lines into the clipboard:
             text:
             should open
@@ -255,7 +255,7 @@ Feature: Yanking and pasting.
     #### :insert-text
 
     Scenario: Inserting text into an empty text field
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -264,8 +264,8 @@ Feature: Yanking and pasting.
         Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into an empty text field with javascript disabled
-        When I set general -> log-javascript-console to info
-        And I set content -> allow-javascript to false
+        When I set content.javascript.log to info
+        And I set content.javascript.enabled to false
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -273,12 +273,12 @@ Feature: Yanking and pasting.
         And I wait for "Inserting text into element *" in the log
         And I run :jseval console.log("textarea contents: " + document.getElementById('qute-textarea').value);
         # Enable javascript again for the other tests
-        And I set content -> allow-javascript to true
+        And I set content.javascript.enabled to true
         # Compare
         Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into a text field at specific position
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open data/paste_primary.html
         And I set the text field to "one two three four"
         And I run :click-element id qute-textarea
@@ -293,7 +293,7 @@ Feature: Yanking and pasting.
 
     @qtwebengine_osx_xfail
     Scenario: Inserting text into a text field with undo
-        When I set general -> log-javascript-console to info
+        When I set content.javascript.log to info
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
