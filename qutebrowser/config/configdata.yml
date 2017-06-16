@@ -1272,15 +1272,15 @@ colors.completion.fg:
   type: QtColor
   desc: Text color of the completion widget.
 
-colors.completion.bg:
-  default: '#333333'
-  type: QssColor
-  desc: Background color of the completion widget.
-
-colors.completion.alternate_bg:
+colors.completion.odd.bg:
   default: '#444444'
   type: QssColor
-  desc: Alternating background color of the completion widget.
+  desc: Background color of the completion widget for odd rows.
+
+colors.completion.even.bg:
+  default: '#333333'
+  type: QssColor
+  desc: Background color of the completion widget for even rows.
 
 colors.completion.category.fg:
   default: white

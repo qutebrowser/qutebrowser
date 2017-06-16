@@ -58,8 +58,8 @@ class CompletionView(QTreeView):
     STYLESHEET = """
         QTreeView {
             font: {{ conf.fonts.completion.entry }};
-            background-color: {{ conf.colors.completion.bg }};
-            alternate-background-color: {{ conf.colors.completion.alternate_bg }};
+            background-color: {{ conf.colors.completion.even.bg }};
+            alternate-background-color: {{ conf.colors.completion.odd.bg }};
             outline: 0;
             border: 0px;
         }
