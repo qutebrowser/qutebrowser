@@ -2055,7 +2055,7 @@ bindings.commands:
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block
       "{": move-to-end-of-prev-block
-      0: move-to-start-of-line
+      "0": move-to-start-of-line
       $: move-to-end-of-line
       gg: move-to-start-of-document
       G: move-to-end-of-document
@@ -2067,11 +2067,13 @@ bindings.commands:
       K: scroll up
       L: scroll right
       <Escape>: leave-mode
+    register:
+      <Escape>: leave-mode
   type:
     name: Dict
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret']
+                 'prompt', 'caret', 'register']
     valtype:
       name: Dict
       keytype: String  # key
@@ -2138,3 +2140,6 @@ bindings.commands:
 
     * caret: Entered when pressing the `v` mode, used to select text using the
       keyboard.
+
+    * register: Entered when qutebrowser is waiting for a register name/key for
+      commands like `:set-mark`.

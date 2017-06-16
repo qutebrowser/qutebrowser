@@ -23,6 +23,8 @@ import textwrap
 import yaml
 import pytest
 
+# To run cmdutils.register decorators
+from qutebrowser import app
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
 
