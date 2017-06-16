@@ -106,11 +106,15 @@ class CommandRunner(QObject):
             The new command string if an alias was found. Default value
             otherwise.
         """
+        if config.val.aliases is None:
+            return default
+
         parts = text.strip().split(maxsplit=1)
         try:
             alias = config.val.aliases[parts[0]]
         except KeyError:
             return default
+
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
         except IndexError:
