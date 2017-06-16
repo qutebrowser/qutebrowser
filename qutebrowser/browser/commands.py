@@ -1076,10 +1076,11 @@ class CommandDispatcher:
                    last tab.
             count: The tab index to focus, starting with 1.
         """
-        if index == 'last':
+        index = count if count is not None else index
+
+        if index in ('last', self._current_index() + 1):
             self._tab_focus_last()
             return
-        index = count if count is not None else index
 
         if index is None:
             self.tab_next()
