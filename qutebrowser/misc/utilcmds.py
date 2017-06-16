@@ -325,3 +325,9 @@ def window_only(current_win_id):
 
         if win_id != current_win_id:
             window.close()
+
+
+@cmdutils.register(hide=True)
+def nop():
+    """Do nothing."""
+    return

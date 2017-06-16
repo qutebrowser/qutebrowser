@@ -177,7 +177,7 @@ def init(parent=None):
     newconfig.init(parent)
     val = newconfig.val
     instance = newconfig.instance
-    _init_key_config(parent)
+    # _init_key_config(parent)
     _init_misc()
 
 

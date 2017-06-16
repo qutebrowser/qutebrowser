@@ -1800,3 +1800,341 @@ fonts.web.size.minimum_logical:
     minval: 0
     maxval: maxint
   desc: The minimum logical font size that is applied when zooming out.
+
+## keybindings
+
+bindings.key_mappings:
+  default:
+    <Ctrl-[>: <Escape>
+    <Ctrl-6>: <Ctrl-^>
+    <Ctrl-M>: <Return>
+    <Ctrl-J>: <Return>
+    <Shift-Return>: <Return>
+    <Enter>: <Return>
+    <Shift-Enter>: <Return>
+    <Ctrl-Enter>: <Ctrl-Return>
+    <Ctrl-[>: <Escape>
+  type:
+    name: Dict
+    keytype: String
+    valtype: String
+  desc: >-
+    This setting can be used to map keys to other keys.
+
+    When the key used as dictionary-key is pressed, the binding for the key used
+    as dictionary-value is invoked instead.
+
+    This is useful for global remappings of keys, for example to map Ctrl-[ to
+    Escape.
+
+bindings.commands:
+  default:
+    normal:
+      <Escape>: clear-keychain ;; search ;; fullscreen --leave
+      o: set-cmd-text -s :open
+      go: set-cmd-text :open {url:pretty}
+      O: set-cmd-text -s :open -t
+      gO: set-cmd-text :open -t -i {url:pretty}
+      xo: set-cmd-text -s :open -b
+      xO: set-cmd-text :open -b -i {url:pretty}
+      wo: set-cmd-text -s :open -w
+      wO: set-cmd-text :open -w {url:pretty}
+      /: set-cmd-text /
+      ?: set-cmd-text ?
+      ":": "set-cmd-text :"
+      ga: open -t
+      <Ctrl-T>: open -t
+      <Ctrl-N>: open -w
+      d: tab-close
+      <Ctrl-W>: tab-close
+      D: tab-close -o
+      co: tab-only
+      T: tab-focus
+      gm: tab-move
+      gl: tab-move -
+      gr: tab-move +
+      J: tab-next
+      <Ctrl-PgDown>: tab-next
+      K: tab-prev
+      <Ctrl-PgUp>: tab-prev
+      gC: tab-clone
+      r: reload
+      <F5>: reload
+      R: reload -f
+      <Ctrl-F5>: reload -f
+      H: back
+      <back>: back
+      th: back -t
+      wh: back -w
+      L: forward
+      <forward>: forward
+      tl: forward -t
+      wl: forward -w
+      <F11>: fullscreen
+      f: hint
+      F: hint all tab
+      wf: hint all window
+      ;b: hint all tab-bg
+      ;f: hint all tab-fg
+      ;h: hint all hover
+      ;i: hint images
+      ;I: hint images tab
+      ;o: hint links fill :open {hint-url}
+      ;O: hint links fill :open -t -i {hint-url}
+      ;y: hint links yank
+      ;Y: hint links yank-primary
+      ;r: hint --rapid links tab-bg
+      ;R: hint --rapid links window
+      ;d: hint links download
+      ;t: hint inputs
+      h: scroll left
+      j: scroll down
+      k: scroll up
+      l: scroll right
+      u: undo
+      <Ctrl-Shift-T>: undo
+      gg: scroll-perc 0
+      G: scroll-perc
+      n: search-next
+      N: search-prev
+      i: enter-mode insert
+      v: enter-mode caret
+      "`": enter-mode set_mark
+      "'": enter-mode jump_mark
+      yy: yank
+      yY: yank -s
+      yt: yank title
+      yT: yank title -s
+      yd: yank domain
+      yD: yank domain -s
+      yp: yank pretty-url
+      yP: yank pretty-url -s
+      pp: open -- {clipboard}
+      pP: open -- {primary}
+      Pp: open -t -- {clipboard}
+      PP: open -t -- {primary}
+      wp: open -w -- {clipboard}
+      wP: open -w -- {primary}
+      m: quickmark-save
+      b: set-cmd-text -s :quickmark-load
+      B: set-cmd-text -s :quickmark-load -t
+      wb: set-cmd-text -s :quickmark-load -w
+      M: bookmark-add
+      gb: set-cmd-text -s :bookmark-load
+      gB: set-cmd-text -s :bookmark-load -t
+      wB: set-cmd-text -s :bookmark-load -w
+      sf: save
+      ss: set-cmd-text -s :set
+      sl: set-cmd-text -s :set -t
+      sk: set-cmd-text -s :bind
+      -: zoom-out
+      +: zoom-in
+      =: zoom
+      "[[": navigate prev
+      "]]": navigate next
+      "{{": navigate prev -t
+      "}}": navigate next -t
+      gu: navigate up
+      gU: navigate up -t
+      <Ctrl-A>: navigate increment
+      <Ctrl-X>: navigate decrement
+      wi: inspector
+      gd: download
+      ad: download-cancel
+      cd: download-clear
+      gf: view-source
+      gt: set-cmd-text -s :buffer
+      <Ctrl-Tab>: tab-focus last
+      <Ctrl-^>: tab-focus last
+      <Ctrl-V>: enter-mode passthrough
+      <Ctrl-Q>: quit
+      ZQ: quit
+      ZZ: wq
+      <Ctrl-F>: scroll-page 0 1
+      <Ctrl-B>: scroll-page 0 -1
+      <Ctrl-D>: scroll-page 0 0.5
+      <Ctrl-U>: scroll-page 0 -0.5
+      <Alt-1>: tab-focus 1
+      g0: tab-focus 1
+      g^: tab-focus 1
+      <Alt-2>: tab-focus 2
+      <Alt-3>: tab-focus 3
+      <Alt-4>: tab-focus 4
+      <Alt-5>: tab-focus 5
+      <Alt-6>: tab-focus 6
+      <Alt-7>: tab-focus 7
+      <Alt-8>: tab-focus 8
+      <Alt-9>: tab-focus -1
+      g$: tab-focus -1
+      <Ctrl-h>: home
+      <Ctrl-s>: stop
+      <Ctrl-Alt-p>: print
+      Ss: open qute://settings
+      <Return>: follow-selected
+      <Ctrl-Return>: follow-selected -t
+      .: repeat-command
+      <Ctrl-p>: tab-pin
+      q: record-macro
+      "@": run-macro
+    insert:
+      <Ctrl-E>: open-editor
+      <Shift-Ins>: insert-text {primary}
+      <Escape>: leave-mode
+    hint:
+      <Return>: follow-hint
+      <Ctrl-R>: hint --rapid links tab-bg
+      <Ctrl-F>: hint links
+      <Ctrl-B>: hint all tab-bg
+      <Escape>: leave-mode
+    passthrough:
+      <Escape>: leave-mode
+    command:
+      # FIXME:conf what to do about up/down?
+      <Ctrl-P>: command-history-prev
+      <Ctrl-N>: command-history-next
+      <Shift-Tab>: completion-item-focus prev
+      <Up>: completion-item-focus prev
+      <Tab>: completion-item-focus next
+      <Down>: completion-item-focus next
+      <Ctrl-Tab>: completion-item-focus next-category
+      <Ctrl-Shift-Tab>: completion-item-focus prev-category
+      <Ctrl-D>: completion-item-del
+      <Return>: command-accept
+      <Ctrl-B>: rl-backward-char
+      <Ctrl-F>: rl-forward-char
+      <Alt-B>: rl-backward-word
+      <Alt-F>: rl-forward-word
+      <Ctrl-A>: rl-beginning-of-line
+      <Ctrl-E>: rl-end-of-line
+      <Ctrl-U>: rl-unix-line-discard
+      <Ctrl-K>: rl-kill-line
+      <Alt-D>: rl-kill-word
+      <Ctrl-W>: rl-unix-word-rubout
+      <Alt-Backspace>: rl-backward-kill-word
+      <Ctrl-Y>: rl-yank
+      <Ctrl-?>: rl-delete-char
+      <Ctrl-H>: rl-backward-delete-char
+      <Escape>: leave-mode
+    prompt:
+      <Return>: prompt-accept
+      y: prompt-accept yes
+      n: prompt-accept no
+      <Ctrl-X>: prompt-open-download
+      <Shift-Tab>: prompt-item-focus prev
+      <Up>: prompt-item-focus prev
+      <Tab>: prompt-item-focus next
+      <Down>: prompt-item-focus next
+      <Ctrl-B>: rl-backward-char
+      <Ctrl-F>: rl-forward-char
+      <Alt-B>: rl-backward-word
+      <Alt-F>: rl-forward-word
+      <Ctrl-A>: rl-beginning-of-line
+      <Ctrl-E>: rl-end-of-line
+      <Ctrl-U>: rl-unix-line-discard
+      <Ctrl-K>: rl-kill-line
+      <Alt-D>: rl-kill-word
+      <Ctrl-W>: rl-unix-word-rubout
+      <Alt-Backspace>: rl-backward-kill-word
+      <Ctrl-Y>: rl-yank
+      <Ctrl-?>: rl-delete-char
+      <Ctrl-H>: rl-backward-delete-char
+      <Escape>: leave-mode
+    caret:
+      v: toggle-selection
+      <Space>: toggle-selection
+      <Ctrl-Space>: drop-selection
+      c: enter-mode normal
+      j: move-to-next-line
+      k: move-to-prev-line
+      l: move-to-next-char
+      h: move-to-prev-char
+      e: move-to-end-of-word
+      w: move-to-next-word
+      b: move-to-prev-word
+      "]": move-to-start-of-next-block
+      "[": move-to-start-of-prev-block
+      "}": move-to-end-of-next-block
+      "{": move-to-end-of-prev-block
+      0: move-to-start-of-line
+      $: move-to-end-of-line
+      gg: move-to-start-of-document
+      G: move-to-end-of-document
+      Y: yank selection -s
+      y: yank selection
+      <Return>: yank selection
+      H: scroll left
+      J: scroll down
+      K: scroll up
+      L: scroll right
+      <Escape>: leave-mode
+  type:
+    name: Dict
+    keytype: String  # section name
+    fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
+                 'prompt', 'caret']
+    valtype:
+      name: Dict
+      keytype: String  # key
+      valtype: Command
+  desc: >-
+    Keybindings mapping keys to commands in different modes.
+
+    This setting is a dictionary containing mode names and dictionaries mapping
+    keys to commands:
+
+    `{mode: {key: command}}`
+
+    If you want to map a key to another key, check the `bindings.key_mappings`
+    setting instead.
+
+    For special keys (can't be part of a keychain), enclose them in `<`...`>`.
+    For modifiers, you can use either `-` or `+` as delimiters, and these names:
+
+      * Control: `Control`, `Ctrl`
+
+      * Meta:    `Meta`, `Windows`, `Mod4`
+
+      * Alt:     `Alt`, `Mod1`
+
+      * Shift:   `Shift`
+
+    For simple keys (no `<>`-signs), a capital letter means the key is pressed
+    with Shift. For special keys (with `<>`-signs), you need to explicitly add
+    `Shift-` to match a key pressed with shift.
+
+    To completely unbind a default binding, bind it to the `nop` command.
+
+    Note that some commands which are only useful for bindings (but not used
+    interactively) are hidden from the command completion. See `:help` for a
+    full list of available commands.
+
+    The following modes are available:
+
+    * normal: The default mode, where most commands are invoked.
+
+    * insert: Entered when an input field is focused on a website, or by
+      pressing `i` in normal mode. Passes through almost all keypresses to the
+      website, but has some bindings like `<Ctrl-e>` to open an external editor.
+      Note that single keys can't be bound in this mode.
+
+    * hint: Entered when `f` is pressed to select links with the keyboard. Note
+      that single keys can't be bound in this mode.
+
+    * passthrough: Similar to insert mode, but passes through all keypresses
+      except `<Escape>` to leave the mode. It might be useful to bind `<Escape>`
+      to some other key in this mode if you want to be able to send an Escape
+      key to the website as well. Note that single keys can't be bound in this
+      mode.
+
+    * command: Entered when pressing the `:` key in order to enter a command.
+      Note that single keys can't be bound in this mode.
+
+    * prompt: Entered when there's a prompt to display, like for download
+      locations or when invoked from JavaScript.
+
+      You can bind normal keys in this mode, but they will be only active when a
+      yes/no-prompt is asked. For other prompt modes, you can only bind special
+      keys.
+
+    * caret: Entered when pressing the `v` mode, used to select text using the
+      keyboard.
