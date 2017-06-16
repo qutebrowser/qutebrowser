@@ -27,7 +27,6 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, jinja
 
 
-@functools.lru_cache(maxsize=16)
 def get_stylesheet(template_str):
     """Format a stylesheet based on a template.
 
@@ -59,6 +58,5 @@ def set_register_stylesheet(obj):
 
 def _update_stylesheet(obj):
     """Update the stylesheet for obj."""
-    get_stylesheet.cache_clear()
     if not sip.isdeleted(obj):
         obj.setStyleSheet(get_stylesheet(obj.STYLESHEET))

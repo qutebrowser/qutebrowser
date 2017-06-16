@@ -147,9 +147,6 @@ def init(args, crash_handler):
     objreg.register('event-filter', event_filter)
 
     log.init.debug("Connecting signals...")
-    config_obj = objreg.get('config')
-    # FIXME:conf
-    # config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
     qApp.focusChanged.connect(on_focus_changed)
 
     _process_args(args)
