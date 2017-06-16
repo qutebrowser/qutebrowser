@@ -19,12 +19,14 @@
 
 """New qutebrowser configuration code."""
 
+import contextlib
 import functools
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
-from qutebrowser.config import configdata, configexc
-from qutebrowser.utils import utils, objreg
+from qutebrowser.config import configdata, configexc, configtypes
+from qutebrowser.utils import utils, objreg, message
+from qutebrowser.commands import cmdexc, cmdutils
 
 # An easy way to access the config from other code via config.val.foo
 val = None
@@ -130,6 +132,95 @@ class NewKeyConfig:
         return cmd_to_keys
 
 
+class ConfigCommands:
+
+    def __init__(self, config):
+        self._config = config
+
+    @cmdutils.register(instance='config-commands', star_args_optional=True)
+    @cmdutils.argument('win_id', win_id=True)
+    def set(self, win_id, option=None, *values, temp=False, print_=False):
+        """Set an option.
+
+        If the option name ends with '?', the value of the option is shown
+        instead.
+
+        If the option name ends with '!' and it is a boolean value, toggle it.
+
+        //
+
+        Args:
+            option: The name of the option.
+            values: The value to set, or the values to cycle through.
+            temp: Set value temporarily.
+            print_: Print the value after setting.
+        """
+        # FIXME:conf write to YAML if temp isn't used!
+        if option is None:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.openurl(QUrl('qute://settings'), newtab=False)
+            return
+
+        if option.endswith('?') and option != '?':
+            self._print_value(option[:-1])
+            return
+
+        with self._handle_config_error():
+            if option.endswith('!') and option != '!' and not values:
+                # Handle inversion as special cases of the cycle code path
+                option = option[:-1]
+                opt = self._config.get_opt(option)
+                if opt.typ is configtypes.Bool:
+                    values = ['false', 'true']
+                else:
+                    raise cmdexc.CommandError(
+                        "set: Attempted inversion of non-boolean value.")
+            elif not values:
+                raise cmdexc.CommandError("set: The following arguments "
+                                          "are required: value")
+            self._set_next(option, values)
+
+        if print_:
+            self._print_value(option)
+
+    def _print_value(self, option):
+        """Print the value of the given option."""
+        with self._handle_config_error():
+            val = self._config.get_str(option)
+        message.info("{} = {}".format(option, val))
+
+    def _set_next(self, option, values):
+        """Set the next value out of a list of values."""
+        if len(values) == 1:
+            # If we have only one value, just set it directly (avoid
+            # breaking stuff like aliases or other pseudo-settings)
+            self._config.set(option, values[0])
+            return
+
+        # Use the next valid value from values, or the first if the current
+        # value does not appear in the list
+        val = self._config.get_str(option)
+        try:
+            idx = values.index(str(val))
+            idx = (idx + 1) % len(values)
+            value = values[idx]
+        except ValueError:
+            value = values[0]
+        self._config.set(option, value)
+
+    @contextlib.contextmanager
+    def _handle_config_error(self):
+        """Catch errors in set_command and raise CommandError."""
+        try:
+            yield
+        except (configexc.NoOptionError, configexc.ValidationError) as e:
+            raise cmdexc.CommandError("set: {}".format(e))
+        except configexc.Error as e:
+            raise cmdexc.CommandError("set: {} - {}".format(
+                e.__class__.__name__, e))
+
+
 class NewConfigManager(QObject):
 
     changed = pyqtSignal(str)  # FIXME:conf stub...
@@ -143,19 +234,19 @@ class NewConfigManager(QObject):
         for name, option in configdata.DATA.items():
             self.options[name] = option
 
-    def get(self, name):
+    def get_opt(self, name):
         try:
-            opt = self.options[name]
+            return self.options[name]
         except KeyError:
             raise configexc.NoOptionError(name)
+
+    def get(self, name):
+        opt = self.get_opt(name)
         value = self._values.get(name, opt.default)
         return opt.typ.to_py(value)
 
     def get_str(self, name):
-        try:
-            opt = self.options[name]
-        except KeyError:
-            raise configexc.NoOptionError(name)
+        opt = self.get_opt(name)
         return opt.typ.to_str(opt.default)
 
     def set(self, name, value):
@@ -219,6 +310,9 @@ def init(parent):
     new_config = NewConfigManager(parent)
     new_config.read_defaults()
     objreg.register('config', new_config)
+
+    config_commands = ConfigCommands(new_config)
+    objreg.register('config-commands', config_commands)
 
     global val, instance, key_instance
     val = ConfigContainer(new_config)
