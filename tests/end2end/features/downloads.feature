@@ -97,7 +97,7 @@ Feature: Downloading things from a website.
     Scenario: Quitting with finished downloads and confirm-quit=downloads (issue 846)
         Given I have a fresh instance
         When I set downloads.location.prompt to false
-        And I set confirm_quit to downloads
+        And I set confirm_quit to [downloads]
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :close
@@ -601,7 +601,7 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading invalid URL
         When I set downloads.location.prompt to false
-        And I set auto_search to false
+        And I set auto_search to never
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 

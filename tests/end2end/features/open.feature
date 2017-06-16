@@ -27,7 +27,7 @@ Feature: Opening pages
         Then data/numbers/2.txt should be loaded
 
     Scenario: :open with invalid URL
-        When I set auto_search to false
+        When I set auto_search to never
         And I run :open foo!
         Then the error "Invalid URL" should be shown
 

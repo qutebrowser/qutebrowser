@@ -6,11 +6,11 @@ Feature: Setting settings.
         Given I set messages.timeout to 100
 
     Scenario: Using :set
-        When I run :set colors.statusbar.bg magenta
-        Then colors.statusbar.bg should be magenta
+        When I run :set colors.statusbar.normal.bg magenta
+        Then colors.statusbar.normal.bg should be magenta
 
     Scenario: Without value
-        When I run :set colors.statusbar.bg
+        When I run :set colors.statusbar.normal.bg
         Then the error "set: The following arguments are required: value" should be shown
 
     Scenario: Invalid option
@@ -29,22 +29,22 @@ Feature: Setting settings.
     Scenario: Cycling an option
         When I run :set colors statusbar.bg magenta
         And I run :set colors statusbar.bg green magenta blue yellow
-        Then colors.statusbar.bg should be blue
+        Then colors.statusbar.normal.bg should be blue
 
     Scenario: Cycling an option through the end of the list
         When I run :set colors statusbar.bg yellow
         And I run :set colors statusbar.bg green magenta blue yellow
-        Then colors.statusbar.bg should be green
+        Then colors.statusbar.normal.bg should be green
 
     Scenario: Cycling an option that's not on the list
         When I run :set colors statusbar.bg red
         And I run :set colors statusbar.bg green magenta blue yellow
-        Then colors.statusbar.bg should be green
+        Then colors.statusbar.normal.bg should be green
 
     Scenario: Cycling through a single option
         When I run :set colors statusbar.bg red
         And I run :set colors statusbar.bg red
-        Then colors.statusbar.bg should be red
+        Then colors.statusbar.normal.bg should be red
 
     Scenario: Getting an option
         When I run :set colors statusbar.bg magenta
@@ -68,7 +68,7 @@ Feature: Setting settings.
         # We don't actually check if the option is temporary as this isn't easy
         # to check.
         When I run :set -t colors statusbar.bg green
-        Then colors.statusbar.bg should be green
+        Then colors.statusbar.normal.bg should be green
 
     # qute://settings isn't actually implemented on QtWebEngine, but this works
     # (and displays a page saying it's not available)

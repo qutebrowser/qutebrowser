@@ -20,7 +20,7 @@ Feature: quickmarks and bookmarks
         Then the error "Title must be provided if url has been provided" should be shown
 
     Scenario: Saving a bookmark with an invalid url
-        When I set auto_search to false
+        When I set auto_search to never
         And I run :bookmark-add foo! "some example title"
         Then the error "Invalid URL" should be shown
 

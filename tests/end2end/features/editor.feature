@@ -54,7 +54,7 @@ Feature: Opening external editors
         Then the error "Only one of -t/-b/-w can be given!" should be shown
 
     Scenario: Editing a URL with invalid URL
-        When I set auto_search to false
+        When I set auto_search to never
         And I open data/hello.txt
         And I set up a fake editor replacing "http://localhost:(port)/data/hello.txt" by "foo!"
         And I run :edit-url

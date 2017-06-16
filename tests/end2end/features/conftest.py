@@ -631,7 +631,7 @@ def check_not_scrolled(request, quteproc):
     assert y == 0
 
 
-@bdd.then(bdd.parsers.parse("{section} -> {option} should be {value}"))
-def check_option(quteproc, section, option, value):
-    actual_value = quteproc.get_setting(section, option)
+@bdd.then(bdd.parsers.parse("{section} should be {value}"))
+def check_option(quteproc, option, value):
+    actual_value = quteproc.get_setting(option)
     assert actual_value == value
