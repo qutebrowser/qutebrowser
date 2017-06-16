@@ -500,18 +500,18 @@ class WebEngineElements(browsertab.AbstractElements):
             callback(elem)
 
     def find_css(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all', selector,
+        js_code = javascript.assemble('webelem', 'find_css', selector,
                                       only_visible)
         js_cb = functools.partial(self._js_cb_multiple, callback)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_id(self, elem_id, callback):
-        js_code = javascript.assemble('webelem', 'element_by_id', elem_id)
+        js_code = javascript.assemble('webelem', 'find_id', elem_id)
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_focused(self, callback):
-        js_code = javascript.assemble('webelem', 'focus_element')
+        js_code = javascript.assemble('webelem', 'find_focused')
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
@@ -519,7 +519,7 @@ class WebEngineElements(browsertab.AbstractElements):
         assert pos.x() >= 0
         assert pos.y() >= 0
         pos /= self._tab.zoom.factor()
-        js_code = javascript.assemble('webelem', 'element_at_pos',
+        js_code = javascript.assemble('webelem', 'find_at_pos',
                                       pos.x(), pos.y())
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)

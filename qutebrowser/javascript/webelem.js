@@ -21,8 +21,8 @@
  * The connection for web elements between Python and Javascript works like
  * this:
  *
- * - Python calls into Javascript and invokes a function to find elements (like
- *   find_all, focus_element, element_at_pos or element_by_id).
+ * - Python calls into Javascript and invokes a function to find elements (one
+ *   of the find_* functions).
  * - Javascript gets the requested element, and calls serialize_elem on it.
  * - serialize_elem saves the javascript element object in "elements", gets some
  *   attributes from the element, and assigns an ID (index into 'elements') to
@@ -144,7 +144,7 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
-    funcs.find_all = function(selector, only_visible) {
+    funcs.find_css = function(selector, only_visible) {
         var elems = document.querySelectorAll(selector);
         var out = [];
 
@@ -157,7 +157,12 @@ window._qutebrowser.webelem = (function() {
         return out;
     };
 
-    funcs.focus_element = function() {
+    funcs.find_id = function(id) {
+        var elem = document.getElementById(id);
+        return serialize_elem(elem);
+    };
+
+    funcs.find_focused = function() {
         var elem = document.activeElement;
 
         if (!elem || elem === document.body) {
@@ -166,6 +171,16 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
+        return serialize_elem(elem);
+    };
+
+    funcs.find_at_pos = function(x, y) {
+        // FIXME:qtwebengine
+        // If the element at the specified point belongs to another document
+        // (for example, an iframe's subdocument), the subdocument's parent
+        // element is returned (the iframe itself).
+
+        var elem = document.elementFromPoint(x, y);
         return serialize_elem(elem);
     };
 
@@ -186,21 +201,6 @@ window._qutebrowser.webelem = (function() {
         var elem = elements[id];
         elem.focus();
         document.execCommand("insertText", false, text);
-    };
-
-    funcs.element_at_pos = function(x, y) {
-        // FIXME:qtwebengine
-        // If the element at the specified point belongs to another document
-        // (for example, an iframe's subdocument), the subdocument's parent
-        // element is returned (the iframe itself).
-
-        var elem = document.elementFromPoint(x, y);
-        return serialize_elem(elem);
-    };
-
-    funcs.element_by_id = function(id) {
-        var elem = document.getElementById(id);
-        return serialize_elem(elem);
     };
 
     funcs.set_attribute = function(id, name, value) {
