@@ -330,7 +330,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             urls = {
                 'blank': QUrl('about:blank'),
                 'startpage': QUrl(config.val.start_page[0]),
-                'default_page': config.val.default_page,
+                'default-page': config.val.default_page,
             }
             first_tab_url = self.widget(0).url()
             last_close_urlstr = urls[last_close].toString().rstrip('/')
