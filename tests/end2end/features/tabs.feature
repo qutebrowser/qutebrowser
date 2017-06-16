@@ -242,7 +242,7 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-focus 1
         And I run :tab-focus 3
-        And I run :tab-focus 1
+        And I run :tab-focus 3
         Then the following tabs should be open:
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
