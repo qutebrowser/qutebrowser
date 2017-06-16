@@ -274,7 +274,7 @@ def test_launching_with_python2():
 def test_initial_private_browsing(request, quteproc_new):
     """Make sure the initial window is private when the setting is set."""
     args = (_base_args(request.config) +
-            ['--temp-basedir', '-s', 'general', 'private-browsing', 'true'])
+            ['--temp-basedir', '-s', 'content.private_browsing', 'true'])
     quteproc_new.start(args)
 
     quteproc_new.compare_session("""

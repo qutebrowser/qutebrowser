@@ -182,10 +182,10 @@ def _init_icon():
 def _process_args(args):
     """Open startpage etc. and process commandline args."""
     config_obj = objreg.get('config')
-    for sect, opt, val in args.temp_settings:
+    for opt, val in args.temp_settings:
         try:
-            config_obj.set('temp', sect, opt, val)
-        except (configexc.Error, configparser.Error) as e:
+            config_obj.set(opt, val)
+        except configexc.Error as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     if not args.override_restore:
