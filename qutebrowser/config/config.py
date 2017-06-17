@@ -157,7 +157,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             values: The value to set, or the values to cycle through.
-            temp: Set value temporarily.
+            temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
         # FIXME:conf write to YAML if temp isn't used!
