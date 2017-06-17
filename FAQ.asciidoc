@@ -72,8 +72,8 @@ Is there an adblocker?::
     http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
     impact] on browsing speed and
     https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
-    usage], so implementing it properly might take some time and won't be done
-    for v0.1 if at all.
+    usage], so implementing support for AdBlockPlus-like lists is currently not
+    a priority.
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video
