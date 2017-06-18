@@ -473,6 +473,8 @@ class MainWindow(QWidget):
         tabs.tab_index_changed.connect(status.tabindex.on_tab_index_changed)
 
         tabs.cur_url_changed.connect(status.url.set_url)
+        tabs.cur_url_changed.connect(functools.partial(
+            status.backforward.on_tab_cur_url_changed, tabs=tabs))
         tabs.cur_link_hovered.connect(status.url.set_hover_url)
         tabs.cur_load_status_changed.connect(status.url.on_load_status_changed)
         tabs.cur_fullscreen_requested.connect(self._on_fullscreen_requested)
