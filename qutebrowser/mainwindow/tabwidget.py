@@ -522,20 +522,22 @@ class TabBar(QTabBar):
                 width = tab_width_pinned_conf
             else:
 
-                # If we *do* have enough space, tabs should occupy the whole window
-                # width. If there are pinned tabs their size will be subtracted
-                # from the total window width.
+                # If we *do* have enough space, tabs should occupy the whole 
+                # window # width. If there are pinned tabs their size will be 
+                # subtracted from the total window width.
                 # During shutdown the self.count goes down,
-                # but the self.pinned_count not - this generates some odd behavior.
-                # To avoid this we compare self.count against self.pinned_count.
+                # but the self.pinned_count not - this generates some odd 
+                # behavior. To avoid this we compare self.count against 
+                # self.pinned_count.
                 if self.pinned_count > 0 and no_pinned_count > 0:
                     width = no_pinned_width / no_pinned_count
                 else:
                     width = self.width() / self.count()
 
-            # If no_pinned_width is not divisible by no_pinned_count, add a pixel to some tabs so
-            # that there is no ugly leftover space.
-            if no_pinned_count > 0 and index < no_pinned_width % no_pinned_count:
+            # If no_pinned_width is not divisible by no_pinned_count, add a
+            # pixel to some tabs so # that there is no ugly leftover space.
+            if no_pinned_count > 0 and 
+                    index < no_pinned_width % no_pinned_count:
                 width += 1
 
             size = QSize(width, height)
