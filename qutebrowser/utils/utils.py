@@ -407,7 +407,7 @@ def keyevent_to_string(e):
         if mod & mask and s not in parts:
             parts.append(s)
     parts.append(key_to_string(e.key()))
-    return '+'.join(parts)
+    return normalize_keystr('+'.join(parts))
 
 
 class KeyInfo:

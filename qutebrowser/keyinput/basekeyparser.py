@@ -127,8 +127,13 @@ class BaseKeyParser(QObject):
         if binding is None:
             self._debug_log("Ignoring only-modifier keyeevent.")
             return False
-        binding = binding.lower()
-        binding = config.val.bindings.key_mappings.get(binding, binding)
+
+        key_mappings = config.val.bindings.key_mappings
+        try:
+            binding = key_mappings['<{}>'.format(binding)][1:-1]
+        except KeyError:
+            pass
+
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:
