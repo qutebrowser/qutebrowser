@@ -257,10 +257,7 @@ class NewConfigManager(QObject):
 
     def set(self, name, value):
         # FIXME:conf stub
-        try:
-            opt = self.options[name]
-        except KeyError:
-            raise configexc.NoOptionError(name)
+        opt = self.get_opt(name)
         self._values[name] = opt.typ.from_str(value)
         self.changed.emit(name)
         log.config.debug("Config option changed: {} = {}".format(name, value))
