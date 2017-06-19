@@ -85,7 +85,7 @@ def run(args):
     if args.version:
         # we need to init sql to print the sql version
         # we can use an in-memory database as we just want to query the version
-        sql.init('')
+        sql.init(':memory:')
         print(version.version())
         sys.exit(usertypes.Exit.ok)
 
