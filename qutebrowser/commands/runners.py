@@ -310,7 +310,7 @@ class CommandRunner(QObject):
         """Run a command and display exceptions in the statusbar."""
         try:
             self.run(text, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
+        except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())
 
     @pyqtSlot(str, int)
@@ -322,5 +322,5 @@ class CommandRunner(QObject):
         """
         try:
             self.run(text, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
+        except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())

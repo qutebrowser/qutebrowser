@@ -316,7 +316,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
             else:
                 raise ValueError(
                     "{} is not a valid register mode".format(self._mode))
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as err:
+        except cmdexc.Error as err:
             message.error(str(err), stack=traceback.format_exc())
 
         self.request_leave.emit(self._mode, "valid register key", True)
