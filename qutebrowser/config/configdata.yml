@@ -1994,6 +1994,7 @@ bindings.commands:
       <Ctrl-Tab>: completion-item-focus next-category
       <Ctrl-Shift-Tab>: completion-item-focus prev-category
       <Ctrl-D>: completion-item-del
+      <Shift-Delete>: completion-item-del
       <Return>: command-accept
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
