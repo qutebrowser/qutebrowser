@@ -20,6 +20,10 @@ Feature: Keyboard input
         When I run :bind --mode abcd test03 message-info test03
         Then the error "Invalid mode abcd!" should be shown
 
+    Scenario: Binding with wrong mode
+        When I run :bind --mode caret test13 completion-item-del
+        Then the error "completion-item-del: This command is only allowed in command mode, not caret." should be shown
+
     Scenario: Double-binding a key
         When I run :bind test04 message-info test04
         And I run :bind test04 message-info test04-2
