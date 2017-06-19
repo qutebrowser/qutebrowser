@@ -300,9 +300,9 @@ content.images:
   desc: Whether images are automatically loaded in web pages.
 
 content.javascript.alert:
-  default: false
+  default: true
   type: Bool
-  desc: Show javascript.
+  desc: Show javascript alerts.
 
 content.javascript.can_access_clipboard:
   default: false
