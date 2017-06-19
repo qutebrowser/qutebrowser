@@ -87,7 +87,7 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
     There are unofficial QtWebKit-NG packages <a href="http://repo.paretje.be/unstable/">available</a>, but they are intended for Debian Unstable.
     {{ please_open_issue() }}
 {% elif distribution.parsed in [Distribution.arch, Distribution.manjaro] %}
-    You should be able to install <span class="mono">qt5-webkit-ng</span> via <span class="mono">pacman</span>.
+    With an updated <span class="mono">qt5-webkit</span> package, you should already get QtWebKit-NG.
 {% elif distribution.parsed == Distribution.gentoo %}
     There's an unofficial <a href="https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71">ebuild</a> available.
 {% else %}
