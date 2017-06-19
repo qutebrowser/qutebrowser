@@ -198,8 +198,8 @@ class AbstractSearch(QObject):
         """
         mapping = {
             'smart': not self.text.islower(),
-            'never': False,
-            'always': True,
+            'never': True,
+            'always': False,
         }
         return mapping[ignore_case]
 
