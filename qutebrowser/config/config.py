@@ -27,8 +27,9 @@ import configparser
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 
 from qutebrowser.config import configdata, configexc, configtypes
-from qutebrowser.utils import utils, objreg, message, standarddir, log
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.utils import (utils, objreg, message, standarddir, log,
+                               usertypes)
+from qutebrowser.commands import cmdexc, cmdutils, runners
 
 
 # An easy way to access the config from other code via config.val.foo
@@ -119,10 +120,13 @@ class change_filter:  # pylint: disable=invalid-name
 
 class NewKeyConfig:
 
-    def get_reverse_bindings_for(self, section):
-        """Get a dict of commands to a list of bindings for the section."""
+    def __init__(self, manager):
+        self._manager = manager
+
+    def get_reverse_bindings_for(self, mode):
+        """Get a dict of commands to a list of bindings for the mode."""
         cmd_to_keys = {}
-        bindings = val.bindings.commands[section]
+        bindings = val.bindings.commands[mode]
         if bindings is None:
             return cmd_to_keys
         for key, full_cmd in bindings.items():
@@ -135,6 +139,57 @@ class NewKeyConfig:
                 else:
                     cmd_to_keys[cmd].insert(0, key)
         return cmd_to_keys
+
+    def _prepare(self, key, mode):
+        """Make sure the given mode exists and normalize the key."""
+        if mode not in val.bindings.commands:
+            raise configexc.ValidationError(
+                "Invalid mode {} while binding {}!".format(mode, key))
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            return utils.normalize_keystr(key)
+        return key
+
+    def bind(self, key, command, *, mode, force=False):
+        """Add a new binding from key to command."""
+        key = self._prepare(key, mode)
+
+        parser = runners.CommandParser()
+        try:
+            results = parser.parse_all(command)
+        except cmdexc.Error as e:
+            # FIXME: conf good message?
+            raise configexc.ValidationError("Invalid command: {}".format(e))
+
+        for result in results:
+            try:
+                result.cmd.validate_mode(usertypes.KeyMode[mode])
+            except cmdexc.PrerequisitesError as e:
+                # FIXME: conf good message?
+                raise configexc.ValidationError(str(e))
+
+        bindings = val.bindings.commands
+
+        log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
+            key, command, mode))
+        if key in bindings[mode] and not force:
+            raise configexc.DuplicateKeyError("Duplicate key {}".format(key))
+        bindings[mode][key] = command
+        val.bindings.commands = bindings  # FIXME:conf
+
+    def unbind(self, key, *, mode='normal'):
+        """Unbind the given key in the given mode."""
+        key = self._prepare(key, mode)
+        try:
+            del val.bindings.commands[mode][key]
+        except KeyError:
+            raise configexc.ValidationError("Unknown binding {}".format(key))
+        val.bindings.commands = val.bindings.commands  # FIXME:conf
+
+    def get_command(self, key, mode):
+        """Get the command for a given key (or None)."""
+        key = self._prepare(key, mode)
+        return val.bindings.commands[mode].get(key, None)
 
 
 class ConfigCommands:
@@ -200,7 +255,7 @@ class ConfigCommands:
         if len(values) == 1:
             # If we have only one value, just set it directly (avoid
             # breaking stuff like aliases or other pseudo-settings)
-            self._config.set(option, values[0])
+            self._config.set_str(option, values[0])
             return
 
         # Use the next valid value from values, or the first if the current
@@ -212,7 +267,7 @@ class ConfigCommands:
             value = values[idx]
         except ValueError:
             value = values[0]
-        self._config.set(option, value)
+        self._config.set_str(option, value)
 
     @contextlib.contextmanager
     def _handle_config_error(self):
@@ -225,6 +280,56 @@ class ConfigCommands:
             raise cmdexc.CommandError("set: {} - {}".format(
                 e.__class__.__name__, e))
 
+    @cmdutils.register(instance='config-commands', maxsplit=1,
+                       no_cmd_split=True, no_replace_variables=True)
+    @cmdutils.argument('command', completion=usertypes.Completion.bind)
+    def bind(self, key, command=None, *, mode='normal', force=False):
+        """Bind a key to a command.
+
+        Args:
+            key: The keychain or special key (inside `<...>`) to bind.
+            command: The command to execute, with optional args, or None to
+                     print the current binding.
+            mode: A comma-separated list of modes to bind the key in
+                  (default: `normal`).
+            force: Rebind the key if it is already bound.
+        """
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            key = utils.normalize_keystr(key)
+
+        if mode not in val.bindings.commands:
+            raise cmdexc.CommandError("Invalid mode {}!".format(mode))
+
+        if command is None:
+            cmd = key_instance.get_command(key, mode)
+            if cmd is None:
+                message.info("{} is unbound in {} mode".format(key, mode))
+            else:
+                message.info("{} is bound to '{}' in {} mode".format(
+                    key, cmd, mode))
+            return
+
+        try:
+            key_instance.bind(key, command, mode=mode, force=force)
+        except configexc.DuplicateKeyError as e:
+            raise cmdexc.CommandError(str(e) + " - use --force to override!")
+        except configexc.ValidationError as e:
+            raise cmdexc.CommandError(str(e))
+
+    @cmdutils.register(instance='config-commands')
+    def unbind(self, key, mode='normal'):
+        """Unbind a keychain.
+
+        Args:
+            key: The keychain or special key (inside <...>) to unbind.
+            mode: A mode to unbind the key in (default: `normal`).
+        """
+        try:
+            key_instance.unbind(key, mode=mode)
+        except configexc.ValidationError as e:
+            raise cmdexc.CommandError(str(e))
+
 
 class NewConfigManager(QObject):
 
@@ -234,6 +339,10 @@ class NewConfigManager(QObject):
         super().__init__(parent)
         self.options = {}
         self._values = {}  # FIXME:conf stub
+
+    def _changed(self, name, value):
+        self.changed.emit(name)
+        log.config.debug("Config option changed: {} = {}".format(name, value))
 
     def read_defaults(self):
         for name, option in configdata.DATA.items():
@@ -258,9 +367,15 @@ class NewConfigManager(QObject):
     def set(self, name, value):
         # FIXME:conf stub
         opt = self.get_opt(name)
+        opt.typ.to_py(value)  # for validation
+        self._values[name] = value
+        self._changed(name, value)
+
+    def set_str(self, name, value):
+        # FIXME:conf stub
+        opt = self.get_opt(name)
         self._values[name] = opt.typ.from_str(value)
-        self.changed.emit(name)
-        log.config.debug("Config option changed: {} = {}".format(name, value))
+        self._changed(name, value)
 
     def dump_userconfig(self):
         """Get the part of the config which was changed by the user.
@@ -301,9 +416,13 @@ class ConfigContainer:
         Those two never overlap as configdata.py ensures there are no shadowing
         options.
         """
+        if attr.startswith('_'):
+            return self.__getattribute__(attr)
+
         name = self._join(attr)
         if configdata.is_valid_prefix(name):
             return ConfigContainer(manager=self._manager, prefix=name)
+
         try:
             return self._manager.get(name)
         except configexc.NoOptionError as e:
@@ -313,7 +432,7 @@ class ConfigContainer:
     def __setattr__(self, attr, value):
         if attr.startswith('_'):
             return super().__setattr__(attr, value)
-        self._handler(self._join(attr), value)
+        self._manager.set(self._join(attr), value)
 
     def _join(self, attr):
         if self._prefix:
@@ -364,7 +483,7 @@ def init(parent=None):
     global val, instance, key_instance
     val = ConfigContainer(new_config)
     instance = new_config
-    key_instance = NewKeyConfig()
+    key_instance = NewKeyConfig(new_config)
 
     for cf in _change_filters:
         cf.validate()

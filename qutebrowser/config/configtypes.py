@@ -729,9 +729,15 @@ class Command(BaseType):
         self._basic_py_validation(value, str)
         if not value:
             return
-        split = value.split()
-        if not split or split[0] not in cmdutils.cmd_dict:
-            raise configexc.ValidationError(value, "must be a valid command!")
+
+        # FIXME:conf is it okay to import runners.py here?
+        from qutebrowser.commands import runners, cmdexc
+        parser = runners.CommandParser()
+        try:
+            parser.parse_all(value)
+        except cmdexc.Error as e:
+            raise configexc.ValidationError(value, str(e))
+
         return value
 
     def complete(self):

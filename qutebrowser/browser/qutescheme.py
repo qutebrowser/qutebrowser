@@ -457,7 +457,7 @@ def _qute_settings_set(url):
         return 'text/html', b'error: ' + msg.encode('utf-8')
 
     try:
-        config.instance.set(option, value)
+        config.instance.set_str(option, value)
         return 'text/html', b'ok'
     except configexc.Error as e:
         message.error(str(e))

@@ -243,32 +243,30 @@ Feature: Using hints
 
     ### hints.auto_follow-timeout
 
-    ## FIXME:conf
+    @not_osx
+    Scenario: Ignoring key presses after auto-following hints
+        When I set hints.auto_follow_timeout to 1000
+        And I set hints.mode to number
+        And I run :bind --force , message-error "This error message was triggered via a keybinding which should have been inhibited"
+        And I open data/hints/html/simple.html
+        And I hint with args "all"
+        And I press the key "f"
+        And I wait until data/hello.txt is loaded
+        And I press the key ","
+        # Waiting here so we don't affect the next test
+        And I wait for "Releasing inhibition state of normal mode." in the log
+        Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
 
-    # @not_osx
-    # Scenario: Ignoring key presses after auto-following hints
-    #     When I set hints.auto_follow_timeout to 1000
-    #     And I set hints.mode to number
-    #     And I run :bind --force , message-error "This error message was triggered via a keybinding which should have been inhibited"
-    #     And I open data/hints/html/simple.html
-    #     And I hint with args "all"
-    #     And I press the key "f"
-    #     And I wait until data/hello.txt is loaded
-    #     And I press the key ","
-    #     # Waiting here so we don't affect the next test
-    #     And I wait for "Releasing inhibition state of normal mode." in the log
-    #     Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
-
-    # Scenario: Turning off auto-follow-timeout
-    #     When I set hints.auto_follow_timeout to 0
-    #     And I set hints.mode to number
-    #     And I run :bind --force , message-info "Keypress worked!"
-    #     And I open data/hints/html/simple.html
-    #     And I hint with args "all"
-    #     And I press the key "f"
-    #     And I wait until data/hello.txt is loaded
-    #     And I press the key ","
-    #     Then the message "Keypress worked!" should be shown
+    Scenario: Turning off auto-follow-timeout
+        When I set hints.auto_follow_timeout to 0
+        And I set hints.mode to number
+        And I run :bind --force , message-info "Keypress worked!"
+        And I open data/hints/html/simple.html
+        And I hint with args "all"
+        And I press the key "f"
+        And I wait until data/hello.txt is loaded
+        And I press the key ","
+        Then the message "Keypress worked!" should be shown
 
     ### Word hints
 

@@ -52,6 +52,13 @@ class ValidationError(Error):
         self.option = None
 
 
+class DuplicateKeyError(ValidationError):
+
+    """Raised when there was a duplicate key."""
+
+    pass
+
+
 class NoOptionError(Error):
 
     """Raised when an option was not found."""

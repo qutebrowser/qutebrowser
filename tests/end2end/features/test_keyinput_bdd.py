@@ -21,7 +21,3 @@ import pytest
 
 import pytest_bdd as bdd
 bdd.scenarios('keyinput.feature')
-
-## FIXME:conf
-pytestmark = pytest.mark.skipif(True, reason="FIXME:conf")
-
