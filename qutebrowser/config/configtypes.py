@@ -734,7 +734,7 @@ class Command(BaseType):
         from qutebrowser.commands import runners, cmdexc
         parser = runners.CommandParser()
         try:
-            parser.parse_all(value)
+            list(parser.parse_all(value))
         except cmdexc.Error as e:
             raise configexc.ValidationError(value, str(e))
 
