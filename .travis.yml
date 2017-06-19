@@ -16,9 +16,6 @@ matrix:
       env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
     - os: linux
-      env: DOCKER=archlinux-ng
-      services: docker
-    - os: linux
       env: DOCKER=ubuntu-xenial
       services: docker
     - os: linux
