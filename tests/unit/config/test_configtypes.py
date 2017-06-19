@@ -27,6 +27,7 @@ import collections
 import itertools
 import warnings
 import inspect
+import types
 import functools
 
 import pytest
@@ -205,6 +206,14 @@ class TestAll:
                 yield functools.partial(member, fields=['a', 'b'])
             elif issubclass(member, configtypes.BaseType):
                 yield member
+
+    @pytest.fixture(autouse=True)
+    def patch(self, monkeypatch):
+        """Patch aliases so Command works."""
+        # FIXME:conf use some kind of config_stub here
+        ns = types.SimpleNamespace()
+        ns.aliases = {}
+        monkeypatch.setattr('qutebrowser.config.config.val', ns)
 
     @pytest.fixture(params=list(gen_classes()))
     def klass(self, request):
@@ -1011,13 +1020,18 @@ class TestCommand:
             'cmd1': stubs.FakeCommand(desc="desc 1"),
             'cmd2': stubs.FakeCommand(desc="desc 2")})
         monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
+        # FIXME:conf use some kind of config_stub here
+        ns = types.SimpleNamespace()
+        ns.aliases = {'alias': 'cmd1'}
+        monkeypatch.setattr('qutebrowser.config.config.val', ns)
+        monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
 
     @pytest.fixture
     def klass(self):
         return configtypes.Command
 
     @pytest.mark.parametrize('val', ['cmd1', 'cmd2', 'cmd1  foo bar',
-                                     'cmd2  baz fish'])
+                                     'cmd2  baz fish', 'alias foo'])
     def test_to_py_valid(self, klass, val):
         expected = None if not val else val
         assert klass().to_py(val) == expected
@@ -1523,7 +1537,7 @@ class TestDirectory:
         os_mock.path.expandvars.assert_called_once_with('$HOME/foobar')
 
     def test_to_py_invalid_encoding(self, klass, os_mock,
-                                      unicode_encode_err):
+                                    unicode_encode_err):
         """Test to_py with an invalid encoding, e.g. LC_ALL=C."""
         os_mock.path.isdir.side_effect = unicode_encode_err
         os_mock.path.isabs.side_effect = unicode_encode_err

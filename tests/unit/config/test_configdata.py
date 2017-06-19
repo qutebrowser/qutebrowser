@@ -19,18 +19,23 @@
 """Tests for qutebrowser.config.configdata."""
 
 import textwrap
+import types
 
 import yaml
 import pytest
 
 # To run cmdutils.register decorators
 from qutebrowser import app
-from qutebrowser.config import configdata, configtypes
+from qutebrowser.config import config, configdata, configtypes
 from qutebrowser.utils import usertypes
 
 
-def test_init():
+def test_init(monkeypatch):
     """Test reading the default yaml file and validating the values."""
+    # FIXME:conf use some kind of config_stub here
+    ns = types.SimpleNamespace()
+    ns.aliases = {}
+    monkeypatch.setattr('qutebrowser.config.config.val', ns)
     configdata.init()
     assert isinstance(configdata.DATA, dict)
     assert 'ignore_case' in configdata.DATA
