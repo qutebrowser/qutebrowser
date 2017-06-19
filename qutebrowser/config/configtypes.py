@@ -1016,7 +1016,7 @@ class Dict(BaseType):
         super().__init__(none_ok)
         # If the keytype is not a string, we'll get problems with showing it as
         # json in to_str() as json converts keys to strings.
-        assert isinstance(keytype, String), keytype
+        assert isinstance(keytype, (String, Key)), keytype
         self.keytype = keytype
         self.valtype = valtype
         self.fixed_keys = fixed_keys
@@ -1457,4 +1457,17 @@ class TimestampTemplate(BaseType):
             raise configexc.ValidationError(
                 value, "Invalid format string: {}".format(error))
 
+        return value
+
+
+class Key(BaseType):
+
+    """A name of a key."""
+
+    def to_py(self, value):
+        self._basic_py_validation(value, str)
+        if not value:
+            return None
+        if utils.is_special_key(value):
+            value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
         return value

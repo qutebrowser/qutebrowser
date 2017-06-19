@@ -1801,6 +1801,20 @@ class TestTimestampTemplate:
             klass().to_py('%')
 
 
+class TestKey:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.Key
+
+    @pytest.mark.parametrize('val, expected', [
+        ('gC', 'gC'),
+        ('<Control-x>', '<ctrl+x>')
+    ])
+    def test_to_py_valid(self, klass, val, expected):
+        assert klass().to_py(val) == expected
+
+
 @pytest.mark.parametrize('first, second, equal', [
     (re.compile('foo'), RegexEq('foo'), True),
     (RegexEq('bar'), re.compile('bar'), True),

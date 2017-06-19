@@ -1811,8 +1811,8 @@ bindings.key_mappings:
     <Ctrl-[>: <Escape>
   type:
     name: Dict
-    keytype: String
-    valtype: String
+    keytype: Key
+    valtype: Key
   desc: >-
     This setting can be used to map keys to other keys.
 
@@ -2071,7 +2071,7 @@ bindings.commands:
                  'prompt', 'caret', 'register']
     valtype:
       name: Dict
-      keytype: String  # key
+      keytype: Key
       valtype: Command
   desc: >-
     Keybindings mapping keys to commands in different modes.
