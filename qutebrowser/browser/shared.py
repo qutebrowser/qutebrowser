@@ -239,7 +239,7 @@ def get_user_stylesheet():
         with open(filename, 'r', encoding='utf-8') as f:
             css = f.read()
 
-    if config.val.scrolling.bar:
+    if not config.val.scrolling.bar:
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css
