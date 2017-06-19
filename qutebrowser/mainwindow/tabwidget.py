@@ -535,7 +535,7 @@ class TabBar(QTabBar):
                     width = self.width() / self.count()
 
             # If no_pinned_width is not divisible by no_pinned_count, add a
-            # pixel to some tabs so # that there is no ugly leftover space.
+            # pixel to some tabs so that there is no ugly leftover space.
             if (no_pinned_count > 0 and
                     index < no_pinned_width % no_pinned_count):
                 width += 1
