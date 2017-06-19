@@ -52,11 +52,17 @@ class ValidationError(Error):
         self.option = None
 
 
-class DuplicateKeyError(ValidationError):
+class KeybindingError(Error):
+
+    """Raised for issues with keybindings."""
+
+
+class DuplicateKeyError(KeybindingError):
 
     """Raised when there was a duplicate key."""
 
-    pass
+    def __init__(self, key):
+        super().__init__("Duplicate key {}".format(key))
 
 
 class NoOptionError(Error):

@@ -143,7 +143,7 @@ class NewKeyConfig:
     def _prepare(self, key, mode):
         """Make sure the given mode exists and normalize the key."""
         if mode not in val.bindings.commands:
-            raise configexc.ValidationError(
+            raise configexc.KeybindingError(
                 "Invalid mode {} while binding {}!".format(mode, key))
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
@@ -159,21 +159,21 @@ class NewKeyConfig:
             results = parser.parse_all(command)
         except cmdexc.Error as e:
             # FIXME: conf good message?
-            raise configexc.ValidationError("Invalid command: {}".format(e))
+            raise configexc.KeybindingError("Invalid command: {}".format(e))
 
         for result in results:
             try:
                 result.cmd.validate_mode(usertypes.KeyMode[mode])
             except cmdexc.PrerequisitesError as e:
                 # FIXME: conf good message?
-                raise configexc.ValidationError(str(e))
+                raise configexc.KeybindingError(str(e))
 
         bindings = val.bindings.commands
 
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
         if key in bindings[mode] and not force:
-            raise configexc.DuplicateKeyError("Duplicate key {}".format(key))
+            raise configexc.DuplicateKeyError(key)
         bindings[mode][key] = command
         val.bindings.commands = bindings  # FIXME:conf
 
@@ -183,7 +183,7 @@ class NewKeyConfig:
         try:
             del val.bindings.commands[mode][key]
         except KeyError:
-            raise configexc.ValidationError("Unknown binding {}".format(key))
+            raise configexc.KeybindingError("Unknown binding {}".format(key))
         val.bindings.commands = val.bindings.commands  # FIXME:conf
 
     def get_command(self, key, mode):
@@ -314,7 +314,7 @@ class ConfigCommands:
             key_instance.bind(key, command, mode=mode, force=force)
         except configexc.DuplicateKeyError as e:
             raise cmdexc.CommandError(str(e) + " - use --force to override!")
-        except configexc.ValidationError as e:
+        except configexc.KeybindingError as e:
             raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='config-commands')
@@ -327,7 +327,7 @@ class ConfigCommands:
         """
         try:
             key_instance.unbind(key, mode=mode)
-        except configexc.ValidationError as e:
+        except configexc.KeybindingError as e:
             raise cmdexc.CommandError(str(e))
 
 
