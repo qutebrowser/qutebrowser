@@ -33,7 +33,7 @@ import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
-from qutebrowser.config import config, configexc
+from qutebrowser.config import config, configexc, configdata
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman
@@ -1540,21 +1540,8 @@ class CommandDispatcher:
                 raise cmdexc.CommandError("Invalid command {}!".format(
                     command))
             path = 'commands.html#{}'.format(command)
-        elif '->' in topic:
-            # FIXME:conf refactor
-            parts = topic.split('->')
-            if len(parts) != 2:
-                raise cmdexc.CommandError("Invalid help topic {}!".format(
-                    topic))
-            try:
-                config.instance.get(*parts)
-            except configexc.NoSectionError:
-                raise cmdexc.CommandError("Invalid section {}!".format(
-                    parts[0]))
-            except configexc.NoOptionError:
-                raise cmdexc.CommandError("Invalid option {}!".format(
-                    parts[1]))
-            path = 'settings.html#{}'.format(topic.replace('->', '-'))
+        elif topic in configdata.DATA:
+            path = 'settings.html#{}'.format(topic)
         else:
             raise cmdexc.CommandError("Invalid help topic {}!".format(topic))
         url = QUrl('qute://help/{}'.format(path))

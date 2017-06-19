@@ -286,11 +286,7 @@ Feature: Various utility commands.
         And I run :help editor.command
         And I wait until qute://help/settings.html#editor.command is loaded
         Then the following tabs should be open:
-            - qute://help/settings.html#general-editor (active)
-
-    Scenario: :help with invalid setting
-        When I run :help foo.bar
-        Then the error "Invalid option foo.bar!" should be shown
+            - qute://help/settings.html#editor.command (active)
 
     Scenario: :help with -t
         When I open about:blank
