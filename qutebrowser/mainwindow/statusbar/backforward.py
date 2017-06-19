@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,22 +21,19 @@
 
 from PyQt5.QtCore import pyqtSlot
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.utils import log
 
 
 class Backforward(textbase.TextBase):
 
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
-    def on_tab_changed(self, tab):
-        self.tab = tab
-
+    @pyqtSlot()
+    def on_url_changed(self, tabs):
+        """Called on URL changes."""
+        tab = tabs.currentWidget()
         text = ''
         if tab.history.can_go_back():
             text += '<'
         if tab.history.can_go_forward():
             text += '>'
         self.setText(text)
-
-    def on_url_changed(self, url):
-        self.on_tab_changed(self.tab)
