@@ -143,8 +143,7 @@ class NewKeyConfig:
     def _prepare(self, key, mode):
         """Make sure the given mode exists and normalize the key."""
         if mode not in val.bindings.commands:
-            raise configexc.KeybindingError(
-                "Invalid mode {} while binding {}!".format(mode, key))
+            raise configexc.KeybindingError("Invalid mode {}!".format(mode))
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
             return utils.normalize_keystr(key)
@@ -158,14 +157,12 @@ class NewKeyConfig:
         try:
             results = parser.parse_all(command)
         except cmdexc.Error as e:
-            # FIXME: conf good message?
             raise configexc.KeybindingError("Invalid command: {}".format(e))
 
         for result in results:
             try:
                 result.cmd.validate_mode(usertypes.KeyMode[mode])
             except cmdexc.PrerequisitesError as e:
-                # FIXME: conf good message?
                 raise configexc.KeybindingError(str(e))
 
         bindings = val.bindings.commands
@@ -180,11 +177,13 @@ class NewKeyConfig:
     def unbind(self, key, *, mode='normal'):
         """Unbind the given key in the given mode."""
         key = self._prepare(key, mode)
+        bindings = val.bindings.commands
         try:
-            del val.bindings.commands[mode][key]
+            del bindings[mode][key]
         except KeyError:
-            raise configexc.KeybindingError("Unknown binding {}".format(key))
-        val.bindings.commands = val.bindings.commands  # FIXME:conf
+            raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
+                                            .format(key, mode))
+        val.bindings.commands = bindings  # FIXME:conf
 
     def get_command(self, key, mode):
         """Get the command for a given key (or None)."""

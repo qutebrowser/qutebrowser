@@ -14,7 +14,7 @@ Feature: Keyboard input
 
     Scenario: Binding an invalid command
         When I run :bind test02 abcd
-        Then the error "Invalid command 'abcd'!" should be shown
+        Then the error "abcd: no such command" should be shown
 
     Scenario: Binding with invalid mode.
         When I run :bind --mode abcd test03 message-info test03
@@ -24,7 +24,7 @@ Feature: Keyboard input
         When I run :bind test04 message-info test04
         And I run :bind test04 message-info test04-2
         And I press the keys "test04"
-        Then the error "Duplicate keychain test04 - use --force to override!" should be shown
+        Then the error "Duplicate key test04 - use --force to override!" should be shown
         And the message "test04" should be shown
 
     Scenario: Double-binding with --force
@@ -50,30 +50,32 @@ Feature: Keyboard input
     Scenario: Binding special keys with differing case (issue 1544)
         When I run :bind <ctrl-test21> message-info test01
         And I run :bind <Ctrl-Test21> message-info test01
-        Then the error "Duplicate keychain <ctrl-test21> - use --force to override!" should be shown
+        Then the error "Duplicate key <ctrl+test21> - use --force to override!" should be shown
 
     Scenario: Print a special binding with differing case (issue 1544)
         When I run :bind <Ctrl-Test22> message-info foo
         And I run :bind <ctrl-test22>
-        Then the message "<ctrl-test22> is bound to 'message-info foo' in normal mode" should be shown
+        Then the message "<ctrl+test22> is bound to 'message-info foo' in normal mode" should be shown
 
     Scenario: Overriding a special binding with differing case (issue 816)
         When I run :bind <ctrl-test23> message-info foo
         And I run :bind --force <Ctrl-Test23> message-info bar
         And I run :bind <ctrl-test23>
-        Then the message "<ctrl-test23> is bound to 'message-info bar' in normal mode" should be shown
+        Then the message "<ctrl+test23> is bound to 'message-info bar' in normal mode" should be shown
 
-    Scenario: Binding to an alias
-        When I run :set aliases 'mib' 'message-info baz'
-        And I run :bind test25 mib
-        And I press the keys "test25"
-        Then the message "baz" should be shown
+    ## FIXME:conf
 
-    Scenario: Printing a bound alias
-        When I run :set aliases 'mib' 'message-info baz'
-        And I run :bind <test26> mib
-        And I run :bind <test26>
-        Then the message "<test26> is bound to 'mib' in normal mode" should be shown
+    # Scenario: Binding to an alias
+    #     When I run :set aliases 'mib' 'message-info baz'
+    #     And I run :bind test25 mib
+    #     And I press the keys "test25"
+    #     Then the message "baz" should be shown
+
+    # Scenario: Printing a bound alias
+    #     When I run :set aliases 'mib' 'message-info baz'
+    #     And I run :bind <test26> mib
+    #     And I run :bind <test26>
+    #     Then the message "<test26> is bound to 'mib' in normal mode" should be shown
 
     Scenario: Binding with an unsupported mode
         When I run :bind --mode=caret test27 rl-unix-filename-rubout
@@ -83,7 +85,9 @@ Feature: Keyboard input
 
     Scenario: Binding and unbinding a keychain
         When I run :bind test09 message-error test09
+        And I wait for "Config option changed: *" in the log
         And I run :unbind test09
+        And I wait for "Config option changed: *" in the log
         And I press the keys "test09"
         Then "test09" should not be logged
 
@@ -105,7 +109,7 @@ Feature: Keyboard input
         When I run :bind <ctrl-test24> message-error test09
         And I run :unbind <Ctrl-Test24>
         When I run :bind <ctrl-test24>
-        Then the message "<ctrl-test24> is unbound in normal mode" should be shown
+        Then the message "<ctrl+test24> is unbound in normal mode" should be shown
 
     # :clear-keychain
 
