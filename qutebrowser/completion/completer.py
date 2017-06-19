@@ -34,16 +34,14 @@ class Completer(QObject):
     Attributes:
         _cmd: The statusbar Command object this completer belongs to.
         _ignore_change: Whether to ignore the next completion update.
-        _win_id: The window ID this completer is in.
         _timer: The timer used to trigger the completion update.
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
     """
 
-    def __init__(self, cmd, win_id, parent=None):
+    def __init__(self, cmd, parent=None):
         super().__init__(parent)
-        self._win_id = win_id
         self._cmd = cmd
         self._ignore_change = False
         self._timer = QTimer()
@@ -153,8 +151,8 @@ class Completer(QObject):
         if not text or not text.strip():
             # Only ":", empty part under the cursor with nothing before/after
             return [], '', []
-        runner = runners.CommandRunner(self._win_id)
-        result = runner.parse(text, fallback=True, keep=True)
+        parser = runners.CommandParser()
+        result = parser.parse(text, fallback=True, keep=True)
         parts = [x for x in result.cmdline if x]
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars

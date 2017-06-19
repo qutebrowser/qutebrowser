@@ -81,19 +81,17 @@ def replace_variables(win_id, arglist):
     return args
 
 
-class CommandRunner(QObject):
+class CommandParser:
 
-    """Parse and run qutebrowser commandline commands.
+    """Parse qutebrowser commandline commands.
 
     Attributes:
-        _win_id: The window this CommandRunner is associated with.
+
         _partial_match: Whether to allow partial command matches.
     """
 
-    def __init__(self, win_id, partial_match=False, parent=None):
-        super().__init__(parent)
+    def __init__(self, partial_match=False):
         self._partial_match = partial_match
-        self._win_id = win_id
 
     def _get_alias(self, text, default=None):
         """Get an alias from the config.
@@ -257,6 +255,20 @@ class CommandRunner(QObject):
             # already.
             return split_args
 
+
+class CommandRunner(QObject):
+
+    """Parse and run qutebrowser commandline commands.
+
+    Attributes:
+        _win_id: The window this CommandRunner is associated with.
+    """
+
+    def __init__(self, win_id, partial_match=False, parent=None):
+        super().__init__(parent)
+        self._parser = CommandParser(partial_match=partial_match)
+        self._win_id = win_id
+
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
 
@@ -271,7 +283,7 @@ class CommandRunner(QObject):
                                   window=self._win_id)
         cur_mode = mode_manager.mode
 
-        for result in self.parse_all(text):
+        for result in self._parser.parse_all(text):
             if result.cmd.no_replace_variables:
                 args = result.args
             else:
