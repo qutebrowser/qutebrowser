@@ -38,3 +38,9 @@ def test_no_option_error():
 def test_backend_error():
     e = configexc.BackendError(usertypes.Backend.QtWebKit)
     assert str(e) == "This setting is not available with the QtWebKit backend!"
+
+
+def test_duplicate_key_error():
+    e = configexc.DuplicateKeyError('asdf')
+    assert isinstance(e, configexc.KeybindingError)
+    assert str(e) == "Duplicate key asdf"
