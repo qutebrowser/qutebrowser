@@ -440,5 +440,6 @@ def qute_backend_warning(_url):
     html = jinja.render('backend-warning.html',
                         distribution=version.distribution(),
                         Distribution=version.Distribution,
-                        version=pkg_resources.parse_version)
+                        version=pkg_resources.parse_version,
+                        title="Legacy backend warning")
     return 'text/html', html
