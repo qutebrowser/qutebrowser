@@ -86,7 +86,6 @@ Feature: Setting settings.
         Then the following tabs should be open:
             - qute://settings (active)
 
-    @qtwebengine_todo: qute://settings is not implemented yet
     Scenario: Focusing input fields in qute://settings and entering valid value
         When I set general -> ignore-case to false
         And I open qute://settings
@@ -101,7 +100,6 @@ Feature: Setting settings.
         And I press the key "<Tab>"
         Then general -> ignore-case should be true
 
-    @qtwebengine_todo: qute://settings is not implemented yet
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen
