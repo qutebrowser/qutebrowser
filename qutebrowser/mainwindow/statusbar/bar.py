@@ -325,7 +325,6 @@ class StatusBar(QWidget):
         self.url.on_tab_changed(tab)
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
-        self.backforward.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.private == self._color_flags.private
 
