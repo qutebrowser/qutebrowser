@@ -7,7 +7,7 @@ Feature: Setting settings.
 
     Scenario: Using :set
         When I run :set colors.statusbar.normal.bg magenta
-        Then colors.statusbar.normal.bg should be set to magenta
+        Then the option colors.statusbar.normal.bg should be set to magenta
 
     Scenario: Without value
         When I run :set colors.statusbar.normal.bg
@@ -20,7 +20,7 @@ Feature: Setting settings.
     Scenario: Toggling an option
         When I run :set auto_save.config false
         And I run :set auto_save.config!
-        Then auto_save.config should be set to true
+        Then the option auto_save.config should be set to true
 
     Scenario: Toggling a non-bool option
         When I run :set colors.statusbar.normal.bg!
@@ -29,22 +29,22 @@ Feature: Setting settings.
     Scenario: Cycling an option
         When I run :set colors.statusbar.normal.bg magenta
         And I run :set colors.statusbar.normal.bg green magenta blue yellow
-        Then colors.statusbar.normal.bg should be set to blue
+        Then the option colors.statusbar.normal.bg should be set to blue
 
     Scenario: Cycling an option through the end of the list
         When I run :set colors.statusbar.normal.bg yellow
         And I run :set colors.statusbar.normal.bg green magenta blue yellow
-        Then colors.statusbar.normal.bg should be set to green
+        Then the option colors.statusbar.normal.bg should be set to green
 
     Scenario: Cycling an option that's not on the list
         When I run :set colors.statusbar.normal.bg red
         And I run :set colors.statusbar.normal.bg green magenta blue yellow
-        Then colors.statusbar.normal.bg should be set to green
+        Then the option colors.statusbar.normal.bg should be set to green
 
     Scenario: Cycling through a single option
         When I run :set colors.statusbar.normal.bg red
         And I run :set colors.statusbar.normal.bg red
-        Then colors.statusbar.normal.bg should be set to red
+        Then the option colors.statusbar.normal.bg should be set to red
 
     Scenario: Getting an option
         When I run :set colors.statusbar.normal.bg magenta
@@ -68,7 +68,7 @@ Feature: Setting settings.
         # We don't actually check if the option is temporary as this isn't easy
         # to check.
         When I run :set -t colors.statusbar.normal.bg green
-        Then colors.statusbar.normal.bg should be set to green
+        Then the option colors.statusbar.normal.bg should be set to green
 
     # qute://settings isn't actually implemented on QtWebEngine, but this works
     # (and displays a page saying it's not available)
@@ -90,7 +90,7 @@ Feature: Setting settings.
         And I press the key "<Escape>"
         # an explicit Tab to unfocus the input field seems to stabilize the tests
         And I press the key "<Tab>"
-        Then ignore_case should be set to always
+        Then the option ignore_case should be set to always
 
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings

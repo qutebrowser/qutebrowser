@@ -98,7 +98,7 @@ Feature: Using completion
     #     And I run :completion-item-focus next
     #     And I set colors.statusbar.normal.bg to red
     #     And I run :command-accept
-    #     Then colors.statusbar.normal.bg should be set to yellow
+    #     Then the option colors.statusbar.normal.bg should be set to yellow
 
     Scenario: Deleting an open tab via the completion
         Given I have a fresh instance
