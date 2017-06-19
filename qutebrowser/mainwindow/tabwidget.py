@@ -523,7 +523,7 @@ class TabBar(QTabBar):
             else:
 
                 # If we *do* have enough space, tabs should occupy the whole
-                # window # width. If there are pinned tabs their size will be
+                # window width. If there are pinned tabs their size will be
                 # subtracted from the total window width.
                 # During shutdown the self.count goes down,
                 # but the self.pinned_count not - this generates some odd
