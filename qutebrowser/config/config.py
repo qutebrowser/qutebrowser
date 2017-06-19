@@ -176,7 +176,7 @@ class ConfigCommands:
                 # Handle inversion as special cases of the cycle code path
                 option = option[:-1]
                 opt = self._config.get_opt(option)
-                if opt.typ is configtypes.Bool:
+                if isinstance(opt.typ, configtypes.Bool):
                     values = ['false', 'true']
                 else:
                     raise cmdexc.CommandError(
