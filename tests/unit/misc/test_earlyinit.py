@@ -118,7 +118,8 @@ def test_qt_version(same):
     else:
         qt_version_str = '5.3.0'
         expected = '5.4.0 (compiled 5.3.0)'
-    actual = earlyinit.qt_version(qversion='5.4.0', qt_version=qt_version_str)
+    actual = earlyinit.qt_version(qversion='5.4.0',
+                                  qt_version_str=qt_version_str)
     assert actual == expected
 
 

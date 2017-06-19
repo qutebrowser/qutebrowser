@@ -29,8 +29,7 @@ import importlib
 import collections
 import pkg_resources
 
-from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
-                          QLibraryInfo)
+from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
 

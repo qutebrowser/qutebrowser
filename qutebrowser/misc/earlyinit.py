@@ -253,17 +253,17 @@ def get_backend(args):
         return 'webengine'
 
 
-def qt_version(qversion=None, qt_version=None):
+def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
     if qversion is None:
         from PyQt5.QtCore import qVersion
         qversion = qVersion()
-    if qt_version is None:
+    if qt_version_str is None:
         from PyQt5.QtCore import QT_VERSION_STR
-        qt_version = QT_VERSION_STR
+        qt_version_str = QT_VERSION_STR
 
-    if qversion != qt_version:
-        return '{} (compiled {})'.format(qversion, qt_version)
+    if qversion != qt_version_str:
+        return '{} (compiled {})'.format(qversion, qt_version_str)
     else:
         return qversion
 
