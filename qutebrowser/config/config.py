@@ -252,7 +252,8 @@ class NewConfigManager(QObject):
 
     def get_str(self, name):
         opt = self.get_opt(name)
-        return opt.typ.to_str(opt.default)
+        value = self._values.get(name, opt.default)
+        return opt.typ.to_str(value)
 
     def set(self, name, value):
         # FIXME:conf stub
