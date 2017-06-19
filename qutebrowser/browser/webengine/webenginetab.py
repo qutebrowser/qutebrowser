@@ -711,6 +711,15 @@ class WebEngineTab(browsertab.AbstractTab):
             notification.show()
             notification.set_timeout(3000)
 
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Clear search when a new load is started if needed."""
+        if qtutils.version_check('5.9'):
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-61506
+            self.search.clear()
+        super()._on_load_started()
+
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
