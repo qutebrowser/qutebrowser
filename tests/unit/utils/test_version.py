@@ -807,7 +807,7 @@ def test_chromium_version_unpatched(qapp):
     (True, False, True, False, True),  # no webkit
     (True, False, True, 'ng', True),  # QtWebKit-NG
     (True, False, True, True, False),  # unknown Linux distribution
-])
+])  # pylint: disable=too-many-locals
 def test_version_output(git_commit, frozen, style, with_webkit,
                         known_distribution, stubs, monkeypatch):
     """Test version.version()."""
