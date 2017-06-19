@@ -46,7 +46,7 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, earlyinit
 from qutebrowser.browser import pdfjs
 
 
@@ -280,14 +280,6 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
-def qt_version():
-    """Get a Qt version string based on the runtime/compiled versions."""
-    if qVersion() != QT_VERSION_STR:
-        return '{} (compiled {})'.format(qVersion(), QT_VERSION_STR)
-    else:
-        return qVersion()
-
-
 def _chromium_version():
     """Get the Chromium version for QtWebEngine."""
     if QWebEngineProfile is None:
@@ -326,7 +318,7 @@ def version():
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'Qt: {}'.format(qt_version()),
+        'Qt: {}'.format(earlyinit.qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]

@@ -774,19 +774,6 @@ class FakeQSslSocket:
         return self._version
 
 
-@pytest.mark.parametrize('same', [True, False])
-def test_qt_version(monkeypatch, same):
-    if same:
-        qt_version_str = '5.4.0'
-        expected = '5.4.0'
-    else:
-        qt_version_str = '5.3.0'
-        expected = '5.4.0 (compiled 5.3.0)'
-    monkeypatch.setattr(version, 'qVersion', lambda: '5.4.0')
-    monkeypatch.setattr(version, 'QT_VERSION_STR', qt_version_str)
-    assert version.qt_version() == expected
-
-
 @pytest.mark.parametrize('ua, expected', [
     (None, 'unavailable'),  # No QWebEngineProfile
     ('Mozilla/5.0', 'unknown'),

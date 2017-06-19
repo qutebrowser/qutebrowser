@@ -253,6 +253,21 @@ def get_backend(args):
         return 'webengine'
 
 
+def qt_version(qversion=None, qt_version=None):
+    """Get a Qt version string based on the runtime/compiled versions."""
+    if qversion is None:
+        from PyQt5.QtCore import qVersion
+        qversion = qVersion()
+    if qt_version is None:
+        from PyQt5.QtCore import QT_VERSION_STR
+        qt_version = QT_VERSION_STR
+
+    if qversion != qt_version:
+        return '{} (compiled {})'.format(qversion, qt_version)
+    else:
+        return qversion
+
+
 def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
@@ -260,7 +275,7 @@ def check_qt_version(backend):
     if (not qtutils.version_check('5.2.0', strict=True) or
             PYQT_VERSION < 0x050200):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
-                "PyQt {} is installed.".format(version.qt_version(),
+                "PyQt {} is installed.".format(qt_version(),
                                                PYQT_VERSION_STR))
         _die(text)
     elif (backend == 'webengine' and (
@@ -268,7 +283,7 @@ def check_qt_version(backend):
             PYQT_VERSION < 0x050700)):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
                 "QtWebEngine support, but Qt {} / PyQt {} is installed."
-                .format(version.qt_version(), PYQT_VERSION_STR))
+                .format(qt_version(), PYQT_VERSION_STR))
         _die(text)
 
 
