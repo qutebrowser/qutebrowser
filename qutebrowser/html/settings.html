@@ -36,6 +36,7 @@ th pre { color: grey; text-align: left; }
       </td>
       <td>
         <input type="text"
+          id="input-{{ option.name }}"
           onblur="cset('{{ option.name }}', this.value)"
           value="{{ confget(option.name) }}">
         </input>

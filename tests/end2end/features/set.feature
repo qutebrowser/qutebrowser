@@ -83,7 +83,7 @@ Feature: Setting settings.
         And I open qute://settings
         # scroll to the right - the table does not fit in the default screen
         And I run :scroll-perc -x 100
-        And I hint with args "inputs" and follow a
+        And I run :click-element id input-ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
         And I press the key "<Ctrl+Backspace>"
         And I press the keys "always"
@@ -96,7 +96,7 @@ Feature: Setting settings.
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen
         And I run :scroll-perc -x 100
-        And I hint with args "inputs" and follow a
+        And I run :click-element id input-ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
         And I press the key "<Ctrl+Backspace>"
         And I press the keys "foo"
