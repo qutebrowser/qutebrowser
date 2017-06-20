@@ -333,12 +333,12 @@ class ConfigCommands:
 
 class NewConfigManager(QObject):
 
-    changed = pyqtSignal(str)  # FIXME:conf stub...
+    changed = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.options = {}
-        self._values = {}  # FIXME:conf stub
+        self._values = {}
         self._mutables = []
 
     def _changed(self, name, value):
@@ -377,14 +377,12 @@ class NewConfigManager(QObject):
         return opt.typ.to_str(value)
 
     def set_obj(self, name, value):
-        # FIXME:conf stub
         opt = self.get_opt(name)
         opt.typ.to_py(value)  # for validation
         self._values[name] = value
         self._changed(name, value)
 
     def set_str(self, name, value):
-        # FIXME:conf stub
         opt = self.get_opt(name)
         self._values[name] = opt.typ.from_str(value)
         self._changed(name, value)
