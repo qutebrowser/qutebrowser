@@ -157,7 +157,7 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_last(self, show_error=True):
+    def _tab_focus_last(self, *, show_error=True):
         """Select the tab which was last focused."""
         try:
             tab = objreg.get('last-focused-tab', scope='window',
