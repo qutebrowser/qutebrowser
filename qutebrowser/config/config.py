@@ -376,7 +376,7 @@ class NewConfigManager(QObject):
         value = self._values.get(name, opt.default)
         return opt.typ.to_str(value)
 
-    def set(self, name, value):
+    def set_obj(self, name, value):
         # FIXME:conf stub
         opt = self.get_opt(name)
         opt.typ.to_py(value)  # for validation
@@ -393,7 +393,7 @@ class NewConfigManager(QObject):
         for name, old_value, new_value in self._mutables:
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
-                self.set(name, new_value)
+                self.set_obj(name, new_value)
         self._mutables = []
 
     def dump_userconfig(self):
@@ -451,7 +451,7 @@ class ConfigContainer:
     def __setattr__(self, attr, value):
         if attr.startswith('_'):
             return super().__setattr__(attr, value)
-        self._manager.set(self._join(attr), value)
+        self._manager.set_obj(self._join(attr), value)
 
     def _join(self, attr):
         if self._prefix:
