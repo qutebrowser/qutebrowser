@@ -70,7 +70,8 @@ class Query(QSqlQuery):
         super().__init__(QSqlDatabase.database())
         log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
         if not self.prepare(querystr):
-            raise SqlException('Failed to prepare query "{}"'.format(querystr))
+            raise SqlException('Failed to prepare query "{}": "{}"'.format(
+                querystr, self.lastError().text()))
         self.setForwardOnly(forward_only)
 
     def __iter__(self):
