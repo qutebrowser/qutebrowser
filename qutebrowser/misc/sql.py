@@ -132,8 +132,8 @@ class SqlTable(QObject):
         constraints = constraints or {}
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
-        q = Query("CREATE TABLE IF NOT EXISTS {} ({})"
-                  .format(name, ', '.join(column_defs)))
+        q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
+                  .format(name=name, column_defs=', '.join(column_defs)))
 
         q.run()
 
@@ -144,13 +144,13 @@ class SqlTable(QObject):
             name: Name of the index, should be unique.
             field: Name of the field to index.
         """
-        q = Query("CREATE INDEX IF NOT EXISTS {} ON {} ({})"
-                  .format(name, self._name, field))
+        q = Query("CREATE INDEX IF NOT EXISTS {name} ON {table} ({field})"
+                  .format(name=name, table=self._name, field=field))
         q.run()
 
     def __iter__(self):
         """Iterate rows in the table."""
-        q = Query("SELECT * FROM {}".format(self._name))
+        q = Query("SELECT * FROM {table}".format(table=self._name))
         q.run()
         return iter(q)
 
@@ -160,12 +160,13 @@ class SqlTable(QObject):
         Args:
             field: Field to match.
         """
-        return Query("SELECT EXISTS(SELECT * FROM {} WHERE {} = :val)"
-                     .format(self._name, field))
+        return Query(
+            "SELECT EXISTS(SELECT * FROM {table} WHERE {field} = :val)"
+            .format(table=self._name, field=field))
 
     def __len__(self):
         """Return the count of rows in the table."""
-        q = Query("SELECT count(*) FROM {}".format(self._name))
+        q = Query("SELECT count(*) FROM {table}".format(table=self._name))
         q.run()
         return q.value()
 
@@ -179,7 +180,8 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        q = Query("DELETE FROM {} where {} = :val".format(self._name, field))
+        q = Query("DELETE FROM {table} where {field} = :val"
+                  .format(table=self._name, field=field))
         q.run(val=value)
         if not q.numRowsAffected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
@@ -188,8 +190,9 @@ class SqlTable(QObject):
     def _insert_query(self, values, replace):
         params = ', '.join(':{}'.format(key) for key in values)
         verb = "REPLACE" if replace else "INSERT"
-        return Query("{} INTO {} ({}) values({})".format(
-            verb, self._name, ', '.join(values), params))
+        return Query("{verb} INTO {table} ({columns}) values({params})".format(
+            verb=verb, table=self._name, columns=', '.join(values),
+            params=params))
 
     def insert(self, values, replace=False):
         """Append a row to the table.
@@ -223,7 +226,7 @@ class SqlTable(QObject):
 
     def delete_all(self):
         """Remove all rows from the table."""
-        Query("DELETE FROM {}".format(self._name)).run()
+        Query("DELETE FROM {table}".format(table=self._name)).run()
         self.changed.emit()
 
     def select(self, sort_by, sort_order, limit=-1):
@@ -236,7 +239,8 @@ class SqlTable(QObject):
 
         Return: A prepared and executed select query.
         """
-        q = Query('SELECT * FROM {} ORDER BY {} {} LIMIT :limit'
-                  .format(self._name, sort_by, sort_order))
+        q = Query("SELECT * FROM {table} ORDER BY {sort_by} {sort_order} "
+                  "LIMIT :limit"
+                  .format(table=self._name, sort_by=sort_by, sort_order=sort_order))
         q.run(limit=limit)
         return q
