@@ -149,7 +149,7 @@ class NewKeyConfig:
             return utils.normalize_keystr(key)
         return key
 
-    def bind(self, key, command, *, mode, force=False):
+    def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
         key = self._prepare(key, mode)
 
@@ -172,9 +172,9 @@ class NewKeyConfig:
         if key in bindings and not force:
             raise configexc.DuplicateKeyError(key)
         bindings[key] = command
-        self._manager.update_mutables()
+        self._manager.update_mutables(save_yaml=save_yaml)
 
-    def unbind(self, key, *, mode='normal'):
+    def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
         key = self._prepare(key, mode)
         bindings = instance.get_obj('bindings.commands')[mode]
@@ -183,7 +183,7 @@ class NewKeyConfig:
         except KeyError:
             raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
                                             .format(key, mode))
-        self._manager.update_mutables()
+        self._manager.update_mutables(save_yaml=save_yaml)
 
     def get_command(self, key, mode):
         """Get the command for a given key (or None)."""
@@ -214,7 +214,6 @@ class ConfigCommands:
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
-        # FIXME:conf write to YAML if temp isn't used!
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
@@ -238,7 +237,7 @@ class ConfigCommands:
             elif not values:
                 raise cmdexc.CommandError("set: The following arguments "
                                           "are required: value")
-            self._set_next(option, values)
+            self._set_next(option, values, temp=temp)
 
         if print_:
             self._print_value(option)
@@ -249,12 +248,12 @@ class ConfigCommands:
             val = self._config.get_str(option)
         message.info("{} = {}".format(option, val))
 
-    def _set_next(self, option, values):
+    def _set_next(self, option, values, *, temp):
         """Set the next value out of a list of values."""
         if len(values) == 1:
             # If we have only one value, just set it directly (avoid
             # breaking stuff like aliases or other pseudo-settings)
-            self._config.set_str(option, values[0])
+            self._config.set_str(option, values[0], save_yaml=not temp)
             return
 
         # Use the next valid value from values, or the first if the current
@@ -266,7 +265,7 @@ class ConfigCommands:
             value = values[idx]
         except ValueError:
             value = values[0]
-        self._config.set_str(option, value)
+        self._config.set_str(option, value, save_yaml=not temp)
 
     @contextlib.contextmanager
     def _handle_config_error(self):
@@ -310,7 +309,8 @@ class ConfigCommands:
             return
 
         try:
-            key_instance.bind(key, command, mode=mode, force=force)
+            key_instance.bind(key, command, mode=mode, force=force,
+                              save_yaml=True)
         except configexc.DuplicateKeyError as e:
             raise cmdexc.CommandError(str(e) + " - use --force to override!")
         except configexc.KeybindingError as e:
@@ -325,7 +325,7 @@ class ConfigCommands:
             mode: A mode to unbind the key in (default: `normal`).
         """
         try:
-            key_instance.unbind(key, mode=mode)
+            key_instance.unbind(key, mode=mode, save_yaml=True)
         except configexc.KeybindingError as e:
             raise cmdexc.CommandError(str(e))
 
@@ -339,6 +339,7 @@ class NewConfigManager(QObject):
         self.options = {}
         self._values = {}
         self._mutables = []
+        self._yaml = configfiles.YamlConfig()
 
     def _changed(self, name, value):
         self.changed.emit(name)
@@ -347,6 +348,13 @@ class NewConfigManager(QObject):
     def read_defaults(self):
         for name, option in configdata.DATA.items():
             self.options[name] = option
+
+    def read_yaml(self):
+        self._yaml.load()
+        for name, value in self._yaml.values.items():
+            opt = self.get_opt(name)
+            opt.typ.to_py(value)  # for validation
+            self._values[name] = value
 
     def get_opt(self, name):
         try:
@@ -375,22 +383,27 @@ class NewConfigManager(QObject):
         value = self._values.get(name, opt.default)
         return opt.typ.to_str(value)
 
-    def set_obj(self, name, value):
+    def set_obj(self, name, value, *, save_yaml=False):
         opt = self.get_opt(name)
         opt.typ.to_py(value)  # for validation
         self._values[name] = value
         self._changed(name, value)
+        if save_yaml:
+            self._yaml.values[name] = value
 
-    def set_str(self, name, value):
+    def set_str(self, name, value, *, save_yaml=False):
         opt = self.get_opt(name)
-        self._values[name] = opt.typ.from_str(value)
-        self._changed(name, value)
+        converted = opt.typ.from_str(value)
+        self._values[name] = converted
+        self._changed(name, converted)
+        if save_yaml:
+            self._yaml.values[name] = converted
 
-    def update_mutables(self):
+    def update_mutables(self, *, save_yaml=False):
         for name, old_value, new_value in self._mutables:
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
-                self.set_obj(name, new_value)
+                self.set_obj(name, new_value, save_yaml=save_yaml)
         self._mutables = []
 
     def dump_userconfig(self):
@@ -467,6 +480,7 @@ def init(parent=None):
 
     new_config = NewConfigManager(parent)
     new_config.read_defaults()
+    new_config.read_yaml()
     objreg.register('config', new_config)
 
     config_commands = ConfigCommands(new_config)
