@@ -531,7 +531,6 @@ def init(parent=None):
 
     config = Config(parent)
     config.read_configdata()
-    config.read_yaml()
     objreg.register('config', config)
 
     config_commands = ConfigCommands(config)
@@ -544,5 +543,6 @@ def init(parent=None):
 
     for cf in _change_filters:
         cf.validate()
+    config.read_yaml()
 
     configfiles.init(instance)
