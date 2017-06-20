@@ -36,8 +36,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import (objreg, utils, standarddir, javascript, log,
-                               qtutils)
+from qutebrowser.utils import objreg, utils, standarddir, javascript, qtutils
 
 
 # The default QWebEngineProfile
