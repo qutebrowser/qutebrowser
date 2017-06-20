@@ -93,6 +93,8 @@ Changed
 - Renderer process crashes now show an error page.
 - (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
 - The default level for `:messages` is now `info`, not `error`
+- Trying to focus the currently focused tab with `:tab-focus` now focuses the
+  last viewed tab.
 
 Fixed
 ~~~~~

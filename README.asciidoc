@@ -237,6 +237,7 @@ Contributors, sorted by the number of commits in descending order:
 * Johannes Altmanninger
 * Jeremy Kaplan
 * Ismail
+* Iordanis Grigoriou
 * Edgar Hipp
 * Daryl Finlay
 * arza
