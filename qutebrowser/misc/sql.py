@@ -133,7 +133,7 @@ class SqlTable(QObject):
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
         q = Query("CREATE TABLE IF NOT EXISTS {} ({})"
-                  .format(name, ','.join(column_defs)))
+                  .format(name, ', '.join(column_defs)))
 
         q.run()
 
@@ -186,10 +186,10 @@ class SqlTable(QObject):
         self.changed.emit()
 
     def _insert_query(self, values, replace):
-        params = ','.join(':{}'.format(key) for key in values)
+        params = ', '.join(':{}'.format(key) for key in values)
         verb = "REPLACE" if replace else "INSERT"
         return Query("{} INTO {} ({}) values({})".format(
-            verb, self._name, ','.join(values), params))
+            verb, self._name, ', '.join(values), params))
 
     def insert(self, values, replace=False):
         """Append a row to the table.
