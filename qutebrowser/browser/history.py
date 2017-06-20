@@ -171,9 +171,18 @@ class WebHistory(sql.SqlTable):
         else:
             raise ValueError("2 or 3 fields expected")
 
+        # http://xn--pple-43d.com/ with
+        # https://bugreports.qt.io/browse/QTBUG-60364
+        if url in ['http://.com/', 'https://www..com/']:
+            return None
+
         url = QUrl(url)
         if not url.isValid():
             raise ValueError("Invalid URL: {}".format(url.errorString()))
+
+        # https://github.com/qutebrowser/qutebrowser/issues/2646
+        if url.scheme() == 'data':
+            return None
 
         # https://github.com/qutebrowser/qutebrowser/issues/670
         atime = atime.lstrip('\0')
@@ -223,10 +232,13 @@ class WebHistory(sql.SqlTable):
             completion_data = {'url': [], 'title': [], 'last_atime': []}
             for (i, line) in enumerate(f):
                 line = line.strip()
-                if not line:
+                if not line or line.startswith('#'):
                     continue
                 try:
-                    url, title, atime, redirect = self._parse_entry(line)
+                    parsed = self._parse_entry(line)
+                    if parsed is None:
+                        continue
+                    url, title, atime, redirect = parsed
                     data['url'].append(url)
                     data['title'].append(title)
                     data['atime'].append(atime)
