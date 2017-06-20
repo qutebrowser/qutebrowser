@@ -187,7 +187,8 @@ class SqlTable(QObject):
     def _insert_query(self, values, replace):
         params = ','.join(':{}'.format(key) for key in values)
         verb = "REPLACE" if replace else "INSERT"
-        return Query("{} INTO {} values({})".format(verb, self._name, params))
+        return Query("{} INTO {} ({}) values({})".format(
+            verb, self._name, ','.join(values), params))
 
     def insert(self, values, replace=False):
         """Append a row to the table.
