@@ -157,12 +157,14 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_last(self):
+    def _tab_focus_last(self, show_error=True):
         """Select the tab which was last focused."""
         try:
             tab = objreg.get('last-focused-tab', scope='window',
                              window=self._win_id)
         except KeyError:
+            if not show_error:
+                return
             raise cmdexc.CommandError("No last focused tab!")
         idx = self._tabbed_browser.indexOf(tab)
         if idx == -1:
@@ -1076,12 +1078,15 @@ class CommandDispatcher:
                    last tab.
             count: The tab index to focus, starting with 1.
         """
+        index = count if count is not None else index
+
         if index == 'last':
             self._tab_focus_last()
             return
-        index = count if count is not None else index
-
-        if index is None:
+        elif index == self._current_index() + 1:
+            self._tab_focus_last(show_error=False)
+            return
+        elif index is None:
             self.tab_next()
             return
 
