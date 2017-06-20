@@ -32,6 +32,7 @@ DATA: A global read-only copy of the default config, an OrderedDict of
 import sys
 import re
 import collections
+import functools
 
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
@@ -229,6 +230,7 @@ def _read_yaml(yaml_data):
     return parsed
 
 
+@functools.lru_cache(maxsize=256)
 def is_valid_prefix(prefix):
     """Check whether the given prefix is a valid prefix for some option."""
     return any(key.startswith(prefix + '.') for key in DATA)
