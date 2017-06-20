@@ -747,8 +747,6 @@ class TabBarStyle(QCommonStyle):
         Return:
             A QRect.
         """
-            
-            
         if sr == QStyle.SE_TabBarTabText:
             layouts = self._tab_layout(opt)
             if layouts is None:
