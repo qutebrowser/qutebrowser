@@ -23,8 +23,7 @@ New dependencies
 - New dependency on `PyQt5.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
   on QtOpenGL already, but on distributions packaging split PyQt5 wrappers, the
   wrappers for QtOpenGL are now required.
-- New optional (but recommended) `PyOpenGL` dependency with QtWebEngine to work
-  around a bug where a black screen is shown with some setups.
+- New dependency on `PyOpenGL` if QtWebEngine is used.
 
 Added
 ~~~~~

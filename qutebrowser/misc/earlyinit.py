@@ -341,6 +341,7 @@ def check_libraries(backend):
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
         modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
+        modules['OpenGL'] = _missing_str("PyOpenGL")
     else:
         assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")

@@ -209,12 +209,7 @@ def init(args):
     if not os.environ.get('QUTE_NO_OPENGL_WORKAROUND'):
         # Hide "No OpenGL_accelerate module loaded: ..." message
         logging.getLogger('OpenGL.acceleratesupport').propagate = False
-        try:
-            from OpenGL import GL  # pylint: disable=unused-variable
-        except ImportError:
-            pass
-        else:
-            log.misc.debug("Imported PyOpenGL as workaround")
+        from OpenGL import GL  # pylint: disable=unused-variable
 
     _init_profiles()
 
