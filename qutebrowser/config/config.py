@@ -19,6 +19,7 @@
 
 """Configuration storage and config-related utilities."""
 
+import copy
 import os.path
 import contextlib
 import functools
@@ -165,25 +166,25 @@ class NewKeyConfig:
             except cmdexc.PrerequisitesError as e:
                 raise configexc.KeybindingError(str(e))
 
-        bindings = val.bindings.commands
+        bindings = instance.get_obj('bindings.commands')[mode]
 
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
-        if key in bindings[mode] and not force:
+        if key in bindings and not force:
             raise configexc.DuplicateKeyError(key)
-        bindings[mode][key] = command
-        val.bindings.commands = bindings  # FIXME:conf
+        bindings[key] = command
+        self._manager.update_mutables()
 
     def unbind(self, key, *, mode='normal'):
         """Unbind the given key in the given mode."""
         key = self._prepare(key, mode)
-        bindings = val.bindings.commands
+        bindings = instance.get_obj('bindings.commands')[mode]
         try:
-            del bindings[mode][key]
+            del bindings[key]
         except KeyError:
             raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
                                             .format(key, mode))
-        val.bindings.commands = bindings  # FIXME:conf
+        self._manager.update_mutables()
 
     def get_command(self, key, mode):
         """Get the command for a given key (or None)."""
@@ -338,6 +339,7 @@ class NewConfigManager(QObject):
         super().__init__(parent)
         self.options = {}
         self._values = {}  # FIXME:conf stub
+        self._mutables = []
 
     def _changed(self, name, value):
         self.changed.emit(name)
@@ -355,8 +357,19 @@ class NewConfigManager(QObject):
 
     def get(self, name):
         opt = self.get_opt(name)
-        value = self._values.get(name, opt.default)
-        return opt.typ.to_py(value)
+        obj = self.get_obj(name, mutable=False)
+        return opt.typ.to_py(obj)
+
+    def get_obj(self, name, *, mutable=True):
+        opt = self.get_opt(name)
+        obj = self._values.get(name, opt.default)
+        if isinstance(obj, (dict, list)):
+            if mutable:
+                self._mutables.append((name, copy.deepcopy(obj), obj))
+        else:
+            # Shouldn't be mutable (and thus hashable)
+            assert obj.__hash__ is not None, obj
+        return obj
 
     def get_str(self, name):
         opt = self.get_opt(name)
@@ -375,6 +388,13 @@ class NewConfigManager(QObject):
         opt = self.get_opt(name)
         self._values[name] = opt.typ.from_str(value)
         self._changed(name, value)
+
+    def update_mutables(self):
+        for name, old_value, new_value in self._mutables:
+            if old_value != new_value:
+                log.config.debug("{} was mutated, updating".format(name))
+                self.set(name, new_value)
+        self._mutables = []
 
     def dump_userconfig(self):
         """Get the part of the config which was changed by the user.
