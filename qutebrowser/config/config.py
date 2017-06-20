@@ -118,10 +118,18 @@ class change_filter:  # pylint: disable=invalid-name
         return wrapper
 
 
-class NewKeyConfig:
+class KeyConfig:
 
-    def __init__(self, manager):
-        self._manager = manager
+    """Utilities related to keybindings.
+
+    Note that the actual values are saved in the config itself, not here.
+
+    Attributes:
+        _config: The Config object to be used.
+    """
+
+    def __init__(self, config):
+        self._config = config
 
     def get_reverse_bindings_for(self, mode):
         """Get a dict of commands to a list of bindings for the mode."""
@@ -172,7 +180,7 @@ class NewKeyConfig:
         if key in bindings and not force:
             raise configexc.DuplicateKeyError(key)
         bindings[key] = command
-        self._manager.update_mutables(save_yaml=save_yaml)
+        self._config.update_mutables(save_yaml=save_yaml)
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
@@ -183,7 +191,7 @@ class NewKeyConfig:
         except KeyError:
             raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
                                             .format(key, mode))
-        self._manager.update_mutables(save_yaml=save_yaml)
+        self._config.update_mutables(save_yaml=save_yaml)
 
     def get_command(self, key, mode):
         """Get the command for a given key (or None)."""
@@ -192,6 +200,8 @@ class NewKeyConfig:
 
 
 class ConfigCommands:
+
+    """qutebrowser commands related to the configuration."""
 
     def __init__(self, config):
         self._config = config
@@ -330,7 +340,20 @@ class ConfigCommands:
             raise cmdexc.CommandError(str(e))
 
 
-class NewConfigManager(QObject):
+class Config(QObject):
+
+    """Main config object.
+
+    Attributes:
+        options: A dict mapping setting names to configdata.Option objects.
+                 Those contain the type, default value, etc.
+        _values: A dict mapping setting names to their values.
+        _mutables: A list of mutable objects to be checked for changes.
+        _yaml: A YamlConfig object.
+
+    Signals:
+        changed: Emitted with the option name when an option changed.
+    """
 
     changed = pyqtSignal(str)
 
@@ -342,14 +365,17 @@ class NewConfigManager(QObject):
         self._yaml = configfiles.YamlConfig()
 
     def _changed(self, name, value):
+        """Emit changed signal and log change."""
         self.changed.emit(name)
         log.config.debug("Config option changed: {} = {}".format(name, value))
 
-    def read_defaults(self):
+    def read_configdata(self):
+        """Read the option objects from configdata."""
         for name, option in configdata.DATA.items():
             self.options[name] = option
 
     def read_yaml(self):
+        """Read the YAML settings from self._yaml."""
         self._yaml.load()
         for name, value in self._yaml.values.items():
             opt = self.get_opt(name)
@@ -357,17 +383,23 @@ class NewConfigManager(QObject):
             self._values[name] = value
 
     def get_opt(self, name):
+        """Get a configdata.Option object for the given setting."""
         try:
             return self.options[name]
         except KeyError:
             raise configexc.NoOptionError(name)
 
     def get(self, name):
+        """Get the given setting converted for Python code."""
         opt = self.get_opt(name)
         obj = self.get_obj(name, mutable=False)
         return opt.typ.to_py(obj)
 
     def get_obj(self, name, *, mutable=True):
+        """Get the given setting as object (for YAML/config.py).
+
+        If mutable=True is set, watch the returned object for mutations.
+        """
         opt = self.get_opt(name)
         obj = self._values.get(name, opt.default)
         if isinstance(obj, (dict, list)):
@@ -379,11 +411,16 @@ class NewConfigManager(QObject):
         return obj
 
     def get_str(self, name):
+        """Get the given setting as string."""
         opt = self.get_opt(name)
         value = self._values.get(name, opt.default)
         return opt.typ.to_str(value)
 
     def set_obj(self, name, value, *, save_yaml=False):
+        """Set the given setting from a YAML/config.py object.
+
+        If save_yaml=True is given, store the new value to YAML.
+        """
         opt = self.get_opt(name)
         opt.typ.to_py(value)  # for validation
         self._values[name] = value
@@ -392,6 +429,10 @@ class NewConfigManager(QObject):
             self._yaml.values[name] = value
 
     def set_str(self, name, value, *, save_yaml=False):
+        """Set the given setting from a string.
+
+        If save_yaml=True is given, store the new value to YAML.
+        """
         opt = self.get_opt(name)
         converted = opt.typ.from_str(value)
         self._values[name] = converted
@@ -400,6 +441,14 @@ class NewConfigManager(QObject):
             self._yaml.values[name] = converted
 
     def update_mutables(self, *, save_yaml=False):
+        """Update mutable settings if they changed.
+
+        Every time someone calls get_obj() on a mutable object, we save a
+        reference to the original object and a copy.
+
+        Here, we check all those saved copies for mutations, and if something
+        mutated, we call set_obj again so we save the new value.
+        """
         for name, old_value, new_value in self._mutables:
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
@@ -424,16 +473,16 @@ class ConfigContainer:
     """An object implementing config access via __getattr__.
 
     Attributes:
-        _manager: The ConfigManager object.
+        _config: The Config object.
         _prefix: The __getattr__ chain leading up to this object.
     """
 
-    def __init__(self, manager, prefix=''):
-        self._manager = manager
+    def __init__(self, config, prefix=''):
+        self._config = config
         self._prefix = prefix
 
     def __repr__(self):
-        return utils.get_repr(self, constructor=True, manager=self._manager,
+        return utils.get_repr(self, constructor=True, config=self._config,
                               prefix=self._prefix)
 
     def __getattr__(self, attr):
@@ -450,20 +499,22 @@ class ConfigContainer:
 
         name = self._join(attr)
         if configdata.is_valid_prefix(name):
-            return ConfigContainer(manager=self._manager, prefix=name)
+            return ConfigContainer(config=self._config, prefix=name)
 
         try:
-            return self._manager.get(name)
+            return self._config.get(name)
         except configexc.NoOptionError as e:
             # If it's not a valid prefix - re-raise to improve error text.
             raise configexc.NoOptionError(name)
 
     def __setattr__(self, attr, value):
+        """Set the given option in the config."""
         if attr.startswith('_'):
             return super().__setattr__(attr, value)
-        self._manager.set_obj(self._join(attr), value)
+        self._config.set_obj(self._join(attr), value)
 
     def _join(self, attr):
+        """Get the prefix joined with the given attribute."""
         if self._prefix:
             return '{}.{}'.format(self._prefix, attr)
         else:
@@ -478,18 +529,18 @@ def init(parent=None):
     """
     configdata.init()
 
-    new_config = NewConfigManager(parent)
-    new_config.read_defaults()
-    new_config.read_yaml()
-    objreg.register('config', new_config)
+    config = Config(parent)
+    config.read_configdata()
+    config.read_yaml()
+    objreg.register('config', config)
 
-    config_commands = ConfigCommands(new_config)
+    config_commands = ConfigCommands(config)
     objreg.register('config-commands', config_commands)
 
     global val, instance, key_instance
-    val = ConfigContainer(new_config)
-    instance = new_config
-    key_instance = NewKeyConfig(new_config)
+    val = ConfigContainer(config)
+    instance = config
+    key_instance = KeyConfig(config)
 
     for cf in _change_filters:
         cf.validate()
