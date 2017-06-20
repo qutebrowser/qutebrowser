@@ -748,6 +748,8 @@ class TabBarStyle(QCommonStyle):
         Return:
             A QRect.
         """
+            
+            
         if sr == QStyle.SE_TabBarTabText:
             layouts = self._tab_layout(opt)
             if layouts is None:
@@ -760,13 +762,20 @@ class TabBarStyle(QCommonStyle):
             # style differences...
             rct = super().subElementRect(sr, opt, widget)
             return rct
-        elif sr == QStyle.SE_TabBarScrollLeftButton:
-            # We need this so the left scroll button is aligned properly.
-            # Otherwise, empty space will be shown after the last tab even
-            # though the button width is set to 0
-            rct = super().subElementRect(sr, opt, widget)
-            return rct
         else:
+            try:
+                # We need this so the left scroll button is aligned properly.
+                # Otherwise, empty space will be shown after the last tab even
+                # though the button width is set to 0
+                
+                # In older PyQt-versions (5.2.1) QStyle does not have this 
+                # attribute.
+                if sr == QStyle.SE_TabBarScrollLeftButton:
+                    return super().subElementRect(sr, opt, widget)
+
+            except AttributeError:
+                pass
+
             return self._style.subElementRect(sr, opt, widget)
 
     def _tab_layout(self, opt):
