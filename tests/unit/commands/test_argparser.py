@@ -31,15 +31,6 @@ from qutebrowser.utils import usertypes, objreg
 Enum = usertypes.enum('Enum', ['foo', 'foo_bar'])
 
 
-class FakeTabbedBrowser:
-
-    def __init__(self):
-        self.opened_url = None
-
-    def tabopen(self, url):
-        self.opened_url = url
-
-
 class TestArgumentParser:
 
     @pytest.fixture
@@ -47,8 +38,8 @@ class TestArgumentParser:
         return argparser.ArgumentParser('foo')
 
     @pytest.fixture
-    def tabbed_browser(self, win_registry):
-        tb = FakeTabbedBrowser()
+    def tabbed_browser(self, stubs, win_registry):
+        tb = stubs.TabbedBrowserStub()
         objreg.register('tabbed-browser', tb, scope='window', window=0)
         yield tb
         objreg.delete('tabbed-browser', scope='window', window=0)

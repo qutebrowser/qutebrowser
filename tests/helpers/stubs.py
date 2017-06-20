@@ -566,6 +566,9 @@ class TabbedBrowserStub(QObject):
         self.tabs = []
         self.shutting_down = False
         self._qtabbar = QTabBar()
+        self.index_of = None
+        self.current_index = None
+        self.opened_url = None
 
     def count(self):
         return len(self.tabs)
@@ -581,6 +584,26 @@ class TabbedBrowserStub(QObject):
 
     def tabBar(self):
         return self._qtabbar
+
+    def indexOf(self, _tab):
+        if self.index_of is None:
+            raise ValueError("indexOf got called with index_of None!")
+        elif self.index_of is RuntimeError:
+            raise RuntimeError
+        else:
+            return self.index_of
+
+    def currentIndex(self):
+        if self.current_index is None:
+            raise ValueError("currentIndex got called with current_index "
+                             "None!")
+        return self.current_index
+
+    def currentWidget(self):
+        return self.tabs[self.currentIndex() - 1]
+
+    def tabopen(self, url):
+        self.opened_url = url
 
 
 class ApplicationStub(QObject):
