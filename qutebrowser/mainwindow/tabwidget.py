@@ -764,8 +764,8 @@ class TabBarStyle(QCommonStyle):
                 # We need this so the left scroll button is aligned properly.
                 # Otherwise, empty space will be shown after the last tab even
                 # though the button width is set to 0
-                
-                # In older PyQt-versions (5.2.1) QStyle does not have this 
+                #
+                # In older PyQt-versions (5.2.1) QStyle does not have this
                 # attribute.
                 if sr == QStyle.SE_TabBarScrollLeftButton:
                     return super().subElementRect(sr, opt, widget)
