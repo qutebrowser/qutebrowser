@@ -20,12 +20,14 @@
 """Tests for the global page history."""
 
 import logging
+import os
 
 import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
 from qutebrowser.utils import objreg, urlutils, usertypes
+from qutebrowser.commands import cmdexc
 
 
 @pytest.fixture(autouse=True)
@@ -144,6 +146,8 @@ def test_add_item_invalid(qtbot, hist, caplog):
                                        ('b.com', 'title', 12345, True)]),
     (logging.WARNING, 'a.com', '', [('a.com', 'title', 12345, False)]),
     (logging.WARNING, '', '', []),
+    (logging.WARNING, 'data:foo', '', []),
+    (logging.WARNING, 'a.com', 'data:foo', []),
 ])
 def test_add_from_tab(hist, level, url, req_url, expected, mock_time, caplog):
     with caplog.at_level(level):
@@ -219,7 +223,7 @@ def test_init(backend, qapp, tmpdir, monkeypatch, cleanup_init):
         assert default_interface is None
 
 
-def test_read(hist, data_tmpdir, monkeypatch, stubs):
+def test_import_txt(hist, data_tmpdir, monkeypatch, stubs):
     monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
     histfile = data_tmpdir / 'history'
     # empty line is deliberate, to test skipping empty lines
@@ -243,12 +247,38 @@ def test_read(hist, data_tmpdir, monkeypatch, stubs):
 
 
 @pytest.mark.parametrize('line', [
+    '',
+    '#12345 http://example.com/commented',
+
+    # https://bugreports.qt.io/browse/QTBUG-60364
+    '12345 http://.com/',
+    '12345 https://www..com/',
+
+    # issue #2646
+    '12345 data:text/html;charset=UTF-8,%3C%21DOCTYPE%20html%20PUBLIC%20%22-',
+])
+def test_import_txt_skip(hist, data_tmpdir, line, monkeypatch, stubs):
+    """import_txt should skip certain lines silently."""
+    monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
+    histfile = data_tmpdir / 'history'
+    histfile.write(line)
+
+    hist.import_txt()
+
+    assert not histfile.exists()
+    assert not len(hist)
+
+
+@pytest.mark.parametrize('line', [
     'xyz http://example.com/bad-timestamp',
     '12345',
     'http://example.com/no-timestamp',
     '68891-r-r http://example.com/double-flag',
+    '68891-x http://example.com/bad-flag',
+    '68891 http://.com',
 ])
-def test_read_invalid(hist, data_tmpdir, line, monkeypatch, stubs):
+def test_import_txt_invalid(hist, data_tmpdir, line, monkeypatch, stubs):
+    """import_txt should fail on certain lines."""
     monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
     histfile = data_tmpdir / 'history'
     histfile.write(line)
@@ -257,6 +287,12 @@ def test_read_invalid(hist, data_tmpdir, line, monkeypatch, stubs):
         hist.import_txt()
 
     assert histfile.exists()
+
+
+def test_import_txt_nonexistant(hist, data_tmpdir, monkeypatch, stubs):
+    """import_txt should do nothing if the history file doesn't exist."""
+    monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
+    hist.import_txt()
 
 
 def test_debug_dump_history(hist, tmpdir):
@@ -272,3 +308,17 @@ def test_debug_dump_history(hist, tmpdir):
                 '12347 http://example.com/3 Title3',
                 '12348-r http://example.com/4 Title4']
     assert histfile.read() == '\n'.join(expected)
+
+
+def test_debug_dump_history_nonexistant(hist, tmpdir):
+    histfile = tmpdir / 'nonexistant' / 'history'
+    with pytest.raises(cmdexc.CommandError):
+        hist.debug_dump_history(str(histfile))
+
+
+def test_debug_dump_history_oserror(hist, tmpdir):
+    histfile = tmpdir / 'history'
+    histfile.write('')
+    os.chmod(str(histfile), 0)
+    with pytest.raises(cmdexc.CommandError):
+        hist.debug_dump_history(str(histfile))

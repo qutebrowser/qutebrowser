@@ -270,12 +270,12 @@ class WebHistory(sql.SqlTable):
                  .format(int(x.atime), '-r' * x.redirect, x.url, x.title)
                  for x in self.select(sort_by='atime', sort_order='asc'))
 
-        with open(dest, 'w', encoding='utf-8') as f:
-            try:
+        try:
+            with open(dest, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(lines))
-            except OSError as e:
-                raise cmdexc.CommandError('Could not write history: {}', e)
-            message.info("Dumped history to {}".format(dest))
+                message.info("Dumped history to {}".format(dest))
+        except OSError as e:
+            raise cmdexc.CommandError('Could not write history: {}', e)
 
 
 def init(parent=None):
