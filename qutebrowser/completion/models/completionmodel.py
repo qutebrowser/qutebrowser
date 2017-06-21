@@ -161,14 +161,14 @@ class CompletionModel(QAbstractItemModel):
         """Override to forward the call to the categories."""
         cat = self._cat_from_idx(parent)
         if cat:
-            return cat.canFetchMore(parent)
+            return cat.canFetchMore(QModelIndex())
         return False
 
     def fetchMore(self, parent):
         """Override to forward the call to the categories."""
         cat = self._cat_from_idx(parent)
         if cat:
-            cat.fetchMore(parent)
+            cat.fetchMore(QModelIndex())
 
     def count(self):
         """Return the count of non-category items."""
