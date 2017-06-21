@@ -75,15 +75,18 @@ class CompletionModel(QAbstractItemModel):
 
         Return: The item data, or None on an invalid index.
         """
-        if not index.isValid() or role != Qt.DisplayRole:
+        if role != Qt.DisplayRole:
             return None
-        if not index.parent().isValid():
+        cat = self._cat_from_idx(index)
+        if cat:
             # category header
             if index.column() == 0:
                 return self._categories[index.row()].name
             return None
         # item
-        cat = self._categories[index.parent().row()]
+        cat = self._cat_from_idx(index.parent())
+        if not cat:
+            return None
         idx = cat.index(index.row(), index.column())
         return cat.data(idx)
 
