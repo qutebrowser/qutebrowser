@@ -241,6 +241,7 @@ class SqlTable(QObject):
         """
         q = Query("SELECT * FROM {table} ORDER BY {sort_by} {sort_order} "
                   "LIMIT :limit"
-                  .format(table=self._name, sort_by=sort_by, sort_order=sort_order))
+                  .format(table=self._name, sort_by=sort_by,
+                          sort_order=sort_order))
         q.run(limit=limit)
         return q

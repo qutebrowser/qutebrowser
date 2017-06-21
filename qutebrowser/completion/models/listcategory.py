@@ -17,11 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The base completion model for completion in the command line.
-
-Module attributes:
-    Role: An enum of user defined model roles.
-"""
+"""Completion category that uses a list of tuples as a data source."""
 
 import re
 
