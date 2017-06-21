@@ -33,6 +33,7 @@ from qutebrowser.browser import browsertab
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes, utils
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import sql
 
 
 class FakeNetworkCache(QAbstractNetworkCache):
@@ -520,6 +521,34 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
 
     def quickmark_del(self, key):
         self.delete(key)
+
+
+class WebHistoryStub(sql.SqlTable):
+
+    """Stub for the web-history object."""
+
+    def __init__(self):
+        super().__init__("History", ['url', 'title', 'atime', 'redirect'])
+        self.completion = sql.SqlTable("CompletionHistory",
+                                       ['url', 'title', 'last_atime'])
+
+    def add_url(self, url, title="", *, redirect=False, atime=None):
+        self.insert({'url': url, 'title': title, 'atime': atime,
+                     'redirect': redirect})
+        if not redirect:
+            self.completion.insert({'url': url,
+                                    'title': title,
+                                    'last_atime': atime})
+
+
+    def delete_url(self, url):
+        """Remove all history entries with the given url.
+
+        Args:
+            url: URL string to delete.
+        """
+        self.delete(url, 'url')
+        self.completion.delete(url, 'url')
 
 
 class HostBlockerStub:

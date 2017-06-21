@@ -116,6 +116,15 @@ class WebHistory(sql.SqlTable):
     def _do_clear(self):
         self.delete_all()
 
+    def delete_url(self, url):
+        """Remove all history entries with the given url.
+
+        Args:
+            url: URL string to delete.
+        """
+        self.delete(url, 'url')
+        self.completion.delete(url, 'url')
+
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""

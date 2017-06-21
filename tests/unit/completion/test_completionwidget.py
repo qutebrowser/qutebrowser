@@ -215,30 +215,22 @@ def test_completion_show(show, rows, quick_complete, completionview,
 def test_completion_item_del(completionview):
     """Test that completion_item_del invokes delete_cur_item in the model."""
     func = mock.Mock()
-    model = completionmodel.CompletionModel(delete_cur_item=func)
-    model.add_category(listcategory.ListCategory('', [('foo',)]))
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
+    model.add_category(cat)
     completionview.set_model(model)
     completionview.completion_item_focus('next')
     completionview.completion_item_del()
-    assert func.called
+    func.assert_called_once_with(['foo', 'bar'])
 
 
 def test_completion_item_del_no_selection(completionview):
-    """Test that completion_item_del with no selected index."""
+    """Test that completion_item_del with an invalid index."""
     func = mock.Mock()
-    model = completionmodel.CompletionModel(delete_cur_item=func)
-    model.add_category(listcategory.ListCategory('', [('foo',)]))
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo',)], delete_func=func)
+    model.add_category(cat)
     completionview.set_model(model)
     with pytest.raises(cmdexc.CommandError, match='No item selected!'):
         completionview.completion_item_del()
-    assert not func.called
-
-
-def test_completion_item_del_no_func(completionview):
-    """Test completion_item_del with no delete_cur_item in the model."""
-    model = completionmodel.CompletionModel()
-    model.add_category(listcategory.ListCategory('', [('foo',)]))
-    completionview.set_model(model)
-    completionview.completion_item_focus('next')
-    with pytest.raises(cmdexc.CommandError, match='Cannot delete this item.'):
-        completionview.completion_item_del()
+    func.assert_not_called

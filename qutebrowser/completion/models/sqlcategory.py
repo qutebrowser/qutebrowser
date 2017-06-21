@@ -21,10 +21,12 @@
 
 import re
 
+from PyQt5.QtCore import QModelIndex
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug
+from qutebrowser.commands import cmdexc
 
 
 class SqlCategory(QSqlQueryModel):
@@ -33,7 +35,7 @@ class SqlCategory(QSqlQueryModel):
 
     def __init__(self, name, *, title=None, filter_fields, sort_by=None,
                  sort_order=None, select='*', where=None, group_by=None,
-                 parent=None):
+                 delete_func=None, parent=None):
         """Create a new completion category backed by a sql table.
 
         Args:
@@ -44,6 +46,7 @@ class SqlCategory(QSqlQueryModel):
             where: An optional clause to filter out some rows.
             sort_by: The name of the field to sort by, or None for no sorting.
             sort_order: Either 'asc' or 'desc', if sort_by is non-None
+            delete_func: Callback to delete a selected item.
         """
         super().__init__(parent=parent)
         self.name = title or name
@@ -69,6 +72,7 @@ class SqlCategory(QSqlQueryModel):
         col_query = sql.Query('SELECT * FROM {} LIMIT 1'.format(name))
         rec = col_query.run().record()
         self.columns_to_filter = [rec.indexOf(n) for n in filter_fields]
+        self.delete_func = delete_func
 
     def set_pattern(self, pattern):
         """Set the pattern used to filter results.
@@ -86,3 +90,14 @@ class SqlCategory(QSqlQueryModel):
         with debug.log_time('sql', 'Running completion query'):
             self._query.run(pattern=pattern)
         self.setQuery(self._query)
+
+    def delete_cur_item(self, index):
+        """Delete the row at the given index."""
+        if not self.delete_func:
+            raise cmdexc.CommandError("Cannot delete this item.")
+        data = [self.data(index.sibling(index.row(), i))
+                for i in range(self.columnCount())]
+        self.delete_func(data)
+        # re-run query to reload updated table
+        with debug.log_time('sql', 'Running completion query'):
+            self._query.run()

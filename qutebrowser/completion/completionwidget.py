@@ -364,9 +364,7 @@ class CompletionView(QTreeView):
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_del(self):
         """Delete the current completion item."""
-        if not self.currentIndex().isValid():
+        index = self.currentIndex()
+        if not index.isValid():
             raise cmdexc.CommandError("No item selected!")
-        if self.model().delete_cur_item is None:
-            raise cmdexc.CommandError("Cannot delete this item.")
-        else:
-            self.model().delete_cur_item(self)
+        self.model().delete_cur_item(index)

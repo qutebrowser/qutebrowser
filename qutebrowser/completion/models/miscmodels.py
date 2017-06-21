@@ -20,7 +20,7 @@
 """Functions that return miscellaneous completion models."""
 
 from qutebrowser.config import config, configdata
-from qutebrowser.utils import objreg, log, qtutils
+from qutebrowser.utils import objreg, log
 from qutebrowser.commands import cmdutils
 from qutebrowser.completion.models import completionmodel, listcategory
 
@@ -96,21 +96,14 @@ def buffer():
     url_column = 1
     text_column = 2
 
-    def delete_buffer(completion):
+    def delete_buffer(data):
         """Close the selected tab."""
-        index = completion.currentIndex()
-        qtutils.ensure_valid(index)
-        category = index.parent()
-        qtutils.ensure_valid(category)
-        index = category.child(index.row(), idx_column)
-        win_id, tab_index = index.data().split('/')
+        win_id, tab_index = data[0].split('/')
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=int(win_id))
         tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
 
-    model = completionmodel.CompletionModel(
-        column_widths=(6, 40, 54),
-        delete_cur_item=delete_buffer)
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
     for win_id in objreg.window_registry:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -124,7 +117,8 @@ def buffer():
                          tab.url().toDisplayString(),
                          tabbed_browser.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
-            columns_to_filter=[idx_column, url_column, text_column])
+            columns_to_filter=[idx_column, url_column, text_column],
+            delete_func=delete_buffer)
         model.add_category(cat)
 
     return model

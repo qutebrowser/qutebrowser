@@ -23,7 +23,11 @@ from unittest import mock
 import hypothesis
 from hypothesis import strategies
 
-from qutebrowser.completion.models import completionmodel
+import pytest
+from PyQt5.QtCore import QModelIndex
+
+from qutebrowser.completion.models import completionmodel, listcategory
+from qutebrowser.commands import cmdexc
 
 
 @hypothesis.given(strategies.lists(min_size=0, max_size=3,
@@ -72,3 +76,20 @@ def test_set_pattern(pat):
         model.add_category(c)
     model.set_pattern(pat)
     assert all(c.set_pattern.called_with([pat]) for c in cats)
+
+
+def test_delete_cur_item():
+    func = mock.Mock()
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
+    model.add_category(cat)
+    parent = model.index(0, 0)
+    model.delete_cur_item(model.index(0, 0, parent))
+    func.assert_called_once_with(['foo', 'bar'])
+
+
+def test_delete_cur_item_no_cat():
+    """Test completion_item_del with no selected category."""
+    model = completionmodel.CompletionModel()
+    with pytest.raises(cmdexc.CommandError, match='No category selected'):
+        model.delete_cur_item(QModelIndex())

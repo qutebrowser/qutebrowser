@@ -22,6 +22,7 @@
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils
+from qutebrowser.commands import cmdexc
 
 
 class CompletionModel(QAbstractItemModel):
@@ -38,13 +39,11 @@ class CompletionModel(QAbstractItemModel):
         _categories: The sub-categories.
     """
 
-    def __init__(self, *, column_widths=(30, 70, 0),
-                 delete_cur_item=None, parent=None):
+    def __init__(self, *, column_widths=(30, 70, 0), parent=None):
         super().__init__(parent)
         self.column_widths = column_widths
         self._categories = []
         self.pattern = ''
-        self.delete_cur_item = delete_cur_item
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -217,3 +216,13 @@ class CompletionModel(QAbstractItemModel):
         """
         cat = self._cat_from_idx(index.parent())
         return cat.columns_to_filter if cat else []
+
+    def delete_cur_item(self, index):
+        """Delete the row at the given index."""
+        parent = index.parent()
+        cat = self._cat_from_idx(parent)
+        if not cat:
+            raise cmdexc.CommandError("No category selected")
+        self.beginRemoveRows(parent, index.row(), index.row())
+        cat.delete_cur_item(cat.index(index.row(), 0))
+        self.endRemoveRows()

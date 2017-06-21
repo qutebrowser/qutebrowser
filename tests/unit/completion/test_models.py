@@ -20,6 +20,7 @@
 """Tests for completion models."""
 
 import collections
+import unittest.mock
 from datetime import datetime
 
 import pytest
@@ -28,6 +29,7 @@ from PyQt5.QtWidgets import QTreeView
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
+from qutebrowser.utils import objreg
 from qutebrowser.misc import sql
 
 
@@ -114,23 +116,6 @@ def _patch_config_section_desc(monkeypatch, stubs, symbol):
     monkeypatch.setattr(symbol, section_desc)
 
 
-def _mock_view_index(model, category_num, child_num, qtbot):
-    """Create a tree view from a model and set the current index.
-
-    Args:
-        model: model to create a fake view for.
-        category_idx: index of the category to select.
-        child_idx: index of the child item under that category to select.
-    """
-    view = QTreeView()
-    qtbot.add_widget(view)
-    view.setModel(model)
-    parent = model.index(category_num, 0)
-    child = model.index(child_num, 0, parent=parent)
-    view.setCurrentIndex(child)
-    return view
-
-
 @pytest.fixture
 def quickmarks(quickmark_manager_stub):
     """Pre-populate the quickmark-manager stub with some quickmarks."""
@@ -152,24 +137,29 @@ def bookmarks(bookmark_manager_stub):
     ])
     return bookmark_manager_stub
 
-
 @pytest.fixture
-def web_history_stub(stubs, init_sql):
+def history_completion_table(init_sql):
     return sql.SqlTable("CompletionHistory", ['url', 'title', 'last_atime'])
 
 
 @pytest.fixture
-def web_history(web_history_stub, init_sql):
+def web_history(web_history_stub):
     """Pre-populate the web-history database."""
-    web_history_stub.insert({'url': 'http://qutebrowser.org',
-                            'title': 'qutebrowser',
-                            'last_atime': datetime(2015, 9, 5).timestamp()})
-    web_history_stub.insert({'url': 'https://python.org',
-                            'title': 'Welcome to Python.org',
-                            'last_atime': datetime(2016, 3, 8).timestamp()})
-    web_history_stub.insert({'url': 'https://github.com',
-                            'title': 'https://github.com',
-                            'last_atime': datetime(2016, 5, 1).timestamp()})
+    web_history_stub.add_url(
+        url='http://qutebrowser.org',
+        title='qutebrowser',
+        atime=datetime(2015, 9, 5).timestamp()
+    )
+    web_history_stub.add_url(
+        url='https://python.org',
+        title='Welcome to Python.org',
+        atime=datetime(2016, 3, 8).timestamp()
+    )
+    web_history_stub.add_url(
+        url='https://github.com',
+        title='https://github.com',
+        atime=datetime(2016, 5, 1).timestamp()
+    )
     return web_history_stub
 
 
@@ -280,7 +270,6 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     Verify that:
         - quickmarks, bookmarks, and urls are included
         - entries are sorted by access time
-        - redirect entries are not included
         - only the most recent entry is included for each url
     """
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
@@ -331,16 +320,15 @@ def test_url_completion_pattern(config_stub, web_history_stub,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
-    web_history_stub.insert({'url': url, 'title': title, 'last_atime': 0})
+    web_history_stub.add_url(url, title)
     model = urlmodel.url()
     model.set_pattern(pattern)
     # 2, 0 is History
     assert model.rowCount(model.index(2, 0)) == rowcount
 
 
-def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
-                                        web_history, quickmarks, bookmarks,
-                                        qtbot):
+def test_url_completion_delete_bookmark(qtmodeltester, config_stub, bookmarks,
+                                        web_history, quickmarks):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
@@ -348,12 +336,18 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    # delete item (1, 1) -> (bookmarks, 'https://github.com')
-    view = _mock_view_index(model, 1, 1, qtbot)
-    model.delete_cur_item(view)
+    parent = model.index(1, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "Bookmarks"
+    assert model.data(idx) == 'https://github.com'
+    assert 'https://github.com' in bookmarks.marks
+
+    len_before = len(bookmarks.marks)
+    model.delete_cur_item(idx)
     assert 'https://github.com' not in bookmarks.marks
-    assert 'https://python.org' in bookmarks.marks
-    assert 'http://qutebrowser.org' in bookmarks.marks
+    assert len_before == len(bookmarks.marks) + 1
 
 
 def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
@@ -366,28 +360,39 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    # delete item (0, 0) -> (quickmarks, 'ddg' )
-    view = _mock_view_index(model, 0, 0, qtbot)
-    model.delete_cur_item(view)
-    assert 'aw' in quickmarks.marks
+    parent = model.index(0, 0)
+    idx = model.index(0, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "Quickmarks"
+    assert model.data(idx) == 'https://duckduckgo.com'
+    assert 'ddg' in quickmarks.marks
+
+    len_before = len(quickmarks.marks)
+    model.delete_cur_item(idx)
     assert 'ddg' not in quickmarks.marks
-    assert 'wiki' in quickmarks.marks
+    assert len_before == len(quickmarks.marks) + 1
 
 
 def test_url_completion_delete_history(qtmodeltester, config_stub,
-                                       web_history, quickmarks, bookmarks,
-                                       qtbot):
-    """Test that deleting a history entry is a noop."""
+                                       web_history_stub, web_history,
+                                       quickmarks, bookmarks):
+    """Test deleting a history entry."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    hist_before = list(web_history)
-    view = _mock_view_index(model, 2, 0, qtbot)
-    model.delete_cur_item(view)
-    assert list(web_history) == hist_before
+    parent = model.index(2, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "History"
+    assert model.data(idx) == 'https://python.org'
+
+    model.delete_cur_item(idx)
+    assert not web_history_stub.contains('url', 'https://python.org')
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):
@@ -431,7 +436,7 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     })
 
 
-def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
+def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                                win_registry, tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].tabs = [
@@ -447,9 +452,14 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    view = _mock_view_index(model, 0, 1, qtbot)
-    qtbot.add_widget(view)
-    model.delete_cur_item(view)
+    parent = model.index(0, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "0"
+    assert model.data(idx) == '0/2'
+
+    model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]

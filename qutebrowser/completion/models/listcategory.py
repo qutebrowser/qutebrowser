@@ -21,17 +21,19 @@
 
 import re
 
-from PyQt5.QtCore import QSortFilterProxyModel
+from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from qutebrowser.utils import qtutils
+from qutebrowser.commands import cmdexc
 
 
 class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
-    def __init__(self, name, items, columns_to_filter=None, parent=None):
+    def __init__(self, name, items, columns_to_filter=None,
+                 delete_func=None, parent=None):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)
@@ -41,6 +43,7 @@ class ListCategory(QSortFilterProxyModel):
         for item in items:
             self.srcmodel.appendRow([QStandardItem(x) for x in item])
         self.setSourceModel(self.srcmodel)
+        self.delete_func = delete_func
 
     def set_pattern(self, val):
         """Setter for pattern.
@@ -114,3 +117,12 @@ class ListCategory(QSortFilterProxyModel):
             return False
         else:
             return left < right
+
+    def delete_cur_item(self, index):
+        """Delete the row at the given index."""
+        if not self.delete_func:
+            raise cmdexc.CommandError("Cannot delete this item.")
+        data = [self.data(index.sibling(index.row(), i))
+                for i in range(self.columnCount())]
+        self.delete_func(data)
+        self.removeRow(index.row(), QModelIndex())

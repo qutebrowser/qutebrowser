@@ -29,31 +29,25 @@ _URLCOL = 0
 _TEXTCOL = 1
 
 
-def _delete_url(completion):
-    """Delete the selected item.
+def _delete_history(data):
+    urlstr = data[_URLCOL]
+    log.completion.debug('Deleting history entry {}'.format(urlstr))
+    hist = objreg.get('web-history')
+    hist.delete_url(urlstr)
 
-    Args:
-        completion: The Completion object to use.
-    """
-    index = completion.currentIndex()
-    qtutils.ensure_valid(index)
-    category = index.parent()
-    index = category.child(index.row(), _URLCOL)
-    catname = category.data()
-    qtutils.ensure_valid(category)
 
-    if catname == 'Bookmarks':
-        urlstr = index.data()
-        log.completion.debug('Deleting bookmark {}'.format(urlstr))
-        bookmark_manager = objreg.get('bookmark-manager')
-        bookmark_manager.delete(urlstr)
-    elif catname == 'Quickmarks':
-        quickmark_manager = objreg.get('quickmark-manager')
-        sibling = index.sibling(index.row(), _TEXTCOL)
-        qtutils.ensure_valid(sibling)
-        name = sibling.data()
-        log.completion.debug('Deleting quickmark {}'.format(name))
-        quickmark_manager.delete(name)
+def _delete_bookmark(data):
+    urlstr = data[_URLCOL]
+    log.completion.debug('Deleting bookmark {}'.format(urlstr))
+    bookmark_manager = objreg.get('bookmark-manager')
+    bookmark_manager.delete(urlstr)
+
+
+def _delete_quickmark(data):
+    name = data[_TEXTCOL]
+    quickmark_manager = objreg.get('quickmark-manager')
+    log.completion.debug('Deleting quickmark {}'.format(name))
+    quickmark_manager.delete(name)
 
 
 def url():
@@ -61,18 +55,18 @@ def url():
 
     Used for the `open` command.
     """
-    model = completionmodel.CompletionModel(
-        column_widths=(40, 50, 10),
-        delete_cur_item=_delete_url)
+    model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
 
     quickmarks = ((url, name) for (name, url)
                   in objreg.get('quickmark-manager').marks.items())
     bookmarks = objreg.get('bookmark-manager').marks.items()
 
-    model.add_category(listcategory.ListCategory('Quickmarks', quickmarks,
-                                                 columns_to_filter=[0, 1]))
-    model.add_category(listcategory.ListCategory('Bookmarks', bookmarks,
-                                                 columns_to_filter=[0, 1]))
+    model.add_category(listcategory.ListCategory(
+        'Quickmarks', quickmarks, columns_to_filter=[0, 1],
+        delete_func=_delete_quickmark))
+    model.add_category(listcategory.ListCategory(
+        'Bookmarks', bookmarks, columns_to_filter=[0, 1],
+        delete_func=_delete_bookmark))
 
     # replace 's to avoid breaking the query
     timefmt = config.get('completion', 'timestamp-format').replace("'", "`")
@@ -81,6 +75,7 @@ def url():
         'CompletionHistory', title='History',
         sort_order='desc', sort_by='last_atime',
         filter_fields=['url', 'title'],
-        select='url, title, {}'.format(select_time))
+        select='url, title, {}'.format(select_time),
+        delete_func=_delete_history)
     model.add_category(hist_cat)
     return model
