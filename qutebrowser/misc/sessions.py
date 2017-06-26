@@ -323,7 +323,7 @@ class SessionManager(QObject):
         except SessionNotFoundError:
             # Exiting before the first load finished
             pass
-        except SessionError as e:
+        except (OSError, SessionError) as e:
             log.sessions.error("Failed to delete autosave session: {}"
                                .format(e))
 
