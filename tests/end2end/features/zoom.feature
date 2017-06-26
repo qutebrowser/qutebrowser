@@ -51,6 +51,11 @@ Feature: Zooming in and out
         Then the message "Zoom level: 50%" should be shown
         And the zoom should be 50%
 
+    Scenario: Setting zoom with trailing %
+        When I run :zoom 50%
+        Then the message "Zoom level: 50%" should be shown
+        And the zoom should be 50%
+
     Scenario: Setting zoom with count
         When I run :zoom with count 40
         Then the message "Zoom level: 40%" should be shown

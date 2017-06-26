@@ -868,7 +868,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: int = None, count=None):
+    def zoom(self, zoom=None, count=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -879,6 +879,13 @@ class CommandDispatcher:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
         """
+        if zoom is not None:
+            try:
+                zoom = int(zoom.rstrip('%'))
+            except ValueError:
+                raise cmdexc.CommandError("zoom: Invalid int value {}"
+                                          .format(zoom))
+
         level = count if count is not None else zoom
         if level is None:
             level = config.get('ui', 'default-zoom')
