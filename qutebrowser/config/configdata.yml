@@ -1710,7 +1710,7 @@ fonts.statusbar:
   type: Font
   desc: Font used in the statusbar.
 
-fonts.tabbar:
+fonts.tabs:
   default: 8pt monospace
   type: QtFont
   desc: Font used in the tab bar.

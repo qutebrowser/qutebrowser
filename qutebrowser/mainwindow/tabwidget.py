@@ -324,7 +324,7 @@ class TabBar(QTabBar):
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
-        if option == 'fonts.tabbar':
+        if option == 'fonts.tabs':
             self._set_font()
         elif option == 'tabs.favicons.scale':
             self._set_icon_size()
@@ -409,7 +409,7 @@ class TabBar(QTabBar):
 
     def _set_font(self):
         """Set the tab bar font."""
-        self.setFont(config.val.fonts.tabbar)
+        self.setFont(config.val.fonts.tabs)
         self._set_icon_size()
 
     def _set_icon_size(self):
