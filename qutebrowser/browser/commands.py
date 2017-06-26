@@ -1443,9 +1443,13 @@ class CommandDispatcher:
                 download_manager.get_mhtml(tab, target)
         else:
             qnam = tab.networkaccessmanager()
-            download_manager.get(self._current_url(), user_agent=user_agent,
-                                 qnam=qnam, target=target,
-                                 title=self._current_title())
+            download_manager.get(
+                self._current_url(),
+                user_agent=user_agent,
+                qnam=qnam,
+                target=target,
+                suggested_fn=utils.sanitize_filename(tab.title() + ".html")
+            )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
