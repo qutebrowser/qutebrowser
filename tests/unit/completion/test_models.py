@@ -137,6 +137,7 @@ def bookmarks(bookmark_manager_stub):
     ])
     return bookmark_manager_stub
 
+
 @pytest.fixture
 def history_completion_table(init_sql):
     return sql.SqlTable("CompletionHistory", ['url', 'title', 'last_atime'])
@@ -593,7 +594,7 @@ def test_url_completion_benchmark(benchmark, config_stub,
         'title': ['title{}'.format(i) for i in r]
     }
 
-    web_history_stub.insert_batch(entries)
+    web_history_stub.completions.insert_batch(entries)
 
     quickmark_manager_stub.marks = collections.OrderedDict([
         ('title{}'.format(i), 'example.com/{}'.format(i))
