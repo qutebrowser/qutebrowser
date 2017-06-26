@@ -273,6 +273,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         idx = self.indexOf(tab)
         if idx == -1:
+            if crashed:
+                return
             raise TabDeletedError("tab {} is not contained in "
                                   "TabbedWidget!".format(tab))
         if tab is self._now_focused:
