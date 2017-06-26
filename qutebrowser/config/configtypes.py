@@ -632,21 +632,22 @@ class Float(_Numeric):
 
 class Perc(_Numeric):
 
-    """A percentage, as a string ending with %."""
+    """A percentage."""
 
     def to_py(self, value):
-        self._basic_py_validation(value, str)
+        self._basic_py_validation(value, (float, int, str))
         if not value:
             return None
 
-        if not value.endswith('%'):
-            raise configexc.ValidationError(value, "does not end with %")
-        try:
-            floatval = float(value[:-1])
-        except ValueError:
-            raise configexc.ValidationError(value, "must be a percentage!")
-        self._validate_bounds(floatval, suffix='%')
-        return floatval
+        if isinstance(value, str):
+            value = value.rstrip('%')
+            try:
+                value = float(value)
+            except ValueError:
+                raise configexc.ValidationError(
+                    value, "must be a valid number!")
+        self._validate_bounds(value, suffix='%')
+        return value
 
     def to_str(self, value):
         if value is None:

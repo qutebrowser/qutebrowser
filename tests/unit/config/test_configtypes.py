@@ -884,19 +884,20 @@ class TestPerc:
 
     @pytest.mark.parametrize('kwargs, val', [
         ({}, '1337%'),
+        ({}, '1337'),
         ({}, '1337.42%'),
+        ({}, '1337.42'),
         ({'maxval': 2}, '2%'),
     ])
     def test_from_str_valid(self, klass, kwargs, val):
         assert klass(**kwargs).from_str(val) == val
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({}, '1337'),
-        ({}, '1337%%'),
         ({}, 'foobar'),
         ({}, 'foobar%'),
         ({'minval': 2}, '1%'),
         ({'maxval': 2}, '3%'),
+        ({'maxval': 2}, '3'),
         ({'minval': 2, 'maxval': 3}, '1%'),
         ({'minval': 2, 'maxval': 3}, '4%'),
     ])
@@ -906,6 +907,9 @@ class TestPerc:
 
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '1337.42%', 1337.42),
+        ({}, '1337.42', 1337.42),
+        ({}, 23, 23),
+        ({}, 23.42, 23.42),
         ({'minval': 2}, '2.01%', 2.01),
     ])
     def test_to_py_valid(self, klass, kwargs, val, expected):
@@ -913,8 +917,8 @@ class TestPerc:
 
     @pytest.mark.parametrize('kwargs, val', [
         ({}, 'foobar'),
-        ({}, 23),
         ({'minval': 2, 'maxval': 3}, '1.99%'),
+        ({'minval': 2, 'maxval': 3}, '1.99'),
     ])
     def test_to_py_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
