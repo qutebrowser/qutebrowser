@@ -323,7 +323,7 @@ class SessionManager(QObject):
         except SessionNotFoundError:
             # Exiting before the first load finished
             pass
-        except (OSError, SessionError) as e:
+        except SessionError as e:
             log.sessions.error("Failed to delete autosave session: {}"
                                .format(e))
 
@@ -420,7 +420,10 @@ class SessionManager(QObject):
     def delete(self, name):
         """Delete a session."""
         path = self._get_session_path(name, check_exists=True)
-        os.remove(path)
+        try:
+            os.remove(path)
+        except OSError as e:
+            raise SessionError(e)
         self.update_completion.emit()
 
     def list_sessions(self):
@@ -516,7 +519,7 @@ class SessionManager(QObject):
             self.delete(name)
         except SessionNotFoundError:
             raise cmdexc.CommandError("Session {} not found!".format(name))
-        except (OSError, SessionError) as e:
+        except SessionError as e:
             log.sessions.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"
                                       .format(e))
