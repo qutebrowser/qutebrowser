@@ -281,6 +281,7 @@ Contributors, sorted by the number of commits in descending order:
 * Lazlow Carmichael
 * Kevin Wang
 * Ján Kobezda
+* Justin Partain
 * Johannes Martinsson
 * Jean-Christophe Petkovich
 * Helen Sherwood-Taylor
