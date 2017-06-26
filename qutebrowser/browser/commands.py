@@ -1444,7 +1444,8 @@ class CommandDispatcher:
         else:
             qnam = tab.networkaccessmanager()
             download_manager.get(self._current_url(), user_agent=user_agent,
-                                 qnam=qnam, target=target)
+                                 qnam=qnam, target=target,
+                                 title=self._current_title())
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):

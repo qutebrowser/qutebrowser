@@ -22,6 +22,13 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
 
+    Scenario: Using :download with no URL
+        When I set storage -> prompt-download-directory to false
+        And I open data/downloads/downloads.html
+        And I run :download
+        And I wait until the download is finished
+        Then the downloaded file Simple downloads.html should exist
+
     Scenario: Using hints
         When I set storage -> prompt-download-directory to false
         And I open data/downloads/downloads.html
