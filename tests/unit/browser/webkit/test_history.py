@@ -289,7 +289,7 @@ def test_import_txt_invalid(hist, data_tmpdir, line, monkeypatch, stubs):
     assert histfile.exists()
 
 
-def test_import_txt_nonexistant(hist, data_tmpdir, monkeypatch, stubs):
+def test_import_txt_nonexistent(hist, data_tmpdir, monkeypatch, stubs):
     """import_txt should do nothing if the history file doesn't exist."""
     monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
     hist.import_txt()
@@ -310,8 +310,8 @@ def test_debug_dump_history(hist, tmpdir):
     assert histfile.read() == '\n'.join(expected)
 
 
-def test_debug_dump_history_nonexistant(hist, tmpdir):
-    histfile = tmpdir / 'nonexistant' / 'history'
+def test_debug_dump_history_nonexistent(hist, tmpdir):
+    histfile = tmpdir / 'nonexistent' / 'history'
     with pytest.raises(cmdexc.CommandError):
         hist.debug_dump_history(str(histfile))
 
