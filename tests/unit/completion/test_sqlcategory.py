@@ -19,11 +19,14 @@
 
 """Test SQL-based completions."""
 
+import unittest.mock
+
 import pytest
 
 from helpers import utils
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import sqlcategory
+from qutebrowser.commands import cmdexc
 
 
 pytestmark = pytest.mark.usefixtures('init_sql')
@@ -151,3 +154,24 @@ def test_group():
                                   select='a, max(b)', group_by='a')
     cat.set_pattern('')
     utils.validate_model(cat, [('bar', 3), ('foo', 2)])
+
+
+def test_delete_cur_item():
+    table = sql.SqlTable('Foo', ['a', 'b'])
+    table.insert({'a': 'foo', 'b': 1})
+    table.insert({'a': 'bar', 'b': 2})
+    func = unittest.mock.MagicMock()
+    cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], delete_func=func)
+    cat.set_pattern('')
+    cat.delete_cur_item(cat.index(0, 0))
+    func.assert_called_with(['foo', 1])
+
+
+def test_delete_cur_item_no_func():
+    table = sql.SqlTable('Foo', ['a', 'b'])
+    table.insert({'a': 'foo', 'b': 1})
+    table.insert({'a': 'bar', 'b': 2})
+    cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'])
+    cat.set_pattern('')
+    with pytest.raises(cmdexc.CommandError, match='Cannot delete this item'):
+        cat.delete_cur_item(cat.index(0, 0))

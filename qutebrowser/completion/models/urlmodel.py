@@ -22,7 +22,7 @@
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            sqlcategory)
 from qutebrowser.config import config
-from qutebrowser.utils import qtutils, log, objreg
+from qutebrowser.utils import log, objreg
 
 
 _URLCOL = 0

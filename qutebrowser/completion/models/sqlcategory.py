@@ -21,7 +21,6 @@
 
 import re
 
-from PyQt5.QtCore import QModelIndex
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql

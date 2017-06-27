@@ -233,4 +233,4 @@ def test_completion_item_del_no_selection(completionview):
     completionview.set_model(model)
     with pytest.raises(cmdexc.CommandError, match='No item selected!'):
         completionview.completion_item_del()
-    func.assert_not_called
+    func.assert_not_called()

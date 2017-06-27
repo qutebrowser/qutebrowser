@@ -20,16 +20,13 @@
 """Tests for completion models."""
 
 import collections
-import unittest.mock
 from datetime import datetime
 
 import pytest
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QTreeView
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
-from qutebrowser.utils import objreg
 from qutebrowser.misc import sql
 
 

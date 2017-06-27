@@ -125,6 +125,17 @@ def test_clear_force(qtbot, tmpdir, hist):
     assert not len(hist)
 
 
+def test_delete_url(hist):
+    hist.add_url(QUrl('http://example.com/'), atime=0)
+    hist.add_url(QUrl('http://example.com/1'), atime=0)
+    hist.add_url(QUrl('http://example.com/2'), atime=0)
+
+    before = set(hist)
+    hist.delete_url(QUrl('http://example.com/1'))
+    diff = before.difference(set(hist))
+    assert diff == set([('http://example.com/1', '', 0, False)])
+
+
 @pytest.mark.parametrize('url, atime, title, redirect', [
     ('http://www.example.com', 12346, 'the title', False),
     ('http://www.example.com', 12346, 'the title', True)
