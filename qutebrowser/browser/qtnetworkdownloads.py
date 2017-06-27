@@ -412,7 +412,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
                 mhtml.start_download_checked, tab=tab))
             message.global_bridge.ask(question, blocking=False)
 
-    def get_request(self, request, *, target=None, suggested_fn=None, **kwargs):
+    def get_request(self, request, *, target=None,
+                    suggested_fn=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
