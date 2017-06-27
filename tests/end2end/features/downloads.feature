@@ -644,7 +644,7 @@ Feature: Downloading things from a website.
     @qtwebengine_skip: We can't get the UA from the page there
     Scenario: user-agent when using :download
         When I open user-agent
-        And I run :download
+        And I run :download --dest user-agent
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 
