@@ -392,8 +392,9 @@ def test_url_completion_delete_history(qtmodeltester, config_stub,
     assert model.data(parent) == "History"
     assert model.data(idx) == 'https://python.org'
 
+    assert 'https://python.org' in web_history_stub
     model.delete_cur_item(idx)
-    assert not web_history_stub.contains('url', 'https://python.org')
+    assert 'https://python.org' not in web_history_stub
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):
@@ -594,7 +595,7 @@ def test_url_completion_benchmark(benchmark, config_stub,
         'title': ['title{}'.format(i) for i in r]
     }
 
-    web_history_stub.completions.insert_batch(entries)
+    web_history_stub.completion.insert_batch(entries)
 
     quickmark_manager_stub.marks = collections.OrderedDict([
         ('title{}'.format(i), 'example.com/{}'.format(i))

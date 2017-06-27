@@ -532,6 +532,10 @@ class WebHistoryStub(sql.SqlTable):
         self.completion = sql.SqlTable("CompletionHistory",
                                        ['url', 'title', 'last_atime'])
 
+    def __contains__(self, url):
+        q = self.contains_query('url')
+        return q.run(val=url).value()
+
     def add_url(self, url, title="", *, redirect=False, atime=None):
         self.insert({'url': url, 'title': title, 'atime': atime,
                      'redirect': redirect})
@@ -539,7 +543,6 @@ class WebHistoryStub(sql.SqlTable):
             self.completion.insert({'url': url,
                                     'title': title,
                                     'last_atime': atime})
-
 
     def delete_url(self, url):
         """Remove all history entries with the given url.

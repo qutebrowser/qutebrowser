@@ -99,5 +99,6 @@ class SqlCategory(QSqlQueryModel):
                 for i in range(self.columnCount())]
         self.delete_func(data)
         # re-run query to reload updated table
-        with debug.log_time('sql', 'Running completion query'):
+        with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()
+        self.setQuery(self._query)
