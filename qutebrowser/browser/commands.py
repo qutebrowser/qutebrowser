@@ -932,7 +932,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):
-        """Re-open a closed tab (optionally skipping [count] closed tabs)."""
+        """Re-open a closed tab."""
         try:
             self._tabbed_browser.undo()
         except IndexError:
