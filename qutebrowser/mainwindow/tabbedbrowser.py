@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QSize
 from PyQt5.QtGui import QIcon
 
+from qutebrowser.browser.commands import CommandDispatcher
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
@@ -366,7 +367,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Got invalid tab {} for index {}!".format(
                 tab, idx))
             return
-        self.close_tab(tab)
+        CommandDispatcher.tab_close_prompt_if_pinned(
+            tab, False, lambda: self.close_tab(tab))
 
     @pyqtSlot(browsertab.AbstractTab)
     def on_window_close_requested(self, widget):
