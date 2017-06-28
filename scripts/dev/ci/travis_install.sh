@@ -43,6 +43,12 @@ travis_retry() {
 }
 
 apt_install() {
+    sudo tee /etc/apt/sources.list <<EOF
+deb http://us.archive.ubuntu.com/ubuntu/ trusty main
+deb http://us.archive.ubuntu.com/ubuntu/ trusty-security main
+deb http://us.archive.ubuntu.com/ubuntu/ trusty-updates main
+EOF
+    sudo rm -rf /etc/apt/sources.list.d
     travis_retry sudo apt-get -y -q update
     travis_retry sudo apt-get -y -q install --no-install-recommends "$@"
 }
@@ -64,8 +70,9 @@ npm_install() {
 }
 
 install_node() {
-    curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-    apt_install nodejs
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+    travis_retry sudo apt-get -y -q update
+    travis_retry sudo apt-get -y -q install --no-install-recommends nodejs
 }
 
 check_pyqt() {
