@@ -27,7 +27,6 @@ class Backforward(textbase.TextBase):
 
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
-    @pyqtSlot()
     def on_url_changed(self, tabs):
         """Called on URL changes."""
         tab = tabs.currentWidget()
