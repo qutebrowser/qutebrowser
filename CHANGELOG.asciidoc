@@ -137,7 +137,7 @@ Fixed
   fixed.
 - Scrolling to an anchor in a background tab now works correctly, and javascript
   gets the correct window size for background tabs.
-- `:scroll-page` with `--bottom-navigate` now works correctly on QtWebEngine
+- (QtWebEngine) `:scroll-page` with `--bottom-navigate` now works correctly
 
 v0.10.1
 -------
