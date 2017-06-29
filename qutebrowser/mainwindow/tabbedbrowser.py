@@ -342,7 +342,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
-        self.set_tab_pinned(idx, pinned)
+        self.set_tab_pinned(newtab, pinned)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

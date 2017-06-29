@@ -26,7 +26,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QStyleFactory)
+                             QStyleFactory, QWidget)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -94,17 +94,18 @@ class TabWidget(QTabWidget):
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
-    def set_tab_pinned(self, idx, pinned, *, loading=False):
+    def set_tab_pinned(self, tab: QWidget,
+                       pinned: bool, *, loading: bool = False) -> None:
         """Set the tab status as pinned.
 
         Args:
-            idx: The tab index.
+            tab: The tab to pin
             pinned: Pinned tab state to set.
             loading: Whether to ignore current data state when
                      counting pinned_count.
         """
         bar = self.tabBar()
-        tab = self.widget(idx)
+        idx = self.indexOf(tab)
 
         # Only modify pinned_count if we had a change
         # always modify pinned_count if we are loading
