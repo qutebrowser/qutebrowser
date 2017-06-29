@@ -20,6 +20,7 @@
 """Wrapper over a QWebEngineView."""
 
 import os
+import math
 import functools
 
 import sip
@@ -342,7 +343,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             else:
                 perc_y = min(100, round(100 / dy * jsret['px']['y']))
 
-            self._at_bottom = dy >= jsret['px']['y']
+            self._at_bottom = math.ceil(jsret['px']['y']) >= dy
             self._pos_perc = perc_x, perc_y
 
             self.perc_changed.emit(*self._pos_perc)
