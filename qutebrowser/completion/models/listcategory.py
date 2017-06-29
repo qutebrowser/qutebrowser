@@ -21,7 +21,7 @@
 
 import re
 
-from PyQt5.QtCore import QSortFilterProxyModel, QModelIndex
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from qutebrowser.utils import qtutils
@@ -32,14 +32,14 @@ class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
-    def __init__(self, name, items, columns_to_filter=None,
-                 delete_func=None, parent=None):
+    def __init__(self, name, items, delete_func=None, parent=None):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)
         self.pattern = ''
-        self.pattern_re = None
-        self.columns_to_filter = columns_to_filter or [0]
+        # ListCategory filters all columns
+        self.columns_to_filter = [0, 1, 2]
+        self.setFilterKeyColumn(-1)
         for item in items:
             self.srcmodel.appendRow([QStandardItem(x) for x in item])
         self.setSourceModel(self.srcmodel)
@@ -55,37 +55,11 @@ class ListCategory(QSortFilterProxyModel):
         val = re.sub(r' +', r' ', val)  # See #1919
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
-        self.pattern_re = re.compile(val, re.IGNORECASE)
+        rx = QRegExp(val, Qt.CaseInsensitive)
+        self.setFilterRegExp(rx)
         self.invalidate()
         sortcol = 0
         self.sort(sortcol)
-
-    def filterAcceptsRow(self, row, parent):
-        """Custom filter implementation.
-
-        Override QSortFilterProxyModel::filterAcceptsRow.
-
-        Args:
-            row: The row of the item.
-            parent: The parent item QModelIndex.
-
-        Return:
-            True if self.pattern is contained in item.
-        """
-        if not self.pattern:
-            return True
-
-        for col in self.columns_to_filter:
-            idx = self.srcmodel.index(row, col, parent)
-            if not idx.isValid():  # pragma: no cover
-                # this is a sanity check not hit by any test case
-                continue
-            data = self.srcmodel.data(idx)
-            if not data:
-                continue
-            elif self.pattern_re.search(data):
-                return True
-        return False
 
     def lessThan(self, lindex, rindex):
         """Custom sorting implementation.

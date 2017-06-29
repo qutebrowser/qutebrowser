@@ -92,9 +92,6 @@ def buffer():
 
     Used for switching the buffer command.
     """
-    idx_column = 0
-    url_column = 1
-    text_column = 2
 
     def delete_buffer(data):
         """Close the selected tab."""
@@ -117,7 +114,6 @@ def buffer():
                          tab.url().toDisplayString(),
                          tabbed_browser.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
-            columns_to_filter=[idx_column, url_column, text_column],
             delete_func=delete_buffer)
         model.add_category(cat)
 

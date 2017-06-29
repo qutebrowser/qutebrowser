@@ -62,11 +62,9 @@ def url():
     bookmarks = objreg.get('bookmark-manager').marks.items()
 
     model.add_category(listcategory.ListCategory(
-        'Quickmarks', quickmarks, columns_to_filter=[0, 1],
-        delete_func=_delete_quickmark))
+        'Quickmarks', quickmarks, delete_func=_delete_quickmark))
     model.add_category(listcategory.ListCategory(
-        'Bookmarks', bookmarks, columns_to_filter=[0, 1],
-        delete_func=_delete_bookmark))
+        'Bookmarks', bookmarks, delete_func=_delete_bookmark))
 
     # replace 's to avoid breaking the query
     timefmt = config.get('completion', 'timestamp-format').replace("'", "`")
