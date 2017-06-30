@@ -170,12 +170,12 @@ class SqlTable(QObject):
         q.run()
         return q.value()
 
-    def delete(self, value, field):
+    def delete(self, field, value):
         """Remove all rows for which `field` equals `value`.
 
         Args:
-            value: Key value to delete.
             field: Field to use as the key.
+            value: Key value to delete.
 
         Return:
             The number of rows deleted.

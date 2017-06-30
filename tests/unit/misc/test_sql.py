@@ -124,12 +124,12 @@ def test_delete(qtbot):
     table.insert({'name': 'nine', 'val': 9, 'lucky': False})
     table.insert({'name': 'thirteen', 'val': 13, 'lucky': True})
     with pytest.raises(KeyError):
-        table.delete('nope', 'name')
+        table.delete('name', 'nope')
     with qtbot.waitSignal(table.changed):
-        table.delete('thirteen', 'name')
+        table.delete('name', 'thirteen')
     assert list(table) == [('one', 1, False), ('nine', 9, False)]
     with qtbot.waitSignal(table.changed):
-        table.delete(False, field='lucky')
+        table.delete('lucky', False)
     assert not list(table)
 
 

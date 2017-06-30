@@ -78,7 +78,6 @@ class SqlCategory(QSqlQueryModel):
 
         Args:
             pattern: string pattern to filter by.
-            columns_to_filter: indices of columns to apply pattern to.
         """
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
