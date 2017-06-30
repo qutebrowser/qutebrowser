@@ -90,11 +90,9 @@ class KeyHintView(QLabel):
             self.hide()
             return
 
-        blacklist = config.val.keyhint.blacklist or []
-
         def blacklisted(keychain):
             return any(fnmatch.fnmatchcase(keychain, glob)
-                       for glob in blacklist)
+                       for glob in config.val.keyhint.blacklist)
 
         bindings_dict = config.key_instance.get_bindings_for(modename)
         if not bindings_dict:

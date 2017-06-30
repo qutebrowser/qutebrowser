@@ -67,11 +67,7 @@ def is_whitelisted_host(host):
     Args:
         host: The host of the request as string.
     """
-    whitelist = config.val.content.host_blocking.whitelist
-    if whitelist is None:
-        return False
-
-    for pattern in whitelist:
+    for pattern in config.val.content.host_blocking.whitelist:
         if fnmatch.fnmatch(host, pattern.lower()):
             return True
     return False
@@ -164,7 +160,7 @@ class HostBlocker:
 
         if not found:
             args = objreg.get('args')
-            if (config.val.content.host_blocking.lists is not None and
+            if (config.val.content.host_blocking.lists and
                     args.basedir is None and
                     config.val.content.host_blocking.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
@@ -180,12 +176,9 @@ class HostBlocker:
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        urls = config.val.content.host_blocking.lists
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window='last-focused')
-        if urls is None:
-            return
-        for url in urls:
+        for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
                 try:
                     fileobj = open(url.path(), 'rb')
@@ -295,7 +288,7 @@ class HostBlocker:
     @config.change_filter('content.host_blocking.lists')
     def _update_files(self):
         """Update files when the config changed."""
-        if config.val.content.host_blocking.lists is None:
+        if not config.val.content.host_blocking.lists:
             try:
                 os.remove(self._local_hosts_file)
             except FileNotFoundError:

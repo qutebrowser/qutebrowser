@@ -388,6 +388,18 @@ class List(BaseType):
         self.valtype = valtype
         self.length = length
 
+    def _none_value(self, value=None):
+        """Return the value to be used when the setting is None.
+
+        Args:
+            value: An existing value to be returned.
+        """
+        if value is None:
+            return []
+        else:
+            assert value == [], value
+            return value
+
     def get_name(self):
         name = super().get_name()
         if self._show_valtype:
@@ -400,7 +412,7 @@ class List(BaseType):
     def from_str(self, value):
         self._basic_str_validation(value)
         if not value:
-            return None
+            return self._none_value()
 
         try:
             yaml_val = utils.yaml_load(value)
@@ -415,7 +427,7 @@ class List(BaseType):
     def to_py(self, value):
         self._basic_py_validation(value, list)
         if not value:
-            return None
+            return self._none_value(value)
 
         if self.length is not None and len(value) != self.length:
             raise configexc.ValidationError(value, "Exactly {} values need to "
@@ -452,8 +464,7 @@ class FlagList(List):
 
     def to_py(self, value):
         vals = super().to_py(value)
-        if vals is not None:
-            self._check_duplicates(vals)
+        self._check_duplicates(vals)
         return vals
 
     def complete(self):
@@ -1038,7 +1049,7 @@ class Dict(BaseType):
         """Return the value to be used when the setting is None.
 
         Args:
-            value: An existing value to be mutated when given.
+            value: An existing value to be returned.
         """
         if self.fixed_keys is None:
             if value is None:
@@ -1179,7 +1190,8 @@ class ShellCommand(List):
     def from_str(self, value):
         self._basic_str_validation(value)
         if not value:
-            return None
+            return self._none_value()
+
         try:
             split_val = shlex.split(value)
         except ValueError as e:
@@ -1191,7 +1203,7 @@ class ShellCommand(List):
     def to_py(self, value):
         value = super().to_py(value)
         if not value:
-            return None
+            return value
 
         if self.placeholder and '{}' not in ' '.join(value):
             raise configexc.ValidationError(value, "needs to contain a "
@@ -1439,7 +1451,7 @@ class ConfirmQuit(FlagList):
     def to_py(self, value):
         values = super().to_py(value)
         if not values:
-            return None
+            return values
 
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:

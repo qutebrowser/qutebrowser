@@ -915,7 +915,7 @@ keyhint.blacklist:
     none_ok: true
     valtype:
       name: String
-  default: null
+  default: []
   desc: >-
     Keychains that shouldn\'t be shown in the keyhint dialog.
 

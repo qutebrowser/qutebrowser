@@ -252,7 +252,7 @@ class TestAll:
     def test_none_ok_true(self, klass):
         """Test None and empty string values with none_ok=True."""
         typ = klass(none_ok=True)
-        if isinstance(typ, configtypes.Dict):
+        if isinstance(typ, (configtypes.Dict, configtypes.List)):
             expected = typ._none_value()
         else:
             expected = None
