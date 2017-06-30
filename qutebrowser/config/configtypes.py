@@ -148,7 +148,8 @@ class BaseType:
             value: The value to check.
             pytype: A Python type to check the value against.
         """
-        if value is None:
+        if (value is None or (pytype == list and value == []) or
+                (pytype == dict and value == {})):
             if not self.none_ok:
                 raise configexc.ValidationError(value, "may not be null!")
             else:

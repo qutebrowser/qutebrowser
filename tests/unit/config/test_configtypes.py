@@ -313,7 +313,7 @@ class TestBaseType:
             klass()._basic_str_validation(val)
 
     def test_basic_py_validation_valid(self, klass):
-        klass()._basic_py_validation([], list)
+        klass()._basic_py_validation(['a'], list)
 
     def test_basic_py_validation_invalid(self, klass):
         with pytest.raises(configexc.ValidationError,
@@ -523,7 +523,7 @@ class TestList:
         typ = configtypes.List(valtype=configtypes.Int())
         assert typ.from_str(json.dumps([0])) == [0]
 
-    @pytest.mark.parametrize('val', ['[[', 'true'])
+    @pytest.mark.parametrize('val', ['[[', 'true', '[]'])
     def test_from_str_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().from_str(val)
@@ -1380,6 +1380,7 @@ class TestDict:
         '["foo"]',  # valid yaml but not a dict
         '{"hello": 23}',  # non-string as value
         '[invalid',  # invalid yaml
+        '{}',  # Special case for none_ok=False
     ])
     def test_from_str_invalid(self, klass, val):
         d = klass(keytype=configtypes.String(), valtype=configtypes.String())
