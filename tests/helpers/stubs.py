@@ -550,8 +550,8 @@ class WebHistoryStub(sql.SqlTable):
         Args:
             url: URL string to delete.
         """
-        self.delete(url, 'url')
-        self.completion.delete(url, 'url')
+        self.delete('url', url)
+        self.completion.delete('url', url)
 
 
 class HostBlockerStub:
