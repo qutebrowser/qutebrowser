@@ -567,6 +567,9 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     qtmodeltester.check(model)
 
     _check_completions(model, {
+        "Current": [
+            ('stop', 'stop qutebrowser', 's'),
+        ],
         "Commands": [
             ('drop', 'drop all user data', ''),
             ('hide', '', ''),
