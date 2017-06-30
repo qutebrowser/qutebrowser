@@ -196,7 +196,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDocumentMargin(2)
 
         if index.parent().isValid():
-            pattern = index.model().pattern
+            view = self.parent()
+            pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
                 repl = r'<span class="highlight">\g<0></span>'

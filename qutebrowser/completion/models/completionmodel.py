@@ -35,7 +35,6 @@ class CompletionModel(QAbstractItemModel):
     Attributes:
         column_widths: The width percentages of the columns used in the
                        completion view.
-        pattern: Current filter pattern, used for highlighting.
         _categories: The sub-categories.
     """
 
@@ -43,7 +42,6 @@ class CompletionModel(QAbstractItemModel):
         super().__init__(parent)
         self.column_widths = column_widths
         self._categories = []
-        self.pattern = ''
 
     def _cat_from_idx(self, index):
         """Return the category pointed to by the given index.
@@ -180,8 +178,6 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
-        # TODO: should pattern be saved in the view layer instead?
-        self.pattern = pattern
         for cat in self._categories:
             cat.set_pattern(pattern)
 

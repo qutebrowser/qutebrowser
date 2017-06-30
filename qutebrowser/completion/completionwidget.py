@@ -40,6 +40,7 @@ class CompletionView(QTreeView):
     headers, and children show as flat list.
 
     Attributes:
+        pattern: Current filter pattern, used for highlighting.
         _win_id: The ID of the window this CompletionView is associated with.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
@@ -106,6 +107,7 @@ class CompletionView(QTreeView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.pattern = ''
         self._win_id = win_id
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
@@ -288,6 +290,7 @@ class CompletionView(QTreeView):
             self.expand(model.index(i, 0))
 
     def set_pattern(self, pattern):
+        self.pattern = pattern
         with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
             self.model().set_pattern(pattern)
             self._resize_columns()
