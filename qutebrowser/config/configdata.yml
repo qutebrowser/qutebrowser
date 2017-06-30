@@ -963,7 +963,6 @@ prompt.radius:
 ## scrolling
 
 scrolling.bar:
-  # FIXME:conf meaning changed!
   type: Bool
   default: false
   desc: Show a scrollbar.

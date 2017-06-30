@@ -255,9 +255,8 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
-            # FIXME:conf
-            conf = objreg.get('config')
-            self._crash_info.append(("Config", conf.dump_userconfig()))
+            self._crash_info.append(("Config",
+                                     config.instance.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
         try:
@@ -636,9 +635,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
         traceback.print_exc()
     print("\n---- Config ----", file=sys.stderr)
     try:
-        # FIXME:conf
-        conf = objreg.get('config')
-        print(conf.dump_userconfig(), file=sys.stderr)
+        print(config.instance.dump_userconfig(), file=sys.stderr)
     except Exception:
         traceback.print_exc()
     print("\n---- Commandline args ----", file=sys.stderr)
