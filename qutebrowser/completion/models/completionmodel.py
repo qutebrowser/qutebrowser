@@ -215,10 +215,10 @@ class CompletionModel(QAbstractItemModel):
 
     def delete_cur_item(self, index):
         """Delete the row at the given index."""
+        qtutils.ensure_valid(index)
         parent = index.parent()
         cat = self._cat_from_idx(parent)
-        if not cat:
-            raise cmdexc.CommandError("No category selected")
+        assert cat, "CompletionView sent invalid index for deletion"
         self.beginRemoveRows(parent, index.row(), index.row())
         cat.delete_cur_item(cat.index(index.row(), 0))
         self.endRemoveRows()
