@@ -277,16 +277,9 @@ class CommandDispatcher:
         """
         tab = self._cntwidget(count)
         if tab is None:
-            return
+            raise cmdexc.CommandError("Tab {} does not exist!".format(count))
 
         to_pin = not tab.data.pinned
-        tab_index = self._current_index() if count is None else count - 1
-        cmdutils.check_overflow(tab_index + 1, 'int')
-        tab = self._cntwidget(count)
-
-        if tab is None:
-            raise cmdexc.CommandError("Unable to find tab '{}'.".format(count))
-
         self._tabbed_browser.set_tab_pinned(tab, to_pin)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
