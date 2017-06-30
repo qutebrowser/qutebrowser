@@ -729,7 +729,7 @@ class Command(BaseType):
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
-            return
+            return None
 
         # FIXME:conf is it okay to import runners.py here?
         from qutebrowser.commands import runners, cmdexc
@@ -1034,10 +1034,31 @@ class Dict(BaseType):
             raise configexc.ValidationError(
                 value, "Expected keys {}".format(self.fixed_keys))
 
+    def _none_value(self, value=None):
+        """Return the value to be used when the setting is None.
+
+        Args:
+            value: An existing value to be mutated when given.
+        """
+        if self.fixed_keys is None:
+            if value is None:
+                return {}
+            else:
+                assert value == {}, value
+                return value
+        else:
+            if value is None:
+                return {key: {} for key in self.fixed_keys}
+            else:
+                assert value == {}, value
+                for key in self.fixed_keys:
+                    value[key] = {}
+                return value
+
     def from_str(self, value):
         self._basic_str_validation(value)
         if not value:
-            return None
+            return self._none_value()
 
         try:
             yaml_val = utils.yaml_load(value)
@@ -1052,7 +1073,7 @@ class Dict(BaseType):
     def to_py(self, value):
         self._basic_py_validation(value, dict)
         if not value:
-            return None
+            return self._none_value(value)
 
         self._validate_keys(value)
 
@@ -1279,6 +1300,9 @@ class Padding(Dict):
         super().__init__(keytype=String(), valtype=Int(minval=0),
                          fixed_keys=['top', 'bottom', 'left', 'right'],
                          none_ok=none_ok)
+
+    def _none_value(self, _value=None):
+        return None
 
     def to_py(self, value):
         d = super().to_py(value)

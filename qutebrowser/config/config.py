@@ -133,12 +133,12 @@ class KeyConfig:
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
-        if val.bindings.default:
-            bindings = dict(val.bindings.default[mode])
-        else:
-            bindings = {}
-        if val.bindings.commands:
-            bindings.update(val.bindings.default[mode])
+        bindings = dict(val.bindings.default[mode])
+        for key, binding in val.bindings.commands[mode].items():
+            if binding is None:
+                del bindings[key]
+            else:
+                bindings[key] = binding
         return bindings
 
     def get_reverse_bindings_for(self, mode):
@@ -188,20 +188,22 @@ class KeyConfig:
         if key in self.get_bindings_for(mode) and not force:
             raise configexc.DuplicateKeyError(key)
 
-        val.bindings.commands[mode][key] = command
+        bindings = self._config.get_obj('bindings.commands')
+        bindings[mode][key] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
         key = self._prepare(key, mode)
 
-        if val.bindings.commands[mode] and key in val.bindings.commands[mode]:
+        bindings_commands = self._config.get_obj('bindings.commands')
+
+        if key in bindings_commands:
             # In custom bindings -> remove it
-            del val.bindings.commands[mode][key]
-        elif val.bindings.default[mode] and key in val.bindings.default[mode]:
-            # In default bindings -> shadow it with <unbound>
-            # FIXME:conf what value to use here?
-            val.bindings.commands[mode][key] = '<unbound>'
+            del bindings_commands[mode][key]
+        elif key in val.bindings.default[mode]:
+            # In default bindings -> shadow it with None
+            bindings_commands[mode][key] = None
         else:
             raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
                                             .format(key, mode))

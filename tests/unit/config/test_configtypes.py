@@ -252,8 +252,12 @@ class TestAll:
     def test_none_ok_true(self, klass):
         """Test None and empty string values with none_ok=True."""
         typ = klass(none_ok=True)
-        assert typ.from_str('') is None
-        assert typ.to_py(None) is None
+        if isinstance(typ, configtypes.Dict):
+            expected = typ._none_value()
+        else:
+            expected = None
+        assert typ.from_str('') == expected
+        assert typ.to_py(None) == expected
         assert typ.to_str(None) == ''
 
     @pytest.mark.parametrize('method, value', [

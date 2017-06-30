@@ -37,10 +37,8 @@ def custom_headers():
     headers[b'DNT'] = dnt
     headers[b'X-Do-Not-Track'] = dnt
 
-    config_headers = config.val.content.custom_headers
-    if config_headers is not None:
-        for header, value in config_headers.items():
-            headers[header.encode('ascii')] = value.encode('ascii')
+    for header, value in config.val.content.custom_headers.items():
+        headers[header.encode('ascii')] = value.encode('ascii')
 
     accept_language = config.val.content.accept_language
     if accept_language is not None:

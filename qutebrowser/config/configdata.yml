@@ -2088,14 +2088,6 @@ bindings.default:
 
 bindings.commands:
   default: {}
-    # normal: {}
-    # insert: {}
-    # hint: {}
-    # passthrough: {}
-    # command: {}
-    # prompt: {}
-    # caret: {}
-    # register: {}
   type:
     name: Dict
     none_ok: true
@@ -2105,7 +2097,9 @@ bindings.commands:
     valtype:
       name: Dict
       keytype: Key
-      valtype: Command
+      valtype:
+        name: Command
+        none_ok: true
   desc: >-
     Keybindings mapping keys to commands in different modes.
 
@@ -2132,7 +2126,9 @@ bindings.commands:
     with Shift. For special keys (with `<>`-signs), you need to explicitly add
     `Shift-` to match a key pressed with shift.
 
-    To completely unbind a default binding, bind it to the `nop` command.
+    If you want a binding to do nothing, bind it to the `nop` command.
+    If you want a default binding to be passed through to the website, bind it
+    to null.
 
     Note that some commands which are only useful for bindings (but not used
     interactively) are hidden from the command completion. See `:help` for a
