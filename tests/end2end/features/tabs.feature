@@ -715,7 +715,7 @@ Feature: Tab management
         When I open data/hello.txt
         And I run :tab-only
         And I set tabs.last_close to startpage
-        And I set start_page to ["http://localhost:(port)/data/numbers/4.txt", "http://localhost:(port)/data/numbers/5.txt"]
+        And I set start_pages to ["http://localhost:(port)/data/numbers/4.txt"]
         And I run :tab-close
         And I wait until data/numbers/4.txt is loaded
         And I run :undo
@@ -807,14 +807,16 @@ Feature: Tab management
             - about:blank (active)
 
     Scenario: last-close = startpage
-        When I set start_page to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
+        When I set start_pages to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
         And I set tabs.last_close to startpage
         And I open data/hello.txt
         And I run :tab-only
         And I run :tab-close
         And I wait until data/numbers/7.txt is loaded
+        And I wait until data/numbers/8.txt is loaded
         Then the following tabs should be open:
-            - data/numbers/7.txt (active)
+            - data/numbers/7.txt
+            - data/numbers/8.txt (active)
 
     Scenario: last-close = default-page
         When I set default_page to http://localhost:(port)/data/numbers/9.txt

@@ -96,7 +96,7 @@ Feature: Invoking a new process
 
     Scenario: Opening a new qutebrowser instance with no parameters
         When I set new_instance_open_target to tab
-        And I set start_page to ["http://localhost:(port)/data/hello.txt"]
+        And I set start_pages to ["http://localhost:(port)/data/hello.txt"]
         And I open data/title.html
         And I spawn a new window
         And I wait until data/hello.txt is loaded

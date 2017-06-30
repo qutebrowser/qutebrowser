@@ -106,10 +106,10 @@ session_default_name:
   desc: The name of the session to save by default, or unset for the last loaded
     session.
 
-start_page:
+start_pages:
   type:
     name: List
-    valtype: String
+    valtype: FuzzyUrl
   default: ["https://start.duckduckgo.com"]
   desc: The default page(s) to open at the start.
 

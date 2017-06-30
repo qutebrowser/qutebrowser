@@ -327,12 +327,12 @@ Feature: Various utility commands.
     # :home
 
     Scenario: :home with single page
-        When I set start_page to ["http://localhost:(port)/data/hello2.txt"]
+        When I set start_pages to ["http://localhost:(port)/data/hello2.txt"]
         And I run :home
         Then data/hello2.txt should be loaded
 
     Scenario: :home with multiple pages
-        When I set start_page to ["http://localhost:(port)/data/numbers/1.txt", "http://localhost:(port)/data/numbers/2.txt"]
+        When I set start_pages to ["http://localhost:(port)/data/numbers/1.txt", "http://localhost:(port)/data/numbers/2.txt"]
         And I run :home
         Then data/numbers/1.txt should be loaded
 

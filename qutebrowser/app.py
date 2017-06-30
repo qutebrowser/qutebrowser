@@ -306,15 +306,9 @@ def _open_startpage(win_id=None):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=cur_win_id)
         if tabbed_browser.count() == 0:
-            log.init.debug("Opening startpage")
-            for urlstr in config.val.start_page:
-                try:
-                    url = urlutils.fuzzy_url(urlstr, do_search=False)
-                except urlutils.InvalidUrlError as e:
-                    message.error("Error when opening startpage: {}".format(e))
-                    tabbed_browser.tabopen(QUrl('about:blank'))
-                else:
-                    tabbed_browser.tabopen(url)
+            log.init.debug("Opening start pages")
+            for url in config.val.start_pages:
+                tabbed_browser.tabopen(url)
 
 
 def _open_special_pages(args):
