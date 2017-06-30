@@ -1078,8 +1078,7 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-pin with count 23
-        Then the error "Tab 23 does not exist!" should be shown
-        And the following tabs should be open:
+        Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt
             - data/numbers/3.txt (active)

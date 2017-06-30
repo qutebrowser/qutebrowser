@@ -277,7 +277,7 @@ class CommandDispatcher:
         """
         tab = self._cntwidget(count)
         if tab is None:
-            raise cmdexc.CommandError("Tab {} does not exist!".format(count))
+            return
 
         to_pin = not tab.data.pinned
         self._tabbed_browser.set_tab_pinned(tab, to_pin)
