@@ -83,10 +83,10 @@ new_instance_open_target_window:
 
 searchengines:
   default:
-    # FIXME:conf what if the user deletes/renames DEFAULT?
     DEFAULT: https://duckduckgo.com/?q={}
   type:
     name: Dict
+    required_keys: ['DEFAULT']
     keytype: String
     valtype: SearchEngineUrl
   desc: >-

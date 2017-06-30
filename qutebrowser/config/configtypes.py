@@ -1030,7 +1030,8 @@ class Dict(BaseType):
 
     """A dictionary of values."""
 
-    def __init__(self, keytype, valtype, *, fixed_keys=None, none_ok=False):
+    def __init__(self, keytype, valtype, *, fixed_keys=None,
+                 required_keys=None, none_ok=False):
         super().__init__(none_ok)
         # If the keytype is not a string, we'll get problems with showing it as
         # json in to_str() as json converts keys to strings.
@@ -1038,12 +1039,17 @@ class Dict(BaseType):
         self.keytype = keytype
         self.valtype = valtype
         self.fixed_keys = fixed_keys
+        self.required_keys = required_keys
 
     def _validate_keys(self, value):
         if (self.fixed_keys is not None and
                 value.keys() != set(self.fixed_keys)):
             raise configexc.ValidationError(
                 value, "Expected keys {}".format(self.fixed_keys))
+        if (self.required_keys is not None and not
+                set(self.required_keys).issubset(value.keys())):
+            raise configexc.ValidationError(
+                value, "Required keys {}".format(self.required_keys))
 
     def _none_value(self, value=None):
         """Return the value to be used when the setting is None.

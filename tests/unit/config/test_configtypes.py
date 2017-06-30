@@ -40,6 +40,7 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils, qtutils
 from qutebrowser.browser.network import pac
+from tests.helpers import utils as testutils
 
 
 class Font(QFont):
@@ -1390,16 +1391,35 @@ class TestDict:
                                valtype=configtypes.Int())
         assert typ.from_str('{"answer": 42}') == {"answer": 42}
 
-    @pytest.mark.parametrize('val', [
-        {"one": "1"},  # missing key
-        {"one": "1", "two": "2", "three": "3"},  # extra key
+    @pytest.mark.parametrize('kind, val, ok', [
+        ('fixed', {"one": "1"}, False),  # missing key
+        ('fixed', {"one": "1", "two": "2", "three": "3"}, False),  # extra key
+        ('fixed', {"one": "1", "two": "2"}, True),
+
+        ('required', {"one": "1"}, False),  # missing key
+        ('required', {"one": "1", "two": "2", "three": "3"}, True),  # extra
+        ('required', {"one": "1", "two": "2"}, True),
     ])
     @pytest.mark.parametrize('from_str', [True, False])
-    def test_fixed_keys(self, klass, val, from_str):
-        d = klass(keytype=configtypes.String(), valtype=configtypes.String(),
-                  fixed_keys=['one', 'two'])
+    def test_keys(self, klass, kind, val, ok, from_str):
+        if kind == 'fixed':
+            d = klass(keytype=configtypes.String(),
+                      valtype=configtypes.String(),
+                      fixed_keys=['one', 'two'])
+            message = 'Expected keys .*'
+        elif kind == 'required':
+            d = klass(keytype=configtypes.String(),
+                      valtype=configtypes.String(),
+                      required_keys=['one', 'two'])
+            message = 'Required keys .*'
 
-        with pytest.raises(configexc.ValidationError):
+        if ok:
+            expectation = testutils.nop_contextmanager()
+        else:
+            expectation = pytest.raises(configexc.ValidationError,
+                                        match=message)
+
+        with expectation:
             if from_str:
                 d.from_str(json.dumps(val))
             else:
