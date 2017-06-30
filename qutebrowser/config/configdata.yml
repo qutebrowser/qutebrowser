@@ -1822,7 +1822,7 @@ bindings.key_mappings:
     This is useful for global remappings of keys, for example to map Ctrl-[ to
     Escape.
 
-bindings.commands:
+bindings.default:
   default:
     normal:
       <Escape>: clear-keychain ;; search ;; fullscreen --leave
@@ -2067,6 +2067,38 @@ bindings.commands:
       <Escape>: leave-mode
   type:
     name: Dict
+    none_ok: true
+    keytype: String  # section name
+    fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
+                 'prompt', 'caret', 'register']
+    valtype:
+      name: Dict
+      keytype: Key
+      valtype: Command
+  desc: >-
+    Default keybindings. If you want to add bindings, modify
+    `bindings.commands` instead.
+
+    The main purpose of this setting is that you can set it to an empty dictionary if you
+    want to load no default keybindings at all.
+
+    If you want to preserve default bindings (and get new bindings when there is
+    an update), add new bindings to `bindings.commands` (or use `:bind`) and
+    leave this setting alone.
+
+bindings.commands:
+  default: {}
+    # normal: {}
+    # insert: {}
+    # hint: {}
+    # passthrough: {}
+    # command: {}
+    # prompt: {}
+    # caret: {}
+    # register: {}
+  type:
+    name: Dict
+    none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
                  'prompt', 'caret', 'register']

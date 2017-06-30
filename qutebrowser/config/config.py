@@ -131,10 +131,20 @@ class KeyConfig:
     def __init__(self, config):
         self._config = config
 
+    def get_bindings_for(self, mode):
+        """Get the combined bindings for the given mode."""
+        if val.bindings.default:
+            bindings = dict(val.bindings.default[mode])
+        else:
+            bindings = {}
+        if val.bindings.commands:
+            bindings.update(val.bindings.default[mode])
+        return bindings
+
     def get_reverse_bindings_for(self, mode):
         """Get a dict of commands to a list of bindings for the mode."""
         cmd_to_keys = {}
-        bindings = val.bindings.commands[mode]
+        bindings = self.get_bindings_for(mode)
         if bindings is None:
             return cmd_to_keys
         for key, full_cmd in bindings.items():
@@ -150,7 +160,7 @@ class KeyConfig:
 
     def _prepare(self, key, mode):
         """Make sure the given mode exists and normalize the key."""
-        if mode not in val.bindings.commands:
+        if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
         if utils.is_special_key(key):
             # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
@@ -173,24 +183,29 @@ class KeyConfig:
             except cmdexc.PrerequisitesError as e:
                 raise configexc.KeybindingError(str(e))
 
-        bindings = instance.get_obj('bindings.commands')[mode]
-
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
-        if key in bindings and not force:
+        if key in self.get_bindings_for(mode) and not force:
             raise configexc.DuplicateKeyError(key)
-        bindings[key] = command
+
+        val.bindings.commands[mode][key] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
         key = self._prepare(key, mode)
-        bindings = instance.get_obj('bindings.commands')[mode]
-        try:
-            del bindings[key]
-        except KeyError:
+
+        if val.bindings.commands[mode] and key in val.bindings.commands[mode]:
+            # In custom bindings -> remove it
+            del val.bindings.commands[mode][key]
+        elif val.bindings.default[mode] and key in val.bindings.default[mode]:
+            # In default bindings -> shadow it with <unbound>
+            # FIXME:conf what value to use here?
+            val.bindings.commands[mode][key] = '<unbound>'
+        else:
             raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
                                             .format(key, mode))
+
         self._config.update_mutables(save_yaml=save_yaml)
 
     def get_command(self, key, mode):
@@ -302,14 +317,11 @@ class ConfigCommands:
                   (default: `normal`).
             force: Rebind the key if it is already bound.
         """
-        if utils.is_special_key(key):
-            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            key = utils.normalize_keystr(key)
-
-        if mode not in val.bindings.commands:
-            raise cmdexc.CommandError("Invalid mode {}!".format(mode))
-
         if command is None:
+            if utils.is_special_key(key):
+                # key_instance.get_command does this, but we also need it
+                # normalized for the output below
+                key = utils.normalize_keystr(key)
             cmd = key_instance.get_command(key, mode)
             if cmd is None:
                 message.info("{} is unbound in {} mode".format(key, mode))

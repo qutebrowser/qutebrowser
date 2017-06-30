@@ -96,11 +96,12 @@ class KeyHintView(QLabel):
             return any(fnmatch.fnmatchcase(keychain, glob)
                        for glob in blacklist)
 
-        if config.val.bindings.commands[modename] is None:
+        bindings_dict = config.key_instance.get_bindings_for(modename)
+        if not bindings_dict:
             bindings = []
         else:
             bindings = [(k, v) for (k, v)
-                        in config.val.bindings.commands[modename].items()
+                        in bindings_dict.items()
                         if k.startswith(prefix) and
                         not utils.is_special_key(k) and
                         not blacklisted(k)]

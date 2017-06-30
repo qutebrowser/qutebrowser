@@ -345,7 +345,7 @@ class BaseKeyParser(QObject):
         self.bindings = {}
         self.special_bindings = {}
 
-        for key, cmd in config.val.bindings.commands[modename].items():
+        for key, cmd in config.key_instance.get_bindings_for(modename).items():
             assert cmd
             self._parse_key_command(modename, key, cmd)
 
