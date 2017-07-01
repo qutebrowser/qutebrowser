@@ -726,18 +726,32 @@ class Command(BaseType):
 
     """Base class for a command value with arguments."""
 
+    # See to_py for details
+    unvalidated = False
+
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
 
-        # FIXME:conf is it okay to import runners.py here?
-        from qutebrowser.commands import runners, cmdexc
-        parser = runners.CommandParser()
-        try:
-            list(parser.parse_all(value))
-        except cmdexc.Error as e:
-            raise configexc.ValidationError(value, str(e))
+        # This requires some trickery, as runners.CommandParser uses
+        # conf.val.aliases, which in turn map to a command again,
+        # leading to an endless recursion.
+        # To fix that, we turn off validating other commands (alias values)
+        # while validating a command.
+        # FIXME:conf Can't test this because we don't have a real config in
+        # TestCommand
+        if not Command.unvalidated:  # pragma: no branch
+            Command.unvalidated = True
+            try:
+                from qutebrowser.commands import runners, cmdexc
+                parser = runners.CommandParser()
+                try:
+                    list(parser.parse_all(value))
+                except cmdexc.Error as e:
+                    raise configexc.ValidationError(value, str(e))
+            finally:
+                Command.unvalidated = False
 
         return value
 

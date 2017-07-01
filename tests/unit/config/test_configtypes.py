@@ -1035,6 +1035,7 @@ class TestCommand:
             'cmd2': stubs.FakeCommand(desc="desc 2")})
         monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
         # FIXME:conf use some kind of config_stub here
+        # also remove the no branch pragma from configtypes.Command then
         ns = types.SimpleNamespace()
         ns.aliases = {'alias': 'cmd1'}
         monkeypatch.setattr('qutebrowser.config.config.val', ns)
