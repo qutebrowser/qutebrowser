@@ -21,10 +21,7 @@
 
 Module attributes:
 
-FIRST_COMMENT: The initial comment header to place in the config.
-SECTION_DESC: A dictionary with descriptions for sections.
-DATA: A global read-only copy of the default config, an OrderedDict of
-      sections.
+DATA: A dict of Option objects after init() has been called.
 """
 
 # FIXME:conf reintroduce interpolation?
@@ -40,37 +37,8 @@ from qutebrowser.utils import usertypes, qtutils, utils
 DATA = None
 
 
-FIRST_COMMENT = r"""
-# vim: ft=dosini
-
-# Configfile for qutebrowser.
-#
-# This configfile is parsed by python's configparser in extended
-# interpolation mode. The format is very INI-like, so there are
-# categories like [general] with "key = value"-pairs.
-#
-# Note that you shouldn't add your own comments, as this file is
-# regenerated every time the config is saved.
-#
-# Interpolation looks like  ${value}  or  ${section:value} and will be
-# replaced by the respective value.
-#
-# Some settings will expand environment variables. Note that, since
-# interpolation is run first, you will need to escape the  $  char as
-# described below.
-#
-# This is the default config, so if you want to remove anything from
-# here (as opposed to change/add), for example a key binding, set it to
-# an empty value.
-#
-# You will need to escape the following values:
-#   - # at the start of the line (at the first position of the key) (\#)
-#   - $ in a value ($$)
-"""
-
-
-DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
 # FIXME:conf what to do about this?
+DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
 MONOSPACE = (' xos4 Terminus, Terminus, Monospace, '
              '"DejaVu Sans Mono", Monaco, '
              '"Bitstream Vera Sans Mono", "Andale Mono", '
