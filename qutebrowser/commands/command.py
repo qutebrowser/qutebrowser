@@ -90,7 +90,7 @@ class Command:
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, modes=None, not_modes=None, debug=False,
-                 ignore_args=False, deprecated=False, no_cmd_split=False,
+                 deprecated=False, no_cmd_split=False,
                  star_args_optional=False, scope='global', backend=None,
                  no_replace_variables=False):
         # I really don't know how to solve this in a better way, I tried.
@@ -121,7 +121,6 @@ class Command:
         self._scope = scope
         self._star_args_optional = star_args_optional
         self.debug = debug
-        self.ignore_args = ignore_args
         self.handler = handler
         self.no_cmd_split = no_cmd_split
         self.backend = backend
@@ -225,33 +224,31 @@ class Command:
         else:
             self.desc = ""
 
-        if not self.ignore_args:
-            for param in signature.parameters.values():
-                # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
-                # "Python has no explicit syntax for defining positional-only
-                # parameters, but many built-in and extension module functions
-                # (especially those that accept only one or two parameters)
-                # accept them."
-                assert param.kind != inspect.Parameter.POSITIONAL_ONLY
-                if param.name == 'self':
-                    continue
-                if self._inspect_special_param(param):
-                    continue
-                if (param.kind == inspect.Parameter.KEYWORD_ONLY and
-                        param.default is inspect.Parameter.empty):
-                    raise TypeError("{}: handler has keyword only argument "
-                                    "{!r} without default!".format(self.name,
-                                                                   param.name))
-                typ = self._get_type(param)
-                is_bool = typ is bool
-                kwargs = self._param_to_argparse_kwargs(param, is_bool)
-                args = self._param_to_argparse_args(param, is_bool)
-                callsig = debug_utils.format_call(
-                    self.parser.add_argument, args, kwargs,
-                    full=False)
-                log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
-                    param.name, typ, callsig))
-                self.parser.add_argument(*args, **kwargs)
+        for param in signature.parameters.values():
+            # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+            # "Python has no explicit syntax for defining positional-only
+            # parameters, but many built-in and extension module functions
+            # (especially those that accept only one or two parameters) accept
+            # them."
+            assert param.kind != inspect.Parameter.POSITIONAL_ONLY
+            if param.name == 'self':
+                continue
+            if self._inspect_special_param(param):
+                continue
+            if (param.kind == inspect.Parameter.KEYWORD_ONLY and
+                    param.default is inspect.Parameter.empty):
+                raise TypeError("{}: handler has keyword only argument {!r} "
+                                "without default!".format(
+                                    self.name, param.name))
+            typ = self._get_type(param)
+            is_bool = typ is bool
+            kwargs = self._param_to_argparse_kwargs(param, is_bool)
+            args = self._param_to_argparse_args(param, is_bool)
+            callsig = debug_utils.format_call(self.parser.add_argument, args,
+                                              kwargs, full=False)
+            log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
+                param.name, typ, callsig))
+            self.parser.add_argument(*args, **kwargs)
         return signature.parameters.values()
 
     def _param_to_argparse_kwargs(self, param, is_bool):
@@ -452,12 +449,6 @@ class Command:
         args = []
         kwargs = {}
         signature = inspect.signature(self.handler)
-
-        if self.ignore_args:
-            if self._instance is not None:
-                param = list(signature.parameters.values())[0]
-                self._get_self_arg(win_id, param, args)
-            return args, kwargs
 
         for i, param in enumerate(signature.parameters.values()):
             arg_info = self.get_arg_info(param)

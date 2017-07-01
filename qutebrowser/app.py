@@ -642,7 +642,25 @@ class Quitter:
         else:
             return True
 
-    @cmdutils.register(instance='quitter', name='quit', ignore_args=True)
+    @cmdutils.register(instance='quitter', name='quit')
+    @cmdutils.argument('session', completion=usertypes.Completion.sessions)
+    def quit(self, save=False, session=None):
+        """Quit qutebrowser.
+
+        Args:
+            save: When given, save the open windows even if auto_save.session is
+                  turned off.
+            session: The name of the session to save.
+        """
+        if session is not None and not save:
+            raise cmdexc.CommandError("Session name given without --save!")
+        if save:
+            if session is None:
+                session = sessions.default
+            self.shutdown(session=session)
+        else:
+            self.shutdown()
+
     def shutdown(self, status=0, session=None, last_window=False,
                  restart=False):
         """Quit qutebrowser.
