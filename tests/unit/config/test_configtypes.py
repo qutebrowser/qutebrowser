@@ -253,12 +253,16 @@ class TestAll:
     def test_none_ok_true(self, klass):
         """Test None and empty string values with none_ok=True."""
         typ = klass(none_ok=True)
-        if isinstance(typ, (configtypes.Dict, configtypes.List)):
-            expected = typ._none_value()
+        if isinstance(typ, configtypes.Padding):
+            to_py_expected = configtypes.PaddingValues(None, None, None, None)
+        elif isinstance(typ, configtypes.Dict):
+            to_py_expected = {}
+        elif isinstance(typ, configtypes.List):
+            to_py_expected = []
         else:
-            expected = None
-        assert typ.from_str('') == expected
-        assert typ.to_py(None) == expected
+            to_py_expected = None
+        assert typ.from_str('') is None
+        assert typ.to_py(None) == to_py_expected
         assert typ.to_str(None) == ''
 
     @pytest.mark.parametrize('method, value', [
@@ -575,7 +579,8 @@ class TestList:
         except configexc.ValidationError:
             pass
         else:
-            assert typ.from_str(typ.to_str(converted)) == converted
+            expected = converted if converted else None
+            assert typ.from_str(typ.to_str(converted)) == expected
 
     @hypothesis.given(val=strategies.lists(strategies.just('foo')))
     def test_hypothesis_text(self, klass, val):
@@ -1434,7 +1439,8 @@ class TestDict:
                   none_ok=True)
         try:
             converted = d.to_py(val)
-            assert d.from_str(d.to_str(converted)) == converted
+            expected = converted if converted else None
+            assert d.from_str(d.to_str(converted)) == expected
         except configexc.ValidationError:
             # Invalid unicode in the string, etc...
             hypothesis.assume(False)

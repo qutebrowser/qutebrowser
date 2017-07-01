@@ -189,6 +189,8 @@ class KeyConfig:
             raise configexc.DuplicateKeyError(key)
 
         bindings = self._config.get_obj('bindings.commands')
+        if mode not in bindings:
+            bindings[mode] = {}
         bindings[mode][key] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
@@ -198,11 +200,13 @@ class KeyConfig:
 
         bindings_commands = self._config.get_obj('bindings.commands')
 
-        if key in bindings_commands:
+        if key in val.bindings.commands[mode]:
             # In custom bindings -> remove it
             del bindings_commands[mode][key]
         elif key in val.bindings.default[mode]:
             # In default bindings -> shadow it with None
+            if mode not in bindings_commands:
+                bindings_commands[mode] = {}
             bindings_commands[mode][key] = None
         else:
             raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"

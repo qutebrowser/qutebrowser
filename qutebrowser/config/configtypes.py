@@ -389,18 +389,6 @@ class List(BaseType):
         self.valtype = valtype
         self.length = length
 
-    def _none_value(self, value=None):
-        """Return the value to be used when the setting is None.
-
-        Args:
-            value: An existing value to be returned.
-        """
-        if value is None:
-            return []
-        else:
-            assert value == [], value
-            return value
-
     def get_name(self):
         name = super().get_name()
         if self._show_valtype:
@@ -413,7 +401,7 @@ class List(BaseType):
     def from_str(self, value):
         self._basic_str_validation(value)
         if not value:
-            return self._none_value()
+            return None
 
         try:
             yaml_val = utils.yaml_load(value)
@@ -428,7 +416,7 @@ class List(BaseType):
     def to_py(self, value):
         self._basic_py_validation(value, list)
         if not value:
-            return self._none_value(value)
+            return []
 
         if self.length is not None and len(value) != self.length:
             raise configexc.ValidationError(value, "Exactly {} values need to "
@@ -1052,31 +1040,10 @@ class Dict(BaseType):
             raise configexc.ValidationError(
                 value, "Required keys {}".format(self.required_keys))
 
-    def _none_value(self, value=None):
-        """Return the value to be used when the setting is None.
-
-        Args:
-            value: An existing value to be returned.
-        """
-        if self.fixed_keys is None:
-            if value is None:
-                return {}
-            else:
-                assert value == {}, value
-                return value
-        else:
-            if value is None:
-                return {key: {} for key in self.fixed_keys}
-            else:
-                assert value == {}, value
-                for key in self.fixed_keys:
-                    value[key] = {}
-                return value
-
     def from_str(self, value):
         self._basic_str_validation(value)
         if not value:
-            return self._none_value()
+            return None
 
         try:
             yaml_val = utils.yaml_load(value)
@@ -1091,7 +1058,11 @@ class Dict(BaseType):
     def to_py(self, value):
         self._basic_py_validation(value, dict)
         if not value:
-            return self._none_value(value)
+            if self.fixed_keys is None:
+                return {}
+            else:
+                return {key: self.valtype.to_py(None)
+                        for key in self.fixed_keys}
 
         self._validate_keys(value)
 
@@ -1197,7 +1168,7 @@ class ShellCommand(List):
     def from_str(self, value):
         self._basic_str_validation(value)
         if not value:
-            return self._none_value()
+            return None
 
         try:
             split_val = shlex.split(value)
@@ -1316,17 +1287,13 @@ class Padding(Dict):
     _show_valtype = False
 
     def __init__(self, none_ok=False):
-        super().__init__(keytype=String(), valtype=Int(minval=0),
+        super().__init__(keytype=String(),
+                         valtype=Int(minval=0, none_ok=none_ok),
                          fixed_keys=['top', 'bottom', 'left', 'right'],
                          none_ok=none_ok)
 
-    def _none_value(self, _value=None):
-        return None
-
     def to_py(self, value):
         d = super().to_py(value)
-        if not d:
-            return None
         return PaddingValues(**d)
 
 
