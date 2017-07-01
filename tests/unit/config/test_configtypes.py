@@ -1398,7 +1398,7 @@ class TestDict:
         assert typ.from_str('{"answer": 42}') == {"answer": 42}
 
     @pytest.mark.parametrize('kind, val, ok', [
-        ('fixed', {"one": "1"}, False),  # missing key
+        ('fixed', {"one": "1"}, True),  # missing key (gets filled with None)
         ('fixed', {"one": "1", "two": "2", "three": "3"}, False),  # extra key
         ('fixed', {"one": "1", "two": "2"}, True),
 
@@ -1410,7 +1410,7 @@ class TestDict:
     def test_keys(self, klass, kind, val, ok, from_str):
         if kind == 'fixed':
             d = klass(keytype=configtypes.String(),
-                      valtype=configtypes.String(),
+                      valtype=configtypes.String(none_ok=True),
                       fixed_keys=['one', 'two'])
             message = 'Expected keys .*'
         elif kind == 'required':

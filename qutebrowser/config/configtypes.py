@@ -1031,10 +1031,11 @@ class Dict(BaseType):
         self.required_keys = required_keys
 
     def _validate_keys(self, value):
-        if (self.fixed_keys is not None and
-                value.keys() != set(self.fixed_keys)):
+        if (self.fixed_keys is not None and not
+                set(value.keys()).issubset(self.fixed_keys)):
             raise configexc.ValidationError(
                 value, "Expected keys {}".format(self.fixed_keys))
+
         if (self.required_keys is not None and not
                 set(self.required_keys).issubset(value.keys())):
             raise configexc.ValidationError(
@@ -1055,19 +1056,25 @@ class Dict(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
+    def _fill_fixed_keys(self, value):
+        """Fill missing fixed keys with a None-value."""
+        if self.fixed_keys is None:
+            return value
+        for key in self.fixed_keys:
+            if key not in value:
+                value[key] = self.valtype.to_py(None)
+        return value
+
     def to_py(self, value):
         self._basic_py_validation(value, dict)
         if not value:
-            if self.fixed_keys is None:
-                return {}
-            else:
-                return {key: self.valtype.to_py(None)
-                        for key in self.fixed_keys}
+            return self._fill_fixed_keys({})
 
         self._validate_keys(value)
 
-        return {self.keytype.to_py(key): self.valtype.to_py(val)
-                for key, val in value.items()}
+        d = {self.keytype.to_py(key): self.valtype.to_py(val)
+             for key, val in value.items()}
+        return self._fill_fixed_keys(d)
 
     def to_str(self, value):
         if not value:

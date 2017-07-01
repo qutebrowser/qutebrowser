@@ -2095,6 +2095,7 @@ bindings.commands:
                  'prompt', 'caret', 'register']
     valtype:
       name: Dict
+      none_ok: true
       keytype: Key
       valtype:
         name: Command
