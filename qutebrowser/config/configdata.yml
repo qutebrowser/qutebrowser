@@ -392,8 +392,10 @@ content.netrc_file:
   type:
     name: File
     none_ok: true
-  desc: Set location of a netrc-file for HTTP authentication. If unset, ~/.netrc
-    is used.
+  desc: >-
+    Location of a netrc-file for HTTP authentication.
+
+    If unset, `~/.netrc` is used.
 
 content.notifications:
   default: ask
@@ -640,8 +642,11 @@ downloads.location.directory:
   type:
     name: Directory
     none_ok: true
-  desc: The directory to save downloads to. If unset,  a sensible os-specific
-    default is used. Will expand environment variables.
+  desc: >-
+    The directory to save downloads to.
+
+    If unset, a sensible os-specific default is used.
+    Will expand environment variables.
 
 downloads.location.prompt:
   default: true

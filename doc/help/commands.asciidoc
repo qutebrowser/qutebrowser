@@ -281,7 +281,7 @@ Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] ['url']+
 
 Navigate to a url formed in an external editor.
 
-The editor which should be launched can be configured via the `general -> editor` config option.
+The editor which should be launched can be configured via the `editor.command` config option.
 
 ==== positional arguments
 * +'url'+: URL to edit; defaults to the current page url.
@@ -338,7 +338,7 @@ Show help about a command or setting.
 * +'topic'+: The topic to show help for. 
 
  - :__command__ for commands.
- - __option.foo.bar__ for settings.
+ - __section__.__option__ for settings.
 
 
 ==== optional arguments
@@ -408,7 +408,7 @@ Start hinting.
 * +*-m*+, +*--mode*+: The hinting mode to use. 
 
  - `number`: Use numeric hints.
- - `letter`: Use the chars in the hints.chars settings.
+ - `letter`: Use the chars in the hints.chars setting.
  - `word`: Use hint words based on the html elements and the
  extra words.
  
@@ -545,7 +545,7 @@ For `increment` and `decrement`, the number to change the URL by. For `up`, the 
 
 [[open]]
 === open
-Syntax: +:open [*--implicit*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
+Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
      ['url']+
 
 Open a URL in the current/[count]th tab.
@@ -556,7 +556,7 @@ If the URL contains newlines, each line gets opened in its own tab.
 * +'url'+: The URL to open.
 
 ==== optional arguments
-* +*-i*+, +*--implicit*+: If opening a new tab, treat the tab as implicit (like clicking on a link).
+* +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
 
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
@@ -632,7 +632,16 @@ Save the current page as a quickmark.
 
 [[quit]]
 === quit
+Syntax: +:quit [*--save*] ['session']+
+
 Quit qutebrowser.
+
+==== positional arguments
+* +'session'+: The name of the session to save.
+
+==== optional arguments
+* +*-s*+, +*--save*+: When given, save the open windows even if auto_save.session is turned off.
+
 
 [[record-macro]]
 === record-macro
@@ -752,7 +761,7 @@ Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-win
 Save a session.
 
 ==== positional arguments
-* +'name'+: The name of the session. If not given, the session configured in general -> session-default-name is saved.
+* +'name'+: The name of the session. If not given, the session configured in session_default_name is saved.
 
 
 ==== optional arguments
@@ -764,19 +773,18 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['section'] ['option'] ['values' ['values' ...]]+
+Syntax: +:set [*--temp*] [*--print*] ['option'] ['values' ['values' ...]]+
 
 Set an option.
 
 If the option name ends with '?', the value of the option is shown instead. If the option name ends with '!' and it is a boolean value, toggle it.
 
 ==== positional arguments
-* +'section'+: The section where the option is in.
 * +'option'+: The name of the option.
 * +'values'+: The value to set, or the values to cycle through.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Set value temporarily.
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
 [[set-cmd-text]]
@@ -843,7 +851,7 @@ Close the current/[count]th tab.
 ==== optional arguments
 * +*-p*+, +*--prev*+: Force selecting the tab before the current tab.
 * +*-n*+, +*--next*+: Force selecting the tab after the current tab.
-* +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs->select-on-remove'.
+* +*-o*+, +*--opposite*+: Force selecting the tab in the opposite direction of what's configured in 'tabs.select_on_remove'.
 
 * +*-f*+, +*--force*+: Avoid confirmation for pinned tabs.
 
@@ -911,7 +919,7 @@ Close all tabs except for the current one.
 === tab-pin
 Pin/Unpin the current/[count]th tab.
 
-Pinning a tab shrinks it to tabs->pinned-width size. Attempting to close a pinned tab will cause a confirmation, unless --force is passed.
+Pinning a tab shrinks it to `tabs.width.pinned` size. Attempting to close a pinned tab will cause a confirmation, unless --force is passed.
 
 ==== count
 The tab index to pin or unpin
@@ -931,8 +939,7 @@ Unbind a keychain.
 
 ==== positional arguments
 * +'key'+: The keychain or special key (inside <...>) to unbind.
-* +'mode'+: A comma-separated list of modes to unbind the key in (default: `normal`).
-
+* +'mode'+: A mode to unbind the key in (default: `normal`).
 
 [[undo]]
 === undo
@@ -1043,6 +1050,7 @@ How many steps to zoom out.
 |<<move-to-start-of-line,move-to-start-of-line>>|Move the cursor or selection to the start of the line.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
+|<<nop,nop>>|Do nothing.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
@@ -1290,11 +1298,15 @@ Move the cursor or selection to the start of previous block.
 ==== count
 How many blocks to move.
 
+[[nop]]
+=== nop
+Do nothing.
+
 [[open-editor]]
 === open-editor
 Open an external editor with the currently selected form field.
 
-The editor which should be launched can be configured via the `general -> editor` config option.
+The editor which should be launched can be configured via the `editor.command` config option.
 
 [[prompt-accept]]
 === prompt-accept

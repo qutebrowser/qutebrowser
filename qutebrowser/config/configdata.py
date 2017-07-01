@@ -79,7 +79,8 @@ MONOSPACE = (' xos4 Terminus, Terminus, Monospace, '
 
 
 Option = collections.namedtuple('Option', ['name', 'typ', 'default',
-                                           'backends', 'description'])
+                                           'backends', 'conditional_backends',
+                                           'description'])
 
 
 def _raise_invalid_node(name, what, node):
@@ -183,15 +184,20 @@ def _parse_yaml_backends(name, node):
        QtWebKit: true
        QtWebEngine: Qt 5.9
       -> setting available based on the given conditionals.
+
+    Return:
+        A list of backends, and a boolean whether the list is conditional based
+        on the Qt version.
     """
     if node is None:
-        return [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
+        return ([usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine],
+                False)
     elif node == 'QtWebKit':
-        return [usertypes.Backend.QtWebKit]
+        return ([usertypes.Backend.QtWebKit], False)
     elif node == 'QtWebEngine':
-        return [usertypes.Backend.QtWebEngine]
+        return ([usertypes.Backend.QtWebEngine], False)
     elif isinstance(node, dict):
-        return _parse_yaml_backends_dict(name, node)
+        return (_parse_yaml_backends_dict(name, node), True)
     _raise_invalid_node(name, 'backends', node)
 
 
@@ -214,11 +220,15 @@ def _read_yaml(yaml_data):
             raise ValueError("Invalid keys {} for {}".format(
                 option.keys(), name))
 
+        backends, conditional_backends = _parse_yaml_backends(
+            name, option.get('backend', None))
+
         parsed[name] = Option(
             name=name,
             typ=_parse_yaml_type(name, option['type']),
             default=option['default'],
-            backends=_parse_yaml_backends(name, option.get('backend', None)),
+            backends=backends,
+            conditional_backends=conditional_backends,
             description=option['desc'])
 
     # Make sure no key shadows another.
