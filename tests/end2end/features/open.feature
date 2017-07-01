@@ -77,10 +77,10 @@ Feature: Opening pages
                 - active: true
                   url: http://localhost:*/data/numbers/6.txt
 
-    Scenario: Opening in a new tab (explicit)
+    Scenario: Opening in a new tab (unrelated)
         Given I open about:blank
-        When I set tabs.new_position_explicit to next
-        And I set tabs.new_position to prev
+        When I set tabs.new_position.unrelated to next
+        And I set tabs.new_position.related to prev
         And I run :tab-only
         And I run :open -t http://localhost:(port)/data/numbers/7.txt
         And I wait until data/numbers/7.txt is loaded
@@ -88,12 +88,12 @@ Feature: Opening pages
             - about:blank
             - data/numbers/7.txt (active)
 
-    Scenario: Opening in a new tab (implicit)
+    Scenario: Opening in a new tab (related)
         Given I open about:blank
-        When I set tabs.new_position_explicit to next
-        And I set tabs.new_position to prev
+        When I set tabs.new_position.unrelated to next
+        And I set tabs.new_position.related to prev
         And I run :tab-only
-        And I run :open -t -i http://localhost:(port)/data/numbers/8.txt
+        And I run :open -t --related http://localhost:(port)/data/numbers/8.txt
         And I wait until data/numbers/8.txt is loaded
         Then the following tabs should be open:
             - data/numbers/8.txt (active)

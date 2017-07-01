@@ -385,7 +385,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
-    def tabopen(self, url=None, background=None, explicit=False, idx=None, *,
+    def tabopen(self, url=None, background=None, related=True, idx=None, *,
                 ignore_tabs_are_windows=False):
         """Open a new tab with a given URL.
 
@@ -396,12 +396,13 @@ class TabbedBrowser(tabwidget.TabWidget):
             url: The URL to open as QUrl or None for an empty tab.
             background: Whether to open the tab in the background.
                         if None, the background-tabs setting decides.
-            explicit: Whether the tab was opened explicitly.
-                      If this is set, the new position might be different. With
-                      the default settings we handle it like Chromium does:
-                          - Tabs from clicked links etc. are to the right of
-                            the current.
-                          - Explicitly opened tabs are at the very right.
+            related: Whether the tab was opened from another existing tab.
+                     If this is set, the new position might be different. With
+                     the default settings we handle it like Chromium does:
+                         - Tabs from clicked links etc. are to the right of
+                           the current (related=True).
+                         - Explicitly opened tabs are at the very right
+                           (related=False)
             idx: The index where the new tab should be opened.
             ignore_tabs_are_windows: If given, never open a new window, even
                                      with tabs-are-windows set.
@@ -412,8 +413,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         if url is not None:
             qtutils.ensure_valid(url)
         log.webview.debug("Creating new tab with URL {}, background {}, "
-                          "explicit {}, idx {}".format(
-                              url, background, explicit, idx))
+                          "related {}, idx {}".format(
+                              url, background, related, idx))
 
         if (config.val.tabs.tabs_are_windows and self.count() > 0 and
                 not ignore_tabs_are_windows):
@@ -422,14 +423,15 @@ class TabbedBrowser(tabwidget.TabWidget):
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
-            return tabbed_browser.tabopen(url, background, explicit)
+            return tabbed_browser.tabopen(url=url, background=background,
+                                          related=related)
 
         tab = browsertab.create(win_id=self._win_id, private=self.private,
                                 parent=self)
         self._connect_tab_signals(tab)
 
         if idx is None:
-            idx = self._get_new_tab_idx(explicit)
+            idx = self._get_new_tab_idx(related)
         self.insertTab(idx, tab, "")
 
         if url is not None:
@@ -456,19 +458,19 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.new_tab.emit(tab, idx)
         return tab
 
-    def _get_new_tab_idx(self, explicit):
+    def _get_new_tab_idx(self, related):
         """Get the index of a tab to insert.
 
         Args:
-            explicit: Whether the tab was opened explicitly.
+            related: Whether the tab was opened from another tab (as a "child")
 
         Return:
             The index of the new tab.
         """
-        if explicit:
-            pos = config.val.tabs.new_position_explicit
+        if related:
+            pos = config.val.tabs.new_position.related
         else:
-            pos = config.val.tabs.new_position
+            pos = config.val.tabs.new_position.unrelated
         if pos == 'prev':
             idx = self._tab_insert_idx_left
             # On first sight, we'd think we have to decrement

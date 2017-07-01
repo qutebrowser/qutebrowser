@@ -110,7 +110,7 @@ class CommandDispatcher:
         return widget
 
     def _open(self, url, tab=False, background=False, window=False,
-              explicit=True, private=None):
+              related=False, private=None):
         """Helper function to open a page.
 
         Args:
@@ -131,9 +131,9 @@ class CommandDispatcher:
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
         elif tab:
-            tabbed_browser.tabopen(url, background=False, explicit=explicit)
+            tabbed_browser.tabopen(url, background=False, related=related)
         elif background:
-            tabbed_browser.tabopen(url, background=True, explicit=explicit)
+            tabbed_browser.tabopen(url, background=True, related=related)
         else:
             widget = self._current_widget()
             widget.openurl(url)
@@ -288,7 +288,7 @@ class CommandDispatcher:
                        maxsplit=0, scope='window')
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
-    def openurl(self, url=None, implicit=False,
+    def openurl(self, url=None, related=False,
                 bg=False, tab=False, window=False, count=None, secure=False,
                 private=False):
         """Open a URL in the current/[count]th tab.
@@ -300,8 +300,8 @@ class CommandDispatcher:
             bg: Open in a new background tab.
             tab: Open in a new tab.
             window: Open in a new window.
-            implicit: If opening a new tab, treat the tab as implicit (like
-                      clicking on a link).
+            related: If opening a new tab, position the tab as related to the
+                     current one (like clicking on a link).
             count: The tab index to open the URL in, or None.
             secure: Force HTTPS.
             private: Open a new window in private browsing mode.
@@ -319,7 +319,7 @@ class CommandDispatcher:
                 bg = True
 
             if tab or bg or window or private:
-                self._open(cur_url, tab, bg, window, explicit=not implicit,
+                self._open(cur_url, tab, bg, window, related=related,
                            private=private)
             else:
                 curtab = self._cntwidget(count)
@@ -629,7 +629,7 @@ class CommandDispatcher:
                         tab=tab, background=bg, window=window)
             elif where in ['up', 'increment', 'decrement']:
                 new_url = handlers[where](url, count)
-                self._open(new_url, tab, bg, window, explicit=False)
+                self._open(new_url, tab, bg, window, related=True)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
                                 "`where'.".format(where))

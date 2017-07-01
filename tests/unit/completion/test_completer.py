@@ -104,7 +104,7 @@ def cmdutils_patch(monkeypatch, stubs):
 
     @cmdutils.argument('url', completion=usertypes.Completion.url)
     @cmdutils.argument('count', count=True)
-    def openurl(url=None, implicit=False, bg=False, tab=False, window=False,
+    def openurl(url=None, related=False, bg=False, tab=False, window=False,
                 count=None):
         """docstring."""
         pass

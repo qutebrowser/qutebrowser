@@ -1048,15 +1048,15 @@ tabs.mousewheel_switching:
   type: Bool
   desc: Switch between tabs using the mouse wheel.
 
-tabs.new_position:
+tabs.new_position.related:
   default: next
   type: NewTabPosition
-  desc: How new tabs are positioned.
+  desc: How new tabs opened from another tab are positioned.
 
-tabs.new_position_explicit:
+tabs.new_position.unrelated:
   default: last
   type: NewTabPosition
-  desc: How new tabs opened explicitly are positioned.
+  desc: "How new tabs which aren't opened from another tab are positioned."
 
 tabs.padding:
   default:
