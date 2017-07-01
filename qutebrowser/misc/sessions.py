@@ -458,7 +458,7 @@ class SessionManager(QObject):
                 for win in old_windows:
                     win.close()
 
-    @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
+    @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=usertypes.Completion.sessions)
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('with_private', flag='p')

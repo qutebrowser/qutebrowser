@@ -35,7 +35,6 @@ from qutebrowser.utils import usertypes, typing
 def clear_globals(monkeypatch):
     """Clear the cmdutils globals between each test."""
     monkeypatch.setattr(cmdutils, 'cmd_dict', {})
-    monkeypatch.setattr(cmdutils, 'aliases', [])
 
 
 def _get_cmd(*args, **kwargs):
@@ -88,7 +87,6 @@ class TestRegister:
         assert cmd.handler is fun
         assert cmd.name == 'fun'
         assert len(cmdutils.cmd_dict) == 1
-        assert not cmdutils.aliases
 
     def test_underlines(self):
         """Make sure the function name is normalized correctly (_ -> -)."""
@@ -120,30 +118,16 @@ class TestRegister:
         assert cmdutils.cmd_dict['foobar'].name == 'foobar'
         assert 'fun' not in cmdutils.cmd_dict
         assert len(cmdutils.cmd_dict) == 1
-        assert not cmdutils.aliases
-
-    def test_multiple_names(self):
-        """Test register with name being a list."""
-        @cmdutils.register(name=['foobar', 'blub'])
-        def fun():
-            """Blah."""
-            pass
-
-        assert cmdutils.cmd_dict['foobar'].name == 'foobar'
-        assert cmdutils.cmd_dict['blub'].name == 'foobar'
-        assert 'fun' not in cmdutils.cmd_dict
-        assert len(cmdutils.cmd_dict) == 2
-        assert cmdutils.aliases == ['blub']
 
     def test_multiple_registrations(self):
         """Make sure registering the same name twice raises ValueError."""
-        @cmdutils.register(name=['foobar', 'blub'])
+        @cmdutils.register(name='foobar')
         def fun():
             """Blah."""
             pass
 
         with pytest.raises(ValueError):
-            @cmdutils.register(name=['blah', 'blub'])
+            @cmdutils.register(name=['foobar'])
             def fun2():
                 """Blah."""
                 pass

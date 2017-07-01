@@ -642,8 +642,7 @@ class Quitter:
         else:
             return True
 
-    @cmdutils.register(instance='quitter', name=['quit', 'q'],
-                       ignore_args=True)
+    @cmdutils.register(instance='quitter', name='quit', ignore_args=True)
     def shutdown(self, status=0, session=None, last_window=False,
                  restart=False):
         """Quit qutebrowser.

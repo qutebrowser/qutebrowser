@@ -1,7 +1,9 @@
 ## general
 
 aliases:
-  default: {}
+  default:
+    w: session-save
+    q: quit
   type:
     name: Dict
     keytype:
@@ -11,11 +13,6 @@ aliases:
     none_ok: true
   desc: >-
     Aliases for commands.
-
-    By default, no aliases are defined. Example which adds a new command `:qtb`
-    to open qutebrowsers website:
-
-    `{qtb: open https://www.qutebrowser.org/}`
 
 auto_search:
   type:

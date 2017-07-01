@@ -21,7 +21,6 @@
 
 Module attributes:
     cmd_dict: A mapping from command-strings to command objects.
-    aliases: A list of all aliases, needed for doc generation.
 """
 
 import inspect
@@ -30,7 +29,6 @@ from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
 
 cmd_dict = {}
-aliases = []
 
 
 def check_overflow(arg, ctype):
@@ -88,7 +86,7 @@ class register:  # pylint: disable=invalid-name
         self._name = name
         self._kwargs = kwargs
 
-    def _get_names(self, func):
+    def _get_name(self, func):
         """Get the name(s) which should be used for the current command.
 
         If the name hasn't been overridden explicitly, the function name is
@@ -105,9 +103,8 @@ class register:  # pylint: disable=invalid-name
         """
         if self._name is None:
             return [func.__name__.lower().replace('_', '-')]
-        elif isinstance(self._name, str):
-            return [self._name]
         else:
+            assert isinstance(self._name, str)
             return self._name
 
     def __call__(self, func):
@@ -124,17 +121,17 @@ class register:  # pylint: disable=invalid-name
         Return:
             The original function (unmodified).
         """
-        global aliases
-        names = self._get_names(func)
-        log.commands.vdebug("Registering command {}".format(names[0]))
-        for name in names:
-            if name in cmd_dict:
-                raise ValueError("{} is already registered!".format(name))
-        cmd = command.Command(name=names[0], instance=self._instance,
+        if self._name is None:
+            name = func.__name__.lower().replace('_', '-')
+        else:
+            assert isinstance(self._name, str), self._name
+            name = self._name
+        log.commands.vdebug("Registering command {}".format(name))
+        if name in cmd_dict:
+            raise ValueError("{} is already registered!".format(name))
+        cmd = command.Command(name=name, instance=self._instance,
                               handler=func, **self._kwargs)
-        for name in names:
-            cmd_dict[name] = cmd
-        aliases += names[1:]
+        cmd_dict[name] = cmd
         return func
 
 
