@@ -131,6 +131,15 @@ class KeyConfig:
     def __init__(self, config):
         self._config = config
 
+    def _prepare(self, key, mode):
+        """Make sure the given mode exists and normalize the key."""
+        if mode not in configdata.DATA['bindings.default'].default:
+            raise configexc.KeybindingError("Invalid mode {}!".format(mode))
+        if utils.is_special_key(key):
+            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+            return utils.normalize_keystr(key)
+        return key
+
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
         bindings = dict(val.bindings.default[mode])
@@ -156,14 +165,11 @@ class KeyConfig:
                     cmd_to_keys[cmd].insert(0, key)
         return cmd_to_keys
 
-    def _prepare(self, key, mode):
-        """Make sure the given mode exists and normalize the key."""
-        if mode not in configdata.DATA['bindings.default'].default:
-            raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        if utils.is_special_key(key):
-            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            return utils.normalize_keystr(key)
-        return key
+    def get_command(self, key, mode):
+        """Get the command for a given key (or None)."""
+        key = self._prepare(key, mode)
+        bindings = self.get_bindings_for(mode)
+        return bindings.get(key, None)
 
     def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
@@ -175,7 +181,7 @@ class KeyConfig:
         except cmdexc.Error as e:
             raise configexc.KeybindingError("Invalid command: {}".format(e))
 
-        for result in results:
+        for result in results:  # pragma: no branch
             try:
                 result.cmd.validate_mode(usertypes.KeyMode[mode])
             except cmdexc.PrerequisitesError as e:
@@ -207,15 +213,10 @@ class KeyConfig:
                 bindings_commands[mode] = {}
             bindings_commands[mode][key] = None
         else:
-            raise configexc.KeybindingError("Can't find binding '{}' in section '{}'!"
-                                            .format(key, mode))
+            raise configexc.KeybindingError(
+                "Can't find binding '{}' in {} mode".format(key, mode))
 
         self._config.update_mutables(save_yaml=save_yaml)
-
-    def get_command(self, key, mode):
-        """Get the command for a given key (or None)."""
-        key = self._prepare(key, mode)
-        return val.bindings.commands[mode].get(key, None)
 
 
 class ConfigCommands:
