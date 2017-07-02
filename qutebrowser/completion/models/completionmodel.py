@@ -22,7 +22,6 @@
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils
-from qutebrowser.commands import cmdexc
 
 
 class CompletionModel(QAbstractItemModel):

@@ -25,35 +25,26 @@ from helpers import utils
 from qutebrowser.completion.models import listcategory
 
 
-@pytest.mark.parametrize('pattern, filter_cols, before, after', [
-    ('foo', [0],
-     [('foo', '', ''), ('bar', '', '')],
-     [('foo', '', '')]),
+@pytest.mark.parametrize('pattern, before, after', [
+    ('foo',
+     [('foo', ''), ('bar', '')],
+     [('foo', '')]),
 
-    ('foo', [0],
-     [('foob', '', ''), ('fooc', '', ''), ('fooa', '', '')],
-     [('fooa', '', ''), ('foob', '', ''), ('fooc', '', '')]),
+    ('foo',
+     [('foob', ''), ('fooc', ''), ('fooa', '')],
+     [('fooa', ''), ('foob', ''), ('fooc', '')]),
 
     # prefer foobar as it starts with the pattern
-    ('foo', [0],
-     [('barfoo', '', ''), ('foobar', '', '')],
-     [('foobar', '', ''), ('barfoo', '', '')]),
+    ('foo',
+     [('barfoo', ''), ('foobar', '')],
+     [('foobar', ''), ('barfoo', '')]),
 
-    ('foo', [1],
-     [('foo', 'bar', ''), ('bar', 'foo', '')],
-     [('bar', 'foo', '')]),
-
-    ('foo', [0, 1],
-     [('foo', 'bar', ''), ('bar', 'foo', ''), ('bar', 'bar', '')],
-     [('foo', 'bar', ''), ('bar', 'foo', '')]),
-
-    ('foo', [0, 1, 2],
-     [('foo', '', ''), ('bar', '')],
-     [('foo', '', '')]),
+    ('foo',
+     [('foo', 'bar'), ('bar', 'foo'), ('bar', 'bar')],
+     [('foo', 'bar'), ('bar', 'foo')]),
 ])
-def test_set_pattern(pattern, filter_cols, before, after):
+def test_set_pattern(pattern, before, after):
     """Validate the filtering and sorting results of set_pattern."""
-    cat = listcategory.ListCategory('Foo', before,
-                                    columns_to_filter=filter_cols)
+    cat = listcategory.ListCategory('Foo', before)
     cat.set_pattern(pattern)
     utils.validate_model(cat, after)

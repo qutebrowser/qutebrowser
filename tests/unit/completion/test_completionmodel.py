@@ -27,7 +27,7 @@ import pytest
 from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.commands import cmdexc
+from qutebrowser.utils import qtutils
 
 
 @hypothesis.given(strategies.lists(min_size=0, max_size=3,
@@ -91,5 +91,5 @@ def test_delete_cur_item():
 def test_delete_cur_item_no_cat():
     """Test completion_item_del with no selected category."""
     model = completionmodel.CompletionModel()
-    with pytest.raises(cmdexc.CommandError, match='No category selected'):
+    with pytest.raises(qtutils.QtValueError):
         model.delete_cur_item(QModelIndex())

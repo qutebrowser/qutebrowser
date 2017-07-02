@@ -92,7 +92,6 @@ def buffer():
 
     Used for switching the buffer command.
     """
-
     def delete_buffer(data):
         """Close the selected tab."""
         win_id, tab_index = data[0].split('/')
