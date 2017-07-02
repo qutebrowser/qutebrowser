@@ -47,7 +47,7 @@ MONOSPACE = (' xos4 Terminus, Terminus, Monospace, '
 
 
 Option = collections.namedtuple('Option', ['name', 'typ', 'default',
-                                           'backends', 'conditional_backends',
+                                           'backends', 'raw_backends',
                                            'description'])
 
 
@@ -154,18 +154,16 @@ def _parse_yaml_backends(name, node):
       -> setting available based on the given conditionals.
 
     Return:
-        A list of backends, and a boolean whether the list is conditional based
-        on the Qt version.
+        A list of backends.
     """
     if node is None:
-        return ([usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine],
-                False)
+        return [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
     elif node == 'QtWebKit':
-        return ([usertypes.Backend.QtWebKit], False)
+        return [usertypes.Backend.QtWebKit]
     elif node == 'QtWebEngine':
-        return ([usertypes.Backend.QtWebEngine], False)
+        return [usertypes.Backend.QtWebEngine]
     elif isinstance(node, dict):
-        return (_parse_yaml_backends_dict(name, node), True)
+        return _parse_yaml_backends_dict(name, node)
     _raise_invalid_node(name, 'backends', node)
 
 
@@ -188,15 +186,14 @@ def _read_yaml(yaml_data):
             raise ValueError("Invalid keys {} for {}".format(
                 option.keys(), name))
 
-        backends, conditional_backends = _parse_yaml_backends(
-            name, option.get('backend', None))
+        backends = option.get('backend', None)
 
         parsed[name] = Option(
             name=name,
             typ=_parse_yaml_type(name, option['type']),
             default=option['default'],
-            backends=backends,
-            conditional_backends=conditional_backends,
+            backends=_parse_yaml_backends(name, backends),
+            raw_backends=backends if isinstance(backends, dict) else None,
             description=option['desc'])
 
     # Make sure no key shadows another.

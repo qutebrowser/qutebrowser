@@ -439,9 +439,6 @@ content.print_element_backgrounds:
     Whether the background color and images are also drawn when the page is
     printed.
 
-    # FIXME:conf This should be added automatically:
-    # This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
-
 content.private_browsing:
   type: Bool
   default: false
@@ -459,10 +456,6 @@ content.proxy:
 
     In addition to the listed values, you can use a `socks://...` or `http://...`
     URL.
-
-    # FIXME:conf This should be added automatically:
-    # This setting only works with Qt 5.8 or newer when using the QtWebEngine
-    # backend.
 
 content.proxy_dns_requests:
   default: true

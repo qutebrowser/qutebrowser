@@ -387,7 +387,16 @@ def _generate_setting_option(f, opt):
         f.write("Default: empty\n")
 
     all_backends = [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
-    if opt.backends == all_backends or opt.conditional_backends:
+    if opt.raw_backends is not None:
+        for name, conditional in sorted(opt.raw_backends.items()):
+            if conditional is True:
+                pass
+            elif conditional is False:
+                f.write("\nOn {}, this setting is unavailable.\n".format(name))
+            else:
+                f.write("\nOn {}, this setting requires {} or newer.\n"
+                        .format(name, conditional))
+    elif opt.backends == all_backends:
         pass
     elif opt.backends == [usertypes.Backend.QtWebKit]:
         f.write("\nThis setting is only available with the QtWebKit "
