@@ -1979,7 +1979,7 @@ bindings.default:
       <Ctrl-B>: hint all tab-bg
       <Escape>: leave-mode
     passthrough:
-      <Escape>: leave-mode
+      <Ctrl-V>: leave-mode
     command:
       # FIXME:conf what to do about up/down?
       <Ctrl-P>: command-history-prev

@@ -263,7 +263,17 @@ class StatusBar(QWidget):
 
     def _set_mode_text(self, mode):
         """Set the mode text."""
-        text = "-- {} MODE --".format(mode.upper())
+        if mode == 'passthrough':
+            key_instance = config.key_instance
+            all_bindings = key_instance.get_reverse_bindings_for('passthrough')
+            bindings = all_bindings.get('leave-mode')
+            if bindings:
+                suffix = ' ({} to leave)'.format(bindings[0])
+            else:
+                suffix = ''
+        else:
+            suffix = ''
+        text = "-- {} MODE --{}".format(mode.upper(), suffix)
         self.txt.set_text(self.txt.Text.normal, text)
 
     def _show_cmd_widget(self):
