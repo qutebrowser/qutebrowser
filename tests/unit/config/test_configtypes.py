@@ -1027,19 +1027,23 @@ class TestPercOrInt:
 
 class TestCommand:
 
-    @pytest.fixture(autouse=True)
-    def patch(self, monkeypatch, stubs):
+    @pytest.fixture
+    def patch_cmdutils(self, monkeypatch, stubs):
         """Patch the cmdutils module to provide fake commands."""
         cmd_utils = stubs.FakeCmdUtils({
             'cmd1': stubs.FakeCommand(desc="desc 1"),
             'cmd2': stubs.FakeCommand(desc="desc 2")})
         monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
+        monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
+
+    @pytest.fixture(autouse=True)
+    def patch_aliases(self, monkeypatch):
+        """Patch the aliases setting."""
         # FIXME:conf use some kind of config_stub here
         # also remove the no branch pragma from configtypes.Command then
         ns = types.SimpleNamespace()
         ns.aliases = {'alias': 'cmd1'}
         monkeypatch.setattr('qutebrowser.config.config.val', ns)
-        monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
 
     @pytest.fixture
     def klass(self):
@@ -1047,16 +1051,26 @@ class TestCommand:
 
     @pytest.mark.parametrize('val', ['cmd1', 'cmd2', 'cmd1  foo bar',
                                      'cmd2  baz fish', 'alias foo'])
-    def test_to_py_valid(self, klass, val):
+    def test_to_py_valid(self, patch_cmdutils, klass, val):
         expected = None if not val else val
         assert klass().to_py(val) == expected
 
     @pytest.mark.parametrize('val', ['cmd3', 'cmd3  foo bar', ' '])
-    def test_to_py_invalid(self, klass, val):
+    def test_to_py_invalid(self, patch_cmdutils, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
-    def test_complete(self, klass):
+    def test_cmdline(self, klass, cmdline_test):
+        """Test some commandlines from the cmdline_test fixture."""
+        import qutebrowser.app  # to run decorators
+        typ = klass()
+        if cmdline_test.valid:
+            typ.to_py(cmdline_test.cmd)
+        else:
+            with pytest.raises(configexc.ValidationError):
+                typ.to_py(cmdline_test.cmd)
+
+    def test_complete(self, patch_cmdutils, klass):
         """Test completion."""
         items = klass().complete()
         assert len(items) == 2
