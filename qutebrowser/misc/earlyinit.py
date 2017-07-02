@@ -336,6 +336,13 @@ def check_libraries(backend):
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
                          pip="PyYAML"),
+        'PyQt5.QtSql':
+            _missing_str("PyQt5.QtSql",
+                         windows="Use the installer by Riverbank computing "
+                                 "or the standalone qutebrowser exe. "
+                                 "http://www.riverbankcomputing.co.uk/"
+                                 "software/pyqt/download5",
+                         pip="PyQt5"),
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
@@ -393,6 +400,12 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
+def check_sqlite():
+    from PyQt5.QtSql import QSqlDatabase
+    if not QSqlDatabase.isDriverAvailable('SQLITE'):
+        _die('sqlite driver not available! Is sqlite installed?')
+
+
 def set_backend(backend):
     """Set the objects.backend global to the given backend (as string)."""
     from qutebrowser.misc import objects
@@ -432,4 +445,5 @@ def earlyinit(args):
     check_libraries(backend)
     check_ssl_support(backend)
     check_optimize_flag()
+    check_sqlite()
     set_backend(backend)
