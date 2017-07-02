@@ -418,76 +418,33 @@ class ConfigStub(QObject):
 
     Attributes:
         data: The config data to return.
+        val: A ConfigContainer
     """
 
-    # FIXME:conf refactor...
-
-    changed = pyqtSignal(str, str)
+    changed = pyqtSignal(str)
 
     def __init__(self, parent=None):
-        """Constructor.
-
-        Args:
-            signal: The signal to use for self.changed.
-        """
         super().__init__(parent)
         self.data = {}
+        self.val = None
 
     def __getitem__(self, name):
         return self.section(name)
 
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Return:
-            The section as dict.
-        """
-        return self.data[name]
-
-    def get(self, sect, opt, raw=True):
+    def get(self, name):
         """Get a value from the config."""
-        data = self.data[sect]
         try:
-            return data[opt]
+            return self.data[name]
         except KeyError:
-            raise configexc.NoOptionError(opt, sect)
+            raise configexc.NoOptionError(name)
 
-    def set(self, sect, opt, value):
+    def set_obj(self, name, value):
         """Set a value in the config."""
-        data = self.data[sect]
         try:
-            data[opt] = value
-            self.changed.emit(sect, opt)
+            self.data[name] = value
+            self.changed.emit(name)
         except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-
-class KeyConfigStub:
-
-    """Stub for the key-config object."""
-
-    def __init__(self):
-        self.bindings = {}
-
-    def get_bindings_for(self, section):
-        return self.bindings.get(section)
-
-    def set_bindings_for(self, section, bindings):
-        self.bindings[section] = bindings
-
-    def get_reverse_bindings_for(self, section):
-        """Get a dict of commands to a list of bindings for the section."""
-        cmd_to_keys = collections.defaultdict(list)
-        for key, cmd in self.bindings[section].items():
-            # put special bindings last
-            if utils.is_special_key(key):
-                cmd_to_keys[cmd].append(key)
-            else:
-                cmd_to_keys[cmd].insert(0, key)
-        return cmd_to_keys
+            raise configexc.NoOptionError(name)
 
 
 class UrlMarkManagerStub(QObject):

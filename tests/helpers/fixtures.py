@@ -203,31 +203,53 @@ def cmdline_test(request):
 
 
 @pytest.fixture
-def config_stub(stubs):
+def config_stub(stubs, monkeypatch):
     """Fixture which provides a fake config object."""
-    stub = stubs.ConfigStub()
-    objreg.register('config', stub)
-    yield stub
-    objreg.delete('config')
+    conf = stubs.ConfigStub()
+    monkeypatch.setattr(config, 'instance', conf)
+
+    container = config.ConfigContainer(conf)
+    monkeypatch.setattr(config, 'val', container)
+
+    conf.val = container
+    return conf
 
 
 @pytest.fixture
 def default_config():
     """Fixture that provides and registers an empty default config object."""
-    config_obj = config.ConfigManager()
-    config_obj.read(configdir=None, fname=None, relaxed=True)
-    objreg.register('config', config_obj)
-    yield config_obj
-    objreg.delete('config')
+    # FIXME:conf
+    return None
 
 
 @pytest.fixture
 def key_config_stub(stubs):
     """Fixture which provides a fake key config object."""
-    stub = stubs.KeyConfigStub()
-    objreg.register('key-config', stub)
-    yield stub
-    objreg.delete('key-config')
+    # FIXME:conf
+    # class KeyConfigStub:
+    #
+    #     """Stub for the key-config object."""
+    #
+    #     def __init__(self):
+    #         self.bindings = {}
+    #
+    #     def get_bindings_for(self, section):
+    #         return self.bindings.get(section)
+    #
+    #     def set_bindings_for(self, section, bindings):
+    #         self.bindings[section] = bindings
+    #
+    #     def get_reverse_bindings_for(self, section):
+    #         """Get a dict of commands to a list of bindings for the section."""
+    #         cmd_to_keys = collections.defaultdict(list)
+    #         for key, cmd in self.bindings[section].items():
+    #             # put special bindings last
+    #             if utils.is_special_key(key):
+    #                 cmd_to_keys[cmd].append(key)
+    #             else:
+    #                 cmd_to_keys[cmd].insert(0, key)
+    #         return cmd_to_keys
+    return None
 
 
 @pytest.fixture

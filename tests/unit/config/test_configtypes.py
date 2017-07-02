@@ -27,7 +27,6 @@ import collections
 import itertools
 import warnings
 import inspect
-import types
 import functools
 
 import pytest
@@ -209,12 +208,9 @@ class TestAll:
                 yield member
 
     @pytest.fixture(autouse=True)
-    def patch(self, monkeypatch):
+    def patch_aliases(self, config_stub):
         """Patch aliases so Command works."""
-        # FIXME:conf use some kind of config_stub here
-        ns = types.SimpleNamespace()
-        ns.aliases = {}
-        monkeypatch.setattr('qutebrowser.config.config.val', ns)
+        config_stub.val.aliases = {}
 
     @pytest.fixture(params=list(gen_classes()))
     def klass(self, request):
@@ -1037,13 +1033,10 @@ class TestCommand:
         monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
 
     @pytest.fixture(autouse=True)
-    def patch_aliases(self, monkeypatch):
+    def patch_aliases(self, config_stub):
         """Patch the aliases setting."""
-        # FIXME:conf use some kind of config_stub here
-        # also remove the no branch pragma from configtypes.Command then
-        ns = types.SimpleNamespace()
-        ns.aliases = {'alias': 'cmd1'}
-        monkeypatch.setattr('qutebrowser.config.config.val', ns)
+        # FIXME:conf use the real config so we can test the RecursionError
+        config_stub.val.aliases = {'alias': 'cmd1'}
 
     @pytest.fixture
     def klass(self):
