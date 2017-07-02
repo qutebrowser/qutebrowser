@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, history
-from qutebrowser.config import configexc
+from qutebrowser.config import configexc, configdata
 from qutebrowser.utils import usertypes, utils
 from qutebrowser.mainwindow import mainwindow
 
@@ -425,6 +425,8 @@ class ConfigStub(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        if configdata.DATA is None:
+            configdata.init()
         self.data = {}
         self.val = None
 

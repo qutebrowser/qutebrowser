@@ -22,30 +22,14 @@ import logging
 
 import pytest
 from PyQt5.QtCore import QObject
-from PyQt5.QtGui import QColor
 
 from qutebrowser.config import style
 
 
-@pytest.mark.parametrize('template, expected', [
-    ("{{ color['completion.bg'] }}", "black"),
-    ("{{ color['completion.fg'] }}", "red"),
-    ("{{ font['completion'] }}", "foo"),
-    ("{{ config.get('foo', 'bar') }}", "baz"),
-])
-def test_get_stylesheet(config_stub, template, expected):
-    config_stub.data = {
-        'colors': {
-            'completion.bg': 'black',
-            'completion.fg': 'red',
-        },
-        'fonts': {
-            'completion': 'foo',
-        },
-        'foo': {'bar': 'baz'},
-    }
-    rendered = style.get_stylesheet(template)
-    assert rendered == expected
+def test_get_stylesheet(config_stub):
+    config_stub.val.colors.completion.bg = 'magenta'
+    rendered = style.get_stylesheet("{{ conf.colors.completion.bg }}")
+    assert rendered == 'magenta'
 
 
 class Obj(QObject):
@@ -61,27 +45,25 @@ class Obj(QObject):
 
 @pytest.mark.parametrize('delete', [True, False])
 def test_set_register_stylesheet(delete, qtbot, config_stub, caplog):
-    config_stub.data = {'fonts': {'foo': 'bar'}, 'colors': {}}
-    obj = Obj("{{ font['foo'] }}")
+    config_stub.val.colors.completion.fg = 'magenta'
+    obj = Obj("{{ conf.colors.completion.fg }}")
 
     with caplog.at_level(9):  # VDEBUG
         style.set_register_stylesheet(obj)
 
     assert len(caplog.records) == 1
-    assert caplog.records[0].message == 'stylesheet for Obj: bar'
+    assert caplog.records[0].message == 'stylesheet for Obj: magenta'
 
-    assert obj.rendered_stylesheet == 'bar'
+    assert obj.rendered_stylesheet == 'magenta'
 
     if delete:
         with qtbot.waitSignal(obj.destroyed):
             obj.deleteLater()
 
-    config_stub.data = {'fonts': {'foo': 'baz'}, 'colors': {}}
-    style.get_stylesheet.cache_clear()
-    config_stub.changed.emit('fonts', 'foo')
+    config_stub.val.colors.completion.fg = 'yellow'
 
     if delete:
-        expected = 'bar'
+        expected = 'magenta'
     else:
-        expected = 'baz'
+        expected = 'yellow'
     assert obj.rendered_stylesheet == expected
