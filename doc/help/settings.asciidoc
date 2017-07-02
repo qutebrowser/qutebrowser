@@ -101,16 +101,20 @@
 |<<completion.web_history_max_items,completion.web_history_max_items>>|How many URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Whether to confirm quitting the application.
 |<<content.accept_language,content.accept_language>>|Value to send in the `accept-language` header.
-|<<content.cache_size,content.cache_size>>|Size of the HTTP network cache. Empty to use the default value.
+|<<content.cache.appcache,content.cache.appcache>>|Whether support for the HTML 5 web application cache feature is enabled.
+|<<content.cache.maximum_pages,content.cache.maximum_pages>>|The maximum number of pages to hold in the global memory page cache.
+|<<content.cache.size,content.cache.size>>|Size of the HTTP network cache. Empty to use the default value.
 |<<content.cookies.accept,content.cookies.accept>>|Control which cookies to accept.
 |<<content.cookies.store,content.cookies.store>>|Whether to store cookies. Note this option needs a restart with QtWebEngine on Qt < 5.9.
-|<<content.custom_headers,content.custom_headers>>|Set custom headers for qutebrowser HTTP requests.
 |<<content.default_encoding,content.default_encoding>>|Default encoding to use for websites.
 |<<content.developer_extras,content.developer_extras>>|Enable extra tools for Web developers.
 |<<content.dns_prefetch,content.dns_prefetch>>|Whether to try to pre-fetch DNS entries to speed up browsing.
-|<<content.do_not_track,content.do_not_track>>|Value to send in the `DNT` header.
 |<<content.frame_flattening,content.frame_flattening>>|Whether to  expand each subframe to its contents.
 |<<content.geolocation,content.geolocation>>|Allow websites to request geolocations.
+|<<content.headers.custom,content.headers.custom>>|Set custom headers for qutebrowser HTTP requests.
+|<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
+|<<content.headers.referer,content.headers.referer>>|Send the Referer header
+|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Whether host blocking is enabled.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
@@ -127,20 +131,16 @@
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Whether locally loaded documents are allowed to access other local urls.
 |<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Whether locally loaded documents are allowed to access remote urls.
 |<<content.local_storage,content.local_storage>>|Whether support for HTML 5 local storage and Web SQL is enabled.
-|<<content.maximum_pages_in_cache,content.maximum_pages_in_cache>>|The maximum number of pages to hold in the global memory page cache.
 |<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
 |<<content.netrc_file,content.netrc_file>>|Location of a netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
-|<<content.offline_web_application_cache,content.offline_web_application_cache>>|Whether support for the HTML 5 web application cache feature is enabled.
 |<<content.pdfjs,content.pdfjs>>|Enable pdf.js to view PDF files in the browser.
 |<<content.plugins,content.plugins>>|Enables or disables plugins in Web pages.
 |<<content.print_element_backgrounds,content.print_element_backgrounds>>|Whether the background color and images are also drawn when the page is printed.
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<content.proxy,content.proxy>>|The proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Whether to send DNS requests over the configured proxy.
-|<<content.referer_header,content.referer_header>>|Send the Referer header
 |<<content.ssl_strict,content.ssl_strict>>|Whether to validate SSL handshakes.
-|<<content.user_agent,content.user_agent>>|User agent to send. Unset to send the default.
 |<<content.user_stylesheet,content.user_stylesheet>>|User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
 |<<content.webgl,content.webgl>>|Enables or disables WebGL.
 |<<content.xss_auditing,content.xss_auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
@@ -920,8 +920,33 @@ Value to send in the `accept-language` header.
 
 Default: +pass:[en-US,en]+
 
-[[content.cache_size]]
-== content.cache_size
+[[content.cache.appcache]]
+== content.cache.appcache
+Whether support for the HTML 5 web application cache feature is enabled.
+An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
+The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+This setting is only available with the QtWebKit backend.
+
+[[content.cache.maximum_pages]]
+== content.cache.maximum_pages
+The maximum number of pages to hold in the global memory page cache.
+The Page Cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+
+Default: empty
+
+This setting is only available with the QtWebKit backend.
+
+[[content.cache.size]]
+== content.cache.size
 Size of the HTTP network cache. Empty to use the default value.
 
 Default: empty
@@ -951,12 +976,6 @@ Valid values:
  * +false+
 
 Default: +pass:[true]+
-
-[[content.custom_headers]]
-== content.custom_headers
-Set custom headers for qutebrowser HTTP requests.
-
-Default: empty
 
 [[content.default_encoding]]
 == content.default_encoding
@@ -992,17 +1011,6 @@ Default: +pass:[true]+
 
 This setting is only available with the QtWebKit backend.
 
-[[content.do_not_track]]
-== content.do_not_track
-Value to send in the `DNT` header.
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
-
 [[content.frame_flattening]]
 == content.frame_flattening
 Whether to  expand each subframe to its contents.
@@ -1028,6 +1036,43 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
+
+[[content.headers.custom]]
+== content.headers.custom
+Set custom headers for qutebrowser HTTP requests.
+
+Default: empty
+
+[[content.headers.do_not_track]]
+== content.headers.do_not_track
+Value to send in the `DNT` header.
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[true]+
+
+[[content.headers.referer]]
+== content.headers.referer
+Send the Referer header
+
+Valid values:
+
+ * +always+: Always send.
+ * +never+: Never send; this is not recommended, as some sites may break.
+ * +same-domain+: Only send for the same domain. This will still protect your privacy, but shouldn't break any sites.
+
+Default: +pass:[same-domain]+
+
+This setting is only available with the QtWebKit backend.
+
+[[content.headers.user_agent]]
+== content.headers.user_agent
+User agent to send. Unset to send the default.
+
+Default: empty
 
 [[content.host_blocking.enabled]]
 == content.host_blocking.enabled
@@ -1209,16 +1254,6 @@ Valid values:
 
 Default: +pass:[true]+
 
-[[content.maximum_pages_in_cache]]
-== content.maximum_pages_in_cache
-The maximum number of pages to hold in the global memory page cache.
-The Page Cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
-For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
-
-Default: empty
-
-This setting is only available with the QtWebKit backend.
-
 [[content.media_capture]]
 == content.media_capture
 Allow websites to record audio/video.
@@ -1251,21 +1286,6 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
-
-[[content.offline_web_application_cache]]
-== content.offline_web_application_cache
-Whether support for the HTML 5 web application cache feature is enabled.
-An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
-The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content.pdfjs]]
 == content.pdfjs
@@ -1341,20 +1361,6 @@ Default: +pass:[true]+
 
 This setting is only available with the QtWebKit backend.
 
-[[content.referer_header]]
-== content.referer_header
-Send the Referer header
-
-Valid values:
-
- * +always+: Always send.
- * +never+: Never send; this is not recommended, as some sites may break.
- * +same-domain+: Only send for the same domain. This will still protect your privacy, but shouldn't break any sites.
-
-Default: +pass:[same-domain]+
-
-This setting is only available with the QtWebKit backend.
-
 [[content.ssl_strict]]
 == content.ssl_strict
 Whether to validate SSL handshakes.
@@ -1366,12 +1372,6 @@ Valid values:
  * +ask+
 
 Default: +pass:[ask]+
-
-[[content.user_agent]]
-== content.user_agent
-User agent to send. Unset to send the default.
-
-Default: empty
 
 [[content.user_stylesheet]]
 == content.user_stylesheet

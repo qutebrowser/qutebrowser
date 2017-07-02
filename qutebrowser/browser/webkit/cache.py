@@ -42,10 +42,10 @@ class DiskCache(QNetworkDiskCache):
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
 
-    @config.change_filter('content.cache_size')
+    @config.change_filter('content.cache.size')
     def _set_cache_size(self):
         """Set the cache size based on the config."""
-        size = config.val.content.cache_size
+        size = config.val.content.cache.size
         if size is None:
             size = 1024 * 1024 * 50  # default from QNetworkDiskCachePrivate
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-59909

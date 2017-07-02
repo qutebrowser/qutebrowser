@@ -338,7 +338,7 @@ class NetworkManager(QNetworkAccessManager):
 
     def set_referer(self, req, current_url):
         """Set the referer header."""
-        referer_header_conf = config.val.content.referer_header
+        referer_header_conf = config.val.content.headers.referer
 
         try:
             if referer_header_conf == 'never':

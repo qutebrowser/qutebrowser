@@ -33,11 +33,11 @@ class CallSuper(Exception):
 def custom_headers():
     """Get the combined custom headers."""
     headers = {}
-    dnt = b'1' if config.val.content.do_not_track else b'0'
+    dnt = b'1' if config.val.content.headers.do_not_track else b'0'
     headers[b'DNT'] = dnt
     headers[b'X-Do-Not-Track'] = dnt
 
-    for header, value in config.val.content.custom_headers.items():
+    for header, value in config.val.content.headers.custom.items():
         headers[header.encode('ascii')] = value.encode('ascii')
 
     accept_language = config.val.content.accept_language

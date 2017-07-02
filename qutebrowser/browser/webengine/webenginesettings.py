@@ -163,7 +163,7 @@ def _set_user_agent(profile):
     per-domain user agents), but this one still gets used for things like
     window.navigator.userAgent in JS.
     """
-    profile.setHttpUserAgent(config.val.content.user_agent)
+    profile.setHttpUserAgent(config.val.content.headers.user_agent)
 
 
 def _update_settings(option):
@@ -172,7 +172,7 @@ def _update_settings(option):
     if option in ['scrollbar.hide', 'content.user_stylesheet']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
-    elif option == 'content.user_agent':
+    elif option == 'content.headers.user_agent':
         _set_user_agent(default_profile)
         _set_user_agent(private_profile)
 
@@ -256,7 +256,7 @@ MAPPINGS = {
         Attribute(QWebEngineSettings.WebGLEnabled),
     'content.local_storage':
         Attribute(QWebEngineSettings.LocalStorageEnabled),
-    'content.cache_size':
+    'content.cache.size':
         # 0: automatically managed by QtWebEngine
         DefaultProfileSetter('setHttpCacheMaximumSize', default=0),
     'content.xss_auditing':

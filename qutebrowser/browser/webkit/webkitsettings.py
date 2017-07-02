@@ -177,12 +177,12 @@ MAPPINGS = {
         Attribute(QWebSettings.DnsPrefetchEnabled),
     'content.frame_flattening':
         Attribute(QWebSettings.FrameFlatteningEnabled),
-    'content.offline_web_application_cache':
+    'content.cache.appcache':
         Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),
     'content.local_storage':
         Attribute(QWebSettings.LocalStorageEnabled,
                   QWebSettings.OfflineStorageDatabaseEnabled),
-    'content.maximum_pages_in_cache':
+    'content.cache.maximum_pages':
         StaticSetter(QWebSettings.setMaximumPagesInCache),
     'content.developer_extras':
         Attribute(QWebSettings.DeveloperExtrasEnabled),

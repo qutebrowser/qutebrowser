@@ -436,18 +436,18 @@ Feature: Various utility commands.
     ## Custom headers
 
     Scenario: Setting a custom header
-        When I set content.custom_headers to {"X-Qute-Test": "testvalue"}
+        When I set content.headers.custom to {"X-Qute-Test": "testvalue"}
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
 
     Scenario: DNT header
-        When I set content.do_not_track to true
+        When I set content.headers.do_not_track to true
         And I open headers
         Then the header Dnt should be set to 1
         And the header X-Do-Not-Track should be set to 1
 
     Scenario: DNT header (off)
-        When I set content.do_not_track to false
+        When I set content.headers.do_not_track to false
         And I open headers
         Then the header Dnt should be set to 0
         And the header X-Do-Not-Track should be set to 0
@@ -458,14 +458,14 @@ Feature: Various utility commands.
         Then the header Accept-Language should be set to en,de
 
     Scenario: Setting a custom user-agent header
-        When I set content.user_agent to toaster
+        When I set content.headers.user_agent to toaster
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
         And the javascript message "toaster" should be logged
 
     Scenario: Setting the default user-agent header
-        When I set content.user_agent to <empty>
+        When I set content.headers.user_agent to <empty>
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to Mozilla/5.0 *

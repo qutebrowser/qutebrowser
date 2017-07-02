@@ -71,7 +71,7 @@ content.accept_language:
   default: en-US,en
   desc: Value to send in the `accept-language` header.
 
-content.cache_size:
+content.cache.size:
   default: null
   type:
     name: Int
@@ -79,6 +79,37 @@ content.cache_size:
     minval: 0
     maxval: maxint64
   desc: Size of the HTTP network cache. Empty to use the default value.
+
+# Defaults from QWebSettings::QWebSettings() in
+# qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
+content.cache.maximum_pages:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  backend: QtWebKit
+  desc: >-
+    The maximum number of pages to hold in the global memory page cache.
+
+    The Page Cache allows for a nicer user experience when navigating forth or back
+    to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+
+    For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+
+content.cache.appcache:
+  default: true
+  type: Bool
+  backend: QtWebKit
+  desc: >-
+    Whether support for the HTML 5 web application cache feature is enabled.
+
+    An application cache acts like an HTTP cache in some sense. For documents that
+    use the application cache via JavaScript, the loader engine will first ask the
+    application cache for the contents, before hitting the network.
+
+    The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
 
 content.cookies.accept:
   default: no-3rdparty
@@ -98,19 +129,6 @@ content.cookies.store:
   type: Bool
   desc: Whether to store cookies. Note this option needs a restart with QtWebEngine
     on Qt < 5.9.
-
-content.custom_headers:
-  default: {}
-  type:
-    name: Dict
-    keytype:
-      name: String
-      encoding: ascii
-    valtype:
-      name: String
-      encoding: ascii
-    none_ok: true
-  desc: Set custom headers for qutebrowser HTTP requests.
 
 content.default_encoding:
   type: String
@@ -138,11 +156,6 @@ content.dns_prefetch:
   backend: QtWebKit
   desc: Whether to try to pre-fetch DNS entries to speed up browsing.
 
-content.do_not_track:
-  type: Bool
-  default: true
-  desc: Value to send in the `DNT` header.
-
 content.frame_flattening:
   default: false
   type: Bool
@@ -156,6 +169,87 @@ content.geolocation:
   default: ask
   type: BoolAsk
   desc: Allow websites to request geolocations.
+
+content.headers.custom:
+  default: {}
+  type:
+    name: Dict
+    keytype:
+      name: String
+      encoding: ascii
+    valtype:
+      name: String
+      encoding: ascii
+    none_ok: true
+  desc: Set custom headers for qutebrowser HTTP requests.
+
+content.headers.do_not_track:
+  type: Bool
+  default: true
+  desc: Value to send in the `DNT` header.
+
+content.headers.referer:
+  default: same-domain
+  type:
+    name: String
+    valid_values:
+      - always: "Always send."
+      - never: "Never send; this is not recommended, as some sites may break."
+      - same-domain: "Only send for the same domain. This will still protect
+          your privacy, but shouldn't break any sites."
+  backend: QtWebKit
+  desc: Send the Referer header
+
+content.headers.user_agent:
+  default: null
+  type:
+    name: String
+    none_ok: true
+    completions:
+      # To update the following list of user agents, run the script 'ua_fetch.py'
+      # Vim-protip: Place your cursor below this comment and run
+      # :r!python scripts/dev/ua_fetch.py
+      - - "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101
+          Firefox/53.0"
+        - Firefox 53.0 Win8.1
+      - - "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101
+          Firefox/53.0"
+        - Firefox 53.0 Linux
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0) Gecko/20100101
+          Firefox/53.0"
+        - Firefox 53.0 MacOSX
+
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4
+          (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4"
+        - Safari Generic MacOSX
+      - - "Mozilla/5.0 (iPad; CPU OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30
+          (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1"
+        - Mobile Safari 10.0 iOS
+
+      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+          like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+        - Chrome Generic Win10
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+        - Chrome Generic MacOSX
+      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
+          Gecko) Chrome/58.0.3029.110 Safari/537.36"
+        - Chrome Generic Linux
+
+      - - "Mozilla/5.0 (compatible; Googlebot/2.1;
+          +http://www.google.com/bot.html"
+        - Google Bot
+      - - "Wget/1.16.1 (linux-gnu)"
+        - wget 1.16.1
+      - - "curl/7.40.0"
+        - curl 7.40.0
+      - - "Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 (KHTML, like
+          Gecko) Version/4.0 Mobile Safari/534.30"
+        - Mobile Generic Android
+      - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
+        - IE 11.0 for Desktop Win7 64-bit
+
+  desc: User agent to send. Unset to send the default.
 
 content.host_blocking.enabled:
   default: true
@@ -274,24 +368,6 @@ content.local_storage:
   type: Bool
   desc: Whether support for HTML 5 local storage and Web SQL is enabled.
 
-# Defaults from QWebSettings::QWebSettings() in
-# qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
-
-content.maximum_pages_in_cache:
-  default: 0
-  type:
-    name: Int
-    minval: 0
-    maxval: maxint
-  backend: QtWebKit
-  desc: >-
-    The maximum number of pages to hold in the global memory page cache.
-
-    The Page Cache allows for a nicer user experience when navigating forth or back
-    to pages in the forward/back history, by pausing and resuming up to _n_ pages.
-
-    For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
-
 content.media_capture:
   default: ask
   type: BoolAsk
@@ -312,19 +388,6 @@ content.notifications:
   default: ask
   type: BoolAsk
   desc: Allow websites to show notifications.
-
-content.offline_web_application_cache:
-  default: true
-  type: Bool
-  backend: QtWebKit
-  desc: >-
-    Whether support for the HTML 5 web application cache feature is enabled.
-
-    An application cache acts like an HTTP cache in some sense. For documents that
-    use the application cache via JavaScript, the loader engine will first ask the
-    application cache for the contents, before hitting the network.
-
-    The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
 
 content.pdfjs:
   default: false
@@ -374,73 +437,10 @@ content.proxy_dns_requests:
   backend: QtWebKit
   desc: Whether to send DNS requests over the configured proxy.
 
-content.referer_header:
-  default: same-domain
-  type:
-    name: String
-    valid_values:
-      - always: "Always send."
-      - never: "Never send; this is not recommended, as some sites may break."
-      - same-domain: "Only send for the same domain. This will still protect
-          your privacy, but shouldn't break any sites."
-  backend: QtWebKit
-  desc: Send the Referer header
-
 content.ssl_strict:
   default: ask
   type: BoolAsk
   desc: Whether to validate SSL handshakes.
-
-content.user_agent:
-  default: null
-  type:
-    name: String
-    none_ok: true
-    completions:
-      # To update the following list of user agents, run the script 'ua_fetch.py'
-      # Vim-protip: Place your cursor below this comment and run
-      # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 Win8.1
-      - - "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 Linux
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 MacOSX
-
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4
-          (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4"
-        - Safari Generic MacOSX
-      - - "Mozilla/5.0 (iPad; CPU OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30
-          (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1"
-        - Mobile Safari 10.0 iOS
-
-      - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic Win10
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic MacOSX
-      - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic Linux
-
-      - - "Mozilla/5.0 (compatible; Googlebot/2.1;
-          +http://www.google.com/bot.html"
-        - Google Bot
-      - - "Wget/1.16.1 (linux-gnu)"
-        - wget 1.16.1
-      - - "curl/7.40.0"
-        - curl 7.40.0
-      - - "Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 (KHTML, like
-          Gecko) Version/4.0 Mobile Safari/534.30"
-        - Mobile Generic Android
-      - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
-        - IE 11.0 for Desktop Win7 64-bit
-
-  desc: User agent to send. Unset to send the default.
 
 content.user_stylesheet:
   type:
