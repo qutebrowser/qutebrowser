@@ -137,7 +137,7 @@ class KeyConfig:
         bindings = dict(val.bindings.default[mode])
         for key, binding in val.bindings.commands[mode].items():
             if binding is None:
-                del bindings[key]
+                bindings.pop(key, None)
             else:
                 bindings[key] = binding
         return bindings
@@ -146,9 +146,7 @@ class KeyConfig:
         """Get a dict of commands to a list of bindings for the mode."""
         cmd_to_keys = {}
         bindings = self.get_bindings_for(mode)
-        if bindings is None:
-            return cmd_to_keys
-        for key, full_cmd in bindings.items():
+        for key, full_cmd in sorted(bindings.items()):
             for cmd in full_cmd.split(';;'):
                 cmd = cmd.strip()
                 cmd_to_keys.setdefault(cmd, [])
