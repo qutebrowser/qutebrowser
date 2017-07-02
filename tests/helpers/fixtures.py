@@ -206,7 +206,9 @@ def cmdline_test(request):
 def config_stub(stubs, monkeypatch):
     """Fixture which provides a fake config object."""
     configdata.init()
-    conf = config.Config(yaml_config=None)
+    yaml_config = stubs.FakeYamlConfig()
+
+    conf = config.Config(yaml_config=yaml_config)
     conf.read_configdata()
     monkeypatch.setattr(config, 'instance', conf)
 

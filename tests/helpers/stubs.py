@@ -387,6 +387,12 @@ class InstaTimer(QObject):
         pass
 
 
+class FakeYamlConfig:
+
+    def __init__(self):
+        self.values = {}
+
+
 class FakeConfigType:
 
     """A stub to provide valid_values for typ attribute of a SettingValue."""
@@ -528,6 +534,9 @@ class TabbedBrowserStub(QObject):
         return self.tabs[self.currentIndex() - 1]
 
     def tabopen(self, url):
+        self.opened_url = url
+
+    def openurl(self, url, *, newtab):
         self.opened_url = url
 
 

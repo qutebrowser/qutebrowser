@@ -324,6 +324,35 @@ Feature: Various utility commands.
             - about:blank
             - qute://history/ (active)
 
+    # qute://settings
+
+    Scenario: Focusing input fields in qute://settings and entering valid value
+        When I set ignore_case to never
+        And I open qute://settings
+        # scroll to the right - the table does not fit in the default screen
+        And I run :scroll-perc -x 100
+        And I run :click-element id input-ignore_case
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I press the key "<Ctrl+Backspace>"
+        And I press the keys "always"
+        And I press the key "<Escape>"
+        # an explicit Tab to unfocus the input field seems to stabilize the tests
+        And I press the key "<Tab>"
+        Then the option ignore_case should be set to always
+
+    Scenario: Focusing input fields in qute://settings and entering invalid value
+        When I open qute://settings
+        # scroll to the right - the table does not fit in the default screen
+        And I run :scroll-perc -x 100
+        And I run :click-element id input-ignore_case
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I press the key "<Ctrl+Backspace>"
+        And I press the keys "foo"
+        And I press the key "<Escape>"
+        # an explicit Tab to unfocus the input field seems to stabilize the tests
+        And I press the key "<Tab>"
+        Then "Invalid value 'foo' *" should be logged
+
     # :home
 
     Scenario: :home with single page

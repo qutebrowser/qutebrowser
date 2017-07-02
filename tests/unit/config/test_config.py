@@ -21,10 +21,12 @@
 import copy
 
 import pytest
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, QUrl
 
 import qutebrowser.app  # To register commands
+from qutebrowser.commands import cmdexc
 from qutebrowser.config import config, configdata, configexc
+from qutebrowser.utils import objreg, usertypes
 
 
 @pytest.fixture(autouse=True)
@@ -301,3 +303,163 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
         expected = 'yellow'
 
     assert obj.rendered_stylesheet == expected
+
+
+class TestConfigCommands:
+
+    @pytest.fixture
+    def commands(self, config_stub):
+        return config.ConfigCommands(config_stub)
+
+    @pytest.fixture
+    def tabbed_browser(self, stubs, win_registry):
+        tb = stubs.TabbedBrowserStub()
+        objreg.register('tabbed-browser', tb, scope='window', window=0)
+        yield tb
+        objreg.delete('tabbed-browser', scope='window', window=0)
+
+    def test_set_no_args(self, commands, tabbed_browser):
+        """:set
+
+        Should open qute://settings."""
+        commands.set(win_id=0)
+        assert tabbed_browser.opened_url == QUrl('qute://settings')
+
+    def test_get(self, config_stub, commands, message_mock):
+        """:set url.auto_search?
+
+        Should show the value.
+        """
+        config_stub.val.url.auto_search = 'never'
+        commands.set(win_id=0, option='url.auto_search?')
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        assert msg.text == 'url.auto_search = never'
+
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_set_simple(self, commands, config_stub, temp):
+        """:set [-t] url.auto_search dns
+
+        Should set the setting accordingly.
+        """
+        assert config_stub.val.url.auto_search == 'naive'
+        commands.set(0, 'url.auto_search', 'dns', temp=temp)
+
+        assert config_stub.val.url.auto_search == 'dns'
+
+        if temp:
+            assert 'url.auto_search' not in config_stub._yaml.values
+        else:
+            assert config_stub._yaml.values['url.auto_search'] == 'dns'
+
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_set_temp_override(self, commands, config_stub, temp):
+        """Invoking :set twice.
+
+        :set url.auto_search dns
+        :set -t url.auto_search never
+
+        Should set the setting accordingly.
+        """
+        assert config_stub.val.url.auto_search == 'naive'
+        commands.set(0, 'url.auto_search', 'dns')
+        commands.set(0, 'url.auto_search', 'never', temp=True)
+
+        assert config_stub.val.url.auto_search == 'never'
+        assert config_stub._yaml.values['url.auto_search'] == 'dns'
+
+    def test_set_print(self, config_stub, commands, message_mock):
+        """:set -p url.auto_search never
+
+        Should set show the value.
+        """
+        assert config_stub.val.url.auto_search == 'naive'
+        commands.set(0, 'url.auto_search', 'dns', print_=True)
+
+        assert config_stub.val.url.auto_search == 'dns'
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        assert msg.text == 'url.auto_search = dns'
+
+    def test_set_toggle(self, commands, config_stub):
+        """:set auto_save.config!
+
+        Should toggle the value.
+        """
+        assert config_stub.val.auto_save.config
+        commands.set(0, 'auto_save.config!')
+        assert not config_stub.val.auto_save.config
+        assert not config_stub._yaml.values['auto_save.config']
+
+    def test_set_toggle_nonbool(self, commands, config_stub):
+        """:set url.auto_search!
+
+        Should show an error
+        """
+        assert config_stub.val.url.auto_search == 'naive'
+        with pytest.raises(cmdexc.CommandError, match="set: Can't toggle "
+                           "non-bool setting url.auto_search"):
+            commands.set(0, 'url.auto_search!')
+        assert config_stub.val.url.auto_search == 'naive'
+
+    def test_set_toggle_print(self, commands, config_stub, message_mock):
+        """:set -p auto_save.config!
+
+        Should toggle the value and show the new value.
+        """
+        commands.set(0, 'auto_save.config!', print_=True)
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        assert msg.text == 'auto_save.config = false'
+
+    def test_set_invalid_option(self, commands):
+        """:set foo bar
+
+        Should show an error.
+        """
+        with pytest.raises(cmdexc.CommandError, match="set: No option 'foo'"):
+            commands.set(0, 'foo', 'bar')
+
+    def test_set_invalid_value(self, commands):
+        """:set auto_save.config blah
+
+        Should show an error.
+        """
+        with pytest.raises(cmdexc.CommandError,
+                           match="set: Invalid value 'blah' - must be a "
+                           "boolean!"):
+            commands.set(0, 'auto_save.config', 'blah')
+
+    @pytest.mark.parametrize('option', ['?', '!', 'url.auto_search'])
+    def test_empty(self, commands, option):
+        """:set ? / :set ! / :set url.auto_search
+
+        Should show an error.
+        See https://github.com/qutebrowser/qutebrowser/issues/1109
+        """
+        with pytest.raises(cmdexc.CommandError,
+                           match="set: The following arguments are required: "
+                                 "value"):
+            commands.set(win_id=0, option=option)
+
+    @pytest.mark.parametrize('suffix', '?!')
+    def test_invalid(self, commands, suffix):
+        """:set foo? / :set foo!
+
+        Should show an error.
+        """
+        with pytest.raises(cmdexc.CommandError, match="set: No option 'foo'"):
+            commands.set(win_id=0, option='foo' + suffix)
+
+    @pytest.mark.parametrize('initial, expected', [
+        # Normal cycling
+        ('magenta', 'blue'),
+        # Through the end of the list
+        ('yellow', 'green'),
+        # Value which is not in the list
+        ('red', 'green'),
+    ])
+    def test_cycling(self, commands, config_stub, initial, expected):
+        """:set with multiple values."""
+        opt = 'colors.statusbar.normal.bg'
+        config_stub.set_obj(opt, initial)
+        commands.set(0, opt, 'green', 'magenta', 'blue', 'yellow')
+        assert config_stub.get(opt) == expected
+        assert config_stub._yaml.values[opt] == expected

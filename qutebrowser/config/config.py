@@ -263,7 +263,7 @@ class ConfigCommands:
                     values = ['false', 'true']
                 else:
                     raise cmdexc.CommandError(
-                        "set: Attempted inversion of non-boolean value.")
+                        "set: Can't toggle non-bool setting {}".format(option))
             elif not values:
                 raise cmdexc.CommandError("set: The following arguments "
                                           "are required: value")
