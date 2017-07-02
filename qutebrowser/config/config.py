@@ -365,7 +365,7 @@ class Config(QObject):
                  Those contain the type, default value, etc.
         _values: A dict mapping setting names to their values.
         _mutables: A list of mutable objects to be checked for changes.
-        _yaml: A YamlConfig object.
+        _yaml: A YamlConfig object or None.
 
     Signals:
         changed: Emitted with the option name when an option changed.
@@ -373,12 +373,12 @@ class Config(QObject):
 
     changed = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, yaml_config, parent=None):
         super().__init__(parent)
         self.options = {}
         self._values = {}
         self._mutables = []
-        self._yaml = configfiles.YamlConfig()
+        self._yaml = yaml_config
 
     def _changed(self, name, value):
         """Emit changed signal and log change."""
@@ -605,7 +605,8 @@ def init(parent=None):
     """
     configdata.init()
 
-    config = Config(parent)
+    yaml_config = configfiles.YamlConfig()
+    config = Config(yaml_config=yaml_config, parent=parent)
     config.read_configdata()
     objreg.register('config', config)
 

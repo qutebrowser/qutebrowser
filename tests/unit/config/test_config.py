@@ -23,6 +23,7 @@ import copy
 import pytest
 from PyQt5.QtCore import QObject
 
+import qutebrowser.app  # To register commands
 from qutebrowser.config import config, configdata, configexc
 
 
@@ -85,18 +86,28 @@ class TestKeyConfig:
 
     @pytest.fixture
     def keyconf(self, config_stub):
+        config_stub.val.aliases = {}
         return config.KeyConfig(config_stub)
 
     @pytest.mark.parametrize('commands, expected', [
         # Unbinding default key
-        ({'a': None}, {'b': 'bar'}),
+        ({'a': None}, {'b': 'message-info bar'}),
         # Additional binding
-        ({'c': 'baz'}, {'a': 'foo', 'b': 'bar', 'c': 'baz'}),
+        ({'c': 'message-info baz'},
+         {'a': 'message-info foo', 'b': 'message-info bar', 'c': 'message-info baz'}),
         # Unbinding unknown key
-        ({'x': None}, {'a': 'foo', 'b': 'bar'}),
+        ({'x': None}, {'a': 'message-info foo', 'b': 'message-info bar'}),
     ])
     def test_get_bindings_for(self, keyconf, config_stub, commands, expected):
-        orig_default_bindings = {'normal': {'a': 'foo', 'b': 'bar'}}
+        orig_default_bindings = {'normal': {'a': 'message-info foo',
+                                            'b': 'message-info bar'},
+                                 'insert': {},
+                                 'hint': {},
+                                 'passthrough': {},
+                                 'command': {},
+                                 'prompt': {},
+                                 'caret': {},
+                                 'register': {}}
         config_stub.val.bindings.default = copy.deepcopy(orig_default_bindings)
         config_stub.val.bindings.commands = {'normal': commands}
         bindings = keyconf.get_bindings_for('normal')
@@ -107,13 +118,17 @@ class TestKeyConfig:
 
     @pytest.mark.parametrize('bindings, expected', [
         # Simple
-        ({'a': 'foo', 'b': 'bar'}, {'foo': ['a'], 'bar': ['b']}),
+        ({'a': 'message-info foo', 'b': 'message-info bar'},
+         {'message-info foo': ['a'], 'message-info bar': ['b']}),
         # Multiple bindings
-        ({'a': 'foo', 'b': 'foo'}, {'foo': ['b', 'a']}),
-        # With special keys (should be listed last)
-        ({'a': 'foo', '<Escape>': 'foo'}, {'foo': ['a', '<Escape>']}),
+        ({'a': 'message-info foo', 'b': 'message-info foo'},
+         {'message-info foo': ['b', 'a']}),
+        # With special keys (should be listed last and normalized)
+        ({'a': 'message-info foo', '<Escape>': 'message-info foo'},
+         {'message-info foo': ['a', '<escape>']}),
         # Chained command
-        ({'a': 'foo ;; bar'}, {'foo': ['a'], 'bar': ['a']}),
+        ({'a': 'message-info foo ;; message-info bar'},
+         {'message-info foo': ['a'], 'message-info bar': ['a']}),
     ])
     def test_get_reverse_bindings_for(self, keyconf, config_stub, bindings,
                                       expected):
@@ -148,9 +163,9 @@ class StyleObj(QObject):
 
 
 def test_get_stylesheet(config_stub):
-    config_stub.val.colors.completion.bg = 'magenta'
+    config_stub.val.colors.hints.fg = 'magenta'
     observer = config.StyleSheetObserver(
-        StyleObj(), stylesheet="{{ conf.colors.completion.bg }}")
+        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}")
     assert observer._get_stylesheet() == 'magenta'
 
 
@@ -159,8 +174,8 @@ def test_get_stylesheet(config_stub):
 @pytest.mark.parametrize('update', [True, False])
 def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
                                  config_stub, caplog):
-    config_stub.val.colors.completion.fg = 'magenta'
-    stylesheet = "{{ conf.colors.completion.fg }}"
+    config_stub.val.colors.hints.fg = 'magenta'
+    stylesheet = "{{ conf.colors.hints.fg }}"
 
     with caplog.at_level(9):  # VDEBUG
         if stylesheet_param:
@@ -171,8 +186,7 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
             obj = StyleObj(stylesheet)
             config.set_register_stylesheet(obj, update=update)
 
-    assert len(caplog.records) == 1
-    assert caplog.records[0].message == 'stylesheet for StyleObj: magenta'
+    assert caplog.records[-1].message == 'stylesheet for StyleObj: magenta'
 
     assert obj.rendered_stylesheet == 'magenta'
 
@@ -180,7 +194,7 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
         with qtbot.waitSignal(obj.destroyed):
             obj.deleteLater()
 
-    config_stub.val.colors.completion.fg = 'yellow'
+    config_stub.val.colors.hints.fg = 'yellow'
 
     if delete or not update:
         expected = 'magenta'

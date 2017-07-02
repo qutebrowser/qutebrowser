@@ -38,7 +38,7 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 
 import helpers.stubs as stubsmod
-from qutebrowser.config import config
+from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager
@@ -205,13 +205,15 @@ def cmdline_test(request):
 @pytest.fixture
 def config_stub(stubs, monkeypatch):
     """Fixture which provides a fake config object."""
-    conf = stubs.ConfigStub()
+    configdata.init()
+    conf = config.Config(yaml_config=None)
+    conf.read_configdata()
     monkeypatch.setattr(config, 'instance', conf)
 
     container = config.ConfigContainer(conf)
     monkeypatch.setattr(config, 'val', container)
 
-    conf.val = container
+    conf.val = container  # For easier use in tests
     return conf
 
 

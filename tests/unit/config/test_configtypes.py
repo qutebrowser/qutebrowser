@@ -1036,7 +1036,9 @@ class TestCommand:
     def patch_aliases(self, config_stub):
         """Patch the aliases setting."""
         # FIXME:conf use the real config so we can test the RecursionError
+        configtypes.Command.unvalidated = True
         config_stub.val.aliases = {'alias': 'cmd1'}
+        configtypes.Command.unvalidated = False
 
     @pytest.fixture
     def klass(self):

@@ -412,43 +412,6 @@ class StatusBarCommandStub(QLineEdit):
         return self.text()[0]
 
 
-class ConfigStub(QObject):
-
-    """Stub for the config module.
-
-    Attributes:
-        data: The config data to return.
-        val: A ConfigContainer
-    """
-
-    changed = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        if configdata.DATA is None:
-            configdata.init()
-        self.data = {}
-        self.val = None
-
-    def __getitem__(self, name):
-        return self.section(name)
-
-    def get(self, name):
-        """Get a value from the config."""
-        try:
-            return self.data[name]
-        except KeyError:
-            raise configexc.NoOptionError(name)
-
-    def set_obj(self, name, value):
-        """Set a value in the config."""
-        try:
-            self.data[name] = value
-        except KeyError:
-            raise configexc.NoOptionError(name)
-        self.changed.emit(name)
-
-
 class UrlMarkManagerStub(QObject):
 
     """Stub for the quickmark-manager or bookmark-manager object."""

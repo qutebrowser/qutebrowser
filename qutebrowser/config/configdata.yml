@@ -2070,6 +2070,7 @@ bindings.default:
                  'prompt', 'caret', 'register']
     valtype:
       name: Dict
+      none_ok: true
       keytype: Key
       valtype: Command
   desc: >-
