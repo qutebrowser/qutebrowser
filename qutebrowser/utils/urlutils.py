@@ -70,7 +70,7 @@ def _parse_search_term(s):
     if len(split) == 2:
         engine = split[0]
         try:
-            config.val.searchengines[engine]
+            config.val.url.searchengines[engine]
         except KeyError:
             engine = None
             term = s
@@ -100,7 +100,7 @@ def _get_search_url(txt):
     assert term
     if engine is None:
         engine = 'DEFAULT'
-    template = config.val.searchengines[engine]
+    template = config.val.url.searchengines[engine]
     url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
     qtutils.ensure_valid(url)
     return url
@@ -193,7 +193,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
                   urlstr, url.toDisplayString()))
-    if do_search and config.val.auto_search != 'never' and urlstr:
+    if do_search and config.val.url.auto_search != 'never' and urlstr:
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
@@ -238,7 +238,7 @@ def is_url(urlstr):
     Return:
         True if it is a valid URL, False otherwise.
     """
-    autosearch = config.val.auto_search
+    autosearch = config.val.url.auto_search
 
     log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
                   urlstr, autosearch))

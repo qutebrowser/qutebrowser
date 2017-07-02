@@ -263,11 +263,10 @@ class TabbedBrowser(tabwidget.TabWidget):
             elif last_close == 'blank':
                 self.openurl(QUrl('about:blank'), newtab=True)
             elif last_close == 'startpage':
-                for url in config.val.start_pages:
+                for url in config.val.url.start_pages:
                     self.openurl(url, newtab=True)
             elif last_close == 'default-page':
-                url = config.val.default_page
-                self.openurl(url, newtab=True)
+                self.openurl(config.val.url.default_page, newtab=True)
 
     def _remove_tab(self, tab, *, add_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
@@ -329,8 +328,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             no_history = len(self.widget(0).history) == 1
             urls = {
                 'blank': QUrl('about:blank'),
-                'startpage': config.val.start_pages[0],
-                'default-page': config.val.default_page,
+                'startpage': config.val.url.start_pages[0],
+                'default-page': config.val.url.default_page,
             }
             first_tab_url = self.widget(0).url()
             last_close_urlstr = urls[last_close].toString().rstrip('/')

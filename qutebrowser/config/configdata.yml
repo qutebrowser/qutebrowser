@@ -15,27 +15,10 @@ aliases:
   desc: >-
     Aliases for commands.
 
-auto_search:
-  type:
-    name: String
-    valid_values:
-      - naive: Use simple/naive check.
-      - dns: Use DNS requests (might be slow!).
-      - never: Never search automatically.
-  default: naive
-  desc: Whether to start a search when something else than a URL is entered.
-
 confirm_quit:
   type: ConfirmQuit
   default: [never]
   desc: Whether to confirm quitting the application.
-
-default_page:
-  type: FuzzyUrl
-  default: https://start.duckduckgo.com/
-  desc: >-
-    The page to open if :open -t/-b/-w is used without URL. Use `about:blank`
-    for a blank page.
 
 history_session_interval:
   type: Int
@@ -53,49 +36,6 @@ ignore_case:
   default: smart
   desc: Whether to find text on a page case-insensitively.
 
-new_instance_open_target:
-  type:
-    name: String
-    valid_values:
-      - tab: Open a new tab in the existing window and activate the window.
-      - tab-bg: Open a new background tab in the existing window and activate
-          the window.
-      - tab-silent: Open a new tab in the existing window without activating the
-          window.
-      - tab-bg-silent: Open a new background tab in the existing window without
-          activating the window.
-      - window: Open in a new window.
-  default: tab
-  desc: How to open links in an existing instance if a new one is launched.
-
-new_instance_open_target_window:
-  type:
-    name: String
-    valid_values:
-      - first-opened: Open new tabs in the first (oldest) opened window.
-      - last-opened: Open new tabs in the last (newest) opened window.
-      - last-focused: Open new tabs in the most recently focused window.
-      - last-visible: Open new tabs in the most recently visible window.
-  default: last-focused
-  desc: Which window to choose when opening links as new tabs.
-
-searchengines:
-  default:
-    DEFAULT: https://duckduckgo.com/?q={}
-  type:
-    name: Dict
-    required_keys: ['DEFAULT']
-    keytype: String
-    valtype: SearchEngineUrl
-  desc: >-
-    Definitions of search engines which can be used via the address bar.
-
-    The searchengine named `DEFAULT` is used when `auto_search` is turned on and
-    something else than a URL was entered to be opened. Other search engines can
-    be used by prepending the search engine name to the search term, e.g. `:open
-    google qutebrowser`. The string `{}` will be replaced by the search term,
-    use `{{` and `}}` for literal `{`/`}` signs.
-
 session_default_name:
   type:
     name: SessionName
@@ -103,35 +43,6 @@ session_default_name:
   default: null
   desc: The name of the session to save by default, or unset for the last loaded
     session.
-
-start_pages:
-  type:
-    name: List
-    valtype: FuzzyUrl
-  default: ["https://start.duckduckgo.com"]
-  desc: The default page(s) to open at the start.
-
-url_incdec_segments:
-  type:
-    name: FlagList
-    valid_values: [host, path, query, anchor]
-  default: [path, query]
-  desc: The URL segments where `:navigate increment/decrement` will search for a
-    number.
-
-yank_ignored_url_parameters:
-  type:
-    name: List
-    valtype: String
-    none_ok: true
-  default:
-    - ref
-    - utm_source
-    - utm_medium
-    - utm_campaign
-    - utm_term
-    - utm_content
-  desc: The URL parameters to strip with :yank url.
 
 ## auto_save
 
@@ -1174,6 +1085,97 @@ tabs.wrap:
   default: true
   type: Bool
   desc: Whether to wrap when changing tabs.
+
+## url
+
+url.auto_search:
+  type:
+    name: String
+    valid_values:
+      - naive: Use simple/naive check.
+      - dns: Use DNS requests (might be slow!).
+      - never: Never search automatically.
+  default: naive
+  desc: Whether to start a search when something else than a URL is entered.
+
+url.default_page:
+  type: FuzzyUrl
+  default: https://start.duckduckgo.com/
+  desc: >-
+    The page to open if :open -t/-b/-w is used without URL. Use `about:blank`
+    for a blank page.
+
+url.incdec_segments:
+  type:
+    name: FlagList
+    valid_values: [host, path, query, anchor]
+  default: [path, query]
+  desc: The URL segments where `:navigate increment/decrement` will search for a
+    number.
+
+url.new_instance_open_target:
+  type:
+    name: String
+    valid_values:
+      - tab: Open a new tab in the existing window and activate the window.
+      - tab-bg: Open a new background tab in the existing window and activate
+          the window.
+      - tab-silent: Open a new tab in the existing window without activating the
+          window.
+      - tab-bg-silent: Open a new background tab in the existing window without
+          activating the window.
+      - window: Open in a new window.
+  default: tab
+  desc: How to open links in an existing instance if a new one is launched.
+
+url.new_instance_open_target_window:
+  type:
+    name: String
+    valid_values:
+      - first-opened: Open new tabs in the first (oldest) opened window.
+      - last-opened: Open new tabs in the last (newest) opened window.
+      - last-focused: Open new tabs in the most recently focused window.
+      - last-visible: Open new tabs in the most recently visible window.
+  default: last-focused
+  desc: Which window to choose when opening links as new tabs.
+
+url.searchengines:
+  default:
+    DEFAULT: https://duckduckgo.com/?q={}
+  type:
+    name: Dict
+    required_keys: ['DEFAULT']
+    keytype: String
+    valtype: SearchEngineUrl
+  desc: >-
+    Definitions of search engines which can be used via the address bar.
+
+    The searchengine named `DEFAULT` is used when `url.auto_search` is turned on
+    and something else than a URL was entered to be opened. Other search engines
+    can be used by prepending the search engine name to the search term, e.g.
+    `:open google qutebrowser`. The string `{}` will be replaced by the search
+    term, use `{{` and `}}` for literal `{`/`}` signs.
+
+url.start_pages:
+  type:
+    name: List
+    valtype: FuzzyUrl
+  default: ["https://start.duckduckgo.com"]
+  desc: The default page(s) to open at the start.
+
+url.yank_ignored_parameters:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default:
+    - ref
+    - utm_source
+    - utm_medium
+    - utm_campaign
+    - utm_term
+    - utm_content
+  desc: The URL parameters to strip with :yank url.
 
 ## window
 

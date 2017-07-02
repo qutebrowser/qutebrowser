@@ -601,7 +601,7 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading invalid URL
         When I set downloads.location.prompt to false
-        And I set auto_search to never
+        And I set url.auto_search to never
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 

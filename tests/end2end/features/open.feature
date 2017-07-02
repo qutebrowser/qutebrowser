@@ -17,17 +17,17 @@ Feature: Opening pages
                   url: http://localhost:*/data/numbers/1.txt
 
     Scenario: :open without URL
-        When I set default_page to http://localhost:(port)/data/numbers/11.txt
+        When I set url.default_page to http://localhost:(port)/data/numbers/11.txt
         And I run :open
         Then data/numbers/11.txt should be loaded
 
     Scenario: :open without URL and -t
-        When I set default_page to http://localhost:(port)/data/numbers/2.txt
+        When I set url.default_page to http://localhost:(port)/data/numbers/2.txt
         And I run :open -t
         Then data/numbers/2.txt should be loaded
 
     Scenario: :open with invalid URL
-        When I set auto_search to never
+        When I set url.auto_search to never
         And I run :open foo!
         Then the error "Invalid URL" should be shown
 
@@ -37,7 +37,7 @@ Feature: Opening pages
 
     # FIXME:conf
     # Scenario: Searching with :open
-    #     When I set auto_search to naive
+    #     When I set url.auto_search to naive
     #     And I set searchengines.DEFAULT to http://localhost:(port)/data/numbers/{}.txt
     #     And I run :open 3
     #     Then data/numbers/3.txt should be loaded

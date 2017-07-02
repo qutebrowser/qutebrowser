@@ -11,7 +11,6 @@
 |<<auto_save.config,auto_save.config>>|Whether to save the config automatically on quit.
 |<<auto_save.interval,auto_save.interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
 |<<auto_save.session,auto_save.session>>|Whether to always save the open pages.
-|<<auto_search,auto_search>>|Whether to start a search when something else than a URL is entered.
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 |<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
@@ -145,7 +144,6 @@
 |<<content.user_stylesheet,content.user_stylesheet>>|User stylesheet to use (absolute filename or filename relative to the config directory). Will expand environment variables.
 |<<content.webgl,content.webgl>>|Enables or disables WebGL.
 |<<content.xss_auditing,content.xss_auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
-|<<default_page,default_page>>|The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
 |<<downloads.location.directory,downloads.location.directory>>|The directory to save downloads to.
 |<<downloads.location.prompt,downloads.location.prompt>>|Whether to prompt the user for the download location.
 |<<downloads.location.remember,downloads.location.remember>>|Whether to remember the last used download directory.
@@ -206,15 +204,11 @@
 |<<keyhint.delay,keyhint.delay>>|Time from pressing a key to seeing the keyhint dialog (ms)
 |<<messages.timeout,messages.timeout>>|Time (in ms) to show messages in the statusbar for.
 |<<messages.unfocused,messages.unfocused>>|Whether to show messages in unfocused windows.
-|<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
-|<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
 |<<prompt.radius,prompt.radius>>|The rounding radius for the edges of prompts.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Whether to enable smooth scrolling for web pages. Note smooth scrolling does not work with the `:scroll-px` command.
-|<<searchengines,searchengines>>|Definitions of search engines which can be used via the address bar.
 |<<session_default_name,session_default_name>>|The name of the session to save by default, or unset for the last loaded session.
-|<<start_pages,start_pages>>|The default page(s) to open at the start.
 |<<statusbar.hide,statusbar.hide>>|Whether to hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding for the statusbar.
 |<<statusbar.position,statusbar.position>>|The position of the status bar.
@@ -240,10 +234,16 @@
 |<<tabs.width.indicator,tabs.width.indicator>>|Width of the progress indicator (0 to disable).
 |<<tabs.width.pinned,tabs.width.pinned>>|The width for pinned tabs with a horizontal tabbar, in px.
 |<<tabs.wrap,tabs.wrap>>|Whether to wrap when changing tabs.
-|<<url_incdec_segments,url_incdec_segments>>|The URL segments where `:navigate increment/decrement` will search for a number.
+|<<url.auto_search,url.auto_search>>|Whether to start a search when something else than a URL is entered.
+|<<url.default_page,url.default_page>>|The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
+|<<url.incdec_segments,url.incdec_segments>>|The URL segments where `:navigate increment/decrement` will search for a number.
+|<<url.new_instance_open_target,url.new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
+|<<url.new_instance_open_target_window,url.new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
+|<<url.searchengines,url.searchengines>>|Definitions of search engines which can be used via the address bar.
+|<<url.start_pages,url.start_pages>>|The default page(s) to open at the start.
+|<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|The URL parameters to strip with :yank url.
 |<<window.hide_wayland_decoration,window.hide_wayland_decoration>>|Hide the window decoration when using wayland (requires restart)
 |<<window.title_format,window.title_format>>|The format to use for the window title. The following placeholders are defined:
-|<<yank_ignored_url_parameters,yank_ignored_url_parameters>>|The URL parameters to strip with :yank url.
 |<<zoom.default,zoom.default>>|The default zoom level.
 |<<zoom.levels,zoom.levels>>|The available zoom levels.
 |<<zoom.mouse_divider,zoom.mouse_divider>>|How much to divide the mouse wheel movements to translate them into zoom increments.
@@ -283,18 +283,6 @@ Valid values:
  * +false+
 
 Default: empty
-
-[[auto_search]]
-== auto_search
-Whether to start a search when something else than a URL is entered.
-
-Valid values:
-
- * +naive+: Use simple/naive check.
- * +dns+: Use DNS requests (might be slow!).
- * +never+: Never search automatically.
-
-Default: +pass:[naive]+
 
 [[bindings.commands]]
 == bindings.commands
@@ -1414,12 +1402,6 @@ Valid values:
 
 Default: empty
 
-[[default_page]]
-== default_page
-The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
-
-Default: +pass:[https://start.duckduckgo.com/]+
-
 [[downloads.location.directory]]
 == downloads.location.directory
 The directory to save downloads to.
@@ -1891,33 +1873,6 @@ Valid values:
 
 Default: empty
 
-[[new_instance_open_target]]
-== new_instance_open_target
-How to open links in an existing instance if a new one is launched.
-
-Valid values:
-
- * +tab+: Open a new tab in the existing window and activate the window.
- * +tab-bg+: Open a new background tab in the existing window and activate the window.
- * +tab-silent+: Open a new tab in the existing window without activating the window.
- * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
- * +window+: Open in a new window.
-
-Default: +pass:[tab]+
-
-[[new_instance_open_target_window]]
-== new_instance_open_target_window
-Which window to choose when opening links as new tabs.
-
-Valid values:
-
- * +first-opened+: Open new tabs in the first (oldest) opened window.
- * +last-opened+: Open new tabs in the last (newest) opened window.
- * +last-focused+: Open new tabs in the most recently focused window.
- * +last-visible+: Open new tabs in the most recently visible window.
-
-Default: +pass:[last-focused]+
-
 [[prompt.filebrowser]]
 == prompt.filebrowser
 Show a filebrowser in upload/download prompts.
@@ -1957,24 +1912,11 @@ Valid values:
 
 Default: empty
 
-[[searchengines]]
-== searchengines
-Definitions of search engines which can be used via the address bar.
-The searchengine named `DEFAULT` is used when `auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
-
-Default: +pass:[{&quot;DEFAULT&quot;: &quot;https://duckduckgo.com/?q={}&quot;}]+
-
 [[session_default_name]]
 == session_default_name
 The name of the session to save by default, or unset for the last loaded session.
 
 Default: empty
-
-[[start_pages]]
-== start_pages
-The default page(s) to open at the start.
-
-Default: +pass:[[&quot;https://start.duckduckgo.com&quot;]]+
 
 [[statusbar.hide]]
 == statusbar.hide
@@ -2227,8 +2169,26 @@ Valid values:
 
 Default: +pass:[true]+
 
-[[url_incdec_segments]]
-== url_incdec_segments
+[[url.auto_search]]
+== url.auto_search
+Whether to start a search when something else than a URL is entered.
+
+Valid values:
+
+ * +naive+: Use simple/naive check.
+ * +dns+: Use DNS requests (might be slow!).
+ * +never+: Never search automatically.
+
+Default: +pass:[naive]+
+
+[[url.default_page]]
+== url.default_page
+The page to open if :open -t/-b/-w is used without URL. Use `about:blank` for a blank page.
+
+Default: +pass:[https://start.duckduckgo.com/]+
+
+[[url.incdec_segments]]
+== url.incdec_segments
 The URL segments where `:navigate increment/decrement` will search for a number.
 
 Valid values:
@@ -2239,6 +2199,52 @@ Valid values:
  * +anchor+
 
 Default: +pass:[[&quot;path&quot;, &quot;query&quot;]]+
+
+[[url.new_instance_open_target]]
+== url.new_instance_open_target
+How to open links in an existing instance if a new one is launched.
+
+Valid values:
+
+ * +tab+: Open a new tab in the existing window and activate the window.
+ * +tab-bg+: Open a new background tab in the existing window and activate the window.
+ * +tab-silent+: Open a new tab in the existing window without activating the window.
+ * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
+ * +window+: Open in a new window.
+
+Default: +pass:[tab]+
+
+[[url.new_instance_open_target_window]]
+== url.new_instance_open_target_window
+Which window to choose when opening links as new tabs.
+
+Valid values:
+
+ * +first-opened+: Open new tabs in the first (oldest) opened window.
+ * +last-opened+: Open new tabs in the last (newest) opened window.
+ * +last-focused+: Open new tabs in the most recently focused window.
+ * +last-visible+: Open new tabs in the most recently visible window.
+
+Default: +pass:[last-focused]+
+
+[[url.searchengines]]
+== url.searchengines
+Definitions of search engines which can be used via the address bar.
+The searchengine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+
+Default: +pass:[{&quot;DEFAULT&quot;: &quot;https://duckduckgo.com/?q={}&quot;}]+
+
+[[url.start_pages]]
+== url.start_pages
+The default page(s) to open at the start.
+
+Default: +pass:[[&quot;https://start.duckduckgo.com&quot;]]+
+
+[[url.yank_ignored_parameters]]
+== url.yank_ignored_parameters
+The URL parameters to strip with :yank url.
+
+Default: +pass:[[&quot;ref&quot;, &quot;utm_source&quot;, &quot;utm_medium&quot;, &quot;utm_campaign&quot;, &quot;utm_term&quot;, &quot;utm_content&quot;]]+
 
 [[window.hide_wayland_decoration]]
 == window.hide_wayland_decoration
@@ -2267,12 +2273,6 @@ The format to use for the window title. The following placeholders are defined:
 
 
 Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
-
-[[yank_ignored_url_parameters]]
-== yank_ignored_url_parameters
-The URL parameters to strip with :yank url.
-
-Default: +pass:[[&quot;ref&quot;, &quot;utm_source&quot;, &quot;utm_medium&quot;, &quot;utm_campaign&quot;, &quot;utm_term&quot;, &quot;utm_content&quot;]]+
 
 [[zoom.default]]
 == zoom.default

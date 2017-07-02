@@ -715,7 +715,7 @@ Feature: Tab management
         When I open data/hello.txt
         And I run :tab-only
         And I set tabs.last_close to startpage
-        And I set start_pages to ["http://localhost:(port)/data/numbers/4.txt"]
+        And I set url.start_pages to ["http://localhost:(port)/data/numbers/4.txt"]
         And I run :tab-close
         And I wait until data/numbers/4.txt is loaded
         And I run :undo
@@ -727,7 +727,7 @@ Feature: Tab management
         When I open data/hello.txt
         And I run :tab-only
         And I set tabs.last_close to default-page
-        And I set default_page to http://localhost:(port)/data/numbers/6.txt
+        And I set url.default_page to http://localhost:(port)/data/numbers/6.txt
         And I run :tab-close
         And I wait until data/numbers/6.txt is loaded
         And I run :undo
@@ -739,7 +739,7 @@ Feature: Tab management
         Given I have a fresh instance
         When I open about:blank
         And I set tabs.last_close to default-page
-        And I set default_page to about:blank
+        And I set url.default_page to about:blank
         And I run :undo
         And I run :undo
         Then the error "Nothing to undo!" should be shown
@@ -807,7 +807,7 @@ Feature: Tab management
             - about:blank (active)
 
     Scenario: last-close = startpage
-        When I set start_pages to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
+        When I set url.start_pages to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
         And I set tabs.last_close to startpage
         And I open data/hello.txt
         And I run :tab-only
@@ -819,7 +819,7 @@ Feature: Tab management
             - data/numbers/8.txt (active)
 
     Scenario: last-close = default-page
-        When I set default_page to http://localhost:(port)/data/numbers/9.txt
+        When I set url.default_page to http://localhost:(port)/data/numbers/9.txt
         And I set tabs.last_close to default-page
         And I open data/hello.txt
         And I run :tab-only

@@ -307,7 +307,7 @@ class CommandDispatcher:
             private: Open a new window in private browsing mode.
         """
         if url is None:
-            urls = [config.val.default_page]
+            urls = [config.val.url.default_page]
         else:
             urls = self._parse_url_input(url)
 
@@ -778,7 +778,7 @@ class CommandDispatcher:
             url_query.setQueryDelimiters('=', ';')
         url_query.setQuery(url_query_str)
         for key in dict(url_query.queryItems()):
-            if key in config.val.yank_ignored_url_parameters:
+            if key in config.val.url.yank_ignored_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
         return url.toString(flags)
@@ -1192,7 +1192,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
-        self._current_widget().openurl(config.val.start_pages[0])
+        self._current_widget().openurl(config.val.url.start_pages[0])
 
     def _run_userscript(self, cmd, *args, verbose=False):
         """Run a userscript given as argument.
