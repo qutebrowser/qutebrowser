@@ -118,7 +118,7 @@ class CommandParser:
             new_cmd += ' '
         return new_cmd
 
-    def parse_all(self, text, aliases=True, *args, **kwargs):
+    def _parse_all_gen(self, text, aliases=True, *args, **kwargs):
         """Split a command on ;; and parse all parts.
 
         If the first command in the commandline is a non-split one, it only
@@ -152,6 +152,10 @@ class CommandParser:
             sub_texts = [text]
         for sub in sub_texts:
             yield self.parse(sub, *args, **kwargs)
+
+    def parse_all(self, *args, **kwargs):
+        """Wrapper over parse_all."""
+        return list(self._parse_all_gen(*args, **kwargs))
 
     def parse(self, text, *, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
