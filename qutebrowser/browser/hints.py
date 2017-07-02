@@ -29,7 +29,7 @@ from string import ascii_lowercase
 from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
-from qutebrowser.config import config, style
+from qutebrowser.config import config
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
@@ -80,7 +80,7 @@ class HintLabel(QLabel):
         self.elem = elem
 
         self.setAttribute(Qt.WA_StyledBackground, True)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()

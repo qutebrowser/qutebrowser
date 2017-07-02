@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot, QSize
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.config import style
+from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes
 
 
@@ -45,7 +45,7 @@ class Progress(QProgressBar):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)
         self.hide()

@@ -30,8 +30,8 @@ from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout)
 
-from qutebrowser.config import config, style
-from qutebrowser.utils import qtutils
+from qutebrowser.config import config
+from qutebrowser.utils import qtutils, jinja
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
@@ -187,12 +187,15 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc = QTextDocument(self)
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)
-        self._doc.setDefaultStyleSheet(style.get_stylesheet("""
+        self._doc.setDocumentMargin(2)
+
+        stylesheet = """
             .highlight {
                 color: {{ conf.colors.completion.match.fg }};
             }
-        """))
-        self._doc.setDocumentMargin(2)
+        """
+        template = jinja.environment.from_string(stylesheet)
+        self._doc.setDefaultStyleSheet(template.render(conf=config.val))
 
         if index.parent().isValid():
             pattern = index.model().pattern

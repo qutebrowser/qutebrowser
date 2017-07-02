@@ -44,7 +44,7 @@ import qutebrowser
 import qutebrowser.resources
 from qutebrowser.completion.models import instances as completionmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import style, config, websettings, configexc
+from qutebrowser.config import config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy

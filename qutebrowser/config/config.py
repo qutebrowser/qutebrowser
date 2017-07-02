@@ -24,11 +24,12 @@ import os.path
 import contextlib
 import functools
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+import sip
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
 from qutebrowser.utils import (utils, objreg, message, standarddir, log,
-                               usertypes)
+                               usertypes, jinja)
 from qutebrowser.commands import cmdexc, cmdutils, runners
 
 
@@ -537,6 +538,67 @@ class ConfigContainer:
             return '{}.{}'.format(self._prefix, attr)
         else:
             return attr
+
+
+def set_register_stylesheet(obj, *, stylesheet=None, update=True):
+    """Set the stylesheet for an object based on it's STYLESHEET attribute.
+
+    Also, register an update when the config is changed.
+
+    Args:
+        obj: The object to set the stylesheet for and register.
+             Must have a STYLESHEET attribute if stylesheet is not given.
+        stylesheet: The stylesheet to use.
+        update: Whether to update the stylesheet on config changes.
+    """
+    observer = StyleSheetObserver(obj, stylesheet=stylesheet)
+    observer.register(update=update)
+
+
+class StyleSheetObserver(QObject):
+
+    """Set the stylesheet on the given object and update it on changes.
+
+    Attributes:
+        _obj: The object to observe.
+        _stylesheet: The stylesheet template to use.
+    """
+
+    def __init__(self, obj, stylesheet):
+        super().__init__(parent=obj)
+        self._obj = obj
+        if stylesheet is None:
+            self._stylesheet = obj.STYLESHEET
+        else:
+            self._stylesheet = stylesheet
+
+    def _get_stylesheet(self):
+        """Format a stylesheet based on a template.
+
+        Return:
+            The formatted template as string.
+        """
+        template = jinja.environment.from_string(self._stylesheet)
+        return template.render(conf=val)
+
+    @pyqtSlot()
+    def _update_stylesheet(self):
+        """Update the stylesheet for obj."""
+        if not sip.isdeleted(self._obj):
+            self._obj.setStyleSheet(self._get_stylesheet())
+
+    def register(self, update):
+        """Do a first update and listen for more.
+
+        Args:
+            update: if False, don't listen for future updates.
+        """
+        qss = self._get_stylesheet()
+        log.config.vdebug("stylesheet for {}: {}".format(
+            self._obj.__class__.__name__, qss))
+        self._obj.setStyleSheet(qss)
+        if update:
+            instance.changed.connect(self._update_stylesheet)
 
 
 def init(parent=None):

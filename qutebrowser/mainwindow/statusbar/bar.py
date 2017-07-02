@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
-from qutebrowser.config import config, style
+from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
                                               percentage, url, tabindex)
@@ -147,7 +147,7 @@ class StatusBar(QWidget):
         objreg.register('statusbar', self, scope='window', window=win_id)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
@@ -259,7 +259,7 @@ class StatusBar(QWidget):
                     self._color_flags.caret = ColorFlags.CaretMode.on
             else:
                 self._color_flags.caret = ColorFlags.CaretMode.off
-        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
+        config.set_register_stylesheet(self, update=False)
 
     def _set_mode_text(self, mode):
         """Set the mode text."""

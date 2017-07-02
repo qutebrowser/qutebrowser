@@ -26,7 +26,7 @@ subclasses to provide completions.
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
-from qutebrowser.config import config, style
+from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import base
 from qutebrowser.utils import utils, usertypes
@@ -118,7 +118,7 @@ class CompletionView(QTreeView):
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)

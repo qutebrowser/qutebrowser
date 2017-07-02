@@ -444,9 +444,9 @@ class ConfigStub(QObject):
         """Set a value in the config."""
         try:
             self.data[name] = value
-            self.changed.emit(name)
         except KeyError:
             raise configexc.NoOptionError(name)
+        self.changed.emit(name)
 
 
 class UrlMarkManagerStub(QObject):

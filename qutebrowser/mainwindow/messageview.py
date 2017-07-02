@@ -23,7 +23,7 @@
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
-from qutebrowser.config import config, style
+from qutebrowser.config import config
 from qutebrowser.utils import usertypes
 
 
@@ -65,7 +65,7 @@ class Message(QLabel):
             raise ValueError("Invalid level {!r}".format(level))
         # We don't bother with set_register_stylesheet here as it's short-lived
         # anyways.
-        self.setStyleSheet(style.get_stylesheet(stylesheet))
+        config.set_register_stylesheet(self, stylesheet=stylesheet, update=False)
 
 
 class MessageView(QWidget):

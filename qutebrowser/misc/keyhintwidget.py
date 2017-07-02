@@ -30,7 +30,7 @@ import fnmatch
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
-from qutebrowser.config import config, style
+from qutebrowser.config import config
 from qutebrowser.utils import objreg, utils, usertypes
 
 
@@ -68,7 +68,7 @@ class KeyHintView(QLabel):
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)

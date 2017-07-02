@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import style, config
+from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
@@ -268,7 +268,7 @@ class PromptContainer(QWidget):
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)
