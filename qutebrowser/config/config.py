@@ -24,7 +24,6 @@ import os.path
 import contextlib
 import functools
 
-import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
@@ -582,8 +581,7 @@ class StyleSheetObserver(QObject):
     @pyqtSlot()
     def _update_stylesheet(self):
         """Update the stylesheet for obj."""
-        if not sip.isdeleted(self._obj):
-            self._obj.setStyleSheet(self._get_stylesheet())
+        self._obj.setStyleSheet(self._get_stylesheet())
 
     def register(self, update):
         """Do a first update and listen for more.
