@@ -132,9 +132,6 @@ def _init_stylesheet(profile):
     Mostly inspired by QupZilla:
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/tools/scripts.cpp#L119-L132
-
-    FIXME:qtwebengine Use QWebEngineStyleSheet once that's available
-    https://codereview.qt-project.org/#/c/148671/
     """
     old_script = profile.scripts().findScript('_qute_stylesheet')
     if not old_script.isNull():
