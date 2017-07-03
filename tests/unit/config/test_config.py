@@ -22,6 +22,7 @@ import copy
 
 import pytest
 from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtGui import QColor
 
 import qutebrowser.app  # To register commands
 from qutebrowser.commands import cmdexc
@@ -246,6 +247,152 @@ class TestKeyConfig:
         with pytest.raises(configexc.KeybindingError,
                            match="Can't find binding 'foobar' in normal mode"):
             keyconf.unbind('foobar', mode='normal')
+
+
+class TestConfig:
+
+    @pytest.fixture
+    def conf(self, stubs):
+        yaml_config = stubs.FakeYamlConfig()
+        return config.Config(yaml_config)
+
+    def test_changed(self, qtbot, conf, caplog):
+        with qtbot.wait_signal(conf.changed) as blocker:
+            conf._changed('foo', '42')
+        assert blocker.args == ['foo']
+        assert len(caplog.records) == 1
+        assert caplog.records[0].message == 'Config option changed: foo = 42'
+
+    def test_read_yaml(self, conf):
+        # FIXME:conf what about wrong values?
+        assert not conf._yaml.loaded
+        conf._yaml.values['content.plugins'] = True
+
+        conf.read_yaml()
+
+        assert conf._yaml.loaded
+        assert conf._values['content.plugins'] is True
+
+    def test_get_opt_valid(self, conf):
+        assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
+
+    def test_get_opt_invalid(self, conf):
+        with pytest.raises(configexc.NoOptionError):
+            conf.get_opt('tabs')
+
+    def test_get(self, conf):
+        """Test conf.get() with a QColor (where get/get_obj is different)."""
+        assert conf.get('colors.completion.fg') == QColor('white')
+
+    def test_get_mutable(self, conf):
+        """Make sure we don't observe everything for mutations."""
+        conf.get('content.headers.custom')
+        assert not conf._mutables
+
+    def test_get_obj_simple(self, conf):
+        assert conf.get_obj('colors.completion.fg') == 'white'
+
+    @pytest.mark.parametrize('option', ['content.headers.custom',
+                                        'keyhint.blacklist'])
+    @pytest.mark.parametrize('mutable', [True, False])
+    @pytest.mark.parametrize('mutated', [True, False])
+    def test_get_obj_mutable(self, conf, qtbot, caplog, option, mutable,
+                             mutated):
+        """Make sure mutables are handled correctly.
+
+        When we get a mutable object from the config, some invariants should be
+        true:
+          - The object we get from the config is always a copy, i.e. mutating it
+            doesn't change the internal value (or default) stored in the config.
+          - If we mutate the object (mutated=True) and the config watches for
+            mutables (mutable=True), it should notice that the object changed.
+          - With mutable=False, we should always get the old object back.
+
+        We try this with a dict (content.headers.custom) and a list
+        (keyhint.blacklist).
+        """
+        # Setting new value
+        obj = conf.get_obj(option, mutable=mutable)
+        with qtbot.assert_not_emitted(conf.changed):
+            if option == 'content.headers.custom':
+                old = {}
+                new = {}
+                assert obj == old
+                if mutated:
+                    obj['X-Answer'] = '42'
+                    if mutable:
+                        new = {'X-Answer': '42'}
+                        assert obj == new
+            else:
+                assert option == 'keyhint.blacklist'
+                old = []
+                new = []
+                assert obj == old
+                if mutated:
+                    obj.append('foo')
+                    if mutable:
+                        new = ['foo']
+                        assert obj == new
+
+        if mutable:
+            assert conf._mutables == [(option, old, new)]
+
+        if mutable and mutated:
+            # Now let's update
+            with qtbot.wait_signal(conf.changed):
+                conf.update_mutables()
+
+            expected_log = '{} was mutated, updating'.format(option)
+            assert caplog.records[-2].message == expected_log
+        else:
+            with qtbot.assert_not_emitted(conf.changed):
+                conf.update_mutables()
+
+        assert not conf._mutables
+        assert conf.get_obj(option) == new
+
+    def test_get_obj_unknown_mutable(self, conf):
+        """Make sure we don't have unknown mutable types."""
+        conf._values['aliases'] = set()  # This would never happen
+        with pytest.raises(AssertionError):
+            conf.get_obj('aliases')
+
+    def test_get_str(self, conf):
+        assert conf.get_str('content.plugins') == 'false'
+
+    @pytest.mark.parametrize('save_yaml', [True, False])
+    @pytest.mark.parametrize('method, value', [
+        ('set_obj', True),
+        ('set_str', 'true'),
+    ])
+    def test_set_valid(self, conf, qtbot, save_yaml, method, value):
+        option = 'content.plugins'
+        meth = getattr(conf, method)
+        with qtbot.wait_signal(conf.changed):
+            meth(option, value, save_yaml=save_yaml)
+        assert conf._values[option] is True
+        if save_yaml:
+            assert conf._yaml.values[option] is True
+        else:
+            assert option not in conf._yaml.values
+
+    @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
+    def test_set_invalid(self, conf, qtbot, method):
+        meth = getattr(conf, method)
+        with pytest.raises(configexc.ValidationError):
+            with qtbot.assert_not_emitted(conf.changed):
+                meth('content.plugins', '42')
+        assert 'content.plugins' not in conf._values
+
+    def test_dump_userconfig(self, conf):
+        conf.set_obj('content.plugins', True)
+        conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})
+        lines = ['content.plugins = true',
+                 'content.headers.custom = {"X-Foo": "bar"}']
+        assert conf.dump_userconfig().splitlines() == lines
+
+    def test_dump_userconfig_default(self, conf):
+        assert conf.dump_userconfig() == '<Default configuration>'
 
 
 class StyleObj(QObject):

@@ -391,6 +391,10 @@ class FakeYamlConfig:
 
     def __init__(self):
         self.values = {}
+        self.loaded = False
+
+    def load(self):
+        self.loaded = True
 
 
 class FakeConfigType:

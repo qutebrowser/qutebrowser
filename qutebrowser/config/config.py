@@ -392,6 +392,7 @@ class Config(QObject):
             opt = self.get_opt(name)
             opt.typ.to_py(value)  # for validation
             self._values[name] = value
+        # FIXME:conf when to emit changed() here?
 
     def get_opt(self, name):
         """Get a configdata.Option object for the given setting."""
@@ -475,8 +476,11 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        lines = ['{} = {}'.format(optname, value)
-                 for optname, value in self._values.items()]
+        lines = []
+        for optname, value in self._values.items():
+            opt = self.get_opt(optname)
+            str_value = opt.typ.to_str(value)
+            lines.append('{} = {}'.format(optname, str_value))
         if not lines:
             lines = ['<Default configuration>']
         return '\n'.join(lines)
