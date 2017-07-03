@@ -437,14 +437,10 @@ def data(readonly=False):
              "User agent to send. Empty to send the default."),
 
             ('proxy',
-             SettingValue(typ.Proxy(), 'system',
-                          backends=(None if qtutils.version_check('5.8')
-                                    else [usertypes.Backend.QtWebKit])),
+             SettingValue(typ.Proxy(), 'system'),
              "The proxy to use.\n\n"
              "In addition to the listed values, you can use a `socks://...` "
-             "or `http://...` URL.\n\n"
-             "This setting only works with Qt 5.8 or newer when using the "
-             "QtWebEngine backend."),
+             "or `http://...` URL."),
 
             ('proxy-dns-requests',
              SettingValue(typ.Bool(), 'true',

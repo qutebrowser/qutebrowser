@@ -45,6 +45,7 @@ Added
   customize statusbar colors for private windows.
 - New `{private}` field displaying `[Private Mode]` for
   `ui -> window-title-format` and `tabs -> title-format`.
+- (QtWebEngine) Proxy support with Qt 5.7.1 too
 
 Changed
 ~~~~~~~

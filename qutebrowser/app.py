@@ -410,10 +410,8 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing network...")
     networkmanager.init()
 
-    if qtutils.version_check('5.8'):
-        # Otherwise we can only initialize it for QtWebKit because of crashes
-        log.init.debug("Initializing proxy...")
-        proxy.init()
+    log.init.debug("Initializing proxy...")
+    proxy.init()
 
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
