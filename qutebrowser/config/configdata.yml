@@ -443,6 +443,7 @@ content.notifications:
 content.pdfjs:
   default: false
   type: Bool
+  backend: QtWebKit
   desc: >-
     Enable pdf.js to view PDF files in the browser.
 
