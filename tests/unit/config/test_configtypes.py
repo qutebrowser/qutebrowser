@@ -1057,7 +1057,6 @@ class TestCommand:
 
     def test_cmdline(self, klass, cmdline_test):
         """Test some commandlines from the cmdline_test fixture."""
-        import qutebrowser.app  # to run decorators
         typ = klass()
         if cmdline_test.valid:
             typ.to_py(cmdline_test.cmd)

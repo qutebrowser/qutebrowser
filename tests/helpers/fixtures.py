@@ -197,8 +197,6 @@ def _generate_cmdline_tests():
 @pytest.fixture(params=_generate_cmdline_tests(), ids=lambda e: e.cmd)
 def cmdline_test(request):
     """Fixture which generates tests for things validating commandlines."""
-    # Import qutebrowser.app so all cmdutils.register decorators get run.
-    import qutebrowser.app  # pylint: disable=unused-variable
     return request.param
 
 

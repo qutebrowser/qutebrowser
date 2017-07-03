@@ -23,7 +23,6 @@ from unittest import mock
 
 import pytest
 
-import qutebrowser.app  # to run decorators
 from qutebrowser.utils import objreg
 
 

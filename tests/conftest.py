@@ -37,6 +37,8 @@ from helpers.messagemock import message_mock
 from helpers.fixtures import *
 from qutebrowser.utils import qtutils
 
+import qutebrowser.app  # To register commands
+
 
 # Set hypothesis settings
 hypothesis.settings.register_profile('default',

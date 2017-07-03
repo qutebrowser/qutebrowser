@@ -25,7 +25,6 @@ import pytest
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
-import qutebrowser.app  # To register commands
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import objreg, usertypes
