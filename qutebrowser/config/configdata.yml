@@ -36,6 +36,32 @@ ignore_case:
   default: smart
   desc: Whether to find text on a page case-insensitively.
 
+new_instance_open_target:
+  type:
+    name: String
+    valid_values:
+      - tab: Open a new tab in the existing window and activate the window.
+      - tab-bg: Open a new background tab in the existing window and activate
+          the window.
+      - tab-silent: Open a new tab in the existing window without activating the
+          window.
+      - tab-bg-silent: Open a new background tab in the existing window without
+          activating the window.
+      - window: Open in a new window.
+  default: tab
+  desc: How to open links in an existing instance if a new one is launched.
+
+new_instance_open_target_window:
+  type:
+    name: String
+    valid_values:
+      - first-opened: Open new tabs in the first (oldest) opened window.
+      - last-opened: Open new tabs in the last (newest) opened window.
+      - last-focused: Open new tabs in the most recently focused window.
+      - last-visible: Open new tabs in the most recently visible window.
+  default: last-focused
+  desc: Which window to choose when opening links as new tabs.
+
 session_default_name:
   type:
     name: SessionName
@@ -1109,32 +1135,6 @@ url.incdec_segments:
   default: [path, query]
   desc: The URL segments where `:navigate increment/decrement` will search for a
     number.
-
-url.new_instance_open_target:
-  type:
-    name: String
-    valid_values:
-      - tab: Open a new tab in the existing window and activate the window.
-      - tab-bg: Open a new background tab in the existing window and activate
-          the window.
-      - tab-silent: Open a new tab in the existing window without activating the
-          window.
-      - tab-bg-silent: Open a new background tab in the existing window without
-          activating the window.
-      - window: Open in a new window.
-  default: tab
-  desc: How to open links in an existing instance if a new one is launched.
-
-url.new_instance_open_target_window:
-  type:
-    name: String
-    valid_values:
-      - first-opened: Open new tabs in the first (oldest) opened window.
-      - last-opened: Open new tabs in the last (newest) opened window.
-      - last-focused: Open new tabs in the most recently focused window.
-      - last-visible: Open new tabs in the most recently visible window.
-  default: last-focused
-  desc: Which window to choose when opening links as new tabs.
 
 url.searchengines:
   default:
