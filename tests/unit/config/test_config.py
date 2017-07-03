@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.config."""
 
 import copy
+import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QObject, QUrl
@@ -26,7 +27,7 @@ from PyQt5.QtGui import QColor
 
 import qutebrowser.app  # To register commands
 from qutebrowser.commands import cmdexc
-from qutebrowser.config import config, configdata, configexc
+from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import objreg, usertypes
 
 
@@ -44,6 +45,11 @@ def keyconf(config_stub):
 
 
 class TestChangeFilter:
+
+    @pytest.fixture(autouse=True)
+    def cleanup_globals(self, monkeypatch):
+        """Make sure config._change_filters is cleaned up."""
+        monkeypatch.setattr(config, '_change_filters', [])
 
     @pytest.mark.parametrize('option', ['foobar', 'tab', 'tabss', 'tabs.'])
     def test_unknown_option(self, option):
@@ -215,12 +221,16 @@ class TestKeyConfig:
         ('b', 'b'),  # custom bindings
         ('<Ctrl-X>', '<ctrl+x>')
     ])
-    @pytest.mark.parametrize('mode', ['normal', 'caret'])
+    @pytest.mark.parametrize('mode', ['normal', 'caret', 'prompt'])
     def test_unbind(self, keyconf, config_stub, qtbot, key, normalized, mode):
-        config_stub.val.bindings.default = {
+        default_bindings = {
             'normal': {'a': 'nop', '<ctrl+x>': 'nop'},
             'caret': {'a': 'nop', '<ctrl+x>': 'nop'},
+            # prompt: a mode which isn't in bindings.commands yet
+            'prompt': {'a': 'nop', 'b': 'nop', '<ctrl+x>': 'nop'},
         }
+        old_default_bindings = copy.deepcopy(default_bindings)
+        config_stub.val.bindings.default = default_bindings
         config_stub.val.bindings.commands = {
             'normal': {'b': 'nop'},
             'caret': {'b': 'nop'},
@@ -232,12 +242,12 @@ class TestKeyConfig:
         assert keyconf.get_command(key, mode) is None
 
         mode_bindings = config_stub.val.bindings.commands[mode]
-        if key == 'b':
+        if key == 'b' and mode != 'prompt':
             # Custom binding
             assert normalized not in mode_bindings
         else:
             default_bindings = config_stub.val.bindings.default
-            assert default_bindings[mode] == {'a': 'nop', '<ctrl+x>': 'nop'}
+            assert default_bindings[mode] == old_default_bindings[mode]
             assert mode_bindings[normalized] is None
 
     def test_unbind_unbound(self, keyconf, config_stub, no_bindings):
@@ -783,3 +793,40 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
         expected = 'yellow'
 
     assert obj.rendered_stylesheet == expected
+
+
+@pytest.fixture
+def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
+               data_tmpdir):
+    monkeypatch.setattr(configdata, 'DATA', None)
+    monkeypatch.setattr(config, 'instance', None)
+    monkeypatch.setattr(config, 'key_instance', None)
+    monkeypatch.setattr(config, '_change_filters', [])
+    yield
+    objreg.delete('config')
+    objreg.delete('config-commands')
+
+
+def test_init(init_patch, fake_save_manager, config_tmpdir):
+    (config_tmpdir / 'autoconfig.yml').write_text(
+        'global:\n  colors.hints.fg: magenta', 'utf-8', ensure=True)
+
+    config.init()
+
+    objreg.get('config-commands')
+    assert isinstance(config.instance, config.Config)
+    assert isinstance(config.key_instance, config.KeyConfig)
+    fake_save_manager.add_saveable.assert_any_call(
+        'command-history', unittest.mock.ANY, unittest.mock.ANY)
+    fake_save_manager.add_saveable.assert_any_call(
+        'state-config', unittest.mock.ANY)
+    fake_save_manager.add_saveable.assert_any_call(
+        'yaml-config', unittest.mock.ANY)
+
+    assert config.instance._values['colors.hints.fg'] == 'magenta'
+
+
+def test_init_invalid_change_filter(init_patch):
+    config.change_filter('foobar')
+    with pytest.raises(configexc.NoOptionError):
+        config.init()
