@@ -53,7 +53,13 @@ new_instance_open_target:
           activating the window.
       - window: Open in a new window.
   default: tab
-  desc: How to open links in an existing instance if a new one is launched.
+  desc: >-
+    How to open links in an existing instance if a new one is launched.
+
+    This happens when e.g. opening a link from a terminal.
+
+    See `new_instance_open_target_window` to customize in which window the link
+    is opened in.
 
 new_instance_open_target_window:
   type:
@@ -64,15 +70,20 @@ new_instance_open_target_window:
       - last-focused: Open new tabs in the most recently focused window.
       - last-visible: Open new tabs in the most recently visible window.
   default: last-focused
-  desc: Which window to choose when opening links as new tabs.
+  desc: >-
+    Which window to choose when opening links as new tabs.
+
+    When `new_instance_open_target` is not set to `window`, this is ignored.
 
 session_default_name:
   type:
     name: SessionName
     none_ok: true
   default: null
-  desc: The name of the session to save by default, or unset for the last loaded
-    session.
+  desc: >-
+    The name of the session to save by default.
+
+    If this is set to null, the session which was last loaded is saved.
 
 ## auto_save
 
@@ -92,7 +103,7 @@ auto_save.interval:
 auto_save.session:
   type: Bool
   default: false
-  desc: Whether to always save the open pages.
+  desc: Whether to always restore open sites when qutebrowser is reopened.
 
 ## content
 
