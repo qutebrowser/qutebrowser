@@ -395,6 +395,36 @@ class TestConfig:
         assert conf.dump_userconfig() == '<Default configuration>'
 
 
+class TestContainer:
+
+    @pytest.fixture
+    def container(self, config_stub):
+        return config.ConfigContainer(config_stub)
+
+    def test_getattr_invalid_private(self, container):
+        """Make sure an invalid _attribute doesn't try getting a container."""
+        with pytest.raises(AttributeError):
+            container._foo
+
+    def test_getattr_prefix(self, container):
+        new_container = container.tabs
+        assert new_container._prefix == 'tabs'
+        new_container = new_container.favicons
+        assert new_container._prefix == 'tabs.favicons'
+
+    def test_getattr_option(self, container):
+        assert container.tabs.show == 'always'
+
+    def test_getattr_invalid(self, container):
+        with pytest.raises(configexc.NoOptionError) as excinfo:
+            container.tabs.foobar
+        assert excinfo.value.option == 'tabs.foobar'
+
+    def test_setattr_option(self, config_stub, container):
+        container.content.cookies.store = False
+        assert config_stub._values['content.cookies.store'] is False
+
+
 class StyleObj(QObject):
 
     def __init__(self, stylesheet=None, parent=None):

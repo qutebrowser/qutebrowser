@@ -519,11 +519,7 @@ class ConfigContainer:
         if configdata.is_valid_prefix(name):
             return ConfigContainer(config=self._config, prefix=name)
 
-        try:
-            return self._config.get(name)
-        except configexc.NoOptionError as e:
-            # If it's not a valid prefix - re-raise to improve error text.
-            raise configexc.NoOptionError(name)
+        return self._config.get(name)
 
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
