@@ -422,9 +422,6 @@ content.private_browsing:
 content.proxy:
   default: system
   type: Proxy
-  backend:
-    QtWebKit: true
-    QtWebEngine: Qt 5.8
   desc: >-
     The proxy to use.
 

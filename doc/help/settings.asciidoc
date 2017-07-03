@@ -1346,8 +1346,6 @@ Valid values:
 
 Default: +pass:[system]+
 
-On QtWebEngine, this setting requires Qt 5.8 or newer.
-
 [[content.proxy_dns_requests]]
 == content.proxy_dns_requests
 Whether to send DNS requests over the configured proxy.
