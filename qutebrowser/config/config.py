@@ -223,8 +223,9 @@ class ConfigCommands:
 
     """qutebrowser commands related to the configuration."""
 
-    def __init__(self, config):
+    def __init__(self, config, keyconfig):
         self._config = config
+        self._keyconfig = keyconfig
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('win_id', win_id=True)
@@ -324,10 +325,10 @@ class ConfigCommands:
         """
         if command is None:
             if utils.is_special_key(key):
-                # key_instance.get_command does this, but we also need it
+                # self._keyconfig.get_command does this, but we also need it
                 # normalized for the output below
                 key = utils.normalize_keystr(key)
-            cmd = key_instance.get_command(key, mode)
+            cmd = self._keyconfig.get_command(key, mode)
             if cmd is None:
                 message.info("{} is unbound in {} mode".format(key, mode))
             else:
@@ -336,12 +337,13 @@ class ConfigCommands:
             return
 
         try:
-            key_instance.bind(key, command, mode=mode, force=force,
-                              save_yaml=True)
+            self._keyconfig.bind(key, command, mode=mode, force=force,
+                                 save_yaml=True)
         except configexc.DuplicateKeyError as e:
-            raise cmdexc.CommandError(str(e) + " - use --force to override!")
+            raise cmdexc.CommandError("bind: {} - use --force to override!"
+                                      .format(e))
         except configexc.KeybindingError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdexc.CommandError("bind: {}".format(e))
 
     @cmdutils.register(instance='config-commands')
     def unbind(self, key, mode='normal'):
@@ -352,9 +354,9 @@ class ConfigCommands:
             mode: A mode to unbind the key in (default: `normal`).
         """
         try:
-            key_instance.unbind(key, mode=mode, save_yaml=True)
+            self._keyconfig.unbind(key, mode=mode, save_yaml=True)
         except configexc.KeybindingError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdexc.CommandError('unbind: {}'.format(e))
 
 
 class Config(QObject):
@@ -611,13 +613,13 @@ def init(parent=None):
     config.read_configdata()
     objreg.register('config', config)
 
-    config_commands = ConfigCommands(config)
-    objreg.register('config-commands', config_commands)
-
     global val, instance, key_instance
     val = ConfigContainer(config)
     instance = config
     key_instance = KeyConfig(config)
+
+    config_commands = ConfigCommands(config, key_instance)
+    objreg.register('config-commands', config_commands)
 
     for cf in _change_filters:
         cf.validate()
