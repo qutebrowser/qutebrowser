@@ -209,7 +209,6 @@ def config_stub(stubs, monkeypatch):
     yaml_config = stubs.FakeYamlConfig()
 
     conf = config.Config(yaml_config=yaml_config)
-    conf.read_configdata()
     monkeypatch.setattr(config, 'instance', conf)
 
     container = config.ConfigContainer(conf)

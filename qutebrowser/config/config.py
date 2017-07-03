@@ -364,8 +364,6 @@ class Config(QObject):
     """Main config object.
 
     Attributes:
-        options: A dict mapping setting names to configdata.Option objects.
-                 Those contain the type, default value, etc.
         _values: A dict mapping setting names to their values.
         _mutables: A list of mutable objects to be checked for changes.
         _yaml: A YamlConfig object or None.
@@ -378,7 +376,6 @@ class Config(QObject):
 
     def __init__(self, yaml_config, parent=None):
         super().__init__(parent)
-        self.options = {}
         self._values = {}
         self._mutables = []
         self._yaml = yaml_config
@@ -387,11 +384,6 @@ class Config(QObject):
         """Emit changed signal and log change."""
         self.changed.emit(name)
         log.config.debug("Config option changed: {} = {}".format(name, value))
-
-    def read_configdata(self):
-        """Read the option objects from configdata."""
-        for name, option in configdata.DATA.items():
-            self.options[name] = option
 
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
@@ -404,7 +396,7 @@ class Config(QObject):
     def get_opt(self, name):
         """Get a configdata.Option object for the given setting."""
         try:
-            return self.options[name]
+            return configdata.DATA[name]
         except KeyError:
             raise configexc.NoOptionError(name)
 
@@ -610,7 +602,6 @@ def init(parent=None):
 
     yaml_config = configfiles.YamlConfig()
     config = Config(yaml_config=yaml_config, parent=parent)
-    config.read_configdata()
     objreg.register('config', config)
 
     global val, instance, key_instance
