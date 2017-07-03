@@ -613,6 +613,13 @@ class TestConfig:
         """Test conf.get() with a QColor (where get/get_obj is different)."""
         assert conf.get('colors.completion.fg') == QColor('white')
 
+    @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
+    def test_get_bindings(self, config_stub, conf, value):
+        """Test conf.get() with bindings which have missing keys."""
+        config_stub.val.aliases = {}
+        conf._values['bindings.commands'] = value
+        assert conf.get('bindings.commands')['prompt'] == {}
+
     def test_get_mutable(self, conf):
         """Make sure we don't observe everything for mutations."""
         conf.get('content.headers.custom')
@@ -622,11 +629,12 @@ class TestConfig:
         assert conf.get_obj('colors.completion.fg') == 'white'
 
     @pytest.mark.parametrize('option', ['content.headers.custom',
-                                        'keyhint.blacklist'])
+                                        'keyhint.blacklist',
+                                        'bindings.commands'])
     @pytest.mark.parametrize('mutable', [True, False])
     @pytest.mark.parametrize('mutated', [True, False])
-    def test_get_obj_mutable(self, conf, qtbot, caplog, option, mutable,
-                             mutated):
+    def test_get_obj_mutable(self, conf, config_stub, qtbot, caplog,
+                             option, mutable, mutated):
         """Make sure mutables are handled correctly.
 
         When we get a mutable object from the config, some invariants should be
@@ -652,8 +660,7 @@ class TestConfig:
                     if mutable:
                         new = {'X-Answer': '42'}
                         assert obj == new
-            else:
-                assert option == 'keyhint.blacklist'
+            elif option == 'keyhint.blacklist':
                 old = []
                 new = []
                 assert obj == old
@@ -661,6 +668,18 @@ class TestConfig:
                     obj.append('foo')
                     if mutable:
                         new = ['foo']
+                        assert obj == new
+            else:
+                assert option == 'bindings.commands'
+                config_stub.val.aliases = {}
+                old = {}
+                new = {}
+                assert obj == old
+                if mutated:
+                    obj['prompt'] = {}
+                    obj['prompt']['foobar'] = 'nop'
+                    if mutable:
+                        new = {'prompt': {'foobar': 'nop'}}
                         assert obj == new
 
         if mutable:

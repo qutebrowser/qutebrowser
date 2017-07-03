@@ -739,9 +739,7 @@ class Command(BaseType):
         # leading to an endless recursion.
         # To fix that, we turn off validating other commands (alias values)
         # while validating a command.
-        # FIXME:conf Can't test this because we don't have a real config in
-        # TestCommand
-        if not Command.unvalidated:  # pragma: no branch
+        if not Command.unvalidated:
             Command.unvalidated = True
             try:
                 from qutebrowser.commands import runners, cmdexc
