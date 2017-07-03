@@ -491,12 +491,13 @@ content.ssl_strict:
   type: BoolAsk
   desc: Validate SSL handshakes.
 
-content.user_stylesheet:
+content.user_stylesheets:
   type:
-    name: File
+    name: List
+    valtype: File
     none_ok: True
   default: null
-  desc: User stylesheet to use.
+  desc: A list of user stylesheets filenames to use.
 
 content.webgl:
   default: true

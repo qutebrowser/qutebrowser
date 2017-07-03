@@ -232,13 +232,12 @@ def get_tab(win_id, target):
 
 def get_user_stylesheet():
     """Get the combined user-stylesheet."""
-    filename = config.val.content.user_stylesheet
+    css = ''
+    stylesheets = config.val.content.user_stylesheets
 
-    if filename is None:
-        css = ''
-    else:
+    for filename in stylesheets:
         with open(filename, 'r', encoding='utf-8') as f:
-            css = f.read()
+            css += f.read()
 
     if not config.val.scrolling.bar:
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'

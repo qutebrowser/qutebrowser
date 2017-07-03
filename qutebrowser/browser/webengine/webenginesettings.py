@@ -169,7 +169,7 @@ def _set_user_agent(profile):
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, option)
-    if option in ['scrollbar.hide', 'content.user_stylesheet']:
+    if option in ['scrollbar.hide', 'content.user_stylesheets']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
     elif option == 'content.headers.user_agent':

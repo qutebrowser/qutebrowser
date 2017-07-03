@@ -113,7 +113,7 @@ def _set_user_stylesheet():
 
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
-    if option in ['scrollbar.hide', 'content.user_stylesheet']:
+    if option in ['scrollbar.hide', 'content.user_stylesheets']:
         _set_user_stylesheet()
     websettings.update_mappings(MAPPINGS, option)
 
@@ -192,7 +192,7 @@ MAPPINGS = {
         Attribute(QWebSettings.XSSAuditingEnabled),
     'content.default_encoding':
         Setter(QWebSettings.setDefaultTextEncoding),
-    # content.user_stylesheet is handled separately
+    # content.user_stylesheets is handled separately
 
     'input.spatial_navigation':
         Attribute(QWebSettings.SpatialNavigationEnabled),
