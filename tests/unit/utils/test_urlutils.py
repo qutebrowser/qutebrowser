@@ -90,23 +90,12 @@ def fake_dns(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def urlutils_config_stub(config_stub, monkeypatch):
-    """Initialize the given config_stub.
-
-    Args:
-        stub: The ConfigStub provided by the config_stub fixture.
-        auto_search: The value auto-search should have.
-    """
-    config_stub.data = {
-        'general': {'auto-search': True},
-        'searchengines': {
-            'test': 'http://www.qutebrowser.org/?q={}',
-            'test-with-dash': 'http://www.example.org/?q={}',
-            'DEFAULT': 'http://www.example.com/?q={}',
-        },
+def init_config(config_stub):
+    config_stub.val.url.searchengines = {
+        'test': 'http://www.qutebrowser.org/?q={}',
+        'test-with-dash': 'http://www.example.org/?q={}',
+        'DEFAULT': 'http://www.example.com/?q={}',
     }
-    monkeypatch.setattr(urlutils, 'config', config_stub)
-    return config_stub
 
 
 class TestFuzzyUrl:
@@ -284,7 +273,7 @@ def test_special_urls(url, special):
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
 ])
-def test_get_search_url(urlutils_config_stub, url, host, query):
+def test_get_search_url(url, host, query):
     """Test _get_search_url().
 
     Args:
@@ -298,7 +287,7 @@ def test_get_search_url(urlutils_config_stub, url, host, query):
 
 
 @pytest.mark.parametrize('url', ['\n', ' ', '\n '])
-def test_get_search_url_invalid(urlutils_config_stub, url):
+def test_get_search_url_invalid(url):
     with pytest.raises(ValueError):
         urlutils._get_search_url(url)
 
@@ -348,8 +337,8 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (False, True, False, 'This is a URL without autosearch'),
 ])
 @pytest.mark.parametrize('auto_search', ['dns', 'naive', 'never'])
-def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
-                uses_dns, url, auto_search):
+def test_is_url(config_stub, fake_dns,
+                is_url, is_url_no_autosearch, uses_dns, url, auto_search):
     """Test is_url().
 
     Args:
@@ -366,7 +355,7 @@ def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
             qtutils.version_check('5.6.1')):
         pytest.xfail("Qt behavior changed")
 
-    urlutils_config_stub.data['general']['auto-search'] = auto_search
+    config_stub.val.url.auto_search = auto_search
     if auto_search == 'dns':
         if uses_dns:
             fake_dns.answer = True

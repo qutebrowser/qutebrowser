@@ -33,36 +33,8 @@ class TestTabWidget:
 
     """Tests for TabWidget."""
 
-    CONFIG = {
-        'fonts': {
-            'tabbar': QFont(),
-        },
-        'tabs': {
-            'show-switching-delay': 800,
-            'movable': True,
-            'position': 0,
-            'select-on-remove': 1,
-            'show': 'always',
-            'show-favicons': True,
-            'favicon-scale': 1.0,
-            'padding': configtypes.PaddingValues(0, 0, 5, 5),
-            'indicator-width': 3,
-            'indicator-padding': configtypes.PaddingValues(2, 2, 0, 4),
-            'title-format': '{index}: {title}',
-            'title-format-pinned': '{index}',
-            'pinned-width': 43,
-            'title-alignment': Qt.AlignLeft,
-        },
-        'colors': {
-            'tabs.bg.bar': QColor(),
-            'tabs.bg.selected.even': QColor(),
-            'tabs.fg.selected.even': QColor(),
-        }
-    }
-
     @pytest.fixture
     def widget(self, qtbot, monkeypatch, config_stub):
-        config_stub.data = self.CONFIG
         w = tabwidget.TabWidget(0)
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',

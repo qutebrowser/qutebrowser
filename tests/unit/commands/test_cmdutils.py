@@ -127,7 +127,7 @@ class TestRegister:
             pass
 
         with pytest.raises(ValueError):
-            @cmdutils.register(name=['foobar'])
+            @cmdutils.register(name='foobar')
             def fun2():
                 """Blah."""
                 pass

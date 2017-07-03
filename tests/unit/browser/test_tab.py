@@ -40,16 +40,6 @@ except ImportError:
 
 @pytest.fixture(params=[QWebView, QWebEngineView])
 def view(qtbot, config_stub, request):
-    config_stub.data = {
-        'input': {
-            'forward-unbound-keys': 'auto'
-        },
-        'ui': {
-            'zoom-levels': [100],
-            'default-zoom': 100,
-        }
-    }
-
     if request.param is None:
         pytest.skip("View not available")
 

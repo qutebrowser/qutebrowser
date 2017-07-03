@@ -346,12 +346,12 @@ class TestKeyEventToString:
     def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A)
-        assert utils.keyevent_to_string(evt) == 'A'
+        assert utils.keyevent_to_string(evt) == 'a'
 
     def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        expected = 'Meta+A' if sys.platform == 'darwin' else 'Ctrl+A'
+        expected = 'meta+a' if sys.platform == 'darwin' else 'ctrl+a'
         assert utils.keyevent_to_string(evt) == expected
 
     def test_key_and_modifiers(self, fake_keyevent_factory):
@@ -359,13 +359,13 @@ class TestKeyEventToString:
         evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
+        assert utils.keyevent_to_string(evt) == 'ctrl+alt+meta+shift+a'
 
     def test_mac(self, monkeypatch, fake_keyevent_factory):
         """Test with a simulated mac."""
         monkeypatch.setattr(sys, 'platform', 'darwin')
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert utils.keyevent_to_string(evt) == 'Meta+A'
+        assert utils.keyevent_to_string(evt) == 'meta+a'
 
 
 @pytest.mark.parametrize('keystr, expected', [
@@ -886,7 +886,6 @@ class TestOpenFile:
 
     @pytest.mark.not_frozen
     def test_cmdline_without_argument(self, caplog, config_stub):
-        config_stub.data = {'general': {'default-open-dispatcher': ''}}
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
         utils.open_file('/foo/bar', cmdline)
@@ -896,7 +895,6 @@ class TestOpenFile:
 
     @pytest.mark.not_frozen
     def test_cmdline_with_argument(self, caplog, config_stub):
-        config_stub.data = {'general': {'default-open-dispatcher': ''}}
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
         utils.open_file('/foo/bar', cmdline)
@@ -908,14 +906,13 @@ class TestOpenFile:
     def test_setting_override(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
-        config_stub.data = {'general': {'default-open-dispatcher': cmdline}}
+        config_stub.val.downloads.open_dispatcher = cmdline
         utils.open_file('/foo/bar')
-        result = caplog.records[0].message
+        result = caplog.records[1].message
         assert re.match(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
     def test_system_default_application(self, caplog, config_stub, mocker):
-        config_stub.data = {'general': {'default-open-dispatcher': ''}}
         m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
                          new_callable=mocker.Mock)
         utils.open_file('/foo/bar')

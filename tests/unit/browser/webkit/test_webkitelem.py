@@ -652,15 +652,7 @@ class TestIsVisibleIframe:
 
 class TestRectOnView:
 
-    @pytest.fixture(autouse=True)
-    def stubbed_config(self, config_stub, monkeypatch):
-        """Add a zoom-text-only fake config value.
-
-        This is needed for all the tests calling rect_on_view or is_visible.
-        """
-        config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr(webkitelem, 'config', config_stub)
-        return config_stub
+    pytestmark = pytest.mark.usefixtures('config_stub')
 
     @pytest.mark.parametrize('js_rect', [
         None,  # real geometry via getElementRects
@@ -719,7 +711,7 @@ class TestRectOnView:
     @pytest.mark.parametrize('zoom_text_only', [True, False])
     def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only):
         """Make sure the coordinates are adjusted when zoomed."""
-        config_stub.data = {'ui': {'zoom-text-only': zoom_text_only}}
+        config_stub.val.zoom.text_only = zoom_text_only
         geometry = QRect(10, 10, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
         elem = get_webelem(geometry, frame, js_rect_return=js_rect,
@@ -782,13 +774,6 @@ class TestIsEditable:
 
     """Tests for is_editable."""
 
-    @pytest.fixture
-    def stubbed_config(self, config_stub, monkeypatch):
-        """Fixture to create a config stub with an input section."""
-        config_stub.data = {'input': {}}
-        monkeypatch.setattr(webkitelem, 'config', config_stub)
-        return config_stub
-
     @pytest.mark.parametrize('tagname, attributes, editable', [
         ('input', {}, True),
         ('input', {'type': 'text'}, True),
@@ -849,9 +834,9 @@ class TestIsEditable:
         (True, 'object', {}, False),
         (True, 'object', {'type': 'image/gif'}, False),
     ])
-    def test_is_editable_plugin(self, stubbed_config, setting, tagname,
-                                attributes, editable):
-        stubbed_config.data['input']['insert-mode-on-plugins'] = setting
+    def test_is_editable_plugin(self, config_stub,
+                                setting, tagname, attributes, editable):
+        config_stub.val.input.insert_mode.plugins = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
         assert elem.is_editable() == editable
 

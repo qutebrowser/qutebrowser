@@ -22,6 +22,7 @@
 import pytest
 
 from qutebrowser.commands import runners, cmdexc
+from qutebrowser.config import configtypes
 
 
 class TestCommandParser:
@@ -41,8 +42,12 @@ class TestCommandParser:
             with pytest.raises(cmdexc.NoSuchCommandError):
                 parser.parse_all(cmdline_test.cmd, aliases=False)
 
-    def test_parse_all_with_alias(self, cmdline_test, config_stub):
-        config_stub.data = {'aliases': {'alias_name': cmdline_test.cmd}}
+    def test_parse_all_with_alias(self, cmdline_test, monkeypatch, config_stub):
+        if not cmdline_test.cmd:
+            pytest.skip("Empty command")
+
+        monkeypatch.setattr(configtypes.Command, 'unvalidated', True)
+        config_stub.val.aliases = {'alias_name': cmdline_test.cmd}
 
         parser = runners.CommandParser()
         if cmdline_test.valid:

@@ -32,36 +32,6 @@ from qutebrowser.completion.models import base, sortfilter
 def completionview(qtbot, status_command_stub, config_stub, win_registry,
                    mocker):
     """Create the CompletionView used for testing."""
-    config_stub.data = {
-        'completion': {
-            'show': 'always',
-            'scrollbar-width': 12,
-            'scrollbar-padding': 2,
-            'shrink': False,
-            'quick-complete': False,
-            'height': '50%',
-        },
-        'colors': {
-            'completion.fg': QColor(),
-            'completion.bg': QColor(),
-            'completion.alternate-bg': QColor(),
-            'completion.category.fg': QColor(),
-            'completion.category.bg': QColor(),
-            'completion.category.border.top': QColor(),
-            'completion.category.border.bottom': QColor(),
-            'completion.item.selected.fg': QColor(),
-            'completion.item.selected.bg': QColor(),
-            'completion.item.selected.border.top': QColor(),
-            'completion.item.selected.border.bottom': QColor(),
-            'completion.match.fg': QColor(),
-            'completion.scrollbar.fg': QColor(),
-            'completion.scrollbar.bg': QColor(),
-        },
-        'fonts': {
-            'completion': 'Comic Sans Monospace',
-            'completion.category': 'Comic Sans Monospace bold',
-        }
-    }
     # mock the Completer that the widget creates in its constructor
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
     view = completionwidget.CompletionView(win_id=0)
@@ -92,7 +62,7 @@ def test_maybe_update_geometry(completionview, config_stub, qtbot):
     """Ensure completion is resized only if shrink is True."""
     with qtbot.assertNotEmitted(completionview.update_geometry):
         completionview._maybe_update_geometry()
-    config_stub.data['completion']['shrink'] = True
+    config_stub.val.completion.shrink = True
     with qtbot.waitSignal(completionview.update_geometry):
         completionview._maybe_update_geometry()
 
@@ -197,8 +167,8 @@ def test_completion_show(show, rows, quick_complete, completionview,
         rows: Each entry represents a completion category with only one item.
         quick_complete: The completion quick-complete config setting.
     """
-    config_stub.data['completion']['show'] = show
-    config_stub.data['completion']['quick-complete'] = quick_complete
+    config_stub.val.completion.show = show
+    config_stub.val.completion.quick = quick_complete
 
     model = base.BaseCompletionModel()
     for name in rows:

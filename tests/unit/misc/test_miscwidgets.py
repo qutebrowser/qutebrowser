@@ -111,14 +111,14 @@ class TestFullscreenNotification:
         ({'a': 'fullscreen --leave'}, "Press a to exit fullscreen."),
         ({}, "Page is now fullscreen."),
     ])
-    def test_text(self, qtbot, key_config_stub, bindings, text):
-        key_config_stub.set_bindings_for('normal', bindings)
+    def test_text(self, qtbot, config_stub, key_config_stub, bindings, text):
+        config_stub.val.bindings.default = {}
+        config_stub.val.bindings.commands = {'normal': bindings}
         w = miscwidgets.FullscreenNotification()
         qtbot.add_widget(w)
         assert w.text() == text
 
     def test_timeout(self, qtbot, key_config_stub):
-        key_config_stub.set_bindings_for('normal', {})
         w = miscwidgets.FullscreenNotification()
         qtbot.add_widget(w)
         with qtbot.waitSignal(w.destroyed):
