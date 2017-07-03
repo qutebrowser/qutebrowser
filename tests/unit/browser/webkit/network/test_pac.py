@@ -236,11 +236,12 @@ def fetcher_test(test_str):
     serve_thread.start()
     try:
         ready_event.wait()
-        res = pac.PACFetcher(QUrl("pac+http://127.0.0.1:8081"))
-        assert res.fetch_error() is None
+        fetcher = pac.PACFetcher(QUrl("pac+http://127.0.0.1:8081"))
+        fetcher.fetch()
+        assert fetcher.fetch_error() is None
     finally:
         serve_thread.join()
-    return res
+    return fetcher
 
 
 @pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and

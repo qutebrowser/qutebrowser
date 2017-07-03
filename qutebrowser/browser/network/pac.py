@@ -247,8 +247,6 @@ class PACFetcher(QObject):
         self._pac_url = url
         self._manager = QNetworkAccessManager()
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
-        self._reply = self._manager.get(QNetworkRequest(url))
-        self._reply.finished.connect(self._finish)
         self._pac = None
         self._error_message = None
 
@@ -258,6 +256,11 @@ class PACFetcher(QObject):
 
     def __repr__(self):
         return utils.get_repr(self, url=self._pac_url, constructor=True)
+
+    def fetch(self):
+        """Fetch the proxy from the remote URL."""
+        self._reply = self._manager.get(QNetworkRequest(self._pac_url))
+        self._reply.finished.connect(self._finish)
 
     @pyqtSlot()
     def _finish(self):
