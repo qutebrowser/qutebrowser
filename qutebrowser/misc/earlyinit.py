@@ -402,7 +402,7 @@ def check_optimize_flag():
 
 def check_sqlite():
     from PyQt5.QtSql import QSqlDatabase
-    if not QSqlDatabase.isDriverAvailable('SQLITE'):
+    if not QSqlDatabase.isDriverAvailable('QSQLITE'):
         _die('sqlite driver not available! Is sqlite installed?')
 
 
