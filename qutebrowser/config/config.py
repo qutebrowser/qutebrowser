@@ -29,6 +29,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
 from qutebrowser.utils import (utils, objreg, message, standarddir, log,
                                usertypes, jinja)
+from qutebrowser.misc import objects
 from qutebrowser.commands import cmdexc, cmdutils, runners
 
 
@@ -303,11 +304,8 @@ class ConfigCommands:
         """Catch errors in set_command and raise CommandError."""
         try:
             yield
-        except (configexc.NoOptionError, configexc.ValidationError) as e:
-            raise cmdexc.CommandError("set: {}".format(e))
         except configexc.Error as e:
-            raise cmdexc.CommandError("set: {} - {}".format(
-                e.__class__.__name__, e))
+            raise cmdexc.CommandError("set: {}".format(e))
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
@@ -380,18 +378,25 @@ class Config(QObject):
         self._mutables = []
         self._yaml = yaml_config
 
-    def _changed(self, name, value):
-        """Emit changed signal and log change."""
-        self.changed.emit(name)
-        log.config.debug("Config option changed: {} = {}".format(name, value))
+    def _set_value(self, opt, value):
+        """Set the given option to the given value."""
+        if objects.backend is not None:
+            # FIXME:conf Validate all backends after init
+            if objects.backend not in opt.backends:
+                raise configexc.BackendError(objects.backend)
+
+        opt.typ.to_py(value)  # for validation
+        self._values[opt.name] = value
+
+        self.changed.emit(opt.name)
+        log.config.debug("Config option changed: {} = {}".format(
+            opt.name, value))
 
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
         for name, value in self._yaml.values.items():
-            opt = self.get_opt(name)
-            opt.typ.to_py(value)  # for validation
-            self._values[name] = value
+            self._set_value(self.get_opt(name), value)
         # FIXME:conf when to emit changed() here?
 
     def get_opt(self, name):
@@ -436,10 +441,7 @@ class Config(QObject):
 
         If save_yaml=True is given, store the new value to YAML.
         """
-        opt = self.get_opt(name)
-        opt.typ.to_py(value)  # for validation
-        self._values[name] = value
-        self._changed(name, value)
+        self._set_value(self.get_opt(name), value)
         if save_yaml:
             self._yaml.values[name] = value
 
@@ -450,8 +452,7 @@ class Config(QObject):
         """
         opt = self.get_opt(name)
         converted = opt.typ.from_str(value)
-        self._values[name] = converted
-        self._changed(name, converted)
+        self._set_value(opt, converted)
         if save_yaml:
             self._yaml.values[name] = converted
 

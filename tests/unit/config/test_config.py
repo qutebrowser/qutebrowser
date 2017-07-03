@@ -29,6 +29,7 @@ import qutebrowser.app  # To register commands
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import objreg, usertypes
+from qutebrowser.misc import objects
 
 
 @pytest.fixture(autouse=True)
@@ -292,12 +293,14 @@ class TestSetConfigCommand:
         assert msg.text == 'url.auto_search = never'
 
     @pytest.mark.parametrize('temp', [True, False])
-    def test_set_simple(self, commands, config_stub, temp):
+    def test_set_simple(self, monkeypatch, commands, config_stub, temp):
         """:set [-t] url.auto_search dns
 
         Should set the setting accordingly.
         """
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
         assert config_stub.val.url.auto_search == 'naive'
+
         commands.set(0, 'url.auto_search', 'dns', temp=temp)
 
         assert config_stub.val.url.auto_search == 'dns'
@@ -382,6 +385,13 @@ class TestSetConfigCommand:
                            match="set: Invalid value 'blah' - must be a "
                            "boolean!"):
             commands.set(0, 'auto_save.config', 'blah')
+
+    def test_set_wrong_backend(self, commands, monkeypatch):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+        with pytest.raises(cmdexc.CommandError,
+                           match="set: This setting is not available with the "
+                           "QtWebEngine backend!"):
+            commands.set(0, 'content.cookies.accept', 'all')
 
     @pytest.mark.parametrize('option', ['?', '!', 'url.auto_search'])
     def test_empty(self, commands, option):
@@ -572,12 +582,15 @@ class TestConfig:
         yaml_config = stubs.FakeYamlConfig()
         return config.Config(yaml_config)
 
-    def test_changed(self, qtbot, conf, caplog):
+    def test_set_value(self, qtbot, conf, caplog):
+        opt = conf.get_opt('tabs.show')
         with qtbot.wait_signal(conf.changed) as blocker:
-            conf._changed('foo', '42')
-        assert blocker.args == ['foo']
+            conf._set_value(opt, 'never')
+
+        assert blocker.args == ['tabs.show']
         assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'Config option changed: foo = 42'
+        expected_message = 'Config option changed: tabs.show = never'
+        assert caplog.records[0].message == expected_message
 
     def test_read_yaml(self, conf):
         # FIXME:conf what about wrong values?
@@ -699,6 +712,15 @@ class TestConfig:
             with qtbot.assert_not_emitted(conf.changed):
                 meth('content.plugins', '42')
         assert 'content.plugins' not in conf._values
+
+    @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
+    def test_set_wrong_backend(self, conf, qtbot, monkeypatch, method):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+        meth = getattr(conf, method)
+        with pytest.raises(configexc.BackendError):
+            with qtbot.assert_not_emitted(conf.changed):
+                meth('content.cookies.accept', 'all')
+        assert 'content.cookies.accept' not in conf._values
 
     def test_dump_userconfig(self, conf):
         conf.set_obj('content.plugins', True)
