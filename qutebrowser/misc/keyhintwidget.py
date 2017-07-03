@@ -99,7 +99,7 @@ class KeyHintView(QLabel):
             bindings = []
         else:
             bindings = [(k, v) for (k, v)
-                        in bindings_dict.items()
+                        in sorted(bindings_dict.items())
                         if k.startswith(prefix) and
                         not utils.is_special_key(k) and
                         not blacklisted(k)]
