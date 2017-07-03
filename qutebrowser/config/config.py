@@ -605,19 +605,17 @@ def init(parent=None):
     configdata.init()
 
     yaml_config = configfiles.YamlConfig()
-    config = Config(yaml_config=yaml_config, parent=parent)
-    objreg.register('config', config)
 
     global val, instance, key_instance
-    val = ConfigContainer(config)
-    instance = config
-    key_instance = KeyConfig(config)
+    instance = Config(yaml_config=yaml_config, parent=parent)
+    val = ConfigContainer(instance)
+    key_instance = KeyConfig(instance)
 
-    config_commands = ConfigCommands(config, key_instance)
+    config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 
     for cf in _change_filters:
         cf.validate()
-    config.read_yaml()
+    instance.read_yaml()
 
     configfiles.init(instance)

@@ -825,7 +825,6 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, '_change_filters', [])
     yield
-    objreg.delete('config')
     objreg.delete('config-commands')
     try:
         objreg.delete('state-config')
