@@ -114,7 +114,7 @@ content.cache.size:
     none_ok: true
     minval: 0
     maxval: maxint64
-  desc: Size of the HTTP network cache. Empty to use the default value.
+  desc: Size of the HTTP network cache. Null to use the default value.
 
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
@@ -145,8 +145,6 @@ content.cache.appcache:
     use the application cache via JavaScript, the loader engine will first ask the
     application cache for the contents, before hitting the network.
 
-    The feature is described in details at: http://dev.w3.org/html5/spec/Overview.html#appcache
-
 content.cookies.accept:
   default: no-3rdparty
   backend: QtWebKit
@@ -163,8 +161,10 @@ content.cookies.accept:
 content.cookies.store:
   default: true
   type: Bool
-  desc: Whether to store cookies. Note this option needs a restart with QtWebEngine
-    on Qt < 5.9.
+  desc: >-
+    Whether to store cookies.
+
+    Note this option needs a restart with QtWebEngine on Qt < 5.9.
 
 content.default_encoding:
   type: String
@@ -183,8 +183,8 @@ content.developer_extras:
     Enable extra tools for Web developers.
 
     This needs to be enabled for `:inspector` to work and also adds an _Inspect_
-    entry to the context menu. For QtWebEngine, see `qutebrowser --help`
-    instead.
+    entry to the context menu. For QtWebEngine, see
+    `--enable-webengine-inspector` in `qutebrowser --help` instead.
 
 content.dns_prefetch:
   default: true
@@ -209,7 +209,7 @@ content.geolocation:
 content.headers.accept_language:
   type: String
   default: en-US,en
-  desc: Value to send in the `accept-language` header.
+  desc: Value to send in the `Accept-Language` header.
 
 content.headers.custom:
   default: {}
@@ -227,7 +227,11 @@ content.headers.custom:
 content.headers.do_not_track:
   type: Bool
   default: true
-  desc: Value to send in the `DNT` header.
+  desc: >-
+    Value to send in the `DNT` header.
+
+    When this is set to true, qutebrowser asks websites to not track your
+    identity.
 
 content.headers.referer:
   default: same-domain
