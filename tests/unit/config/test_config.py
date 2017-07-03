@@ -827,6 +827,10 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     yield
     objreg.delete('config')
     objreg.delete('config-commands')
+    try:
+        objreg.delete('state-config')
+    except KeyError:
+        pass
 
 
 def test_init(init_patch, fake_save_manager, config_tmpdir):

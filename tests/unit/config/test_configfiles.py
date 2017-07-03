@@ -22,6 +22,7 @@
 import pytest
 
 from qutebrowser.config import configfiles
+from qutebrowser.utils import objreg
 
 from PyQt5.QtCore import QSettings
 
@@ -86,8 +87,15 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
         assert '  tabs.show: never' in lines
 
 
-def test_init(qapp, fake_save_manager, config_tmpdir, data_tmpdir,
-              config_stub):
+@pytest.fixture
+def init_patch(qapp, fake_save_manager, config_tmpdir, data_tmpdir,
+               config_stub):
+    yield
+    objreg.delete('state-config')
+    objreg.delete('command-history')
+
+
+def test_init(init_patch, config_tmpdir):
     configfiles.init(config=None)
 
     # Make sure qsettings land in a subdir
