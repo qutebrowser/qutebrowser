@@ -368,17 +368,16 @@ content.javascript.can_access_clipboard:
     With QtWebEngine, writing the clipboard as response to a user interaction is
     always allowed.
 
-content.javascript.can_close_windows:
+content.javascript.can_close_tabs:
   default: false
   type: Bool
   backend: QtWebKit
-  desc: Whether JavaScript programs can close windows.
+  desc: Whether JavaScript can close tabs.
 
-content.javascript.can_open_windows_automatically:
+content.javascript.can_open_tabs_automatically:
   default: false
   type: Bool
-  desc: Whether JavaScript programs can open new windows without user
-    interaction.
+  desc: Whether JavaScript can open new tabs without user interaction.
 
 content.javascript.enabled:
   default: true

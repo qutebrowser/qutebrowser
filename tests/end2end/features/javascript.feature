@@ -55,16 +55,16 @@ Feature: Javascript stuff
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
-    Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to true
+    Scenario: Opening window without user interaction with javascript-can-open-tabs-automatically set to true
         When I open data/hello.txt
-        And I set content.javascript.can_open_windows_automatically to true
+        And I set content.javascript.can_open_tabs_automatically to true
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "window opened" should be logged
 
-    Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to false
+    Scenario: Opening window without user interaction with javascript-can-open-tabs-automatically set to false
         When I open data/hello.txt
-        And I set content.javascript.can_open_windows_automatically to false
+        And I set content.javascript.can_open_tabs_automatically to false
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "error while opening window" should be logged
