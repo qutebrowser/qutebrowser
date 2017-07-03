@@ -412,7 +412,10 @@ class Config(QObject):
         If mutable=True is set, watch the returned object for mutations.
         """
         opt = self.get_opt(name)
-        obj = self._values.get(name, opt.default)
+        # We always return a copy of the value stored internally, so the
+        # internal value can never be changed by mutating the object returned.
+        obj = copy.deepcopy(self._values.get(name, opt.default))
+        # Then we watch the returned object for changes.
         if isinstance(obj, (dict, list)):
             if mutable:
                 self._mutables.append((name, copy.deepcopy(obj), obj))
