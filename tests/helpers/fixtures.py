@@ -226,33 +226,11 @@ def default_config():
 
 
 @pytest.fixture
-def key_config_stub(stubs):
+def key_config_stub(config_stub, monkeypatch):
     """Fixture which provides a fake key config object."""
-    # FIXME:conf
-    # class KeyConfigStub:
-    #
-    #     """Stub for the key-config object."""
-    #
-    #     def __init__(self):
-    #         self.bindings = {}
-    #
-    #     def get_bindings_for(self, section):
-    #         return self.bindings.get(section)
-    #
-    #     def set_bindings_for(self, section, bindings):
-    #         self.bindings[section] = bindings
-    #
-    #     def get_reverse_bindings_for(self, section):
-    #         """Get a dict of commands to a list of bindings for the section."""
-    #         cmd_to_keys = collections.defaultdict(list)
-    #         for key, cmd in self.bindings[section].items():
-    #             # put special bindings last
-    #             if utils.is_special_key(key):
-    #                 cmd_to_keys[cmd].append(key)
-    #             else:
-    #                 cmd_to_keys[cmd].insert(0, key)
-    #         return cmd_to_keys
-    return None
+    keyconf = config.KeyConfig(config_stub)
+    monkeypatch.setattr(config, 'key_instance', keyconf)
+    return keyconf
 
 
 @pytest.fixture
