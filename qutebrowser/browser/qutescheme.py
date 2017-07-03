@@ -194,7 +194,6 @@ def history_data(start_time, offset=None):
     """
     hist = objreg.get('web-history')
     if offset is not None:
-        # end is 24hrs earlier than start
         entries = hist.entries_before(start_time, limit=1000, offset=offset)
     else:
         # end is 24hrs earlier than start

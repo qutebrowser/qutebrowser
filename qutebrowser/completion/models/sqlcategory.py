@@ -33,7 +33,7 @@ class SqlCategory(QSqlQueryModel):
     """Wraps a SqlQuery for use as a completion category."""
 
     def __init__(self, name, *, title=None, filter_fields, sort_by=None,
-                 sort_order=None, select='*', where=None, group_by=None,
+                 sort_order=None, select='*',
                  delete_func=None, parent=None):
         """Create a new completion category backed by a sql table.
 
@@ -42,7 +42,6 @@ class SqlCategory(QSqlQueryModel):
             title: Title of category, defaults to table name.
             filter_fields: Names of fields to apply filter pattern to.
             select: A custom result column expression for the select statement.
-            where: An optional clause to filter out some rows.
             sort_by: The name of the field to sort by, or None for no sorting.
             sort_order: Either 'asc' or 'desc', if sort_by is non-None
             delete_func: Callback to delete a selected item.
@@ -57,10 +56,6 @@ class SqlCategory(QSqlQueryModel):
                                 for f in filter_fields)
         querystr += ')'
 
-        if where:
-            querystr += ' and ' + where
-        if group_by:
-            querystr += ' group by {}'.format(group_by)
         if sort_by:
             assert sort_order in ['asc', 'desc'], sort_order
             querystr += ' order by {} {}'.format(sort_by, sort_order)

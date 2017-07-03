@@ -58,7 +58,8 @@ class TestBaseLineParser:
         mocker.patch('builtins.open', mock.mock_open())
 
         with lineparser._open('r'):
-            with pytest.raises(IOError):
+            with pytest.raises(IOError,
+                               match="Refusing to double-open LineParser."):
                 with lineparser._open('r'):
                     pass
 

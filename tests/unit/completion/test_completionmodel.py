@@ -36,7 +36,7 @@ def test_first_last_item(counts):
     """Test that first() and last() index to the first and last items."""
     model = completionmodel.CompletionModel()
     for c in counts:
-        cat = mock.Mock()
+        cat = mock.Mock(spec=['layoutChanged'])
         cat.rowCount = mock.Mock(return_value=c)
         model.add_category(cat)
     nonempty = [i for i, rowCount in enumerate(counts) if rowCount > 0]
@@ -70,16 +70,17 @@ def test_count(counts):
 def test_set_pattern(pat):
     """Validate the filtering and sorting results of set_pattern."""
     model = completionmodel.CompletionModel()
-    cats = [mock.Mock(spec=['set_pattern', 'layoutChanged'])] * 3
+    cats = [mock.Mock(spec=['set_pattern', 'layoutChanged']) for _ in range(3)]
     for c in cats:
-        c.set_pattern = mock.Mock()
+        c.set_pattern = mock.Mock(spec=[])
         model.add_category(c)
     model.set_pattern(pat)
-    assert all(c.set_pattern.called_with([pat]) for c in cats)
+    for c in cats:
+        c.set_pattern.assert_called_with(pat)
 
 
 def test_delete_cur_item():
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
     model.add_category(cat)

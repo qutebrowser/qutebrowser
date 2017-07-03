@@ -36,7 +36,7 @@ class ListCategory(QSortFilterProxyModel):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)
-        self.pattern = ''
+        self._pattern = ''
         # ListCategory filters all columns
         self.columns_to_filter = [0, 1, 2]
         self.setFilterKeyColumn(-1)
@@ -51,7 +51,7 @@ class ListCategory(QSortFilterProxyModel):
         Args:
             val: The value to set.
         """
-        self.pattern = val
+        self._pattern = val
         val = re.sub(r' +', r' ', val)  # See #1919
         val = re.escape(val)
         val = val.replace(r'\ ', '.*')
@@ -64,7 +64,7 @@ class ListCategory(QSortFilterProxyModel):
     def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
-        Prefers all items which start with self.pattern. Other than that, uses
+        Prefers all items which start with self._pattern. Other than that, uses
         normal Python string sorting.
 
         Args:
@@ -80,8 +80,8 @@ class ListCategory(QSortFilterProxyModel):
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
 
-        leftstart = left.startswith(self.pattern)
-        rightstart = right.startswith(self.pattern)
+        leftstart = left.startswith(self._pattern)
+        rightstart = right.startswith(self._pattern)
 
         if leftstart and rightstart:
             return left < right

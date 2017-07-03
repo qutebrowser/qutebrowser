@@ -83,7 +83,7 @@ def test_set_model(completionview):
 
 def test_set_pattern(completionview):
     model = completionmodel.CompletionModel()
-    model.set_pattern = mock.Mock()
+    model.set_pattern = mock.Mock(spec=[])
     completionview.set_model(model)
     completionview.set_pattern('foo')
     model.set_pattern.assert_called_with('foo')
@@ -214,7 +214,7 @@ def test_completion_show(show, rows, quick_complete, completionview,
 
 def test_completion_item_del(completionview):
     """Test that completion_item_del invokes delete_cur_item in the model."""
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
     model.add_category(cat)
@@ -226,7 +226,7 @@ def test_completion_item_del(completionview):
 
 def test_completion_item_del_no_selection(completionview):
     """Test that completion_item_del with an invalid index."""
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     model = completionmodel.CompletionModel()
     cat = listcategory.ListCategory('', [('foo',)], delete_func=func)
     model.add_category(cat)

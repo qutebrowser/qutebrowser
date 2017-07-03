@@ -135,32 +135,11 @@ def test_select():
     utils.validate_model(cat, [('bar', 'baz', 'foo')])
 
 
-def test_where():
-    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
-    table.insert({'a': 'foo', 'b': 'bar', 'c': False})
-    table.insert({'a': 'baz', 'b': 'biz', 'c': True})
-    cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], where='not c')
-    cat.set_pattern('')
-    utils.validate_model(cat, [('foo', 'bar', False)])
-
-
-def test_group():
-    table = sql.SqlTable('Foo', ['a', 'b'])
-    table.insert({'a': 'foo', 'b': 1})
-    table.insert({'a': 'bar', 'b': 3})
-    table.insert({'a': 'foo', 'b': 2})
-    table.insert({'a': 'bar', 'b': 0})
-    cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'],
-                                  select='a, max(b)', group_by='a')
-    cat.set_pattern('')
-    utils.validate_model(cat, [('bar', 3), ('foo', 2)])
-
-
 def test_delete_cur_item():
     table = sql.SqlTable('Foo', ['a', 'b'])
     table.insert({'a': 'foo', 'b': 1})
     table.insert({'a': 'bar', 'b': 2})
-    func = unittest.mock.MagicMock()
+    func = unittest.mock.Mock(spec=[])
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], delete_func=func)
     cat.set_pattern('')
     cat.delete_cur_item(cat.index(0, 0))

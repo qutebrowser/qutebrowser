@@ -209,8 +209,8 @@ class SqlTable(QObject):
         """Performantly append multiple rows to the table.
 
         Args:
-            rows: A list of lists, where each sub-list is a row.
             values: A dict with a list of values to insert for each field name.
+            replace: If true, overwrite rows with a primary key match.
         """
         q = self._insert_query(values, replace)
         for key, val in values.items():

@@ -337,12 +337,7 @@ def check_libraries(backend):
                                  "or Install via pip.",
                          pip="PyYAML"),
         'PyQt5.QtSql':
-            _missing_str("PyQt5.QtSql",
-                         windows="Use the installer by Riverbank computing "
-                                 "or the standalone qutebrowser exe. "
-                                 "http://www.riverbankcomputing.co.uk/"
-                                 "software/pyqt/download5",
-                         pip="PyQt5"),
+            _missing_str("PyQt5.QtSql")
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",

@@ -113,7 +113,8 @@ def test_clear(qtbot, tmpdir, hist, mocker):
     hist.add_url(QUrl('http://example.com/'))
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
-    m = mocker.patch('qutebrowser.browser.history.message.confirm_async')
+    m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
+                     spec=[])
     hist.clear()
     assert m.called
 
@@ -288,14 +289,18 @@ def test_import_txt_skip(hist, data_tmpdir, line, monkeypatch, stubs):
     '68891-x http://example.com/bad-flag',
     '68891 http://.com',
 ])
-def test_import_txt_invalid(hist, data_tmpdir, line, monkeypatch, stubs):
+def test_import_txt_invalid(hist, data_tmpdir, line, monkeypatch, stubs,
+                            caplog):
     """import_txt should fail on certain lines."""
     monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
     histfile = data_tmpdir / 'history'
     histfile.write(line)
 
-    with pytest.raises(Exception):
+    with caplog.at_level(logging.ERROR):
         hist.import_txt()
+
+    assert any(rec.msg.startswith("Failed to import history:")
+               for rec in caplog.records)
 
     assert histfile.exists()
 
