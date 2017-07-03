@@ -40,7 +40,7 @@ def custom_headers():
     for header, value in config.val.content.headers.custom.items():
         headers[header.encode('ascii')] = value.encode('ascii')
 
-    accept_language = config.val.content.accept_language
+    accept_language = config.val.content.headers.accept_language
     if accept_language is not None:
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 

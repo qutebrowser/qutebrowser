@@ -336,7 +336,7 @@ Feature: Various utility commands.
         And the header X-Do-Not-Track should be set to 0
 
     Scenario: Accept-Language header
-        When I set content.accept_language to en,de
+        When I set content.headers.accept_language to en,de
         And I open headers
         Then the header Accept-Language should be set to en,de
 

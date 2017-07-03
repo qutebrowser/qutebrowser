@@ -107,11 +107,6 @@ auto_save.session:
 
 ## content
 
-content.accept_language:
-  type: String
-  default: en-US,en
-  desc: Value to send in the `accept-language` header.
-
 content.cache.size:
   default: null
   type:
@@ -210,6 +205,11 @@ content.geolocation:
   default: ask
   type: BoolAsk
   desc: Allow websites to request geolocations.
+
+content.headers.accept_language:
+  type: String
+  default: en-US,en
+  desc: Value to send in the `accept-language` header.
 
 content.headers.custom:
   default: {}
