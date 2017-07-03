@@ -75,9 +75,9 @@ window.loadHistory = (function() {
 
         // Create session-separator and new tbody if necessary
         if (tbody.lastChild !== null && lastItemDate !== null &&
-                window.SESSION_INTERVAL > 0) {
+                window.GAP_INTERVAL > 0) {
             var interval = lastItemDate.getTime() - date.getTime();
-            if (interval > window.SESSION_INTERVAL) {
+            if (interval > window.GAP_INTERVAL) {
                 // Add session-separator
                 var sessionSeparator = document.createElement("td");
                 sessionSeparator.className = "session-separator";

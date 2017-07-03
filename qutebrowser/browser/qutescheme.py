@@ -284,7 +284,7 @@ def qute_history(url):
             return 'text/html', jinja.render(
                 'history.html',
                 title='History',
-                session_interval=config.val.history_session_interval
+                gap_interval=config.val.history_gap_interval
             )
         else:
             # Get current date from query parameter, if not given choose today.

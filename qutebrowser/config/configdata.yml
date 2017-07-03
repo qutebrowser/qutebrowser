@@ -20,11 +20,15 @@ confirm_quit:
   default: [never]
   desc: Whether to confirm quitting the application.
 
-history_session_interval:
+history_gap_interval:
   type: Int
   default: 30
-  desc: The maximum time in minutes between two history items for them to be considered
-    being from the same session. Use -1 to disable separation.
+  desc: >-
+    The maximum time in minutes between two history items for them to be
+    considered being from the same browsing session.
+
+    Items with less time between them are grouped when being displayed in `:history`.
+    Use -1 to disable separation.
 
 ignore_case:
   type:
