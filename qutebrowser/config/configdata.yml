@@ -207,7 +207,9 @@ content.geolocation:
   desc: Allow websites to request geolocations.
 
 content.headers.accept_language:
-  type: String
+  type:
+    name: String
+    none_ok: true
   default: en-US,en
   desc: Value to send in the `Accept-Language` header.
 
