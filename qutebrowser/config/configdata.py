@@ -39,11 +39,6 @@ DATA = None
 
 # FIXME:conf what to do about this?
 DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
-MONOSPACE = (' xos4 Terminus, Terminus, Monospace, '
-             '"DejaVu Sans Mono", Monaco, '
-             '"Bitstream Vera Sans Mono", "Andale Mono", '
-             '"Courier New", Courier, "Liberation Mono", '
-             'monospace, Fixed, Consolas, Terminal')
 
 
 Option = collections.namedtuple('Option', ['name', 'typ', 'default',

@@ -1685,7 +1685,11 @@ fonts.monospace:
     Vera Sans Mono", "Andale Mono", "Courier New", Courier, "Liberation Mono", monospace,
     Fixed, Consolas, Terminal
   type: Font
-  desc: Default monospace fonts.
+  desc: >-
+    Default monospace fonts.
+
+    Whenever "monospace" is used in a font setting, it\'s replaced with the
+    fonts listed here.
 
 fonts.completion.entry:
   default: 8pt monospace

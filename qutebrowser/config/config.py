@@ -611,6 +611,8 @@ def init(parent=None):
     val = ConfigContainer(instance)
     key_instance = KeyConfig(instance)
 
+    configtypes.Font.monospace_fonts = val.fonts.monospace
+
     config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 

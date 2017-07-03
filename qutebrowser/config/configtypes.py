@@ -849,6 +849,8 @@ class Font(BaseType):
     * Size: _number_ `px`/`pt`
     """
 
+    # Gets set when the config is initialized.
+    monospace_fonts = None
     font_regex = re.compile(r"""
         ^(
             (
@@ -875,6 +877,8 @@ class Font(BaseType):
             # as family.
             raise configexc.ValidationError(value, "must be a valid font")
 
+        if value.endswith(' monospace') and self.monospace_fonts is not None:
+            return value.replace('monospace', self.monospace_fonts)
         return value
 
 
@@ -955,6 +959,8 @@ class QtFont(Font):
         # hopefully nobody will ever have a font with quotes in the family (if
         # that's even possible), we take a much more naive approach.
         family = family.replace('"', '').replace("'", '')
+        if family == 'monospace':
+            family = self.monospace_fonts
         font.setFamily(family)
         return font
 
