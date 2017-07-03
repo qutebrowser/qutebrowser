@@ -225,13 +225,15 @@ content.headers.custom:
   desc: Set custom headers for qutebrowser HTTP requests.
 
 content.headers.do_not_track:
-  type: Bool
+  type:
+    name: Bool
+    none_ok: true
   default: true
   desc: >-
     Value to send in the `DNT` header.
 
     When this is set to true, qutebrowser asks websites to not track your
-    identity.
+    identity. If set to null, the DNT header is not sent at all.
 
 content.headers.referer:
   default: same-domain

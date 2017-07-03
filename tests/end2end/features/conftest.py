@@ -499,7 +499,11 @@ def check_header(quteproc, header, value):
     content = quteproc.get_content()
     data = json.loads(content)
     print(data)
-    assert utils.pattern_match(pattern=value, value=data['headers'][header])
+    if value == '<unset>':
+        assert header not in data['headers']
+    else:
+        actual = data['headers'][header]
+        assert utils.pattern_match(pattern=value, value=actual)
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the html "{text}"'))
