@@ -1419,6 +1419,22 @@ class TestDict:
                                valtype=configtypes.Int())
         assert typ.from_str('{"answer": 42}') == {"answer": 42}
 
+    @pytest.mark.parametrize('keytype, valtype, val', [
+        (configtypes.String(), configtypes.String(), {'hello': 'world'}),
+        (configtypes.String(), configtypes.Int(), {'hello': 42}),
+    ])
+    def test_to_py_valid(self, klass, keytype, valtype, val):
+        assert klass(keytype=keytype, valtype=valtype).to_py(val) == val
+
+    @pytest.mark.parametrize('val', [
+        {0: 'foo'},  # Invalid key type
+        {'foo': 0},  # Invalid value type
+    ])
+    def test_to_py_invalid(self, klass, val):
+        typ = klass(keytype=configtypes.String(), valtype=configtypes.String())
+        with pytest.raises(configexc.ValidationError):
+            typ.to_py(val)
+
     @pytest.mark.parametrize('kind, val, ok', [
         ('fixed', {"one": "1"}, True),  # missing key (gets filled with None)
         ('fixed', {"one": "1", "two": "2", "three": "3"}, False),  # extra key
