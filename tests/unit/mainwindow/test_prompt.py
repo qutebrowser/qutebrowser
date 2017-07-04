@@ -32,6 +32,7 @@ class TestFileCompletion:
     def get_prompt(self, qtbot, config_stub, key_config_stub):
         """Get a function to display a prompt with a path."""
         config_stub.val.bindings.default = {}
+
         def _get_prompt_func(path):
             question = usertypes.Question()
             question.title = "test"

@@ -1566,8 +1566,7 @@ class TestFile:
         os_mock.path.isabs.return_value = True
         assert klass().to_py('$HOME/foobar') == '/home/foo/foobar'
 
-    def test_to_py_invalid_encoding(self, klass, os_mock,
-                                      unicode_encode_err):
+    def test_to_py_invalid_encoding(self, klass, os_mock, unicode_encode_err):
         """Test to_py with an invalid encoding, e.g. LC_ALL=C."""
         os_mock.path.isfile.side_effect = unicode_encode_err
         os_mock.path.isabs.side_effect = unicode_encode_err

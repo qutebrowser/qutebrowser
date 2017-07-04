@@ -389,6 +389,8 @@ class InstaTimer(QObject):
 
 class FakeYamlConfig:
 
+    """Fake configfiles.YamlConfig object."""
+
     def __init__(self):
         self.values = {}
         self.loaded = False

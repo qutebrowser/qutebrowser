@@ -275,14 +275,14 @@ class TestSetConfigCommand:
         objreg.delete('tabbed-browser', scope='window', window=0)
 
     def test_set_no_args(self, commands, tabbed_browser):
-        """:set
+        """Run ':set'.
 
         Should open qute://settings."""
         commands.set(win_id=0)
         assert tabbed_browser.opened_url == QUrl('qute://settings')
 
     def test_get(self, config_stub, commands, message_mock):
-        """:set url.auto_search?
+        """Run ':set url.auto_search?'.
 
         Should show the value.
         """
@@ -293,7 +293,7 @@ class TestSetConfigCommand:
 
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_simple(self, monkeypatch, commands, config_stub, temp):
-        """:set [-t] url.auto_search dns
+        """Run ':set [-t] url.auto_search dns'.
 
         Should set the setting accordingly.
         """
@@ -326,7 +326,7 @@ class TestSetConfigCommand:
         assert config_stub._yaml.values['url.auto_search'] == 'dns'
 
     def test_set_print(self, config_stub, commands, message_mock):
-        """:set -p url.auto_search never
+        """Run ':set -p url.auto_search never'.
 
         Should set show the value.
         """
@@ -338,7 +338,7 @@ class TestSetConfigCommand:
         assert msg.text == 'url.auto_search = dns'
 
     def test_set_toggle(self, commands, config_stub):
-        """:set auto_save.config!
+        """Run ':set auto_save.config!'.
 
         Should toggle the value.
         """
@@ -348,7 +348,7 @@ class TestSetConfigCommand:
         assert not config_stub._yaml.values['auto_save.config']
 
     def test_set_toggle_nonbool(self, commands, config_stub):
-        """:set url.auto_search!
+        """Run ':set url.auto_search!'.
 
         Should show an error
         """
@@ -359,7 +359,7 @@ class TestSetConfigCommand:
         assert config_stub.val.url.auto_search == 'naive'
 
     def test_set_toggle_print(self, commands, config_stub, message_mock):
-        """:set -p auto_save.config!
+        """Run ':set -p auto_save.config!'.
 
         Should toggle the value and show the new value.
         """
@@ -368,7 +368,7 @@ class TestSetConfigCommand:
         assert msg.text == 'auto_save.config = false'
 
     def test_set_invalid_option(self, commands):
-        """:set foo bar
+        """Run ':set foo bar'.
 
         Should show an error.
         """
@@ -376,7 +376,7 @@ class TestSetConfigCommand:
             commands.set(0, 'foo', 'bar')
 
     def test_set_invalid_value(self, commands):
-        """:set auto_save.config blah
+        """Run ':set auto_save.config blah'.
 
         Should show an error.
         """
@@ -394,7 +394,7 @@ class TestSetConfigCommand:
 
     @pytest.mark.parametrize('option', ['?', '!', 'url.auto_search'])
     def test_empty(self, commands, option):
-        """:set ? / :set ! / :set url.auto_search
+        """Run ':set ?' / ':set !' / ':set url.auto_search'.
 
         Should show an error.
         See https://github.com/qutebrowser/qutebrowser/issues/1109
@@ -406,7 +406,7 @@ class TestSetConfigCommand:
 
     @pytest.mark.parametrize('suffix', '?!')
     def test_invalid(self, commands, suffix):
-        """:set foo? / :set foo!
+        """Run ':set foo?' / ':set foo!'.
 
         Should show an error.
         """
@@ -422,7 +422,7 @@ class TestSetConfigCommand:
         ('red', 'green'),
     ])
     def test_cycling(self, commands, config_stub, initial, expected):
-        """:set with multiple values."""
+        """Run ':set' with multiple values."""
         opt = 'colors.statusbar.normal.bg'
         config_stub.set_obj(opt, initial)
         commands.set(0, opt, 'green', 'magenta', 'blue', 'yellow')
@@ -472,7 +472,7 @@ class TestBindConfigCommand:
     ])
     def test_bind_print(self, commands, config_stub, message_mock,
                         key, mode, expected):
-        """:bind key
+        """Run ':bind key'.
 
         Should print the binding.
         """
@@ -500,7 +500,7 @@ class TestBindConfigCommand:
         ('nop', 'wrongmode', "bind: Invalid mode wrongmode!"),
     ])
     def test_bind_invalid(self, commands, command, mode, expected):
-        """:bind a foobar / :bind a completion-item-del
+        """Run ':bind a foobar' / ':bind a completion-item-del'.
 
         Should show an error.
         """
@@ -510,7 +510,7 @@ class TestBindConfigCommand:
     @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
     def test_bind_duplicate(self, commands, config_stub, keyconf, force, key):
-        """:bind a key which already has been bound.
+        """Run ':bind' with a key which already has been bound.'.
 
         Also tests for https://github.com/qutebrowser/qutebrowser/issues/1544
         """
@@ -566,7 +566,7 @@ class TestBindConfigCommand:
         ('x', 'wrongmode', "unbind: Invalid mode wrongmode!"),
     ])
     def test_unbind_invalid(self, commands, key, mode, expected):
-        """:unbind foobar / :unbind x wrongmode
+        """Run ':unbind foobar' / ':unbind x wrongmode'.
 
         Should show an error.
         """

@@ -356,9 +356,33 @@ def generate_commands(filename):
             f.write(_get_command_doc(name, cmd))
 
 
+def _generate_setting_backend_info(f, opt):
+    """"Generate backend information for the given option."""
+    all_backends = [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
+    if opt.raw_backends is not None:
+        for name, conditional in sorted(opt.raw_backends.items()):
+            if conditional is True:
+                pass
+            elif conditional is False:
+                f.write("\nOn {}, this setting is unavailable.\n".format(name))
+            else:
+                f.write("\nOn {}, this setting requires {} or newer.\n"
+                        .format(name, conditional))
+    elif opt.backends == all_backends:
+        pass
+    elif opt.backends == [usertypes.Backend.QtWebKit]:
+        f.write("\nThis setting is only available with the QtWebKit "
+                "backend.\n")
+    elif opt.backends == [usertypes.Backend.QtWebEngine]:
+        f.write("\nThis setting is only available with the QtWebEngine "
+                "backend.\n")
+    else:
+        raise ValueError("Invalid value {!r} for opt.backends"
+                         .format(opt.backends))
+
+
 def _generate_setting_option(f, opt):
     """Generate documentation for a single section."""
-
     f.write("\n")
     f.write('[[{}]]'.format(opt.name) + "\n")
     f.write("== {}".format(opt.name) + "\n")
@@ -386,27 +410,7 @@ def _generate_setting_option(f, opt):
     else:
         f.write("Default: empty\n")
 
-    all_backends = [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
-    if opt.raw_backends is not None:
-        for name, conditional in sorted(opt.raw_backends.items()):
-            if conditional is True:
-                pass
-            elif conditional is False:
-                f.write("\nOn {}, this setting is unavailable.\n".format(name))
-            else:
-                f.write("\nOn {}, this setting requires {} or newer.\n"
-                        .format(name, conditional))
-    elif opt.backends == all_backends:
-        pass
-    elif opt.backends == [usertypes.Backend.QtWebKit]:
-        f.write("\nThis setting is only available with the QtWebKit "
-                "backend.\n")
-    elif opt.backends == [usertypes.Backend.QtWebEngine]:
-        f.write("\nThis setting is only available with the QtWebEngine "
-                "backend.\n")
-    else:
-        raise ValueError("Invalid value {!r} for opt.backends"
-                         .format(opt.backends))
+    _generate_setting_backend_info(f, opt)
 
 
 def generate_settings(filename):
