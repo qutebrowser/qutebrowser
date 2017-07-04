@@ -136,6 +136,7 @@ def build_osx():
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
+    # Currently disabled because QtWebEngine has no pdfjs support
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r')
@@ -173,6 +174,7 @@ def patch_windows(out_dir):
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
+    # Currently disabled because QtWebEngine has no pdfjs support
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
