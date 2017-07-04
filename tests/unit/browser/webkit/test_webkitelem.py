@@ -48,7 +48,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         js_rect_return: If None, what evaluateJavaScript returns is based on
                         geometry. If set, the return value of
                         evaluateJavaScript.
-        zoom_text_only: Whether zoom-text-only is set in the config
+        zoom_text_only: Whether zoom.text_only is set in the config
     """
     # pylint: disable=too-many-locals,too-many-branches
     elem = mock.Mock()

@@ -107,7 +107,7 @@ class CookieJar(RAMCookieJar):
 
     @config.change_filter('content.cookies.store')
     def _on_cookies_store_changed(self):
-        """Delete stored cookies if cookies-store changed."""
+        """Delete stored cookies if cookies.store changed."""
         if not config.val.content.cookies.store:
             self._lineparser.data = []
             self._lineparser.save()

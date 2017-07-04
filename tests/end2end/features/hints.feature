@@ -241,7 +241,7 @@ Feature: Using hints
         And I hint with args "all current" and follow a
         Then no crash should happen
 
-    ### hints.auto_follow-timeout
+    ### hints.auto_follow.timeout
 
     @not_osx
     Scenario: Ignoring key presses after auto-following hints
@@ -257,7 +257,7 @@ Feature: Using hints
         And I wait for "Releasing inhibition state of normal mode." in the log
         Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
 
-    Scenario: Turning off auto-follow-timeout
+    Scenario: Turning off auto_follow_timeout
         When I set hints.auto_follow_timeout to 0
         And I set hints.mode to number
         And I run :bind --force , message-info "Keypress worked!"
@@ -365,7 +365,7 @@ Feature: Using hints
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
-    ### auto-follow option
+    ### hints.auto_follow option
 
     Scenario: Using hints.auto_follow = 'always' in letter mode
         When I open data/hints/html/simple.html

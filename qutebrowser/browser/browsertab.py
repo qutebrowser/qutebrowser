@@ -703,7 +703,7 @@ class AbstractTab(QWidget):
         self.load_started.emit()
 
     def _handle_auto_insert_mode(self, ok):
-        """Handle auto-insert-mode after loading finished."""
+        """Handle `input.insert_mode.auto_load` after loading finished."""
         if not config.val.input.insert_mode.auto_load or not ok:
             return
 

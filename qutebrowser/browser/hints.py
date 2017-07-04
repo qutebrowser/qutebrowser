@@ -603,7 +603,7 @@ class HintManager(QObject):
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
-        # to make auto-follow == 'always' work
+        # to make auto_follow == 'always' work
         self._handle_auto_follow()
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
@@ -615,7 +615,7 @@ class HintManager(QObject):
 
         Args:
             rapid: Whether to do rapid hinting. This is only possible with
-                   targets `tab` (with background-tabs=true), `tab-bg`,
+                   targets `tab` (with `tabs.background_tabs=true`), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
@@ -631,7 +631,7 @@ class HintManager(QObject):
                 - `normal`: Open the link.
                 - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
-                         background-tabs setting).
+                         `tabs.background_tabs` setting).
                 - `tab-fg`: Open the link in a new foreground tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
@@ -719,7 +719,7 @@ class HintManager(QObject):
         return self._context.hint_mode
 
     def _handle_auto_follow(self, keystr="", filterstr="", visible=None):
-        """Handle the auto-follow option."""
+        """Handle the auto_follow option."""
         if visible is None:
             visible = {string: label
                        for string, label in self._context.labels.items()
@@ -745,7 +745,7 @@ class HintManager(QObject):
             self._context.to_follow = list(visible.keys())[0]
 
         if follow:
-            # apply auto-follow-timeout
+            # apply auto_follow_timeout
             timeout = config.val.hints.auto_follow_timeout
             keyparsers = objreg.get('keyparsers', scope='window',
                                     window=self._win_id)
@@ -770,7 +770,7 @@ class HintManager(QObject):
                     label.show()
                 else:
                     # element doesn't match anymore -> hide it, unless in rapid
-                    # mode and hide-unmatched-rapid-hints is false (see #1799)
+                    # mode and hide_unmatched_rapid_hints is false (see #1799)
                     if (not self._context.rapid or
                             config.val.hints.hide_unmatched_rapid_hints):
                         label.hide()

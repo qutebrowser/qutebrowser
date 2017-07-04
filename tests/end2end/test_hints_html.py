@@ -86,7 +86,7 @@ def _parse_file(test_name):
 def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
                quteproc, request):
     if zoom_text_only and request.config.webengine:
-        pytest.skip("QtWebEngine doesn't have zoom-text-only")
+        pytest.skip("QtWebEngine doesn't have zoom.text_only")
     if find_implementation == 'python' and request.config.webengine:
         pytest.skip("QtWebEngine doesn't have a python find implementation")
 

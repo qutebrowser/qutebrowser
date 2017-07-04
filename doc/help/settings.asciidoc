@@ -231,7 +231,7 @@
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|The format to use for the tab title.
-|<<tabs.title.format_pinned,tabs.title.format_pinned>>|The format to use for the tab title for pinned tabs. The same placeholders like for title-format are defined.
+|<<tabs.title.format_pinned,tabs.title.format_pinned>>|The format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.width.bar,tabs.width.bar>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
 |<<tabs.width.indicator,tabs.width.indicator>>|Width of the progress indicator (0 to disable).
 |<<tabs.width.pinned,tabs.width.pinned>>|The width for pinned tabs with a horizontal tabbar, in px.
@@ -1688,7 +1688,7 @@ Default: empty
 [[downloads.location.prompt]]
 == downloads.location.prompt
 Prompt the user for the download location.
-If set to false, `download-directory` will be used.
+If set to false, `downloads.location.directory` will be used.
 
 Valid values:
 
@@ -2483,7 +2483,7 @@ Default: +pass:[{index}: {title}]+
 
 [[tabs.title.format_pinned]]
 == tabs.title.format_pinned
-The format to use for the tab title for pinned tabs. The same placeholders like for title-format are defined.
+The format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 
 Default: +pass:[{index}]+
 

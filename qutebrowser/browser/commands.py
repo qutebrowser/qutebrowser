@@ -200,7 +200,7 @@ class CommandDispatcher:
                     "-o is not supported with 'tabs.select_on_remove' set to "
                     "'last-used'!")
             else:  # pragma: no cover
-                raise ValueError("Invalid select-on-remove value "
+                raise ValueError("Invalid select_on_remove value "
                                  "{!r}!".format(conf_selection))
         return None
 
@@ -495,7 +495,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError(e)
 
         # The new tab could be in a new tabbed_browser (e.g. because of
-        # tabs-are-windows being set)
+        # tabs.tabs_are_windows being set)
         if window:
             new_tabbed_browser = self._new_tabbed_browser(
                 private=self._tabbed_browser.private)

@@ -169,7 +169,7 @@ Feature: Prompts
 
     # SSL
 
-    Scenario: SSL error with ssl-strict = false
+    Scenario: SSL error with content.ssl_strict = false
         When I clear SSL errors
         And I set content.ssl_strict to false
         And I load an SSL page
@@ -178,13 +178,13 @@ Feature: Prompts
         And the page should contain the plaintext "Hello World via SSL!"
 
     @issue2478
-    Scenario: SSL error with ssl-strict = true
+    Scenario: SSL error with content.ssl_strict = true
         When I clear SSL errors
         And I set content.ssl_strict to true
         And I load an SSL page
         Then a SSL error page should be shown
 
-    Scenario: SSL error with ssl-strict = ask -> yes
+    Scenario: SSL error with content.ssl_strict = ask -> yes
         When I clear SSL errors
         And I set content.ssl_strict to ask
         And I load an SSL page
@@ -194,7 +194,7 @@ Feature: Prompts
         Then the page should contain the plaintext "Hello World via SSL!"
 
     @issue2478
-    Scenario: SSL error with ssl-strict = ask -> no
+    Scenario: SSL error with content.ssl_strict = ask -> no
         When I clear SSL errors
         And I set content.ssl_strict to ask
         And I load an SSL page
@@ -203,7 +203,7 @@ Feature: Prompts
         Then a SSL error page should be shown
 
     @issue2478
-    Scenario: SSL error with ssl-strict = ask -> abort
+    Scenario: SSL error with content.ssl_strict = ask -> abort
         When I clear SSL errors
         And I set content.ssl_strict to ask
         And I load an SSL page

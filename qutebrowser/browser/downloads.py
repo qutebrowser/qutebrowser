@@ -549,7 +549,7 @@ class AbstractDownloadItem(QObject):
         Args:
             cmdline: The command to use as string. A `{}` is expanded to the
                      filename. None means to use the system's default
-                     application or `default-open-dispatcher` if set. If no
+                     application or `downloads.open_dispatcher` if set. If no
                      `{}` is found, the filename is appended to the cmdline.
         """
         assert self.successful

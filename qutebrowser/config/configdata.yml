@@ -608,7 +608,7 @@ downloads.location.prompt:
   desc: >-
     Prompt the user for the download location.
 
-    If set to false, `download-directory` will be used.
+    If set to false, `downloads.location.directory` will be used.
 
 downloads.location.remember:
   default: true
@@ -1115,7 +1115,7 @@ tabs.title.format_pinned:
       - private
     none_ok: true
   desc: The format to use for the tab title for pinned tabs. The same placeholders
-    like for title-format are defined.
+    like for `tabs.title.format` are defined.
 
 tabs.width.bar:
   default: 20%

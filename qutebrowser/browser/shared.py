@@ -155,7 +155,7 @@ def ignore_certificate_errors(url, errors, abort_on):
             ignore = False
         return ignore
     elif ssl_strict is False:
-        log.webview.debug("ssl-strict is False, only warning about errors")
+        log.webview.debug("ssl_strict is False, only warning about errors")
         for err in errors:
             # FIXME we might want to use warn here (non-fatal error)
             # https://github.com/qutebrowser/qutebrowser/issues/114

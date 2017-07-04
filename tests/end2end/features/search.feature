@@ -52,27 +52,27 @@ Feature: Searching on a page
         And I wait for "search didn't find blub" in the log
         Then the warning "Text 'blub' not found on page!" should be shown
 
-    ## ignore-case
+    ## ignore_case
 
-    Scenario: Searching text with ignore-case = always
+    Scenario: Searching text with ignore_case = always
         When I set ignore_case to always
         And I run :search bar
         And I wait for "search found bar" in the log
         Then "Bar" should be found
 
-    Scenario: Searching text with ignore-case = never
+    Scenario: Searching text with ignore_case = never
         When I set ignore_case to never
         And I run :search bar
         And I wait for "search found bar with flags FindCaseSensitively" in the log
         Then "bar" should be found
 
-    Scenario: Searching text with ignore-case = smart (lower-case)
+    Scenario: Searching text with ignore_case = smart (lower-case)
         When I set ignore_case to smart
         And I run :search bar
         And I wait for "search found bar" in the log
         Then "Bar" should be found
 
-    Scenario: Searching text with ignore-case = smart (upper-case)
+    Scenario: Searching text with ignore_case = smart (upper-case)
         When I set ignore_case to smart
         And I run :search Foo
         And I wait for "search found Foo with flags FindCaseSensitively" in the log

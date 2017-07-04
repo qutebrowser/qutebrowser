@@ -165,7 +165,7 @@ def test_completion_show(show, rows, quick_complete, completionview,
     Args:
         show: The completion show config setting.
         rows: Each entry represents a completion category with only one item.
-        quick_complete: The completion quick-complete config setting.
+        quick_complete: The `completion.quick` config setting.
     """
     config_stub.val.completion.show = show
     config_stub.val.completion.quick = quick_complete

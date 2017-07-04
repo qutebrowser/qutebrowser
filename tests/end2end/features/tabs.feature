@@ -37,7 +37,7 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = next
+    Scenario: :tab-close with tabs.select_on_remove = next
         When I set tabs.select_on_remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -48,7 +48,7 @@ Feature: Tab management
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = prev
+    Scenario: :tab-close with tabs.select_on_remove = prev
         When I set tabs.select_on_remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -59,7 +59,7 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-close with select-on-remove = last-used
+    Scenario: :tab-close with tabs.select_on_remove = last-used
         When I set tabs.select_on_remove to last-used
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -72,7 +72,7 @@ Feature: Tab management
             - data/numbers/3.txt
             - data/numbers/4.txt (active)
 
-    Scenario: :tab-close with select-on-remove = prev and --next
+    Scenario: :tab-close with tabs.select_on_remove = prev and --next
         When I set tabs.select_on_remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -83,7 +83,7 @@ Feature: Tab management
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = next and --prev
+    Scenario: :tab-close with tabs.select_on_remove = next and --prev
         When I set tabs.select_on_remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -94,7 +94,7 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-close with select-on-remove = prev and --opposite
+    Scenario: :tab-close with tabs.select_on_remove = prev and --opposite
         When I set tabs.select_on_remove to prev
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -105,7 +105,7 @@ Feature: Tab management
             - data/numbers/1.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-close with select-on-remove = next and --opposite
+    Scenario: :tab-close with tabs.select_on_remove = next and --opposite
         When I set tabs.select_on_remove to next
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -116,7 +116,7 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/3.txt
 
-    Scenario: :tab-close with select-on-remove = last-used and --opposite
+    Scenario: :tab-close with tabs.select_on_remove = last-used and --opposite
         When I set tabs.select_on_remove to last-used
         And I run :tab-close --opposite
         Then the error "-o is not supported with 'tabs.select_on_remove' set to 'last-used'!" should be shown
@@ -598,7 +598,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/title.html
                   title: Test title
 
-    Scenario: Cloning with tabs-are-windows = true
+    Scenario: Cloning with tabs_are_windows = true
         When I open data/title.html
         And I set tabs.tabs_are_windows to true
         And I run :tab-clone
@@ -735,7 +735,7 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    Scenario: Double-undo with single tab on last-close default page
+    Scenario: Double-undo with single tab on tabs.last_close default page
         Given I have a fresh instance
         When I open about:blank
         And I set tabs.last_close to default-page
@@ -793,11 +793,11 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
-    # last-close
+    # tabs.last_close
 
     # FIXME:qtwebengine
     @qtwebengine_skip: Waits for an earlier about:blank and fails
-    Scenario: last-close = blank
+    Scenario: tabs.last_close = blank
         When I open data/hello.txt
         And I set tabs.last_close to blank
         And I run :tab-only
@@ -806,7 +806,7 @@ Feature: Tab management
         Then the following tabs should be open:
             - about:blank (active)
 
-    Scenario: last-close = startpage
+    Scenario: tabs.last_close = startpage
         When I set url.start_pages to ["http://localhost:(port)/data/numbers/7.txt", "http://localhost:(port)/data/numbers/8.txt"]
         And I set tabs.last_close to startpage
         And I open data/hello.txt
@@ -818,7 +818,7 @@ Feature: Tab management
             - data/numbers/7.txt
             - data/numbers/8.txt (active)
 
-    Scenario: last-close = default-page
+    Scenario: tabs.last_close = default-page
         When I set url.default_page to http://localhost:(port)/data/numbers/9.txt
         And I set tabs.last_close to default-page
         And I open data/hello.txt
@@ -828,7 +828,7 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/9.txt (active)
 
-    Scenario: last-close = close
+    Scenario: tabs.last_close = close
         When I open data/hello.txt
         And I set tabs.last_close to close
         And I run :tab-only
@@ -1026,7 +1026,7 @@ Feature: Tab management
         Then qutebrowser should quit
         And no crash should happen
 
-    Scenario: Opening link with tabs-are-windows set (#2162)
+    Scenario: Opening link with tabs_are_windows set (#2162)
         When I set tabs.tabs_are_windows to true
         And I open data/hints/html/simple.html
         And I hint with args "all tab-fg" and follow a

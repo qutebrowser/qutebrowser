@@ -86,7 +86,7 @@ Feature: Downloading things from a website.
         And I run :prompt-accept
         Then the error "Download error: SSL handshake failed" should be shown
 
-    Scenario: Closing window with remove-finished-downloads timeout (issue 1242)
+    Scenario: Closing window with downloads.remove_finished timeout (issue 1242)
         When I set downloads.remove_finished to 500
         And I open data/downloads/download.bin in a new window without waiting
         And I wait until the download is finished
@@ -94,7 +94,7 @@ Feature: Downloading things from a website.
         And I wait 0.5s
         Then no crash should happen
 
-    Scenario: Quitting with finished downloads and confirm-quit=downloads (issue 846)
+    Scenario: Quitting with finished downloads and confirm_quit=downloads (issue 846)
         Given I have a fresh instance
         When I set downloads.location.prompt to false
         And I set confirm_quit to [downloads]
@@ -399,14 +399,14 @@ Feature: Downloading things from a website.
         And I open the download with a placeholder
         Then "Opening *download.bin* with [*python*]" should be logged
 
-    Scenario: Opening a download with default-open-dispatcher set
-        When I set a test python default-open-dispatcher
+    Scenario: Opening a download with open_dispatcher set
+        When I set a test python open_dispatcher
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished
         And I run :download-open
         Then "Opening *download.bin* with [*python*]" should be logged
 
-    Scenario: Opening a download with default-open-dispatcher set and override
+    Scenario: Opening a download with open_dispatcher set and override
         When I set downloads.open_dispatcher to cat
         And I open data/downloads/download.bin without waiting
         And I wait until the download is finished

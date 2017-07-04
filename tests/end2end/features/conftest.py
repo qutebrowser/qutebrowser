@@ -181,7 +181,7 @@ def open_path(quteproc, httpbin, path):
       tab.
     - With "... in a new window", it's opened in a new window.
     - With "... in a private window" it's opened in a new private window.
-    - With "... as a URL", it's opened according to new-instance-open-target.
+    - With "... as a URL", it's opened according to new_instance_open_target.
     """
     path = path.replace('(port)', str(httpbin.port))
 

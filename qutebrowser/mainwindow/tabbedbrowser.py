@@ -395,7 +395,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         Args:
             url: The URL to open as QUrl or None for an empty tab.
             background: Whether to open the tab in the background.
-                        if None, the background-tabs setting decides.
+                        if None, the `tabs.background_tabs`` setting decides.
             related: Whether the tab was opened from another existing tab.
                      If this is set, the new position might be different. With
                      the default settings we handle it like Chromium does:
@@ -405,7 +405,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                            (related=False)
             idx: The index where the new tab should be opened.
             ignore_tabs_are_windows: If given, never open a new window, even
-                                     with tabs-are-windows set.
+                                     with tabs.tabs_are_windows set.
 
         Return:
             The opened WebView instance.
@@ -486,8 +486,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         elif pos == 'last':
             idx = -1
         else:
-            raise ValueError("Invalid new-tab-position '{}'.".format(pos))
-        log.webview.debug("new-tab-position {} -> opening new tab at {}, "
+            raise ValueError("Invalid tabs.new_position '{}'.".format(pos))
+        log.webview.debug("tabs.new_position {} -> opening new tab at {}, "
                           "next left: {} / right: {}".format(
                               pos, idx, self._tab_insert_idx_left,
                               self._tab_insert_idx_right))

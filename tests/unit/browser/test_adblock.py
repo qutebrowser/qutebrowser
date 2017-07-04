@@ -259,7 +259,7 @@ def test_no_blocklist_update(config_stub, download_stub,
 
 def test_successful_update(config_stub, basedir, download_stub,
                            data_tmpdir, tmpdir, win_registry, caplog):
-    """Ensure hosts from host-block-lists are blocked after an update."""
+    """Ensure hosts from host_blocking.lists are blocked after an update."""
     config_stub.val.content.host_blocking.lists = generic_blocklists(tmpdir)
     config_stub.val.content.host_blocking.enabled = True
     config_stub.val.content.host_blocking.whitelist = None
@@ -363,7 +363,7 @@ def test_invalid_utf8_compiled(config_stub, config_tmpdir, data_tmpdir,
 
 def test_blocking_with_whitelist(config_stub, basedir, download_stub,
                                  data_tmpdir, tmpdir):
-    """Ensure hosts in host-blocking-whitelist are never blocked."""
+    """Ensure hosts in content.host_blocking.whitelist are never blocked."""
     # Simulate adblock_update has already been run
     # by creating a file named blocked-hosts,
     # Exclude localhost from it, since localhost is in HostBlocker.WHITELISTED
@@ -383,10 +383,11 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
 
 def test_config_change_initial(config_stub, basedir, download_stub,
                                data_tmpdir, tmpdir):
-    """Test emptying host-block-lists on restart with existing blocked_hosts.
+    """Test emptying host_blocking.lists with existing blocked_hosts.
 
-    - A blocklist is present in host-block-lists and blocked_hosts is populated
-    - User quits qutebrowser, empties host-block-lists from his config
+    - A blocklist is present in host_blocking.lists and blocked_hosts is
+      populated
+    - User quits qutebrowser, empties host_blocking.lists from his config
     - User restarts qutebrowser, does adblock-update
     """
     create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,

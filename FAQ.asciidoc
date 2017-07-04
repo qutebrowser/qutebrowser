@@ -179,7 +179,7 @@ Configuration not saved after modifying config.::
 
 Unable to view flash content.::
     If you have flash installed for on your system, it's necessary to enable plugins
-    to use the flash plugin. Using the command `:set content allow-plugins true`
+    to use the flash plugin. Using the command `:set content.plugins true`
     in qutebrowser will enable plugins. Packages for flash should
     be provided for your platform or it can be obtained from
     http://get.adobe.com/flashplayer/[Adobe].

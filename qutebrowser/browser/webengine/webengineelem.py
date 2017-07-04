@@ -162,7 +162,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             top = rect['top']
             if width > 1 and height > 1:
                 # Fix coordinates according to zoom level
-                # We're not checking for zoom-text-only here as that doesn't
+                # We're not checking for zoom.text_only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
                 rect = QRect(left * zoom, top * zoom,

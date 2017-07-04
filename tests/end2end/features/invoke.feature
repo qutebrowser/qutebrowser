@@ -6,7 +6,7 @@ Feature: Invoking a new process
     Background:
         Given I clean up open tabs
 
-    Scenario: Using new-instance-open-target = tab
+    Scenario: Using new_instance_open_target = tab
         When I set new_instance_open_target to tab
         And I open data/title.html
         And I open data/search.html as a URL
@@ -14,7 +14,7 @@ Feature: Invoking a new process
             - data/title.html
             - data/search.html (active)
 
-    Scenario: Using new-instance-open-target = tab-bg
+    Scenario: Using new_instance_open_target = tab-bg
         When I set new_instance_open_target to tab-bg
         And I open data/title.html
         And I open data/search.html as a URL
@@ -22,7 +22,7 @@ Feature: Invoking a new process
             - data/title.html (active)
             - data/search.html
 
-    Scenario: Using new-instance-open-target = window
+    Scenario: Using new_instance_open_target = window
         When I set new_instance_open_target to window
         And I open data/title.html
         And I open data/search.html as a URL
@@ -36,7 +36,7 @@ Feature: Invoking a new process
               - history:
                 - url: http://localhost:*/data/search.html
 
-    Scenario: Using new-instance-open-target_window = last-opened
+    Scenario: Using new_instance_open_target_window = last-opened
         When I set new_instance_open_target to tab
         And I set new_instance_open_target_window to last-opened
         And I open data/title.html
@@ -54,7 +54,7 @@ Feature: Invoking a new process
               - history:
                 - url: http://localhost:*/data/hello.txt
 
-    Scenario: Using new-instance-open-target_window = first-opened
+    Scenario: Using new_instance_open_target_window = first-opened
         When I set new_instance_open_target to tab
         And I set new_instance_open_target_window to first-opened
         And I open data/title.html

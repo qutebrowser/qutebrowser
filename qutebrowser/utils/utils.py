@@ -830,8 +830,8 @@ def open_file(filename, cmdline=None):
         filename: The filename to open.
         cmdline: The command to use as string. A `{}` is expanded to the
                  filename. None means to use the system's default application
-                 or `default-open-dispatcher` if set. If no `{}` is found, the
-                 filename is appended to the cmdline.
+                 or `downloads.open_dispatcher` if set. If no `{}` is found,
+                 the filename is appended to the cmdline.
     """
     # Import late to avoid circular imports:
     # utils -> config -> configdata -> configtypes -> cmdutils -> command ->
@@ -842,7 +842,7 @@ def open_file(filename, cmdline=None):
     # if we want to use the default
     override = config.val.downloads.open_dispatcher
 
-    # precedence order: cmdline > default-open-dispatcher > openUrl
+    # precedence order: cmdline > downloads.open_dispatcher > openUrl
 
     if cmdline is None and not override:
         log.misc.debug("Opening {} with the system application"

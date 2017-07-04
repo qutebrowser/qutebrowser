@@ -112,7 +112,7 @@ def download_prompt(tmpdir, quteproc, path):
     quteproc.send_cmd(':leave-mode')
 
 
-@bdd.when("I set a test python default-open-dispatcher")
+@bdd.when("I set a test python open_dispatcher")
 def default_open_dispatcher_python(quteproc, tmpdir):
     cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
         shlex.quote(sys.executable))

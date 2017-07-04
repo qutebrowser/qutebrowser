@@ -342,13 +342,13 @@ def test_is_url(config_stub, fake_dns,
     """Test is_url().
 
     Args:
-        is_url: Whether the given string is a URL with auto-search dns/naive.
+        is_url: Whether the given string is a URL with auto_search dns/naive.
         is_url_no_autosearch: Whether the given string is a URL with
-                              auto-search false.
+                              auto_search false.
         uses_dns: Whether the given string should fire a DNS request for the
                   given URL.
         url: The URL to test, as a string.
-        auto_search: With which auto-search setting to test
+        auto_search: With which auto_search setting to test
     """
     if (url == '31c3' and
             auto_search == 'dns' and
@@ -379,7 +379,7 @@ def test_is_url(config_stub, fake_dns,
         assert urlutils.is_url(url) == is_url_no_autosearch
         assert not fake_dns.used
     else:
-        raise ValueError("Invalid value {!r} for auto-search!".format(
+        raise ValueError("Invalid value {!r} for auto_search!".format(
             auto_search))
 
 

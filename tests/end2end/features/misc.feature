@@ -152,7 +152,7 @@ Feature: Various utility commands.
     Scenario: Inspector without developer extras
         When I set content.developer_extras to false
         And I run :inspector
-        Then the error "Please enable developer-extras before using the webinspector!" should be shown
+        Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
 
     @qtwebkit_skip
     Scenario: Inspector without --enable-webengine-inspector
@@ -173,7 +173,7 @@ Feature: Various utility commands.
     Scenario: Inspector without developer extras (after smoke)
         When I set content.developer_extras to false
         And I run :inspector
-        Then the error "Please enable developer-extras before using the webinspector!" should be shown
+        Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip

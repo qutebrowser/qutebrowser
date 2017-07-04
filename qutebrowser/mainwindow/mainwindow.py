@@ -51,7 +51,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         via_ipc: Whether the request was made via IPC.
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
-        force_target: Override the new-instance-open-target config
+        force_target: Override the new_instance_open_target config
     """
     if force_window and force_tab:
         raise ValueError("force_window and force_tab are mutually exclusive!")

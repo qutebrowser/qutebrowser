@@ -183,7 +183,7 @@ class ModeManager(QObject):
 
         if curmode != usertypes.KeyMode.insert:
             focus_widget = QApplication.instance().focusWidget()
-            log.modes.debug("handled: {}, forward-unbound-keys: {}, "
+            log.modes.debug("handled: {}, forward_unbound_keys: {}, "
                             "passthrough: {}, is_non_alnum: {} --> "
                             "filter: {} (focused: {!r})".format(
                                 handled, forward_unbound_keys,
