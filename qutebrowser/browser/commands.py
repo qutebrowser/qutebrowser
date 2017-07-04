@@ -2171,10 +2171,7 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.window()
         if window.isFullScreen():
-            if window._restore_maximized:
-                window.showMaximized()
-            else:
-                window.showNormal()
+            window.setWindowState(window._state_before_fullscreen & ~Qt.WindowFullScreen)
         else:
-            window._restore_maximized = window.isMaximized()
+            window._state_before_fullscreen = window.windowState()
             window.showFullScreen()

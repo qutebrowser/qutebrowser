@@ -128,10 +128,7 @@ class MainWindow(QWidget):
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
         _private: Whether the window is in private browsing mode.
-        _restore_fullscreen: Whether to restore the fullscreen after leaving
-            a video fullscreen.
-        _restore_maximized: Whether to restore maximized window after leaving
-            a video fullscreen.
+        _state_before_fullscreen: window state before activation of fullscreen
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
@@ -221,8 +218,7 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
 
-        self._restore_fullscreen = False
-        self._restore_maximized = self.isMaximized()
+        self._state_before_fullscreen = self.windowState()
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -490,18 +486,12 @@ class MainWindow(QWidget):
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
         if on:
-            self._restore_fullscreen = self.isFullScreen()
-            self._restore_maximized = self.isMaximized()
+            self._state_before_fullscreen = self.windowState()
             self.showFullScreen()
-        elif not self._restore_fullscreen:
-            if self._restore_maximized:
-                self.showMaximized()
-            else:
-                self.showNormal()
         else:
-            self._restore_fullscreen = self.isFullScreen()
-        log.misc.debug('on: {}, restore fullscreen: {}, restore maximized: {}'
-                       .format(on, self._restore_fullscreen, self._restore_maximized))
+            self.setWindowState(self._state_before_fullscreen)
+        log.misc.debug('on: {}, state before fullscreen: {}'
+                       .format(on, self._state_before_fullscreen))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
