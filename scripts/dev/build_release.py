@@ -109,7 +109,7 @@ def patch_osx_app():
     for f in glob.glob(os.path.join(qtwe_core_dir, 'Resources', '*')):
         dest = os.path.join(app_path, 'Contents', 'Resources')
         if os.path.isdir(f):
-            dir_dest = os.path.join(dest, f)
+            dir_dest = os.path.join(dest, os.path.basename(f))
             print("Copying directory {} to {}".format(f, dir_dest))
             shutil.copytree(f, dir_dest)
         else:
