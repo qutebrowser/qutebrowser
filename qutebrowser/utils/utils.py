@@ -860,6 +860,59 @@ def open_file(filename, cmdline=None):
     proc.start_detached(cmd, args)
 
 
+def parse_numsettxt_into_numints(txtset, nummax):
+    """Parse the given numbers set in text format, and return it as a list of
+    number intervals [[start1, end2], [start2, end2], ..., [startn, endn]].
+
+    Args:
+        txtset: Numbers set specification. E.g. '1,5,8-last,32,2', where 'last'
+                is a special keyword that denotes that largest number.
+        nummax: The number that will be used to replace 'last'
+    """
+    txtset = txtset.lower().replace('last', str(nummax))
+    numints = []
+    for part in txtset.split(','):
+        if '-' in part:
+            start, end = part.split('-')
+            numints.append((int(start), int(end)))
+        else:
+            numints.append((int(part), int(part)))
+    return numints
+
+
+def which_nums_in_numints(nums, numints):
+    """Identify which of the numbers in nums fall within the intervals in
+    numints.
+
+    Args:
+        nums: A list of numbers.
+        numints: A list of number intervals [[start1, end2], [start2,
+                 end2], ..., [startn, endn]].
+    """
+    nums = sorted(nums)
+    numints = sorted(numints)
+    ins = []
+    i, j = 0, 0
+    done = False
+    while done == False:
+        n = nums[i]
+        int_start = numints[j][0]
+        int_end = numints[j][1]
+        if n >= int_start and n <= int_end:
+            ins.append(n)
+            if i < (len(nums) - 1):
+                i += 1
+            else:
+                done = True
+        elif n < int_start and i < (len(nums) - 1):
+            i += 1
+        elif n > int_end and j < (len(numints) - 1):
+            j += 1
+        else:
+            done = True
+    return ins
+
+
 def expand_windows_drive(path):
     r"""Expand a drive-path like E: into E:\.
 
