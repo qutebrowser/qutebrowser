@@ -18,8 +18,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
 import shlex
+import sys
 
 import pytest
 import pytest_bdd as bdd
@@ -95,7 +95,12 @@ def download_should_not_exist(filename, tmpdir):
 
 @bdd.then(bdd.parsers.parse("The downloaded file {filename} should exist"))
 def download_should_exist(filename, tmpdir):
-    path = tmpdir / 'downloads' / filename
+    path = tmpdir / 'downloads'
+    if '/' in filename:
+        for f in filename.split('/'):
+            path /= f
+    else:
+        path = tmpdir / 'downloads' / filename
     assert path.check()
 
 
@@ -158,3 +163,33 @@ def fifo_should_be_fifo(tmpdir):
     download_dir = tmpdir / 'downloads'
     assert download_dir.exists()
     assert not os.path.isfile(str(download_dir / 'fifo'))
+
+
+@bdd.when(bdd.parsers.parse("I download {url} to <path>"))
+def download_dest(quteproc, httpbin, tmpdir, url, path):
+    dest = '{}/downloads/{}'.format(tmpdir, path)
+    assert not os.path.exists(dest)
+
+    url = url.replace('(port)', str(httpbin.port))
+    quteproc.send_cmd(':download --dest {} {}'.format(dest, url))
+
+
+@bdd.when(bdd.parsers.parse("I make the directory <mkdir>"))
+def mkdir_test(tmpdir, mkdir):
+    dest = tmpdir / 'downloads'
+    for p in mkdir.split('/'):
+        dest /= p
+    assert not dest.exists()
+    dest.ensure(dir=True)
+    assert dest.exists()
+
+
+@bdd.then(bdd.parsers.parse("The downloaded file <expected> should exist"))
+def download_should_exist_table(tmpdir, expected):
+    path = tmpdir / 'downloads'
+    if '/' in expected:
+        for f in expected.split('/'):
+            path /= f
+    else:
+        path = tmpdir / 'downloads' / expected
+    assert path.check()

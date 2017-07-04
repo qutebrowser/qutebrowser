@@ -223,6 +223,19 @@ Feature: Downloading things from a website.
         And I run :download-retry
         Then the error "No failed downloads!" should be shown
 
+    Scenario: Retrying a failed download when the directory didn't exist (issue 2445)
+        When I download http://localhost:(port)/data/downloads/download.bin to <path>
+        And I wait for the error "Download error: No such file or directory: *"
+        And I make the directory <mkdir>
+        And I run :download-retry
+        And I wait until the download is finished
+        Then the downloaded file <expected> should exist
+
+        Examples:
+        | path                 | mkdir   | expected             |
+        | asd/zxc/             | asd/zxc | asd/zxc/download.bin |
+        | qwe/rty              | qwe     | qwe/rty              |
+
     ## Wrong invocations
 
     Scenario: :download with deprecated dest-old argument
@@ -240,7 +253,7 @@ Feature: Downloading things from a website.
 
     Scenario: :download with a directory which doesn't exist
         When I run :download --dest (tmpdir)/downloads/somedir/filename http://localhost:(port)/
-        Then the error "Download error: No such file or directory" should be shown
+        Then the error "Download error: No such file or directory: *" should be shown
 
     ## mhtml downloads
 
@@ -583,7 +596,7 @@ Feature: Downloading things from a website.
         When the unwritable dir is unwritable
         And I set storage -> prompt-download-directory to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
-        Then the error "Download error: Permission denied" should be shown
+        Then the error "Download error: Permission denied: *" should be shown
 
     Scenario: Downloading 20MB file
         When I set storage -> prompt-download-directory to false
