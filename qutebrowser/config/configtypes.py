@@ -181,6 +181,17 @@ class BaseType:
             raise configexc.ValidationError(
                 value, "may not contain unprintable chars!")
 
+    def _validate_surrogate_escapes(self, full_value, value):
+        """Make sure the given value doesn't contain surrogate escapes.
+
+        This is used for values passed to json.dump, as it can't handle those.
+        """
+        if not isinstance(value, str):
+            return
+        if any(ord(c) > 0xFFFF for c in value):
+            raise configexc.ValidationError(
+                full_value, "may not contain surrogate escapes!")
+
     def _validate_valid_values(self, value):
         """Validate value against possible values.
 
@@ -417,6 +428,9 @@ class List(BaseType):
         self._basic_py_validation(value, list)
         if not value:
             return []
+
+        for val in value:
+            self._validate_surrogate_escapes(value, val)
 
         if self.length is not None and len(value) != self.length:
             raise configexc.ValidationError(value, "Exactly {} values need to "
@@ -1089,6 +1103,9 @@ class Dict(BaseType):
             return self._fill_fixed_keys({})
 
         self._validate_keys(value)
+        for key, val in value.items():
+            self._validate_surrogate_escapes(value, key)
+            self._validate_surrogate_escapes(value, val)
 
         d = {self.keytype.to_py(key): self.valtype.to_py(val)
              for key, val in value.items()}

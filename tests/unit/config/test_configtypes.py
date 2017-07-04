@@ -429,6 +429,8 @@ class TestString:
         ({'minlen': 2, 'maxlen': 3}, 'abc'),
         # valid_values
         ({'valid_values': configtypes.ValidValues('abcd')}, 'abcd'),
+        # Surrogate escapes are allowed in strings
+        ({}, '\U00010000'),
     ])
     def test_to_py(self, klass, kwargs, val):
         assert klass(**kwargs).to_py(val) == val
@@ -535,7 +537,7 @@ class TestList:
     def test_to_py(self, klass, val):
         assert klass().to_py(val) == val
 
-    @pytest.mark.parametrize('val', [[42], '["foo"]'])
+    @pytest.mark.parametrize('val', [[42], '["foo"]', ['\U00010000']])
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
@@ -1427,6 +1429,8 @@ class TestDict:
         assert klass(keytype=keytype, valtype=valtype).to_py(val) == val
 
     @pytest.mark.parametrize('val', [
+        {'\U00010000': 'foo'},  # UTF-16 surrogate in key
+        {'foo': '\U00010000'},  # UTF-16 surrogate in value
         {0: 'foo'},  # Invalid key type
         {'foo': 0},  # Invalid value type
     ])
