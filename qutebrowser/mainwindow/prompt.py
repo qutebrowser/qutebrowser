@@ -27,7 +27,7 @@ import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
+                             QLabel, QFileSystemModel, QCompleter, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style, config
@@ -558,6 +558,7 @@ class FilenamePrompt(_BasePrompt):
         self._set_fileview_root(question.default)
 
         self._lineedit = LineEdit(self)
+        self._lineedit.setCompleter(self._completer)
         if question.default:
             self._lineedit.setText(question.default)
         self._lineedit.textEdited.connect(self._set_fileview_root)
@@ -625,6 +626,12 @@ class FilenamePrompt(_BasePrompt):
     def _init_fileview(self):
         self._file_view = QTreeView(self)
         self._file_model = QFileSystemModel(self)
+
+        # completer for tab behavior
+        self._completer = QCompleter(self)
+        self._completer.setCompletionMode(QCompleter.InlineCompletion)
+        self._completer.setModel(self._file_model)
+
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
@@ -653,38 +660,14 @@ class FilenamePrompt(_BasePrompt):
         return True
 
     def item_focus(self, which):
-        # This duplicates some completion code, but I don't see a nicer way...
         assert which in ['prev', 'next'], which
-        selmodel = self._file_view.selectionModel()
 
-        parent = self._file_view.rootIndex()
-        first_index = self._file_model.index(0, 0, parent)
-        row = self._file_model.rowCount(parent) - 1
-        last_index = self._file_model.index(row, 0, parent)
-
-        if not first_index.isValid():
-            # No entries
-            return
-
-        assert last_index.isValid()
-
-        idx = selmodel.currentIndex()
-        if not idx.isValid():
-            # No item selected yet
-            idx = last_index if which == 'prev' else first_index
-        elif which == 'prev':
-            idx = self._file_view.indexAbove(idx)
-        else:
-            assert which == 'next', which
-            idx = self._file_view.indexBelow(idx)
-
-        # wrap around if we arrived at beginning/end
-        if not idx.isValid():
-            idx = last_index if which == 'prev' else first_index
-
-        selmodel.setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
-        self._insert_path(idx, clicked=False)
+        diff = -1 if which == 'prev' else 1
+        current_row = self._completer.currentRow()
+        if self._completer.completionCount() > 0:
+            next_row = (current_row + diff) % self._completer.completionCount()
+            self._completer.setCurrentRow(next_row)
+            self._completer.complete()
 
     def _allowed_commands(self):
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
@@ -696,7 +679,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
+        self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDotAndDotDot)
 
     def accept(self, value=None):
         done = super().accept(value)
