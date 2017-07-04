@@ -219,8 +219,8 @@ class TestParseYamlBackend:
         assert backends == expected
 
     @pytest.mark.parametrize('webkit, has_new_version, expected', [
-        (True, True, [usertypes.Backend.QtWebKit,
-                      usertypes.Backend.QtWebEngine]),
+        (True, True, [usertypes.Backend.QtWebEngine,
+                      usertypes.Backend.QtWebKit]),
         (False, True, [usertypes.Backend.QtWebEngine]),
         (True, False, [usertypes.Backend.QtWebKit]),
     ])

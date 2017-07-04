@@ -743,8 +743,8 @@ class TestConfig:
     def test_dump_userconfig(self, conf):
         conf.set_obj('content.plugins', True)
         conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})
-        lines = ['content.plugins = true',
-                 'content.headers.custom = {"X-Foo": "bar"}']
+        lines = ['content.headers.custom = {"X-Foo": "bar"}',
+                 'content.plugins = true']
         assert conf.dump_userconfig().splitlines() == lines
 
     def test_dump_userconfig_default(self, conf):

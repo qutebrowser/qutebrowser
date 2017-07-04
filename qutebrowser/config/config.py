@@ -480,7 +480,7 @@ class Config(QObject):
             The changed config part as string.
         """
         lines = []
-        for optname, value in self._values.items():
+        for optname, value in sorted(self._values.items()):
             opt = self.get_opt(optname)
             str_value = opt.typ.to_str(value)
             lines.append('{} = {}'.format(optname, str_value))

@@ -129,7 +129,7 @@ def _parse_yaml_backends_dict(name, node):
         'Qt 5.8': qtutils.version_check('5.8'),
         'Qt 5.9': qtutils.version_check('5.9'),
     }
-    for key in node.keys():
+    for key in sorted(node.keys()):
         if conditionals[node[key]]:
             backends.append(str_to_backend[key])
 
