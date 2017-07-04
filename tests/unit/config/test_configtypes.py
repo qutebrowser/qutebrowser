@@ -482,12 +482,13 @@ class ListSubclass(configtypes.List):
     """
 
     def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
-                 elemtype=None):
+                 elemtype=None, set_valid_values=False):
         if elemtype is None:
             elemtype = configtypes.String(none_ok=none_ok_inner)
         super().__init__(elemtype, none_ok=none_ok_outer, length=length)
-        self.valtype.valid_values = configtypes.ValidValues(
-            'foo', 'bar', 'baz')
+        if set_valid_values:
+            self.valtype.valid_values = configtypes.ValidValues(
+                'foo', 'bar', 'baz')
 
 
 class FlagListSubclass(configtypes.FlagList):
@@ -499,11 +500,13 @@ class FlagListSubclass(configtypes.FlagList):
 
     combinable_values = ['foo', 'bar']
 
-    def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None):
+    def __init__(self, none_ok_inner=False, none_ok_outer=False, length=None,
+                 set_valid_values=False):
         # none_ok_inner is ignored, just here for compatibility with TestList
         super().__init__(none_ok=none_ok_outer, length=length)
-        self.valtype.valid_values = configtypes.ValidValues(
-            'foo', 'bar', 'baz')
+        if set_valid_values:
+            self.valtype.valid_values = configtypes.ValidValues(
+                'foo', 'bar', 'baz')
 
 
 class TestList:
@@ -537,6 +540,10 @@ class TestList:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
+    def test_to_py_invalid_valid_values(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass(set_valid_values=True).to_py(['invalid'])
+
     def test_invalid_empty_value_none_ok(self, klass):
         with pytest.raises(configexc.ValidationError):
             klass(none_ok_outer=True).to_py(['foo', '', 'bar'])
@@ -562,7 +569,7 @@ class TestList:
 
     def test_get_valid_values(self, klass):
         expected = configtypes.ValidValues('foo', 'bar', 'baz')
-        assert klass().get_valid_values() == expected
+        assert klass(set_valid_values=True).get_valid_values() == expected
 
     def test_to_str(self, klass):
         assert klass().to_str(["a", True]) == '["a", true]'
@@ -597,20 +604,17 @@ class TestFlagList:
     def klass(self):
         return FlagListSubclass
 
-    @pytest.fixture
-    def klass_valid_none(self):
-        """Return a FlagList with valid_values = None."""
-        return configtypes.FlagList
-
     @pytest.mark.parametrize('val', [['qux'], ['foo', 'qux'], ['foo', 'foo']])
     def test_to_py_invalid(self, klass, val):
         """Test invalid flag combinations (the rest is tested in TestList)."""
+        typ = klass(none_ok_outer=True, set_valid_values=True)
         with pytest.raises(configexc.ValidationError):
-            klass(none_ok_outer=True).to_py(val)
+            typ.to_py(val)
 
     def test_complete(self, klass):
         """Test completing by doing some samples."""
-        completions = [e[0] for e in klass().complete()]
+        typ = klass(set_valid_values=True)
+        completions = [e[0] for e in typ.complete()]
         assert 'foo' in completions
         assert 'bar' in completions
         assert 'baz' in completions
@@ -620,17 +624,17 @@ class TestFlagList:
             assert ',baz' not in val
 
     def test_complete_all_valid_values(self, klass):
-        inst = klass()
-        inst.combinable_values = None
-        completions = [e[0] for e in inst.complete()]
+        typ = klass(set_valid_values=True)
+        typ.combinable_values = None
+        completions = [e[0] for e in typ.complete()]
         assert 'foo' in completions
         assert 'bar' in completions
         assert 'baz' in completions
         assert 'foo,bar' in completions
         assert 'foo,baz' in completions
 
-    def test_complete_no_valid_values(self, klass_valid_none):
-        assert klass_valid_none().complete() is None
+    def test_complete_no_valid_values(self, klass):
+        assert klass().complete() is None
 
 
 class TestBool:
