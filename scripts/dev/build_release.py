@@ -109,8 +109,11 @@ def patch_osx_app():
     for f in glob.glob(os.path.join(qtwe_core_dir, 'Resources', '*')):
         dest = os.path.join(app_path, 'Contents', 'Resources')
         if os.path.isdir(f):
-            shutil.copytree(f, os.path.join(dest, f))
+            dir_dest = os.path.join(dest, f)
+            print("Copying directory {} to {}".format(f, dir_dest))
+            shutil.copytree(f, dir_dest)
         else:
+            print("Copying {} to {}".format(f, dest))
             shutil.copy(f, dest)
     # Link dependencies
     for lib in ['QtCore', 'QtWebEngineCore', 'QtQuick', 'QtQml', 'QtNetwork',
