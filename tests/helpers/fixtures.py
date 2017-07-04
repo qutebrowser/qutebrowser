@@ -200,10 +200,16 @@ def cmdline_test(request):
     return request.param
 
 
+@pytest.fixture(scope='session')
+def configdata_init():
+    """Initialize configdata if needed."""
+    if configdata.DATA is None:
+        configdata.init()
+
+
 @pytest.fixture
-def config_stub(stubs, monkeypatch):
+def config_stub(stubs, monkeypatch, configdata_init):
     """Fixture which provides a fake config object."""
-    configdata.init()
     yaml_config = stubs.FakeYamlConfig()
 
     conf = config.Config(yaml_config=yaml_config)

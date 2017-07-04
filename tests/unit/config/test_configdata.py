@@ -31,8 +31,8 @@ from qutebrowser.utils import usertypes
 
 def test_init(config_stub):
     """Test reading the default yaml file and validating the values."""
+    # configdata.init() is called by config_stub
     config_stub.val.aliases = {}
-    configdata.init()
     assert isinstance(configdata.DATA, dict)
     assert 'ignore_case' in configdata.DATA
     for option in configdata.DATA.values():
