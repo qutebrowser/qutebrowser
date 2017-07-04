@@ -128,6 +128,8 @@ class MainWindow(QWidget):
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
         _private: Whether the window is in private browsing mode.
+        _restore_fullscreen: Whether to restore the fullscreen after leaving
+            a video fullscreen.
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
@@ -216,6 +218,8 @@ class MainWindow(QWidget):
         objreg.get('config').changed.connect(self.on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+
+        self._restore_fullscreen = False
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -483,9 +487,14 @@ class MainWindow(QWidget):
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
         if on:
+            self._restore_fullscreen = self.isFullScreen()
             self.showFullScreen()
-        else:
+        elif not self._restore_fullscreen:
             self.showNormal()
+        else:
+            self._restore_fullscreen = self.isFullScreen()
+        log.misc.debug('on: {}, restore fullscreen: {}'
+                       .format(on, self._restore_fullscreen))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
