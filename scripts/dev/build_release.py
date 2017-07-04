@@ -124,6 +124,14 @@ def patch_osx_app():
 
 def build_osx():
     """Build OS X .dmg/.app."""
+    utils.print_title("Cleaning up...")
+    for f in ['wc.dmg', 'template.dmg']:
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            pass
+    for d in ['dist', 'build']:
+        shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
@@ -132,11 +140,6 @@ def build_osx():
     patch_osx_app()
     utils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
-    utils.print_title("Cleaning up...")
-    for f in ['wc.dmg', 'template.dmg']:
-        os.remove(f)
-    for d in ['dist', 'build']:
-        shutil.rmtree(d)
 
     dmg_name = 'qutebrowser-{}.dmg'.format(qutebrowser.__version__)
     os.rename('qutebrowser.dmg', dmg_name)
