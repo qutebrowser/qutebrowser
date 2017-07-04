@@ -215,8 +215,8 @@ def build_windows():
                            '/DVERSION={}'.format(qutebrowser.__version__),
                            'misc/qutebrowser.nsi'])
 
-    name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
-    name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
+    name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
+    name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
 
     artifacts += [
         (os.path.join('dist', name_32),
