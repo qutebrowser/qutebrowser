@@ -280,9 +280,7 @@ class CommandDispatcher:
             return
 
         to_pin = not tab.data.pinned
-        tab_index = self._current_index() if count is None else count - 1
-        cmdutils.check_overflow(tab_index + 1, 'int')
-        self._tabbed_browser.set_tab_pinned(tab_index, to_pin)
+        self._tabbed_browser.set_tab_pinned(tab, to_pin)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -515,7 +513,7 @@ class CommandDispatcher:
         newtab.data.keep_icon = True
         newtab.history.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
-        new_tabbed_browser.set_tab_pinned(idx, curtab.data.pinned)
+        new_tabbed_browser.set_tab_pinned(newtab, curtab.data.pinned)
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
