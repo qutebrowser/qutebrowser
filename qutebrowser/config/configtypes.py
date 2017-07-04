@@ -45,6 +45,7 @@ Config types can do different conversations:
 # FIXME:conf show the type docstrings in the documentation
 
 import re
+import html
 import shlex
 import codecs
 import os.path
@@ -250,6 +251,15 @@ class BaseType:
         assert isinstance(value, str), value
         return value
 
+    def to_doc(self, value, indent=0):
+        """Get a string with the given value for the documentation.
+
+        This currently uses asciidoc syntax.
+        """
+        if not value:
+            return 'empty'
+        return '+pass:[{}]+'.format(html.escape(self.to_str(value)))
+
     def complete(self):
         """Return a list of possible values for completion.
 
@@ -442,6 +452,21 @@ class List(BaseType):
             # An empty list is treated just like None -> empty string
             return ''
         return json.dumps(value)
+
+    def to_doc(self, value, indent=0):
+        if not value:
+            return 'empty'
+
+        # Might work, but untested
+        assert not isinstance(self.valtype, (Dict, List)), self.valtype
+
+        lines = ['\n']
+        prefix = '-' if not indent else '*' * indent
+        for elem in value:
+            lines.append('{} {}'.format(
+                prefix,
+                self.valtype.to_doc(elem, indent=indent+1)))
+        return '\n'.join(lines)
 
 
 class FlagList(List):
@@ -1116,6 +1141,19 @@ class Dict(BaseType):
             # An empty Dict is treated just like None -> empty string
             return ''
         return json.dumps(value)
+
+    def to_doc(self, value, indent=0):
+        if not value:
+            return 'empty'
+        lines = ['\n']
+        prefix = '-' if not indent else '*' * indent
+        for key, val in sorted(value.items()):
+            lines += ('{} {}: {}'.format(
+                prefix,
+                self.keytype.to_doc(key),
+                self.valtype.to_doc(val, indent=indent+1),
+            )).splitlines()
+        return '\n'.join(line.rstrip(' ') for line in lines)
 
 
 class File(BaseType):

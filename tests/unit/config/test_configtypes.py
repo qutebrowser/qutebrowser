@@ -353,6 +353,14 @@ class TestBaseType:
         basetype.valid_values = configtypes.ValidValues('foo')
         assert basetype.get_valid_values() is basetype.valid_values
 
+    @pytest.mark.parametrize('value, expected', [
+        ('hello', '+pass:[hello]+'),
+        ('', 'empty'),
+        ('<', '+pass:[&lt;]+'),
+    ])
+    def test_to_doc(self, klass, value, expected):
+        assert klass().to_doc(value) == expected
+
 
 class MappingSubclass(configtypes.MappingType):
 
@@ -599,6 +607,24 @@ class TestList:
             expected = '' if not val else text
             assert typ.to_str(converted) == expected
 
+    @pytest.mark.parametrize('val, expected', [
+        # simple list
+        (['foo', 'bar'], '\n\n- +pass:[foo]+\n- +pass:[bar]+'),
+        # empty
+        ([], 'empty'),
+    ])
+    def test_to_doc(self, klass, val, expected):
+        doc = klass().to_doc(val)
+        print(doc)
+        assert doc == expected
+
+    def test_to_doc_unimplemented(self):
+        """List.to_doc with another Dict/List is not implemented."""
+        valtype = configtypes.List(valtype=configtypes.String())
+        typ = configtypes.List(valtype=valtype)
+        with pytest.raises(AssertionError):
+            typ.to_doc([['foo']])
+
 
 class TestFlagList:
 
@@ -686,6 +712,9 @@ class TestBool:
     ])
     def test_to_str(self, klass, val, expected):
         assert klass().to_str(val) == expected
+
+    def test_to_doc(self, klass):
+        assert klass().to_doc(True) == '+pass:[true]+'
 
 
 class TestBoolAsk:
@@ -1502,6 +1531,24 @@ class TestDict:
             return
 
         assert d.to_str(converted) == '' if not val else text
+
+    @pytest.mark.parametrize('valtype, val, expected', [
+        # simple dict
+        (configtypes.String(), {'foo': 'bar'},
+         '\n\n- +pass:[foo]+: +pass:[bar]+'),
+        # dict as value
+        (configtypes.Dict(keytype=configtypes.String(),
+                          valtype=configtypes.String()),
+         {'foo': {'bar': 'baz'}},
+         '\n\n- +pass:[foo]+:\n\n* +pass:[bar]+: +pass:[baz]+'),
+        # empty
+        (configtypes.String(), {}, 'empty'),
+    ])
+    def test_to_doc(self, klass, valtype, val, expected):
+        typ = klass(keytype=configtypes.String(), valtype=valtype)
+        doc = typ.to_doc(val)
+        print(doc)
+        assert doc == expected
 
 
 def unrequired_class(**kwargs):

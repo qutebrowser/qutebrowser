@@ -401,15 +401,7 @@ def _generate_setting_option(f, opt):
                 f.write(" * +{}+".format(val) + "\n")
         f.write("\n")
 
-    if opt.name == 'bindings.default':
-        # FIXME:conf
-        pass
-    elif opt.default:
-        f.write("Default: +pass:[{}]+\n".format(html.escape(
-            opt.typ.to_str(opt.default))))
-    else:
-        f.write("Default: empty\n")
-
+    f.write("Default: {}\n".format(opt.typ.to_doc(opt.default)))
     _generate_setting_backend_info(f, opt)
 
 

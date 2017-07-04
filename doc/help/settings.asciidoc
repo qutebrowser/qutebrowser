@@ -254,7 +254,11 @@
 == aliases
 Aliases for commands.
 
-Default: +pass:[{&quot;w&quot;: &quot;session-save&quot;, &quot;q&quot;: &quot;quit&quot;, &quot;wq&quot;: &quot;quit --save&quot;}]+
+Default: 
+
+- +pass:[q]+: +pass:[quit]+
+- +pass:[w]+: +pass:[session-save]+
+- +pass:[wq]+: +pass:[quit --save]+
 
 [[auto_save.config]]
 == auto_save.config
@@ -343,6 +347,256 @@ Default keybindings. If you want to add bindings, modify `bindings.commands` ins
 The main purpose of this setting is that you can set it to an empty dictionary if you want to load no default keybindings at all.
 If you want to preserve default bindings (and get new bindings when there is an update), add new bindings to `bindings.commands` (or use `:bind`) and leave this setting alone.
 
+Default: 
+
+- +pass:[caret]+:
+
+* +pass:[$]+: +pass:[move-to-end-of-line]+
+* +pass:[0]+: +pass:[move-to-start-of-line]+
+* +pass:[&lt;Ctrl-Space&gt;]+: +pass:[drop-selection]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Return&gt;]+: +pass:[yank selection]+
+* +pass:[&lt;Space&gt;]+: +pass:[toggle-selection]+
+* +pass:[G]+: +pass:[move-to-end-of-document]+
+* +pass:[H]+: +pass:[scroll left]+
+* +pass:[J]+: +pass:[scroll down]+
+* +pass:[K]+: +pass:[scroll up]+
+* +pass:[L]+: +pass:[scroll right]+
+* +pass:[Y]+: +pass:[yank selection -s]+
+* +pass:[[]+: +pass:[move-to-start-of-prev-block]+
+* +pass:[]]+: +pass:[move-to-start-of-next-block]+
+* +pass:[b]+: +pass:[move-to-prev-word]+
+* +pass:[c]+: +pass:[enter-mode normal]+
+* +pass:[e]+: +pass:[move-to-end-of-word]+
+* +pass:[gg]+: +pass:[move-to-start-of-document]+
+* +pass:[h]+: +pass:[move-to-prev-char]+
+* +pass:[j]+: +pass:[move-to-next-line]+
+* +pass:[k]+: +pass:[move-to-prev-line]+
+* +pass:[l]+: +pass:[move-to-next-char]+
+* +pass:[v]+: +pass:[toggle-selection]+
+* +pass:[w]+: +pass:[move-to-next-word]+
+* +pass:[y]+: +pass:[yank selection]+
+* +pass:[{]+: +pass:[move-to-end-of-prev-block]+
+* +pass:[}]+: +pass:[move-to-end-of-next-block]+
+- +pass:[command]+:
+
+* +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
+* +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
+* +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
+* +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
+* +pass:[&lt;Ctrl-?&gt;]+: +pass:[rl-delete-char]+
+* +pass:[&lt;Ctrl-A&gt;]+: +pass:[rl-beginning-of-line]+
+* +pass:[&lt;Ctrl-B&gt;]+: +pass:[rl-backward-char]+
+* +pass:[&lt;Ctrl-D&gt;]+: +pass:[completion-item-del]+
+* +pass:[&lt;Ctrl-E&gt;]+: +pass:[rl-end-of-line]+
+* +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
+* +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
+* +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
+* +pass:[&lt;Ctrl-N&gt;]+: +pass:[command-history-next]+
+* +pass:[&lt;Ctrl-P&gt;]+: +pass:[command-history-prev]+
+* +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
+* +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+
+* +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
+* +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus next]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Return&gt;]+: +pass:[command-accept]+
+* +pass:[&lt;Shift-Delete&gt;]+: +pass:[completion-item-del]+
+* +pass:[&lt;Shift-Tab&gt;]+: +pass:[completion-item-focus prev]+
+* +pass:[&lt;Tab&gt;]+: +pass:[completion-item-focus next]+
+* +pass:[&lt;Up&gt;]+: +pass:[completion-item-focus prev]+
+- +pass:[hint]+:
+
+* +pass:[&lt;Ctrl-B&gt;]+: +pass:[hint all tab-bg]+
+* +pass:[&lt;Ctrl-F&gt;]+: +pass:[hint links]+
+* +pass:[&lt;Ctrl-R&gt;]+: +pass:[hint --rapid links tab-bg]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Return&gt;]+: +pass:[follow-hint]+
+- +pass:[insert]+:
+
+* +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text {primary}]+
+- +pass:[normal]+:
+
+* +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
+* +pass:[+]+: +pass:[zoom-in]+
+* +pass:[-]+: +pass:[zoom-out]+
+* +pass:[.]+: +pass:[repeat-command]+
+* +pass:[/]+: +pass:[set-cmd-text /]+
+* +pass:[:]+: +pass:[set-cmd-text :]+
+* +pass:[;I]+: +pass:[hint images tab]+
+* +pass:[;O]+: +pass:[hint links fill :open -t -i {hint-url}]+
+* +pass:[;R]+: +pass:[hint --rapid links window]+
+* +pass:[;Y]+: +pass:[hint links yank-primary]+
+* +pass:[;b]+: +pass:[hint all tab-bg]+
+* +pass:[;d]+: +pass:[hint links download]+
+* +pass:[;f]+: +pass:[hint all tab-fg]+
+* +pass:[;h]+: +pass:[hint all hover]+
+* +pass:[;i]+: +pass:[hint images]+
+* +pass:[;o]+: +pass:[hint links fill :open {hint-url}]+
+* +pass:[;r]+: +pass:[hint --rapid links tab-bg]+
+* +pass:[;t]+: +pass:[hint inputs]+
+* +pass:[;y]+: +pass:[hint links yank]+
+* +pass:[&lt;Alt-1&gt;]+: +pass:[tab-focus 1]+
+* +pass:[&lt;Alt-2&gt;]+: +pass:[tab-focus 2]+
+* +pass:[&lt;Alt-3&gt;]+: +pass:[tab-focus 3]+
+* +pass:[&lt;Alt-4&gt;]+: +pass:[tab-focus 4]+
+* +pass:[&lt;Alt-5&gt;]+: +pass:[tab-focus 5]+
+* +pass:[&lt;Alt-6&gt;]+: +pass:[tab-focus 6]+
+* +pass:[&lt;Alt-7&gt;]+: +pass:[tab-focus 7]+
+* +pass:[&lt;Alt-8&gt;]+: +pass:[tab-focus 8]+
+* +pass:[&lt;Alt-9&gt;]+: +pass:[tab-focus -1]+
+* +pass:[&lt;Ctrl-A&gt;]+: +pass:[navigate increment]+
+* +pass:[&lt;Ctrl-Alt-p&gt;]+: +pass:[print]+
+* +pass:[&lt;Ctrl-B&gt;]+: +pass:[scroll-page 0 -1]+
+* +pass:[&lt;Ctrl-D&gt;]+: +pass:[scroll-page 0 0.5]+
+* +pass:[&lt;Ctrl-F5&gt;]+: +pass:[reload -f]+
+* +pass:[&lt;Ctrl-F&gt;]+: +pass:[scroll-page 0 1]+
+* +pass:[&lt;Ctrl-N&gt;]+: +pass:[open -w]+
+* +pass:[&lt;Ctrl-PgDown&gt;]+: +pass:[tab-next]+
+* +pass:[&lt;Ctrl-PgUp&gt;]+: +pass:[tab-prev]+
+* +pass:[&lt;Ctrl-Q&gt;]+: +pass:[quit]+
+* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[follow-selected -t]+
+* +pass:[&lt;Ctrl-Shift-T&gt;]+: +pass:[undo]+
+* +pass:[&lt;Ctrl-T&gt;]+: +pass:[open -t]+
+* +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[tab-focus last]+
+* +pass:[&lt;Ctrl-U&gt;]+: +pass:[scroll-page 0 -0.5]+
+* +pass:[&lt;Ctrl-V&gt;]+: +pass:[enter-mode passthrough]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[tab-close]+
+* +pass:[&lt;Ctrl-X&gt;]+: +pass:[navigate decrement]+
+* +pass:[&lt;Ctrl-^&gt;]+: +pass:[tab-focus last]+
+* +pass:[&lt;Ctrl-h&gt;]+: +pass:[home]+
+* +pass:[&lt;Ctrl-p&gt;]+: +pass:[tab-pin]+
+* +pass:[&lt;Ctrl-s&gt;]+: +pass:[stop]+
+* +pass:[&lt;Escape&gt;]+: +pass:[clear-keychain ;; search ;; fullscreen --leave]+
+* +pass:[&lt;F11&gt;]+: +pass:[fullscreen]+
+* +pass:[&lt;F5&gt;]+: +pass:[reload]+
+* +pass:[&lt;Return&gt;]+: +pass:[follow-selected]+
+* +pass:[&lt;back&gt;]+: +pass:[back]+
+* +pass:[&lt;forward&gt;]+: +pass:[forward]+
+* +pass:[=]+: +pass:[zoom]+
+* +pass:[?]+: +pass:[set-cmd-text ?]+
+* +pass:[@]+: +pass:[run-macro]+
+* +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
+* +pass:[D]+: +pass:[tab-close -o]+
+* +pass:[F]+: +pass:[hint all tab]+
+* +pass:[G]+: +pass:[scroll-perc]+
+* +pass:[H]+: +pass:[back]+
+* +pass:[J]+: +pass:[tab-next]+
+* +pass:[K]+: +pass:[tab-prev]+
+* +pass:[L]+: +pass:[forward]+
+* +pass:[M]+: +pass:[bookmark-add]+
+* +pass:[N]+: +pass:[search-prev]+
+* +pass:[O]+: +pass:[set-cmd-text -s :open -t]+
+* +pass:[PP]+: +pass:[open -t -- {primary}]+
+* +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
+* +pass:[R]+: +pass:[reload -f]+
+* +pass:[Ss]+: +pass:[open qute://settings]+
+* +pass:[T]+: +pass:[tab-focus]+
+* +pass:[ZQ]+: +pass:[quit]+
+* +pass:[ZZ]+: +pass:[wq]+
+* +pass:[[[]+: +pass:[navigate prev]+
+* +pass:[]]]+: +pass:[navigate next]+
+* +pass:[`]+: +pass:[enter-mode set_mark]+
+* +pass:[ad]+: +pass:[download-cancel]+
+* +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
+* +pass:[cd]+: +pass:[download-clear]+
+* +pass:[co]+: +pass:[tab-only]+
+* +pass:[d]+: +pass:[tab-close]+
+* +pass:[f]+: +pass:[hint]+
+* +pass:[g$]+: +pass:[tab-focus -1]+
+* +pass:[g0]+: +pass:[tab-focus 1]+
+* +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
+* +pass:[gC]+: +pass:[tab-clone]+
+* +pass:[gO]+: +pass:[set-cmd-text :open -t -i {url:pretty}]+
+* +pass:[gU]+: +pass:[navigate up -t]+
+* +pass:[g^]+: +pass:[tab-focus 1]+
+* +pass:[ga]+: +pass:[open -t]+
+* +pass:[gb]+: +pass:[set-cmd-text -s :bookmark-load]+
+* +pass:[gd]+: +pass:[download]+
+* +pass:[gf]+: +pass:[view-source]+
+* +pass:[gg]+: +pass:[scroll-perc 0]+
+* +pass:[gl]+: +pass:[tab-move -]+
+* +pass:[gm]+: +pass:[tab-move]+
+* +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
+* +pass:[gr]+: +pass:[tab-move +]+
+* +pass:[gt]+: +pass:[set-cmd-text -s :buffer]+
+* +pass:[gu]+: +pass:[navigate up]+
+* +pass:[h]+: +pass:[scroll left]+
+* +pass:[i]+: +pass:[enter-mode insert]+
+* +pass:[j]+: +pass:[scroll down]+
+* +pass:[k]+: +pass:[scroll up]+
+* +pass:[l]+: +pass:[scroll right]+
+* +pass:[m]+: +pass:[quickmark-save]+
+* +pass:[n]+: +pass:[search-next]+
+* +pass:[o]+: +pass:[set-cmd-text -s :open]+
+* +pass:[pP]+: +pass:[open -- {primary}]+
+* +pass:[pp]+: +pass:[open -- {clipboard}]+
+* +pass:[q]+: +pass:[record-macro]+
+* +pass:[r]+: +pass:[reload]+
+* +pass:[sf]+: +pass:[save]+
+* +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
+* +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
+* +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[th]+: +pass:[back -t]+
+* +pass:[tl]+: +pass:[forward -t]+
+* +pass:[u]+: +pass:[undo]+
+* +pass:[v]+: +pass:[enter-mode caret]+
+* +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
+* +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
+* +pass:[wP]+: +pass:[open -w -- {primary}]+
+* +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
+* +pass:[wf]+: +pass:[hint all window]+
+* +pass:[wh]+: +pass:[back -w]+
+* +pass:[wi]+: +pass:[inspector]+
+* +pass:[wl]+: +pass:[forward -w]+
+* +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
+* +pass:[wp]+: +pass:[open -w -- {clipboard}]+
+* +pass:[xO]+: +pass:[set-cmd-text :open -b -i {url:pretty}]+
+* +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
+* +pass:[yD]+: +pass:[yank domain -s]+
+* +pass:[yP]+: +pass:[yank pretty-url -s]+
+* +pass:[yT]+: +pass:[yank title -s]+
+* +pass:[yY]+: +pass:[yank -s]+
+* +pass:[yd]+: +pass:[yank domain]+
+* +pass:[yp]+: +pass:[yank pretty-url]+
+* +pass:[yt]+: +pass:[yank title]+
+* +pass:[yy]+: +pass:[yank]+
+* +pass:[{{]+: +pass:[navigate prev -t]+
+* +pass:[}}]+: +pass:[navigate next -t]+
+- +pass:[passthrough]+:
+
+* +pass:[&lt;Ctrl-V&gt;]+: +pass:[leave-mode]+
+- +pass:[prompt]+:
+
+* +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
+* +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
+* +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
+* +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
+* +pass:[&lt;Ctrl-?&gt;]+: +pass:[rl-delete-char]+
+* +pass:[&lt;Ctrl-A&gt;]+: +pass:[rl-beginning-of-line]+
+* +pass:[&lt;Ctrl-B&gt;]+: +pass:[rl-backward-char]+
+* +pass:[&lt;Ctrl-E&gt;]+: +pass:[rl-end-of-line]+
+* +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
+* +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
+* +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
+* +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
+* +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
+* +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
+* +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
+* +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
+* +pass:[&lt;Shift-Tab&gt;]+: +pass:[prompt-item-focus prev]+
+* +pass:[&lt;Tab&gt;]+: +pass:[prompt-item-focus next]+
+* +pass:[&lt;Up&gt;]+: +pass:[prompt-item-focus prev]+
+* +pass:[n]+: +pass:[prompt-accept no]+
+* +pass:[y]+: +pass:[prompt-accept yes]+
+- +pass:[register]+:
+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 
 [[bindings.key_mappings]]
 == bindings.key_mappings
@@ -350,7 +604,16 @@ This setting can be used to map keys to other keys.
 When the key used as dictionary-key is pressed, the binding for the key used as dictionary-value is invoked instead.
 This is useful for global remappings of keys, for example to map Ctrl-[ to Escape.
 
-Default: +pass:[{&quot;&lt;Ctrl-[&gt;&quot;: &quot;&lt;Escape&gt;&quot;, &quot;&lt;Ctrl-6&gt;&quot;: &quot;&lt;Ctrl-^&gt;&quot;, &quot;&lt;Ctrl-M&gt;&quot;: &quot;&lt;Return&gt;&quot;, &quot;&lt;Ctrl-J&gt;&quot;: &quot;&lt;Return&gt;&quot;, &quot;&lt;Shift-Return&gt;&quot;: &quot;&lt;Return&gt;&quot;, &quot;&lt;Enter&gt;&quot;: &quot;&lt;Return&gt;&quot;, &quot;&lt;Shift-Enter&gt;&quot;: &quot;&lt;Return&gt;&quot;, &quot;&lt;Ctrl-Enter&gt;&quot;: &quot;&lt;Ctrl-Return&gt;&quot;}]+
+Default: 
+
+- +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
+- +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
+- +pass:[&lt;Ctrl-J&gt;]+: +pass:[&lt;Return&gt;]+
+- +pass:[&lt;Ctrl-M&gt;]+: +pass:[&lt;Return&gt;]+
+- +pass:[&lt;Ctrl-[&gt;]+: +pass:[&lt;Escape&gt;]+
+- +pass:[&lt;Enter&gt;]+: +pass:[&lt;Return&gt;]+
+- +pass:[&lt;Shift-Enter&gt;]+: +pass:[&lt;Return&gt;]+
+- +pass:[&lt;Shift-Return&gt;]+: +pass:[&lt;Return&gt;]+
 
 [[colors.completion.category.bg]]
 == colors.completion.category.bg
@@ -913,7 +1176,9 @@ Valid values:
  * +downloads+: Show a confirmation if downloads are running
  * +never+: Never show a confirmation.
 
-Default: +pass:[[&quot;never&quot;]]+
+Default: 
+
+- +pass:[never]+
 
 [[content.cache.appcache]]
 == content.cache.appcache
@@ -1100,7 +1365,13 @@ The file can be in one of the following formats:
   `hosts` (with any extension).
 
 
-Default: +pass:[[&quot;https://www.malwaredomainlist.com/hostslist/hosts.txt&quot;, &quot;http://someonewhocares.org/hosts/hosts&quot;, &quot;http://winhelp2002.mvps.org/hosts.zip&quot;, &quot;http://malwaredomains.lehigh.edu/files/justdomains.zip&quot;, &quot;https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext&quot;]]+
+Default: 
+
+- +pass:[https://www.malwaredomainlist.com/hostslist/hosts.txt]+
+- +pass:[http://someonewhocares.org/hosts/hosts]+
+- +pass:[http://winhelp2002.mvps.org/hosts.zip]+
+- +pass:[http://malwaredomains.lehigh.edu/files/justdomains.zip]+
+- +pass:[https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
 
 [[content.host_blocking.whitelist]]
 == content.host_blocking.whitelist
@@ -1108,7 +1379,9 @@ List of domains that should always be loaded, despite being ad-blocked.
 Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
 Local domains are always exempt from hostblocking.
 
-Default: +pass:[[&quot;piwik.org&quot;]]+
+Default: 
+
+- +pass:[piwik.org]+
 
 [[content.hyperlink_auditing]]
 == content.hyperlink_auditing
@@ -1478,7 +1751,11 @@ Default: +pass:[-1]+
 The editor (and arguments) to use for the `open-editor` command.
 `{}` gets replaced by the filename of the file to be edited.
 
-Default: +pass:[[&quot;gvim&quot;, &quot;-f&quot;, &quot;{}&quot;]]+
+Default: 
+
+- +pass:[gvim]+
+- +pass:[-f]+
+- +pass:[{}]+
 
 [[editor.encoding]]
 == editor.encoding
@@ -1706,13 +1983,26 @@ Default: +pass:[letter]+
 == hints.next_regexes
 A comma-separated list of regexes to use for 'next' links.
 
-Default: +pass:[[&quot;\\bnext\\b&quot;, &quot;\\bmore\\b&quot;, &quot;\\bnewer\\b&quot;, &quot;\\b[&gt;\u2192\u226b]\\b&quot;, &quot;\\b(&gt;&gt;|\u00bb)\\b&quot;, &quot;\\bcontinue\\b&quot;]]+
+Default: 
+
+- +pass:[\bnext\b]+
+- +pass:[\bmore\b]+
+- +pass:[\bnewer\b]+
+- +pass:[\b[&gt;→≫]\b]+
+- +pass:[\b(&gt;&gt;|»)\b]+
+- +pass:[\bcontinue\b]+
 
 [[hints.prev_regexes]]
 == hints.prev_regexes
 A comma-separated list of regexes to use for 'prev' links.
 
-Default: +pass:[[&quot;\\bprev(ious)?\\b&quot;, &quot;\\bback\\b&quot;, &quot;\\bolder\\b&quot;, &quot;\\b[&lt;\u2190\u226a]\\b&quot;, &quot;\\b(&lt;&lt;|\u00ab)\\b&quot;]]+
+Default: 
+
+- +pass:[\bprev(ious)?\b]+
+- +pass:[\bback\b]+
+- +pass:[\bolder\b]+
+- +pass:[\b[&lt;←≪]\b]+
+- +pass:[\b(&lt;&lt;|«)\b]+
 
 [[hints.scatter]]
 == hints.scatter
@@ -1973,7 +2263,12 @@ Default: empty
 == statusbar.padding
 Padding for the statusbar.
 
-Default: +pass:[{&quot;top&quot;: 1, &quot;bottom&quot;: 1, &quot;left&quot;: 0, &quot;right&quot;: 0}]+
+Default: 
+
+- +pass:[bottom]+: +pass:[1]+
+- +pass:[left]+: empty
+- +pass:[right]+: empty
+- +pass:[top]+: +pass:[1]+
 
 [[statusbar.position]]
 == statusbar.position
@@ -2031,7 +2326,12 @@ Default: +pass:[true]+
 == tabs.indicator_padding
 Padding for tab indicators
 
-Default: +pass:[{&quot;top&quot;: 2, &quot;bottom&quot;: 2, &quot;left&quot;: 0, &quot;right&quot;: 4}]+
+Default: 
+
+- +pass:[bottom]+: +pass:[2]+
+- +pass:[left]+: empty
+- +pass:[right]+: +pass:[4]+
+- +pass:[top]+: +pass:[2]+
 
 [[tabs.last_close]]
 == tabs.last_close
@@ -2088,7 +2388,12 @@ Default: +pass:[last]+
 == tabs.padding
 Padding around text for tabs
 
-Default: +pass:[{&quot;top&quot;: 0, &quot;bottom&quot;: 0, &quot;left&quot;: 5, &quot;right&quot;: 5}]+
+Default: 
+
+- +pass:[bottom]+: empty
+- +pass:[left]+: +pass:[5]+
+- +pass:[right]+: +pass:[5]+
+- +pass:[top]+: empty
 
 [[tabs.position]]
 == tabs.position
@@ -2241,26 +2546,40 @@ Valid values:
  * +query+
  * +anchor+
 
-Default: +pass:[[&quot;path&quot;, &quot;query&quot;]]+
+Default: 
+
+- +pass:[path]+
+- +pass:[query]+
 
 [[url.searchengines]]
 == url.searchengines
 Definitions of search engines which can be used via the address bar.
 The searchengine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
 
-Default: +pass:[{&quot;DEFAULT&quot;: &quot;https://duckduckgo.com/?q={}&quot;}]+
+Default: 
+
+- +pass:[DEFAULT]+: +pass:[https://duckduckgo.com/?q={}]+
 
 [[url.start_pages]]
 == url.start_pages
 The page(s) to open at the start.
 
-Default: +pass:[[&quot;https://start.duckduckgo.com&quot;]]+
+Default: 
+
+- +pass:[https://start.duckduckgo.com]+
 
 [[url.yank_ignored_parameters]]
 == url.yank_ignored_parameters
 The URL parameters to strip with `:yank url`.
 
-Default: +pass:[[&quot;ref&quot;, &quot;utm_source&quot;, &quot;utm_medium&quot;, &quot;utm_campaign&quot;, &quot;utm_term&quot;, &quot;utm_content&quot;]]+
+Default: 
+
+- +pass:[ref]+
+- +pass:[utm_source]+
+- +pass:[utm_medium]+
+- +pass:[utm_campaign]+
+- +pass:[utm_term]+
+- +pass:[utm_content]+
 
 [[window.hide_wayland_decoration]]
 == window.hide_wayland_decoration
@@ -2301,7 +2620,24 @@ Default: +pass:[100%]+
 == zoom.levels
 The available zoom levels.
 
-Default: +pass:[[&quot;25%&quot;, &quot;33%&quot;, &quot;50%&quot;, &quot;67%&quot;, &quot;75%&quot;, &quot;90%&quot;, &quot;100%&quot;, &quot;110%&quot;, &quot;125%&quot;, &quot;150%&quot;, &quot;175%&quot;, &quot;200%&quot;, &quot;250%&quot;, &quot;300%&quot;, &quot;400%&quot;, &quot;500%&quot;]]+
+Default: 
+
+- +pass:[25%]+
+- +pass:[33%]+
+- +pass:[50%]+
+- +pass:[67%]+
+- +pass:[75%]+
+- +pass:[90%]+
+- +pass:[100%]+
+- +pass:[110%]+
+- +pass:[125%]+
+- +pass:[150%]+
+- +pass:[175%]+
+- +pass:[200%]+
+- +pass:[250%]+
+- +pass:[300%]+
+- +pass:[400%]+
+- +pass:[500%]+
 
 [[zoom.mouse_divider]]
 == zoom.mouse_divider
