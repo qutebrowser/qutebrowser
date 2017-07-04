@@ -59,6 +59,7 @@ def _apply_platform_markers(config, item):
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
+        ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', os.name == 'nt' and config.webengine,
          "Broken with QtWebEngine on Windows"),
     ]

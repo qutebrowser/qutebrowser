@@ -41,6 +41,8 @@ def test_init(config_stub):
         option.typ.to_str(option.default)
 
 
+# https://github.com/qutebrowser/qutebrowser/issues/2777
+@pytest.mark.no_ci
 def test_init_benchmark(benchmark):
     benchmark(configdata.init)
 
