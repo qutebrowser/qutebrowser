@@ -2171,6 +2171,10 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.window()
         if window.isFullScreen():
-            window.showNormal()
+            if window._restore_maximized:
+                window.showMaximized()
+            else:
+                window.showNormal()
         else:
+            window._restore_maximized = window.isMaximized()
             window.showFullScreen()

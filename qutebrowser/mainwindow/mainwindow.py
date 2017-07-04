@@ -130,6 +130,8 @@ class MainWindow(QWidget):
         _private: Whether the window is in private browsing mode.
         _restore_fullscreen: Whether to restore the fullscreen after leaving
             a video fullscreen.
+        _restore_maximized: Whether to restore maximized window after leaving
+            a video fullscreen.
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
@@ -220,6 +222,7 @@ class MainWindow(QWidget):
         objreg.get("app").new_window.emit(self)
 
         self._restore_fullscreen = False
+        self._restore_maximized = self.isMaximized()
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -488,13 +491,17 @@ class MainWindow(QWidget):
     def _on_fullscreen_requested(self, on):
         if on:
             self._restore_fullscreen = self.isFullScreen()
+            self._restore_maximized = self.isMaximized()
             self.showFullScreen()
         elif not self._restore_fullscreen:
-            self.showNormal()
+            if self._restore_maximized:
+                self.showMaximized()
+            else:
+                self.showNormal()
         else:
             self._restore_fullscreen = self.isFullScreen()
-        log.misc.debug('on: {}, restore fullscreen: {}'
-                       .format(on, self._restore_fullscreen))
+        log.misc.debug('on: {}, restore fullscreen: {}, restore maximized: {}'
+                       .format(on, self._restore_fullscreen, self._restore_maximized))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
