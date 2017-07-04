@@ -322,8 +322,3 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         self.request_leave.emit(self._mode, "valid register key", True)
 
         return True
-
-    @pyqtSlot(str)
-    def on_keyconfig_changed(self, mode):
-        """RegisterKeyParser has no config section (no bindable keys)."""
-        pass

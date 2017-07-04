@@ -38,6 +38,7 @@ from qutebrowser.browser.webkit import rfc6266
 from qutebrowser.browser.webkit.network import webkitqutescheme
 # pylint: enable=unused-import
 from qutebrowser.browser import qutescheme
+from qutebrowser.config import configtypes
 
 
 def whitelist_generator():
@@ -63,7 +64,6 @@ def whitelist_generator():
     yield 'qutebrowser.utils.debug.qflags_key'
     yield 'qutebrowser.utils.qtutils.QtOSError.qt_errno'
     yield 'scripts.utils.bg_colors'
-    yield 'qutebrowser.config.configtypes.Float'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
@@ -93,11 +93,23 @@ def whitelist_generator():
     for attr in ['fileno', 'truncate', 'closed', 'readable']:
         yield 'qutebrowser.utils.qtutils.PyQIODevice.' + attr
 
-    for attr in ['priority', 'visit_call']:
+    for attr in ['msgs', 'priority', 'visit_attribute']:
         yield 'scripts.dev.pylint_checkers.config.' + attr
+    for attr in ['visit_call', 'process_module']:
+        yield 'scripts.dev.pylint_checkers.modeline.' + attr
 
-    yield 'scripts.dev.pylint_checkers.modeline.process_module'
-    yield 'scripts.dev.pylint_checkers.qute_pylint.config.msgs'
+    for name, member in inspect.getmembers(configtypes, inspect.isclass):
+        yield 'qutebrowser.config.configtypes.' + name
+
+    ### FIXME:conf
+    ## completion
+    for name in ['Section', 'Option', 'Value']:
+        klass = 'Setting{}CompletionModel'.format(name)
+        yield 'qutebrowser.completion.models.configmodel.' + klass
+    # in qutebrowser.completion.models.miscmodels._get_cmd_completions
+    yield 'include_aliases'
+    ## FIXME:conf TODO
+    yield 'qutebrowser.config.configdata.DEFAULT_FONT_SIZE'
 
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
