@@ -699,7 +699,7 @@ qutebrowser release
 as closed.
 
 * Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`
-* Windows: Run `C:\Python34_x32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand)
+* Windows: Run `C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand)
 * OS X: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand)
 * On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand)
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed
