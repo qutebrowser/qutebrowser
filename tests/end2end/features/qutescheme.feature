@@ -85,6 +85,7 @@ Feature: Special qute:// pages
         And I press the key "<Escape>"
         # an explicit Tab to unfocus the input field seems to stabilize the tests
         And I press the key "<Tab>"
+        And I wait for "Config option changed: ignore_case *" in the log
         Then the option ignore_case should be set to always
 
     Scenario: Focusing input fields in qute://settings and entering invalid value
