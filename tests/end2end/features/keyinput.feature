@@ -167,15 +167,16 @@ Feature: Keyboard input
         Then the javascript message "key press: 88" should be logged
         And the javascript message "key release: 88" should be logged
 
-    @no_xvfb @posix @qtwebengine_skip
+    @qutewm @posix @qtwebengine_skip
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/keyinput/log.html
-        And I set general -> developer-extras to true
-        And I run :inspector
-        And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
+        And I run :debug-console
+        And I wait for "Focus object changed: <qutebrowser.misc.consolewidget.ConsoleLineEdit *>" in the log
         And I run :fake-key x
-        And I run :inspector
-        And I wait for "Focus object changed: <qutebrowser.browser.webkit.webview.WebView *>" in the log
+        And I run :debug-console
+        # Different widgets for QtWebKit/QtWebEngine, so just use the window
+        # activation
+        And I wait for "Window activation changed to <qutebrowser.mainwindow.mainwindow.MainWindow> (win_id=0)" in the log
         Then the error "No focused webview!" should be shown
 
     Scenario: :fake-key sending special key to the website

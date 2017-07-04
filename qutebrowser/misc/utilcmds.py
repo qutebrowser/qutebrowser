@@ -244,6 +244,27 @@ def debug_set_fake_clipboard(s=None):
         utils.fake_clipboard = s
 
 
+@cmdutils.register(debug=True)
+def debug_focus_window(win_id: int):
+    """Activate and focus the window given by win_id.
+
+    It is only guaranteed that qutewm will switch the window. No guarantees are
+    made for other window managers!
+
+    Args:
+        win_id: The window id to focus.
+    """
+    try:
+        window = objreg.get('main-window', scope='window', window=win_id)
+    except objreg.RegistryUnavailableError:
+        raise cmdexc.CommandError("Invalid window: {}".format(win_id))
+    window.activateWindow()
+    if window.isActiveWindow():
+        log.misc.debug("Window id={} is already active".format(win_id))
+    else:
+        log.misc.debug("Activation request sent for win_id={}".format(win_id))
+
+
 @cmdutils.register(hide=True)
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)

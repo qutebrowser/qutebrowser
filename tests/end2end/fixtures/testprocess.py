@@ -21,6 +21,7 @@
 
 import re
 import os
+import sys
 import time
 
 import pytest
@@ -101,6 +102,7 @@ def pytest_runtest_makereport(item, call):
 
     quteproc_log = getattr(item, '_quteproc_log', None)
     httpbin_log = getattr(item, '_httpbin_log', None)
+    qutewm_log = getattr(item, '_qutewm_log', None)
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on OS X and Windows it seems), report.longrepr is
@@ -116,6 +118,9 @@ def pytest_runtest_makereport(item, call):
                                    _render_log(quteproc_log))
     if httpbin_log is not None:
         report.longrepr.addsection("httpbin output", _render_log(httpbin_log))
+
+    if qutewm_log is not None:
+        report.longrepr.addsection("qutewm output", _render_log(qutewm_log))
 
 
 class Process(QObject):
@@ -297,7 +302,17 @@ class Process(QObject):
 
     def terminate(self):
         """Clean up and shut down the process."""
-        self.proc.terminate()
+        if sys.platform != 'win32':
+            self.proc.terminate()
+        else:
+            # http://doc.qt.io/qt-5/qprocess.html#terminate
+            # On Windows, terminate() posts a WM_CLOSE message to all top-level
+            # windows of the process and then to the main thread of the process
+            # itself. [...]
+            # Console applications on Windows that do not run an event loop, or
+            # whose event loop does not handle the WM_CLOSE message, can only
+            # be terminated by calling kill().
+            self.proc.kill()
         self.proc.waitForFinished()
 
     def is_running(self):

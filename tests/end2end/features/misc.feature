@@ -159,7 +159,7 @@ Feature: Various utility commands.
         When I run :inspector
         Then the error "Debugging is not enabled. See 'qutebrowser --help' for details." should be shown
 
-    @no_xvfb @posix @qtwebengine_skip
+    @qutewm @posix @qtwebengine_skip
     Scenario: Inspector smoke test
         When I set general -> developer-extras to true
         And I run :inspector
@@ -176,7 +176,7 @@ Feature: Various utility commands.
         Then the error "Please enable developer-extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
-    @no_xvfb @posix @qtwebengine_skip
+    @qutewm @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
         When I set general -> developer-extras to true
         And I run :inspector
@@ -568,7 +568,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
-    @no_xvfb
+    @qutewm
     Scenario: :window-only
         Given I run :tab-only
         And I open data/hello.txt
@@ -701,4 +701,21 @@ Feature: Various utility commands.
         And I run :open chrome://kill
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
+        Then no crash should happen
+
+    ## :debug-focus-window
+
+    Scenario: Focusing an invalid window
+        When I run :debug-focus-window 1337
+        Then the error "Invalid window: 1337" should be shown
+
+    @qutewm
+    Scenario: Focusing the current window
+        When I focus window 0
+        Then no crash should happen
+
+    @qutewm
+    Scenario: Focusing a new window
+        When I run :open -w about:blank
+        And I focus window 1
         Then no crash should happen

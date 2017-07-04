@@ -37,3 +37,5 @@ PyVirtualDisplay==0.2.1
 six==1.10.0
 vulture==0.14
 Werkzeug==0.12.2
+python-xlib==0.18
+six==1.10.0

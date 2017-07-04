@@ -381,6 +381,18 @@ def clear_ssl_errors(request, quteproc):
         quteproc.send_cmd(':debug-clear-ssl-errors')
 
 
+@bdd.when(bdd.parsers.parse('I focus window {win_id}'))
+def focus_window(quteproc, win_id):
+    quteproc.send_cmd(':debug-focus-window {}'.format(win_id))
+    pat_active = 'Window id={} is already active'.format(win_id)
+    pat_signal = ('Window activation changed to <qutebrowser.mainwindow.'
+                  'mainwindow.MainWindow> (win_id={})'
+                  .format(win_id))
+    pattern = re.compile('({})|({})'.format(re.escape(pat_active),
+                                            re.escape(pat_signal)))
+    quteproc.wait_for(message=pattern)
+
+
 ## Then
 
 
