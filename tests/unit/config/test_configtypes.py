@@ -381,7 +381,7 @@ class TestMappingType:
         return MappingSubclass
 
     @pytest.mark.parametrize('val, expected', list(TESTS.items()))
-    def test_to_py(self, klass, val, expected):
+    def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
     @pytest.mark.parametrize('val', ['one!', 'blah'])
@@ -432,7 +432,7 @@ class TestString:
         # Surrogate escapes are allowed in strings
         ({}, '\U00010000'),
     ])
-    def test_to_py(self, klass, kwargs, val):
+    def test_to_py_valid(self, klass, kwargs, val):
         assert klass(**kwargs).to_py(val) == val
 
     @pytest.mark.parametrize('kwargs, val', [
@@ -534,7 +534,7 @@ class TestList:
             klass().from_str(val)
 
     @pytest.mark.parametrize('val', [['foo'], ['foo', 'bar']])
-    def test_to_py(self, klass, val):
+    def test_to_py_valid(self, klass, val):
         assert klass().to_py(val) == val
 
     @pytest.mark.parametrize('val', [[42], '["foo"]', ['\U00010000']])
@@ -1796,7 +1796,7 @@ class TestEncoding:
         return configtypes.Encoding
 
     @pytest.mark.parametrize('val', ['utf-8', 'UTF-8', 'iso8859-1'])
-    def test_to_py(self, klass, val):
+    def test_to_py_valid(self, klass, val):
         assert klass().to_py(val) == val
 
     def test_to_py_invalid(self, klass):
