@@ -149,15 +149,19 @@ def build_osx():
     os.rename('qutebrowser.dmg', dmg_name)
 
     utils.print_title("Running smoke test")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        subprocess.check_call(['hdiutil', 'attach', dmg_name,
-                               '-mountpoint', tmpdir])
-        try:
-            binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
-                                  'MacOS', 'qutebrowser')
-            smoke_test(binary)
-        finally:
-            subprocess.check_call(['hdiutil', 'detach', tmpdir])
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.check_call(['hdiutil', 'attach', dmg_name,
+                                   '-mountpoint', tmpdir])
+            try:
+                binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
+                                      'MacOS', 'qutebrowser')
+                smoke_test(binary)
+            finally:
+                subprocess.call(['hdiutil', 'detach', tmpdir])
+    except PermissionError as e:
+        print("Failed to remove tempdir: {}".format(e))
 
     return [(dmg_name, 'application/x-apple-diskimage', 'OS X .dmg')]
 
