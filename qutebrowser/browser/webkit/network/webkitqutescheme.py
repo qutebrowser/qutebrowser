@@ -21,12 +21,11 @@
 
 import mimetypes
 
-from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtNetwork import QNetworkReply
 
 from qutebrowser.browser import pdfjs, qutescheme
 from qutebrowser.browser.webkit.network import schemehandler, networkreply
-from qutebrowser.utils import jinja, log, message, usertypes, qtutils
+from qutebrowser.utils import log, usertypes, qtutils
 
 
 class QuteSchemeHandler(schemehandler.SchemeHandler):

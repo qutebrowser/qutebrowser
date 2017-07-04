@@ -24,7 +24,7 @@ import yaml
 import pytest
 
 # To run cmdutils.register decorators
-from qutebrowser import app
+from qutebrowser import app  # pylint: disable=unused-import
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
 

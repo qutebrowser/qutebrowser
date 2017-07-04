@@ -65,7 +65,8 @@ class Message(QLabel):
             raise ValueError("Invalid level {!r}".format(level))
         # We don't bother with set_register_stylesheet here as it's short-lived
         # anyways.
-        config.set_register_stylesheet(self, stylesheet=stylesheet, update=False)
+        config.set_register_stylesheet(self, stylesheet=stylesheet,
+                                       update=False)
 
 
 class MessageView(QWidget):

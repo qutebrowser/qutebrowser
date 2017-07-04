@@ -22,7 +22,7 @@
 import unittest.mock
 
 import pytest
-from PyQt5.QtGui import QStandardItem, QColor
+from PyQt5.QtGui import QStandardItem
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import base, sortfilter

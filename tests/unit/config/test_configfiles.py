@@ -44,7 +44,8 @@ def test_state_config(fake_save_manager, data_tmpdir,
 
     if insert:
         state['general']['newval'] = '23'
-    if 'foobar' in (old_data or ''):
+    # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
+    if 'foobar' in (old_data or ''):  # pylint: disable=superfluous-parens
         assert state['general']['foobar'] == '42'
 
     state._save()
@@ -81,7 +82,8 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
     else:
         assert lines[3] == 'global:'
 
-    if 'magenta' in (old_config or ''):
+    # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
+    if 'magenta' in (old_config or ''):  # pylint: disable=superfluous-parens
         assert '  colors.hints.fg: magenta' in lines
     if insert:
         assert '  tabs.show: never' in lines

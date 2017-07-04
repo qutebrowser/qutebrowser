@@ -30,8 +30,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, history
-from qutebrowser.config import configexc, configdata
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
 

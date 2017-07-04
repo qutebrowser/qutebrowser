@@ -30,7 +30,8 @@ from qutebrowser.utils import usertypes
 from qutebrowser.commands import command, cmdutils
 
 
-pytestmark = pytest.mark.skip("FIXME:conf reintroduce after new completion is in")
+pytestmark = pytest.mark.skip("FIXME:conf reintroduce after new completion "
+                              "is in")
 
 
 class FakeCompletionModel(QStandardItemModel):

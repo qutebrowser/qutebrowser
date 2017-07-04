@@ -170,7 +170,10 @@ class BaseType:
             self._basic_str_validation(value)
 
     def _basic_str_validation(self, value):
-        """Do some basic validation for string values (empty, non-printable chars).
+        """Do some basic validation for string values.
+
+        This checks that the value isn't empty and doesn't contain any
+        unprintable chars.
 
         Arguments:
             value: The value to check.
@@ -211,9 +214,9 @@ class BaseType:
     def from_str(self, value):
         """Get the setting value from a string.
 
-        By default this invokes to_py() for validation and returns the unaltered
-        value. This means that if to_py() returns a string rather than something
-        more sophisticated, this doesn't need to be implemented.
+        By default this invokes to_py() for validation and returns the
+        unaltered value. This means that if to_py() returns a string rather
+        than something more sophisticated, this doesn't need to be implemented.
 
         Args:
             value: The original string value.
@@ -256,6 +259,7 @@ class BaseType:
 
         This currently uses asciidoc syntax.
         """
+        utils.unused(indent)  # only needed for Dict/List
         if not value:
             return 'empty'
         return '+pass:[{}]+'.format(html.escape(self.to_str(value)))

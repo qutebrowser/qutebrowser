@@ -26,7 +26,7 @@ from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.config import config, configdata, configexc, configfiles
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import objreg, usertypes
 from qutebrowser.misc import objects
 
@@ -83,7 +83,7 @@ class TestChangeFilter:
                     was_called = True
 
             foo = Foo()
-            foo.meth(changed)
+            foo.meth(changed)  # pylint: disable=too-many-function-args
 
         else:
 
@@ -92,7 +92,7 @@ class TestChangeFilter:
                 nonlocal was_called
                 was_called = True
 
-            func(changed)
+            func(changed)  # pylint: disable=too-many-function-args
 
         assert was_called == matches
 
@@ -127,7 +127,8 @@ class TestKeyConfig:
         ({'a': None}, {'b': 'message-info bar'}),
         # Additional binding
         ({'c': 'message-info baz'},
-         {'a': 'message-info foo', 'b': 'message-info bar', 'c': 'message-info baz'}),
+         {'a': 'message-info foo', 'b': 'message-info bar',
+          'c': 'message-info baz'}),
         # Unbinding unknown key
         ({'x': None}, {'a': 'message-info foo', 'b': 'message-info bar'}),
     ])
@@ -638,8 +639,9 @@ class TestConfig:
 
         When we get a mutable object from the config, some invariants should be
         true:
-          - The object we get from the config is always a copy, i.e. mutating it
-            doesn't change the internal value (or default) stored in the config.
+          - The object we get from the config is always a copy, i.e. mutating
+            it doesn't change the internal value (or default) stored in the
+            config.
           - If we mutate the object (mutated=True) and the config watches for
             mutables (mutable=True), it should notice that the object changed.
           - With mutable=False, we should always get the old object back.
@@ -760,7 +762,7 @@ class TestContainer:
     def test_getattr_invalid_private(self, container):
         """Make sure an invalid _attribute doesn't try getting a container."""
         with pytest.raises(AttributeError):
-            container._foo
+            container._foo  # pylint: disable=pointless-statement
 
     def test_getattr_prefix(self, container):
         new_container = container.tabs
@@ -773,7 +775,7 @@ class TestContainer:
 
     def test_getattr_invalid(self, container):
         with pytest.raises(configexc.NoOptionError) as excinfo:
-            container.tabs.foobar
+            container.tabs.foobar  # pylint: disable=pointless-statement
         assert excinfo.value.option == 'tabs.foobar'
 
     def test_setattr_option(self, config_stub, container):

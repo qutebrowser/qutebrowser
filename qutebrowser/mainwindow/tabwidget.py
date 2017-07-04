@@ -546,15 +546,15 @@ class TabBar(QTabBar):
 
     def paintEvent(self, _e):
         """Override paintEvent to draw the tabs like we want to."""
-        # pylint: disable=bad-config-call
-        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104
         p = QStylePainter(self)
         selected = self.currentIndex()
         for idx in range(self.count()):
             tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
 
+            # pylint: disable=bad-config-option
             setting = config.val.colors.tabs
+            # pylint: enable=bad-config-option
             if idx == selected:
                 setting = setting.selected
             setting = setting.odd if idx % 2 else setting.even

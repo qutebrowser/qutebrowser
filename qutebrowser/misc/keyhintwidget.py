@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, utils, usertypes
+from qutebrowser.utils import utils, usertypes
 
 
 class KeyHintView(QLabel):

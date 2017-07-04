@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# FIXME:conf
+# pylint: disable=undefined-variable
+
 """Tests for completion models."""
 
 import collections
@@ -31,7 +34,8 @@ from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
 from qutebrowser.browser import history
 
 
-pytestmark = pytest.mark.skip("FIXME:conf reintroduce after new completion is in")
+pytestmark = pytest.mark.skip("FIXME:conf reintroduce after new completion "
+                              "is in")
 
 
 def _check_completions(model, expected):

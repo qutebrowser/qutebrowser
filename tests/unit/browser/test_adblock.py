@@ -34,24 +34,24 @@ pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
 # TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
-WHITELISTED_HOSTS = ['qutebrowser.org', 'mediumhost.io']
+WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
 
-BLOCKLIST_HOSTS = ['localhost',
+BLOCKLIST_HOSTS = ('localhost',
                    'mediumhost.io',
                    'malware.badhost.org',
                    '4-verybadhost.com',
-                   'ads.worsthostever.net']
+                   'ads.worsthostever.net')
 
-CLEAN_HOSTS = ['goodhost.gov', 'verygoodhost.com']
+CLEAN_HOSTS = ('goodhost.gov', 'verygoodhost.com')
 
-URLS_TO_CHECK = ['http://localhost',
+URLS_TO_CHECK = ('http://localhost',
                  'http://mediumhost.io',
                  'ftp://malware.badhost.org',
                  'http://4-verybadhost.com',
                  'http://ads.worsthostever.net',
                  'http://goodhost.gov',
                  'ftp://verygoodhost.com',
-                 'http://qutebrowser.org']
+                 'http://qutebrowser.org')
 
 
 class BaseDirStub:
@@ -374,7 +374,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
                                  line_format='one_per_line')
     config_stub.val.content.host_blocking.lists = [blocklist]
     config_stub.val.content.host_blocking.enabled = True
-    config_stub.val.content.host_blocking.whitelist = WHITELISTED_HOSTS
+    config_stub.val.content.host_blocking.whitelist = list(WHITELISTED_HOSTS)
 
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()

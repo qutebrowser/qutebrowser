@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman

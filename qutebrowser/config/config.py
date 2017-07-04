@@ -20,15 +20,13 @@
 """Configuration storage and config-related utilities."""
 
 import copy
-import os.path
 import contextlib
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import (utils, objreg, message, standarddir, log,
-                               usertypes)
+from qutebrowser.utils import utils, objreg, message, log, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.commands import cmdexc, cmdutils
 
@@ -279,8 +277,8 @@ class ConfigCommands:
     def _print_value(self, option):
         """Print the value of the given option."""
         with self._handle_config_error():
-            val = self._config.get_str(option)
-        message.info("{} = {}".format(option, val))
+            value = self._config.get_str(option)
+        message.info("{} = {}".format(option, value))
 
     def _set_next(self, option, values, *, temp):
         """Set the next value out of a list of values."""
@@ -292,9 +290,9 @@ class ConfigCommands:
 
         # Use the next valid value from values, or the first if the current
         # value does not appear in the list
-        val = self._config.get_str(option)
+        old_value = self._config.get_str(option)
         try:
-            idx = values.index(str(val))
+            idx = values.index(str(old_value))
             idx = (idx + 1) % len(values)
             value = values[idx]
         except ValueError:

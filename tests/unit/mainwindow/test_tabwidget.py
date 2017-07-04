@@ -21,11 +21,9 @@
 
 import pytest
 
-from PyQt5.QtGui import QIcon, QPixmap, QFont, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QPixmap
 
 from qutebrowser.mainwindow import tabwidget
-from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes
 
 

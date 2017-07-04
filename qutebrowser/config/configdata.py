@@ -27,7 +27,6 @@ DATA: A dict of Option objects after init() has been called.
 # FIXME:conf reintroduce interpolation?
 
 import sys
-import re
 import collections
 import functools
 

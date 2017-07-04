@@ -42,7 +42,8 @@ class TestCommandParser:
             with pytest.raises(cmdexc.NoSuchCommandError):
                 parser.parse_all(cmdline_test.cmd, aliases=False)
 
-    def test_parse_all_with_alias(self, cmdline_test, monkeypatch, config_stub):
+    def test_parse_all_with_alias(self, cmdline_test, monkeypatch,
+                                  config_stub):
         if not cmdline_test.cmd:
             pytest.skip("Empty command")
 

@@ -19,8 +19,6 @@
 """Tests for qutebrowser.config.configtypes."""
 
 import re
-import os
-import sys
 import json
 import math
 import collections
@@ -187,7 +185,7 @@ class TestAll:
 
     """Various tests which apply to all available config types."""
 
-    def gen_classes():
+    def gen_classes():  # pylint: disable=no-method-argument
         """Yield all configtypes classes to test.
 
         Not a method as it's used in decorators.

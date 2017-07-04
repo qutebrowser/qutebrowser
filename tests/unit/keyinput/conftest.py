@@ -19,11 +19,7 @@
 
 """pytest fixtures for tests.keyinput."""
 
-from unittest import mock
-
 import pytest
-
-from qutebrowser.utils import objreg
 
 
 BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',

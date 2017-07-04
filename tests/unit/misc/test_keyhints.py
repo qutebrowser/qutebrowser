@@ -19,7 +19,6 @@
 
 """Test the keyhint widget."""
 
-from collections import OrderedDict
 import pytest
 
 from qutebrowser.misc.keyhintwidget import KeyHintView

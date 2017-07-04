@@ -249,6 +249,7 @@ class PACFetcher(QObject):
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None
+        self._reply = None
 
     def __eq__(self, other):
         # pylint: disable=protected-access

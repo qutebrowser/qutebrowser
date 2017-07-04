@@ -22,7 +22,6 @@
 import os
 import sys
 import subprocess
-import configparser
 import functools
 import json
 import shutil
@@ -647,8 +646,8 @@ class Quitter:
         """Quit qutebrowser.
 
         Args:
-            save: When given, save the open windows even if auto_save.session is
-                  turned off.
+            save: When given, save the open windows even if auto_save.session
+                  is turned off.
             session: The name of the session to save.
         """
         if session is not None and not save:

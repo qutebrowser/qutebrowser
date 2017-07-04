@@ -40,20 +40,17 @@ class ConfigChecker(checkers.BaseChecker):
     name = 'config'
     msgs = {
         'E9998': ('%s is no valid config option.',  # flake8: disable=S001
-                  'bad-config-call',
-                  None),
-        'E9999': ('old config call',  # flake8: disable=S001
-                  'old-config-call',
+                  'bad-config-option',
                   None),
     }
     priority = -1
 
-    @utils.check_messages('bad-config-call')
+    @utils.check_messages('bad-config-option')
     def visit_attribute(self, node):
         """Visit a getattr node."""
         # At the end of a config.val.foo.bar chain
         if not isinstance(node.parent, astroid.Attribute):
-            # FIXME do some proper check for this...
+            # FIXME:conf do some proper check for this...
             node_str = node.as_string()
             prefix = 'config.val.'
             if node_str.startswith(prefix):
@@ -62,7 +59,7 @@ class ConfigChecker(checkers.BaseChecker):
     def _check_config(self, node, name):
         """Check that we're accessing proper config options."""
         if name not in OPTIONS:
-            self.add_message('bad-config-call', node=node, args=name)
+            self.add_message('bad-config-option', node=node, args=name)
 
 
 def register(linter):

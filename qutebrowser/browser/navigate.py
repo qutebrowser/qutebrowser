@@ -83,7 +83,10 @@ def _find_prevnext(prev, elems):
     option = 'prev_regexes' if prev else 'next_regexes'
     if not elems:
         return None
+
+    # pylint: disable=bad-config-option
     for regex in getattr(config.val.hints, option):
+        # pylint: enable=bad-config-option
         log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
         for e in elems:
             text = str(e)

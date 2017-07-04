@@ -19,6 +19,9 @@
 
 """CompletionModels for the config."""
 
+# FIXME:conf
+# pylint: disable=no-member
+
 from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.config import config, configdata

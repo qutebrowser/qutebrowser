@@ -19,6 +19,9 @@
 
 """Misc. CompletionModels."""
 
+# FIXME:conf
+# pylint: disable=unused-argument
+
 from PyQt5.QtCore import Qt, QTimer, pyqtSlot
 
 from qutebrowser.browser import browsertab

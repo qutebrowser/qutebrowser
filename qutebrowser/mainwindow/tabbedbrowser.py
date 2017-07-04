@@ -176,7 +176,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         fields = self.get_tab_fields(idx)
         fields['id'] = self._win_id
 
-        title = config.val.window.title_format.format(**fields)
+        title_format = config.val.window.title_format
+        title = title_format.format(**fields)
         self.window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):

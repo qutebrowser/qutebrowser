@@ -22,7 +22,6 @@
 
 import os
 import sys
-import html
 import shutil
 import os.path
 import inspect

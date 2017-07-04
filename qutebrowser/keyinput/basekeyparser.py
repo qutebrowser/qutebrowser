@@ -23,10 +23,10 @@ import re
 import functools
 import unicodedata
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils, objreg
+from qutebrowser.utils import usertypes, log, utils
 
 
 class BaseKeyParser(QObject):
@@ -190,7 +190,8 @@ class BaseKeyParser(QObject):
             return self.Match.none
 
         self._stop_timers()
-        txt = config.val.bindings.key_mappings.get(txt, txt)
+        key_mappings = config.val.bindings.key_mappings
+        txt = key_mappings.get(txt, txt)
         self._keystring += txt
 
         count, cmd_input = self._split_count()

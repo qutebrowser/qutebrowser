@@ -33,7 +33,7 @@ import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
-from qutebrowser.config import config, configexc, configdata
+from qutebrowser.config import config, configdata
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman
