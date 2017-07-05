@@ -97,8 +97,9 @@ qutebrowser is available in the official [community] repository.
 # pacman -S qutebrowser
 ----
 
-It's also recommended to install `qt5-webkit-ng` or `qt5-webengine` (and start
-with `--backend webengine`) to use an up-to-date backend.
+Archlinux packages an updated `qt5-webkit` package by default. If you want to
+use the QtWebEngine backend instead, install `qt5-webengine` and start with
+`--backend webengine`.
 
 There is also a -git version available in the AUR:
 https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
@@ -368,14 +369,6 @@ your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
 ----
 #!/bin/bash
 ~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
-----
-
-If you are developing on qutebrowser, you may want to redirect it to a local
-config:
-
-----
-#!/bin/bash
-~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser -c .qutebrowser-local "$@"
 ----
 
 Updating

@@ -137,20 +137,6 @@ class FakeMainWindow(QObject):
         return self._geometry
 
 
-class FakeTabbedBrowser:
-
-    """A fake tabbed-browser which contains some widgets."""
-
-    def __init__(self, widgets):
-        self._widgets = widgets
-
-    def widgets(self):
-        return self._widgets
-
-    def currentIndex(self):
-        return 1
-
-
 @pytest.fixture
 def fake_window(win_registry, stubs, monkeypatch, qtbot):
     """Fixture which provides a fake main windows with a tabbedbrowser."""
@@ -159,7 +145,7 @@ def fake_window(win_registry, stubs, monkeypatch, qtbot):
 
     webview = QWebView()
     qtbot.add_widget(webview)
-    browser = FakeTabbedBrowser([webview])
+    browser = stubs.TabbedBrowserStub([webview])
     objreg.register('tabbed-browser', browser, scope='window', window=0)
 
     yield
@@ -211,7 +197,7 @@ class TestSave:
         """Fixture which provides a window with a fake history."""
         win = FakeMainWindow(b'fake-geometry-0', win_id=0)
         objreg.register('main-window', win, scope='window', window=0)
-        browser = FakeTabbedBrowser([webview])
+        browser = stubs.TabbedBrowserStub([webview])
 
         objreg.register('tabbed-browser', browser, scope='window', window=0)
         qapp = stubs.FakeQApplication(active_window=win)

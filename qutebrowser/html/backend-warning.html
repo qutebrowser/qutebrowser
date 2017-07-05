@@ -39,9 +39,15 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
     If you know more, please <a href="https://github.com/qutebrowser/qutebrowser/issues/new">open an issue</a>!
 {%- endmacro %}
 
+{% macro unknown_system() -%}
+    There's no information available for your system. {{ please_open_issue() }}
+{%- endmacro %}
+
 <p>
 {% if distribution.parsed == Distribution.ubuntu %}
-    {% if distribution.version >= version('17.04') %}
+    {% if distribution.version == none %}
+        {{ unknown_system() }}
+    {% elif distribution.version >= version('17.04') %}
         {{ install_webengine('python3-pyqt5.qtwebengine') }}
     {% elif distribution.version >= version('16.04') %}
         QtWebEngine is only available in Ubuntu's repositories since 17.04, but you can <a href="https://github.com/qutebrowser/qutebrowser/blob/master/INSTALL.asciidoc#installing-qutebrowser-with-tox">install qutebrowser via tox</a> with <span class="mono">tox -e mkvenv-pypi</span> to use the new backend.
@@ -49,7 +55,9 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
         Unfortunately, no easy way is known to install QtWebEngine on Ubuntu &lt; 16.04. {{ please_open_issue() }}
     {% endif %}
 {% elif distribution.parsed == Distribution.debian %}
-    {% if distribution.version >= version('9') %}
+    {% if distribution.version == none %}
+        {{ unknown_system() }}
+    {% elif distribution.version >= version('9') %}
         {{ install_webengine('python3-pyqt5.qtwebengine') }}
     {% else %}
         Unfortunately, no easy way is known to install QtWebEngine on Debian &lt; 9. {{ please_open_issue() }}
@@ -63,7 +71,7 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
 {% elif distribution.parsed == Distribution.opensuse %}
     {{ install_webengine('libqt5-qtwebengine') }}
 {% else %}
-    There's no information available for your system. {{ please_open_issue() }}
+    {{ unknown_system() }}
 {% endif %}
 </p>
 
@@ -72,18 +80,18 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
 <span class="note">This is a drop-in replacement for legacy QtWebKit.</span>
 
 <p>
-{% if distribution.parsed == Distribution.debian and distribution.version >= version('9') %}
+{% if distribution.parsed == Distribution.debian and distribution.version != none and distribution.version >= version('9') %}
     There are unofficial QtWebKit-NG packages <a href="http://repo.paretje.be/unstable/">available</a>.
 {% elif distribution.parsed in [Distribution.ubuntu, Distribution.debian] %}
     No easy way is known to install QtWebKit-NG on your system.
     There are unofficial QtWebKit-NG packages <a href="http://repo.paretje.be/unstable/">available</a>, but they are intended for Debian Unstable.
     {{ please_open_issue() }}
 {% elif distribution.parsed in [Distribution.arch, Distribution.manjaro] %}
-    You should be able to install <span class="mono">qt5-webkit-ng</span> via <span class="mono">pacman</span>.
+    With an updated <span class="mono">qt5-webkit</span> package, you should already get QtWebKit-NG.
 {% elif distribution.parsed == Distribution.gentoo %}
     There's an unofficial <a href="https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71">ebuild</a> available.
 {% else %}
-    There's no information available for your system. {{ please_open_issue() }}
+    {{ unknown_system() }}
 {% endif %}
 </p>
 

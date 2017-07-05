@@ -273,6 +273,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         idx = self.indexOf(tab)
         if idx == -1:
+            if crashed:
+                return
             raise TabDeletedError("tab {} is not contained in "
                                   "TabbedWidget!".format(tab))
         if tab is self._now_focused:
@@ -340,7 +342,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
-        self.set_tab_pinned(idx, pinned)
+        self.set_tab_pinned(newtab, pinned)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

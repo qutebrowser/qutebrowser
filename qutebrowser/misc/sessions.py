@@ -407,7 +407,7 @@ class SessionManager(QObject):
                     tab_to_focus = i
                 if new_tab.data.pinned:
                     tabbed_browser.set_tab_pinned(
-                        i, new_tab.data.pinned, loading=True)
+                        new_tab, new_tab.data.pinned, loading=True)
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
@@ -421,7 +421,10 @@ class SessionManager(QObject):
     def delete(self, name):
         """Delete a session."""
         path = self._get_session_path(name, check_exists=True)
-        os.remove(path)
+        try:
+            os.remove(path)
+        except OSError as e:
+            raise SessionError(e)
         self.update_completion.emit()
 
     def list_sessions(self):
@@ -517,7 +520,7 @@ class SessionManager(QObject):
             self.delete(name)
         except SessionNotFoundError:
             raise cmdexc.CommandError("Session {} not found!".format(name))
-        except (OSError, SessionError) as e:
+        except SessionError as e:
             log.sessions.exception("Error while deleting session!")
             raise cmdexc.CommandError("Error while deleting session: {}"
                                       .format(e))

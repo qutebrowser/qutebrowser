@@ -14,8 +14,8 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.11.0 (unreleased)
---------------------
+v0.11.0
+-------
 
 New dependencies
 ~~~~~~~~~~~~~~~~
@@ -23,13 +23,15 @@ New dependencies
 - New dependency on `PyQt5.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
   on QtOpenGL already, but on distributions packaging split PyQt5 wrappers, the
   wrappers for QtOpenGL are now required.
-- New optional (but recommended) `PyOpenGL` dependency with QtWebEngine to work
-  around a bug where a black screen is shown with some setups.
+- New dependency on `PyOpenGL` if QtWebEngine is used.
 
 Added
 ~~~~~
 
-- New `-p` flag for `:open` to open a private window.
+- Private browsing is now implemented for QtWebEngine, *and changed its
+  behavior*: The `general -> private-browsing` setting now only applies to newly
+  opened windows, and you can use the `-p` flag to `:open` to open a private
+  window.
 - New "pinned tabs" feature, with a new `:tab-pin` command (bound
   to `<Ctrl-p>` by default).
 - (QtWebEngine) Implemented `:follow-selected`.
@@ -46,6 +48,8 @@ Added
   customize statusbar colors for private windows.
 - New `{private}` field displaying `[Private Mode]` for
   `ui -> window-title-format` and `tabs -> title-format`.
+- (QtWebEngine) Proxy support with Qt 5.7.1 (already was supported for 5.8 and
+  newer)
 
 Changed
 ~~~~~~~
@@ -53,60 +57,51 @@ Changed
 - To prevent elaborate phishing attacks, the Punycode version (`xn--*`) is now
   shown in addition to the decoded version for international domain names
   (IDN).
-- Private browsing is now implemented for QtWebEngine, and changed it's
-  behavior: The `general -> private-browsing` setting now only applies to newly
-  opened windows, and you can use the `-p` flag to `:open` to open a private
-  window.
-- Improved `qute://history` page (with lazy loading)
-- Starting with legacy QtWebKit now shows a warning message once.
-- Crash reports are not public anymore.
-- Paths like `C:` are now treated as absolute paths on Windows for downloads,
-  and invalid paths are handled properly.
-- PAC on QtWebKit now supports SOCKS5 as type.
-- Comments in the config file are now before the individual options instead of
-  being before sections.
-- Messages are now hidden when clicked.
-- stdin is now closed immediately for processes spawned from qutebrowser.
-- When `ui -> message-timeout` is set to 0, messages are now never cleared.
-- Middle/right-clicking the blank parts of the tab bar (when vertical) now
-  closes the current tab.
-- (QtWebEngine) With Qt 5.9, `content -> cookies-store` can now be set without
-  a restart.
-- (QtWebEngine) With Qt 5.9, better error messages are now shown for failed
-  downloads.
-- The adblocker now also blocks non-GET requests (e.g. POST).
-- `javascript:` links can now be hinted.
-- `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
-  "explicit" anymore, i.e. (with the default settings) open it next to the
-  active tab.
-- (QtWebEngine) The underlying Chromium version is now shown in the version
-  info.
-- `qute:*` pages now use `qute://*` instead (e.g. `qute://version` instead of
-  `qute:version`), but the old versions are automatically redirected.
+- Starting with legacy QtWebKit now shows a warning message.
+  *With the next release, support for it will be removed.*
 - The Windows releases are redone from scratch, which means:
   - They now use the new QtWebEngine backend
   - The bundled Qt is updated from 5.5 to 5.9
   - The bundled Python is updated from 3.4 to 3.6
   - They are now generated with PyInstaller instead of cx_Freeze
   - The installer is now generated using NSIS instead of being a MSI
+- Improved `qute://history` page (with lazy loading)
+- Crash reports are not public anymore.
+- Paths like `C:` are now treated as absolute paths on Windows for downloads,
+  and invalid paths are handled properly.
+- Comments in the config file are now placed before the individual options
+  instead of being before sections.
+- Messages are now hidden when clicked.
+- stdin is now closed immediately for processes spawned from qutebrowser.
+- When `ui -> message-timeout` is set to 0, messages are now never cleared.
+- Middle/right-clicking the blank parts of the tab bar (when vertical) now
+  closes the current tab.
+- The adblocker now also blocks non-GET requests (e.g. POST).
+- `javascript:` links can now be hinted.
+- `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
+  "explicit" anymore, i.e. (with the default settings) open it next to the
+  active tab.
+- `qute:*` pages now use `qute://*` instead (e.g. `qute://version` instead of
+  `qute:version`), but the old versions are automatically redirected.
 - Texts in prompts are now selectable.
-- Renderer process crashes now show an error page.
-- (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
 - The default level for `:messages` is now `info`, not `error`
+- Trying to focus the currently focused tab with `:tab-focus` now focuses the
+  last viewed tab.
+- (QtWebEngine) With Qt 5.9, `content -> cookies-store` can now be set without
+  a restart.
+- (QtWebEngine) With Qt 5.9, better error messages are now shown for failed
+  downloads.
+- (QtWebEngine) The underlying Chromium version is now shown in the version
+  info.
+- (QtWebKit) Renderer process crashes now show an error page on Qt 5.9 or newer.
+- (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
+- (QtWebKit) PAC now supports SOCKS5 as type.
 
 Fixed
 ~~~~~
 
 - The macOS .dmg is now built against Qt 5.9 which fixes various
   important issues (such as not being able to type dead keys).
-- (QtWebEngine) Added a workaround for a black screen with some setups
-  (the workaround requires PyOpenGL to be installed, but it's optional)
-- (QtWebEngine) Starting with Nouveau graphics now shows an error message
-  instead of crashing in Qt. This adds a new dependency on `PyQt5.QtOpenGL`.
-- (QtWebEngine) Retrying downloads now shows an error instead of crashing.
-- (QtWebEngine) Cloning a view-source tab now doesn't crash anymore.
-- (QtWebKit) The HTTP cache is disabled on Qt 5.7.1 and 5.8 now as it leads to
-  frequent crashes due to a Qt bug.
 - Fixed crash with `:download` on PyQt 5.9.
 - Cloning a page without history doesn't crash anymore.
 - When a download results in a HTTP error, it now shows the error correctly
@@ -116,7 +111,6 @@ Fixed
 - Fixed crash when unbinding an unbound key in the key config.
 - Fixed crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
 - Fixed crash with some invalid setting values.
-- (QtWebKit) Fixed Crash when a PAC file returns an invalid value.
 - Continuing a search after clearing it now works correctly.
 - The tabbar and completion should now be more consistently and correctly
   styled with various system styles.
@@ -124,18 +118,27 @@ Fixed
 - The validation for colors in stylesheets is now less strict,
   allowing for all valid Qt values.
 - `data:` URLs now aren't added to the history anymore.
-- (QtWebEngine) `window.navigator.userAgent` is now set correctly when
-  customizing the user agent.
 - Accidentally starting with Python 2 now shows a proper error message again.
-- (QtWebEngine) HTML fullscreen is now tracked for each tab separately, which
-  means it's not possible anymore to accidentally get stuck in fullscreen state
-  by closing a tab with a fullscreen video.
 - For some people, running some userscripts crashed - this should now be fixed.
 - Various other rare crashes should now be fixed.
 - The settings documentation was truncated with v0.10.1 which should now be
   fixed.
 - Scrolling to an anchor in a background tab now works correctly, and javascript
   gets the correct window size for background tabs.
+- (QtWebEngine) Added a workaround for a black screen with some setups
+- (QtWebEngine) Starting with Nouveau graphics now shows an error message
+  instead of crashing in Qt.
+- (QtWebEngine) Retrying downloads now shows an error instead of crashing.
+- (QtWebEngine) Cloning a view-source tab now doesn't crash anymore.
+- (QtWebEngine) `window.navigator.userAgent` is now set correctly when
+  customizing the user agent.
+- (QtWebEngine) HTML fullscreen is now tracked for each tab separately, which
+  means it's not possible anymore to accidentally get stuck in fullscreen state
+  by closing a tab with a fullscreen video.
+- (QtWebEngine) `:scroll-page` with `--bottom-navigate` now works correctly.
+- (QtWebKit) The HTTP cache is disabled on Qt 5.7.1 and 5.8 now as it leads to
+  frequent crashes due to a Qt bug.
+- (QtWebKit) Fixed Crash when a PAC file returns an invalid value.
 
 v0.10.1
 -------

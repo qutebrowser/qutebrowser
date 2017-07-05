@@ -85,7 +85,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<unbind,unbind>>|Unbind a keychain.
-|<<undo,undo>>|Re-open a closed tab (optionally skipping [count] closed tabs).
+|<<undo,undo>>|Re-open a closed tab.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
 |<<wq,wq>>|Save open pages and quit.
@@ -936,7 +936,7 @@ Unbind a keychain.
 
 [[undo]]
 === undo
-Re-open a closed tab (optionally skipping [count] closed tabs).
+Re-open a closed tab.
 
 [[view-source]]
 === view-source

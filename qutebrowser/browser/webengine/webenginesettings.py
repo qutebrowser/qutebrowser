@@ -36,8 +36,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import (objreg, utils, standarddir, javascript, log,
-                               qtutils)
+from qutebrowser.utils import objreg, utils, standarddir, javascript, qtutils
 
 
 # The default QWebEngineProfile
@@ -133,9 +132,6 @@ def _init_stylesheet(profile):
     Mostly inspired by QupZilla:
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/tools/scripts.cpp#L119-L132
-
-    FIXME:qtwebengine Use QWebEngineStyleSheet once that's available
-    https://codereview.qt-project.org/#/c/148671/
     """
     old_script = profile.scripts().findScript('_qute_stylesheet')
     if not old_script.isNull():
@@ -209,12 +205,7 @@ def init(args):
     if not os.environ.get('QUTE_NO_OPENGL_WORKAROUND'):
         # Hide "No OpenGL_accelerate module loaded: ..." message
         logging.getLogger('OpenGL.acceleratesupport').propagate = False
-        try:
-            from OpenGL import GL  # pylint: disable=unused-variable
-        except ImportError:
-            pass
-        else:
-            log.misc.debug("Imported PyOpenGL as workaround")
+        from OpenGL import GL  # pylint: disable=unused-variable
 
     _init_profiles()
 

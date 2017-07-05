@@ -157,12 +157,14 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_last(self):
+    def _tab_focus_last(self, *, show_error=True):
         """Select the tab which was last focused."""
         try:
             tab = objreg.get('last-focused-tab', scope='window',
                              window=self._win_id)
         except KeyError:
+            if not show_error:
+                return
             raise cmdexc.CommandError("No last focused tab!")
         idx = self._tabbed_browser.indexOf(tab)
         if idx == -1:
@@ -278,9 +280,7 @@ class CommandDispatcher:
             return
 
         to_pin = not tab.data.pinned
-        tab_index = self._current_index() if count is None else count - 1
-        cmdutils.check_overflow(tab_index + 1, 'int')
-        self._tabbed_browser.set_tab_pinned(tab_index, to_pin)
+        self._tabbed_browser.set_tab_pinned(tab, to_pin)
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
@@ -513,7 +513,7 @@ class CommandDispatcher:
         newtab.data.keep_icon = True
         newtab.history.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
-        new_tabbed_browser.set_tab_pinned(idx, curtab.data.pinned)
+        new_tabbed_browser.set_tab_pinned(newtab, curtab.data.pinned)
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -866,7 +866,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom: int = None, count=None):
+    def zoom(self, zoom=None, count=None):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -877,6 +877,13 @@ class CommandDispatcher:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
         """
+        if zoom is not None:
+            try:
+                zoom = int(zoom.rstrip('%'))
+            except ValueError:
+                raise cmdexc.CommandError("zoom: Invalid int value {}"
+                                          .format(zoom))
+
         level = count if count is not None else zoom
         if level is None:
             level = config.get('ui', 'default-zoom')
@@ -923,7 +930,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):
-        """Re-open a closed tab (optionally skipping [count] closed tabs)."""
+        """Re-open a closed tab."""
         try:
             self._tabbed_browser.undo()
         except IndexError:
@@ -1075,12 +1082,15 @@ class CommandDispatcher:
                    last tab.
             count: The tab index to focus, starting with 1.
         """
+        index = count if count is not None else index
+
         if index == 'last':
             self._tab_focus_last()
             return
-        index = count if count is not None else index
-
-        if index is None:
+        elif index == self._current_index() + 1:
+            self._tab_focus_last(show_error=False)
+            return
+        elif index is None:
             self.tab_next()
             return
 
