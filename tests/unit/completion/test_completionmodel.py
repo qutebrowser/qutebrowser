@@ -37,7 +37,7 @@ def test_first_last_item(counts):
     model = completionmodel.CompletionModel()
     for c in counts:
         cat = mock.Mock(spec=['layoutChanged'])
-        cat.rowCount = mock.Mock(return_value=c)
+        cat.rowCount = mock.Mock(return_value=c, spec=[])
         model.add_category(cat)
     nonempty = [i for i, rowCount in enumerate(counts) if rowCount > 0]
     if not nonempty:
@@ -61,7 +61,7 @@ def test_count(counts):
     model = completionmodel.CompletionModel()
     for c in counts:
         cat = mock.Mock(spec=['rowCount', 'layoutChanged'])
-        cat.rowCount = mock.Mock(return_value=c)
+        cat.rowCount = mock.Mock(return_value=c, spec=[])
         model.add_category(cat)
     assert model.count() == sum(counts)
 
