@@ -765,11 +765,9 @@ class TabBarStyle(QCommonStyle):
                 # Otherwise, empty space will be shown after the last tab even
                 # though the button width is set to 0
                 #
-                # In older PyQt-versions (5.2.1) QStyle does not have this
-                # attribute.
+                # QStyle.SE_TabBarScrollLeftButton was added in Qt 5.7
                 if sr == QStyle.SE_TabBarScrollLeftButton:
                     return super().subElementRect(sr, opt, widget)
-
             except AttributeError:
                 pass
 
