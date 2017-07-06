@@ -182,6 +182,26 @@ def transform_path(path):
     return path
 
 
+def suggested_fn_from_title(url, title=None):
+    """Suggest a filename depending on the URL extension and page title.
+    Args:
+        url: a string with the URL path
+        title: the page title string
+
+    Returns None if the extension is not in the whitelist
+    or if there is no page title.
+    """
+    ext_whitelist = [".html", ".htm", ".php", ""]
+    _, ext = os.path.splitext(url)
+    if ext.lower() in ext_whitelist and title:
+        suggested_fn = utils.sanitize_filename(title)
+        if not suggested_fn.endswith(ext):
+            suggested_fn += ext
+    else:
+        suggested_fn = None
+    return suggested_fn
+
+
 class NoFilenameError(Exception):
 
     """Raised when we can't find out a filename in DownloadTarget."""

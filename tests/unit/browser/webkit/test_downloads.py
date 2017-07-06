@@ -30,6 +30,30 @@ def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache):
     qtmodeltester.check(model)
 
 
+@pytest.mark.parametrize('url, title, out', [
+    ('https://qutebrowser.org/img/cheatsheet-big.png',
+     'cheatsheet-big.png (3342×2060)',
+     None),
+    ('http://qutebrowser.org/INSTALL.html',
+     'Installing qutebrowser | qutebrowser',
+     'Installing qutebrowser _ qutebrowser.html'),
+    ('http://qutebrowser.org/INSTALL.html.html',
+     'Installing qutebrowser | qutebrowser',
+     'Installing qutebrowser _ qutebrowser.html'),
+    ('http://qutebrowser.org/',
+     'qutebrowser | qutebrowser',
+     'qutebrowser _ qutebrowser'),
+    ('https://github.com/qutebrowser/qutebrowser/releases',
+     'Releases · qutebrowser/qutebrowser',
+     'Releases · qutebrowser_qutebrowser'),
+    ('http://qutebrowser.org/page-with-no-title.html',
+     '',
+     None),
+])
+def test_page_titles(url, title, out):
+    assert downloads.suggested_fn_from_title(url, title) == out
+
+
 class TestDownloadTarget:
 
     def test_base(self):

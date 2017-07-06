@@ -36,13 +36,6 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file qutebrowser.png should exist
 
-    Scenario: Using :download with no URL and no page title
-        When I set storage -> prompt-download-directory to false
-        And I open data/downloads/download with no title.html
-        And I run :download
-        And I wait until the download is finished
-        Then the downloaded file download with no title.html should exist
-
     Scenario: Using hints
         When I set storage -> prompt-download-directory to false
         And I open data/downloads/downloads.html

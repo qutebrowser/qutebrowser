@@ -1444,14 +1444,9 @@ class CommandDispatcher:
         else:
             qnam = tab.networkaccessmanager()
 
-            # Downloads of URLs with file extensions in the whitelist will use
-            # the page title as the filename.
-            ext_whitelist = [".html", ".htm", ".php", ""]
-            _, ext = os.path.splitext(self._current_url().path())
-            if ext.lower() in ext_whitelist and tab.title():
-                suggested_fn = utils.sanitize_filename(tab.title()) + ext
-            else:
-                suggested_fn = None
+            suggested_fn = downloads.suggested_fn_from_title(
+                self._current_url().path(), tab.title()
+            )
 
             download_manager.get(
                 self._current_url(),
