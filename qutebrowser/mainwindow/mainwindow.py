@@ -123,7 +123,8 @@ class MainWindow(QWidget):
     Attributes:
         status: The StatusBar widget.
         tabbed_browser: The TabbedBrowser widget.
-        state_before_fullscreen: window state before activation of fullscreen.
+        last_non_fullscreen_window_state: window state to restore when going out of fullscreen by :fullscreen
+        last_window_state: window state to restore when _on_fullscreen_requested(false) is called
         _downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
@@ -218,7 +219,8 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
 
-        self.state_before_fullscreen = self.windowState()
+        self.last_window_state = self.windowState()
+        self.last_non_fullscreen_window_state = self.last_window_state & ~Qt.WindowFullScreen
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -486,12 +488,16 @@ class MainWindow(QWidget):
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
         if on:
-            self.state_before_fullscreen = self.windowState()
-            self.showFullScreen()
+            self.last_window_state = self.windowState()
+            if not self.isFullScreen():
+                self.last_non_fullscreen_window_state = self.windowState()
+                self.showFullScreen()
         else:
-            self.setWindowState(self.state_before_fullscreen)
-        log.misc.debug('on: {}, state before fullscreen: {}'.format(
-            on, debug.qflags_key(Qt, self.state_before_fullscreen)))
+            self.setWindowState(self.last_window_state)
+        log.misc.debug('on: {}, last window state: {}, last non fullscreen window state: {}'.format(
+            on,
+            debug.qflags_key(Qt, self.last_window_state),
+            debug.qflags_key(Qt, self.last_non_fullscreen_window_state)))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()

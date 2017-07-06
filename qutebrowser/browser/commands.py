@@ -2171,10 +2171,12 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.window()
         if window.isFullScreen():
-            window.setWindowState(window.state_before_fullscreen & ~Qt.WindowFullScreen)
+            window.setWindowState(window.last_non_fullscreen_window_state)
+            window.last_window_state = window.last_non_fullscreen_window_state
             self.jseval('document.webkitExitFullscreen()', quiet=True)
         else:
-            window.state_before_fullscreen = window.windowState()
+            window.last_non_fullscreen_window_state = window.windowState()
             window.showFullScreen()
-        log.misc.debug('state before fullscreen: {}'
-                       .format(debug.qflags_key(Qt, window.state_before_fullscreen)))
+        log.misc.debug('last window state: {}, last non fullscreen window state: {}'.format(
+            debug.qflags_key(Qt, window.last_window_state),
+            debug.qflags_key(Qt, window.last_non_fullscreen_window_state)))
