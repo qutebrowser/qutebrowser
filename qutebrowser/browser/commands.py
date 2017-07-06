@@ -2172,6 +2172,7 @@ class CommandDispatcher:
         window = self._tabbed_browser.window()
         if window.isFullScreen():
             window.setWindowState(window.state_before_fullscreen & ~Qt.WindowFullScreen)
+            self.jseval('document.webkitExitFullscreen()', quiet=True)
         else:
             window.state_before_fullscreen = window.windowState()
             window.showFullScreen()
