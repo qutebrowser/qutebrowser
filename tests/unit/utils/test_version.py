@@ -799,18 +799,27 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
-@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit',
-                          'known_distribution'], [
-    (True, False, True, True, True),  # normal
-    (False, False, True, True, True),  # no git commit
-    (True, True, True, True, True),  # frozen
-    (True, True, False, True, True),  # no style
-    (True, False, True, False, True),  # no webkit
-    (True, False, True, 'ng', True),  # QtWebKit-NG
-    (True, False, True, True, False),  # unknown Linux distribution
+class VersionParams:
+
+    def __init__(self, git_commit=True, frozen=False, style=True,
+                 with_webkit=True, known_distribution=True):
+        self.git_commit = git_commit
+        self.frozen = frozen
+        self.style = style
+        self.with_webkit = with_webkit
+        self.known_distribution = known_distribution
+
+
+@pytest.mark.parametrize('params', [
+    VersionParams(),
+    VersionParams(git_commit=False),
+    VersionParams(frozen=True),
+    VersionParams(style=False),
+    VersionParams(with_webkit=False),
+    VersionParams(with_webkit='ng'),
+    VersionParams(known_distribution=False),
 ])  # pylint: disable=too-many-locals
-def test_version_output(git_commit, frozen, style, with_webkit,
-                        known_distribution, stubs, monkeypatch):
+def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineProfile:
         def httpUserAgent(self):
@@ -820,7 +829,7 @@ def test_version_output(git_commit, frozen, style, with_webkit,
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
-        '_git_str': lambda: ('GIT COMMIT' if git_commit else None),
+        '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
         'PYQT_VERSION_STR': 'PYQT VERSION',
@@ -832,24 +841,25 @@ def test_version_output(git_commit, frozen, style, with_webkit,
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
+        'QApplication': (stubs.FakeQApplication(style='STYLE')
+                         if params.style else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
     }
 
     substitutions = {
-        'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
-        'style': '\nStyle: STYLE' if style else '',
+        'git_commit': '\nGit commit: GIT COMMIT' if params.git_commit else '',
+        'style': '\nStyle: STYLE' if params.style else '',
         'qt': 'QT VERSION',
-        'frozen': str(frozen),
+        'frozen': str(params.frozen),
         'import_path': import_path,
     }
 
-    if with_webkit:
+    if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
         patches['QWebEngineProfile'] = None
-        if with_webkit == 'ng':
+        if params.with_webkit == 'ng':
             backend = 'QtWebKit-NG'
             patches['qtutils.is_qtwebkit_ng'] = lambda: True
         else:
@@ -862,7 +872,7 @@ def test_version_output(git_commit, frozen, style, with_webkit,
         patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
-    if known_distribution:
+    if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
             parsed=version.Distribution.arch, version=None,
             pretty='LINUX DISTRIBUTION', id='arch')
@@ -877,7 +887,7 @@ def test_version_output(git_commit, frozen, style, with_webkit,
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
-    if frozen:
+    if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
