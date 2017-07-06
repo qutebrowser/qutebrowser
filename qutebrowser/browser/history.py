@@ -282,7 +282,7 @@ class WebHistory(sql.SqlTable):
         try:
             with open(dest, 'w', encoding='utf-8') as f:
                 f.write('\n'.join(lines))
-                message.info("Dumped history to {}".format(dest))
+            message.info("Dumped history to {}".format(dest))
         except OSError as e:
             raise cmdexc.CommandError('Could not write history: {}', e)
 
