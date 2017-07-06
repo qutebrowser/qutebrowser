@@ -21,6 +21,7 @@
 
 import io
 import sys
+import collections
 import os.path
 import subprocess
 import contextlib
@@ -475,29 +476,32 @@ class ImportFake:
     """A fake for __import__ which is used by the import_fake fixture.
 
     Attributes:
-        exists: A dict mapping module names to bools. If True, the import will
-                success. Otherwise, it'll fail with ImportError.
+        modules: A dict mapping module names to bools. If True, the import will
+                 success. Otherwise, it'll fail with ImportError.
         version_attribute: The name to use in the fake modules for the version
                            attribute.
         version: The version to use for the modules.
         _real_import: Saving the real __import__ builtin so the imports can be
-                      done normally for modules not in self.exists.
+                      done normally for modules not in self. modules.
     """
 
     def __init__(self):
-        self.exists = {
-            'sip': True,
-            'colorama': True,
-            'pypeg2': True,
-            'jinja2': True,
-            'pygments': True,
-            'yaml': True,
-            'cssutils': True,
-            'typing': True,
-            'PyQt5.QtWebEngineWidgets': True,
-            'PyQt5.QtWebKitWidgets': True,
-            'OpenGL': True,
-        }
+        self.modules = collections.OrderedDict([
+            ('sip', True),
+            ('colorama', True),
+            ('pypeg2', True),
+            ('jinja2', True),
+            ('pygments', True),
+            ('yaml', True),
+            ('cssutils', True),
+            ('typing', True),
+            ('OpenGL', True),
+            ('PyQt5.QtWebEngineWidgets', True),
+            ('PyQt5.QtWebKitWidgets', True),
+        ])
+        self.no_version_attribute = ['sip', 'typing',
+                                     'PyQt5.QtWebEngineWidgets',
+                                     'PyQt5.QtWebKitWidgets']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
@@ -509,10 +513,10 @@ class ImportFake:
             The imported fake module, or None if normal importing should be
             used.
         """
-        if name not in self.exists:
+        if name not in self.modules:
             # Not one of the modules to test -> use real import
             return None
-        elif self.exists[name]:
+        elif self.modules[name]:
             ns = types.SimpleNamespace()
             if self.version_attribute is not None:
                 setattr(ns, self.version_attribute, self.version)
@@ -551,14 +555,14 @@ class TestModuleVersions:
 
     """Tests for _module_versions()."""
 
-    @pytest.mark.usefixtures('import_fake')
-    def test_all_present(self):
+    def test_all_present(self, import_fake):
         """Test with all modules present in version 1.2.3."""
-        expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
-                    'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
-                    'cssutils: 1.2.3', 'typing: yes', 'OpenGL: 1.2.3',
-                    'PyQt5.QtWebEngineWidgets: yes',
-                    'PyQt5.QtWebKitWidgets: yes']
+        expected = []
+        for name in import_fake.modules:
+            if name in import_fake.no_version_attribute:
+                expected.append('{}: yes'.format(name))
+            else:
+                expected.append('{}: 1.2.3'.format(name))
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
@@ -574,36 +578,31 @@ class TestModuleVersions:
             idx: The index where the given text is expected.
             expected: The expected text.
         """
-        import_fake.exists[module] = False
+        import_fake.modules[module] = False
         assert version._module_versions()[idx] == expected
 
-    @pytest.mark.parametrize('value, expected', [
-        ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
-                     'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                     'cssutils: yes', 'typing: yes', 'OpenGL: yes',
-                     'PyQt5.QtWebEngineWidgets: yes',
-                     'PyQt5.QtWebKitWidgets: yes']),
-        ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
-                             'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                             'cssutils: yes', 'typing: yes', 'OpenGL: yes',
-                             'PyQt5.QtWebEngineWidgets: yes',
-                             'PyQt5.QtWebKitWidgets: yes']),
-        (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
-                'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes',
-                'OpenGL: yes', 'PyQt5.QtWebEngineWidgets: yes',
-                'PyQt5.QtWebKitWidgets: yes']),
+    @pytest.mark.parametrize('attribute, expected_modules', [
+        ('VERSION', ['colorama']),
+        ('SIP_VERSION_STR', ['sip']),
+        (None, []),
     ])
-    def test_version_attribute(self, value, expected, import_fake):
+    def test_version_attribute(self, attribute, expected_modules, import_fake):
         """Test with a different version attribute.
 
         VERSION is tested for old colorama versions, and None to make sure
         things still work if some package suddenly doesn't have __version__.
 
         Args:
-            value: The name of the version attribute.
+            attribute: The name of the version attribute.
             expected: The expected return value.
         """
-        import_fake.version_attribute = value
+        import_fake.version_attribute = attribute
+        expected = []
+        for name in import_fake.modules:
+            if name in expected_modules:
+                expected.append('{}: 1.2.3'.format(name))
+            else:
+                expected.append('{}: yes'.format(name))
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('name, has_version', [
