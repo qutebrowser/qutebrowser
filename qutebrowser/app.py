@@ -85,7 +85,6 @@ def run(args):
     if args.version:
         # we need to init sql to print the sql version
         # we can use an in-memory database as we just want to query the version
-        sql.init(':memory:')
         print(version.version())
         sys.exit(usertypes.Exit.ok)
 
@@ -429,7 +428,12 @@ def _init_modules(args, crash_handler):
     keyconf.init(qApp)
 
     log.init.debug("Initializing sql...")
-    sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+    try:
+        sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+    except sql.SqlException as e:
+        error.handle_fatal_exc(e, args, 'Is sqlite installed?',
+                               pre_text='Failed to initialize SQL')
+        sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing web history...")
     history.init(qApp)

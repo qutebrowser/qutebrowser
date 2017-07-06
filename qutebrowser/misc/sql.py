@@ -37,6 +37,8 @@ class SqlException(Exception):
 def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
+    if not database.isValid():
+        raise SqlException('Failed to add database. Is sqlite installed?')
     database.setDatabaseName(db_path)
     if not database.open():
         raise SqlException("Failed to open sqlite database at {}: {}"
@@ -50,9 +52,15 @@ def close():
 
 def version():
     """Return the sqlite version string."""
-    q = Query("select sqlite_version()")
-    q.run()
-    return q.value()
+    try:
+        if not QSqlDatabase.database().isOpen():
+            init(':memory:')
+            ver = Query("select sqlite_version()").run().value()
+            close()
+            return ver
+        return Query("select sqlite_version()").run().value()
+    except SqlException as e:
+        return 'UNAVAILABLE ({})'.format(e)
 
 
 class Query(QSqlQuery):

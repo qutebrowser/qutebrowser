@@ -396,12 +396,6 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
-def check_sqlite():
-    from PyQt5.QtSql import QSqlDatabase
-    if not QSqlDatabase.isDriverAvailable('QSQLITE'):
-        _die('sqlite driver not available! Is sqlite installed?')
-
-
 def set_backend(backend):
     """Set the objects.backend global to the given backend (as string)."""
     from qutebrowser.misc import objects
@@ -441,5 +435,4 @@ def earlyinit(args):
     check_libraries(backend)
     check_ssl_support(backend)
     check_optimize_flag()
-    check_sqlite()
     set_backend(backend)
