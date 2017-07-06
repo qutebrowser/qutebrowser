@@ -759,14 +759,16 @@ class FakeQSslSocket:
 
     Attributes:
         _version: What QSslSocket::sslLibraryVersionString() should return.
+        _support: Whether SSL is supported.
     """
 
-    def __init__(self, version=None):
+    def __init__(self, version=None, support=True):
         self._version = version
+        self._support = support
 
     def supportsSsl(self):
         """Fake for QSslSocket::supportsSsl()."""
-        return True
+        return self._support
 
     def sslLibraryVersionString(self):
         """Fake for QSslSocket::sslLibraryVersionString()."""
@@ -802,12 +804,13 @@ def test_chromium_version_unpatched(qapp):
 class VersionParams:
 
     def __init__(self, git_commit=True, frozen=False, style=True,
-                 with_webkit=True, known_distribution=True):
+                 with_webkit=True, known_distribution=True, ssl_support=True):
         self.git_commit = git_commit
         self.frozen = frozen
         self.style = style
         self.with_webkit = with_webkit
         self.known_distribution = known_distribution
+        self.ssl_support = ssl_support
 
 
 @pytest.mark.parametrize('params', [
@@ -818,6 +821,7 @@ class VersionParams:
     VersionParams(with_webkit=False),
     VersionParams(with_webkit='ng'),
     VersionParams(known_distribution=False),
+    VersionParams(ssl_support=False),
 ])  # pylint: disable=too-many-locals
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
@@ -836,7 +840,7 @@ def test_version_output(params, stubs, monkeypatch):
         'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'QSslSocket': FakeQSslSocket('SSL VERSION'),
+        'QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
@@ -884,6 +888,8 @@ def test_version_output(params, stubs, monkeypatch):
         substitutions['linuxdist'] = ''
         substitutions['osinfo'] = 'OS INFO 1\nOS INFO 2\n'
 
+    substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
+
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
@@ -903,7 +909,7 @@ def test_version_output(params, stubs, monkeypatch):
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
-        SSL: SSL VERSION
+        QtNetwork SSL: {ssl}
         {style}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
