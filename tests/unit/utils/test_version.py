@@ -803,8 +803,9 @@ def test_chromium_version_unpatched(qapp):
 
 class VersionParams:
 
-    def __init__(self, git_commit=True, frozen=False, style=True,
+    def __init__(self, name, git_commit=True, frozen=False, style=True,
                  with_webkit=True, known_distribution=True, ssl_support=True):
+        self.name = name
         self.git_commit = git_commit
         self.frozen = frozen
         self.style = style
@@ -814,15 +815,15 @@ class VersionParams:
 
 
 @pytest.mark.parametrize('params', [
-    VersionParams(),
-    VersionParams(git_commit=False),
-    VersionParams(frozen=True),
-    VersionParams(style=False),
-    VersionParams(with_webkit=False),
-    VersionParams(with_webkit='ng'),
-    VersionParams(known_distribution=False),
-    VersionParams(ssl_support=False),
-])  # pylint: disable=too-many-locals
+    VersionParams('normal'),
+    VersionParams('no-git-commit', git_commit=False),
+    VersionParams('frozen', frozen=True),
+    VersionParams('no-style', style=False),
+    VersionParams('no-webkit', with_webkit=False),
+    VersionParams('webkit-ng', with_webkit='ng'),
+    VersionParams('unknown-dist', known_distribution=False),
+    VersionParams('no-ssl', ssl_support=False),
+], ids=lambda param: param.name)  # pylint: disable=too-many-locals
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineProfile:
