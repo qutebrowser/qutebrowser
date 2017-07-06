@@ -488,7 +488,7 @@ class MainWindow(QWidget):
         if on:
             self.state_before_fullscreen = self.windowState()
             self.showFullScreen()
-        else:
+        elif self.isFullScreen():
             self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
             on, debug.qflags_key(Qt, self.state_before_fullscreen)))
