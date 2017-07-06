@@ -1443,12 +1443,22 @@ class CommandDispatcher:
                 download_manager.get_mhtml(tab, target)
         else:
             qnam = tab.networkaccessmanager()
+
+            # Downloads of URLs with file extensions in the whitelist will use
+            # the page title as the filename.
+            ext_whitelist = [".html", ".htm", ".php", ""]
+            _, ext = os.path.splitext(self._current_url().path())
+            if ext.lower() in ext_whitelist and tab.title():
+                suggested_fn = utils.sanitize_filename(tab.title()) + ext
+            else:
+                suggested_fn = None
+
             download_manager.get(
                 self._current_url(),
                 user_agent=user_agent,
                 qnam=qnam,
                 target=target,
-                suggested_fn=utils.sanitize_filename(tab.title() + ".html")
+                suggested_fn=suggested_fn
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
