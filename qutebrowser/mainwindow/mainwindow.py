@@ -30,7 +30,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, objreg, utils
+from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
+                               debug)
 from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget, completer
@@ -123,6 +124,7 @@ class MainWindow(QWidget):
     Attributes:
         status: The StatusBar widget.
         tabbed_browser: The TabbedBrowser widget.
+        state_before_fullscreen: window state before activation of fullscreen.
         _downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
@@ -216,6 +218,8 @@ class MainWindow(QWidget):
         objreg.get('config').changed.connect(self.on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+
+        self.state_before_fullscreen = self.windowState()
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -483,9 +487,12 @@ class MainWindow(QWidget):
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
         if on:
+            self.state_before_fullscreen = self.windowState()
             self.showFullScreen()
-        else:
-            self.showNormal()
+        elif self.isFullScreen():
+            self.setWindowState(self.state_before_fullscreen)
+        log.misc.debug('on: {}, state before fullscreen: {}'.format(
+            on, debug.qflags_key(Qt, self.state_before_fullscreen)))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
