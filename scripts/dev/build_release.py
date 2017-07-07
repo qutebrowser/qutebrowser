@@ -297,6 +297,7 @@ def read_github_token():
     token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
     with open(token_file, encoding='ascii') as f:
         token = f.read().strip()
+    return token
 
 
 def github_upload(artifacts, tag):
@@ -349,7 +350,7 @@ def main():
     if args.upload is not None:
         # Fail early when trying to upload without github3 installed
         # or without API token
-        import github3
+        import github3  # pylint: disable=unused-variable
         read_github_token()
 
     if os.name == 'nt':
