@@ -36,6 +36,12 @@ Major changes
   the entire browsing history.
 - Completely rewritten configuration system.
 
+Fixes
+~~~~~
+
+- Exiting fullscreen via `:fullscreen` or buttons on a page now
+  restores the correct previous window state (maximized/fullscreen).
+
 v0.11.1 (unreleased)
 --------------------
 

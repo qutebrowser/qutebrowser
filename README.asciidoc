@@ -163,9 +163,9 @@ Contributors, sorted by the number of commits in descending order:
 * Kevin Velghe
 * Raphael Pierzina
 * Joel Torstensson
+* Jay Kamat
 * Patric Schmitz
 * Tarcisio Fedrizzi
-* Jay Kamat
 * Claude
 * Philipp Hansch
 * Fritz Reichwald
@@ -211,6 +211,7 @@ Contributors, sorted by the number of commits in descending order:
 * Halfwit
 * David Vogt
 * Claire Cavanaugh
+* Christian Helbling
 * rikn00
 * kanikaa1234
 * haitaka
