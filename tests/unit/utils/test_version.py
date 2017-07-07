@@ -822,7 +822,7 @@ class VersionParams:
     VersionParams('webkit-ng', with_webkit='ng'),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
-], ids=lambda param: param.name)  # pylint: disable=too-many-locals
+], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineProfile:
