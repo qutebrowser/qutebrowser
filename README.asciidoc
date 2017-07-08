@@ -163,9 +163,9 @@ Contributors, sorted by the number of commits in descending order:
 * Kevin Velghe
 * Raphael Pierzina
 * Joel Torstensson
+* Jay Kamat
 * Patric Schmitz
 * Tarcisio Fedrizzi
-* Jay Kamat
 * Claude
 * Philipp Hansch
 * Fritz Reichwald
@@ -193,6 +193,7 @@ Contributors, sorted by the number of commits in descending order:
 * knaggita
 * Oliver Caldwell
 * Nikolay Amiantov
+* Marius
 * Julian Weigt
 * Tomasz Kramkowski
 * Sebastian Frysztak
@@ -210,6 +211,7 @@ Contributors, sorted by the number of commits in descending order:
 * Halfwit
 * David Vogt
 * Claire Cavanaugh
+* Christian Helbling
 * rikn00
 * kanikaa1234
 * haitaka
@@ -217,7 +219,6 @@ Contributors, sorted by the number of commits in descending order:
 * Michał Góral
 * Michael Ilsaas
 * Martin Zimmermann
-* Marius
 * Link
 * Jussi Timperi
 * Cosmin Popescu

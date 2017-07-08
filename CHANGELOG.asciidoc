@@ -14,6 +14,42 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v0.1.0 (unreleased)
+-------------------
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+- Support for legacy QtWebKit (before 5.212 which is distributed
+  independently from Qt) is dropped.
+- Support for Python 3.4 is dropped.
+- Support for Qt before 5.7 is dropped.
+- New dependency on the QtSql module and Qt sqlite support.
+- New dependency on ruamel.yaml; dropped PyYAML dependency.
+- The QtWebEngine backend is now used by default if available.
+- New config system which ignores the old config file.
+
+Major changes
+~~~~~~~~~~~~~
+
+- New completion engine based on sqlite, which allows to complete
+  the entire browsing history.
+- Completely rewritten configuration system.
+
+Fixes
+~~~~~
+
+- Exiting fullscreen via `:fullscreen` or buttons on a page now
+  restores the correct previous window state (maximized/fullscreen).
+
+v0.11.1 (unreleased)
+--------------------
+
+Fixes
+~~~~~
+
+- Fixed empty space being shown after tabs in the tabbar in some cases.
+
 v0.11.0
 -------
 

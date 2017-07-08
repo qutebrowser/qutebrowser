@@ -615,6 +615,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def shutdown(self):
         self.shutting_down.emit()
+        self.action.exit_fullscreen()
         if qtutils.version_check('5.8', exact=True):
             # WORKAROUND for
             # https://bugreports.qt.io/browse/QTBUG-58563
@@ -715,7 +716,8 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
-        if qtutils.version_check('5.9'):
+        if (qtutils.version_check('5.9') and
+                not qtutils.version_check('5.9.2')):
             # WORKAROUND for
             # https://bugreports.qt.io/browse/QTBUG-61506
             self.search.clear()

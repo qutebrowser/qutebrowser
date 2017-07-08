@@ -326,12 +326,11 @@ def version():
 
     lines += _module_versions()
 
-    lines += ['pdf.js: {}'.format(_pdfjs_version())]
-    lines += ['sqlite: {}'.format(sql.version())]
-
     lines += [
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-        '',
+        'pdf.js: {}'.format(_pdfjs_version()),
+        'sqlite: {}'.format(sql.version()),
+        'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
+                                     if QSslSocket.supportsSsl() else 'no'),
     ]
 
     qapp = QApplication.instance()
