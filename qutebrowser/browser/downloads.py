@@ -197,8 +197,8 @@ def suggested_fn_from_title(url_path, title=None):
     _, ext = os.path.splitext(url_path)
     if ext.lower() in ext_whitelist and title:
         suggested_fn = utils.sanitize_filename(title)
-        if not suggested_fn.lower().endswith(ext.lower()):
-            suggested_fn += ext
+        if not suggested_fn.lower().endswith((".html", ".htm")):
+            suggested_fn += ".html"
     else:
         suggested_fn = None
     return suggested_fn
