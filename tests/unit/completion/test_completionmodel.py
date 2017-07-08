@@ -39,18 +39,18 @@ def test_first_last_item(counts):
         cat = mock.Mock(spec=['layoutChanged'])
         cat.rowCount = mock.Mock(return_value=c, spec=[])
         model.add_category(cat)
-    nonempty = [i for i, rowCount in enumerate(counts) if rowCount > 0]
-    if not nonempty:
+    data = [i for i, rowCount in enumerate(counts) if rowCount > 0]
+    if not data:
         # with no items, first and last should be an invalid index
         assert not model.first_item().isValid()
         assert not model.last_item().isValid()
     else:
-        first = nonempty[0]
-        last = nonempty[-1]
-        # first item of the first nonempty category
+        first = data[0]
+        last = data[-1]
+        # first item of the first data category
         assert model.first_item().row() == 0
         assert model.first_item().parent().row() == first
-        # last item of the last nonempty category
+        # last item of the last data category
         assert model.last_item().row() == counts[last] - 1
         assert model.last_item().parent().row() == last
 

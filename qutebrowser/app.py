@@ -83,8 +83,6 @@ def run(args):
     standarddir.init(args)
 
     if args.version:
-        # we need to init sql to print the sql version
-        # we can use an in-memory database as we just want to query the version
         print(version.version())
         sys.exit(usertypes.Exit.ok)
 
@@ -431,8 +429,8 @@ def _init_modules(args, crash_handler):
     try:
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
     except sql.SqlException as e:
-        error.handle_fatal_exc(e, args, 'Is sqlite installed?',
-                               pre_text='Failed to initialize SQL')
+        error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                               pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing web history...")

@@ -171,6 +171,8 @@ class WebHistory(sql.SqlTable):
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
+        if not line or line.startswith('#'):
+            return None
         data = line.split(maxsplit=2)
         if len(data) == 2:
             atime, url = data
@@ -240,11 +242,8 @@ class WebHistory(sql.SqlTable):
             data = {'url': [], 'title': [], 'atime': [], 'redirect': []}
             completion_data = {'url': [], 'title': [], 'last_atime': []}
             for (i, line) in enumerate(f):
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
                 try:
-                    parsed = self._parse_entry(line)
+                    parsed = self._parse_entry(line.strip())
                     if parsed is None:
                         continue
                     url, title, atime, redirect = parsed
@@ -270,10 +269,6 @@ class WebHistory(sql.SqlTable):
             dest: Where to write the file to.
         """
         dest = os.path.expanduser(dest)
-
-        dirname = os.path.dirname(dest)
-        if not os.path.exists(dirname):
-            raise cmdexc.CommandError('Path does not exist', dirname)
 
         lines = ('{}{} {} {}'
                  .format(int(x.atime), '-r' * x.redirect, x.url, x.title)

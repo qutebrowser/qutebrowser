@@ -258,15 +258,6 @@ def bookmark_manager_stub(stubs):
 
 
 @pytest.fixture
-def web_history_stub(init_sql, stubs):
-    """Fixture which provides a fake web-history object."""
-    stub = stubs.WebHistoryStub()
-    objreg.register('web-history', stub)
-    yield stub
-    objreg.delete('web-history')
-
-
-@pytest.fixture
 def session_manager_stub(stubs):
     """Fixture which provides a fake session-manager object."""
     stub = stubs.SessionManagerStub()
@@ -491,3 +482,22 @@ def init_sql(data_tmpdir):
     sql.init(path)
     yield
     sql.close()
+
+
+@pytest.fixture
+def validate_model(qtmodeltester):
+    """Provides a function to validate a completion category."""
+    def validate(cat, expected):
+        """Check that a category contains the items in the given order.
+
+        Args:
+            cat: The category to inspect.
+            expected: A list of tuples containing the expected items.
+        """
+        qtmodeltester.data_display_may_return_none = True
+        qtmodeltester.check(cat)
+        assert cat.rowCount() == len(expected)
+        for row, items in enumerate(expected):
+            for col, item in enumerate(items):
+                assert cat.data(cat.index(row, col)) == item
+    return validate

@@ -19,10 +19,12 @@
 
 """Tests for CompletionFilterModel."""
 
+from unittest import mock
+
 import pytest
 
-from helpers import utils
 from qutebrowser.completion.models import listcategory
+from qutebrowser.commands import cmdexc
 
 
 @pytest.mark.parametrize('pattern, before, after', [
@@ -43,8 +45,26 @@ from qutebrowser.completion.models import listcategory
      [('foo', 'bar'), ('bar', 'foo'), ('bar', 'bar')],
      [('foo', 'bar'), ('bar', 'foo')]),
 ])
-def test_set_pattern(pattern, before, after):
+def test_set_pattern(pattern, before, after, validate_model):
     """Validate the filtering and sorting results of set_pattern."""
     cat = listcategory.ListCategory('Foo', before)
     cat.set_pattern(pattern)
-    utils.validate_model(cat, after)
+    validate_model(cat, after)
+
+
+def test_delete_cur_item(validate_model):
+    func = mock.Mock(spec=[])
+    cat = listcategory.ListCategory('Foo', [('a', 'b'), ('c', 'd')],
+                                    delete_func=func)
+    idx = cat.index(0, 0)
+    cat.delete_cur_item(idx)
+    func.assert_called_once_with(['a', 'b'])
+    validate_model(cat, [('c', 'd')])
+
+
+def test_delete_cur_item_no_func(validate_model):
+    cat = listcategory.ListCategory('Foo', [('a', 'b'), ('c', 'd')])
+    idx = cat.index(0, 0)
+    with pytest.raises(cmdexc.CommandError, match="Cannot delete this item."):
+        cat.delete_cur_item(idx)
+    validate_model(cat, [('a', 'b'), ('c', 'd')])

@@ -21,6 +21,7 @@
 
 import logging
 import os
+import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -114,7 +115,7 @@ def test_clear(qtbot, tmpdir, hist, mocker):
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
     m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
-                     spec=[])
+                     new=unittest.mock.Mock, spec=[])
     hist.clear()
     assert m.called
 
@@ -134,16 +135,22 @@ def test_delete_url(hist):
     before = set(hist)
     hist.delete_url(QUrl('http://example.com/1'))
     diff = before.difference(set(hist))
-    assert diff == set([('http://example.com/1', '', 0, False)])
+    assert diff == {('http://example.com/1', '', 0, False)}
 
 
-@pytest.mark.parametrize('url, atime, title, redirect', [
-    ('http://www.example.com', 12346, 'the title', False),
-    ('http://www.example.com', 12346, 'the title', True)
+@pytest.mark.parametrize('url, atime, title, redirect, expected_url', [
+    ('http://www.example.com', 12346, 'the title', False,
+        'http://www.example.com'),
+    ('http://www.example.com', 12346, 'the title', True,
+        'http://www.example.com'),
+    ('http://www.example.com/spa ce', 12346, 'the title', False,
+        'http://www.example.com/spa%20ce'),
+    ('https://user:pass@example.com', 12346, 'the title', False,
+        'https://user@example.com'),
 ])
-def test_add_item(qtbot, hist, url, atime, title, redirect):
+def test_add_item(qtbot, hist, url, atime, title, redirect, expected_url):
     hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
-    assert list(hist) == [(url, title, atime, redirect)]
+    assert list(hist) == [(expected_url, title, atime, redirect)]
 
 
 def test_add_item_invalid(qtbot, hist, caplog):
@@ -164,7 +171,7 @@ def test_add_item_invalid(qtbot, hist, caplog):
 def test_add_from_tab(hist, level, url, req_url, expected, mock_time, caplog):
     with caplog.at_level(level):
         hist.add_from_tab(QUrl(url), QUrl(req_url), 'title')
-    assert set(list(hist)) == set(expected)
+    assert set(hist) == set(expected)
 
 
 @pytest.fixture
@@ -328,13 +335,5 @@ def test_debug_dump_history(hist, tmpdir):
 
 def test_debug_dump_history_nonexistent(hist, tmpdir):
     histfile = tmpdir / 'nonexistent' / 'history'
-    with pytest.raises(cmdexc.CommandError):
-        hist.debug_dump_history(str(histfile))
-
-
-def test_debug_dump_history_oserror(hist, tmpdir):
-    histfile = tmpdir / 'history'
-    histfile.write('')
-    os.chmod(str(histfile), 0)
     with pytest.raises(cmdexc.CommandError):
         hist.debug_dump_history(str(histfile))

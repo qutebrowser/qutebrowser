@@ -27,7 +27,8 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import sections, value
-from qutebrowser.misc import sql
+from qutebrowser.utils import objreg
+from qutebrowser.browser import history
 
 
 def _check_completions(model, expected):
@@ -136,29 +137,33 @@ def bookmarks(bookmark_manager_stub):
 
 
 @pytest.fixture
-def history_completion_table(init_sql):
-    return sql.SqlTable("CompletionHistory", ['url', 'title', 'last_atime'])
+def web_history(init_sql, stubs):
+    """Fixture which provides a web-history object."""
+    stub = history.WebHistory()
+    objreg.register('web-history', stub)
+    yield stub
+    objreg.delete('web-history')
 
 
 @pytest.fixture
-def web_history(web_history_stub):
+def web_history_populated(web_history):
     """Pre-populate the web-history database."""
-    web_history_stub.add_url(
-        url='http://qutebrowser.org',
+    web_history.add_url(
+        url=QUrl('http://qutebrowser.org'),
         title='qutebrowser',
         atime=datetime(2015, 9, 5).timestamp()
     )
-    web_history_stub.add_url(
-        url='https://python.org',
+    web_history.add_url(
+        url=QUrl('https://python.org'),
         title='Welcome to Python.org',
         atime=datetime(2016, 3, 8).timestamp()
     )
-    web_history_stub.add_url(
-        url='https://github.com',
+    web_history.add_url(
+        url=QUrl('https://github.com'),
         title='https://github.com',
         atime=datetime(2016, 5, 1).timestamp()
     )
-    return web_history_stub
+    return web_history
 
 
 def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
@@ -261,8 +266,8 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
     })
 
 
-def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
-                        bookmarks):
+def test_url_completion(qtmodeltester, config_stub, web_history_populated,
+                        quickmarks, bookmarks):
     """Test the results of url completion.
 
     Verify that:
@@ -313,12 +318,12 @@ def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
     ('foo%bar', '', '%', 1),
     ('foobar', '', '%', 0),
 ])
-def test_url_completion_pattern(config_stub, web_history_stub,
+def test_url_completion_pattern(config_stub, web_history,
                                 quickmark_manager_stub, bookmark_manager_stub,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
-    web_history_stub.add_url(url, title)
+    web_history.add_url(QUrl(url), title)
     model = urlmodel.url()
     model.set_pattern(pattern)
     # 2, 0 is History
@@ -349,7 +354,7 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub, bookmarks,
 
 
 def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
-                                         web_history, quickmarks, bookmarks,
+                                         quickmarks, web_history, bookmarks,
                                          qtbot):
     """Test deleting a bookmark from the url completion model."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
@@ -373,7 +378,7 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
 
 
 def test_url_completion_delete_history(qtmodeltester, config_stub,
-                                       web_history_stub, web_history,
+                                       web_history_populated,
                                        quickmarks, bookmarks):
     """Test deleting a history entry."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
@@ -389,9 +394,9 @@ def test_url_completion_delete_history(qtmodeltester, config_stub,
     assert model.data(parent) == "History"
     assert model.data(idx) == 'https://python.org'
 
-    assert 'https://python.org' in web_history_stub
+    assert 'https://python.org' in web_history_populated
     model.delete_cur_item(idx)
-    assert 'https://python.org' not in web_history_stub
+    assert 'https://python.org' not in web_history_populated
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):
@@ -504,6 +509,12 @@ def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
     })
 
 
+def test_setting_option_completion_empty(monkeypatch, stubs, config_stub):
+    module = 'qutebrowser.completion.models.configmodel'
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    assert configmodel.option('typo') is None
+
+
 def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
                                              config_stub):
     module = 'qutebrowser.completion.models.configmodel'
@@ -545,6 +556,13 @@ def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
     })
 
 
+def test_setting_value_completion_empty(monkeypatch, stubs, config_stub):
+    module = 'qutebrowser.completion.models.configmodel'
+    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
+    config_stub.data = {'general': {}}
+    assert configmodel.value('general', 'typo') is None
+
+
 def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
                          key_config_stub):
     """Test the results of keybinding command completion.
@@ -583,7 +601,7 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
 def test_url_completion_benchmark(benchmark, config_stub,
                                   quickmark_manager_stub,
                                   bookmark_manager_stub,
-                                  web_history_stub):
+                                  web_history):
     """Benchmark url completion."""
     config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
                                       'web-history-max-items': 1000}
@@ -595,7 +613,7 @@ def test_url_completion_benchmark(benchmark, config_stub,
         'title': ['title{}'.format(i) for i in r]
     }
 
-    web_history_stub.completion.insert_batch(entries)
+    web_history.completion.insert_batch(entries)
 
     quickmark_manager_stub.marks = collections.OrderedDict([
         ('title{}'.format(i), 'example.com/{}'.format(i))

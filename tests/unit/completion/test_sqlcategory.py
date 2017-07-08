@@ -23,7 +23,6 @@ import unittest.mock
 
 import pytest
 
-from helpers import utils
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import sqlcategory
 from qutebrowser.commands import cmdexc
@@ -61,14 +60,14 @@ pytestmark = pytest.mark.usefixtures('init_sql')
      [('B', 'C', 2), ('A', 'F', 0), ('C', 'A', 1)],
      [('B', 'C', 2), ('C', 'A', 1), ('A', 'F', 0)]),
 ])
-def test_sorting(sort_by, sort_order, data, expected):
+def test_sorting(sort_by, sort_order, data, expected, validate_model):
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in data:
         table.insert({'a': row[0], 'b': row[1], 'c': row[2]})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], sort_by=sort_by,
                                   sort_order=sort_order)
     cat.set_pattern('')
-    utils.validate_model(cat, expected)
+    validate_model(cat, expected)
 
 
 @pytest.mark.parametrize('pattern, filter_cols, before, after', [
@@ -116,7 +115,7 @@ def test_sorting(sort_by, sort_order, data, expected):
      [("can't touch this", '', ''), ('a', '', '')],
      [("can't touch this", '', '')]),
 ])
-def test_set_pattern(pattern, filter_cols, before, after):
+def test_set_pattern(pattern, filter_cols, before, after, validate_model):
     """Validate the filtering and sorting results of set_pattern."""
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in before:
@@ -124,15 +123,15 @@ def test_set_pattern(pattern, filter_cols, before, after):
     filter_fields = [['a', 'b', 'c'][i] for i in filter_cols]
     cat = sqlcategory.SqlCategory('Foo', filter_fields=filter_fields)
     cat.set_pattern(pattern)
-    utils.validate_model(cat, after)
+    validate_model(cat, after)
 
 
-def test_select():
+def test_select(validate_model):
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     table.insert({'a': 'foo', 'b': 'bar', 'c': 'baz'})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], select='b, c, a')
     cat.set_pattern('')
-    utils.validate_model(cat, [('bar', 'baz', 'foo')])
+    validate_model(cat, [('bar', 'baz', 'foo')])
 
 
 def test_delete_cur_item():
