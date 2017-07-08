@@ -207,9 +207,9 @@ class TestSocketName:
         socketname = ipc._get_socketname(basedir)
         assert socketname == expected
 
-    @pytest.mark.osx
+    @pytest.mark.mac
     @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
-    def test_os_x(self, basedir, expected):
+    def test_mac(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         parts = socketname.split(os.sep)
         assert parts[-2] == 'qute_test'
@@ -223,7 +223,7 @@ class TestSocketName:
         assert socketname == expected_path
 
     def test_other_unix(self):
-        """Fake test for POSIX systems which aren't Linux/OS X.
+        """Fake test for POSIX systems which aren't Linux/macOS.
 
         We probably would adjust the code first to make it work on that
         platform.
@@ -512,7 +512,7 @@ class TestSendToRunningInstance:
         assert msg == "No existing instance present (error 2)"
 
     @pytest.mark.parametrize('has_cwd', [True, False])
-    @pytest.mark.linux(reason="Causes random trouble on Windows and OS X")
+    @pytest.mark.linux(reason="Causes random trouble on Windows and macOS")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
 
@@ -562,7 +562,7 @@ class TestSendToRunningInstance:
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
 
-@pytest.mark.not_osx(reason="https://github.com/qutebrowser/qutebrowser/"
+@pytest.mark.not_mac(reason="https://github.com/qutebrowser/qutebrowser/"
                             "issues/975")
 def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     ipc_server._timer.setInterval(100)
@@ -637,7 +637,7 @@ class TestSendOrListen:
         yield legacy_server
         legacy_server.shutdown()
 
-    @pytest.mark.linux(reason="Flaky on Windows and OS X")
+    @pytest.mark.linux(reason="Flaky on Windows and macOS")
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
         assert isinstance(ret_server, ipc.IPCServer)
@@ -812,7 +812,7 @@ class TestSendOrListen:
 
 
 @pytest.mark.windows
-@pytest.mark.osx
+@pytest.mark.mac
 def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'

@@ -167,8 +167,8 @@ class TestStandardDir:
         (standarddir.cache, 2, ['Caches', 'qute_test']),
         (standarddir.download, 1, ['Downloads']),
     ])
-    @pytest.mark.osx
-    def test_os_x(self, func, elems, expected):
+    @pytest.mark.mac
+    def test_mac(self, func, elems, expected):
         assert func().split(os.sep)[-elems:] == expected
 
 

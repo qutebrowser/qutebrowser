@@ -92,7 +92,7 @@ def smoke_test(executable):
                            '--temp-basedir', 'about:blank', ':later 500 quit'])
 
 
-def patch_osx_app():
+def patch_mac_app():
     """Patch .app to copy missing data and link some libs.
 
     See https://github.com/pyinstaller/pyinstaller/issues/2276
@@ -125,8 +125,8 @@ def patch_osx_app():
                    os.path.join(dest, lib))
 
 
-def build_osx():
-    """Build OS X .dmg/.app."""
+def build_mac():
+    """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
         try:
@@ -141,7 +141,7 @@ def build_osx():
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r')
     utils.print_title("Patching .app")
-    patch_osx_app()
+    patch_mac_app()
     utils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
 
@@ -163,7 +163,7 @@ def build_osx():
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
 
-    return [(dmg_name, 'application/x-apple-diskimage', 'OS X .dmg')]
+    return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
 def patch_windows(out_dir):
@@ -366,7 +366,7 @@ def main():
         artifacts = build_windows()
     elif sys.platform == 'darwin':
         run_asciidoc2html(args)
-        artifacts = build_osx()
+        artifacts = build_mac()
     else:
         artifacts = build_sdist()
         upload_to_pypi = True

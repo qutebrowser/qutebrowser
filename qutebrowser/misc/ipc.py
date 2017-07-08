@@ -434,12 +434,12 @@ def _has_legacy_server(name):
         log.ipc.debug("Socket error: {} ({})".format(
             socket.errorString(), err))
 
-    os_x_fail = (sys.platform == 'darwin' and
-                 socket.errorString() == 'QLocalSocket::connectToServer: '
-                                         'Unknown error 38')
+    mac_fail = (sys.platform == 'darwin' and
+                socket.errorString() == 'QLocalSocket::connectToServer: '
+                                        'Unknown error 38')
 
     if err not in [QLocalSocket.ServerNotFoundError,
-                   QLocalSocket.ConnectionRefusedError] and not os_x_fail:
+                   QLocalSocket.ConnectionRefusedError] and not mac_fail:
         return True
 
     socket.disconnectFromServer()

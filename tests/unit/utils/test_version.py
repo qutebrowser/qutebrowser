@@ -668,8 +668,8 @@ class TestOsInfo:
         (('', ('', '', ''), ''), ''),
         (('x', ('1', '2', '3'), 'y'), 'x, 1.2.3, y'),
     ])
-    def test_os_x_fake(self, monkeypatch, mac_ver, mac_ver_str):
-        """Test with a fake OS X.
+    def test_mac_fake(self, monkeypatch, mac_ver, mac_ver_str):
+        """Test with a fake macOS.
 
         Args:
             mac_ver: The tuple to set platform.mac_ver() to.
@@ -698,9 +698,9 @@ class TestOsInfo:
         """Make sure there are no exceptions with a real Windows."""
         version._os_info()
 
-    @pytest.mark.osx
-    def test_os_x_real(self):
-        """Make sure there are no exceptions with a real OS X."""
+    @pytest.mark.mac
+    def test_mac_real(self):
+        """Make sure there are no exceptions with a real macOS."""
         version._os_info()
 
 

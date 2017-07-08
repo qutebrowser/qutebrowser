@@ -277,13 +277,13 @@ $ pip install tox
 
 Then <<tox,install qutebrowser via tox>>.
 
-On OS X
--------
+On macOS
+--------
 
 Prebuilt binary
 ~~~~~~~~~~~~~~~
 
-The easiest way to install qutebrowser on OS X is to use the prebuilt `.app`
+The easiest way to install qutebrowser on macOS is to use the prebuilt `.app`
 files from the
 https://github.com/qutebrowser/qutebrowser/releases[release page].
 

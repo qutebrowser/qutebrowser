@@ -499,7 +499,7 @@ class TabBar(QTabBar):
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
         elif self.count() == 0:
-            # This happens on startup on OS X.
+            # This happens on startup on macOS.
             # We return it directly rather than setting `size' because we don't
             # want to ensure it's valid in this special case.
             return QSize()

@@ -392,7 +392,7 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
-    # On Windows/OS X, we get a "QPrintDialog: Cannot be used on non-native
+    # On Windows/macOS, we get a "QPrintDialog: Cannot be used on non-native
     # printers" qWarning.
     #
     # Disabled because it causes weird segfaults and QPainter warnings in Qt...
