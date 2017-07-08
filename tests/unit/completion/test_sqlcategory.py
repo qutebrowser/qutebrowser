@@ -60,14 +60,15 @@ pytestmark = pytest.mark.usefixtures('init_sql')
      [('B', 'C', 2), ('A', 'F', 0), ('C', 'A', 1)],
      [('B', 'C', 2), ('C', 'A', 1), ('A', 'F', 0)]),
 ])
-def test_sorting(sort_by, sort_order, data, expected, validate_model):
+def test_sorting(sort_by, sort_order, data, expected, model_validator):
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in data:
         table.insert({'a': row[0], 'b': row[1], 'c': row[2]})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], sort_by=sort_by,
                                   sort_order=sort_order)
+    model_validator.set_model(cat)
     cat.set_pattern('')
-    validate_model(cat, expected)
+    model_validator.validate(expected)
 
 
 @pytest.mark.parametrize('pattern, filter_cols, before, after', [
@@ -115,23 +116,25 @@ def test_sorting(sort_by, sort_order, data, expected, validate_model):
      [("can't touch this", '', ''), ('a', '', '')],
      [("can't touch this", '', '')]),
 ])
-def test_set_pattern(pattern, filter_cols, before, after, validate_model):
+def test_set_pattern(pattern, filter_cols, before, after, model_validator):
     """Validate the filtering and sorting results of set_pattern."""
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     for row in before:
         table.insert({'a': row[0], 'b': row[1], 'c': row[2]})
     filter_fields = [['a', 'b', 'c'][i] for i in filter_cols]
     cat = sqlcategory.SqlCategory('Foo', filter_fields=filter_fields)
+    model_validator.set_model(cat)
     cat.set_pattern(pattern)
-    validate_model(cat, after)
+    model_validator.validate(after)
 
 
-def test_select(validate_model):
+def test_select(model_validator):
     table = sql.SqlTable('Foo', ['a', 'b', 'c'])
     table.insert({'a': 'foo', 'b': 'bar', 'c': 'baz'})
     cat = sqlcategory.SqlCategory('Foo', filter_fields=['a'], select='b, c, a')
+    model_validator.set_model(cat)
     cat.set_pattern('')
-    validate_model(cat, [('bar', 'baz', 'foo')])
+    model_validator.validate([('bar', 'baz', 'foo')])
 
 
 def test_delete_cur_item():

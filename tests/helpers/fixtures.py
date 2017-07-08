@@ -484,20 +484,25 @@ def init_sql(data_tmpdir):
     sql.close()
 
 
-@pytest.fixture
-def validate_model(qtmodeltester):
-    """Provides a function to validate a completion category."""
-    def validate(cat, expected):
-        """Check that a category contains the items in the given order.
+class ModelValidator:
 
-        Args:
-            cat: The category to inspect.
-            expected: A list of tuples containing the expected items.
-        """
-        qtmodeltester.data_display_may_return_none = True
-        qtmodeltester.check(cat)
-        assert cat.rowCount() == len(expected)
+    """Validates completion models."""
+
+    def __init__(self, modeltester):
+        modeltester.data_display_may_return_none = True
+        self._modeltester = modeltester
+
+    def set_model(self, model):
+        self._model = model
+        self._modeltester.check(model)
+
+    def validate(self, expected):
+        assert self._model.rowCount() == len(expected)
         for row, items in enumerate(expected):
             for col, item in enumerate(items):
-                assert cat.data(cat.index(row, col)) == item
-    return validate
+                assert self._model.data(self._model.index(row, col)) == item
+
+
+@pytest.fixture
+def model_validator(qtmodeltester):
+    return ModelValidator(qtmodeltester)

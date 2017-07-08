@@ -45,26 +45,29 @@ from qutebrowser.commands import cmdexc
      [('foo', 'bar'), ('bar', 'foo'), ('bar', 'bar')],
      [('foo', 'bar'), ('bar', 'foo')]),
 ])
-def test_set_pattern(pattern, before, after, validate_model):
+def test_set_pattern(pattern, before, after, model_validator):
     """Validate the filtering and sorting results of set_pattern."""
     cat = listcategory.ListCategory('Foo', before)
+    model_validator.set_model(cat)
     cat.set_pattern(pattern)
-    validate_model(cat, after)
+    model_validator.validate(after)
 
 
-def test_delete_cur_item(validate_model):
+def test_delete_cur_item(model_validator):
     func = mock.Mock(spec=[])
     cat = listcategory.ListCategory('Foo', [('a', 'b'), ('c', 'd')],
                                     delete_func=func)
+    model_validator.set_model(cat)
     idx = cat.index(0, 0)
     cat.delete_cur_item(idx)
     func.assert_called_once_with(['a', 'b'])
-    validate_model(cat, [('c', 'd')])
+    model_validator.validate([('c', 'd')])
 
 
-def test_delete_cur_item_no_func(validate_model):
+def test_delete_cur_item_no_func(model_validator):
     cat = listcategory.ListCategory('Foo', [('a', 'b'), ('c', 'd')])
+    model_validator.set_model(cat)
     idx = cat.index(0, 0)
     with pytest.raises(cmdexc.CommandError, match="Cannot delete this item."):
         cat.delete_cur_item(idx)
-    validate_model(cat, [('a', 'b'), ('c', 'd')])
+    model_validator.validate([('a', 'b'), ('c', 'd')])

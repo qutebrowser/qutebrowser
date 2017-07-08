@@ -21,7 +21,6 @@
 
 import logging
 import os
-import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -115,7 +114,7 @@ def test_clear(qtbot, tmpdir, hist, mocker):
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
 
     m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
-                     new=unittest.mock.Mock, spec=[])
+                     new=mocker.Mock, spec=[])
     hist.clear()
     assert m.called
 
