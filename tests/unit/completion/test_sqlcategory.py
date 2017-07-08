@@ -32,7 +32,7 @@ pytestmark = pytest.mark.usefixtures('init_sql')
 
 
 @pytest.mark.parametrize('sort_by, sort_order, data, expected', [
-    (None, 'asc',
+    (None, None,
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')],
      [('B', 'C', 'D'), ('A', 'F', 'C'), ('C', 'A', 'G')]),
 

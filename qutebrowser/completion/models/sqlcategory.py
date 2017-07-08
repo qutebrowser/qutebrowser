@@ -59,6 +59,8 @@ class SqlCategory(QSqlQueryModel):
         if sort_by:
             assert sort_order in ['asc', 'desc'], sort_order
             querystr += ' order by {} {}'.format(sort_by, sort_order)
+        else:
+            assert sort_order is None, sort_order
 
         self._query = sql.Query(querystr, forward_only=False)
 

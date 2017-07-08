@@ -38,7 +38,8 @@ def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
-        raise SqlException('Failed to add database. Is sqlite installed?')
+        raise SqlException('Failed to add database. '
+            'Are sqlite and Qt sqlite support installed?')
     database.setDatabaseName(db_path)
     if not database.open():
         raise SqlException("Failed to open sqlite database at {}: {}"
