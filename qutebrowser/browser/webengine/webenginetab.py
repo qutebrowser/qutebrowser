@@ -51,12 +51,13 @@ def init():
     global _qute_scheme_handler
     app = QApplication.instance()
 
-    software_rendering = os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1'
+    software_rendering = (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
+                          'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ)
     if version.opengl_vendor() == 'nouveau' and not software_rendering:
         # FIXME:qtwebengine display something more sophisticated here
         raise browsertab.WebTabError(
             "QtWebEngine is not supported with Nouveau graphics (unless "
-            "LIBGL_ALWAYS_SOFTWARE is set as environment variable).")
+            "QT_XCB_FORCE_SOFTWARE_OPENGL is set as environment variable).")
 
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
