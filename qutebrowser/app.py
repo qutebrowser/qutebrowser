@@ -634,7 +634,7 @@ class Quitter:
         # Save the session if one is given.
         if session is not None:
             session_manager = objreg.get('session-manager')
-            session_manager.save(session)
+            session_manager.save(session, with_private=True)
         # Open a new process and immediately shutdown the existing one
         try:
             args, cwd = self._get_restart_args(pages, session)

@@ -49,6 +49,7 @@ Fixes
 ~~~~~
 
 - Fixed empty space being shown after tabs in the tabbar in some cases.
+- Fixed `:restart` in private browsing mode.
 
 v0.11.0
 -------
