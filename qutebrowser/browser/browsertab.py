@@ -465,10 +465,10 @@ class AbstractHistory:
     def current_idx(self):
         raise NotImplementedError
 
-    def back(self):
+    def back(self, count):
         raise NotImplementedError
 
-    def forward(self):
+    def forward(self, count):
         raise NotImplementedError
 
     def can_go_back(self):
