@@ -19,7 +19,6 @@
 
 """Navigation (back/forward) indicator displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
 from qutebrowser.mainwindow.statusbar import textbase
 
 
@@ -30,6 +29,8 @@ class Backforward(textbase.TextBase):
     def on_url_changed(self, tabs):
         """Called on URL changes."""
         tab = tabs.currentWidget()
+        if tab is None:
+            return
         text = ''
         if tab.history.can_go_back():
             text += '<'
