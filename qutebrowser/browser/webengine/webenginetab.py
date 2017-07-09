@@ -411,17 +411,33 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
-    def back(self):
-        self._history.back()
+    def back(self, count):
+        idx = self.current_idx() - count
+        if idx >= 0:
+            self.goToItem(self.itemAt(idx))
+        else:
+            self.goToItem(self.itemAt(0))
+            raise IndexError
 
-    def forward(self):
-        self._history.forward()
+    def forward(self, count):
+        idx = self.current_idx() + count
+        if idx < len(self):
+            self.goToItem(self.itemAt(idx))
+        else:
+            self.goToItem(self.itemAt(len(self) - 1))
+            raise IndexError
 
     def can_go_back(self):
         return self._history.canGoBack()
 
     def can_go_forward(self):
         return self._history.canGoForward()
+
+    def itemAt(self, i):
+        return self._history.itemAt(i)
+
+    def goToItem(self, item):
+        return self._history.goToItem(item)
 
     def serialize(self):
         if not qtutils.version_check('5.9'):

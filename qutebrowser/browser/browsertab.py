@@ -477,6 +477,12 @@ class AbstractHistory:
     def can_go_forward(self):
         raise NotImplementedError
 
+    def itemAt(self, i):
+        raise NotImplementedError
+
+    def goToItem(self, item):
+        raise NotImplementedError
+
     def serialize(self):
         """Serialize into an opaque format understood by self.deserialize."""
         raise NotImplementedError

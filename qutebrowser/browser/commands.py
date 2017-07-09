@@ -540,15 +540,16 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
-        for _ in range(count):
-            if forward:
-                if not widget.history.can_go_forward():
-                    raise cmdexc.CommandError("At end of history.")
-                widget.history.forward()
-            else:
-                if not widget.history.can_go_back():
-                    raise cmdexc.CommandError("At beginning of history.")
-                widget.history.back()
+        if forward:
+            try:
+                widget.history.forward(count)
+            except IndexError:
+                raise cmdexc.CommandError("At end of history.")
+        else:
+            try:
+                widget.history.back(count)
+            except IndexError:
+                raise cmdexc.CommandError("At beginning of history.")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
