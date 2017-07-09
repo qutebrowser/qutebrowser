@@ -41,6 +41,7 @@ Changed
 
 - Upgrading qutebrowser with a version older than v0.4.0 still running now won't
   work properly anymore.
+- Using `:download` now uses the page's title as filename.
 
 Fixes
 ~~~~~
