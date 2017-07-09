@@ -28,7 +28,6 @@ Module attributes:
 """
 
 import os
-import logging
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
