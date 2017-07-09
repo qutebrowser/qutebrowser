@@ -34,9 +34,9 @@ def backforward_widget(qtbot):
 
 @pytest.mark.parametrize('can_go_back, can_go_forward, expected_text', [
     (False, False, ''),
-    (True, False, '<'),
-    (False, True, '>'),
-    (True, True, '<>'),
+    (True, False, '[<]'),
+    (False, True, '[>]'),
+    (True, True, '[<>]'),
 ])
 def test_backforward_widget(backforward_widget, stubs,
                             fake_web_tab, can_go_back, can_go_forward,
