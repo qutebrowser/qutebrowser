@@ -51,7 +51,7 @@ def _get_socketname_windows(basedir):
 
 def _get_socketname(basedir):
     """Get a socketname to use."""
-    if os.name == 'nt':
+    if os.name == 'nt':  # pragma: no cover
         return _get_socketname_windows(basedir)
 
     parts_to_hash = [getpass.getuser()]

@@ -186,17 +186,24 @@ class TestSocketName:
         ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
     ]
 
+    WINDOWS_TESTS = [
+        (None, 'qutebrowser-testusername'),
+        ('/x', 'qutebrowser-testusername-{}'.format(md5('/x'))),
+    ]
+
     @pytest.fixture(autouse=True)
     def patch_user(self, monkeypatch):
         monkeypatch.setattr(ipc.getpass, 'getuser', lambda: 'testusername')
 
-    @pytest.mark.parametrize('basedir, expected', [
-        (None, 'qutebrowser-testusername'),
-        ('/x', 'qutebrowser-testusername-{}'.format(md5('/x'))),
-    ])
+    @pytest.mark.parametrize('basedir, expected', WINDOWS_TESTS)
     @pytest.mark.windows
     def test_windows(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
+        assert socketname == expected
+
+    @pytest.mark.parametrize('basedir, expected', WINDOWS_TESTS)
+    def test_windows_on_posix(self, basedir, expected):
+        socketname = ipc._get_socketname_windows(basedir)
         assert socketname == expected
 
     @pytest.mark.mac
