@@ -175,7 +175,8 @@ Why takes it longer to open an URL in qutebrowser than in chromium?::
     When opening an URL in an existing instance the normal qutebrowser
     python script is started and a few PyQT libraries need to be
     loaded until it is detected that there is an instance running
-    where the URL is then passed to. One workaround is to use this
+    where the URL is then passed to. This takes some time.
+    One workaround is to use this
     https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
     and place it in your $PATH with the name "qutebrowser". This
     script passes the URL via an unix socket to qutebrowser (if its
