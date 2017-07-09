@@ -373,8 +373,8 @@ def keyevent_to_string(e):
         None if only modifiers are pressed..
     """
     if sys.platform == 'darwin':
-        # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user can
-        # use it in the config as expected. See:
+        # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
+        # can use it in the config as expected. See:
         # https://github.com/qutebrowser/qutebrowser/issues/110
         # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
         modmask2str = collections.OrderedDict([
