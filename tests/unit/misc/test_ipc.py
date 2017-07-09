@@ -26,7 +26,6 @@ import collections
 import logging
 import json
 import hashlib
-import subprocess
 from unittest import mock
 
 import pytest

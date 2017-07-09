@@ -36,6 +36,12 @@ Major changes
   the entire browsing history.
 - Completely rewritten configuration system.
 
+Changed
+~~~~~~~
+
+- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
+  work properly anymore.
+
 Fixes
 ~~~~~
 
