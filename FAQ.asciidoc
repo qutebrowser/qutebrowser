@@ -173,7 +173,7 @@ What's the difference between insert and passthrough mode?::
 
 Why takes it longer to open an URL in qutebrowser than in chromium?::
     When opening an URL in an existing instance the normal qutebrowser
-    python script is started and a few PyQT libraries need to be
+    Python script is started and a few PyQt libraries need to be
     loaded until it is detected that there is an instance running
     where the URL is then passed to. This takes some time.
     One workaround is to use this
