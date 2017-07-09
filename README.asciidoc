@@ -165,10 +165,10 @@ Contributors, sorted by the number of commits in descending order:
 * Joel Torstensson
 * Jay Kamat
 * Patric Schmitz
+* Fritz Reichwald
 * Tarcisio Fedrizzi
 * Claude
 * Philipp Hansch
-* Fritz Reichwald
 * Corentin Julé
 * meles5
 * Panagiotis Ktistakis
