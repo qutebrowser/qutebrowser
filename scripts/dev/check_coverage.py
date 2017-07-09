@@ -117,6 +117,8 @@ PERFECT_FILES = [
         'mainwindow/statusbar/textbase.py'),
     ('tests/unit/mainwindow/statusbar/test_url.py',
         'mainwindow/statusbar/url.py'),
+    ('tests/unit/mainwindow/statusbar/test_backforward.py',
+        'mainwindow/statusbar/backforward.py'),
     ('tests/unit/mainwindow/test_messageview.py',
         'mainwindow/messageview.py'),
 
