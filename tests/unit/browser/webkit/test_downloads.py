@@ -30,6 +30,42 @@ def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache):
     qtmodeltester.check(model)
 
 
+@pytest.mark.parametrize('url, title, out', [
+    ('http://qutebrowser.org/INSTALL.html',
+     'Installing qutebrowser | qutebrowser',
+     'Installing qutebrowser _ qutebrowser.html'),
+    ('http://qutebrowser.org/INSTALL.html',
+     'Installing qutebrowser | qutebrowser.html',
+     'Installing qutebrowser _ qutebrowser.html'),
+    ('http://qutebrowser.org/INSTALL.HTML',
+     'Installing qutebrowser | qutebrowser',
+     'Installing qutebrowser _ qutebrowser.html'),
+    ('http://qutebrowser.org/INSTALL.html',
+     'Installing qutebrowser | qutebrowser.HTML',
+     'Installing qutebrowser _ qutebrowser.HTML'),
+    ('http://qutebrowser.org/',
+     'qutebrowser | qutebrowser',
+     'qutebrowser _ qutebrowser.html'),
+    ('https://github.com/qutebrowser/qutebrowser/releases',
+     'Releases · qutebrowser/qutebrowser',
+     'Releases · qutebrowser_qutebrowser.html'),
+    ('http://qutebrowser.org/index.php',
+     'qutebrowser | qutebrowser',
+     'qutebrowser _ qutebrowser.html'),
+    ('http://qutebrowser.org/index.php',
+     'qutebrowser | qutebrowser - index.php',
+     'qutebrowser _ qutebrowser - index.php.html'),
+    ('https://qutebrowser.org/img/cheatsheet-big.png',
+     'cheatsheet-big.png (3342×2060)',
+     None),
+    ('http://qutebrowser.org/page-with-no-title.html',
+     '',
+     None),
+])
+def test_page_titles(url, title, out):
+    assert downloads.suggested_fn_from_title(url, title) == out
+
+
 class TestDownloadTarget:
 
     def test_base(self):

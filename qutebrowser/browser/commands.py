@@ -1448,8 +1448,18 @@ class CommandDispatcher:
                 download_manager.get_mhtml(tab, target)
         else:
             qnam = tab.networkaccessmanager()
-            download_manager.get(self._current_url(), user_agent=user_agent,
-                                 qnam=qnam, target=target)
+
+            suggested_fn = downloads.suggested_fn_from_title(
+                self._current_url().path(), tab.title()
+            )
+
+            download_manager.get(
+                self._current_url(),
+                user_agent=user_agent,
+                qnam=qnam,
+                target=target,
+                suggested_fn=suggested_fn
+            )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
