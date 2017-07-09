@@ -36,6 +36,11 @@ Major changes
   the entire browsing history.
 - Completely rewritten configuration system.
 
+Added
+~~~~~
+
+- New back/forward indicator in the statusbar
+
 Changed
 ~~~~~~~
 

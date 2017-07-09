@@ -223,6 +223,7 @@ class FakeWebTabScroller(browsertab.AbstractScroller):
 
 
 class FakeWebTabHistory(browsertab.AbstractHistory):
+
     """Fake for Web{Kit,Engine}History."""
 
     def __init__(self, tab, *, can_go_back, can_go_forward):
