@@ -336,6 +336,7 @@ def check_libraries(backend):
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
                          pip="PyYAML"),
+        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",

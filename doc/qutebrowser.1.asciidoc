@@ -57,7 +57,7 @@ show it.
     How URLs should be opened if there is already a qutebrowser instance running.
 
 *--backend* '{webkit,webengine}'::
-    Which backend to use (webengine backend is EXPERIMENTAL!).
+    Which backend to use.
 
 *--enable-webengine-inspector*::
     Enable the web inspector for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details.

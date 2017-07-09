@@ -123,24 +123,30 @@ class TestFileHandling:
 
         os.remove(filename)
 
-    @pytest.mark.posix
     def test_unreadable(self, message_mock, editor, caplog):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
         filename = editor._file.name
         assert os.path.exists(filename)
         os.chmod(filename, 0o077)
+        if os.access(filename, os.R_OK):
+            # Docker container or similar
+            pytest.skip("File was still readable")
+
         with caplog.at_level(logging.ERROR):
             editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
-    @pytest.mark.posix
     def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir,
                         caplog):
         """Test file handling when the initial file is not writable."""
         tmpdir.chmod(0)
+        if os.access(str(tmpdir), os.W_OK):
+            # Docker container or similar
+            pytest.skip("File was still writable")
+
         monkeypatch.setattr(editormod.tempfile, 'tempdir', str(tmpdir))
 
         with caplog.at_level(logging.ERROR):

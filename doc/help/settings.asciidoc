@@ -789,8 +789,6 @@ The proxy to use.
 
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
 
-This setting only works with Qt 5.8 or newer when using the QtWebEngine backend.
-
 Valid values:
 
  * +system+: Use the system wide proxy.

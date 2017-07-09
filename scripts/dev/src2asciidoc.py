@@ -365,8 +365,7 @@ def generate_commands(filename):
 
 def _generate_setting_section(f, sectname, sect):
     """Generate documentation for a single section."""
-    version_dependent_options = [('network', 'proxy'),
-                                 ('general', 'print-element-backgrounds')]
+    version_dependent_options = [('general', 'print-element-backgrounds')]
     for optname, option in sect.items():
         f.write("\n")
         f.write('[[{}-{}]]'.format(sectname, optname) + "\n")

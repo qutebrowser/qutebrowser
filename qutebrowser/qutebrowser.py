@@ -64,8 +64,7 @@ def get_argparser():
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
-                        help="Which backend to use (webengine backend is "
-                             "EXPERIMENTAL!).")
+                        help="Which backend to use.")
     parser.add_argument('--enable-webengine-inspector', action='store_true',
                         help="Enable the web inspector for QtWebEngine. Note "
                         "that this is a SECURITY RISK and you should not "

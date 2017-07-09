@@ -682,8 +682,9 @@ qutebrowser release
 
 * Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`
     - `python -m qutebrowser --basedir conf :quit`
-    - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.x.y.conf`
+    - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.$x.$y.conf`
     - `rm -r conf`
+    - git add
     - commit
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Update changelog (remove *(unreleased)*)

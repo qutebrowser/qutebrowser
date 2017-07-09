@@ -25,12 +25,16 @@ matrix:
       env: TESTENV=py36-pyqt571
     - os: linux
       language: python
+      python: 3.6
+      env: TESTENV=py36-pyqt58
+    - os: linux
+      language: python
       python: 3.5
-      env: TESTENV=py35-pyqt58
+      env: TESTENV=py35-pyqt59
     - os: linux
       language: python
       python: 3.6
-      env: TESTENV=py36-pyqt58
+      env: TESTENV=py36-pyqt59
     - os: osx
       env: TESTENV=py36 OSX=elcapitan
       osx_image: xcode7.3

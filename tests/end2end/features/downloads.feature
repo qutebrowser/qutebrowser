@@ -579,9 +579,9 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file content-size should exist
 
-    @posix
     Scenario: Downloading to unwritable destination
-        When I set storage -> prompt-download-directory to false
+        When the unwritable dir is unwritable
+        And I set storage -> prompt-download-directory to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
         Then the error "Download error: Permission denied" should be shown
 

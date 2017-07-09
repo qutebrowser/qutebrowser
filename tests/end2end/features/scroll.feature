@@ -292,6 +292,13 @@ Feature: Scrolling
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
+    Scenario: :scroll-page with --bottom-navigate when not at the bottom
+        When I run :scroll-px 0 10
+        And I wait until the scroll position changed
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then the following tabs should be open:
+            - data/scroll/simple.html
+
     Scenario: :scroll-page with --top-navigate
         When I run :scroll-page --top-navigate prev 0 -1
         Then data/hello3.txt should be loaded
