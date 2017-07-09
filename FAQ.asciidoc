@@ -171,6 +171,19 @@ What's the difference between insert and passthrough mode?::
     be useful to rebind escape to something else in passthrough mode only, to be
     able to send an escape keypress to the website.
 
+Why takes it longer to open an URL in qutebrowser than in chromium?::
+    When opening an URL in an existing instance the normal qutebrowser
+    python script is started and a few PyQT libraries need to be
+    loaded until it is detected that there is an instance running
+    where the URL is then passed to. One workaround is to use this
+    https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
+    and place it in your $PATH with the name "qutebrowser". This
+    script passes the URL via an unix socket to qutebrowser (if its
+    running already) using socat which is much faster and starts a new
+    qutebrowser if it is not running already. Also check if you want
+    to use webengine as backend in line 17 and change it to your
+    needs.
+    
 == Troubleshooting
 
 Configuration not saved after modifying config.::
