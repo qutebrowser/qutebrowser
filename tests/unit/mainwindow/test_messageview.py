@@ -104,6 +104,14 @@ def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
         config_stub.set('ui', 'message-timeout', 100)
 
 
+@pytest.mark.parametrize('count', [1, 2, 3, 4, 5, 6, 7])
+def test_show_messages_longer_when_there_are_multiple_of_them(view, config_stub, count):
+    """When there are multiple messages, messages should be shown longer than usual. but with an upper maximum of 5"""
+    for message_number in range(1, count+1):
+        view.show_message(usertypes.MessageLevel.info, 'test ' + str(message_number))
+    assert view._clear_timer.interval() == min(5, count) * config_stub['ui']['message-timeout']
+
+
 @pytest.mark.parametrize('replace1, replace2, length', [
     (False, False, 2),    # Two stacked messages
     (True, True, 1),  # Two replaceable messages
