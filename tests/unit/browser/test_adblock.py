@@ -19,6 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import os.path
 import zipfile
 import shutil
 import logging
@@ -85,21 +86,24 @@ class FakeDownloadManager:
 
     """Mock browser.downloads.DownloadManager."""
 
+    def __init__(self, tmpdir):
+        self._tmpdir = tmpdir
+
     def get(self, url, target, **kwargs):
         """Return a FakeDownloadItem instance with a fileobj.
 
         The content is copied from the file the given url links to.
         """
         download_item = FakeDownloadItem(target.fileobj, name=url.path())
-        with open(url.path(), 'rb') as fake_url_file:
+        with (self._tmpdir / url.path()).open('rb') as fake_url_file:
             shutil.copyfileobj(fake_url_file, download_item.fileobj)
         return download_item
 
 
 @pytest.fixture
-def download_stub(win_registry):
+def download_stub(win_registry, tmpdir):
     """Register a FakeDownloadManager."""
-    stub = FakeDownloadManager()
+    stub = FakeDownloadManager(tmpdir)
     objreg.register('qtnetwork-download-manager', stub,
                     scope='window', window='last-focused')
     yield
@@ -111,17 +115,17 @@ def create_zipfile(directory, files, zipname='test'):
     """Return a path to a newly created zip file.
 
     Args:
-        directory: path object where to create the zip file
-        files: list of paths to each file to add in the zipfile
+        directory: path object where to create the zip file.
+        files: list of filenames (relative to directory) to each file to add.
         zipname: name to give to the zip file.
     """
     zipfile_path = directory / zipname + '.zip'
     with zipfile.ZipFile(str(zipfile_path), 'w') as new_zipfile:
         for file_path in files:
-            new_zipfile.write(str(file_path),
+            new_zipfile.write(str(directory / file_path),
                               arcname=os.path.basename(str(file_path)))
             # Removes path from file name
-    return str(zipfile_path)
+    return str(zipname + '.zip')
 
 
 def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
@@ -151,7 +155,7 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
                 blocklist.write(host + ' This is not a correct hosts file\n')
         else:
             raise ValueError('Incorrect line_format argument')
-    return str(blocklist_file)
+    return name
 
 
 def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
@@ -169,6 +173,15 @@ def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
             assert host_blocker.is_blocked(url)
         else:
             assert not host_blocker.is_blocked(url)
+
+
+def blocklist_to_url(filename):
+    """Get an example.com-URL with the given filename as path."""
+    assert not os.path.isabs(filename), filename
+    url = QUrl('http://example.com/')
+    url.setPath('/' + filename)
+    assert url.isValid(), url.errorString()
+    return url
 
 
 def generic_blocklists(directory):
@@ -190,8 +203,8 @@ def generic_blocklists(directory):
     file3 = create_blocklist(directory, blocked_hosts=CLEAN_HOSTS,
                              name='false_positive', line_format='one_per_line')
     files_to_zip = [file1, file2, file3]
-    blocklist1 = QUrl('http://example.com/')
-    blocklist1.setPath(create_zipfile(directory, files_to_zip, 'block1'))
+    blocklist1 = blocklist_to_url(
+        create_zipfile(directory, files_to_zip, 'block1'))
 
     # remote zip file without file named hosts
     # (Should raise a FileNotFoundError)
@@ -202,25 +215,24 @@ def generic_blocklists(directory):
     file3 = create_blocklist(directory, blocked_hosts=CLEAN_HOSTS,
                              name='false_positive', line_format='one_per_line')
     files_to_zip = [file1, file2, file3]
-    blocklist2 = QUrl('http://example.com/')
-    blocklist2.setPath(create_zipfile(directory, files_to_zip, 'block2'))
+    blocklist2 = blocklist_to_url(
+        create_zipfile(directory, files_to_zip, 'block2'))
 
     # remote zip file with only one valid hosts file inside
     file1 = create_blocklist(directory, blocked_hosts=[BLOCKLIST_HOSTS[3]],
                              name='malwarelist', line_format='etc_hosts')
-    blocklist3 = QUrl('http://example.com/')
-    blocklist3.setPath(create_zipfile(directory, [file1], 'block3'))
+    blocklist3 = blocklist_to_url(create_zipfile(directory, [file1], 'block3'))
 
     # local text file with valid hosts
-    blocklist4 = QUrl.fromLocalFile(create_blocklist(
+    blocklist4 = QUrl.fromLocalFile(str(directory / create_blocklist(
         directory, blocked_hosts=[BLOCKLIST_HOSTS[4]],
-        name='mycustomblocklist', line_format='one_per_line'))
+        name='mycustomblocklist', line_format='one_per_line')))
+    assert blocklist4.isValid(), blocklist4.errorString()
 
     # remote text file without valid hosts format
-    blocklist5 = QUrl('http://example.com/')
-    blocklist5.setPath(create_blocklist(directory, blocked_hosts=CLEAN_HOSTS,
-                                        name='notcorrectlist',
-                                        line_format='not_correct'))
+    blocklist5 = blocklist_to_url(create_blocklist(
+        directory, blocked_hosts=CLEAN_HOSTS, name='notcorrectlist',
+        line_format='not_correct'))
 
     return [blocklist1.toString(), blocklist2.toString(),
             blocklist3.toString(), blocklist4.toString(),
@@ -281,8 +293,7 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
 
     Ensure hosts from this list are not blocked.
     """
-    dl_fail_blocklist = QUrl('http://example.com/')
-    dl_fail_blocklist.setPath(create_blocklist(
+    dl_fail_blocklist = blocklist_to_url(create_blocklist(
         tmpdir, blocked_hosts=CLEAN_HOSTS, name='download_will_fail',
         line_format='one_per_line'))
     hosts_to_block = (generic_blocklists(tmpdir) +
@@ -319,8 +330,7 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, caplog, location):
     for url in BLOCKLIST_HOSTS:
         blocklist.write(url + '\n', mode='a')
 
-    url = QUrl('https://www.example.com/')
-    url.setPath(str(blocklist))
+    url = blocklist_to_url('blocklist')
     config_stub.val.content.host_blocking.lists = [url.toString()]
     config_stub.val.content.host_blocking.enabled = True
     config_stub.val.content.host_blocking.whitelist = None
@@ -406,8 +416,7 @@ def test_config_change(config_stub, basedir, download_stub,
                        data_tmpdir, tmpdir):
     """Ensure blocked-hosts resets if host-block-list is changed to None."""
     filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]  # Exclude localhost
-    blocklist = QUrl('http://www.example.com/')
-    blocklist.setPath(create_blocklist(
+    blocklist = blocklist_to_url(create_blocklist(
         tmpdir, blocked_hosts=filtered_blocked_hosts, name='blocked-hosts',
         line_format='one_per_line'))
     config_stub.val.content.host_blocking.lists = [blocklist.toString()]
