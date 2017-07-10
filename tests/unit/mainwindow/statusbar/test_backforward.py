@@ -47,6 +47,7 @@ def test_backforward_widget(backforward_widget, stubs,
     tabbed_browser.tabs = [tab]
     backforward_widget.on_tab_cur_url_changed(tabbed_browser)
     assert backforward_widget.text() == expected_text
+    assert backforward_widget.isVisible() == bool(expected_text)
 
     # Check that the widget gets reset if empty.
     if can_go_back and can_go_forward:
@@ -54,3 +55,4 @@ def test_backforward_widget(backforward_widget, stubs,
         tabbed_browser.tabs = [tab]
         backforward_widget.on_tab_cur_url_changed(tabbed_browser)
         assert backforward_widget.text() == ''
+        assert not backforward_widget.isVisible()

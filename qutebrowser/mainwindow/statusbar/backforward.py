@@ -39,3 +39,4 @@ class Backforward(textbase.TextBase):
         if text:
             text = '[' + text + ']'
         self.setText(text)
+        self.setVisible(bool(text))
