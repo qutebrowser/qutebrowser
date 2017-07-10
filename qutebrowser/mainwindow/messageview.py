@@ -98,7 +98,7 @@ class MessageView(QWidget):
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
         interval = config.get('ui', 'message-timeout')
-        if interval != 0:
+        if interval > 0:
             interval *= min(5, len(self._messages))
             self._clear_timer.setInterval(interval)
 
