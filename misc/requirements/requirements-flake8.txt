@@ -11,7 +11,7 @@ flake8-pep3101==1.0  # rq.filter: < 1.1
 flake8-polyfill==1.0.1
 flake8-putty==0.4.0
 flake8-string-format==0.2.3
-flake8-tidy-imports==1.0.6
+flake8-tidy-imports==1.1.0
 flake8-tuple==0.2.13
 mccabe==0.6.1
 packaging==16.8
