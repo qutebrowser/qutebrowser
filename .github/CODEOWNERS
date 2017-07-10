@@ -1,10 +1,8 @@
-*  @The-Compiler
-
-qutebrowser/browser/history.py  @The-Compiler @rcorre
-qutebrowser/completion/*  @The-Compiler @rcorre
-qutebrowser/misc/sql.py  @The-Compiler @rcorre
-tests/end2end/features/completion.feature  @The-Compiler @rcorre
-tests/end2end/features/test_completion_bdd.py  @The-Compiler @rcorre
-tests/unit/browser/test_history.py  @The-Compiler @rcorre
-tests/unit/completion/*  @The-Compiler @rcorre
-tests/unit/misc/test_sql.py  @The-Compiler @rcorre
+qutebrowser/browser/history.py  @rcorre
+qutebrowser/completion/*  @rcorre
+qutebrowser/misc/sql.py  @rcorre
+tests/end2end/features/completion.feature  @rcorre
+tests/end2end/features/test_completion_bdd.py  @rcorre
+tests/unit/browser/test_history.py  @rcorre
+tests/unit/completion/*  @rcorre
+tests/unit/misc/test_sql.py  @rcorre
