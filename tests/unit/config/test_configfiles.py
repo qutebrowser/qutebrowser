@@ -18,6 +18,7 @@
 
 """Tests for qutebrowser.config.configfiles."""
 
+import os
 
 import pytest
 
@@ -101,9 +102,10 @@ def test_init(init_patch, config_tmpdir):
     configfiles.init(config=None)
 
     # Make sure qsettings land in a subdir
-    settings = QSettings()
-    settings.setValue("hello", "world")
-    settings.sync()
-    assert (config_tmpdir / 'qsettings').exists()
+    if os.name != 'nt':
+        settings = QSettings()
+        settings.setValue("hello", "world")
+        settings.sync()
+        assert (config_tmpdir / 'qsettings').exists()
 
     # Lots of other stuff is tested in test_config.py in test_init
