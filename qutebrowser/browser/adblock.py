@@ -180,11 +180,12 @@ class HostBlocker:
                                       scope='window', window='last-focused')
         for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
+                filename = url.toLocalFile()
                 try:
-                    fileobj = open(url.path(), 'rb')
+                    fileobj = open(filename, 'rb')
                 except OSError as e:
                     message.error("adblock: Error while reading {}: {}".format(
-                        url.path(), e.strerror))
+                        filename, e.strerror))
                     continue
                 download = FakeDownload(fileobj)
                 self._in_progress.append(download)
