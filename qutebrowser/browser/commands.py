@@ -540,16 +540,13 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
-        if forward:
-            try:
+        try:
+            if forward:
                 widget.history.forward(count)
-            except browsertab.WebTabError as e:
-                raise cmdexc.CommandError(e)
-        else:
-            try:
+            else:
                 widget.history.back(count)
-            except browsertab.WebTabError as e:
-                raise cmdexc.CommandError(e)
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
