@@ -411,32 +411,16 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
-    def back(self, count):
-        idx = self.current_idx() - count
-        if idx >= 0:
-            self.goToItem(self.itemAt(idx))
-        else:
-            self.goToItem(self.itemAt(0))
-            raise IndexError
-
-    def forward(self, count):
-        idx = self.current_idx() + count
-        if idx < len(self):
-            self.goToItem(self.itemAt(idx))
-        else:
-            self.goToItem(self.itemAt(len(self) - 1))
-            raise IndexError
-
     def can_go_back(self):
         return self._history.canGoBack()
 
     def can_go_forward(self):
         return self._history.canGoForward()
 
-    def itemAt(self, i):
+    def _item_at(self, i):
         return self._history.itemAt(i)
 
-    def goToItem(self, item):
+    def _go_to_item(self, item):
         return self._history.goToItem(item)
 
     def serialize(self):

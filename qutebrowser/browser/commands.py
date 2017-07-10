@@ -543,13 +543,13 @@ class CommandDispatcher:
         if forward:
             try:
                 widget.history.forward(count)
-            except IndexError:
-                raise cmdexc.CommandError("At end of history.")
+            except browsertab.WebTabError as e:
+                raise cmdexc.CommandError(e)
         else:
             try:
                 widget.history.back(count)
-            except IndexError:
-                raise cmdexc.CommandError("At beginning of history.")
+            except browsertab.WebTabError as e:
+                raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
