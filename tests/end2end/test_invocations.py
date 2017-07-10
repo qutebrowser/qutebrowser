@@ -312,7 +312,8 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
     """Make sure settings from qute://settings are persistent."""
     args = _base_args(request.config) + ['--basedir', str(short_tmpdir)]
     quteproc_new.start(args)
-    quteproc_new.open_path('qute://settings/set?option=ignore_case&value=always')
+    quteproc_new.open_path(
+        'qute://settings/set?option=ignore_case&value=always')
     assert quteproc_new.get_setting('ignore_case') == 'always'
 
     quteproc_new.send_cmd(':quit')
