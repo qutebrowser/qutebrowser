@@ -177,11 +177,11 @@ Contributors, sorted by the number of commits in descending order:
 * Thorsten Wißmann
 * Austin Anderson
 * Jimmy
+* Iordanis Grigoriou
 * Niklas Haas
 * Maciej Wołczyk
 * Clayton Craft
 * sandrosc
-* Iordanis Grigoriou
 * Alexey "Averrin" Nabrodov
 * pkill9
 * nanjekyejoannah
