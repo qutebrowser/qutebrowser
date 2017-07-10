@@ -620,7 +620,10 @@ class TabbedBrowserStub(QObject):
         return self.current_index
 
     def currentWidget(self):
-        return self.tabs[self.currentIndex() - 1]
+        idx = self.currentIndex()
+        if idx == -1:
+            return None
+        return self.tabs[idx - 1]
 
     def tabopen(self, url):
         self.opened_url = url

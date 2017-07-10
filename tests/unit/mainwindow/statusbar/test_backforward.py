@@ -56,3 +56,21 @@ def test_backforward_widget(backforward_widget, stubs,
         backforward_widget.on_tab_cur_url_changed(tabbed_browser)
         assert backforward_widget.text() == ''
         assert not backforward_widget.isVisible()
+
+
+def test_none_tab(backforward_widget, stubs, fake_web_tab):
+    """Make sure nothing crashes when passing None as tab."""
+    tab = fake_web_tab(can_go_back=True, can_go_forward=True)
+    tabbed_browser = stubs.TabbedBrowserStub()
+    tabbed_browser.current_index = 1
+    tabbed_browser.tabs = [tab]
+    backforward_widget.on_tab_cur_url_changed(tabbed_browser)
+
+    assert backforward_widget.text() == '[<>]'
+    assert backforward_widget.isVisible()
+
+    tabbed_browser.current_index = -1
+    backforward_widget.on_tab_cur_url_changed(tabbed_browser)
+
+    assert backforward_widget.text() == ''
+    assert not backforward_widget.isVisible()
