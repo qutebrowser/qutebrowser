@@ -457,7 +457,7 @@ def _qute_settings_set(url):
         return 'text/html', b'error: ' + msg.encode('utf-8')
 
     try:
-        config.instance.set_str(option, value)
+        config.instance.set_str(option, value, save_yaml=True)
         return 'text/html', b'ok'
     except configexc.Error as e:
         message.error(str(e))
@@ -467,7 +467,6 @@ def _qute_settings_set(url):
 @add_handler('settings')
 def qute_settings(url):
     """Handler for qute://settings. View/change qute configuration."""
-    # FIXME:conf add a test for this
     if url.path() == '/set':
         return _qute_settings_set(url)
 
