@@ -374,6 +374,7 @@ class Config(QObject):
 
     def __init__(self, yaml_config, parent=None):
         super().__init__(parent)
+        self.changed.connect(_render_stylesheet.cache_clear)
         self._values = {}
         self._mutables = []
         self._yaml = yaml_config
@@ -619,7 +620,6 @@ def init(parent=None):
     val = ConfigContainer(instance)
     key_instance = KeyConfig(instance)
 
-    instance.changed.connect(_render_stylesheet.cache_clear)
     configtypes.Font.monospace_fonts = val.fonts.monospace
 
     config_commands = ConfigCommands(instance, key_instance)

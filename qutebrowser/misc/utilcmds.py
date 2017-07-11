@@ -169,7 +169,9 @@ def debug_all_objects():
 def debug_cache_stats():
     """Print LRU cache stats."""
     prefix_info = configdata.is_valid_prefix.cache_info()
+    # pylint: disable=protected-access
     render_stylesheet_info = config._render_stylesheet.cache_info()
+    # pylint: enable=protected-access
     log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
     log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
 
