@@ -551,6 +551,15 @@ def set_register_stylesheet(obj, *, stylesheet=None, update=True):
     observer.register(update=update)
 
 
+@functools.lru_cache()
+def _render_stylesheet(stylesheet):
+    """Render the given stylesheet jinja template."""
+    # Imported here to avoid a Python 3.4 circular import
+    from qutebrowser.utils import jinja
+    template = jinja.environment.from_string(stylesheet)
+    return template.render(conf=val)
+
+
 class StyleSheetObserver(QObject):
 
     """Set the stylesheet on the given object and update it on changes.
@@ -574,10 +583,7 @@ class StyleSheetObserver(QObject):
         Return:
             The formatted template as string.
         """
-        # Imported here to avoid a Python 3.4 circular import
-        from qutebrowser.utils import jinja
-        template = jinja.environment.from_string(self._stylesheet)
-        return template.render(conf=val)
+        return _render_stylesheet(self._stylesheet)
 
     @pyqtSlot()
     def _update_stylesheet(self):
@@ -613,6 +619,7 @@ def init(parent=None):
     val = ConfigContainer(instance)
     key_instance = KeyConfig(instance)
 
+    instance.changed.connect(_render_stylesheet.cache_clear)
     configtypes.Font.monospace_fonts = val.fonts.monospace
 
     config_commands = ConfigCommands(instance, key_instance)

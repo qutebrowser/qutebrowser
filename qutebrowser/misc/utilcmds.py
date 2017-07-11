@@ -37,7 +37,7 @@ from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import configdata
+from qutebrowser.config import config, configdata
 from qutebrowser.misc import consolewidget
 
 
@@ -169,7 +169,9 @@ def debug_all_objects():
 def debug_cache_stats():
     """Print LRU cache stats."""
     prefix_info = configdata.is_valid_prefix.cache_info()
+    render_stylesheet_info = config._render_stylesheet.cache_info()
     log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
+    log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
 
 
 @cmdutils.register(debug=True)
