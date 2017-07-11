@@ -14,7 +14,7 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.1.0 (unreleased)
+v1.0.0 (unreleased)
 -------------------
 
 Breaking changes
