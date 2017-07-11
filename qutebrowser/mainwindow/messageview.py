@@ -83,7 +83,6 @@ class MessageView(QWidget):
 
         self._clear_timer = QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
-        self._set_clear_timer_interval()
         objreg.get('config').changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
@@ -99,7 +98,8 @@ class MessageView(QWidget):
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
         interval = config.get('ui', 'message-timeout')
-        if interval != 0:
+        if interval > 0:
+            interval *= min(5, len(self._messages))
             self._clear_timer.setInterval(interval)
 
     @pyqtSlot()
@@ -127,12 +127,13 @@ class MessageView(QWidget):
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)
         widget.show()
-        if config.get('ui', 'message-timeout') != 0:
-            self._clear_timer.start()
         self._messages.append(widget)
         self._last_text = text
         self.show()
         self.update_geometry.emit()
+        if config.get('ui', 'message-timeout') != 0:
+            self._set_clear_timer_interval()
+            self._clear_timer.start()
 
     def mousePressEvent(self, e):
         """Clear messages when they are clicked on."""

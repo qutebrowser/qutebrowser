@@ -48,6 +48,7 @@ Changed
   work properly anymore.
 - Using `:download` now uses the page's title as filename.
 - Using `:back` or `:forward` with a count now skips intermediate pages.
+- When there are multiple messages shown, the timeout is increased.
 
 Fixes
 ~~~~~
