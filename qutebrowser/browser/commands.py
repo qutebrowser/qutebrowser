@@ -20,11 +20,12 @@
 """Command dispatcher for TabbedBrowser."""
 
 import os
+import sys
 import os.path
 import shlex
 import functools
 
-from PyQt5.QtWidgets import QApplication, QTabBar
+from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
@@ -436,9 +437,18 @@ class CommandDispatcher:
                 message.error("Printing failed!")
             diag.deleteLater()
 
+        def do_print():
+            """Called when the dialog was closed."""
+            tab.printing.to_printer(diag.printer(), print_callback)
+
         diag = QPrintDialog(tab)
-        diag.open(lambda: tab.printing.to_printer(diag.printer(),
-                                                  print_callback))
+        if sys.platform == 'darwin':
+            # For some reason we get a segfault when using open() on macOS
+            ret = diag.exec_()
+            if ret == QDialog.Accepted:
+                do_print()
+        else:
+            diag.open(do_print)
 
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
