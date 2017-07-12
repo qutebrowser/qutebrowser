@@ -89,6 +89,11 @@ def test_set_pattern(completionview):
     model.set_pattern.assert_called_with('foo')
 
 
+def test_set_pattern_no_model(completionview):
+    """Ensure that setting a pattern with no model does not fail."""
+    completionview.set_pattern('foo')
+
+
 def test_maybe_update_geometry(completionview, config_stub, qtbot):
     """Ensure completion is resized only if shrink is True."""
     with qtbot.assertNotEmitted(completionview.update_geometry):
@@ -233,4 +238,4 @@ def test_completion_item_del_no_selection(completionview):
     completionview.set_model(model)
     with pytest.raises(cmdexc.CommandError, match='No item selected!'):
         completionview.completion_item_del()
-    func.assert_not_called()
+    assert not func.called

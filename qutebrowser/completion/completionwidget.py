@@ -290,6 +290,8 @@ class CompletionView(QTreeView):
             self.expand(model.index(i, 0))
 
     def set_pattern(self, pattern):
+        if not self.model():
+            return
         self.pattern = pattern
         with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
             self.model().set_pattern(pattern)

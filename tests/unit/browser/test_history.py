@@ -20,7 +20,6 @@
 """Tests for the global page history."""
 
 import logging
-import os
 
 import pytest
 from PyQt5.QtCore import QUrl
