@@ -192,6 +192,8 @@ def history_data(start_time, offset=None):
         start_time: select history starting from this timestamp.
         offset: number of items to skip
     """
+    # history atimes are stored as ints, ensure start_time is not a float
+    start_time = int(start_time)
     hist = objreg.get('web-history')
     if offset is not None:
         entries = hist.entries_before(start_time, limit=1000, offset=offset)
@@ -200,7 +202,7 @@ def history_data(start_time, offset=None):
         end_time = start_time - 24*60*60
         entries = hist.entries_between(end_time, start_time)
 
-    return [{"url": e.url, "title": e.title or e.url, "time": e.atime * 1000}
+    return [{"url": e.url, "title": e.title or e.url, "time": e.atime}
             for e in entries]
 
 
@@ -252,7 +254,7 @@ def qute_history(url):
             start_time = time.mktime(next_date.timetuple()) - 1
             history = [
                 (i["url"], i["title"],
-                 datetime.datetime.fromtimestamp(i["time"]/1000),
+                 datetime.datetime.fromtimestamp(i["time"]),
                  QUrl(i["url"]).host())
                 for i in history_data(start_time)
             ]

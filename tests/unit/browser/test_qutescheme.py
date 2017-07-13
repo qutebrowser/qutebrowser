@@ -129,8 +129,8 @@ class TestHistoryHandler:
         # test times
         end_time = start_time - 24*60*60
         for item in items:
-            assert item['time'] <= start_time * 1000
-            assert item['time'] > end_time * 1000
+            assert item['time'] <= start_time
+            assert item['time'] > end_time
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
         r = range(100000)

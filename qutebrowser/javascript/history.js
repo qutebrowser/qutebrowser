@@ -174,7 +174,8 @@ window.loadHistory = (function() {
 
         for (var i = 0, len = history.length; i < len; i++) {
             var item = history[i];
-            var currentItemDate = new Date(item.time);
+            // python's time.time returns seconds, but js Date expects ms
+            var currentItemDate = new Date(item.time * 1000);
             getSessionNode(currentItemDate).appendChild(makeHistoryRow(
                 item.url, item.title, currentItemDate.toLocaleTimeString()
             ));
