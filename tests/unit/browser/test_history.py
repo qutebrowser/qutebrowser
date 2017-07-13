@@ -123,6 +123,7 @@ def test_clear_force(qtbot, tmpdir, hist):
     hist.add_url(QUrl('http://www.qutebrowser.org/'))
     hist.clear(force=True)
     assert not len(hist)
+    assert not len(hist.completion)
 
 
 def test_delete_url(hist):
@@ -131,9 +132,15 @@ def test_delete_url(hist):
     hist.add_url(QUrl('http://example.com/2'), atime=0)
 
     before = set(hist)
+    completion_before = set(hist.completion)
+
     hist.delete_url(QUrl('http://example.com/1'))
+
     diff = before.difference(set(hist))
     assert diff == {('http://example.com/1', '', 0, False)}
+
+    completion_diff = completion_before.difference(set(hist.completion))
+    assert completion_diff == {('http://example.com/1', '', 0)}
 
 
 @pytest.mark.parametrize('url, atime, title, redirect, expected_url', [
@@ -146,15 +153,20 @@ def test_delete_url(hist):
     ('https://user:pass@example.com', 12346, 'the title', False,
         'https://user@example.com'),
 ])
-def test_add_item(qtbot, hist, url, atime, title, redirect, expected_url):
+def test_add_url(qtbot, hist, url, atime, title, redirect, expected_url):
     hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
     assert list(hist) == [(expected_url, title, atime, redirect)]
+    if redirect:
+        assert not len(hist.completion)
+    else:
+        assert list(hist.completion) == [(expected_url, title, atime)]
 
 
-def test_add_item_invalid(qtbot, hist, caplog):
+def test_add_url_invalid(qtbot, hist, caplog):
     with caplog.at_level(logging.WARNING):
         hist.add_url(QUrl())
     assert not list(hist)
+    assert not list(hist.completion)
 
 
 @pytest.mark.parametrize('level, url, req_url, expected', [

@@ -286,16 +286,17 @@ class CompletionView(QTreeView):
         self._active = True
         self._maybe_show()
 
+        self._resize_columns()
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
     def set_pattern(self, pattern):
+        """Set the pattern on the underlying model."""
         if not self.model():
             return
         self.pattern = pattern
         with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
             self.model().set_pattern(pattern)
-            self._resize_columns()
             self._maybe_update_geometry()
             self._maybe_show()
 

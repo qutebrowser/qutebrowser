@@ -115,6 +115,7 @@ class WebHistory(sql.SqlTable):
 
     def _do_clear(self):
         self.delete_all()
+        self.completion.delete_all()
 
     def delete_url(self, url):
         """Remove all history entries with the given url.

@@ -28,7 +28,7 @@ exclude = .*,__pycache__,resources.py
 ignore =
     E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
-    N802,N806
+    N802,
     P101,P102,P103,
     D102,D103,D104,D105,D209,D211,D402,D403
 min-version = 3.4.0
@@ -39,7 +39,7 @@ putty-ignore =
     /# pragma: no mccabe/ : +C901
     tests/*/test_*.py : +D100,D101,D401
     tests/conftest.py : +F403
-    tests/unit/browser/webkit/test_history.py : +N806
+    tests/unit/browser/test_history.py : +N806
     tests/helpers/fixtures.py : +N806
     tests/unit/browser/webkit/http/test_content_disposition.py : +D400
     scripts/dev/ci/appveyor_install.py : +FI53
