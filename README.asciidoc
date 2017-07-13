@@ -162,8 +162,8 @@ Contributors, sorted by the number of commits in descending order:
 * Daniel Karbach
 * Kevin Velghe
 * Raphael Pierzina
-* Joel Torstensson
 * Jay Kamat
+* Joel Torstensson
 * Patric Schmitz
 * Fritz Reichwald
 * Tarcisio Fedrizzi
