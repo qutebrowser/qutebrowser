@@ -156,14 +156,17 @@ def _init_stylesheet(profile):
     profile.scripts().insert(script)
 
 
-def _set_user_agent(profile):
-    """Set the user agent for the given profile.
+def _set_http_headers(profile):
+    """Set the user agent and accept-language for the given profile.
 
-    We override this per request in the URL interceptor (to allow for
-    per-domain user agents), but this one still gets used for things like
-    window.navigator.userAgent in JS.
+    We override those per request in the URL interceptor (to allow for
+    per-domain values), but this one still gets used for things like
+    window.navigator.userAgent/.languages in JS.
     """
     profile.setHttpUserAgent(config.val.content.headers.user_agent)
+    accept_language = config.val.content.headers.accept_language
+    if accept_language is not None:
+        profile.setHttpAcceptLanguage(accept_language)
 
 
 def _update_settings(option):
@@ -172,9 +175,10 @@ def _update_settings(option):
     if option in ['scrollbar.hide', 'content.user_stylesheets']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
-    elif option == 'content.headers.user_agent':
-        _set_user_agent(default_profile)
-        _set_user_agent(private_profile)
+    elif option in ['content.headers.user_agent',
+                    'content.headers.accept_language']:
+        _set_http_headers(default_profile)
+        _set_http_headers(private_profile)
 
 
 def _init_profiles():
@@ -186,12 +190,12 @@ def _init_profiles():
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
     _init_stylesheet(default_profile)
-    _set_user_agent(default_profile)
+    _set_http_headers(default_profile)
 
     private_profile = QWebEngineProfile()
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
-    _set_user_agent(private_profile)
+    _set_http_headers(private_profile)
 
 
 def init(args):

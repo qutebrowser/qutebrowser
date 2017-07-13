@@ -346,6 +346,14 @@ Feature: Various utility commands.
         And I open headers
         Then the header Accept-Language should be set to en,de
 
+    # This still doesn't set window.navigator.language
+    # See https://bugreports.qt.io/browse/QTBUG-61949
+    @qtwebkit_skip
+    Scenario: Accept-Language header (JS)
+        When I set content.headers.accept_language to it,fr
+        And I run :jseval console.log(window.navigator.languages)
+        Then the javascript message "it,fr" should be logged
+
     Scenario: Setting a custom user-agent header
         When I set content.headers.user_agent to toaster
         And I open headers
