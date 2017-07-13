@@ -23,6 +23,8 @@ Fixes
 - Fixed empty space being shown after tabs in the tabbar in some cases.
 - Fixed `:restart` in private browsing mode.
 - Fixed printing on macOS.
+- Closing a pinned tab via mouse now also prompts for confirmation.
+- The "try again" button on error pages works correctly again.
 
 v0.11.0
 -------
