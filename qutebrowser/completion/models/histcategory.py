@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A completion model backed by SQL tables."""
+"""A completion category that queries the SQL History store."""
 
 import re
 
@@ -26,49 +26,49 @@ from PyQt5.QtSql import QSqlQueryModel
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug
 from qutebrowser.commands import cmdexc
+from qutebrowser.config import config
 
 
-class SqlCategory(QSqlQueryModel):
+class HistoryCategory(QSqlQueryModel):
 
-    """Wraps a SqlQuery for use as a completion category."""
+    """A completion category that queries the SQL History store."""
 
-    def __init__(self, name, *, title=None, filter_fields, sort_by=None,
-                 sort_order=None, select='*',
-                 delete_func=None, parent=None):
-        """Create a new completion category backed by a sql table.
-
-        Args:
-            name: Name of the table in the database.
-            title: Title of category, defaults to table name.
-            filter_fields: Names of fields to apply filter pattern to.
-            select: A custom result column expression for the select statement.
-            sort_by: The name of the field to sort by, or None for no sorting.
-            sort_order: Either 'asc' or 'desc', if sort_by is non-None
-            delete_func: Callback to delete a selected item.
-        """
+    def __init__(self, *, delete_func=None, parent=None):
+        """Create a new History completion category."""
         super().__init__(parent=parent)
-        self.name = title or name
+        self.name = "History"
 
-        querystr = 'select {} from {} where ('.format(select, name)
-        # the incoming pattern will have literal % and _ escaped with '\'
-        # we need to tell sql to treat '\' as an escape character
-        querystr += ' or '.join("{} like :pattern escape '\\'".format(f)
-                                for f in filter_fields)
-        querystr += ')'
+        # replace ' to avoid breaking the query
+        timefmt = "strftime('{}', last_atime, 'unixepoch')".format(
+            config.get('completion', 'timestamp-format').replace("'", "`"))
 
-        if sort_by:
-            assert sort_order in ['asc', 'desc'], sort_order
-            querystr += ' order by {} {}'.format(sort_by, sort_order)
-        else:
-            assert sort_order is None, sort_order
+        self._query = sql.Query(' '.join([
+            "SELECT url, title, {}".format(timefmt),
+            "FROM CompletionHistory",
+            # the incoming pattern will have literal % and _ escaped with '\'
+            # we need to tell sql to treat '\' as an escape character
+            "WHERE (url LIKE :pat escape '\\' or title LIKE :pat escape '\\')",
+            self._atime_expr(),
+            "ORDER BY last_atime DESC",
+        ]), forward_only=False)
 
-        self._query = sql.Query(querystr, forward_only=False)
-
-        # map filter_fields to indices
-        col_query = sql.Query('SELECT * FROM {} LIMIT 1'.format(name))
-        rec = col_query.run().record()
-        self.columns_to_filter = [rec.indexOf(n) for n in filter_fields]
+        # advertise that this model filters by URL and title
+        self.columns_to_filter = [0, 1]
         self.delete_func = delete_func
+
+    def _atime_expr(self):
+        """If max_items is set, return an expression to limit the query."""
+        max_items = config.get('completion', 'web-history-max-items')
+        if max_items < 0:
+            return ''
+
+        min_atime = sql.Query(' '.join([
+            'SELECT min(last_atime) FROM',
+            '(SELECT last_atime FROM CompletionHistory',
+            'ORDER BY last_atime DESC LIMIT :limit)',
+        ])).run(limit=max_items).value()
+
+        return "AND last_atime >= {}".format(min_atime)
 
     def set_pattern(self, pattern):
         """Set the pattern used to filter results.
@@ -83,7 +83,7 @@ class SqlCategory(QSqlQueryModel):
         pattern = re.sub(r' +', '%', pattern)
         pattern = '%{}%'.format(pattern)
         with debug.log_time('sql', 'Running completion query'):
-            self._query.run(pattern=pattern)
+            self._query.run(pat=pattern)
         self.setQuery(self._query)
 
     def delete_cur_item(self, index):

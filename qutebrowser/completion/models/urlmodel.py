@@ -20,8 +20,7 @@
 """Function to return the url completion model for the `open` command."""
 
 from qutebrowser.completion.models import (completionmodel, listcategory,
-                                           sqlcategory)
-from qutebrowser.config import config
+                                           histcategory)
 from qutebrowser.utils import log, objreg
 
 
@@ -66,14 +65,6 @@ def url():
     model.add_category(listcategory.ListCategory(
         'Bookmarks', bookmarks, delete_func=_delete_bookmark))
 
-    # replace 's to avoid breaking the query
-    timefmt = config.get('completion', 'timestamp-format').replace("'", "`")
-    select_time = "strftime('{}', last_atime, 'unixepoch')".format(timefmt)
-    hist_cat = sqlcategory.SqlCategory(
-        'CompletionHistory', title='History',
-        sort_order='desc', sort_by='last_atime',
-        filter_fields=['url', 'title'],
-        select='url, title, {}'.format(select_time),
-        delete_func=_delete_history)
+    hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
     model.add_category(hist_cat)
     return model

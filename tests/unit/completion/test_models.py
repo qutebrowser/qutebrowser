@@ -137,8 +137,10 @@ def bookmarks(bookmark_manager_stub):
 
 
 @pytest.fixture
-def web_history(init_sql, stubs):
+def web_history(init_sql, stubs, config_stub):
     """Fixture which provides a web-history object."""
+    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
+                                      'web-history-max-items': -1}
     stub = history.WebHistory()
     objreg.register('web-history', stub)
     yield stub
@@ -266,7 +268,7 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
     })
 
 
-def test_url_completion(qtmodeltester, config_stub, web_history_populated,
+def test_url_completion(qtmodeltester, web_history_populated,
                         quickmarks, bookmarks):
     """Test the results of url completion.
 
@@ -275,7 +277,6 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
         - entries are sorted by access time
         - only the most recent entry is included for each url
     """
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -318,11 +319,10 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
     ('foo%bar', '', '%', 1),
     ('foobar', '', '%', 0),
 ])
-def test_url_completion_pattern(config_stub, web_history,
-                                quickmark_manager_stub, bookmark_manager_stub,
-                                url, title, pattern, rowcount):
+def test_url_completion_pattern(web_history, quickmark_manager_stub,
+                                bookmark_manager_stub, url, title, pattern,
+                                rowcount):
     """Test that url completion filters by url and title."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     web_history.add_url(QUrl(url), title)
     model = urlmodel.url()
     model.set_pattern(pattern)
@@ -330,10 +330,9 @@ def test_url_completion_pattern(config_stub, web_history,
     assert model.rowCount(model.index(2, 0)) == rowcount
 
 
-def test_url_completion_delete_bookmark(qtmodeltester, config_stub, bookmarks,
+def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
                                         web_history, quickmarks):
     """Test deleting a bookmark from the url completion model."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -353,11 +352,10 @@ def test_url_completion_delete_bookmark(qtmodeltester, config_stub, bookmarks,
     assert len_before == len(bookmarks.marks) + 1
 
 
-def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
+def test_url_completion_delete_quickmark(qtmodeltester,
                                          quickmarks, web_history, bookmarks,
                                          qtbot):
     """Test deleting a bookmark from the url completion model."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -377,11 +375,10 @@ def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
     assert len_before == len(quickmarks.marks) + 1
 
 
-def test_url_completion_delete_history(qtmodeltester, config_stub,
+def test_url_completion_delete_history(qtmodeltester,
                                        web_history_populated,
                                        quickmarks, bookmarks):
     """Test deleting a history entry."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d'}
     model = urlmodel.url()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -598,14 +595,11 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     })
 
 
-def test_url_completion_benchmark(benchmark, config_stub,
+def test_url_completion_benchmark(benchmark,
                                   quickmark_manager_stub,
                                   bookmark_manager_stub,
                                   web_history):
     """Benchmark url completion."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 1000}
-
     r = range(100000)
     entries = {
         'last_atime': list(r),
