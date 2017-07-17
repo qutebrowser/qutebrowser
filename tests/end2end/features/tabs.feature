@@ -660,6 +660,56 @@ Feature: Tab management
         And I run :tab-detach
         Then the error "Cannot detach one tab." should be shown
 
+    # :tab-attach
+
+    # Needs qutewm to run properly
+    # See https://github.com/qutebrowser/qutebrowser/pull/1844
+    @xfail_norun
+    Scenario: Attach tab to first-opened window
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :buffer "2.txt"
+        And I run :tab-attach
+        And I run :buffer "1.txt"
+        And I run :window-only
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    # Needs qutewm to run properly
+    # See https://github.com/qutebrowser/qutebrowser/pull/1844
+    @xfail_norun
+    Scenario: Attach tab to arbitrary window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :buffer "1.txt"
+        And I run :tab-attach 1
+        And I run :buffer "2.txt"
+        And I run :window-only
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
+
+    Scenario: Attach tab to same window
+        When I open data/numbers/1.txt
+        And I run :tab-attach
+        Then the error "Tab is already attached to that window!" should be shown
+
+    Scenario: Attach tab to nonexistent window
+        When I open data/numbers/1.txt
+        And I run :tab-attach 9999
+        Then the error "There's no window with id 9999!" should be shown
+
     # :undo
 
     Scenario: Undo without any closed tabs

@@ -523,6 +523,32 @@ class CommandDispatcher:
         cur_widget = self._current_widget()
         self._tabbed_browser.close_tab(cur_widget, add_undo=False)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_attach(self, win_id: int = None):
+        """Attach the current tab to a different window.
+
+        Args:
+            win_id: The id of the window to attach to, uses the
+                    first-opened window's id if not given.
+        """
+        window = None
+        if win_id is None:
+            window = objreg.window_by_index(0)
+        else:
+            if win_id not in objreg.window_registry:
+                raise cmdexc.CommandError(
+                    "There's no window with id {}!".format(win_id))
+            window = objreg.window_registry[win_id]
+
+        if window.win_id == self._win_id:
+            raise cmdexc.CommandError(
+                "Tab is already attached to that window!")
+
+        url = self._current_url()
+        cur_widget = self._current_widget()
+        window.tabbed_browser.tabopen(url, explicit=True)
+        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
+
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
         history = self._current_widget().history
