@@ -1744,7 +1744,8 @@ class CommandDispatcher:
         """
         self.set_mark("'")
         tab = self._current_widget()
-        tab.search.clear()
+        if tab.search.search_displayed:
+            tab.search.clear()
 
         if not text:
             return

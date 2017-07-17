@@ -49,6 +49,8 @@ Changed
 - Using `:download` now uses the page's title as filename.
 - Using `:back` or `:forward` with a count now skips intermediate pages.
 - When there are multiple messages shown, the timeout is increased.
+- `:search` now only clears the search if one was displayed before, so pressing
+  `<Escape>` doesn't un-focus inputs anymore.
 
 Fixes
 ~~~~~
