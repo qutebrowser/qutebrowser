@@ -503,10 +503,6 @@ class TabBar(QTabBar):
             # We return it directly rather than setting `size' because we don't
             # want to ensure it's valid in this special case.
             return QSize()
-        elif self.count() * minimum_size.width() > self.width():
-            # If we don't have enough space, we return the minimum size so we
-            # get scroll buttons as soon as needed.
-            size = minimum_size
         else:
             tab_width_pinned_conf = config.get('tabs', 'pinned-width')
 
@@ -518,8 +514,7 @@ class TabBar(QTabBar):
             no_pinned_count = self.count() - self.pinned_count
             pinned_width = tab_width_pinned_conf * self.pinned_count
             # Prevent any tabs from being smaller than the min size
-            no_pinned_width = max(self.width() - pinned_width,
-                                  minimum_size.width() * no_pinned_count)
+            no_pinned_width = self.width() - pinned_width
 
             if pinned:
                 width = tab_width_pinned_conf
@@ -542,6 +537,9 @@ class TabBar(QTabBar):
             if (no_pinned_count > 0 and
                     index < no_pinned_width % no_pinned_count):
                 width += 1
+
+            # If we have a width too small, force it to be at least the minimum_size
+            width = max(width, minimum_size.width())
 
             size = QSize(width, height)
         qtutils.ensure_valid(size)
