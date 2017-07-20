@@ -2,6 +2,11 @@
 #
 # Executes python-readability on current page and opens the summary as new tab.
 #
+# Depends on the python-readability package, or its fork:
+#
+#   - https://github.com/buriy/python-readability
+#   - https://github.com/bookieio/breadability
+#
 # Usage:
 #   :spawn --userscript readability
 #
