@@ -517,7 +517,9 @@ class TabBar(QTabBar):
 
             no_pinned_count = self.count() - self.pinned_count
             pinned_width = tab_width_pinned_conf * self.pinned_count
-            no_pinned_width = self.width() - pinned_width
+            # Prevent any tabs from being smaller than the min size
+            no_pinned_width = max(self.width() - pinned_width,
+                                  minimum_size.width() * no_pinned_count)
 
             if pinned:
                 width = tab_width_pinned_conf
