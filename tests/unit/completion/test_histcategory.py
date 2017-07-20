@@ -20,7 +20,7 @@
 """Test the web history completion category."""
 
 import unittest.mock
-import time
+import datetime
 
 import pytest
 
@@ -123,7 +123,7 @@ def test_sorting(max_items, before, after, model_validator, hist, config_stub):
     """Validate the filtering and sorting results of set_pattern."""
     config_stub.data['completion']['web-history-max-items'] = max_items
     for url, title, atime in before:
-        timestamp = time.mktime(time.strptime(atime, '%Y-%m-%d'))
+        timestamp = datetime.datetime.strptime(atime, '%Y-%m-%d').timestamp()
         hist.insert({'url': url, 'title': title, 'last_atime': timestamp})
     cat = histcategory.HistoryCategory()
     model_validator.set_model(cat)

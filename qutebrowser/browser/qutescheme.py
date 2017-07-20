@@ -251,7 +251,7 @@ def qute_history(url):
             prev_date = curr_date - one_day
 
             # start_time is the last second of curr_date
-            start_time = time.mktime(next_date.timetuple()) - 1
+            start_time = next_date.timestamp() - 1
             history = [
                 (i["url"], i["title"],
                  datetime.datetime.fromtimestamp(i["time"]),
