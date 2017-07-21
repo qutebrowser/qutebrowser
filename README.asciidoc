@@ -191,8 +191,8 @@ main inspiration for qutebrowser)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
-  http://5digits.org/pentadactyl/[Pentadactyl]
-  https://github.com/akhodakivskiy/VimFx[VimFx] (Firefox addon),
+  http://5digits.org/pentadactyl/[Pentadactyl],
+  https://github.com/akhodakivskiy/VimFx[VimFx],
   https://github.com/shinglyu/QuantumVim[QuantumVim]
 * Chrome/Chromium addons:
   https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
