@@ -29,7 +29,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
-from qutebrowser.browser import browsertab, history
+from qutebrowser.browser import browsertab
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes, utils
 from qutebrowser.mainwindow import mainwindow
@@ -405,6 +405,10 @@ class InstaTimer(QObject):
     def setInterval(self, interval):
         pass
 
+    @staticmethod
+    def singleShot(_interval, fun):
+        fun()
+
 
 class FakeConfigType:
 
@@ -536,24 +540,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
 
     def quickmark_del(self, key):
         self.delete(key)
-
-
-class WebHistoryStub(QObject):
-
-    """Stub for the web-history object."""
-
-    add_completion_item = pyqtSignal(history.Entry)
-    cleared = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.history_dict = collections.OrderedDict()
-
-    def __iter__(self):
-        return iter(self.history_dict.values())
-
-    def __len__(self):
-        return len(self.history_dict)
 
 
 class HostBlockerStub:

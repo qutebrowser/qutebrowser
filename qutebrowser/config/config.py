@@ -38,13 +38,12 @@ from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import configdata, configexc, textwrapper
-from qutebrowser.config.parsers import keyconf
 from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
                                qtutils, error, usertypes)
 from qutebrowser.misc import objects
-from qutebrowser.utils.usertypes import Completion
+from qutebrowser.completion.models import configmodel
 
 
 UNSET = object()
@@ -175,37 +174,6 @@ def _init_main_config(parent=None):
                     return
 
 
-def _init_key_config(parent):
-    """Initialize the key config.
-
-    Args:
-        parent: The parent to use for the KeyConfigParser.
-    """
-    args = objreg.get('args')
-    try:
-        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
-                                             args.relaxed_config,
-                                             parent=parent)
-    except (keyconf.KeyConfigError, cmdexc.CommandError,
-            UnicodeDecodeError) as e:
-        log.init.exception(e)
-        errstr = "Error while reading key config:\n"
-        if e.lineno is not None:
-            errstr += "In line {}: ".format(e.lineno)
-        error.handle_fatal_exc(e, args, "Error while reading key config!",
-                               pre_text=errstr)
-        # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(usertypes.Exit.err_key_config)
-    else:
-        objreg.register('key-config', key_config)
-        save_manager = objreg.get('save-manager')
-        filename = os.path.join(standarddir.config(), 'keys.conf')
-        save_manager.add_saveable(
-            'key-config', key_config.save, key_config.config_dirty,
-            config_opt=('general', 'auto-save-config'), filename=filename,
-            dirty=key_config.is_dirty)
-
-
 def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
@@ -249,7 +217,6 @@ def init(parent=None):
         parent: The parent to pass to QObjects which get initialized.
     """
     _init_main_config(parent)
-    _init_key_config(parent)
     _init_misc()
 
 
@@ -794,9 +761,9 @@ class ConfigManager(QObject):
                 e.__class__.__name__, e))
 
     @cmdutils.register(name='set', instance='config', star_args_optional=True)
-    @cmdutils.argument('section_', completion=Completion.section)
-    @cmdutils.argument('option', completion=Completion.option)
-    @cmdutils.argument('values', completion=Completion.value)
+    @cmdutils.argument('section_', completion=configmodel.section)
+    @cmdutils.argument('option', completion=configmodel.option)
+    @cmdutils.argument('values', completion=configmodel.value)
     @cmdutils.argument('win_id', win_id=True)
     def set_command(self, win_id, section_=None, option=None, *values,
                     temp=False, print_=False):

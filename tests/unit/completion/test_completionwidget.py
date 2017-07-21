@@ -19,13 +19,14 @@
 
 """Tests for the CompletionView Object."""
 
-import unittest.mock
+from unittest import mock
 
 import pytest
-from PyQt5.QtGui import QStandardItem, QColor
+from PyQt5.QtGui import QColor
 
 from qutebrowser.completion import completionwidget
-from qutebrowser.completion.models import base, sortfilter
+from qutebrowser.completion.models import completionmodel, listcategory
+from qutebrowser.commands import cmdexc
 
 
 @pytest.fixture
@@ -71,21 +72,26 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
 
 def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
-    model = base.BaseCompletionModel()
-    filtermodel = sortfilter.CompletionFilterModel(model)
+    model = completionmodel.CompletionModel()
     for i in range(3):
-        model.appendRow(QStandardItem(str(i)))
-    completionview.set_model(filtermodel)
-    assert completionview.model() is filtermodel
-    for i in range(model.rowCount()):
-        assert completionview.isExpanded(filtermodel.index(i, 0))
+        model.add_category(listcategory.ListCategory('', [('foo',)]))
+    completionview.set_model(model)
+    assert completionview.model() is model
+    for i in range(3):
+        assert completionview.isExpanded(model.index(i, 0))
 
 
 def test_set_pattern(completionview):
-    model = sortfilter.CompletionFilterModel(base.BaseCompletionModel())
-    model.set_pattern = unittest.mock.Mock()
-    completionview.set_model(model, 'foo')
+    model = completionmodel.CompletionModel()
+    model.set_pattern = mock.Mock(spec=[])
+    completionview.set_model(model)
+    completionview.set_pattern('foo')
     model.set_pattern.assert_called_with('foo')
+
+
+def test_set_pattern_no_model(completionview):
+    """Ensure that setting a pattern with no model does not fail."""
+    completionview.set_pattern('foo')
 
 
 def test_maybe_update_geometry(completionview, config_stub, qtbot):
@@ -148,15 +154,11 @@ def test_completion_item_focus(which, tree, expected, completionview, qtbot):
                   successive movement. None implies no signal should be
                   emitted.
     """
-    model = base.BaseCompletionModel()
+    model = completionmodel.CompletionModel()
     for catdata in tree:
-        cat = QStandardItem()
-        model.appendRow(cat)
-        for name in catdata:
-            cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
-    completionview.set_model(filtermodel)
+        cat = listcategory.ListCategory('', ((x,) for x in catdata))
+        model.add_category(cat)
+    completionview.set_model(model)
     for entry in expected:
         if entry is None:
             with qtbot.assertNotEmitted(completionview.selection_changed):
@@ -176,10 +178,8 @@ def test_completion_item_focus_no_model(which, completionview, qtbot):
     """
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
-    model = base.BaseCompletionModel()
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
-    completionview.set_model(filtermodel)
+    model = completionmodel.CompletionModel()
+    completionview.set_model(model)
     completionview.set_model(None)
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
@@ -200,16 +200,13 @@ def test_completion_show(show, rows, quick_complete, completionview,
     config_stub.data['completion']['show'] = show
     config_stub.data['completion']['quick-complete'] = quick_complete
 
-    model = base.BaseCompletionModel()
+    model = completionmodel.CompletionModel()
     for name in rows:
-        cat = QStandardItem()
-        model.appendRow(cat)
-        cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
+        cat = listcategory.ListCategory('', [(name,)])
+        model.add_category(cat)
 
     assert not completionview.isVisible()
-    completionview.set_model(filtermodel)
+    completionview.set_model(model)
     assert completionview.isVisible() == (show == 'always' and len(rows) > 0)
     completionview.completion_item_focus('next')
     expected = (show != 'never' and len(rows) > 0 and
@@ -218,3 +215,27 @@ def test_completion_show(show, rows, quick_complete, completionview,
     completionview.set_model(None)
     completionview.completion_item_focus('next')
     assert not completionview.isVisible()
+
+
+def test_completion_item_del(completionview):
+    """Test that completion_item_del invokes delete_cur_item in the model."""
+    func = mock.Mock(spec=[])
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
+    model.add_category(cat)
+    completionview.set_model(model)
+    completionview.completion_item_focus('next')
+    completionview.completion_item_del()
+    func.assert_called_once_with(['foo', 'bar'])
+
+
+def test_completion_item_del_no_selection(completionview):
+    """Test that completion_item_del with an invalid index."""
+    func = mock.Mock(spec=[])
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo',)], delete_func=func)
+    model.add_category(cat)
+    completionview.set_model(model)
+    with pytest.raises(cmdexc.CommandError, match='No item selected!'):
+        completionview.completion_item_del()
+    assert not func.called

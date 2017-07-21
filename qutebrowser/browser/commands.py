@@ -42,7 +42,7 @@ from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, typing, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
-from qutebrowser.completion.models import instances, sortfilter
+from qutebrowser.completion.models import urlmodel, miscmodels
 
 
 class CommandDispatcher:
@@ -272,7 +272,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
-    @cmdutils.argument('url', completion=usertypes.Completion.url)
+    @cmdutils.argument('url', completion=urlmodel.url)
     @cmdutils.argument('count', count=True)
     def openurl(self, url=None, implicit=False,
                 bg=False, tab=False, window=False, count=None, secure=False,
@@ -1010,7 +1010,7 @@ class CommandDispatcher:
             self._open(url, tab, bg, window)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', completion=usertypes.Completion.tab)
+    @cmdutils.argument('index', completion=miscmodels.buffer)
     def buffer(self, index):
         """Select tab by index or url/title best match.
 
@@ -1026,11 +1026,10 @@ class CommandDispatcher:
             for part in index_parts:
                 int(part)
         except ValueError:
-            model = instances.get(usertypes.Completion.tab)
-            sf = sortfilter.CompletionFilterModel(source=model)
-            sf.set_pattern(index)
-            if sf.count() > 0:
-                index = sf.data(sf.first_item())
+            model = miscmodels.buffer()
+            model.set_pattern(index)
+            if model.count() > 0:
+                index = model.data(model.first_item())
                 index_parts = index.split('/', 1)
             else:
                 raise cmdexc.CommandError(
@@ -1235,8 +1234,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('name',
-                       completion=usertypes.Completion.quickmark_by_name)
+    @cmdutils.argument('name', completion=miscmodels.quickmark)
     def quickmark_load(self, name, tab=False, bg=False, window=False):
         """Load a quickmark.
 
@@ -1254,8 +1252,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('name',
-                       completion=usertypes.Completion.quickmark_by_name)
+    @cmdutils.argument('name', completion=miscmodels.quickmark)
     def quickmark_del(self, name=None):
         """Delete a quickmark.
 
@@ -1317,7 +1314,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
+    @cmdutils.argument('url', completion=miscmodels.bookmark)
     def bookmark_load(self, url, tab=False, bg=False, window=False,
                       delete=False):
         """Load a bookmark.
@@ -1339,7 +1336,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=usertypes.Completion.bookmark_by_url)
+    @cmdutils.argument('url', completion=miscmodels.bookmark)
     def bookmark_del(self, url=None):
         """Delete a bookmark.
 
@@ -1523,7 +1520,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='help',
                        scope='window')
-    @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
+    @cmdutils.argument('topic', completion=miscmodels.helptopic)
     def show_help(self, tab=False, bg=False, window=False, topic=None):
         r"""Show help about a command or setting.
 

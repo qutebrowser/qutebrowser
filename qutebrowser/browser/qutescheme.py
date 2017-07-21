@@ -26,7 +26,6 @@ Module attributes:
 
 import json
 import os
-import sys
 import time
 import urllib.parse
 import datetime
@@ -186,88 +185,36 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
-def history_data(start_time):  # noqa
-    """Return history data
+def history_data(start_time, offset=None):
+    """Return history data.
 
     Arguments:
-        start_time -- select history starting from this timestamp.
+        start_time: select history starting from this timestamp.
+        offset: number of items to skip
     """
-    def history_iter(start_time, reverse=False):
-        """Iterate through the history and get items we're interested.
-
-        Arguments:
-            reverse -- whether to reverse the history_dict before iterating.
-        """
-        history = objreg.get('web-history').history_dict.values()
-        if reverse:
-            history = reversed(history)
-
-        # when history_dict is not reversed, we need to keep track of last item
-        # so that we can yield its atime
-        last_item = None
-
+    # history atimes are stored as ints, ensure start_time is not a float
+    start_time = int(start_time)
+    hist = objreg.get('web-history')
+    if offset is not None:
+        entries = hist.entries_before(start_time, limit=1000, offset=offset)
+    else:
         # end is 24hrs earlier than start
         end_time = start_time - 24*60*60
+        entries = hist.entries_between(end_time, start_time)
 
-        for item in history:
-            # Skip redirects
-            # Skip qute:// links
-            if item.redirect or item.url.scheme() == 'qute':
-                continue
-
-            # Skip items out of time window
-            item_newer = item.atime > start_time
-            item_older = item.atime <= end_time
-            if reverse:
-                # history_dict is reversed, we are going back in history.
-                # so:
-                #     abort if item is older than start_time+24hr
-                #     skip if item is newer than start
-                if item_older:
-                    yield {"next": int(item.atime)}
-                    return
-                if item_newer:
-                    continue
-            else:
-                # history_dict isn't reversed, we are going forward in history.
-                # so:
-                #     abort if item is newer than start_time
-                #     skip if item is older than start_time+24hrs
-                if item_older:
-                    last_item = item
-                    continue
-                if item_newer:
-                    yield {"next": int(last_item.atime if last_item else -1)}
-                    return
-
-            # Use item's url as title if there's no title.
-            item_url = item.url.toDisplayString()
-            item_title = item.title if item.title else item_url
-            item_time = int(item.atime * 1000)
-
-            yield {"url": item_url, "title": item_title, "time": item_time}
-
-        # if we reached here, we had reached the end of history
-        yield {"next": int(last_item.atime if last_item else -1)}
-
-    if sys.hexversion >= 0x03050000:
-        # On Python >= 3.5 we can reverse the ordereddict in-place and thus
-        # apply an additional performance improvement in history_iter.
-        # On my machine, this gets us down from 550ms to 72us with 500k old
-        # items.
-        history = history_iter(start_time, reverse=True)
-    else:
-        # On Python 3.4, we can't do that, so we'd need to copy the entire
-        # history to a list. There, filter first and then reverse it here.
-        history = reversed(list(history_iter(start_time, reverse=False)))
-
-    return list(history)
+    return [{"url": e.url, "title": e.title or e.url, "time": e.atime}
+            for e in entries]
 
 
 @add_handler('history')
 def qute_history(url):
     """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
+        try:
+            offset = QUrlQuery(url).queryItemValue("offset")
+            offset = int(offset) if offset else None
+        except ValueError as e:
+            raise QuteSchemeError("Query parameter offset is invalid", e)
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
@@ -275,7 +222,7 @@ def qute_history(url):
         except ValueError as e:
             raise QuteSchemeError("Query parameter start_time is invalid", e)
 
-        return 'text/html', json.dumps(history_data(start_time))
+        return 'text/html', json.dumps(history_data(start_time, offset))
     else:
         if (
             config.get('content', 'allow-javascript') and
@@ -307,9 +254,9 @@ def qute_history(url):
             start_time = time.mktime(next_date.timetuple()) - 1
             history = [
                 (i["url"], i["title"],
-                 datetime.datetime.fromtimestamp(i["time"]/1000),
+                 datetime.datetime.fromtimestamp(i["time"]),
                  QUrl(i["url"]).host())
-                for i in history_data(start_time) if "next" not in i
+                for i in history_data(start_time)
             ]
 
             return 'text/html', jinja.render(

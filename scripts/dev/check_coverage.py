@@ -51,9 +51,9 @@ PERFECT_FILES = [
         'browser/webkit/cache.py'),
     ('tests/unit/browser/webkit/test_cookies.py',
         'browser/webkit/cookies.py'),
-    ('tests/unit/browser/webkit/test_history.py',
+    ('tests/unit/browser/test_history.py',
         'browser/history.py'),
-    ('tests/unit/browser/webkit/test_history.py',
+    ('tests/unit/browser/test_history.py',
         'browser/webkit/webkithistory.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
         'browser/webkit/http.py'),
@@ -157,9 +157,11 @@ PERFECT_FILES = [
         'utils/javascript.py'),
 
     ('tests/unit/completion/test_models.py',
-        'completion/models/base.py'),
-    ('tests/unit/completion/test_sortfilter.py',
-        'completion/models/sortfilter.py'),
+        'completion/models/urlmodel.py'),
+    ('tests/unit/completion/test_histcategory.py',
+        'completion/models/histcategory.py'),
+    ('tests/unit/completion/test_listcategory.py',
+        'completion/models/listcategory.py'),
 
 ]
 

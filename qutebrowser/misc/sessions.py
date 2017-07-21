@@ -31,10 +31,11 @@ try:
 except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
-from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
-                               message, utils)
+from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
+                               utils)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
+from qutebrowser.completion.models import miscmodels
 
 
 default = object()  # Sentinel value
@@ -436,7 +437,7 @@ class SessionManager(QObject):
         return sessions
 
     @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def session_load(self, name, clear=False, temp=False, force=False):
         """Load a session.
 
@@ -464,7 +465,7 @@ class SessionManager(QObject):
                     win.close()
 
     @cmdutils.register(name=['session-save', 'w'], instance='session-manager')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('with_private', flag='p')
     def session_save(self, name: str = default, current=False, quiet=False,
@@ -503,7 +504,7 @@ class SessionManager(QObject):
                 message.info("Saved session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def session_delete(self, name, force=False):
         """Delete a session.
 

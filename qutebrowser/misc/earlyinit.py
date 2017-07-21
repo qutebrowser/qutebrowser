@@ -338,6 +338,7 @@ def check_libraries(backend):
                                  "or Install via pip.",
                          pip="PyYAML"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
+        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",

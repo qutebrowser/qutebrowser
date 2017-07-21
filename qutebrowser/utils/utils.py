@@ -28,7 +28,6 @@ import os.path
 import collections
 import functools
 import contextlib
-import itertools
 import socket
 import shlex
 
@@ -735,25 +734,6 @@ def sanitize_filename(name, replacement='_'):
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
     return name
-
-
-def newest_slice(iterable, count):
-    """Get an iterable for the n newest items of the given iterable.
-
-    Args:
-        count: How many elements to get.
-               0: get no items:
-               n: get the n newest items
-              -1: get all items
-    """
-    if count < -1:
-        raise ValueError("count can't be smaller than -1!")
-    elif count == 0:
-        return []
-    elif count == -1 or len(iterable) < count:
-        return iterable
-    else:
-        return itertools.islice(iterable, len(iterable) - count, len(iterable))
 
 
 def set_clipboard(data, selection=False):

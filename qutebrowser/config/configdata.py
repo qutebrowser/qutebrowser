@@ -503,7 +503,7 @@ def data(readonly=False):
              "0: no history / -1: unlimited"),
 
             ('web-history-max-items',
-             SettingValue(typ.Int(minval=-1), '1000'),
+             SettingValue(typ.Int(minval=-1), '-1'),
              "How many URLs to show in the web history.\n\n"
              "0: no history / -1: unlimited"),
 

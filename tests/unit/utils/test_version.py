@@ -849,6 +849,7 @@ def test_version_output(params, stubs, monkeypatch):
                          if params.style else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'sql.version': lambda: 'SQLITE VERSION',
     }
 
     substitutions = {
@@ -909,6 +910,7 @@ def test_version_output(params, stubs, monkeypatch):
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
+        sqlite: SQLITE VERSION
         QtNetwork SSL: {ssl}
         {style}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}

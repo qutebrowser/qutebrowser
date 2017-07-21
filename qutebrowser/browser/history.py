@@ -19,214 +19,82 @@
 
 """Simple history which gets written to disk."""
 
+import os
 import time
-import collections
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject
+from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
-from qutebrowser.commands import cmdutils
-from qutebrowser.utils import (utils, objreg, standarddir, log, qtutils,
-                               usertypes, message)
-from qutebrowser.misc import lineparser, objects
-
-
-class Entry:
-
-    """A single entry in the web history.
-
-    Attributes:
-        atime: The time the page was accessed.
-        url: The URL which was accessed as QUrl.
-        redirect: If True, don't save this entry to disk
-    """
-
-    def __init__(self, atime, url, title, redirect=False):
-        self.atime = float(atime)
-        self.url = url
-        self.title = title
-        self.redirect = redirect
-        qtutils.ensure_valid(url)
-
-    def __repr__(self):
-        return utils.get_repr(self, constructor=True, atime=self.atime,
-                              url=self.url_str(), title=self.title,
-                              redirect=self.redirect)
-
-    def __str__(self):
-        atime = str(int(self.atime))
-        if self.redirect:
-            atime += '-r'  # redirect flag
-        elems = [atime, self.url_str()]
-        if self.title:
-            elems.append(self.title)
-        return ' '.join(elems)
-
-    def __eq__(self, other):
-        return (self.atime == other.atime and
-                self.title == other.title and
-                self.url == other.url and
-                self.redirect == other.redirect)
-
-    def url_str(self):
-        """Get the URL as a lossless string."""
-        return self.url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-
-    @classmethod
-    def from_str(cls, line):
-        """Parse a history line like '12345 http://example.com title'."""
-        data = line.split(maxsplit=2)
-        if len(data) == 2:
-            atime, url = data
-            title = ""
-        elif len(data) == 3:
-            atime, url, title = data
-        else:
-            raise ValueError("2 or 3 fields expected")
-
-        url = QUrl(url)
-        if not url.isValid():
-            raise ValueError("Invalid URL: {}".format(url.errorString()))
-
-        # https://github.com/qutebrowser/qutebrowser/issues/670
-        atime = atime.lstrip('\0')
-
-        if '-' in atime:
-            atime, flags = atime.split('-')
-        else:
-            flags = ''
-
-        if not set(flags).issubset('r'):
-            raise ValueError("Invalid flags {!r}".format(flags))
-
-        redirect = 'r' in flags
-
-        return cls(atime, url, title, redirect=redirect)
+from qutebrowser.commands import cmdutils, cmdexc
+from qutebrowser.utils import (utils, objreg, log, usertypes, message,
+                               debug, standarddir)
+from qutebrowser.misc import objects, sql
 
 
-class WebHistory(QObject):
+class CompletionHistory(sql.SqlTable):
 
-    """The global history of visited pages.
+    """History which only has the newest entry for each URL."""
 
-    This is a little more complex as you'd expect so the history can be read
-    from disk async while new history is already arriving.
+    def __init__(self, parent=None):
+        super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
+                         constraints={'url': 'PRIMARY KEY'}, parent=parent)
+        self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
 
-    self.history_dict is the main place where the history is stored, in an
-    OrderedDict (sorted by time) of URL strings mapped to Entry objects.
 
-    While reading from disk is still ongoing, the history is saved in
-    self._temp_history instead, and then appended to self.history_dict once
-    that's fully populated.
+class WebHistory(sql.SqlTable):
 
-    All history which is new in this session (rather than read from disk from a
-    previous browsing session) is also stored in self._new_history.
-    self._saved_count tracks how many of those entries were already written to
-    disk, so we can always append to the existing data.
+    """The global history of visited pages."""
 
-    Attributes:
-        history_dict: An OrderedDict of URLs read from the on-disk history.
-        _lineparser: The AppendLineParser used to save the history.
-        _new_history: A list of Entry items of the current session.
-        _saved_count: How many HistoryEntries have been written to disk.
-        _initial_read_started: Whether async_read was called.
-        _initial_read_done: Whether async_read has completed.
-        _temp_history: OrderedDict of temporary history entries before
-                       async_read was called.
+    def __init__(self, parent=None):
+        super().__init__("History", ['url', 'title', 'atime', 'redirect'],
+                         parent=parent)
+        self.completion = CompletionHistory(parent=self)
+        self.create_index('HistoryIndex', 'url')
+        self.create_index('HistoryAtimeIndex', 'atime')
+        self._contains_query = self.contains_query('url')
+        self._between_query = sql.Query('SELECT * FROM History '
+                                        'where not redirect '
+                                        'and not url like "qute://%" '
+                                        'and atime > :earliest '
+                                        'and atime <= :latest '
+                                        'ORDER BY atime desc')
 
-    Signals:
-        add_completion_item: Emitted before a new Entry is added.
-                             Used to sync with the completion.
-                             arg: The new Entry.
-        item_added: Emitted after a new Entry is added.
-                    Used to tell the savemanager that the history is dirty.
-                    arg: The new Entry.
-        cleared: Emitted after the history is cleared.
-    """
-
-    add_completion_item = pyqtSignal(Entry)
-    item_added = pyqtSignal(Entry)
-    cleared = pyqtSignal()
-    async_read_done = pyqtSignal()
-
-    def __init__(self, hist_dir, hist_name, parent=None):
-        super().__init__(parent)
-        self._initial_read_started = False
-        self._initial_read_done = False
-        self._lineparser = lineparser.AppendLineParser(hist_dir, hist_name,
-                                                       parent=self)
-        self.history_dict = collections.OrderedDict()
-        self._temp_history = collections.OrderedDict()
-        self._new_history = []
-        self._saved_count = 0
-        objreg.get('save-manager').add_saveable(
-            'history', self.save, self.item_added)
+        self._before_query = sql.Query('SELECT * FROM History '
+                                       'where not redirect '
+                                       'and not url like "qute://%" '
+                                       'and atime <= :latest '
+                                       'ORDER BY atime desc '
+                                       'limit :limit offset :offset')
 
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
-    def __iter__(self):
-        return iter(self.history_dict.values())
-
-    def __len__(self):
-        return len(self.history_dict)
-
-    def async_read(self):
-        """Read the initial history."""
-        if self._initial_read_started:
-            log.init.debug("Ignoring async_read() because reading is started.")
-            return
-        self._initial_read_started = True
-
-        with self._lineparser.open():
-            for line in self._lineparser:
-                yield
-
-                line = line.rstrip()
-                if not line:
-                    continue
-
-                try:
-                    entry = Entry.from_str(line)
-                except ValueError as e:
-                    log.init.warning("Invalid history entry {!r}: {}!".format(
-                        line, e))
-                    continue
-
-                # This de-duplicates history entries; only the latest
-                # entry for each URL is kept. If you want to keep
-                # information about previous hits change the items in
-                # old_urls to be lists or change Entry to have a
-                # list of atimes.
-                self._add_entry(entry)
-
-        self._initial_read_done = True
-        self.async_read_done.emit()
-
-        for entry in self._temp_history.values():
-            self._add_entry(entry)
-            self._new_history.append(entry)
-            if not entry.redirect:
-                self.add_completion_item.emit(entry)
-        self._temp_history.clear()
-
-    def _add_entry(self, entry, target=None):
-        """Add an entry to self.history_dict or another given OrderedDict."""
-        if target is None:
-            target = self.history_dict
-        url_str = entry.url_str()
-        target[url_str] = entry
-        target.move_to_end(url_str)
+    def __contains__(self, url):
+        return self._contains_query.run(val=url).value()
 
     def get_recent(self):
         """Get the most recent history entries."""
-        old = self._lineparser.get_recent()
-        return old + [str(e) for e in self._new_history]
+        return self.select(sort_by='atime', sort_order='desc', limit=100)
 
-    def save(self):
-        """Save the history to disk."""
-        new = (str(e) for e in self._new_history[self._saved_count:])
-        self._lineparser.new_data = new
-        self._lineparser.save()
-        self._saved_count = len(self._new_history)
+    def entries_between(self, earliest, latest):
+        """Iterate non-redirect, non-qute entries between two timestamps.
+
+        Args:
+            earliest: Omit timestamps earlier than this.
+            latest: Omit timestamps later than this.
+        """
+        self._between_query.run(earliest=earliest, latest=latest)
+        return iter(self._between_query)
+
+    def entries_before(self, latest, limit, offset):
+        """Iterate non-redirect, non-qute entries occurring before a timestamp.
+
+        Args:
+            latest: Omit timestamps more recent than this.
+            limit: Max number of entries to include.
+            offset: Number of entries to skip.
+        """
+        self._before_query.run(latest=latest, limit=limit, offset=offset)
+        return iter(self._before_query)
 
     @cmdutils.register(name='history-clear', instance='web-history')
     def clear(self, force=False):
@@ -246,12 +114,17 @@ class WebHistory(QObject):
                                 "history?")
 
     def _do_clear(self):
-        self._lineparser.clear()
-        self.history_dict.clear()
-        self._temp_history.clear()
-        self._new_history.clear()
-        self._saved_count = 0
-        self.cleared.emit()
+        self.delete_all()
+        self.completion.delete_all()
+
+    def delete_url(self, url):
+        """Remove all history entries with the given url.
+
+        Args:
+            url: URL string to delete.
+        """
+        self.delete('url', url)
+        self.completion.delete('url', url)
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
@@ -285,17 +158,129 @@ class WebHistory(QObject):
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
-        if atime is None:
-            atime = time.time()
-        entry = Entry(atime, url, title, redirect=redirect)
-        if self._initial_read_done:
-            self._add_entry(entry)
-            self._new_history.append(entry)
-            self.item_added.emit(entry)
-            if not entry.redirect:
-                self.add_completion_item.emit(entry)
+        atime = int(atime) if (atime is not None) else int(time.time())
+        url_str = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
+        self.insert({'url': url_str,
+                     'title': title,
+                     'atime': atime,
+                     'redirect': redirect})
+        if not redirect:
+            self.completion.insert({'url': url_str,
+                                    'title': title,
+                                    'last_atime': atime},
+                                   replace=True)
+
+    def _parse_entry(self, line):
+        """Parse a history line like '12345 http://example.com title'."""
+        if not line or line.startswith('#'):
+            return None
+        data = line.split(maxsplit=2)
+        if len(data) == 2:
+            atime, url = data
+            title = ""
+        elif len(data) == 3:
+            atime, url, title = data
         else:
-            self._add_entry(entry, target=self._temp_history)
+            raise ValueError("2 or 3 fields expected")
+
+        # http://xn--pple-43d.com/ with
+        # https://bugreports.qt.io/browse/QTBUG-60364
+        if url in ['http://.com/', 'https://www..com/']:
+            return None
+
+        url = QUrl(url)
+        if not url.isValid():
+            raise ValueError("Invalid URL: {}".format(url.errorString()))
+
+        # https://github.com/qutebrowser/qutebrowser/issues/2646
+        if url.scheme() == 'data':
+            return None
+
+        # https://github.com/qutebrowser/qutebrowser/issues/670
+        atime = atime.lstrip('\0')
+
+        if '-' in atime:
+            atime, flags = atime.split('-')
+        else:
+            flags = ''
+
+        if not set(flags).issubset('r'):
+            raise ValueError("Invalid flags {!r}".format(flags))
+
+        redirect = 'r' in flags
+        return (url, title, int(atime), redirect)
+
+    def import_txt(self):
+        """Import a history text file into sqlite if it exists.
+
+        In older versions of qutebrowser, history was stored in a text format.
+        This converts that file into the new sqlite format and moves it to a
+        backup location.
+        """
+        path = os.path.join(standarddir.data(), 'history')
+        if not os.path.isfile(path):
+            return
+
+        def action():
+            with debug.log_time(log.init, 'Import old history file to sqlite'):
+                try:
+                    self._read(path)
+                except ValueError as ex:
+                    message.error('Failed to import history: {}'.format(ex))
+                else:
+                    bakpath = path + '.bak'
+                    message.info('History import complete. Moving {} to {}'
+                                 .format(path, bakpath))
+                    os.rename(path, bakpath)
+
+        # delay to give message time to appear before locking down for import
+        message.info('Converting {} to sqlite...'.format(path))
+        QTimer.singleShot(100, action)
+
+    def _read(self, path):
+        """Import a text file into the sql database."""
+        with open(path, 'r', encoding='utf-8') as f:
+            data = {'url': [], 'title': [], 'atime': [], 'redirect': []}
+            completion_data = {'url': [], 'title': [], 'last_atime': []}
+            for (i, line) in enumerate(f):
+                try:
+                    parsed = self._parse_entry(line.strip())
+                    if parsed is None:
+                        continue
+                    url, title, atime, redirect = parsed
+                    data['url'].append(url)
+                    data['title'].append(title)
+                    data['atime'].append(atime)
+                    data['redirect'].append(redirect)
+                    if not redirect:
+                        completion_data['url'].append(url)
+                        completion_data['title'].append(title)
+                        completion_data['last_atime'].append(atime)
+                except ValueError as ex:
+                    raise ValueError('Failed to parse line #{} of {}: "{}"'
+                                     .format(i, path, ex))
+        self.insert_batch(data)
+        self.completion.insert_batch(completion_data, replace=True)
+
+    @cmdutils.register(instance='web-history', debug=True)
+    def debug_dump_history(self, dest):
+        """Dump the history to a file in the old pre-SQL format.
+
+        Args:
+            dest: Where to write the file to.
+        """
+        dest = os.path.expanduser(dest)
+
+        lines = ('{}{} {} {}'
+                 .format(int(x.atime), '-r' * x.redirect, x.url, x.title)
+                 for x in self.select(sort_by='atime', sort_order='asc'))
+
+        try:
+            with open(dest, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(lines))
+            message.info("Dumped history to {}".format(dest))
+        except OSError as e:
+            raise cmdexc.CommandError('Could not write history: {}', e)
 
 
 def init(parent=None):
@@ -304,8 +289,7 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
-    history = WebHistory(hist_dir=standarddir.data(), hist_name='history',
-                         parent=parent)
+    history = WebHistory(parent=parent)
     objreg.register('web-history', history)
 
     if objects.backend == usertypes.Backend.QtWebKit:

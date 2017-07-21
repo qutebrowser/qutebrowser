@@ -28,8 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config, style
 from qutebrowser.completion import completiondelegate
-from qutebrowser.completion.models import base
-from qutebrowser.utils import utils, usertypes, objreg
+from qutebrowser.utils import utils, usertypes, objreg, debug, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -41,6 +40,7 @@ class CompletionView(QTreeView):
     headers, and children show as flat list.
 
     Attributes:
+        pattern: Current filter pattern, used for highlighting.
         _win_id: The ID of the window this CompletionView is associated with.
         _height: The height to use for the CompletionView.
         _height_perc: Either None or a percentage if height should be relative.
@@ -107,12 +107,12 @@ class CompletionView(QTreeView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.pattern = ''
         self._win_id = win_id
         # FIXME handle new aliases.
         # objreg.get('config').changed.connect(self.init_command_completion)
         objreg.get('config').changed.connect(self._on_config_changed)
 
-        self._column_widths = base.BaseCompletionModel.COLUMN_WIDTHS
         self._active = False
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
@@ -151,7 +151,8 @@ class CompletionView(QTreeView):
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
         width = self.size().width()
-        pixel_widths = [(width * perc // 100) for perc in self._column_widths]
+        column_widths = self.model().column_widths
+        pixel_widths = [(width * perc // 100) for perc in column_widths]
 
         if self.verticalScrollBar().isVisible():
             delta = self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
@@ -262,47 +263,49 @@ class CompletionView(QTreeView):
         elif config.get('completion', 'show') == 'auto':
             self.show()
 
-    def set_model(self, model, pattern=None):
+    def set_model(self, model):
         """Switch completion to a new model.
 
         Called from on_update_completion().
 
         Args:
             model: The model to use.
-            pattern: The filter pattern to set (what the user entered).
         """
+        if self.model() is not None and model is not self.model():
+            self.model().deleteLater()
+            self.selectionModel().deleteLater()
+
+        self.setModel(model)
+
         if model is None:
             self._active = False
             self.hide()
             return
 
-        old_model = self.model()
-        if model is not old_model:
-            sel_model = self.selectionModel()
+        model.setParent(self)
+        self._active = True
+        self._maybe_show()
 
-            self.setModel(model)
-            self._active = True
-
-            if sel_model is not None:
-                sel_model.deleteLater()
-            if old_model is not None:
-                old_model.deleteLater()
-
-        if (config.get('completion', 'show') == 'always' and
-                model.count() > 0):
-            self.show()
-        else:
-            self.hide()
-
+        self._resize_columns()
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
-        if pattern is not None:
-            model.set_pattern(pattern)
+    def set_pattern(self, pattern):
+        """Set the pattern on the underlying model."""
+        if not self.model():
+            return
+        self.pattern = pattern
+        with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
+            self.model().set_pattern(pattern)
+            self._maybe_update_geometry()
+            self._maybe_show()
 
-        self._column_widths = model.srcmodel.COLUMN_WIDTHS
-        self._resize_columns()
-        self._maybe_update_geometry()
+    def _maybe_show(self):
+        if (config.get('completion', 'show') == 'always' and
+                self.model().count() > 0):
+            self.show()
+        else:
+            self.hide()
 
     def _maybe_update_geometry(self):
         """Emit the update_geometry signal if the config says so."""
@@ -347,7 +350,7 @@ class CompletionView(QTreeView):
         indexes = selected.indexes()
         if not indexes:
             return
-        data = self.model().data(indexes[0])
+        data = str(self.model().data(indexes[0]))
         self.selection_changed.emit(data)
 
     def resizeEvent(self, e):
@@ -367,9 +370,7 @@ class CompletionView(QTreeView):
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_del(self):
         """Delete the current completion item."""
-        if not self.currentIndex().isValid():
+        index = self.currentIndex()
+        if not index.isValid():
             raise cmdexc.CommandError("No item selected!")
-        try:
-            self.model().srcmodel.delete_cur_item(self)
-        except NotImplementedError:
-            raise cmdexc.CommandError("Cannot delete this item.")
+        self.model().delete_cur_item(index)
