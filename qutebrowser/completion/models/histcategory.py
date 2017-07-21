@@ -60,6 +60,9 @@ class HistoryCategory(QSqlQueryModel):
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""
         max_items = config.get('completion', 'web-history-max-items')
+        # HistoryCategory should not be added to the completion in that case.
+        assert max_items != 0
+
         if max_items < 0:
             return ''
 

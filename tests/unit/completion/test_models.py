@@ -396,6 +396,16 @@ def test_url_completion_delete_history(qtmodeltester,
     assert 'https://python.org' not in web_history_populated
 
 
+def test_url_completion_zero_limit(config_stub, web_history, quickmarks,
+                                   bookmarks):
+    """Make sure there's no history if the limit was set to zero."""
+    config_stub.data['completion']['web-history-max-items'] = 0
+    model = urlmodel.url()
+    model.set_pattern('')
+    category = model.index(2, 0)  # "History" normally
+    assert model.data(category) is None
+
+
 def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
     model = miscmodels.session()
