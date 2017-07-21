@@ -96,15 +96,16 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.4 or newer (3.6 recommended) - note that
-  Python 3.4 support will be dropped soon.
+  support for Python 3.4
+  https://github.com/qutebrowser/qutebrowser/issues/2742[will be dropped soon].
 * http://qt.io/[Qt] 5.2.0 or newer (5.9 recommended) - note that support for Qt
   < 5.7.1 will be dropped soon.
 * QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG) or
   QtWebEngine. Note that support for legacy QtWebKit (before 5.212) will be
   dropped soon.
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-(5.9 recommended) for Python 3. Note that support for PyQt < 5.7 will be dropped
-soon.
+  (5.9 recommended) for Python 3. Note that support for PyQt < 5.7 will be
+  dropped soon.
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -165,24 +166,24 @@ Most of them were inspirations for qutebrowser in some way, thanks for that!
 Active
 ~~~~~~
 
-* https://github.com/fanglingsu/vimb[vimb] (C, GTK+ with WebKit2)
-* https://mason-larobina.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
+* https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
+* https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * http://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * http://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * Chrome/Chromium addons:
   https://github.com/1995eaton/chromium-vim[cVim],
   http://vimium.github.io/[Vimium],
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  https://github.com/lusakasa/saka-key[Saka Key]
+  http://saka-key.lusakasa.com/[Saka Key]
 * Firefox addons (based on WebExtensions):
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
-  https://github.com/lusakasa/saka-key[Saka Key]
+  http://saka-key.lusakasa.com/[Saka Key]
 
 Inactive
 ~~~~~~~~
 
-* http://portix.bitbucket.org/dwb/[dwb] (C, GTK+ with WebKit1,
-http://www.reddit.com/r/linux/comments/2huqbc/dwb_abandoned/[unmaintained] -
+* https://bitbucket.org/portix/dwb[dwb] (C, GTK+ with WebKit1,
+https://bitbucket.org/portix/dwb/pull-requests/22/several-cleanups-to-increase-portability/diff[unmaintained] -
 main inspiration for qutebrowser)
 * http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
