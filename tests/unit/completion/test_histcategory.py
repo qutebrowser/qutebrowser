@@ -117,7 +117,12 @@ def test_set_pattern(pattern, before, after, model_validator, hist):
     ], [
         ('b', 'b', '2017-06-16'),
         ('c', 'c', '2017-05-16'),
-    ])
+    ]),
+    (0, [
+        ('a', 'a', '2017-04-16'),
+        ('b', 'b', '2017-06-16'),
+        ('c', 'c', '2017-05-16'),
+    ], []),
 ])
 def test_sorting(max_items, before, after, model_validator, hist, config_stub):
     """Validate the filtering and sorting results of set_pattern."""
