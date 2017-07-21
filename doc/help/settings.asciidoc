@@ -899,7 +899,7 @@ How many URLs to show in the web history.
 
 0: no history / -1: unlimited
 
-Default: +pass:[1000]+
+Default: +pass:[-1]+
 
 [[completion-quick-complete]]
 === quick-complete
