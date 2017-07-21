@@ -60,7 +60,10 @@ class HistoryCategory(QSqlQueryModel):
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""
         max_items = config.get('completion', 'web-history-max-items')
-        if max_items <= 0:
+        # HistoryCategory should not be added to the completion in that case.
+        assert max_items != 0
+
+        if max_items < 0:
             return ''
 
         min_atime = sql.Query(' '.join([
@@ -83,10 +86,9 @@ class HistoryCategory(QSqlQueryModel):
         # treat spaces as wildcards to match any of the typed words
         pattern = re.sub(r' +', '%', pattern)
         pattern = '%{}%'.format(pattern)
-        if config.get('completion', 'web-history-max-items') != 0:
-            with debug.log_time('sql', 'Running completion query'):
-                self._query.run(pat=pattern)
-            self.setQuery(self._query)
+        with debug.log_time('sql', 'Running completion query'):
+            self._query.run(pat=pattern)
+        self.setQuery(self._query)
 
     def delete_cur_item(self, index):
         """Delete the row at the given index."""

@@ -22,6 +22,7 @@
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
 from qutebrowser.utils import log, objreg
+from qutebrowser.config import config
 
 
 _URLCOL = 0
@@ -65,6 +66,7 @@ def url():
     model.add_category(listcategory.ListCategory(
         'Bookmarks', bookmarks, delete_func=_delete_bookmark))
 
-    hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
-    model.add_category(hist_cat)
+    if config.get('completion', 'web-history-max-items') != 0:
+        hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
+        model.add_category(hist_cat)
     return model
