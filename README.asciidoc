@@ -98,11 +98,15 @@ The following software and libraries are required to run qutebrowser:
 * http://www.python.org/[Python] 3.4 or newer (3.6 recommended) - note that
   support for Python 3.4
   https://github.com/qutebrowser/qutebrowser/issues/2742[will be dropped soon].
-* http://qt.io/[Qt] 5.2.0 or newer (5.9 recommended) - note that support for Qt
-  < 5.7.1 will be dropped soon.
-* QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG) or
-  QtWebEngine. Note that support for legacy QtWebKit (before 5.212) will be
-  dropped soon.
+* http://qt.io/[Qt] 5.2.0 or newer (5.9 recommended - note that support for Qt
+  < 5.7.1 will be dropped soon) with the following modules:
+  - QtCore / qtbase
+  - QtQuick (part of qtbase in some distributions)
+  - QtSQL (part of qtbase in some distributions)
+  - QtWebEngine, or
+  - QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG).
+    Note that support for legacy QtWebKit (before 5.212) will be
+    dropped soon.
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
   (5.9 recommended) for Python 3. Note that support for PyQt < 5.7 will be
   dropped soon.

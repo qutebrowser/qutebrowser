@@ -5,6 +5,12 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
+IMPORTANT: I'm currently (July 2017) more busy than usual until September,
+because of exams coming up. In addition to that, a new config system is coming
+which will conflict with many non-trivial contributions. Because of that, please
+refrain from contributing new features until then. If you're reading this note
+after mid-September, please open an issue.
+
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
