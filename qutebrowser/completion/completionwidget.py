@@ -109,8 +109,6 @@ class CompletionView(QTreeView):
         super().__init__(parent)
         self.pattern = ''
         self._win_id = win_id
-        # FIXME handle new aliases.
-        # objreg.get('config').changed.connect(self.init_command_completion)
         objreg.get('config').changed.connect(self._on_config_changed)
 
         self._active = False
