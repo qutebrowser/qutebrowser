@@ -71,6 +71,9 @@ There's also a https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-ann
 at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
 get sent to the general qutebrowser@ list).
 
+If you're a reddit user, there's a
+https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
+
 Contributions / Bugs
 --------------------
 
