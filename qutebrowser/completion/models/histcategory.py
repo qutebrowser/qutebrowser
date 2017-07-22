@@ -90,13 +90,8 @@ class HistoryCategory(QSqlQueryModel):
             self._query.run(pat=pattern)
         self.setQuery(self._query)
 
-    def delete_cur_item(self, index):
-        """Delete the row at the given index."""
-        if not self.delete_func:
-            raise cmdexc.CommandError("Cannot delete this item.")
-        data = [self.data(index.sibling(index.row(), i))
-                for i in range(self.columnCount())]
-        self.delete_func(data)
+    def removeRow(self, _row, _col):
+        """Re-run sql query to respond to a row removal."""
         # re-run query to reload updated table
         with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()

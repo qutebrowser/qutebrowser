@@ -23,6 +23,7 @@ import unittest.mock
 import datetime
 
 import pytest
+from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import histcategory
@@ -140,20 +141,13 @@ def test_sorting(max_items, before, after, model_validator, hist, config_stub):
     model_validator.validate(after)
 
 
-def test_delete_cur_item(hist):
+def test_remove_row(hist, model_validator):
     hist.insert({'url': 'foo', 'title': 'Foo'})
     hist.insert({'url': 'bar', 'title': 'Bar'})
-    func = unittest.mock.Mock(spec=[])
-    cat = histcategory.HistoryCategory(delete_func=func)
-    cat.set_pattern('')
-    cat.delete_cur_item(cat.index(0, 0))
-    func.assert_called_with(['foo', 'Foo', ''])
-
-
-def test_delete_cur_item_no_func(hist):
-    hist.insert({'url': 'foo', 'title': 1})
-    hist.insert({'url': 'bar', 'title': 2})
     cat = histcategory.HistoryCategory()
+    model_validator.set_model(cat)
     cat.set_pattern('')
-    with pytest.raises(cmdexc.CommandError, match='Cannot delete this item'):
-        cat.delete_cur_item(cat.index(0, 0))
+    hist.delete('url', 'foo')
+    # histcategory does not care which index was removed, it just regenerates
+    cat.removeRow(QModelIndex(), QModelIndex())
+    model_validator.validate([('bar', 'Bar', '')])

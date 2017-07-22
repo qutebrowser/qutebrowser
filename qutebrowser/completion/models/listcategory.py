@@ -91,12 +91,3 @@ class ListCategory(QSortFilterProxyModel):
             return False
         else:
             return left < right
-
-    def delete_cur_item(self, index):
-        """Delete the row at the given index."""
-        if not self.delete_func:
-            raise cmdexc.CommandError("Cannot delete this item.")
-        data = [self.data(index.sibling(index.row(), i))
-                for i in range(self.columnCount())]
-        self.delete_func(data)
-        self.removeRow(index.row(), QModelIndex())

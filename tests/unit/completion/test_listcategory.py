@@ -51,23 +51,3 @@ def test_set_pattern(pattern, before, after, model_validator):
     model_validator.set_model(cat)
     cat.set_pattern(pattern)
     model_validator.validate(after)
-
-
-def test_delete_cur_item(model_validator):
-    func = mock.Mock(spec=[])
-    cat = listcategory.ListCategory('Foo', [('a', 'b'), ('c', 'd')],
-                                    delete_func=func)
-    model_validator.set_model(cat)
-    idx = cat.index(0, 0)
-    cat.delete_cur_item(idx)
-    func.assert_called_once_with(['a', 'b'])
-    model_validator.validate([('c', 'd')])
-
-
-def test_delete_cur_item_no_func(model_validator):
-    cat = listcategory.ListCategory('Foo', [('a', 'b'), ('c', 'd')])
-    model_validator.set_model(cat)
-    idx = cat.index(0, 0)
-    with pytest.raises(cmdexc.CommandError, match="Cannot delete this item."):
-        cat.delete_cur_item(idx)
-    model_validator.validate([('a', 'b'), ('c', 'd')])

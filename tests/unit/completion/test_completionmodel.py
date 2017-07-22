@@ -28,6 +28,7 @@ from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.utils import qtutils
+from qutebrowser.commands import cmdexc
 
 
 @hypothesis.given(strategies.lists(min_size=0, max_size=3,
@@ -92,8 +93,25 @@ def test_delete_cur_item():
     func.assert_called_once_with(['foo', 'bar'])
 
 
+def test_delete_cur_item_no_func():
+    callback = mock.Mock(spec=[])
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=None)
+    model.rowsAboutToBeRemoved.connect(callback)
+    model.rowsRemoved.connect(callback)
+    model.add_category(cat)
+    parent = model.index(0, 0)
+    with pytest.raises(cmdexc.CommandError):
+        model.delete_cur_item(model.index(0, 0, parent))
+    assert not callback.called
+
+
 def test_delete_cur_item_no_cat():
     """Test completion_item_del with no selected category."""
+    callback = mock.Mock(spec=[])
     model = completionmodel.CompletionModel()
+    model.rowsAboutToBeRemoved.connect(callback)
+    model.rowsRemoved.connect(callback)
     with pytest.raises(qtutils.QtValueError):
         model.delete_cur_item(QModelIndex())
+    assert not callback.called
