@@ -65,6 +65,9 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
     }
     # mock the Completer that the widget creates in its constructor
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
+    mocker.patch(
+        'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
+        new=lambda *_: None)
     view = completionwidget.CompletionView(win_id=0)
     qtbot.addWidget(view)
     return view
@@ -183,6 +186,37 @@ def test_completion_item_focus_no_model(which, completionview, qtbot):
     completionview.set_model(None)
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
+
+
+def test_completion_item_focus_fetch(completionview, qtbot):
+    """Test that on_next_prev_item moves the selection properly.
+
+    Args:
+        which: the direction in which to move the selection.
+        tree: Each list represents a completion category, with each string
+              being an item under that category.
+        expected: expected argument from on_selection_changed for each
+                  successive movement. None implies no signal should be
+                  emitted.
+    """
+    model = completionmodel.CompletionModel()
+    cat = mock.Mock(spec=['layoutChanged', 'layoutAboutToBeChanged',
+        'canFetchMore', 'fetchMore', 'rowCount', 'index', 'data'])
+    cat.canFetchMore = lambda *_: True
+    cat.rowCount = lambda *_: 2
+    cat.fetchMore = mock.Mock()
+    model.add_category(cat)
+    completionview.set_model(model)
+    # clear the fetchMore call that happens on set_model
+    cat.reset_mock()
+
+    # not at end, fetchMore shouldn't be called
+    completionview.completion_item_focus('next')
+    assert not cat.fetchMore.called
+
+    # at end, fetchMore should be called
+    completionview.completion_item_focus('next')
+    assert cat.fetchMore.called
 
 
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
