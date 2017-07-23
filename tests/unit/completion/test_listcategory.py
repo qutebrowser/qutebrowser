@@ -19,12 +19,9 @@
 
 """Tests for CompletionFilterModel."""
 
-from unittest import mock
-
 import pytest
 
 from qutebrowser.completion.models import listcategory
-from qutebrowser.commands import cmdexc
 
 
 @pytest.mark.parametrize('pattern, before, after', [

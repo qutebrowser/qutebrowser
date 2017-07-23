@@ -21,11 +21,10 @@
 
 import re
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex, QRegExp
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from qutebrowser.utils import qtutils
-from qutebrowser.commands import cmdexc
 
 
 class ListCategory(QSortFilterProxyModel):

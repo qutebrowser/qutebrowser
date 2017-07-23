@@ -25,7 +25,6 @@ from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug
-from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 
 
@@ -90,9 +89,10 @@ class HistoryCategory(QSqlQueryModel):
             self._query.run(pat=pattern)
         self.setQuery(self._query)
 
-    def removeRow(self, _row, _col):
-        """Re-run sql query to respond to a row removal."""
+    def removeRows(self, _row, _count, _parent=None):
+        """Override QAbstractItemModel::removeRows to re-run sql query."""
         # re-run query to reload updated table
         with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()
         self.setQuery(self._query)
+        return True

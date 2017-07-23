@@ -19,7 +19,6 @@
 
 """Test the web history completion category."""
 
-import unittest.mock
 import datetime
 
 import pytest
@@ -27,7 +26,6 @@ from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import histcategory
-from qutebrowser.commands import cmdexc
 
 
 @pytest.fixture
@@ -141,7 +139,7 @@ def test_sorting(max_items, before, after, model_validator, hist, config_stub):
     model_validator.validate(after)
 
 
-def test_remove_row(hist, model_validator):
+def test_remove_rows(hist, model_validator):
     hist.insert({'url': 'foo', 'title': 'Foo'})
     hist.insert({'url': 'bar', 'title': 'Bar'})
     cat = histcategory.HistoryCategory()
@@ -149,5 +147,5 @@ def test_remove_row(hist, model_validator):
     cat.set_pattern('')
     hist.delete('url', 'foo')
     # histcategory does not care which index was removed, it just regenerates
-    cat.removeRow(QModelIndex(), QModelIndex())
+    cat.removeRows(QModelIndex(), 1)
     model_validator.validate([('bar', 'Bar', '')])
