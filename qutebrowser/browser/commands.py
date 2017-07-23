@@ -514,14 +514,51 @@ class CommandDispatcher:
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', completion=miscmodels.buffer)
+    def tab_take(self, index):
+        """Take a tab from another window.
+
+        Args:
+            index: The [win_id/]index of the tab to take. Or a substring
+                   in which case the closest match will be focused.
+        """
+        tabbed_browser, tab = self._resolve_buffer_index(index)
+
+        if tabbed_browser == self._tabbed_browser:
+            raise cmdexc.CommandError("Can't take a tab "
+                                        "from the same window")
+
+        tabbed_browser.detach_tab(tab)
+        self._tabbed_browser.attach_tab(tab)
+        self._tabbed_browser.setCurrentWidget(tab)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('win_id', completion=miscmodels.window)
+    def tab_give(self, win_id: int):
+        """Give the current tab to another window.
+
+        Args:
+            win_id: The window ID of the window to give the current tab to.
+        """
+        if win_id == self._win_id:
+            raise cmdexc.CommandError("Can't give a tab to the same window")
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        tab = self._current_widget()
+        self._tabbed_browser.detach_tab(tab)
+        tabbed_browser.attach_tab(tab)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_detach(self):
         """Detach the current tab to its own window."""
         if self._count() < 2:
             raise cmdexc.CommandError("Cannot detach one tab.")
-        url = self._current_url()
-        self._open(url, window=True)
-        cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
+
+        new_tabbed_browser = self._new_tabbed_browser(
+            private=self._tabbed_browser.private)
+
+        self.tab_give(new_tabbed_browser.window().win_id)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -1009,15 +1046,11 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(e)
             self._open(url, tab, bg, window)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', completion=miscmodels.buffer)
-    def buffer(self, index):
-        """Select tab by index or url/title best match.
-
-        Focuses window if necessary.
+    def _resolve_buffer_index(self, index):
+        """Resolves a buffer index to the tabbedbrowser and tab.
 
         Args:
-            index: The [win_id/]index of the tab to focus. Or a substring
+            index: The [win_id/]index of the tab to be selected. Or a substring
                    in which case the closest match will be focused.
         """
         index_parts = index.split('/', 1)
@@ -1057,10 +1090,26 @@ class CommandDispatcher:
             raise cmdexc.CommandError(
                 "There's no tab with index {}!".format(idx))
 
-        window = objreg.window_registry[win_id]
+        return (tabbed_browser, tabbed_browser.widget(idx-1))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', completion=miscmodels.buffer)
+    def buffer(self, index):
+        """Select tab by index or url/title best match.
+
+        Focuses window if necessary.
+
+        Args:
+            index: The [win_id/]index of the tab to focus. Or a substring
+                   in which case the closest match will be focused.
+        """
+
+        tabbed_browser, tab = self._resolve_buffer_index(index)
+
+        window = tabbed_browser.window()
         window.activateWindow()
         window.raise_()
-        tabbed_browser.setCurrentIndex(idx-1)
+        tabbed_browser.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])

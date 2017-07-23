@@ -79,11 +79,13 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
 |<<tab-detach,tab-detach>>|Detach the current tab to its own window.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
+|<<tab-give,tab-give>>|Give the current tab to a new window.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
+|<<tab-take,tab-take>>|Takes a tab from another window and attaches it to this window.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
@@ -871,6 +873,17 @@ If neither count nor index are given, it behaves like tab-next. If both are give
 ==== count
 The tab index to focus, starting with 1.
 
+[[tab-give]]
+=== tab-give
+Syntax: +:tab-give 'win-id'+
+
+Give the current tab to a new window.
+
+If the current window only has a single tab, this behaves like tab-close.
+
+==== positional arguments
+* +'win-id'+: The window ID, starting with 0, to attach the current tab to.
+
 [[tab-move]]
 === tab-move
 Syntax: +:tab-move ['index']+
@@ -922,6 +935,17 @@ Switch to the previous tab, or switch [count] tabs back.
 
 ==== count
 How many tabs to switch back.
+
+[[tab-take]]
+=== tab-take
+Syntax: +:buffer 'index'+
+
+Takes a tab from another window and attaches it to this window.
+
+Select tab by index or url/title best match. If the window being taken from only has a single tab, this behaves like tab-close.
+
+==== positional arguments
+* +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be focused.
 
 [[unbind]]
 === unbind

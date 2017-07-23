@@ -245,24 +245,28 @@ class TabbedBrowser(tabwidget.TabWidget):
         else:
             yes_action()
 
-    def close_tab(self, tab, *, add_undo=True):
+    def close_tab(self, tab, *, add_undo=True, destroy=True):
         """Close a tab.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
+            destroy: Whether we should destroy the QWebView.
         """
         last_close = config.get('tabs', 'last-close')
         count = self.count()
 
         if last_close == 'ignore' and count == 1:
-            return
+            if destroy:
+                return
+            else:
+                last_close = 'blank'
 
         # If we are removing a pinned tab, decrease count
         if tab.data.pinned:
             self.tabBar().pinned_count -= 1
 
-        self._remove_tab(tab, add_undo=add_undo)
+        self._remove_tab(tab, add_undo=add_undo, destroy=destroy)
 
         if count == 1:  # We just closed the last tab above.
             if last_close == 'close':
@@ -276,13 +280,19 @@ class TabbedBrowser(tabwidget.TabWidget):
                 url = config.get('general', 'default-page')
                 self.openurl(url, newtab=True)
 
-    def _remove_tab(self, tab, *, add_undo=True, crashed=False):
+    def detach_tab(self, tab):
+        """Removes a tab from the tabbedbrowser without destroying it."""
+        self.close_tab(tab, add_undo=False, destroy=False)
+        tab.disconnect()
+
+    def _remove_tab(self, tab, *, add_undo=True, crashed=False, destroy=True):
         """Remove a tab from the tab list and delete it properly.
 
         Args:
             tab: The QWebView to be closed.
             add_undo: Whether the tab close can be undone.
             crashed: Whether we're closing a tab with crashed renderer process.
+            destroy: Whether we should destroy the QWebView.
         """
         idx = self.indexOf(tab)
         if idx == -1:
@@ -318,13 +328,41 @@ class TabbedBrowser(tabwidget.TabWidget):
                                   tab.data.pinned)
                 self._undo_stack.append(entry)
 
-        tab.shutdown()
+        if destroy:
+            tab.shutdown()
         self.removeTab(idx)
-        if not crashed:
+        if not crashed and destroy:
             # WORKAROUND for a segfault when we delete the crashed tab.
             # see https://bugreports.qt.io/browse/QTBUG-58698
             tab.layout().unwrap()
             tab.deleteLater()
+
+    def attach_tab(self, tab, idx=None):
+        """Attaches a tab to the tabbedbrowser.
+
+        Args:
+            tab: The QWebView to be added.
+            idx: The index where the tab should be added.
+        """
+        if idx is None:
+            idx = self._get_new_tab_idx(True)
+        if idx == -1:
+            idx = self.count()
+
+        self.insertTab(idx, tab, '')
+
+        self.set_page_title(idx, tab.title())
+        if config.get('tabs', 'show-favicons'):
+            self.setTabIcon(idx, tab.icon())
+            if config.get('tabs', 'tabs-are-windows'):
+                self.window().setWindowIcon(tab.icon())
+        self.set_tab_pinned(tab, tab.data.pinned)
+
+        self._connect_tab_signals(tab)
+
+        tab.show()
+        self.new_tab.emit(tab, idx)
+
 
     def undo(self):
         """Undo removing of a tab."""

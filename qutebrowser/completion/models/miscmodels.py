@@ -135,6 +135,25 @@ def buffer():
     return model
 
 
+def window():
+    """A model to complete on all open windows."""
+    model = completionmodel.CompletionModel(column_widths=(6, 30, 64))
+
+    windows = []
+
+    for win_id in objreg.window_registry:
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        tab_titles = (tab.title() for tab in tabbed_browser.widgets())
+        windows.append(("{}".format(win_id),
+                        objreg.window_registry[win_id].windowTitle(),
+                        ", ".join(tab_titles)))
+
+    model.add_category(listcategory.ListCategory("Windows", windows))
+
+    return model
+
+
 def bind(key):
     """A CompletionModel filled with all bindable commands and descriptions.
 
