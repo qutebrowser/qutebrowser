@@ -72,6 +72,10 @@ class HistoryCategory(QSqlQueryModel):
             'ORDER BY last_atime DESC LIMIT :limit)',
         ])).run(limit=max_items).value()
 
+        if not min_atime:
+            # if there are no history items, min_atime may be '' (issue #2849)
+            return ''
+
         return "AND last_atime >= {}".format(min_atime)
 
     def set_pattern(self, pattern):
