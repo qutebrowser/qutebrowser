@@ -1160,6 +1160,7 @@ class CommandDispatcher:
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
         """
+        cmdutils.check_exclusive((userscript, detach), 'ud')
         try:
             cmd, *args = shlex.split(cmdline)
         except ValueError as e:
