@@ -255,6 +255,10 @@ class CompletionView(QTreeView):
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
 
+        # if the last item is focused, try to fetch more
+        if idx.row() == self.model().rowCount(idx.parent()) - 1:
+            self.expandAll()
+
         count = self.model().count()
         if count == 0:
             self.hide()
