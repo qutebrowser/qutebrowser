@@ -2,6 +2,7 @@ beautifulsoup4
 cheroot
 coverage
 Flask
+hunter
 httpbin
 hypothesis
 pytest
@@ -16,8 +17,7 @@ pytest-qt
 pytest-repeat
 pytest-rerunfailures
 pytest-travis-fold
-pytest-warnings
 pytest-xvfb
 vulture
 
-#@ ignore: Jinja2, MarkupSafe
+#@ ignore: Jinja2, MarkupSafe, colorama

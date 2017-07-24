@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -108,3 +108,21 @@ class TestFixHarfbuzz:
         """Without QtWidgets in sys.modules, no warning should be shown."""
         monkeypatch.setattr(earlyinit.sys, 'modules', {})
         earlyinit.fix_harfbuzz(args)
+
+
+@pytest.mark.parametrize('same', [True, False])
+def test_qt_version(same):
+    if same:
+        qt_version_str = '5.4.0'
+        expected = '5.4.0'
+    else:
+        qt_version_str = '5.3.0'
+        expected = '5.4.0 (compiled 5.3.0)'
+    actual = earlyinit.qt_version(qversion='5.4.0',
+                                  qt_version_str=qt_version_str)
+    assert actual == expected
+
+
+def test_qt_version_no_args():
+    """Make sure qt_version without arguments at least works."""
+    earlyinit.qt_version()

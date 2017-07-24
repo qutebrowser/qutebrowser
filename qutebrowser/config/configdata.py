@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -185,10 +185,9 @@ def data(readonly=False):
              "Encoding to use for editor."),
 
             ('private-browsing',
-             SettingValue(typ.Bool(), 'false',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Do not record visited pages in the history or store web page "
-             "icons."),
+             SettingValue(typ.Bool(), 'false'),
+             "Open new windows in private browsing mode which does not record "
+             "visited pages."),
 
             ('developer-extras',
              SettingValue(typ.Bool(), 'false',
@@ -216,17 +215,11 @@ def data(readonly=False):
              "inspector's JavaScript console. Enabling this feature might "
              "have an impact on performance."),
 
-            ('site-specific-quirks',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Enable QtWebKit workarounds for broken sites."),
-
             ('default-encoding',
-             SettingValue(typ.String(none_ok=True), ''),
+             SettingValue(typ.String(), 'iso-8859-1'),
              "Default encoding to use for websites.\n\n"
              "The encoding must be a string describing an encoding such as "
-             "_utf-8_, _iso-8859-1_, etc. If left empty a default value will "
-             "be used."),
+             "_utf-8_, _iso-8859-1_, etc."),
 
             ('new-instance-open-target',
              SettingValue(typ.String(
@@ -317,8 +310,9 @@ def data(readonly=False):
              "The position of the status bar."),
 
             ('message-timeout',
-             SettingValue(typ.Int(), '2000'),
-             "Time (in ms) to show messages in the statusbar for."),
+             SettingValue(typ.Int(minval=0), '2000'),
+             "Time (in ms) to show messages in the statusbar for.\n"
+             "Set to 0 to never clear messages."),
 
             ('message-unfocused',
              SettingValue(typ.Bool(), 'false'),
@@ -350,11 +344,6 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Hide the main scrollbar."),
 
-            ('css-media-type',
-             SettingValue(typ.String(none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Set the CSS media type."),
-
             ('smooth-scrolling',
              SettingValue(typ.Bool(), 'false'),
              "Whether to enable smooth scrolling for web pages. Note smooth "
@@ -377,7 +366,7 @@ def data(readonly=False):
              SettingValue(typ.FormatString(fields=['perc', 'perc_raw', 'title',
                                                    'title_sep', 'id',
                                                    'scroll_pos', 'host',
-                                                   'backend']),
+                                                   'backend', 'private']),
                           '{perc}{title}{title_sep}qutebrowser'),
              "The format to use for the window title. The following "
              "placeholders are defined:\n\n"
@@ -389,7 +378,8 @@ def data(readonly=False):
              "* `{id}`: The internal window ID of this window.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
-             "* `{backend}`: Either 'webkit' or 'webengine'"),
+             "* `{backend}`: Either 'webkit' or 'webengine'\n"
+             "* `{private}` : Indicates when private mode is enabled.\n"),
 
             ('modal-js-dialog',
              SettingValue(typ.Bool(), 'false'),
@@ -447,14 +437,10 @@ def data(readonly=False):
              "User agent to send. Empty to send the default."),
 
             ('proxy',
-             SettingValue(typ.Proxy(), 'system',
-                          backends=(None if qtutils.version_check('5.8')
-                                    else [usertypes.Backend.QtWebKit])),
+             SettingValue(typ.Proxy(), 'system'),
              "The proxy to use.\n\n"
              "In addition to the listed values, you can use a `socks://...` "
-             "or `http://...` URL.\n\n"
-             "This setting only works with Qt 5.8 or newer when using the "
-             "QtWebEngine backend."),
+             "or `http://...` URL."),
 
             ('proxy-dns-requests',
              SettingValue(typ.Bool(), 'true',
@@ -517,7 +503,7 @@ def data(readonly=False):
              "0: no history / -1: unlimited"),
 
             ('web-history-max-items',
-             SettingValue(typ.Int(minval=-1), '1000'),
+             SettingValue(typ.Int(minval=-1, maxval=MAXVALS['int64']), '-1'),
              "How many URLs to show in the web history.\n\n"
              "0: no history / -1: unlimited"),
 
@@ -679,11 +665,21 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to show favicons in the tab bar."),
 
+            ('favicon-scale',
+             SettingValue(typ.Float(minval=0.0), '1.0'),
+             "Scale for favicons in the tab bar. The tab size is unchanged, "
+             "so big favicons also require extra `tabs->padding`."),
+
             ('width',
              SettingValue(typ.PercOrInt(minperc=0, maxperc=100, minint=1),
                           '20%'),
              "The width of the tab bar if it's vertical, in px or as "
              "percentage of the window."),
+
+            ('pinned-width',
+             SettingValue(typ.Int(minval=10),
+                          '43'),
+             "The width for pinned tabs with a horizontal tabbar, in px."),
 
             ('indicator-width',
              SettingValue(typ.Int(minval=0), '3'),
@@ -696,7 +692,7 @@ def data(readonly=False):
             ('title-format',
              SettingValue(typ.FormatString(
                  fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
-                         'id', 'scroll_pos', 'host'], none_ok=True),
+                         'id', 'scroll_pos', 'host', 'private'], none_ok=True),
                  '{index}: {title}'),
              "The format to use for the tab title. The following placeholders "
              "are defined:\n\n"
@@ -709,7 +705,16 @@ def data(readonly=False):
              "* `{id}`: The internal tab ID of this tab.\n"
              "* `{scroll_pos}`: The page scroll position.\n"
              "* `{host}`: The host of the current web page.\n"
-             "* `{backend}`: Either 'webkit' or 'webengine'"),
+             "* `{backend}`: Either 'webkit' or 'webengine'\n"
+             "* `{private}` : Indicates when private mode is enabled.\n"),
+
+            ('title-format-pinned',
+             SettingValue(typ.FormatString(
+                 fields=['perc', 'perc_raw', 'title', 'title_sep', 'index',
+                         'id', 'scroll_pos', 'host', 'private'], none_ok=True),
+                 '{index}'),
+             "The format to use for the tab title for pinned tabs. "
+             "The same placeholders like for title-format are defined."),
 
             ('title-alignment',
              SettingValue(typ.TextAlignment(), 'left'),
@@ -746,10 +751,12 @@ def data(readonly=False):
              SettingValue(typ.Bool(), 'true'),
              "Whether to remember the last used download directory."),
 
+            # Defaults from QWebSettings::QWebSettings() in
+            # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
             ('maximum-pages-in-cache',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=0, maxval=MAXVALS['int']), '',
-                 backends=[usertypes.Backend.QtWebKit]),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '0',
+                          backends=[usertypes.Backend.QtWebKit]),
              "The maximum number of pages to hold in the global memory page "
              "cache.\n\n"
              "The Page Cache allows for a nicer user experience when "
@@ -758,41 +765,7 @@ def data(readonly=False):
              "For more information about the feature, please refer to: "
              "http://webkit.org/blog/427/webkit-page-cache-i-the-basics/"),
 
-            ('object-cache-capacities',
-             SettingValue(
-                 typ.List(typ.WebKitBytes(maxsize=MAXVALS['int'],
-                          none_ok=True), none_ok=True, length=3), '',
-                 backends=[usertypes.Backend.QtWebKit]),
-             "The capacities for the global memory cache for dead objects "
-             "such as stylesheets or scripts. Syntax: cacheMinDeadCapacity, "
-             "cacheMaxDead, totalCapacity.\n\n"
-             "The _cacheMinDeadCapacity_ specifies the minimum number of "
-             "bytes that dead objects should consume when the cache is under "
-             "pressure.\n\n"
-             "_cacheMaxDead_ is the maximum number of bytes that dead objects "
-             "should consume when the cache is *not* under pressure.\n\n"
-             "_totalCapacity_ specifies the maximum number of bytes "
-             "that the cache should consume *overall*."),
-
-            ('offline-storage-default-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Default quota for new offline storage databases."),
-
-            ('offline-web-application-cache-quota',
-             SettingValue(typ.WebKitBytes(maxsize=MAXVALS['int64'],
-                                          none_ok=True), '',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Quota for the offline web application cache."),
-
-            ('offline-storage-database',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Whether support for the HTML 5 offline storage feature is "
-             "enabled."),
-
-            ('offline-web-application-storage',
+            ('offline-web-application-cache',
              SettingValue(typ.Bool(), 'true',
                           backends=[usertypes.Backend.QtWebKit]),
              "Whether support for the HTML 5 web application cache feature is "
@@ -806,7 +779,7 @@ def data(readonly=False):
 
             ('local-storage',
              SettingValue(typ.Bool(), 'true'),
-             "Whether support for the HTML 5 local storage feature is "
+             "Whether support for HTML 5 local storage and Web SQL is "
              "enabled."),
 
             ('cache-size',
@@ -836,11 +809,6 @@ def data(readonly=False):
             ('webgl',
              SettingValue(typ.Bool(), 'true'),
              "Enables or disables WebGL."),
-
-            ('css-regions',
-             SettingValue(typ.Bool(), 'true',
-                          backends=[usertypes.Backend.QtWebKit]),
-             "Enable or disable support for CSS regions."),
 
             ('hyperlink-auditing',
              SettingValue(typ.Bool(), 'false'),
@@ -909,7 +877,7 @@ def data(readonly=False):
             ('cookies-store',
              SettingValue(typ.Bool(), 'true'),
              "Whether to store cookies. Note this option needs a restart with "
-             "QtWebEngine."),
+             "QtWebEngine on Qt < 5.9."),
 
             ('host-block-lists',
              SettingValue(
@@ -1119,6 +1087,14 @@ def data(readonly=False):
              SettingValue(typ.QssColor(), 'black'),
              "Background color of the statusbar."),
 
+            ('statusbar.fg.private',
+             SettingValue(typ.QssColor(), '${statusbar.fg}'),
+             "Foreground color of the statusbar in private browsing mode."),
+
+            ('statusbar.bg.private',
+             SettingValue(typ.QssColor(), '#666666'),
+             "Background color of the statusbar in private browsing mode."),
+
             ('statusbar.fg.insert',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
              "Foreground color of the statusbar in insert mode."),
@@ -1134,6 +1110,16 @@ def data(readonly=False):
             ('statusbar.bg.command',
              SettingValue(typ.QssColor(), '${statusbar.bg}'),
              "Background color of the statusbar in command mode."),
+
+            ('statusbar.fg.command.private',
+             SettingValue(typ.QssColor(), '${statusbar.fg.private}'),
+             "Foreground color of the statusbar in private browsing + command "
+             "mode."),
+
+            ('statusbar.bg.command.private',
+             SettingValue(typ.QssColor(), '${statusbar.bg.private}'),
+             "Background color of the statusbar in private browsing + command "
+             "mode."),
 
             ('statusbar.fg.caret',
              SettingValue(typ.QssColor(), '${statusbar.fg}'),
@@ -1358,7 +1344,7 @@ def data(readonly=False):
 
         ('fonts', sect.KeyValue(
             ('_monospace',
-             SettingValue(typ.Font(), 'Terminus, Monospace, '
+             SettingValue(typ.Font(), 'xos4 Terminus, Terminus, Monospace, '
                           '"DejaVu Sans Mono", Monaco, '
                           '"Bitstream Vera Sans Mono", "Andale Mono", '
                           '"Courier New", Courier, "Liberation Mono", '
@@ -1417,25 +1403,28 @@ def data(readonly=False):
              SettingValue(typ.FontFamily(none_ok=True), ''),
              "Font family for fantasy fonts."),
 
+            # Defaults for web-size-* from WebEngineSettings::initDefaults in
+            # qtwebengine/src/core/web_engine_settings.cpp and
+            # QWebSettings::QWebSettings() in
+            # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+
             ('web-size-minimum',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '0'),
              "The hard minimum font size."),
 
+            # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
+            # just go for 6 here.
             ('web-size-minimum-logical',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=0, maxval=MAXVALS['int']), '6'),
              "The minimum logical font size that is applied when zooming "
              "out."),
 
             ('web-size-default',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=1, maxval=MAXVALS['int']), '16'),
              "The default font size for regular text."),
 
             ('web-size-default-fixed',
-             SettingValue(
-                 typ.Int(none_ok=True, minval=1, maxval=MAXVALS['int']), ''),
+             SettingValue(typ.Int(minval=1, maxval=MAXVALS['int']), '13'),
              "The default font size for fixed-pitch text."),
 
             ('keyhint',
@@ -1669,7 +1658,7 @@ KEY_DATA = collections.OrderedDict([
         ('download-clear', ['cd']),
         ('view-source', ['gf']),
         ('set-cmd-text -s :buffer', ['gt']),
-        ('tab-focus last', ['<Ctrl-Tab>']),
+        ('tab-focus last', ['<Ctrl-Tab>', '<Ctrl-6>', '<Ctrl-^>']),
         ('enter-mode passthrough', ['<Ctrl-V>']),
         ('quit', ['<Ctrl-Q>', 'ZQ']),
         ('wq', ['ZZ']),
@@ -1677,7 +1666,7 @@ KEY_DATA = collections.OrderedDict([
         ('scroll-page 0 -1', ['<Ctrl-B>']),
         ('scroll-page 0 0.5', ['<Ctrl-D>']),
         ('scroll-page 0 -0.5', ['<Ctrl-U>']),
-        ('tab-focus 1', ['<Alt-1>']),
+        ('tab-focus 1', ['<Alt-1>', 'g0', 'g^']),
         ('tab-focus 2', ['<Alt-2>']),
         ('tab-focus 3', ['<Alt-3>']),
         ('tab-focus 4', ['<Alt-4>']),
@@ -1685,14 +1674,15 @@ KEY_DATA = collections.OrderedDict([
         ('tab-focus 6', ['<Alt-6>']),
         ('tab-focus 7', ['<Alt-7>']),
         ('tab-focus 8', ['<Alt-8>']),
-        ('tab-focus 9', ['<Alt-9>']),
+        ('tab-focus -1', ['<Alt-9>', 'g$']),
         ('home', ['<Ctrl-h>']),
         ('stop', ['<Ctrl-s>']),
         ('print', ['<Ctrl-Alt-p>']),
-        ('open qute:settings', ['Ss']),
+        ('open qute://settings', ['Ss']),
         ('follow-selected', RETURN_KEYS),
         ('follow-selected -t', ['<Ctrl-Return>', '<Ctrl-Enter>']),
         ('repeat-command', ['.']),
+        ('tab-pin', ['<Ctrl-p>']),
         ('record-macro', ['q']),
         ('run-macro', ['@']),
     ])),

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -234,13 +234,6 @@ ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window',
 KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
                            'insert', 'passthrough', 'caret', 'set_mark',
                            'jump_mark', 'record_macro', 'run_macro'])
-
-
-# Available command completions
-Completion = enum('Completion', ['command', 'section', 'option', 'value',
-                                 'helptopic', 'quickmark_by_name',
-                                 'bookmark_by_url', 'url', 'tab', 'sessions',
-                                 'bind'])
 
 
 # Exit statuses for errors. Needs to be an int for sys.exit.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -36,6 +36,10 @@ import contextlib
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR)
 from PyQt5.QtWidgets import QApplication
+try:
+    from PyQt5.QtWebKit import qWebKitVersion
+except ImportError:  # pragma: no cover
+    qWebKitVersion = None
 
 from qutebrowser.utils import log
 
@@ -100,13 +104,10 @@ def version_check(version, exact=False, strict=False):
     return result
 
 
-def is_qtwebkit_ng(version):
-    """Check if the given version is  QtWebKit-NG.
-
-    This is typically used as is_webkit_ng(qWebKitVersion) but we don't want to
-    have QtWebKit imports in here.
-    """
-    return (pkg_resources.parse_version(version) >
+def is_qtwebkit_ng():
+    """Check if the given version is QtWebKit-NG."""
+    assert qWebKitVersion is not None
+    return (pkg_resources.parse_version(qWebKitVersion()) >
             pkg_resources.parse_version('538.1'))
 
 
@@ -172,12 +173,6 @@ def ensure_valid(obj):
     """Ensure a Qt object with an .isValid() method is valid."""
     if not obj.isValid():
         raise QtValueError(obj)
-
-
-def ensure_not_null(obj):
-    """Ensure a Qt object with an .isNull() method is not null."""
-    if obj.isNull():
-        raise QtValueError(obj, null=True)
 
 
 def check_qdatastream(stream):
@@ -412,15 +407,12 @@ class QtValueError(ValueError):
 
     """Exception which gets raised by ensure_valid."""
 
-    def __init__(self, obj, null=False):
+    def __init__(self, obj):
         try:
             self.reason = obj.errorString()
         except AttributeError:
             self.reason = None
-        if null:
-            err = "{} is null".format(obj)
-        else:
-            err = "{} is not valid".format(obj)
+        err = "{} is not valid".format(obj)
         if self.reason:
             err += ": {}".format(self.reason)
         super().__init__(err)

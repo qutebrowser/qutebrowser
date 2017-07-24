@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -55,31 +55,81 @@ def is_ignored_qt_message(message):
 
 def is_ignored_lowlevel_message(message):
     """Check if we want to ignore a lowlevel process output."""
-    if 'Running without the SUID sandbox!' in message:
-        return True
-    elif message.startswith('Xlib: sequence lost'):
+    if message.startswith('Xlib: sequence lost'):
         # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
         # ???
-        return True
-    elif 'CERT_PKIXVerifyCert for localhost failed' in message:
-        return True
-    elif 'Invalid node channel message' in message:
-        # Started appearing in sessions.feature with Qt 5.8...
         return True
     elif ("_dl_allocate_tls_init: Assertion `listp->slotinfo[cnt].gen <= "
           "GL(dl_tls_generation)' failed!" in message):
         # Started appearing with Qt 5.8...
         # http://patchwork.sourceware.org/patch/10255/
         return True
-    elif ("CreatePlatformSocket() returned an error, errno=97: Address family "
-          "not supported by protocol" in message):
-        # Makes tests fail on Quantumcross' machine
-        return True
-    elif 'Unable to locate theme engine in module_path:' in message:
-        return True
     elif message == 'getrlimit(RLIMIT_NOFILE) failed':
         return True
     return False
+
+
+def is_ignored_chromium_message(line):
+    msg_re = re.compile(r"""
+        \[
+        (\d+:\d+:)?  # Process/Thread ID
+        \d{4}/[\d.]+:  # MMDD/Time
+        (?P<loglevel>[A-Z]+):  # Log level
+        [^ :]+    # filename / line
+        \]
+        \ (?P<message>.*)  # message
+    """, re.VERBOSE)
+    match = msg_re.fullmatch(line)
+    if match is None:
+        return False
+
+    if match.group('loglevel') == 'INFO':
+        return True
+
+    message = match.group('message')
+    ignored_messages = [
+        # [27289:27289:0605/195958.776146:INFO:zygote_host_impl_linux.cc(107)]
+        # No usable sandbox! Update your kernel or see
+        # https://chromium.googlesource.com/chromium/src/+/master/docs/linux_suid_sandbox_development.md
+        # for more information on developing with the SUID sandbox. If you want
+        # to live dangerously and need an immediate workaround, you can try
+        # using --no-sandbox.
+        'No usable sandbox! Update your kernel or see *',
+        # [30981:30992:0605/200633.041364:ERROR:cert_verify_proc_nss.cc(918)]
+        # CERT_PKIXVerifyCert for localhost failed err=-8179
+        'CERT_PKIXVerifyCert for localhost failed err=*',
+
+        # Not reproducible anymore?
+
+        'Running without the SUID sandbox! *',
+        'Unable to locate theme engine in module_path: *',
+        'Could not bind NETLINK socket: Address already in use',
+        # Started appearing in sessions.feature with Qt 5.8...
+        'Invalid node channel message *',
+        # Makes tests fail on Quantumcross' machine
+        ('CreatePlatformSocket() returned an error, errno=97: Address family'
+            'not supported by protocol'),
+
+        # Qt 5.9 with debug Chromium
+
+        # [28121:28121:0605/191637.407848:WARNING:resource_bundle_qt.cpp(114)]
+        # locale_file_path.empty() for locale
+        'locale_file_path.empty() for locale',
+        # [26598:26598:0605/191429.639416:WARNING:audio_manager.cc(317)]
+        # Multiple instances of AudioManager detected
+        'Multiple instances of AudioManager detected',
+        # [25775:25788:0605/191240.931551:ERROR:quarantine_linux.cc(33)]
+        # Could not set extended attribute user.xdg.origin.url on file
+        # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/
+        # downloads/download.bin: Operation not supported
+        ('Could not set extended attribute user.xdg.* on file *: '
+            'Operation not supported'),
+        # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
+        # WebFrame LEAKED 1 TIMES
+        'WebFrame LEAKED 1 TIMES',
+    ]
+    return any(testutils.pattern_match(pattern=pattern, value=message)
+               for pattern in ignored_messages)
 
 
 class LogLine(testprocess.Line):
@@ -260,6 +310,7 @@ class QuteProc(testprocess.Process):
                 return None
             elif (is_ignored_qt_message(line) or
                   is_ignored_lowlevel_message(line) or
+                  is_ignored_chromium_message(line) or
                   self.request.node.get_marker('no_invalid_lines')):
                 self._log("IGNORED: {}".format(line))
                 return None
@@ -312,7 +363,8 @@ class QuteProc(testprocess.Process):
         URLs like about:... and qute:... are handled specially and returned
         verbatim.
         """
-        special_schemes = ['about:', 'qute:', 'chrome:']
+        special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:',
+                           'data:']
         if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:
@@ -354,7 +406,8 @@ class QuteProc(testprocess.Process):
         self.wait_for(category='webview',
                       message='Scroll position changed to ' + point)
 
-    def wait_for(self, timeout=None, **kwargs):
+    def wait_for(self, timeout=None,  # pylint: disable=arguments-differ
+                 **kwargs):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
@@ -377,7 +430,8 @@ class QuteProc(testprocess.Process):
             pattern="load status for <* tab_id=* url='*duckduckgo*'>: *",
             value=msg.message)
 
-        is_log_error = msg.loglevel > logging.INFO
+        is_log_error = (msg.loglevel > logging.INFO and
+                        not msg.message.startswith("Ignoring world ID"))
         return is_log_error or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
@@ -494,18 +548,20 @@ class QuteProc(testprocess.Process):
         self.set_setting(sect, opt, old_value)
 
     def open_path(self, path, *, new_tab=False, new_bg_tab=False,
-                  new_window=False, as_url=False, port=None, https=False,
-                  wait=True):
+                  new_window=False, private=False, as_url=False, port=None,
+                  https=False, wait=True):
         """Open the given path on the local webserver in qutebrowser."""
         url = self.path_to_url(path, port=port, https=https)
         self.open_url(url, new_tab=new_tab, new_bg_tab=new_bg_tab,
-                      new_window=new_window, as_url=as_url, wait=wait)
+                      new_window=new_window, private=private, as_url=as_url,
+                      wait=wait)
 
     def open_url(self, url, *, new_tab=False, new_bg_tab=False,
-                 new_window=False, as_url=False, wait=True):
+                 new_window=False, private=False, as_url=False, wait=True):
         """Open the given url in qutebrowser."""
-        if new_tab and new_window:
-            raise ValueError("new_tab and new_window given!")
+        if sum(1 for opt in [new_tab, new_bg_tab, new_window, private, as_url]
+               if opt) > 1:
+            raise ValueError("Conflicting options given!")
 
         if as_url:
             self.send_cmd(url, invalid=True)
@@ -515,6 +571,8 @@ class QuteProc(testprocess.Process):
             self.send_cmd(':open -b ' + url)
         elif new_window:
             self.send_cmd(':open -w ' + url)
+        elif private:
+            self.send_cmd(':open -p ' + url)
         else:
             self.send_cmd(':open ' + url)
 
@@ -573,7 +631,7 @@ class QuteProc(testprocess.Process):
         """Save the session and get the parsed session data."""
         with tempfile.TemporaryDirectory() as tmpdir:
             session = os.path.join(tmpdir, 'session.yml')
-            self.send_cmd(':session-save "{}"'.format(session))
+            self.send_cmd(':session-save --with-private "{}"'.format(session))
             self.wait_for(category='message', loglevel=logging.INFO,
                           message='Saved session {}.'.format(session))
             with open(session, encoding='utf-8') as f:

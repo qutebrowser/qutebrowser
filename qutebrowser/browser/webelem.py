@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,9 +22,6 @@
 Module attributes:
     Group: Enum for different kinds of groups.
     SELECTORS: CSS selectors for different groups of elements.
-    FILTERS: A dictionary of filter functions for the modes.
-             The filter for "links" filters javascript:-links and a-tags
-             without "href".
 """
 
 import collections.abc
@@ -37,32 +34,20 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
-Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'prevnext',
-                                 'inputs'])
+Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
 
 
 SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
                 'frame, iframe, link, [onclick], [onmousedown], [role=link], '
                 '[role=option], [role=button], img'),
-    Group.links: 'a, area, link, [role=link]',
+    Group.links: 'a[href], area[href], link[href], [role=link][href]',
     Group.images: 'img',
     Group.url: '[src], [href]',
-    Group.prevnext: 'a, area, button, link, [role=button]',
     Group.inputs: ('input[type=text], input[type=email], input[type=url], '
                    'input[type=tel], input[type=number], '
                    'input[type=password], input[type=search], '
                    'input:not([type]), textarea'),
-}
-
-
-def filter_links(elem):
-    return 'href' in elem and QUrl(elem['href']).scheme() != 'javascript'
-
-
-FILTERS = {
-    Group.links: filter_links,
-    Group.prevnext: filter_links,
 }
 
 
@@ -306,6 +291,11 @@ class AbstractWebElement(collections.abc.MutableMapping):
         qtutils.ensure_valid(url)
         return url
 
+    def is_link(self):
+        """Return True if this AbstractWebElement is a link."""
+        href_tags = ['a', 'area', 'link']
+        return self.tag_name() in href_tags and 'href' in self
+
     def _mouse_pos(self):
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
@@ -374,15 +364,16 @@ class AbstractWebElement(collections.abc.MutableMapping):
             self._click_fake_event(click_target)
             return
 
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=self._tab.win_id)
+
         if click_target in [usertypes.ClickTarget.tab,
                             usertypes.ClickTarget.tab_bg]:
             background = click_target == usertypes.ClickTarget.tab_bg
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self._tab.win_id)
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
             from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
+            window = mainwindow.MainWindow(private=tabbed_browser.private)
             window.show()
             window.tabbed_browser.tabopen(url)
         else:
@@ -403,9 +394,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
             self._click_fake_event(click_target)
             return
 
-        href_tags = ['a', 'area', 'link']
         if click_target == usertypes.ClickTarget.normal:
-            if self.tag_name() in href_tags:
+            if self.is_link():
                 log.webelem.debug("Clicking via JS click()")
                 self._click_js(click_target)
             elif self.is_editable(strict=True):
@@ -418,7 +408,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         elif click_target in [usertypes.ClickTarget.tab,
                               usertypes.ClickTarget.tab_bg,
                               usertypes.ClickTarget.window]:
-            if self.tag_name() in href_tags:
+            if self.is_link():
                 self._click_href(click_target)
             else:
                 self._click_fake_event(click_target)

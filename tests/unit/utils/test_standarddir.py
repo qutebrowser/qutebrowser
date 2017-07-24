@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -167,8 +167,8 @@ class TestStandardDir:
         (standarddir.cache, 2, ['Caches', 'qute_test']),
         (standarddir.download, 1, ['Downloads']),
     ])
-    @pytest.mark.osx
-    def test_os_x(self, func, elems, expected):
+    @pytest.mark.mac
+    def test_mac(self, func, elems, expected):
         assert func().split(os.sep)[-elems:] == expected
 
 
@@ -180,8 +180,9 @@ class TestArguments:
 
     """Tests the --basedir argument."""
 
-    @pytest.mark.parametrize('typ', ['config', 'data', 'cache', 'download',
-                                     pytest.mark.linux('runtime')])
+    @pytest.mark.parametrize('typ', [
+        'config', 'data', 'cache', 'download',
+        pytest.param('runtime', marks=pytest.mark.linux)])
     def test_basedir(self, tmpdir, typ):
         """Test --basedir."""
         expected = str(tmpdir / typ)

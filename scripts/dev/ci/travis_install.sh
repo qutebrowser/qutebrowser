@@ -1,6 +1,6 @@
 # vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -43,6 +43,12 @@ travis_retry() {
 }
 
 apt_install() {
+    sudo tee /etc/apt/sources.list <<EOF
+deb http://us.archive.ubuntu.com/ubuntu/ trusty main
+deb http://us.archive.ubuntu.com/ubuntu/ trusty-security main
+deb http://us.archive.ubuntu.com/ubuntu/ trusty-updates main
+EOF
+    sudo rm -rf /etc/apt/sources.list.d
     travis_retry sudo apt-get -y -q update
     travis_retry sudo apt-get -y -q install --no-install-recommends "$@"
 }
@@ -64,8 +70,9 @@ npm_install() {
 }
 
 install_node() {
-    curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
-    apt_install nodejs
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+    travis_retry sudo apt-get -y -q update
+    travis_retry sudo apt-get -y -q install --no-install-recommends nodejs
 }
 
 check_pyqt() {
@@ -102,7 +109,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     exit 0
 fi
 
-pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit"
+pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit python3-pyqt5.qtsql libqt5sql5-sqlite"
 
 pip_install pip
 pip_install -r misc/requirements/requirements-tox.txt

@@ -14,37 +14,189 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v0.11.0 (unreleased)
---------------------
+v1.0.0 (unreleased)
+-------------------
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+- Support for legacy QtWebKit (before 5.212 which is distributed
+  independently from Qt) is dropped.
+- Support for Python 3.4 is dropped.
+- Support for Qt before 5.7 is dropped.
+- New dependency on the QtSql module and Qt sqlite support.
+- New dependency on ruamel.yaml; dropped PyYAML dependency.
+- The QtWebEngine backend is now used by default if available.
+- New config system which ignores the old config file.
+
+Major changes
+~~~~~~~~~~~~~
+
+- New completion engine based on sqlite, which allows to complete
+  the entire browsing history.
+- Completely rewritten configuration system.
 
 Added
 ~~~~~
 
-- New `:clear-messages` command to clear shown messages.
-- New `ui -> keyhint-delay` setting to configure the delay until
-  the keyhint overlay pops up.
-- New `-s` option for `:open` to force a HTTPS scheme.
+- New back/forward indicator in the statusbar
 
 Changed
 ~~~~~~~
 
-- When using QtWebEngine, the underlying Chromium version is now shown in the
-  version info.
-- Improved `qute:history` page with lazy loading
-- Messages are now hidden when clicked
-- Paths like `C:Downloads` are now treated as absolute paths on Windows.
-- PAC on QtWebKit now supports SOCK5 as type.
+- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
+  work properly anymore.
+- Using `:download` now uses the page's title as filename.
+- Using `:back` or `:forward` with a count now skips intermediate pages.
+- When there are multiple messages shown, the timeout is increased.
+- `:search` now only clears the search if one was displayed before, so pressing
+  `<Escape>` doesn't un-focus inputs anymore.
+
+Fixes
+~~~~~
+
+- Exiting fullscreen via `:fullscreen` or buttons on a page now
+  restores the correct previous window state (maximized/fullscreen).
+
+v0.11.1 (unreleased)
+--------------------
+
+Fixes
+~~~~~
+
+- Fixed empty space being shown after tabs in the tabbar in some cases.
+- Fixed `:restart` in private browsing mode.
+- Fixed printing on macOS.
+- Closing a pinned tab via mouse now also prompts for confirmation.
+- The "try again" button on error pages works correctly again.
+- :spawn -u -d is now disallowed.
+- :spawn -d shows error messages correctly now.
+
+v0.11.0
+-------
+
+New dependencies
+~~~~~~~~~~~~~~~~
+
+- New dependency on `PyQt5.QtOpenGL` if QtWebEngine is used. QtWebEngine depends
+  on QtOpenGL already, but on distributions packaging split PyQt5 wrappers, the
+  wrappers for QtOpenGL are now required.
+- New dependency on `PyOpenGL` if QtWebEngine is used.
+
+Added
+~~~~~
+
+- Private browsing is now implemented for QtWebEngine, *and changed its
+  behavior*: The `general -> private-browsing` setting now only applies to newly
+  opened windows, and you can use the `-p` flag to `:open` to open a private
+  window.
+- New "pinned tabs" feature, with a new `:tab-pin` command (bound
+  to `<Ctrl-p>` by default).
+- (QtWebEngine) Implemented `:follow-selected`.
+- New `:clear-messages` command to clear shown messages.
+- New `ui -> keyhint-delay` setting to configure the delay until
+  the keyhint overlay pops up.
+- New `-s` option for `:open` to force a HTTPS scheme.
+- `:debug-log-filter` now accepts `none` as an argument to clear any log
+  filters.
+- New `--debug-flag` argument which replaces `--debug-exit` and
+  `--pdb-postmortem`.
+- New `tabs -> favicon-scale` option to scale up/down favicons.
+- `colors -> statusbar.bg/fg.private` and `.command.private` to
+  customize statusbar colors for private windows.
+- New `{private}` field displaying `[Private Mode]` for
+  `ui -> window-title-format` and `tabs -> title-format`.
+- (QtWebEngine) Proxy support with Qt 5.7.1 (already was supported for 5.8 and
+  newer)
+
+Changed
+~~~~~~~
+
+- To prevent elaborate phishing attacks, the Punycode version (`xn--*`) is now
+  shown in addition to the decoded version for international domain names
+  (IDN).
+- Starting with legacy QtWebKit now shows a warning message.
+  *With the next release, support for it will be removed.*
+- The Windows releases are redone from scratch, which means:
+  - They now use the new QtWebEngine backend
+  - The bundled Qt is updated from 5.5 to 5.9
+  - The bundled Python is updated from 3.4 to 3.6
+  - They are now generated with PyInstaller instead of cx_Freeze
+  - The installer is now generated using NSIS instead of being a MSI
+- Improved `qute://history` page (with lazy loading)
+- Crash reports are not public anymore.
+- Paths like `C:` are now treated as absolute paths on Windows for downloads,
+  and invalid paths are handled properly.
+- Comments in the config file are now placed before the individual options
+  instead of being before sections.
+- Messages are now hidden when clicked.
+- stdin is now closed immediately for processes spawned from qutebrowser.
+- When `ui -> message-timeout` is set to 0, messages are now never cleared.
+- Middle/right-clicking the blank parts of the tab bar (when vertical) now
+  closes the current tab.
+- The adblocker now also blocks non-GET requests (e.g. POST).
+- `javascript:` links can now be hinted.
+- `:view-source`, `:tab-clone` and `:navigate --tab` now don't open the tab as
+  "explicit" anymore, i.e. (with the default settings) open it next to the
+  active tab.
+- `qute:*` pages now use `qute://*` instead (e.g. `qute://version` instead of
+  `qute:version`), but the old versions are automatically redirected.
+- Texts in prompts are now selectable.
+- The default level for `:messages` is now `info`, not `error`
+- Trying to focus the currently focused tab with `:tab-focus` now focuses the
+  last viewed tab.
+- (QtWebEngine) With Qt 5.9, `content -> cookies-store` can now be set without
+  a restart.
+- (QtWebEngine) With Qt 5.9, better error messages are now shown for failed
+  downloads.
+- (QtWebEngine) The underlying Chromium version is now shown in the version
+  info.
+- (QtWebKit) Renderer process crashes now show an error page on Qt 5.9 or newer.
+- (QtWebKit) storage -> offline-web-application-storage` got renamed to `...-cache`
+- (QtWebKit) PAC now supports SOCKS5 as type.
 
 Fixed
 ~~~~~
 
-- Added a workaround for a black screen with QtWebEngine with some setups
-  (the workaround requires PyOpenGL to be installed, but it's optional)
-- Crash when trying to retry downloads with QtWebEngine
-- Crash when cloning page without history
-- Continuing a search after clearing it
-- Crash when downloading a download resulting in a HTTP error
-- Various rare crashes
+- The macOS .dmg is now built against Qt 5.9 which fixes various
+  important issues (such as not being able to type dead keys).
+- Fixed crash with `:download` on PyQt 5.9.
+- Cloning a page without history doesn't crash anymore.
+- When a download results in a HTTP error, it now shows the error correctly
+  instead of crashing.
+- Pressing ctrl-c while a config error is shown works as intended now.
+- When the key config isn't writable, we now show an error instead of crashing.
+- Fixed crash when unbinding an unbound key in the key config.
+- Fixed crash when using `:debug-log-filter` when `--filter` wasn't given on startup.
+- Fixed crash with some invalid setting values.
+- Continuing a search after clearing it now works correctly.
+- The tabbar and completion should now be more consistently and correctly
+  styled with various system styles.
+- Applying styiles in `qt5ct` now shouldn't crash anymore.
+- The validation for colors in stylesheets is now less strict,
+  allowing for all valid Qt values.
+- `data:` URLs now aren't added to the history anymore.
+- Accidentally starting with Python 2 now shows a proper error message again.
+- For some people, running some userscripts crashed - this should now be fixed.
+- Various other rare crashes should now be fixed.
+- The settings documentation was truncated with v0.10.1 which should now be
+  fixed.
+- Scrolling to an anchor in a background tab now works correctly, and javascript
+  gets the correct window size for background tabs.
+- (QtWebEngine) Added a workaround for a black screen with some setups
+- (QtWebEngine) Starting with Nouveau graphics now shows an error message
+  instead of crashing in Qt.
+- (QtWebEngine) Retrying downloads now shows an error instead of crashing.
+- (QtWebEngine) Cloning a view-source tab now doesn't crash anymore.
+- (QtWebEngine) `window.navigator.userAgent` is now set correctly when
+  customizing the user agent.
+- (QtWebEngine) HTML fullscreen is now tracked for each tab separately, which
+  means it's not possible anymore to accidentally get stuck in fullscreen state
+  by closing a tab with a fullscreen video.
+- (QtWebEngine) `:scroll-page` with `--bottom-navigate` now works correctly.
+- (QtWebKit) The HTTP cache is disabled on Qt 5.7.1 and 5.8 now as it leads to
+  frequent crashes due to a Qt bug.
+- (QtWebKit) Fixed Crash when a PAC file returns an invalid value.
 
 v0.10.1
 -------
@@ -89,7 +241,7 @@ Added
 - Open tabs are now auto-saved on each successful load and restored in case of a crash
 - `:jseval` now has a `--file` flag so you can pass a javascript file
 - `:session-save` now has a `--only-active-window` flag to only save the active window
-- OS X builds are back, and built with QtWebEngine
+- macOS builds are back, and built with QtWebEngine
 
 Changed
 ~~~~~~~
@@ -104,6 +256,18 @@ Changed
 - `input -> mouse-zoom-divider` can now be 0 to disable zooming by mouse wheel
 - `network -> proxy` can also be set to `pac+file://...` now to
   use a local proxy autoconfig file (on QtWebKit)
+
+Removed
+~~~~~~~
+
+- (QtWebKit) Various rarely customized settings were removed:
+  - `ui -> css-media-type` (defaults to desktop)
+  - `general -> site-specific-quirks` (now always turned on)
+  - `storage -> offline-storage-default-quota` (defaults to 5MB)
+  - `storage -> offline-web-application-cache-quota` (defaults to no quota)
+  - `storage -> object-cache-capacities` (default depends on disk space)
+  - `content -> css-regions` (now always turned off)
+  - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
 
 Fixed
 ~~~~~
@@ -379,7 +543,7 @@ Fixed
 - Fix crash when pressing enter without a command
 - Adjust error message to point out QtWebEngine is unsupported with the OS
   X .app currently.
-- Hide Harfbuzz warning with the OS X .app
+- Hide Harfbuzz warning with the macOS .app
 
 v0.8.0
 ------
@@ -742,7 +906,7 @@ Fixed
 - Fixed scrolling to the very left/right with `:scroll-perc`.
 - Using an external editor should now work correctly with some funny chars
   (U+2028/U+2029/BOM).
-- Movements in caret mode now should work correctly on OS X and Windows.
+- Movements in caret mode now should work correctly on macOS and Windows.
 - Fixed upgrade from earlier config versions.
 - Fixed crash when killing a running userscript.
 - Fixed characters being passed through when shifted with
@@ -817,7 +981,7 @@ Changed
 - The completion widget doesn't show a border anymore.
 - The tabbar doesn't display ugly arrows anymore if there isn't enough space
   for all tabs.
-- Some insignificant Qt warnings which were printed on OS X are now hidden.
+- Some insignificant Qt warnings which were printed on macOS are now hidden.
 - Better support for Qt 5.5 and Python 3.5.
 
 Fixed
@@ -928,7 +1092,7 @@ Fixed
 - Fixed AssertionError when closing many windows quickly.
 - Various fixes for deprecated key bindings and auto-migrations.
 - Workaround for qutebrowser not starting when there are NUL-bytes in the history (because of a currently unknown bug).
-- Fixed handling of keybindings containing Ctrl/Meta on OS X.
+- Fixed handling of keybindings containing Ctrl/Meta on macOS.
 - Fixed crash when downloading a URL without filename (e.g. magnet links) via "Save as...".
 - Fixed exception when starting qutebrowser with `:set` as argument.
 - Fixed horrible completion performance when the `shrink` option was set.
@@ -1026,7 +1190,7 @@ Changed
 - Add a `:search` command in addition to `/foo` so it's more visible and can be used from scripts.
 - Various improvements to documentation, logging, and the crash reporter.
 - Expand `~` to the users home directory with `:run-userscript`.
-- Improve the userscript runner on Linux/OS X by using `QSocketNotifier`.
+- Improve the userscript runner on Linux/macOS by using `QSocketNotifier`.
 - Add luakit-like `gt`/`gT` keybindings to cycle through tabs.
 - Show default value for config values in the completion.
 - Clone tab icon, tab text and zoom level when cloning tabs.
@@ -1046,7 +1210,7 @@ Changed
     * `init_venv.py` and `run_checks.py` have been replaced by http://tox.readthedocs.org/[tox]. Install tox and run `tox -e mkvenv` instead.
     * The tests now use http://pytest.org/[pytest]
     * Many new tests added
-    * Mac Mini buildbot to run the tests on OS X.
+    * Mac Mini buildbot to run the tests on macOS.
     * Coverage recording via http://nedbatchelder.com/code/coverage/[coverage.py].
     * New `--pdb-postmortem argument` to drop into the pdb debugger on exceptions.
     * Use https://github.com/ionelmc/python-hunter[hunter] for line tracing instead of a selfmade solution.
@@ -1182,7 +1346,7 @@ Fixed
 
 * Fix rare exception when a key is pressed shortly after opening a window
 * Fix exception with certain invalid URLs like `http:foo:0`
-* Work around Qt bug which renders checkboxes on OS X unusable
+* Work around Qt bug which renders checkboxes on macOS unusable
 * Fix exception when a local files can't be read in `:adblock-update`
 * Hide 2 more Qt warnings.
 * Add `!important` to hint CSS so websites don't override the hint look
@@ -1218,7 +1382,7 @@ Changes
 * Set zoom to default instead of 100% with `:zoom`/`=`.
 * Adjust page zoom if default zoom changed.
 * Force tabs to be focused on `:undo`.
-* Replace manual installation instructions on OS X with homebrew/macports.
+* Replace manual installation instructions on macOS with homebrew/macports.
 * Allow min-/maximizing of print preview on Windows.
 * Various documentation improvements.
 * Various other small improvements and cleanups.

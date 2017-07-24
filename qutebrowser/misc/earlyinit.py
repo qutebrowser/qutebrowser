@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,12 +35,15 @@ import faulthandler
 import traceback
 import signal
 import importlib
-import pkg_resources
 import datetime
+import logging
 try:
     import tkinter
 except ImportError:
     tkinter = None
+
+import pkg_resources
+
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
 
@@ -63,15 +66,7 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     lines = ['Please search for the python3 version of {} in your '
              'distributions packages, or install it via pip.'.format(name)]
     blocks.append('<br />'.join(lines))
-    if webengine:
-        lines = [
-            ('Note QtWebEngine is not available for some distributions '
-                '(like Ubuntu), so you need to start without --backend '
-                'webengine there.'),
-            ('QtWebEngine is currently unsupported with the OS X .app, see '
-                'https://github.com/qutebrowser/qutebrowser/issues/1692'),
-        ]
-    else:
+    if not webengine:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
     blocks.append('<br />'.join(lines))
@@ -259,14 +254,29 @@ def get_backend(args):
         return 'webengine'
 
 
+def qt_version(qversion=None, qt_version_str=None):
+    """Get a Qt version string based on the runtime/compiled versions."""
+    if qversion is None:
+        from PyQt5.QtCore import qVersion
+        qversion = qVersion()
+    if qt_version_str is None:
+        from PyQt5.QtCore import QT_VERSION_STR
+        qt_version_str = QT_VERSION_STR
+
+    if qversion != qt_version_str:
+        return '{} (compiled {})'.format(qversion, qt_version_str)
+    else:
+        return qversion
+
+
 def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
-    from qutebrowser.utils import qtutils, version
+    from qutebrowser.utils import qtutils
     if (not qtutils.version_check('5.2.0', strict=True) or
             PYQT_VERSION < 0x050200):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
-                "PyQt {} is installed.".format(version.qt_version(),
+                "PyQt {} is installed.".format(qt_version(),
                                                PYQT_VERSION_STR))
         _die(text)
     elif (backend == 'webengine' and (
@@ -274,21 +284,32 @@ def check_qt_version(backend):
             PYQT_VERSION < 0x050700)):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
                 "QtWebEngine support, but Qt {} / PyQt {} is installed."
-                .format(version.qt_version(), PYQT_VERSION_STR))
+                .format(qt_version(), PYQT_VERSION_STR))
         _die(text)
 
 
-def check_ssl_support():
+def check_ssl_support(backend):
     """Check if SSL support is available."""
+    from qutebrowser.utils import log
+
     try:
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
-        ok = False
-    else:
-        ok = QSslSocket.supportsSsl()
-    if not ok:
-        text = "Fatal error: Your Qt is built without SSL support."
-        _die(text)
+        _die("Fatal error: Your Qt is built without SSL support.")
+
+    text = ("Could not initialize QtNetwork SSL support. If you use "
+            "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
+            "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
+            "of OpenSSL 1.0.")
+    if backend == 'webengine':
+        text += " This only affects downloads."
+
+    if not QSslSocket.supportsSsl():
+        if backend == 'webkit':
+            _die("Could not initialize SSL support.")
+        else:
+            assert backend == 'webengine'
+            log.init.warning(text)
 
 
 def check_libraries(backend):
@@ -316,10 +337,19 @@ def check_libraries(backend):
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
                          pip="PyYAML"),
+        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
+        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
+        modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
+        # Workaround for a black screen with some setups
+        # https://github.com/spyder-ide/spyder/issues/3226
+        if not os.environ.get('QUTE_NO_OPENGL_WORKAROUND'):
+            # Hide "No OpenGL_accelerate module loaded: ..." message
+            logging.getLogger('OpenGL.acceleratesupport').propagate = False
+            modules['OpenGL.GL'] = _missing_str("PyOpenGL")
     else:
         assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
@@ -409,6 +439,6 @@ def earlyinit(args):
     check_qt_version(backend)
     remove_inputhook()
     check_libraries(backend)
-    check_ssl_support()
+    check_ssl_support(backend)
     check_optimize_flag()
     set_backend(backend)

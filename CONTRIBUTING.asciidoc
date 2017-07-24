@@ -5,6 +5,12 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
+IMPORTANT: I'm currently (July 2017) more busy than usual until September,
+because of exams coming up. In addition to that, a new config system is coming
+which will conflict with many non-trivial contributions. Because of that, please
+refrain from contributing new features until then. If you're reading this note
+after mid-September, please open an issue.
+
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
@@ -41,6 +47,12 @@ pointers:
 be easy to solve]
 * https://github.com/qutebrowser/qutebrowser/labels/not%20code[Issues which
 require little/no coding]
+
+If you prefer C++ or Javascript to Python, see the relevant issues which involve
+work in those languages:
+
+* https://github.com/qutebrowser/qutebrowser/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Ac%2B%2B[C++] (mostly work on Qt, the library behind qutebrowser)
+* https://github.com/qutebrowser/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Ajavascript[JavaScript]
 
 There are also some things to do if you don't want to write code:
 
@@ -214,7 +226,7 @@ Documentation of used Python libraries:
 * http://pygments.org/docs/[pygments]
 * http://fdik.org/pyPEG/index.html[pyPEG2]
 * http://pythonhosted.org/setuptools/[setuptools]
-* http://cx-freeze.readthedocs.org/en/latest/overview.html[cx_Freeze]
+* http://www.pyinstaller.org/[PyInstaller]
 * https://pypi.python.org/pypi/colorama[colorama]
 
 Related RFCs and standards:
@@ -546,6 +558,28 @@ Rebuilding the website
 
 If you want to rebuild the website, run `./scripts/asciidoc2html.py --website <outputdir>`.
 
+Chrome URLs
+~~~~~~~~~~~
+
+With the QtWebEngine backend, qutebrowser supports several chrome:// urls which
+can be useful for debugging:
+
+- chrome://appcache-internals/
+- chrome://blob-internals/
+- chrome://gpu/
+- chrome://histograms/
+- chrome://indexeddb-internals/
+- chrome://media-internals/
+- chrome://network-errors/
+- chrome://serviceworker-internals/
+- chrome://webrtc-internals/
+- chrome://crash/ (crashes the current renderer process!)
+- chrome://kill/ (kills the current renderer process!)
+- chrome://gpucrash/ (crashes qutebrowser!)
+- chrome://gpuhang/ (hangs qutebrowser!)
+- chrome://gpuclean/ (crashes the current renderer process!)
+- chrome://ppapiflashcrash/
+- chrome://ppapiflashhang/
 
 Style conventions
 -----------------
@@ -654,8 +688,9 @@ qutebrowser release
 
 * Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`
     - `python -m qutebrowser --basedir conf :quit`
-    - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.x.y.conf`
+    - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.$x.$y.conf`
     - `rm -r conf`
+    - git add
     - commit
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Update changelog (remove *(unreleased)*)
@@ -670,8 +705,8 @@ qutebrowser release
 as closed.
 
 * Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`
-* Windows: Run `C:\Python34_x32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand)
-* OS X: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand)
+* Windows: Run `C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand)
+* macOS: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand)
 * On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand)
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed
 * Announce to qutebrowser and qutebrowser-announce mailinglist

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,7 +28,6 @@ import os.path
 import collections
 import functools
 import contextlib
-import itertools
 import socket
 import shlex
 
@@ -134,7 +133,8 @@ def read_file(filename, binary=False):
         The file contents as string.
     """
     if hasattr(sys, 'frozen'):
-        # cx_Freeze doesn't support pkg_resources :(
+        # PyInstaller doesn't support pkg_resources :(
+        # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
             with open(fn, 'rb') as f:
@@ -372,8 +372,8 @@ def keyevent_to_string(e):
         None if only modifiers are pressed..
     """
     if sys.platform == 'darwin':
-        # Qt swaps Ctrl/Meta on OS X, so we switch it back here so the user can
-        # use it in the config as expected. See:
+        # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
+        # can use it in the config as expected. See:
         # https://github.com/qutebrowser/qutebrowser/issues/110
         # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
         modmask2str = collections.OrderedDict([
@@ -736,25 +736,6 @@ def sanitize_filename(name, replacement='_'):
     return name
 
 
-def newest_slice(iterable, count):
-    """Get an iterable for the n newest items of the given iterable.
-
-    Args:
-        count: How many elements to get.
-               0: get no items:
-               n: get the n newest items
-              -1: get all items
-    """
-    if count < -1:
-        raise ValueError("count can't be smaller than -1!")
-    elif count == 0:
-        return []
-    elif count == -1 or len(iterable) < count:
-        return iterable
-    else:
-        return itertools.islice(iterable, len(iterable) - count, len(iterable))
-
-
 def set_clipboard(data, selection=False):
     """Set the clipboard to some given data."""
     if selection and not supports_selection():
@@ -857,11 +838,6 @@ def open_file(filename, cmdline=None):
                    .format(filename, [cmd] + args))
     proc = guiprocess.GUIProcess(what='open-file')
     proc.start_detached(cmd, args)
-
-
-def unused(_arg):
-    """Function which does nothing to avoid pylint complaining."""
-    pass
 
 
 def expand_windows_drive(path):

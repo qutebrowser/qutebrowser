@@ -22,6 +22,20 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download.bin should exist
 
+    Scenario: Using :download with no URL
+        When I set storage -> prompt-download-directory to false
+        And I open data/downloads/downloads.html
+        And I run :download
+        And I wait until the download is finished
+        Then the downloaded file Simple downloads.html should exist
+
+    Scenario: Using :download with no URL on an image
+        When I set storage -> prompt-download-directory to false
+        And I open data/downloads/qutebrowser.png
+        And I run :download
+        And I wait until the download is finished
+        Then the downloaded file qutebrowser.png should exist
+
     Scenario: Using hints
         When I set storage -> prompt-download-directory to false
         And I open data/downloads/downloads.html
@@ -71,7 +85,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading a data: link (issue 1214)
         When I set completion -> download-path-suggestion to filename
         And I set storage -> prompt-download-directory to true
-        And I open data/downloads/issue1214.html
+        And I open data/data_link.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
         And I run :leave-mode
@@ -121,13 +135,21 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip
-    Scenario: Downloading a file with evil content-disposition header
+    @qtwebkit_skip @qt<5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
+
+    @qtwebkit_skip @qt>=5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 or newer)
+        # Content-Disposition: download; filename=..%2Ffoo
+        When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
+        And I wait until the download is finished
+        Then the downloaded file ../foo should not exist
+        And the downloaded file ..%2Ffoo should exist
 
     @windows
     Scenario: Downloading a file to a reserved path
@@ -571,9 +593,9 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file content-size should exist
 
-    @posix
     Scenario: Downloading to unwritable destination
-        When I set storage -> prompt-download-directory to false
+        When the unwritable dir is unwritable
+        And I set storage -> prompt-download-directory to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
         Then the error "Download error: Permission denied" should be shown
 
@@ -597,7 +619,7 @@ Feature: Downloading things from a website.
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 
-    @qtwebengine_todo: pdfjs is not implemented yet @qtwebkit_ng_xfail: https://github.com/annulen/webkit/issues/428
+    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: Downloading via pdfjs
         Given pdfjs is available
         When I set storage -> prompt-download-directory to false
@@ -629,7 +651,7 @@ Feature: Downloading things from a website.
     @qtwebengine_skip: We can't get the UA from the page there
     Scenario: user-agent when using :download
         When I open user-agent
-        And I run :download
+        And I run :download --dest user-agent
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 

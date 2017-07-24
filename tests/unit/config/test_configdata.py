@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -39,6 +39,6 @@ def test_data():
 
 def test_readonly_data():
     """Make sure DATA is readonly."""
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="Trying to modify a read-only "
+                                         "config!"):
         configdata.DATA['general'].setv('temp', 'ignore-case', 'true', 'true')
-    assert str(excinfo.value) == "Trying to modify a read-only config!"

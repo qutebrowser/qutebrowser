@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-variable
-
 """Partial comparison of dicts/lists."""
 
 
@@ -27,6 +25,14 @@ import pprint
 import os.path
 
 import pytest
+
+from qutebrowser.utils import qtutils
+
+
+qt58 = pytest.mark.skipif(
+    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
+qt59 = pytest.mark.skipif(
+    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
 
 
 class PartialCompareOutcome:

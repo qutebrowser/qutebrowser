@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,10 +31,11 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget
 from qutebrowser.browser import signalfilter, browsertab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message)
+                               urlutils, message, jinja)
 
 
-UndoEntry = collections.namedtuple('UndoEntry', ['url', 'history', 'index'])
+UndoEntry = collections.namedtuple('UndoEntry',
+                                   ['url', 'history', 'index', 'pinned'])
 
 
 class TabDeletedError(Exception):
@@ -68,6 +69,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
         default_window_icon: The qutebrowser window icon
+        private: Whether private browsing is on for this window.
 
     Signals:
         cur_progress: Progress of the current tab changed (load_progress).
@@ -94,13 +96,13 @@ class TabbedBrowser(tabwidget.TabWidget):
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
     cur_load_status_changed = pyqtSignal(str)
+    cur_fullscreen_requested = pyqtSignal(bool)
     close_window = pyqtSignal()
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
-    page_fullscreen_requested = pyqtSignal(bool)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, *, win_id, private, parent=None):
         super().__init__(win_id, parent)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
@@ -109,6 +111,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self.tabCloseRequested.connect(self.on_tab_close_requested)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
+        self.cur_fullscreen_requested.connect(self.tabBar().maybe_hide)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
@@ -118,6 +121,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._local_marks = {}
         self._global_marks = {}
         self.default_window_icon = self.window().windowIcon()
+        self.private = private
         objreg.get('config').changed.connect(self.update_favicons)
         objreg.get('config').changed.connect(self.update_window_title)
         objreg.get('config').changed.connect(self.update_tab_titles)
@@ -182,14 +186,16 @@ class TabbedBrowser(tabwidget.TabWidget):
             self._filter.create(self.cur_load_started, tab))
         tab.scroller.perc_changed.connect(
             self._filter.create(self.cur_scroll_perc_changed, tab))
-        tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
         tab.url_changed.connect(
             self._filter.create(self.cur_url_changed, tab))
         tab.load_status_changed.connect(
             self._filter.create(self.cur_load_status_changed, tab))
+        tab.fullscreen_requested.connect(
+            self._filter.create(self.cur_fullscreen_requested, tab))
+        # misc
+        tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
         tab.url_changed.connect(
             functools.partial(self.on_url_changed, tab))
-        # misc
         tab.title_changed.connect(
             functools.partial(self.on_title_changed, tab))
         tab.icon_changed.connect(
@@ -205,10 +211,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         tab.renderer_process_terminated.connect(
             functools.partial(self._on_renderer_process_terminated, tab))
         tab.new_tab_requested.connect(self.tabopen)
-        tab.add_history_item.connect(objreg.get('web-history').add_from_tab)
-        tab.fullscreen_requested.connect(self.page_fullscreen_requested)
-        tab.fullscreen_requested.connect(
-            self.tabBar().on_page_fullscreen_requested)
+        if not self.private:
+            web_history = objreg.get('web-history')
+            tab.add_history_item.connect(web_history.add_from_tab)
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -227,6 +232,19 @@ class TabbedBrowser(tabwidget.TabWidget):
         for tab in self.widgets():
             self._remove_tab(tab)
 
+    def tab_close_prompt_if_pinned(self, tab, force, yes_action):
+        """Helper method for tab_close.
+
+        If tab is pinned, prompt. If everything is good, run yes_action.
+        """
+        if tab.data.pinned and not force:
+            message.confirm_async(
+                title='Pinned Tab',
+                text="Are you sure you want to close a pinned tab?",
+                yes_action=yes_action, default=False)
+        else:
+            yes_action()
+
     def close_tab(self, tab, *, add_undo=True):
         """Close a tab.
 
@@ -239,6 +257,10 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         if last_close == 'ignore' and count == 1:
             return
+
+        # If we are removing a pinned tab, decrease count
+        if tab.data.pinned:
+            self.tabBar().pinned_count -= 1
 
         self._remove_tab(tab, add_undo=add_undo)
 
@@ -264,6 +286,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         """
         idx = self.indexOf(tab)
         if idx == -1:
+            if crashed:
+                return
             raise TabDeletedError("tab {} is not contained in "
                                   "TabbedWidget!".format(tab))
         if tab is self._now_focused:
@@ -290,7 +314,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             except browsertab.WebTabError:
                 pass  # special URL
             else:
-                entry = UndoEntry(tab.url(), history_data, idx)
+                entry = UndoEntry(tab.url(), history_data, idx,
+                                  tab.data.pinned)
                 self._undo_stack.append(entry)
 
         tab.shutdown()
@@ -321,7 +346,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        url, history_data, idx = self._undo_stack.pop()
+        url, history_data, idx, pinned = self._undo_stack.pop()
 
         if use_current_tab:
             self.openurl(url, newtab=False)
@@ -330,6 +355,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
+        self.set_tab_pinned(newtab, pinned)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
@@ -353,7 +379,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Got invalid tab {} for index {}!".format(
                 tab, idx))
             return
-        self.close_tab(tab)
+        self.tab_close_prompt_if_pinned(
+            tab, False, lambda: self.close_tab(tab))
 
     @pyqtSlot(browsertab.AbstractTab)
     def on_window_close_requested(self, widget):
@@ -399,13 +426,14 @@ class TabbedBrowser(tabwidget.TabWidget):
         if (config.get('tabs', 'tabs-are-windows') and self.count() > 0 and
                 not ignore_tabs_are_windows):
             from qutebrowser.mainwindow import mainwindow
-            window = mainwindow.MainWindow()
+            window = mainwindow.MainWindow(private=self.private)
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
             return tabbed_browser.tabopen(url, background, explicit)
 
-        tab = browsertab.create(win_id=self._win_id, parent=self)
+        tab = browsertab.create(win_id=self._win_id, private=self.private,
+                                parent=self)
         self._connect_tab_signals(tab)
 
         if idx is None:
@@ -414,12 +442,18 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         if url is not None:
             tab.openurl(url)
+
         if background is None:
             background = config.get('tabs', 'background-tabs')
         if background:
+            # Make sure the background tab has the correct initial size.
+            # With a foreground tab, it's going to be resized correctly by the
+            # layout anyways.
+            tab.resize(self.currentWidget().size())
             self.tab_index_changed.emit(self.currentIndex(), self.count())
         else:
             self.setCurrentWidget(tab)
+
         tab.show()
         self.new_tab.emit(tab, idx)
         return tab
@@ -660,24 +694,33 @@ class TabbedBrowser(tabwidget.TabWidget):
     def _on_renderer_process_terminated(self, tab, status, code):
         """Show an error when a renderer process terminated."""
         if status == browsertab.TerminationStatus.normal:
-            pass
-        elif status == browsertab.TerminationStatus.abnormal:
-            message.error("Renderer process exited with status {}".format(
-                code))
-        elif status == browsertab.TerminationStatus.crashed:
-            message.error("Renderer process crashed")
-        elif status == browsertab.TerminationStatus.killed:
-            message.error("Renderer process was killed")
-        elif status == browsertab.TerminationStatus.unknown:
-            message.error("Renderer process did not start")
-        else:
-            raise ValueError("Invalid status {}".format(status))
+            return
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
-        # FIXME:qtwebengine can we disable this with Qt 5.8.1?
-        self._remove_tab(tab, crashed=True)
-        if self.count() == 0:
-            self.tabopen(QUrl('about:blank'))
+        messages = {
+            browsertab.TerminationStatus.abnormal:
+                "Renderer process exited with status {}".format(code),
+            browsertab.TerminationStatus.crashed:
+                "Renderer process crashed",
+            browsertab.TerminationStatus.killed:
+                "Renderer process was killed",
+            browsertab.TerminationStatus.unknown:
+                "Renderer process did not start",
+        }
+        msg = messages[status]
+
+        if qtutils.version_check('5.9'):
+            url_string = tab.url(requested=True).toDisplayString()
+            error_page = jinja.render(
+                'error.html', title="Error loading {}".format(url_string),
+                url=url_string, error=msg, icon='')
+            QTimer.singleShot(0, lambda: tab.set_html(error_page))
+            log.webview.error(msg)
+        else:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+            message.error(msg)
+            self._remove_tab(tab, crashed=True)
+            if self.count() == 0:
+                self.tabopen(QUrl('about:blank'))
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

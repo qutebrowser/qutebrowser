@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -230,8 +230,7 @@ class _CrashDialog(QDialog):
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
         info_label = QLabel("<br/><b>Note that without your help, I can't fix "
-                            "the bug you encountered.<br/> Crash reports are "
-                            "currently publicly accessible.</b>",
+                            "the bug you encountered.</b>",
                             wordWrap=True)
         self._vbox.addWidget(info_label)
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -62,7 +62,7 @@ class Request(testprocess.Line):
     def _check_status(self):
         """Check if the http status is what we expected."""
         # WORKAROUND for https://github.com/PyCQA/pylint/issues/399 (?)
-        # pylint: disable=no-member, useless-suppression
+        # pylint: disable=no-member
         path_to_statuses = {
             '/favicon.ico': [http.client.NOT_FOUND],
             '/does-not-exist': [http.client.NOT_FOUND],

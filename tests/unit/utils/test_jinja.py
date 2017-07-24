@@ -1,4 +1,4 @@
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -21,9 +21,9 @@
 
 import os
 import os.path
+import logging
 
 import pytest
-import logging
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, jinja

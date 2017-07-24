@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import itertools
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
 
@@ -35,11 +35,12 @@ from qutebrowser.browser import mouse, hints
 tab_id_gen = itertools.count(0)
 
 
-def create(win_id, parent=None):
+def create(win_id, private, parent=None):
     """Get a QtWebKit/QtWebEngine tab object.
 
     Args:
         win_id: The window ID where the tab will be shown.
+        private: Whether the tab is a private/off the record tab.
         parent: The Qt parent to set.
     """
     # Importing modules here so we don't depend on QtWebEngine without the
@@ -51,7 +52,8 @@ def create(win_id, parent=None):
     else:
         from qutebrowser.browser.webkit import webkittab
         tab_class = webkittab.WebKitTab
-    return tab_class(win_id=win_id, mode_manager=mode_manager, parent=parent)
+    return tab_class(win_id=win_id, mode_manager=mode_manager, private=private,
+                     parent=parent)
 
 
 def init():
@@ -94,6 +96,8 @@ class TabData:
         viewing_source: Set if we're currently showing a source view.
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
+        pinned: Flag to pin the tab.
+        fullscreen: Whether the tab has a video shown fullscreen currently.
     """
 
     def __init__(self):
@@ -101,11 +105,21 @@ class TabData:
         self.viewing_source = False
         self.inspector = None
         self.override_target = None
+        self.pinned = False
+        self.fullscreen = False
 
 
 class AbstractAction:
 
-    """Attribute of AbstractTab for Qt WebActions."""
+    """Attribute of AbstractTab for Qt WebActions.
+
+    Class attributes (overridden by subclasses):
+        action_class: The class actions are defined on (QWeb{Engine,}Page)
+        action_base: The type of the actions (QWeb{Engine,}Page.WebAction)
+    """
+
+    action_class = None
+    action_base = None
 
     def __init__(self):
         self._widget = None
@@ -117,6 +131,13 @@ class AbstractAction:
     def save_page(self):
         """Save the current page."""
         raise NotImplementedError
+
+    def run_string(self, name):
+        """Run a webaction based on its name."""
+        member = getattr(self.action_class, name, None)
+        if not isinstance(member, self.action_base):
+            raise WebTabError("{} is not a valid web action!".format(name))
+        self._widget.triggerPageAction(member)
 
 
 class AbstractPrinting:
@@ -155,6 +176,8 @@ class AbstractSearch(QObject):
 
     Attributes:
         text: The last thing this view was searched for.
+        search_displayed: Whether we're currently displaying search results in
+                          this view.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
     """
@@ -163,6 +186,7 @@ class AbstractSearch(QObject):
         super().__init__(parent)
         self._widget = None
         self.text = None
+        self.search_displayed = False
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
@@ -441,16 +465,32 @@ class AbstractHistory:
     def current_idx(self):
         raise NotImplementedError
 
-    def back(self):
-        raise NotImplementedError
+    def back(self, count=1):
+        idx = self.current_idx() - count
+        if idx >= 0:
+            self._go_to_item(self._item_at(idx))
+        else:
+            self._go_to_item(self._item_at(0))
+            raise WebTabError("At beginning of history.")
 
-    def forward(self):
-        raise NotImplementedError
+    def forward(self, count=1):
+        idx = self.current_idx() + count
+        if idx < len(self):
+            self._go_to_item(self._item_at(idx))
+        else:
+            self._go_to_item(self._item_at(len(self) - 1))
+            raise WebTabError("At end of history.")
 
     def can_go_back(self):
         raise NotImplementedError
 
     def can_go_forward(self):
+        raise NotImplementedError
+
+    def _item_at(self, i):
+        raise NotImplementedError
+
+    def _go_to_item(self, item):
         raise NotImplementedError
 
     def serialize(self):
@@ -524,6 +564,7 @@ class AbstractTab(QWidget):
     Attributes:
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
+        private: Whether private browsing is turned on for this tab.
 
         _load_status: loading status of this page
                       Accessible via load_status() method.
@@ -563,7 +604,8 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
 
-    def __init__(self, win_id, mode_manager, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
+        self.private = private
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)
@@ -740,6 +782,10 @@ class AbstractTab(QWidget):
     def clear_ssl_errors(self):
         raise NotImplementedError
 
+    def key_press(self, key, modifier=Qt.NoModifier):
+        """Send a fake key event to this tab."""
+        raise NotImplementedError
+
     def dump_async(self, callback, *, plain=False):
         """Dump the current page to a file ascync.
 
@@ -771,7 +817,7 @@ class AbstractTab(QWidget):
     def icon(self):
         raise NotImplementedError
 
-    def set_html(self, html, base_url):
+    def set_html(self, html, base_url=QUrl()):
         raise NotImplementedError
 
     def networkaccessmanager(self):

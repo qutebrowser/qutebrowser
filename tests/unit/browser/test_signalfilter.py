@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,27 +27,6 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.browser import signalfilter
 from qutebrowser.utils import objreg
-
-
-class FakeTabbedBrowser:
-
-    def __init__(self):
-        self.index_of = None
-        self.current_index = None
-
-    def indexOf(self, _tab):
-        if self.index_of is None:
-            raise ValueError("indexOf got called with index_of None!")
-        elif self.index_of is RuntimeError:
-            raise RuntimeError
-        else:
-            return self.index_of
-
-    def currentIndex(self):
-        if self.current_index is None:
-            raise ValueError("currentIndex got called with current_index "
-                             "None!")
-        return self.current_index
 
 
 class Signaller(QObject):
@@ -84,8 +63,8 @@ def objects():
 
 
 @pytest.fixture
-def tabbed_browser(win_registry):
-    tb = FakeTabbedBrowser()
+def tabbed_browser(stubs, win_registry):
+    tb = stubs.TabbedBrowserStub()
     objreg.register('tabbed-browser', tb, scope='window', window=0)
     yield tb
     objreg.delete('tabbed-browser', scope='window', window=0)

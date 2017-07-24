@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -137,20 +137,6 @@ class FakeMainWindow(QObject):
         return self._geometry
 
 
-class FakeTabbedBrowser:
-
-    """A fake tabbed-browser which contains some widgets."""
-
-    def __init__(self, widgets):
-        self._widgets = widgets
-
-    def widgets(self):
-        return self._widgets
-
-    def currentIndex(self):
-        return 1
-
-
 @pytest.fixture
 def fake_window(win_registry, stubs, monkeypatch, qtbot):
     """Fixture which provides a fake main windows with a tabbedbrowser."""
@@ -159,7 +145,7 @@ def fake_window(win_registry, stubs, monkeypatch, qtbot):
 
     webview = QWebView()
     qtbot.add_widget(webview)
-    browser = FakeTabbedBrowser([webview])
+    browser = stubs.TabbedBrowserStub([webview])
     objreg.register('tabbed-browser', browser, scope='window', window=0)
 
     yield
@@ -211,7 +197,7 @@ class TestSave:
         """Fixture which provides a window with a fake history."""
         win = FakeMainWindow(b'fake-geometry-0', win_id=0)
         objreg.register('main-window', win, scope='window', window=0)
-        browser = FakeTabbedBrowser([webview])
+        browser = stubs.TabbedBrowserStub([webview])
 
         objreg.register('tabbed-browser', browser, scope='window', window=0)
         qapp = stubs.FakeQApplication(active_window=win)
@@ -263,10 +249,9 @@ class TestSave:
         mocker.patch('qutebrowser.misc.sessions.yaml.dump',
                      side_effect=exception)
 
-        with pytest.raises(sessions.SessionError) as excinfo:
+        with pytest.raises(sessions.SessionError, match=str(exception)):
             sess_man.save(str(tmpdir / 'foo.yml'))
 
-        assert str(excinfo.value) == str(exception)
         assert not tmpdir.listdir()
 
     def test_load_next_time(self, tmpdir, state_config, sess_man):

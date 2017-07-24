@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,3 +19,13 @@
 
 import pytest_bdd as bdd
 bdd.scenarios('javascript.feature')
+
+
+@bdd.then("the window sizes should be the same")
+def check_window_sizes(quteproc):
+    hidden = quteproc.wait_for_js('hidden window size: *')
+    quteproc.send_cmd(':jseval --world main updateText("visible")')
+    visible = quteproc.wait_for_js('visible window size: *')
+    hidden_size = hidden.message.split()[-1]
+    visible_size = visible.message.split()[-1]
+    assert hidden_size == visible_size

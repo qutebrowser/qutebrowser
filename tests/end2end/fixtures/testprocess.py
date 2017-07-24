@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -78,8 +78,8 @@ class Line:
 def _render_log(data, threshold=100):
     """Shorten the given log without -v and convert to a string."""
     data = [str(d) for d in data]
-    is_exception = any('Traceback (most recent call last):' in line
-                       for line in data)
+    is_exception = any('Traceback (most recent call last):' in line or
+                       'Uncaught exception' in line for line in data)
     verbose = pytest.config.getoption('--verbose')
     if len(data) > threshold and not verbose and not is_exception:
         msg = '[{} lines suppressed, use -v to show]'.format(
@@ -103,8 +103,8 @@ def pytest_runtest_makereport(item, call):
     httpbin_log = getattr(item, '_httpbin_log', None)
 
     if not hasattr(report.longrepr, 'addsection'):
-        # In some conditions (on OS X and Windows it seems), report.longrepr is
-        # actually a tuple. This is handled similarily in pytest-qt too.
+        # In some conditions (on macOS and Windows it seems), report.longrepr
+        # is actually a tuple. This is handled similarily in pytest-qt too.
         return
 
     if pytest.config.getoption('--capture') == 'no':

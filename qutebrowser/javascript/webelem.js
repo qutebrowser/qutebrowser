@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -21,8 +21,8 @@
  * The connection for web elements between Python and Javascript works like
  * this:
  *
- * - Python calls into Javascript and invokes a function to find elements (like
- *   find_all, focus_element, element_at_pos or element_by_id).
+ * - Python calls into Javascript and invokes a function to find elements (one
+ *   of the find_* functions).
  * - Javascript gets the requested element, and calls serialize_elem on it.
  * - serialize_elem saves the javascript element object in "elements", gets some
  *   attributes from the element, and assigns an ID (index into 'elements') to
@@ -50,13 +50,32 @@ window._qutebrowser.webelem = (function() {
 
         var out = {
             "id": id,
-            "text": elem.text,
             "value": elem.value,
-            "tag_name": elem.tagName,
             "outer_xml": elem.outerHTML,
-            "class_name": elem.className,
             "rects": [],  // Gets filled up later
         };
+
+        // https://github.com/qutebrowser/qutebrowser/issues/2569
+        if (typeof elem.tagName === "string") {
+            out.tag_name = elem.tagName;
+        } else if (typeof elem.nodeName === "string") {
+            out.tag_name = elem.nodeName;
+        } else {
+            out.tag_name = "";
+        }
+
+        if (typeof elem.className === "string") {
+            out.class_name = elem.className;
+        } else {
+            // e.g. SVG elements
+            out.class_name = "";
+        }
+
+        if (typeof elem.textContent === "string") {
+            out.text = elem.textContent;
+        } else if (typeof elem.text === "string") {
+            out.text = elem.text;
+        }  // else: don't add the text at all
 
         var attributes = {};
         for (var i = 0; i < elem.attributes.length; ++i) {
@@ -125,7 +144,7 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
-    funcs.find_all = function(selector, only_visible) {
+    funcs.find_css = function(selector, only_visible) {
         var elems = document.querySelectorAll(selector);
         var out = [];
 
@@ -138,7 +157,12 @@ window._qutebrowser.webelem = (function() {
         return out;
     };
 
-    funcs.focus_element = function() {
+    funcs.find_id = function(id) {
+        var elem = document.getElementById(id);
+        return serialize_elem(elem);
+    };
+
+    funcs.find_focused = function() {
         var elem = document.activeElement;
 
         if (!elem || elem === document.body) {
@@ -150,17 +174,7 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
-    funcs.set_value = function(id, value) {
-        elements[id].value = value;
-    };
-
-    funcs.insert_text = function(id, text) {
-        var elem = elements[id];
-        elem.focus();
-        document.execCommand("insertText", false, text);
-    };
-
-    funcs.element_at_pos = function(x, y) {
+    funcs.find_at_pos = function(x, y) {
         // FIXME:qtwebengine
         // If the element at the specified point belongs to another document
         // (for example, an iframe's subdocument), the subdocument's parent
@@ -170,9 +184,23 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
-    funcs.element_by_id = function(id) {
-        var elem = document.getElementById(id);
-        return serialize_elem(elem);
+    // Function for returning a selection to python (so we can click it)
+    funcs.find_selected_link = function() {
+        var elem = window.getSelection().anchorNode;
+        if (!elem) {
+            return null;
+        }
+        return serialize_elem(elem.parentNode);
+    };
+
+    funcs.set_value = function(id, value) {
+        elements[id].value = value;
+    };
+
+    funcs.insert_text = function(id, text) {
+        var elem = elements[id];
+        elem.focus();
+        document.execCommand("insertText", false, text);
     };
 
     funcs.set_attribute = function(id, name, value) {

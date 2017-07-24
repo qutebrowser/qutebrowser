@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,6 +27,7 @@ import collections
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
+from qutebrowser.config import config
 from qutebrowser.utils import message, usertypes, log, urlutils, utils
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
@@ -273,7 +274,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if self.fileobj is None or self._reply is None:
             # No filename has been set yet (so we don't empty the buffer) or we
             # got a readyRead after the reply was finished (which happens on
-            # qute:log for example).
+            # qute://log for example).
             return
         if not self._reply.isOpen():
             raise OSError("Reply is closed!")
@@ -366,7 +367,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self._networkmanager = networkmanager.NetworkManager(
-            win_id, None, self)
+            win_id=win_id, tab_id=None,
+            private=config.get('general', 'private-browsing'), parent=self)
 
     @pyqtSlot('QUrl')
     def get(self, url, *, user_agent=None, **kwargs):
@@ -410,7 +412,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
                 mhtml.start_download_checked, tab=tab))
             message.global_bridge.ask(question, blocking=False)
 
-    def get_request(self, request, *, target=None, **kwargs):
+    def get_request(self, request, *, target=None,
+                    suggested_fn=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
@@ -426,7 +429,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
 
-        if request.url().scheme().lower() != 'data':
+        if suggested_fn is not None:
+            pass
+        elif request.url().scheme().lower() != 'data':
             suggested_fn = urlutils.filename_from_url(request.url())
         else:
             # We might be downloading a binary blob embedded on a page or even

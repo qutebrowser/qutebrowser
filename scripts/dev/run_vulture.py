@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -54,9 +54,7 @@ def whitelist_generator():
                                                                         attr)
 
     # PyQt properties
-    for attr in ['prompt_active', 'command_active', 'insert_active',
-                 'caret_mode']:
-        yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.' + attr
+    yield 'qutebrowser.mainwindow.statusbar.bar.StatusBar.color_flags'
     yield 'qutebrowser.mainwindow.statusbar.url.UrlText.urltype'
 
     # Not used yet, but soon (or when debugging)
@@ -74,8 +72,9 @@ def whitelist_generator():
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().fileNames'
     yield 'PyQt5.QtWidgets.QStyleOptionViewItem.backgroundColor'
 
-    ## qute:... handlers
+    ## qute://... handlers
     for name in qutescheme._HANDLERS:  # pylint: disable=protected-access
+        name = name.replace('-', '_')
         yield 'qutebrowser.browser.qutescheme.qute_' + name
 
     # Other false-positives
@@ -164,7 +163,8 @@ def run(files):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts'])
+    parser.add_argument('files', nargs='*', default=['qutebrowser', 'scripts',
+                                                     'setup.py'])
     args = parser.parse_args()
     out = run(args.files)
     for line in out:

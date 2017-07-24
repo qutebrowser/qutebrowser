@@ -236,6 +236,18 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
+    Scenario: :tab-focus with current tab number
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 3
+        And I run :tab-focus 3
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+
     Scenario: :tab-focus with -1
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -607,11 +619,24 @@ Feature: Tab management
                   title: Test title
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
-    @qtwebkit_skip @qt>=5.8
+
+    @qtwebkit_skip @qt==5.8.0
     Scenario: Cloning a tab with a special URL
         When I open chrome://gpu
         And I run :tab-clone
         Then the error "Can't serialize special URL!" should be shown
+
+    @qtwebkit_skip @qt<5.9
+    Scenario: Cloning a tab with a view-source URL
+        When I open view-source:http://localhost:(port)
+        And I run :tab-clone
+        Then the error "Can't serialize special URL!" should be shown
+
+    @qtwebkit_skip @qt>=5.9
+    Scenario: Cloning a tab with a special URL (Qt 5.9)
+        When I open chrome://gpu
+        And I run :tab-clone
+        Then no crash should happen
 
     # :tab-detach
 
@@ -767,18 +792,6 @@ Feature: Tab management
             - data/numbers/1.txt (active)
             - data/numbers/2.txt
             - data/numbers/3.txt
-
-    # https://github.com/qutebrowser/qutebrowser/issues/2289
-    @qtwebkit_skip @qt>=5.8
-    Scenario: Undoing a tab with a special URL
-        Given I have a fresh instance
-        When I open data/numbers/1.txt
-        And I open chrome://gpu in a new tab
-        And I run :tab-close
-        And I run :undo
-        Then the error "Nothing to undo!" should be shown
-        And the following tabs should be open:
-            - data/numbers/1.txt (active)
 
     # last-close
 
@@ -1025,3 +1038,131 @@ Feature: Tab management
             - tabs:
               - history:
                 - url: http://localhost:*/data/hello.txt
+
+    # :tab-pin
+
+    Scenario: :tab-pin command
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active) (pinned)
+
+    Scenario: :tab-pin unpin
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-pin
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-pin to index 2
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin with count 2
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (pinned)
+            - data/numbers/3.txt (active)
+
+    Scenario: :tab-pin with an invalid count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin with count 23
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
+    Scenario: Pinned :tab-close prompt yes
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Pinned :tab-close prompt no
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept no
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/2.txt (active) (pinned)
+
+    Scenario: Pinned :tab-only prompt yes
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept yes
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Pinned :tab-only prompt no
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-next
+        And I run :tab-only
+        And I wait for "*want to close a pinned tab*" in the log
+        And I run :prompt-accept no
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+            - data/numbers/2.txt (pinned)
+
+    Scenario: Pinned :tab-only close all but pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-only
+        Then the following tabs should be open:
+            - data/numbers/2.txt (active) (pinned)
+
+    Scenario: :tab-pin open url
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt without waiting
+        Then the message "Tab is pinned!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: Cloning a pinned tab
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :tab-clone
+        And I wait until data/numbers/1.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt (pinned)
+            - data/numbers/1.txt (pinned) (active)
+
+    Scenario: Undo a pinned tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-pin
+        And I run :tab-close --force
+        And I run :undo
+        And I wait until data/numbers/2.txt is loaded
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (pinned) (active)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
 # This file is part of qutebrowser.
 #
@@ -19,9 +19,10 @@
 
 """pytest fixtures for tests.keyinput."""
 
+from unittest import mock
+
 import pytest
 
-from unittest import mock
 from qutebrowser.utils import objreg
 
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,7 @@ import functools
 
 import sip
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
-from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
+from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import style
@@ -75,6 +75,7 @@ class DownloadView(QListView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.setStyle(QStyleFactory.create('Fusion'))
         style.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

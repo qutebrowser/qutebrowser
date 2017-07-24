@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,9 +19,7 @@
 
 """Wrapper over a QWebEngineCertificateError."""
 
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineCertificateError
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.utils import usertypes, utils, debug
 

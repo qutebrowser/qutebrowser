@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -64,14 +64,19 @@ class _QtFIFOReader(QObject):
     def read_line(self):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
-        self._notifier.setEnabled(False)
         try:
-            for line in self._fifo:
-                self.got_line.emit(line.rstrip('\r\n'))
-                self._notifier.setEnabled(True)
-        except UnicodeDecodeError as e:
-            log.misc.error("Invalid unicode in userscript output: {}"
-                           .format(e))
+            self._notifier.setEnabled(False)
+            try:
+                for line in self._fifo:
+                    self.got_line.emit(line.rstrip('\r\n'))
+                    self._notifier.setEnabled(True)
+            except UnicodeDecodeError as e:
+                log.misc.error("Invalid unicode in userscript output: {}"
+                               .format(e))
+        except RuntimeError as e:
+            # For unknown reasons, read_line can still get called after the
+            # QSocketNotifier was already deleted...
+            log.procs.debug("While reading userscript output: {}".format(e))
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""

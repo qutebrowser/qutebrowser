@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,6 @@ import collections
 import logging
 import json
 import hashlib
-import subprocess
 from unittest import mock
 
 import pytest
@@ -182,34 +181,34 @@ def md5(inp):
 
 class TestSocketName:
 
-    LEGACY_TESTS = [
-        (None, 'qutebrowser-testusername'),
-        ('/x', 'qutebrowser-testusername-{}'.format(md5('/x'))),
-    ]
-
     POSIX_TESTS = [
         (None, 'ipc-{}'.format(md5('testusername'))),
         ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
+    ]
+
+    WINDOWS_TESTS = [
+        (None, 'qutebrowser-testusername'),
+        ('/x', 'qutebrowser-testusername-{}'.format(md5('/x'))),
     ]
 
     @pytest.fixture(autouse=True)
     def patch_user(self, monkeypatch):
         monkeypatch.setattr(ipc.getpass, 'getuser', lambda: 'testusername')
 
-    @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
-    def test_legacy(self, basedir, expected):
-        socketname = ipc._get_socketname(basedir, legacy=True)
-        assert socketname == expected
-
-    @pytest.mark.parametrize('basedir, expected', LEGACY_TESTS)
+    @pytest.mark.parametrize('basedir, expected', WINDOWS_TESTS)
     @pytest.mark.windows
     def test_windows(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         assert socketname == expected
 
-    @pytest.mark.osx
+    @pytest.mark.parametrize('basedir, expected', WINDOWS_TESTS)
+    def test_windows_on_posix(self, basedir, expected):
+        socketname = ipc._get_socketname_windows(basedir)
+        assert socketname == expected
+
+    @pytest.mark.mac
     @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
-    def test_os_x(self, basedir, expected):
+    def test_mac(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         parts = socketname.split(os.sep)
         assert parts[-2] == 'qute_test'
@@ -223,7 +222,7 @@ class TestSocketName:
         assert socketname == expected_path
 
     def test_other_unix(self):
-        """Fake test for POSIX systems which aren't Linux/OS X.
+        """Fake test for POSIX systems which aren't Linux/macOS.
 
         We probably would adjust the code first to make it work on that
         platform.
@@ -269,9 +268,9 @@ class TestListen:
     def test_remove_error(self, ipc_server, monkeypatch):
         """Simulate an error in _remove_server."""
         monkeypatch.setattr(ipc_server, '_socketname', None)
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error,
+                           match="Error while removing server None!"):
             ipc_server.listen()
-        assert str(excinfo.value) == "Error while removing server None!"
 
     def test_error(self, ipc_server, monkeypatch):
         """Simulate an error while listening."""
@@ -369,12 +368,9 @@ class TestOnError:
                             lambda: "Connection refused")
         socket.setErrorString("Connection refused.")
 
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while handling IPC "
+                           r"connection: Connection refused \(error 0\)"):
             ipc_server.on_error(QLocalSocket.ConnectionRefusedError)
-
-        expected = ("Error while handling IPC connection: Connection refused "
-                    "(error 0)")
-        assert str(excinfo.value) == expected
 
 
 class TestHandleConnection:
@@ -409,11 +405,10 @@ class TestHandleConnection:
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
         ipc_server._server = FakeServer(socket)
 
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while handling IPC "
+                           r"connection: Error string \(error 7\)"):
             ipc_server.handle_connection()
 
-        exc_msg = 'Error while handling IPC connection: Error string (error 7)'
-        assert str(excinfo.value) == exc_msg
         msg = "We got an error immediately."
         all_msgs = [r.message for r in caplog.records]
         assert msg in all_msgs
@@ -516,7 +511,7 @@ class TestSendToRunningInstance:
         assert msg == "No existing instance present (error 2)"
 
     @pytest.mark.parametrize('has_cwd', [True, False])
-    @pytest.mark.linux(reason="Causes random trouble on Windows and OS X")
+    @pytest.mark.linux(reason="Causes random trouble on Windows and macOS")
     def test_normal(self, qtbot, tmpdir, ipc_server, mocker, has_cwd):
         ipc_server.listen()
 
@@ -550,11 +545,9 @@ class TestSendToRunningInstance:
 
     def test_socket_error(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while writing to running "
+                           r"instance: Error string \(error 7\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
-
-        msg = "Error while writing to running instance: Error string (error 7)"
-        assert str(excinfo.value) == msg
 
     def test_not_disconnected_immediately(self):
         socket = FakeSocket()
@@ -563,15 +556,12 @@ class TestSendToRunningInstance:
     def test_socket_error_no_server(self):
         socket = FakeSocket(error=QLocalSocket.ConnectionError,
                             connect_successful=False)
-        with pytest.raises(ipc.Error) as excinfo:
+        with pytest.raises(ipc.Error, match=r"Error while connecting to "
+                           r"running instance: Error string \(error 7\)"):
             ipc.send_to_running_instance('qute-test', [], None, socket=socket)
 
-        msg = ("Error while connecting to running instance: Error string "
-               "(error 7)")
-        assert str(excinfo.value) == msg
 
-
-@pytest.mark.not_osx(reason="https://github.com/qutebrowser/qutebrowser/"
+@pytest.mark.not_mac(reason="https://github.com/qutebrowser/qutebrowser/"
                             "issues/975")
 def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
     ipc_server._timer.setInterval(100)
@@ -638,15 +628,7 @@ class TestSendOrListen:
             setattr(m, attr, getattr(QLocalSocket, attr))
         return m
 
-    @pytest.fixture
-    def legacy_server(self, args):
-        legacy_name = ipc._get_socketname(args.basedir, legacy=True)
-        legacy_server = ipc.IPCServer(legacy_name)
-        legacy_server.listen()
-        yield legacy_server
-        legacy_server.shutdown()
-
-    @pytest.mark.linux(reason="Flaky on Windows and OS X")
+    @pytest.mark.linux(reason="Flaky on Windows and macOS")
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
         assert isinstance(ret_server, ipc.IPCServer)
@@ -655,54 +637,6 @@ class TestSendOrListen:
         objreg_server = objreg.get('ipc-server')
         assert objreg_server is ret_server
 
-        with qtbot.waitSignal(ret_server.got_args):
-            ret_client = ipc.send_or_listen(args)
-
-        assert ret_client is None
-
-    @pytest.mark.posix(reason="Unneeded on Windows")
-    def test_legacy_name(self, caplog, qtbot, args, legacy_server):
-        with qtbot.waitSignal(legacy_server.got_args):
-            ret = ipc.send_or_listen(args)
-        assert ret is None
-        msgs = [e.message for e in caplog.records]
-        assert "Connecting to {}".format(legacy_server._socketname) in msgs
-
-    @pytest.mark.posix(reason="Unneeded on Windows")
-    def test_stale_legacy_server(self, caplog, qtbot, args, legacy_server,
-                                 ipc_server, py_proc):
-        legacy_name = ipc._get_socketname(args.basedir, legacy=True)
-        logging.debug('== Setting up the legacy server ==')
-        cmdline = py_proc("""
-            import sys
-
-            from PyQt5.QtCore import QCoreApplication
-            from PyQt5.QtNetwork import QLocalServer
-
-            app = QCoreApplication([])
-
-            QLocalServer.removeServer(sys.argv[1])
-            server = QLocalServer()
-
-            ok = server.listen(sys.argv[1])
-            assert ok
-
-            print(server.fullServerName())
-        """)
-
-        name = subprocess.check_output(
-            [cmdline[0]] + cmdline[1] + [legacy_name])
-        name = name.decode('utf-8').rstrip('\n')
-
-        # Closing the server should not remove the FIFO yet
-        assert os.path.exists(name)
-
-        ## Setting up the new server
-        logging.debug('== Setting up new server ==')
-        ret_server = ipc.send_or_listen(args)
-        assert isinstance(ret_server, ipc.IPCServer)
-
-        logging.debug('== Connecting ==')
         with qtbot.waitSignal(ret_server.got_args):
             ret_client = ipc.send_or_listen(args)
 
@@ -732,9 +666,7 @@ class TestSendOrListen:
 
         qlocalsocket_mock().waitForConnected.side_effect = [False, True]
         qlocalsocket_mock().error.side_effect = [
-            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.ServerNotFoundError,
-            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.UnknownSocketError,
             QLocalSocket.UnknownSocketError,  # error() gets called twice
         ]
@@ -770,10 +702,8 @@ class TestSendOrListen:
         # If it fails, that's the "not sent" case above.
         qlocalsocket_mock().waitForConnected.side_effect = [False, has_error]
         qlocalsocket_mock().error.side_effect = [
-            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.ServerNotFoundError,
             QLocalSocket.ServerNotFoundError,
-            QLocalSocket.ServerNotFoundError,  # legacy name
             QLocalSocket.ConnectionRefusedError,
             QLocalSocket.ConnectionRefusedError,  # error() gets called twice
         ]
@@ -821,7 +751,7 @@ class TestSendOrListen:
 
 
 @pytest.mark.windows
-@pytest.mark.osx
+@pytest.mark.mac
 def test_long_username(monkeypatch):
     """See https://github.com/qutebrowser/qutebrowser/issues/888."""
     username = 'alexandercogneau'

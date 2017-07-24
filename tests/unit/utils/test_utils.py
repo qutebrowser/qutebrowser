@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -657,17 +657,19 @@ QUALNAME_OBJ = QualnameObj()
 
 
 @pytest.mark.parametrize('obj, expected', [
-    (QUALNAME_OBJ, repr(QUALNAME_OBJ)),  # instance - unknown
-    (QualnameObj, 'test_utils.QualnameObj'),  # class
-    (QualnameObj.func, 'test_utils.QualnameObj.func'),  # unbound method
-    (QualnameObj().func, 'test_utils.QualnameObj.func'),  # bound method
-    (qualname_func, 'test_utils.qualname_func'),  # function
-    (functools.partial(qualname_func, True), 'test_utils.qualname_func'),
-    (qutebrowser, 'qutebrowser'),  # module
-    (qutebrowser.utils, 'qutebrowser.utils'),  # submodule
-    (utils, 'qutebrowser.utils.utils'),  # submodule (from-import)
-], ids=['instance', 'class', 'unbound-method', 'bound-method', 'function',
-        'partial', 'module', 'submodule', 'from-import'])
+    pytest.param(QUALNAME_OBJ, repr(QUALNAME_OBJ), id='instance'),
+    pytest.param(QualnameObj, 'test_utils.QualnameObj', id='class'),
+    pytest.param(QualnameObj.func, 'test_utils.QualnameObj.func',
+                 id='unbound-method'),
+    pytest.param(QualnameObj().func, 'test_utils.QualnameObj.func',
+                 id='bound-method'),
+    pytest.param(qualname_func, 'test_utils.qualname_func', id='function'),
+    pytest.param(functools.partial(qualname_func, True),
+                 'test_utils.qualname_func', id='partial'),
+    pytest.param(qutebrowser, 'qutebrowser', id='module'),
+    pytest.param(qutebrowser.utils, 'qutebrowser.utils', id='submodule'),
+    pytest.param(utils, 'qutebrowser.utils.utils', id='from-import'),
+])
 def test_qualname(obj, expected):
     assert utils.qualname(obj) == expected
 
@@ -755,37 +757,6 @@ def test_sanitize_filename(inp, expected):
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
-
-
-class TestNewestSlice:
-
-    """Test newest_slice."""
-
-    def test_count_minus_two(self):
-        """Test with a count of -2."""
-        with pytest.raises(ValueError):
-            utils.newest_slice([], -2)
-
-    @pytest.mark.parametrize('items, count, expected', [
-        # Count of -1 (all elements).
-        (range(20), -1, range(20)),
-        # Count of 0 (no elements).
-        (range(20), 0, []),
-        # Count which is much smaller than the iterable.
-        (range(20), 5, [15, 16, 17, 18, 19]),
-        # Count which is exactly one smaller."""
-        (range(5), 4, [1, 2, 3, 4]),
-        # Count which is just as large as the iterable."""
-        (range(5), 5, range(5)),
-        # Count which is one bigger than the iterable.
-        (range(5), 6, range(5)),
-        # Count which is much bigger than the iterable.
-        (range(5), 50, range(5)),
-    ])
-    def test_good(self, items, count, expected):
-        """Test slices which shouldn't raise an exception."""
-        sliced = utils.newest_slice(items, count)
-        assert list(sliced) == list(expected)
 
 
 class TestGetSetClipboard:
@@ -921,10 +892,6 @@ class TestOpenFile:
         assert re.match(
             r"Opening /foo/bar with the system application", result)
         m.assert_called_with(QUrl('file:///foo/bar'))
-
-
-def test_unused():
-    utils.unused(None)
 
 
 @pytest.mark.parametrize('path, expected', [

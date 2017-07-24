@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -312,4 +312,4 @@ class PACFetcher(QObject):
             # Later NetworkManager.createRequest will detect this and display
             # an error message.
             error_host = "pac-resolve-error.qutebrowser.invalid"
-            return QNetworkProxy(QNetworkProxy.HttpProxy, error_host, 9)
+            return [QNetworkProxy(QNetworkProxy.HttpProxy, error_host, 9)]

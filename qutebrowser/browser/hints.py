@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -579,12 +579,10 @@ class HintManager(QObject):
         if elems is None:
             message.error("There was an error while getting hint elements")
             return
-
-        filterfunc = webelem.FILTERS.get(self._context.group, lambda e: True)
-        elems = [e for e in elems if filterfunc(e)]
         if not elems:
             message.error("No elements found.")
             return
+
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
 

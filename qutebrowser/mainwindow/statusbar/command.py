@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -54,14 +54,14 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
-    def __init__(self, win_id, parent=None):
-        misc.CommandLineEdit.__init__(self, parent)
+    def __init__(self, *, win_id, private, parent=None):
+        misc.CommandLineEdit.__init__(self, parent=parent)
         misc.MinimalLineEditMixin.__init__(self)
         self._win_id = win_id
-        command_history = objreg.get('command-history')
-        self.history.handle_private_mode = True
-        self.history.history = command_history.data
-        self.history.changed.connect(command_history.changed)
+        if not private:
+            command_history = objreg.get('command-history')
+            self.history.history = command_history.data
+            self.history.changed.connect(command_history.changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)

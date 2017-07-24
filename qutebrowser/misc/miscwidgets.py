@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -69,7 +69,7 @@ class CommandLineEdit(QLineEdit):
         _promptlen: The length of the current prompt.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent)
         self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)

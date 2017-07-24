@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,7 @@ import pytest
 from qutebrowser.commands import cmdexc
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
+from helpers import utils as testutils
 
 
 class FakeDNS:
@@ -265,6 +266,7 @@ class TestFuzzyUrl:
     ('file:///tmp/foo', True),
     ('about:blank', True),
     ('qute:version', True),
+    ('qute://version', True),
     ('http://www.qutebrowser.org/', False),
     ('www.qutebrowser.org', False),
 ])
@@ -317,9 +319,11 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (True, True, False, 'file:///tmp/foo'),
     (True, True, False, 'about:blank'),
     (True, True, False, 'qute:version'),
+    (True, True, False, 'qute://version'),
     (True, True, False, 'localhost'),
     # _has_explicit_scheme False, special_url True
     (True, True, False, 'qute::foo'),
+    (True, True, False, 'qute:://foo'),
     # Invalid URLs
     (False, False, False, ''),
     (False, True, False, 'onlyscheme:'),
@@ -336,9 +340,7 @@ def test_get_search_url_invalid(urlutils_config_stub, url):
     (False, True, True, 'hello.'),
     (False, True, False, 'site:cookies.com oatmeal raisin'),
     # no DNS because bogus-IP
-    pytest.mark.xfail(qtutils.version_check('5.6.1'),
-                      reason='Qt behavior changed')(
-                          False, True, False, '31c3'),
+    (False, True, False, '31c3'),
     (False, True, False, 'foo::bar'),  # no DNS because of no host
     # Valid search term with autosearch
     (False, False, False, 'test foo'),
@@ -359,6 +361,11 @@ def test_is_url(urlutils_config_stub, fake_dns, is_url, is_url_no_autosearch,
         url: The URL to test, as a string.
         auto_search: With which auto-search setting to test
     """
+    if (url == '31c3' and
+            auto_search == 'dns' and
+            qtutils.version_check('5.6.1')):
+        pytest.xfail("Qt behavior changed")
+
     urlutils_config_stub.data['general']['auto-search'] = auto_search
     if auto_search == 'dns':
         if uses_dns:
@@ -464,13 +471,12 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
         urlutils.raise_cmdexc_if_invalid(qurl)
     else:
         assert bool(qurl.errorString()) == has_err_string
-        with pytest.raises(cmdexc.CommandError) as excinfo:
-            urlutils.raise_cmdexc_if_invalid(qurl)
         if has_err_string:
             expected_text = "Invalid URL - " + qurl.errorString()
         else:
             expected_text = "Invalid URL"
-        assert str(excinfo.value) == expected_text
+        with pytest.raises(cmdexc.CommandError, match=expected_text):
+            urlutils.raise_cmdexc_if_invalid(qurl)
 
 
 @pytest.mark.parametrize('qurl, output', [
@@ -739,6 +745,35 @@ def test_data_url():
     assert url == QUrl('data:text/plain;base64,Zm9v')
 
 
+@pytest.mark.parametrize('url, expected', [
+    # No IDN
+    (QUrl('http://www.example.com'), 'http://www.example.com'),
+    # IDN in domain
+    (QUrl('http://www.ä.com'), '(www.xn--4ca.com) http://www.ä.com'),
+    # IDN with non-whitelisted TLD
+    (QUrl('http://www.ä.foo'), 'http://www.xn--4ca.foo'),
+    # Unicode only in path
+    (QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
+    # Unicode only in TLD (looks like Qt shows Punycode with рф...)
+    (QUrl('http://www.example.xn--p1ai'),
+        '(www.example.xn--p1ai) http://www.example.рф'),
+    # https://bugreports.qt.io/browse/QTBUG-60364
+    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
+                 '(unparseable URL!) http://www.аррӏе.com',
+                 marks=testutils.qt58),
+    pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
+                 'http://www.xn--80ak6aa92e.com',
+                 marks=testutils.qt59),
+])
+def test_safe_display_string(url, expected):
+    assert urlutils.safe_display_string(url) == expected
+
+
+def test_safe_display_string_invalid():
+    with pytest.raises(urlutils.InvalidUrlError):
+        urlutils.safe_display_string(QUrl())
+
+
 class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
@@ -762,7 +797,7 @@ class TestProxyFromUrl:
         assert urlutils.proxy_from_url(QUrl(url)) == expected
 
     @pytest.mark.parametrize('scheme', ['pac+http', 'pac+https'])
-    def test_proxy_from_url_pac(self, scheme):
+    def test_proxy_from_url_pac(self, scheme, qapp):
         fetcher = urlutils.proxy_from_url(QUrl('{}://foo'.format(scheme)))
         assert isinstance(fetcher, pac.PACFetcher)
 

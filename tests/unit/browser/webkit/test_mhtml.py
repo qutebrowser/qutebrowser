@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Daniel Schadt
+# Copyright 2015-2017 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -104,9 +104,8 @@ def test_refuses_non_ascii_header_value(checker, header, value):
     }
     defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
-    with pytest.raises(UnicodeEncodeError) as excinfo:
+    with pytest.raises(UnicodeEncodeError, match="'ascii' codec can't encode"):
         writer.write_to(checker.fp)
-    assert "'ascii' codec can't encode" in str(excinfo.value)
 
 
 def test_file_encoded_as_base64(checker):
@@ -141,8 +140,9 @@ def test_file_encoded_as_base64(checker):
         """)
 
 
-@pytest.mark.parametrize('transfer_encoding', [mhtml.E_BASE64, mhtml.E_QUOPRI],
-                         ids=['base64', 'quoted-printable'])
+@pytest.mark.parametrize('transfer_encoding', [
+    pytest.param(mhtml.E_BASE64, id='base64'),
+    pytest.param(mhtml.E_QUOPRI, id='quoted-printable')])
 def test_payload_lines_wrap(checker, transfer_encoding):
     payload = b'1234567890' * 10
     writer = mhtml.MHTMLWriter(root_content=b'', content_type='text/plain',
@@ -257,21 +257,26 @@ def test_empty_content_type(checker):
 
 
 @pytest.mark.parametrize('has_cssutils', [
-    pytest.mark.skipif(cssutils is None, reason="requires cssutils")(True),
-    False,
-], ids=['with_cssutils', 'no_cssutils'])
+    pytest.param(True, marks=pytest.mark.skipif(
+        cssutils is None, reason="requires cssutils"), id='with_cssutils'),
+    pytest.param(False, id='no_cssutils'),
+])
 @pytest.mark.parametrize('inline, style, expected_urls', [
-    (False, "@import 'default.css'", ['default.css']),
-    (False, '@import "default.css"', ['default.css']),
-    (False, "@import \t 'tabbed.css'", ['tabbed.css']),
-    (False, "@import url('default.css')", ['default.css']),
-    (False, """body {
+    pytest.param(False, "@import 'default.css'", ['default.css'],
+                 id='import with apostrophe'),
+    pytest.param(False, '@import "default.css"', ['default.css'],
+                 id='import with quote'),
+    pytest.param(False, "@import \t 'tabbed.css'", ['tabbed.css'],
+                 id='import with tab'),
+    pytest.param(False, "@import url('default.css')", ['default.css'],
+                 id='import with url()'),
+    pytest.param(False, """body {
     background: url("/bg-img.png")
-    }""", ['/bg-img.png']),
-    (True, 'background: url(folder/file.png) no-repeat', ['folder/file.png']),
-    (True, 'content: url()', []),
-], ids=['import with apostrophe', 'import with quote', 'import with tab',
-        'import with url()', 'background with body', 'background', 'content'])
+    }""", ['/bg-img.png'], id='background with body'),
+    pytest.param(True, 'background: url(folder/file.png) no-repeat',
+                 ['folder/file.png'], id='background'),
+    pytest.param(True, 'content: url()', [], id='content'),
+])
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
     if not has_cssutils:
@@ -319,9 +324,8 @@ class TestNoCloseBytesIO:
         fp = mhtml._NoCloseBytesIO()
         fp.write(b'Value')
         fp.actual_close()
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="I/O operation on closed file."):
             fp.getvalue()
-        assert str(excinfo.value) == 'I/O operation on closed file.'
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="I/O operation on closed file."):
+            fp.getvalue()
             fp.write(b'Closed')
-        assert str(excinfo.value) == 'I/O operation on closed file.'

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,30 +17,27 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# FIXME:qtwebengine remove this once the stubs are gone
-# pylint: disable=unused-variable
-
 """Wrapper over a QWebEngineView."""
 
+import os
+import math
 import functools
 
 import sip
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
-                                      QWebEngineProfile)
-# pylint: enable=no-name-in-module,import-error,useless-suppression
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
-                                           webenginedownloads)
+                                           webenginedownloads,
+                                           webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               objreg, jinja)
+                               objreg, jinja, debug, version)
 
 
 _qute_scheme_handler = None
@@ -53,21 +50,31 @@ def init():
     # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
     global _qute_scheme_handler
     app = QApplication.instance()
-    profile = QWebEngineProfile.defaultProfile()
 
-    log.init.debug("Initializing qute:* handler...")
+    software_rendering = (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
+                          'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ)
+    if version.opengl_vendor() == 'nouveau' and not software_rendering:
+        # FIXME:qtwebengine display something more sophisticated here
+        raise browsertab.WebTabError(
+            "QtWebEngine is not supported with Nouveau graphics (unless "
+            "QT_XCB_FORCE_SOFTWARE_OPENGL is set as environment variable).")
+
+    log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
-    _qute_scheme_handler.install(profile)
+    _qute_scheme_handler.install(webenginesettings.default_profile)
+    _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
     host_blocker = objreg.get('host-blocker')
     req_interceptor = interceptor.RequestInterceptor(
         host_blocker, parent=app)
-    req_interceptor.install(profile)
+    req_interceptor.install(webenginesettings.default_profile)
+    req_interceptor.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing QtWebEngine downloads...")
     download_manager = webenginedownloads.DownloadManager(parent=app)
-    download_manager.install(profile)
+    download_manager.install(webenginesettings.default_profile)
+    download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
 
@@ -82,17 +89,17 @@ _JS_WORLD_MAP = {
 
 class WebEngineAction(browsertab.AbstractAction):
 
-    """QtWebKit implementations related to web actions."""
+    """QtWebEngine implementations related to web actions."""
 
-    def _action(self, action):
-        self._widget.triggerPageAction(action)
+    action_class = QWebEnginePage
+    action_base = QWebEnginePage.WebAction
 
     def exit_fullscreen(self):
-        self._action(QWebEnginePage.ExitFullScreen)
+        self._widget.triggerPageAction(QWebEnginePage.ExitFullScreen)
 
     def save_page(self):
         """Save the current page."""
-        self._action(QWebEnginePage.SavePage)
+        self._widget.triggerPageAction(QWebEnginePage.SavePage)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -128,12 +135,23 @@ class WebEngineSearch(browsertab.AbstractSearch):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
 
-    def _find(self, text, flags, cb=None):
-        """Call findText on the widget with optional callback."""
-        if cb is None:
-            self._widget.findText(text, flags)
-        else:
-            self._widget.findText(text, flags, cb)
+    def _find(self, text, flags, callback, caller):
+        """Call findText on the widget."""
+        self.search_displayed = True
+
+        def wrapped_callback(found):
+            """Wrap the callback to do debug logging."""
+            found_text = 'found' if found else "didn't find"
+            if flags:
+                flag_text = 'with flags {}'.format(debug.qflags_key(
+                    QWebEnginePage, flags, klass=QWebEnginePage.FindFlag))
+            else:
+                flag_text = ''
+            log.webview.debug(' '.join([caller, found_text, text, flag_text])
+                              .strip())
+            if callback is not None:
+                callback(found)
+        self._widget.findText(text, flags, wrapped_callback)
 
     def search(self, text, *, ignore_case=False, reverse=False,
                result_cb=None):
@@ -148,9 +166,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
         self.text = text
         self._flags = flags
-        self._find(text, flags, result_cb)
+        self._find(text, flags, result_cb, 'search')
 
     def clear(self):
+        self.search_displayed = False
         self._widget.findText('')
 
     def prev_result(self, *, result_cb=None):
@@ -160,10 +179,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
             flags &= ~QWebEnginePage.FindBackward
         else:
             flags |= QWebEnginePage.FindBackward
-        self._find(self.text, flags, result_cb)
+        self._find(self.text, flags, result_cb, 'prev_result')
 
     def next_result(self, *, result_cb=None):
-        self._find(self.text, self._flags, result_cb)
+        self._find(self.text, self._flags, result_cb, 'next_result')
 
 
 class WebEngineCaret(browsertab.AbstractCaret):
@@ -237,8 +256,47 @@ class WebEngineCaret(browsertab.AbstractCaret):
             raise browsertab.UnsupportedOperationError
         return self._widget.selectedText()
 
+    def _follow_selected_cb(self, js_elem, tab=False):
+        """Callback for javascript which clicks the selected element.
+
+        Args:
+            js_elem: The element serialized from javascript.
+            tab: Open in a new tab.
+        """
+        if js_elem is None:
+            return
+        assert isinstance(js_elem, dict), js_elem
+        elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
+        if tab:
+            click_type = usertypes.ClickTarget.tab
+        else:
+            click_type = usertypes.ClickTarget.normal
+
+        # Only click if we see a link
+        if elem.is_link():
+            log.webview.debug("Found link in selection, clicking. ClickTarget "
+                              "{}, elem {}".format(click_type, elem))
+            elem.click(click_type)
+
     def follow_selected(self, *, tab=False):
-        log.stub()
+        if self._tab.search.search_displayed:
+            # We are currently in search mode.
+            # let's click the link via a fake-click
+            # https://bugreports.qt.io/browse/QTBUG-60673
+            self._tab.search.clear()
+
+            log.webview.debug("Clicking a searched link via fake key press.")
+            # send a fake enter, clicking the orange selection box
+            if tab:
+                self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            else:
+                self._tab.key_press(Qt.Key_Enter)
+
+        else:
+            # click an existing blue selection
+            js_code = javascript.assemble('webelem', 'find_selected_link')
+            self._tab.run_js_async(js_code, lambda jsret:
+                                   self._follow_selected_cb(jsret, tab))
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -256,13 +314,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         page = widget.page()
         page.scrollPositionChanged.connect(self._update_pos)
 
-    def _key_press(self, key, count=1):
+    def _repeated_key_press(self, key, count=1, modifier=Qt.NoModifier):
+        """Send count fake key presses to this scroller's WebEngineTab."""
         for _ in range(min(count, 5000)):
-            press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-            release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier,
-                                    0, 0, 0)
-            self._tab.send_event(press_evt)
-            self._tab.send_event(release_evt)
+            self._tab.key_press(key, modifier)
 
     @pyqtSlot()
     def _update_pos(self):
@@ -289,7 +344,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             else:
                 perc_y = min(100, round(100 / dy * jsret['px']['y']))
 
-            self._at_bottom = dy >= jsret['px']['y']
+            self._at_bottom = math.ceil(jsret['px']['y']) >= dy
             self._pos_perc = perc_x, perc_y
 
             self.perc_changed.emit(*self._pos_perc)
@@ -319,28 +374,28 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
-        self._key_press(Qt.Key_Up, count)
+        self._repeated_key_press(Qt.Key_Up, count)
 
     def down(self, count=1):
-        self._key_press(Qt.Key_Down, count)
+        self._repeated_key_press(Qt.Key_Down, count)
 
     def left(self, count=1):
-        self._key_press(Qt.Key_Left, count)
+        self._repeated_key_press(Qt.Key_Left, count)
 
     def right(self, count=1):
-        self._key_press(Qt.Key_Right, count)
+        self._repeated_key_press(Qt.Key_Right, count)
 
     def top(self):
-        self._key_press(Qt.Key_Home)
+        self._tab.key_press(Qt.Key_Home)
 
     def bottom(self):
-        self._key_press(Qt.Key_End)
+        self._tab.key_press(Qt.Key_End)
 
     def page_up(self, count=1):
-        self._key_press(Qt.Key_PageUp, count)
+        self._repeated_key_press(Qt.Key_PageUp, count)
 
     def page_down(self, count=1):
-        self._key_press(Qt.Key_PageDown, count)
+        self._repeated_key_press(Qt.Key_PageDown, count)
 
     def at_top(self):
         return self.pos_px().y() == 0
@@ -356,29 +411,28 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
-    def back(self):
-        self._history.back()
-
-    def forward(self):
-        self._history.forward()
-
     def can_go_back(self):
         return self._history.canGoBack()
 
     def can_go_forward(self):
         return self._history.canGoForward()
 
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        return self._history.goToItem(item)
+
     def serialize(self):
-        # WORKAROUND (remove this when we bump the requirements to 5.9)
-        # https://bugreports.qt.io/browse/QTBUG-59599
-        if self._history.count() == 0:
-            raise browsertab.WebTabError("Can't serialize page without "
-                                         "history!")
-        # WORKAROUND (FIXME: remove this when we bump the requirements to 5.9?)
-        # https://github.com/qutebrowser/qutebrowser/issues/2289
-        scheme = self._history.currentItem().url().scheme()
-        if scheme in ['view-source', 'chrome']:
-            raise browsertab.WebTabError("Can't serialize special URL!")
+        if not qtutils.version_check('5.9'):
+            # WORKAROUND for
+            # https://github.com/qutebrowser/qutebrowser/issues/2289
+            # Don't use the history's currentItem here, because of
+            # https://bugreports.qt.io/browse/QTBUG-59599 and because it doesn't
+            # contain view-source.
+            scheme = self._tab.url().scheme()
+            if scheme in ['view-source', 'chrome']:
+                raise browsertab.WebTabError("Can't serialize special URL!")
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
@@ -448,18 +502,18 @@ class WebEngineElements(browsertab.AbstractElements):
             callback(elem)
 
     def find_css(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all', selector,
+        js_code = javascript.assemble('webelem', 'find_css', selector,
                                       only_visible)
         js_cb = functools.partial(self._js_cb_multiple, callback)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_id(self, elem_id, callback):
-        js_code = javascript.assemble('webelem', 'element_by_id', elem_id)
+        js_code = javascript.assemble('webelem', 'find_id', elem_id)
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_focused(self, callback):
-        js_code = javascript.assemble('webelem', 'focus_element')
+        js_code = javascript.assemble('webelem', 'find_focused')
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
@@ -467,7 +521,7 @@ class WebEngineElements(browsertab.AbstractElements):
         assert pos.x() >= 0
         assert pos.y() >= 0
         pos /= self._tab.zoom.factor()
-        js_code = javascript.assemble('webelem', 'element_at_pos',
+        js_code = javascript.assemble('webelem', 'find_at_pos',
                                       pos.x(), pos.y())
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
@@ -477,10 +531,11 @@ class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser."""
 
-    def __init__(self, win_id, mode_manager, parent=None):
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         parent=parent)
-        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id)
+                         private=private, parent=parent)
+        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
+                                       private=private)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
         self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
@@ -561,9 +616,11 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def shutdown(self):
         self.shutting_down.emit()
-        # WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-58563
-        self.search.clear()
+        self.action.exit_fullscreen()
+        if qtutils.version_check('5.8', exact=True):
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-58563
+            self.search.clear()
         self._widget.shutdown()
 
     def reload(self, *, force=False):
@@ -582,14 +639,12 @@ class WebEngineTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
-    def set_html(self, html, base_url=None):
+    def set_html(self, html, base_url=QUrl()):
         # FIXME:qtwebengine
         # check this and raise an exception if too big:
         # Warning: The content will be percent encoded before being sent to the
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
-        if base_url is None:
-            base_url = QUrl()
         self._widget.setHtml(html, base_url)
 
     def networkaccessmanager(self):
@@ -600,6 +655,13 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def clear_ssl_errors(self):
         raise browsertab.UnsupportedOperationError
+
+    def key_press(self, key, modifier=Qt.NoModifier):
+        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+                                0, 0, 0)
+        self.send_event(press_evt)
+        self.send_event(release_evt)
 
     @pyqtSlot()
     def _on_history_trigger(self):
@@ -644,11 +706,23 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_fullscreen_requested(self, request):
         request.accept()
         on = request.toggleOn()
+
+        self.data.fullscreen = on
         self.fullscreen_requested.emit(on)
         if on:
             notification = miscwidgets.FullscreenNotification(self)
             notification.show()
             notification.set_timeout(3000)
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Clear search when a new load is started if needed."""
+        if (qtutils.version_check('5.9') and
+                not qtutils.version_check('5.9.2')):
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-61506
+            self.search.clear()
+        super()._on_load_started()
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):

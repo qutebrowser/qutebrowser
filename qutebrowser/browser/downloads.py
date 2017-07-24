@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -180,6 +180,28 @@ def transform_path(path):
     if pathlib.Path(path).is_reserved():
         return None
     return path
+
+
+def suggested_fn_from_title(url_path, title=None):
+    """Suggest a filename depending on the URL extension and page title.
+
+    Args:
+        url_path: a string with the URL path
+        title: the page title string
+
+    Return:
+        The download filename based on the title, or None if the extension is
+        not found in the whitelist (or if there is no page title).
+    """
+    ext_whitelist = [".html", ".htm", ".php", ""]
+    _, ext = os.path.splitext(url_path)
+    if ext.lower() in ext_whitelist and title:
+        suggested_fn = utils.sanitize_filename(title)
+        if not suggested_fn.lower().endswith((".html", ".htm")):
+            suggested_fn += ".html"
+    else:
+        suggested_fn = None
+    return suggested_fn
 
 
 class NoFilenameError(Exception):
@@ -952,7 +974,7 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, cmdline: str=None, count=0):
+    def download_open(self, cmdline: str = None, count=0):
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default

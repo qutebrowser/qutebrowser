@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,8 @@ import io
 import os
 import sys
 import os.path
+import unittest
+import unittest.mock
 try:
     # pylint: disable=no-name-in-module,useless-suppression
     from test import test_file
@@ -31,8 +33,6 @@ except ImportError:
     test_file = None
 
 import pytest
-import unittest
-import unittest.mock
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
 
@@ -88,8 +88,9 @@ def test_version_check(monkeypatch, qversion, compiled, version, exact,
     ('538.1', False),   # Qt 5.8
     ('602.1', True)     # QtWebKit-NG TP5
 ])
-def test_is_qtwebkit_ng(version, ng):
-    assert qtutils.is_qtwebkit_ng(version) == ng
+def test_is_qtwebkit_ng(monkeypatch, version, ng):
+    monkeypatch.setattr(qtutils, 'qWebKitVersion', lambda: version)
+    assert qtutils.is_qtwebkit_ng() == ng
 
 
 class TestCheckOverflow:
@@ -209,48 +210,32 @@ class QtObject:
         return self._null
 
 
-@pytest.mark.parametrize('func_name, obj, raising, exc_reason, exc_str', [
-    # ensure_valid, good examples
-    ('ensure_valid', QtObject(valid=True, null=True), False, None, None),
-    ('ensure_valid', QtObject(valid=True, null=False), False, None, None),
-    # ensure_valid, bad examples
-    ('ensure_valid', QtObject(valid=False, null=True), True, None,
-     '<QtObject> is not valid'),
-    ('ensure_valid', QtObject(valid=False, null=False), True, None,
-     '<QtObject> is not valid'),
-    ('ensure_valid', QtObject(valid=False, null=True, error='Test'), True,
-     'Test', '<QtObject> is not valid: Test'),
-    # ensure_not_null, good examples
-    ('ensure_not_null', QtObject(valid=True, null=False), False, None, None),
-    ('ensure_not_null', QtObject(valid=False, null=False), False, None, None),
-    # ensure_not_null, bad examples
-    ('ensure_not_null', QtObject(valid=True, null=True), True, None,
-     '<QtObject> is null'),
-    ('ensure_not_null', QtObject(valid=False, null=True), True, None,
-     '<QtObject> is null'),
-    ('ensure_not_null', QtObject(valid=False, null=True, error='Test'), True,
-     'Test', '<QtObject> is null: Test'),
+@pytest.mark.parametrize('obj, raising, exc_reason, exc_str', [
+    # good examples
+    (QtObject(valid=True, null=True), False, None, None),
+    (QtObject(valid=True, null=False), False, None, None),
+    # bad examples
+    (QtObject(valid=False, null=True), True, None, '<QtObject> is not valid'),
+    (QtObject(valid=False, null=False), True, None, '<QtObject> is not valid'),
+    (QtObject(valid=False, null=True, error='Test'), True, 'Test',
+     '<QtObject> is not valid: Test'),
 ])
-def test_ensure(func_name, obj, raising, exc_reason, exc_str):
-    """Test ensure_valid and ensure_not_null.
-
-    The function is parametrized as they do nearly the same.
+def test_ensure_valid(obj, raising, exc_reason, exc_str):
+    """Test ensure_valid.
 
     Args:
-        func_name: The name of the function to call.
         obj: The object to test with.
         raising: Whether QtValueError is expected to be raised.
         exc_reason: The expected .reason attribute of the exception.
         exc_str: The expected string of the exception.
     """
-    func = getattr(qtutils, func_name)
     if raising:
         with pytest.raises(qtutils.QtValueError) as excinfo:
-            func(obj)
+            qtutils.ensure_valid(obj)
         assert excinfo.value.reason == exc_reason
         assert str(excinfo.value) == exc_str
     else:
-        func(obj)
+        qtutils.ensure_valid(obj)
 
 
 @pytest.mark.parametrize('status, raising, message', [
@@ -273,9 +258,8 @@ def test_check_qdatastream(status, raising, message):
     stream = QDataStream()
     stream.setStatus(status)
     if raising:
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match=message):
             qtutils.check_qdatastream(stream)
-        assert str(excinfo.value) == message
     else:
         qtutils.check_qdatastream(stream)
 
@@ -321,11 +305,11 @@ class TestSerializeStream:
         """Test serialize_stream with an error already set."""
         stream_mock.status.return_value = QDataStream.ReadCorruptData
 
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="The data stream has read corrupt "
+                                          "data."):
             qtutils.serialize_stream(stream_mock, QPoint())
 
         assert not stream_mock.__lshift__.called
-        assert str(excinfo.value) == "The data stream has read corrupt data."
 
     def test_serialize_post_error_mock(self, stream_mock):
         """Test serialize_stream with an error while serializing."""
@@ -333,21 +317,21 @@ class TestSerializeStream:
         stream_mock.__lshift__.side_effect = lambda _other: self._set_status(
             stream_mock, QDataStream.ReadCorruptData)
 
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="The data stream has read corrupt "
+                                          "data."):
             qtutils.serialize_stream(stream_mock, obj)
 
         assert stream_mock.__lshift__.called_once_with(obj)
-        assert str(excinfo.value) == "The data stream has read corrupt data."
 
     def test_deserialize_pre_error_mock(self, stream_mock):
         """Test deserialize_stream with an error already set."""
         stream_mock.status.return_value = QDataStream.ReadCorruptData
 
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="The data stream has read corrupt "
+                                          "data."):
             qtutils.deserialize_stream(stream_mock, QPoint())
 
         assert not stream_mock.__rshift__.called
-        assert str(excinfo.value) == "The data stream has read corrupt data."
 
     def test_deserialize_post_error_mock(self, stream_mock):
         """Test deserialize_stream with an error while deserializing."""
@@ -355,11 +339,11 @@ class TestSerializeStream:
         stream_mock.__rshift__.side_effect = lambda _other: self._set_status(
             stream_mock, QDataStream.ReadCorruptData)
 
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="The data stream has read corrupt "
+                                          "data."):
             qtutils.deserialize_stream(stream_mock, obj)
 
         assert stream_mock.__rshift__.called_once_with(obj)
-        assert str(excinfo.value) == "The data stream has read corrupt data."
 
     def test_round_trip_real_stream(self):
         """Test a round trip with a real QDataStream."""
@@ -380,10 +364,9 @@ class TestSerializeStream:
         """Test serialize_stream with a read-only stream."""
         data = QByteArray()
         stream = QDataStream(data, QIODevice.ReadOnly)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="The data stream cannot write to "
+                                          "the underlying device."):
             qtutils.serialize_stream(stream, QPoint())
-        assert str(excinfo.value) == ("The data stream cannot write to the "
-                                      "underlying device.")
 
     @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
     def test_deserialize_writeonly_stream(self):
@@ -391,10 +374,9 @@ class TestSerializeStream:
         data = QByteArray()
         obj = QPoint()
         stream = QDataStream(data, QIODevice.WriteOnly)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="The data stream has read past the "
+                           "end of the data in the underlying device."):
             qtutils.deserialize_stream(stream, obj)
-        assert str(excinfo.value) == ("The data stream has read past the end "
-                                      "of the data in the underlying device.")
 
 
 class SavefileTestException(Exception):
@@ -424,13 +406,12 @@ class TestSavefileOpen:
         qsavefile_mock.open.return_value = False
         qsavefile_mock.errorString.return_value = "Hello World"
 
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="Hello World"):
             with qtutils.savefile_open('filename'):
                 pass
 
         qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
         qsavefile_mock.cancelWriting.assert_called_once_with()
-        assert str(excinfo.value) == "Hello World"
 
     def test_mock_exception(self, qsavefile_mock):
         """Test with a mock and an exception in the block."""
@@ -448,14 +429,13 @@ class TestSavefileOpen:
         qsavefile_mock.open.return_value = True
         qsavefile_mock.commit.return_value = False
 
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="Commit failed!"):
             with qtutils.savefile_open('filename'):
                 pass
 
         qsavefile_mock.open.assert_called_once_with(QIODevice.WriteOnly)
         assert not qsavefile_mock.cancelWriting.called
         assert not qsavefile_mock.errorString.called
-        assert str(excinfo.value) == "Commit failed!"
 
     def test_mock_successful(self, qsavefile_mock):
         """Test with a mock and a successful write."""
@@ -518,23 +498,21 @@ class TestSavefileOpen:
     def test_failing_flush(self, tmpdir):
         """Test with the file being closed before flushing."""
         filename = tmpdir / 'foo'
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="IO operation on closed device!"):
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
                 f.dev.commit()  # provoke failing flush
 
-        assert str(excinfo.value) == "IO operation on closed device!"
         assert tmpdir.listdir() == [filename]
 
     def test_failing_commit(self, tmpdir):
         """Test with the file being closed before committing."""
         filename = tmpdir / 'foo'
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match='Commit failed!'):
             with qtutils.savefile_open(str(filename), binary=True) as f:
                 f.write(b'Hello')
                 f.dev.cancelWriting()  # provoke failing commit
 
-        assert str(excinfo.value) == "Commit failed!"
         assert tmpdir.listdir() == []
 
     def test_line_endings(self, tmpdir):
@@ -572,7 +550,7 @@ if test_file is not None and sys.platform != 'darwin':
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
 
-    # Those are not run on OS X because that seems to cause a hang sometimes.
+    # Those are not run on macOS because that seems to cause a hang sometimes.
 
     @pytest.fixture(scope='session', autouse=True)
     def clean_up_python_testfile():
@@ -709,9 +687,8 @@ class TestPyQIODevice:
             args: The arguments to pass.
         """
         func = getattr(pyqiodev, method)
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="IO operation on closed device!"):
             func(*args)
-        assert str(excinfo.value) == "IO operation on closed device!"
 
     @pytest.mark.parametrize('method', ['readline', 'read'])
     def test_unreadable(self, pyqiodev, method):
@@ -722,16 +699,15 @@ class TestPyQIODevice:
         """
         pyqiodev.open(QIODevice.WriteOnly)
         func = getattr(pyqiodev, method)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="Trying to read unreadable file!"):
             func()
-        assert str(excinfo.value) == "Trying to read unreadable file!"
 
     def test_unwritable(self, pyqiodev):
         """Test writing with a read-only device."""
         pyqiodev.open(QIODevice.ReadOnly)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="Trying to write to unwritable "
+                                          "file!"):
             pyqiodev.write(b'')
-        assert str(excinfo.value) == "Trying to write to unwritable file!"
 
     @pytest.mark.parametrize('data', [b'12345', b''])
     def test_len(self, pyqiodev, data):
@@ -784,9 +760,8 @@ class TestPyQIODevice:
             f.write(b'1234567890')
         pyqiodev.open(QIODevice.ReadOnly)
         if raising:
-            with pytest.raises(OSError) as excinfo:
+            with pytest.raises(OSError, match="seek failed!"):
                 pyqiodev.seek(offset, whence)
-            assert str(excinfo.value) == "seek failed!"
         else:
             pyqiodev.seek(offset, whence)
         assert pyqiodev.tell() == pos
@@ -815,12 +790,10 @@ class TestPyQIODevice:
         proc.start(*py_proc('print("Hello World")'))
         dev = qtutils.PyQIODevice(proc)
         assert not dev.closed
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match='Random access not allowed!'):
             dev.seek(0)
-        assert str(excinfo.value) == 'Random access not allowed!'
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match='Random access not allowed!'):
             dev.tell()
-        assert str(excinfo.value) == 'Random access not allowed!'
         proc.waitForFinished(1000)
         proc.kill()
         assert bytes(dev.read()).rstrip() == b'Hello World'
@@ -915,9 +888,8 @@ class TestPyQIODevice:
 
     def test_write_error(self, pyqiodev_failing):
         """Test writing with FailingQIODevice."""
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match="Writing failed"):
             pyqiodev_failing.write(b'x')
-        assert str(excinfo.value) == 'Writing failed'
 
     @pytest.mark.posix
     @pytest.mark.skipif(not os.path.exists('/dev/full'),
@@ -927,10 +899,9 @@ class TestPyQIODevice:
         qf = QFile('/dev/full')
         qf.open(QIODevice.WriteOnly | QIODevice.Unbuffered)
         dev = qtutils.PyQIODevice(qf)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match='No space left on device'):
             dev.write(b'foo')
         qf.close()
-        assert str(excinfo.value) == 'No space left on device'
 
     @pytest.mark.parametrize('size, chunks', [
         (-1, [b'1234567890']),
@@ -966,9 +937,8 @@ class TestPyQIODevice:
             args: A list of arguments to pass.
         """
         func = getattr(pyqiodev_failing, method)
-        with pytest.raises(OSError) as excinfo:
+        with pytest.raises(OSError, match='Reading failed'):
             func(*args)
-        assert str(excinfo.value) == 'Reading failed'
 
 
 @pytest.mark.usefixtures('qapp')

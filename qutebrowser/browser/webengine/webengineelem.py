@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -18,16 +18,14 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 # FIXME:qtwebengine remove this once the stubs are gone
-# pylint: disable=unused-variable
+# pylint: disable=unused-argument
 
 """QtWebEngine specific part of the web element API."""
 
 from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QApplication
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.utils import log, javascript
 from qutebrowser.browser import webelem
@@ -39,6 +37,38 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def __init__(self, js_dict, tab):
         super().__init__(tab)
+        # Do some sanity checks on the data we get from JS
+        js_dict_types = {
+            'id': int,
+            'text': str,
+            'value': (str, int, float),
+            'tag_name': str,
+            'outer_xml': str,
+            'class_name': str,
+            'rects': list,
+            'attributes': dict,
+        }
+        assert set(js_dict.keys()).issubset(js_dict_types.keys())
+        for name, typ in js_dict_types.items():
+            if name in js_dict and not isinstance(js_dict[name], typ):
+                raise TypeError("Got {} for {} from JS but expected {}: "
+                                "{}".format(type(js_dict[name]), name, typ,
+                                            js_dict))
+        for name, value in js_dict['attributes'].items():
+            if not isinstance(name, str):
+                raise TypeError("Got {} ({}) for attribute name from JS: "
+                                "{}".format(name, type(name), js_dict))
+            if not isinstance(value, str):
+                raise TypeError("Got {} ({}) for attribute {} from JS: "
+                                "{}".format(value, type(value), name, js_dict))
+        for rect in js_dict['rects']:
+            assert set(rect.keys()) == {'top', 'right', 'bottom', 'left',
+                                        'height', 'width'}, rect.keys()
+            for value in rect.values():
+                if not isinstance(value, (int, float)):
+                    raise TypeError("Got {} ({}) for rect from JS: "
+                                    "{}".format(value, type(value), js_dict))
+
         self._id = js_dict['id']
         self._js_dict = js_dict
 
@@ -88,7 +118,9 @@ class WebEngineElement(webelem.AbstractWebElement):
 
         The returned name will always be lower-case.
         """
-        return self._js_dict['tag_name'].lower()
+        tag = self._js_dict['tag_name']
+        assert isinstance(tag, str), tag
+        return tag.lower()
 
     def outer_xml(self):
         """Get the full HTML representation of this element."""
@@ -158,21 +190,19 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def _click_editable(self, click_target):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
-        # pylint doesn't know about Qt.MouseEventSynthesizedBySystem
-        # because it was added in Qt 5.6, but we can be sure we use that with
-        # QtWebEngine.
-        # pylint: disable=no-member,useless-suppression
         ev = QMouseEvent(QMouseEvent.MouseButtonPress, QPoint(0, 0),
                          QPoint(0, 0), QPoint(0, 0), Qt.NoButton, Qt.NoButton,
                          Qt.NoModifier, Qt.MouseEventSynthesizedBySystem)
-        # pylint: enable=no-member,useless-suppression
         self._tab.send_event(ev)
         # This actually "clicks" the element by calling focus() on it in JS.
         self._js_call('focus')
         self._move_text_cursor()
 
     def _click_js(self, _click_target):
-        settings = QWebEngineSettings.globalSettings()
+        # FIXME:qtwebengine Have a proper API for this
+        # pylint: disable=protected-access
+        settings = self._tab._widget.settings()
+        # pylint: enable=protected-access
         attribute = QWebEngineSettings.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)

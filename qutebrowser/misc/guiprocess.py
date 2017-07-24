@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -142,6 +142,7 @@ class GUIProcess(QObject):
             self._proc.start(cmd, args)
         else:
             self._proc.start(cmd, args, mode)
+        self._proc.closeWriteChannel()
 
     def start_detached(self, cmd, args, cwd=None):
         """Convenience wrapper around QProcess::startDetached."""
@@ -153,8 +154,8 @@ class GUIProcess(QObject):
             log.procs.debug("Process started.")
             self._started = True
         else:
-            message.error("Error while spawning {}: {}.".format(
-                self._what, self._proc.error()))
+            message.error("Error while spawning {}: {}".format(
+                self._what, ERROR_STRINGS[self._proc.error()]))
 
     def exit_status(self):
         return self._proc.exitStatus()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -214,17 +214,7 @@ except ImportError:
     QtWebEngineWidgets = None
 
 
-@pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and
-                    QtWebEngineWidgets is not None and
-                    sys.platform == "linux",
-                    reason="Segfaults when run with QtWebEngine tests on Linux")
-def test_fetch():
-    test_str = """
-        function FindProxyForURL(domain, host) {
-            return "DIRECT; PROXY 127.0.0.1:8080; SOCKS 192.168.1.1:4444";
-        }
-    """
-
+def fetcher_test(test_str):
     class PACHandler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
             self.send_response(200)
@@ -250,5 +240,38 @@ def test_fetch():
         assert res.fetch_error() is None
     finally:
         serve_thread.join()
+    return res
+
+
+@pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and
+                    QtWebEngineWidgets is not None and
+                    sys.platform == "linux",
+                    reason="Segfaults when run with QtWebEngine tests on Linux")
+def test_fetch_success():
+    test_str = """
+        function FindProxyForURL(domain, host) {
+            return "DIRECT; PROXY 127.0.0.1:8080; SOCKS 192.168.1.1:4444";
+        }
+    """
+
+    res = fetcher_test(test_str)
     proxies = res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
     assert len(proxies) == 3
+
+
+@pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and
+                    QtWebEngineWidgets is not None and
+                    sys.platform == "linux",
+                    reason="Segfaults when run with QtWebEngine tests on Linux")
+def test_fetch_evalerror(caplog):
+    test_str = """
+        function FindProxyForURL(domain, host) {
+            return "FOO";
+        }
+    """
+
+    res = fetcher_test(test_str)
+    with caplog.at_level(logging.ERROR):
+        proxies = res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
+    assert len(proxies) == 1
+    assert proxies[0].port() == 9

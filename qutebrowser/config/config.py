@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,13 +38,12 @@ from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QSettings
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import configdata, configexc, textwrapper
-from qutebrowser.config.parsers import keyconf
 from qutebrowser.config.parsers import ini
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import (message, objreg, utils, standarddir, log,
                                qtutils, error, usertypes)
 from qutebrowser.misc import objects
-from qutebrowser.utils.usertypes import Completion
+from qutebrowser.completion.models import configmodel
 
 
 UNSET = object()
@@ -175,36 +174,6 @@ def _init_main_config(parent=None):
                     return
 
 
-def _init_key_config(parent):
-    """Initialize the key config.
-
-    Args:
-        parent: The parent to use for the KeyConfigParser.
-    """
-    args = objreg.get('args')
-    try:
-        key_config = keyconf.KeyConfigParser(standarddir.config(), 'keys.conf',
-                                             args.relaxed_config,
-                                             parent=parent)
-    except (keyconf.KeyConfigError, UnicodeDecodeError) as e:
-        log.init.exception(e)
-        errstr = "Error while reading key config:\n"
-        if e.lineno is not None:
-            errstr += "In line {}: ".format(e.lineno)
-        error.handle_fatal_exc(e, args, "Error while reading key config!",
-                               pre_text=errstr)
-        # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(usertypes.Exit.err_key_config)
-    else:
-        objreg.register('key-config', key_config)
-        save_manager = objreg.get('save-manager')
-        filename = os.path.join(standarddir.config(), 'keys.conf')
-        save_manager.add_saveable(
-            'key-config', key_config.save, key_config.config_dirty,
-            config_opt=('general', 'auto-save-config'), filename=filename,
-            dirty=key_config.is_dirty)
-
-
 def _init_misc():
     """Initialize misc. config-related files."""
     save_manager = objreg.get('save-manager')
@@ -248,7 +217,6 @@ def init(parent=None):
         parent: The parent to pass to QObjects which get initialized.
     """
     _init_main_config(parent)
-    _init_key_config(parent)
     _init_misc()
 
 
@@ -389,6 +357,8 @@ class ConfigManager(QObject):
         ('colors', 'statusbar.bg.warning'): 'messages.bg.warning',
         ('colors', 'statusbar.fg.prompt'): 'prompts.fg',
         ('colors', 'statusbar.bg.prompt'): 'prompts.bg',
+        ('storage', 'offline-web-application-storage'):
+            'offline-web-application-cache',
     }
     DELETED_OPTIONS = [
         ('colors', 'tab.separator'),
@@ -402,9 +372,16 @@ class ConfigManager(QObject):
         ('tabs', 'hide-always'),
         ('ui', 'display-statusbar-messages'),
         ('ui', 'hide-mouse-cursor'),
+        ('ui', 'css-media-type'),
         ('general', 'wrap-search'),
+        ('general', 'site-specific-quirks'),
         ('hints', 'opacity'),
         ('completion', 'auto-open'),
+        ('storage', 'object-cache-capacities'),
+        ('storage', 'offline-storage-database'),
+        ('storage', 'offline-storage-default-quota'),
+        ('storage', 'offline-web-application-cache-quota'),
+        ('content', 'css-regions'),
     ]
     CHANGED_OPTIONS = {
         ('content', 'cookies-accept'):
@@ -443,7 +420,20 @@ class ConfigManager(QObject):
                 'html > ::-webkit-scrollbar { width: 0px; height: 0px; }': '',
                 '::-webkit-scrollbar { width: 0px; height: 0px; }': '',
             }),
-        ('contents', 'cache-size'): _get_value_transformer({'52428800': ''}),
+        ('general', 'default-encoding'):
+            _get_value_transformer({'': 'iso-8859-1'}),
+        ('contents', 'cache-size'):
+            _get_value_transformer({'52428800': ''}),
+        ('storage', 'maximum-pages-in-cache'):
+            _get_value_transformer({'': '0'}),
+        ('fonts', 'web-size-minimum'):
+            _get_value_transformer({'': '0'}),
+        ('fonts', 'web-size-minimum-logical'):
+            _get_value_transformer({'': '6'}),
+        ('fonts', 'web-size-default'):
+            _get_value_transformer({'': '16'}),
+        ('fonts', 'web-size-default-fixed'):
+            _get_value_transformer({'': '13'}),
     }
 
     changed = pyqtSignal(str, str)
@@ -471,10 +461,9 @@ class ConfigManager(QObject):
         """Get the whole config as a string."""
         lines = configdata.FIRST_COMMENT.strip('\n').splitlines()
         for sectname, sect in self.sections.items():
-            lines.append('\n[{}]'.format(sectname))
-            lines += self._str_section_desc(sectname)
-            lines += self._str_option_desc(sectname, sect)
-            lines += self._str_items(sect)
+            lines += ['\n'] + self._str_section_desc(sectname)
+            lines.append('[{}]'.format(sectname))
+            lines += self._str_items(sectname, sect)
         return '\n'.join(lines) + '\n'
 
     def _str_section_desc(self, sectname):
@@ -489,42 +478,7 @@ class ConfigManager(QObject):
                 lines += wrapper.wrap(secline)
         return lines
 
-    def _str_option_desc(self, sectname, sect):
-        """Get the option description strings for sect/sectname."""
-        wrapper = textwrapper.TextWrapper(initial_indent='#' + ' ' * 5,
-                                          subsequent_indent='#' + ' ' * 5)
-        lines = []
-        if not getattr(sect, 'descriptions', None):
-            return lines
-
-        for optname, option in sect.items():
-
-            lines.append('#')
-            typestr = ' ({})'.format(option.typ.get_name())
-            lines.append("# {}{}:".format(optname, typestr))
-
-            try:
-                desc = self.sections[sectname].descriptions[optname]
-            except KeyError:
-                log.config.exception("No description for {}.{}!".format(
-                    sectname, optname))
-                continue
-            for descline in desc.splitlines():
-                lines += wrapper.wrap(descline)
-            valid_values = option.typ.get_valid_values()
-            if valid_values is not None:
-                if valid_values.descriptions:
-                    for val in valid_values:
-                        desc = valid_values.descriptions[val]
-                        lines += wrapper.wrap("    {}: {}".format(val, desc))
-                else:
-                    lines += wrapper.wrap("Valid values: {}".format(', '.join(
-                        valid_values)))
-            lines += wrapper.wrap("Default: {}".format(
-                option.values['default']))
-        return lines
-
-    def _str_items(self, sect):
+    def _str_items(self, sectname, sect):
         """Get the option items as string for sect."""
         lines = []
         for optname, option in sect.items():
@@ -535,7 +489,41 @@ class ConfigManager(QObject):
             # configparser can't handle = in keys :(
             optname = optname.replace('=', '<eq>')
             keyval = '{} = {}'.format(optname, value)
+            lines += self._str_option_desc(sectname, sect, optname, option)
             lines.append(keyval)
+        return lines
+
+    def _str_option_desc(self, sectname, sect, optname, option):
+        """Get the option description strings for a single option."""
+        wrapper = textwrapper.TextWrapper(initial_indent='#' + ' ' * 5,
+                                          subsequent_indent='#' + ' ' * 5)
+        lines = []
+        if not getattr(sect, 'descriptions', None):
+            return lines
+
+        lines.append('')
+        typestr = ' ({})'.format(option.typ.get_name())
+        lines.append("# {}{}:".format(optname, typestr))
+
+        try:
+            desc = self.sections[sectname].descriptions[optname]
+        except KeyError:
+            log.config.exception("No description for {}.{}!".format(
+                sectname, optname))
+            return []
+        for descline in desc.splitlines():
+            lines += wrapper.wrap(descline)
+        valid_values = option.typ.get_valid_values()
+        if valid_values is not None:
+            if valid_values.descriptions:
+                for val in valid_values:
+                    desc = valid_values.descriptions[val]
+                    lines += wrapper.wrap("    {}: {}".format(val, desc))
+            else:
+                lines += wrapper.wrap("Valid values: {}".format(', '.join(
+                    valid_values)))
+        lines += wrapper.wrap("Default: {}".format(
+            option.values['default']))
         return lines
 
     def _get_real_sectname(self, cp, sectname):
@@ -644,8 +632,7 @@ class ConfigManager(QObject):
 
     def _after_set(self, changed_sect, changed_opt):
         """Clean up caches and emit signals after an option has been set."""
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/659/
-        self.get.cache_clear()  # pylint: disable=no-member
+        self.get.cache_clear()
         self._changed(changed_sect, changed_opt)
         # Options in the same section and ${optname} interpolation.
         for optname, option in self.sections[changed_sect].items():
@@ -716,8 +703,7 @@ class ConfigManager(QObject):
         existed = optname in sectdict
         if existed:
             sectdict.delete(optname)
-            # WORKAROUND for https://bitbucket.org/logilab/pylint/issues/659/
-            self.get.cache_clear()  # pylint: disable=no-member
+            self.get.cache_clear()
         return existed
 
     @functools.lru_cache()
@@ -775,9 +761,9 @@ class ConfigManager(QObject):
                 e.__class__.__name__, e))
 
     @cmdutils.register(name='set', instance='config', star_args_optional=True)
-    @cmdutils.argument('section_', completion=Completion.section)
-    @cmdutils.argument('option', completion=Completion.option)
-    @cmdutils.argument('values', completion=Completion.value)
+    @cmdutils.argument('section_', completion=configmodel.section)
+    @cmdutils.argument('option', completion=configmodel.option)
+    @cmdutils.argument('values', completion=configmodel.value)
     @cmdutils.argument('win_id', win_id=True)
     def set_command(self, win_id, section_=None, option=None, *values,
                     temp=False, print_=False):
@@ -806,7 +792,7 @@ class ConfigManager(QObject):
         if section_ is None and option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.openurl(QUrl('qute:settings'), newtab=False)
+            tabbed_browser.openurl(QUrl('qute://settings'), newtab=False)
             return
 
         if option.endswith('?') and option != '?':

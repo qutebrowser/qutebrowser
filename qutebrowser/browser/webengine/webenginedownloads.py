@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,9 +25,7 @@ import urllib
 import functools
 
 from PyQt5.QtCore import pyqtSlot, Qt
-# pylint: disable=no-name-in-module,import-error,useless-suppression
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
 from qutebrowser.browser import downloads
 from qutebrowser.utils import debug, usertypes, message, log, qtutils
@@ -79,7 +77,12 @@ class DownloadItem(downloads.AbstractDownloadItem):
         elif state == QWebEngineDownloadItem.DownloadInterrupted:
             self.successful = False
             # https://bugreports.qt.io/browse/QTBUG-56839
-            self._die("Download failed")
+            try:
+                reason = self._qt_item.interruptReasonString()
+            except AttributeError:
+                # Qt < 5.9
+                reason = "Download failed"
+            self._die(reason)
         else:
             raise ValueError("_on_state_changed was called with unknown state "
                              "{}".format(state_name))
@@ -100,7 +103,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _get_open_filename(self):
         return self._filename
 
-    def _set_fileobj(self, fileobj):
+    def _set_fileobj(self, fileobj, *,
+                     autoclose=True):  # pylint: disable=unused-argument
         raise downloads.UnsupportedOperationError
 
     def _set_tempfile(self, fileobj):
@@ -146,7 +150,7 @@ def _get_suggested_filename(path):
     """
     filename = os.path.basename(path)
     filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
-    if not qtutils.version_check('5.8.1'):
+    if not qtutils.version_check('5.9'):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
         # Doing basename a *second* time because there could be a %2F in

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -34,7 +34,7 @@ class TestCommandLineEdit:
     @pytest.fixture
     def cmd_edit(self, qtbot):
         """Fixture to initialize a CommandLineEdit."""
-        cmd_edit = miscwidgets.CommandLineEdit(None)
+        cmd_edit = miscwidgets.CommandLineEdit()
         cmd_edit.set_prompt(':')
         qtbot.add_widget(cmd_edit)
         assert cmd_edit.text() == ''

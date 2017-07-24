@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -184,7 +184,8 @@ class AsciiDoc:
         with open(modified_src, 'w+', encoding='utf-8') as final_version:
             final_version.write(title + "\n\n" + header + current_lines)
 
-        self.call(modified_src, dst, '--theme=qute')
+        asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual']
+        self.call(modified_src, dst, *asciidoc_args)
 
     def _build_website(self):
         """Prepare and build the website."""
@@ -279,8 +280,6 @@ def main(colors=False):
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
-    parser.add_argument('--no-authors', help=argparse.SUPPRESS,
-                        action='store_true')
     args = parser.parse_args()
     try:
         os.mkdir('qutebrowser/html/doc')

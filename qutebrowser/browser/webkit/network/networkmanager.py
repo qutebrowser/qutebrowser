@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -121,13 +121,13 @@ class NetworkManager(QNetworkAccessManager):
                            reparented to the DownloadManager. This counts the
                            still running downloads, so the QNAM can clean
                            itself up when this reaches zero again.
-        _requests: Pending requests.
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
         _tab_id: The tab ID this NetworkManager is associated with.
         _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
         _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
+        _private: Whether we're in private browsing mode.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -135,7 +135,7 @@ class NetworkManager(QNetworkAccessManager):
 
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, tab_id, parent=None):
+    def __init__(self, *, win_id, tab_id, private, parent=None):
         log.init.debug("Initializing NetworkManager")
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
@@ -145,12 +145,12 @@ class NetworkManager(QNetworkAccessManager):
         self.adopted_downloads = 0
         self._win_id = win_id
         self._tab_id = tab_id
-        self._requests = []
+        self._private = private
         self._scheme_handlers = {
             'qute': webkitqutescheme.QuteSchemeHandler(win_id),
             'file': filescheme.FileSchemeHandler(win_id),
         }
-        self._set_cookiejar(private=config.get('general', 'private-browsing'))
+        self._set_cookiejar()
         self._set_cache()
         self.sslErrors.connect(self.on_ssl_errors)
         self._rejected_ssl_errors = collections.defaultdict(list)
@@ -158,15 +158,10 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
-        objreg.get('config').changed.connect(self.on_config_changed)
 
-    def _set_cookiejar(self, private=False):
-        """Set the cookie jar of the NetworkManager correctly.
-
-        Args:
-            private: Whether we're currently in private browsing mode.
-        """
-        if private:
+    def _set_cookiejar(self):
+        """Set the cookie jar of the NetworkManager correctly."""
+        if self._private:
             cookie_jar = objreg.get('ram-cookie-jar')
         else:
             cookie_jar = objreg.get('cookie-jar')
@@ -178,11 +173,9 @@ class NetworkManager(QNetworkAccessManager):
         cookie_jar.setParent(app)
 
     def _set_cache(self):
-        """Set the cache of the NetworkManager correctly.
-
-        We can't switch the whole cache in private mode because QNAM would
-        delete the old cache.
-        """
+        """Set the cache of the NetworkManager correctly."""
+        if self._private:
+            return
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
         app = QCoreApplication.instance()
@@ -206,9 +199,6 @@ class NetworkManager(QNetworkAccessManager):
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
-        for request in self._requests:
-            request.abort()
-            request.deleteLater()
         self.shutting_down.emit()
 
     # No @pyqtSlot here, see
@@ -324,17 +314,6 @@ class NetworkManager(QNetworkAccessManager):
                 authenticator.setPassword(answer.password)
                 _proxy_auth_cache[proxy_id] = answer
 
-    @config.change_filter('general', 'private-browsing')
-    def on_config_changed(self):
-        """Set cookie jar when entering/leaving private browsing mode."""
-        private_browsing = config.get('general', 'private-browsing')
-        if private_browsing:
-            # switched from normal mode to private mode
-            self._set_cookiejar(private=True)
-        else:
-            # switched from private mode to normal mode
-            self._set_cookiejar()
-
     @pyqtSlot()
     def on_adopted_download_destroyed(self):
         """Check if we can clean up if an adopted download was destroyed.
@@ -386,9 +365,6 @@ class NetworkManager(QNetworkAccessManager):
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
 
-        Extend QNetworkAccessManager::createRequest to save requests in
-        self._requests and handle custom schemes.
-
         Args:
              op: Operation op
              req: const QNetworkRequest & req
@@ -416,8 +392,7 @@ class NetworkManager(QNetworkAccessManager):
             req.setRawHeader(header, value)
 
         host_blocker = objreg.get('host-blocker')
-        if (op == QNetworkAccessManager.GetOperation and
-                host_blocker.is_blocked(req.url())):
+        if host_blocker.is_blocked(req.url()):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 req.url().host()))
             return networkreply.ErrorNetworkReply(
@@ -454,6 +429,4 @@ class NetworkManager(QNetworkAccessManager):
                 reply = super().createRequest(op, req, outgoing_data)
         else:
             reply = super().createRequest(op, req, outgoing_data)
-        self._requests.append(reply)
-        reply.destroyed.connect(self._requests.remove)
         return reply

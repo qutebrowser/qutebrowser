@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -107,7 +107,7 @@ def runtime():
     if sys.platform.startswith('linux'):
         typ = QStandardPaths.RuntimeLocation
     else:  # pragma: no cover
-        # RuntimeLocation is a weird path on OS X and Windows.
+        # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
 
     overridden, path = _from_args(typ, _args)

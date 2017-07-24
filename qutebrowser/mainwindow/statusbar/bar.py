@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,14 +22,94 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
+from qutebrowser.browser import browsertab
 from qutebrowser.config import config, style
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.mainwindow.statusbar import (command, progress, keystring,
-                                              percentage, url, tabindex)
+from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
+                                              keystring, percentage, url,
+                                              tabindex)
 from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
-CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
+class ColorFlags:
+
+    """Flags which change the appearance of the statusbar.
+
+    Attributes:
+        prompt: If we're currently in prompt-mode.
+        insert: If we're currently in insert mode.
+        command: If we're currently in command mode.
+        mode: The current caret mode (CaretMode.off/.on/.selection).
+        private: Whether this window is in private browsing mode.
+    """
+
+    CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
+
+    def __init__(self):
+        self.prompt = False
+        self.insert = False
+        self.command = False
+        self.caret = self.CaretMode.off
+        self.private = False
+
+    def to_stringlist(self):
+        """Get a string list of set flags used in the stylesheet.
+
+        This also combines flags in ways they're used in the sheet.
+        """
+        strings = []
+        if self.prompt:
+            strings.append('prompt')
+        if self.insert:
+            strings.append('insert')
+        if self.command:
+            strings.append('command')
+        if self.private:
+            strings.append('private')
+
+        if self.private and self.command:
+            strings.append('private-command')
+
+        if self.caret == self.CaretMode.on:
+            strings.append('caret')
+        elif self.caret == self.CaretMode.selection:
+            strings.append('caret-selection')
+        else:
+            assert self.caret == self.CaretMode.off
+
+        return strings
+
+
+def _generate_stylesheet():
+    flags = [
+        ('private', 'statusbar.{}.private'),
+        ('caret', 'statusbar.{}.caret'),
+        ('caret-selection', 'statusbar.{}.caret-selection'),
+        ('prompt', 'prompts.{}'),
+        ('insert', 'statusbar.{}.insert'),
+        ('command', 'statusbar.{}.command'),
+        ('private-command', 'statusbar.{}.command.private'),
+    ]
+    stylesheet = """
+        QWidget#StatusBar,
+        QWidget#StatusBar QLabel,
+        QWidget#StatusBar QLineEdit {
+            font: {{ font['statusbar'] }};
+            background-color: {{ color['statusbar.bg'] }};
+            color: {{ color['statusbar.fg'] }};
+        }
+    """
+    for flag, option in flags:
+        stylesheet += """
+            QWidget#StatusBar[color_flags~="%s"],
+            QWidget#StatusBar[color_flags~="%s"] QLabel,
+            QWidget#StatusBar[color_flags~="%s"] QLineEdit {
+                color: {{ color['%s'] }};
+                background-color: {{ color['%s'] }};
+            }
+        """ % (flag, flag, flag,  # flake8: disable=S001
+               option.format('fg'), option.format('bg'))
+    return stylesheet
 
 
 class StatusBar(QWidget):
@@ -46,29 +126,6 @@ class StatusBar(QWidget):
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _win_id: The window ID the statusbar is associated with.
-        _page_fullscreen: Whether the webpage (e.g. a video) is shown
-                          fullscreen.
-
-    Class attributes:
-        _prompt_active: If we're currently in prompt-mode.
-
-                        For some reason we need to have this as class attribute
-                        so pyqtProperty works correctly.
-
-        _insert_active: If we're currently in insert mode.
-
-                        For some reason we need to have this as class attribute
-                        so pyqtProperty works correctly.
-
-        _command_active: If we're currently in command mode.
-
-                         For some reason we need to have this as class
-                         attribute so pyqtProperty works correctly.
-
-        _caret_mode: The current caret mode (off/on/selection).
-
-                     For some reason we need to have this as class attribute
-                     so pyqtProperty works correctly.
 
     Signals:
         resized: Emitted when the statusbar has resized, so the completion
@@ -82,59 +139,11 @@ class StatusBar(QWidget):
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
     _severity = None
-    _prompt_active = False
-    _insert_active = False
-    _command_active = False
-    _caret_mode = CaretMode.off
+    _color_flags = []
 
-    STYLESHEET = """
+    STYLESHEET = _generate_stylesheet()
 
-        QWidget#StatusBar,
-        QWidget#StatusBar QLabel,
-        QWidget#StatusBar QLineEdit {
-            font: {{ font['statusbar'] }};
-            background-color: {{ color['statusbar.bg'] }};
-            color: {{ color['statusbar.fg'] }};
-        }
-
-        QWidget#StatusBar[caret_mode="on"],
-        QWidget#StatusBar[caret_mode="on"] QLabel,
-        QWidget#StatusBar[caret_mode="on"] QLineEdit {
-            color: {{ color['statusbar.fg.caret'] }};
-            background-color: {{ color['statusbar.bg.caret'] }};
-        }
-
-        QWidget#StatusBar[caret_mode="selection"],
-        QWidget#StatusBar[caret_mode="selection"] QLabel,
-        QWidget#StatusBar[caret_mode="selection"] QLineEdit {
-            color: {{ color['statusbar.fg.caret-selection'] }};
-            background-color: {{ color['statusbar.bg.caret-selection'] }};
-        }
-
-        QWidget#StatusBar[prompt_active="true"],
-        QWidget#StatusBar[prompt_active="true"] QLabel,
-        QWidget#StatusBar[prompt_active="true"] QLineEdit {
-            color: {{ color['prompts.fg'] }};
-            background-color: {{ color['prompts.bg'] }};
-        }
-
-        QWidget#StatusBar[insert_active="true"],
-        QWidget#StatusBar[insert_active="true"] QLabel,
-        QWidget#StatusBar[insert_active="true"] QLineEdit {
-            color: {{ color['statusbar.fg.insert'] }};
-            background-color: {{ color['statusbar.bg.insert'] }};
-        }
-
-        QWidget#StatusBar[command_active="true"],
-        QWidget#StatusBar[command_active="true"] QLabel,
-        QWidget#StatusBar[command_active="true"] QLineEdit {
-            color: {{ color['statusbar.fg.command'] }};
-            background-color: {{ color['statusbar.bg.command'] }};
-        }
-
-    """
-
-    def __init__(self, win_id, parent=None):
+    def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
         objreg.register('statusbar', self, scope='window', window=win_id)
         self.setObjectName(self.__class__.__name__)
@@ -144,19 +153,18 @@ class StatusBar(QWidget):
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
         self._win_id = win_id
-        self._option = None
-        self._page_fullscreen = False
+        self._color_flags = ColorFlags()
+        self._color_flags.private = private
 
         self._hbox = QHBoxLayout(self)
-        self.set_hbox_padding()
-        objreg.get('config').changed.connect(self.set_hbox_padding)
+        self._set_hbox_padding()
         self._hbox.setSpacing(5)
 
         self._stack = QStackedLayout()
         self._hbox.addLayout(self._stack)
         self._stack.setContentsMargins(0, 0, 0, 0)
 
-        self.cmd = command.Command(win_id)
+        self.cmd = command.Command(private=private, win_id=win_id)
         self._stack.addWidget(self.cmd)
         objreg.register('status-command', self.cmd, scope='window',
                         window=win_id)
@@ -177,6 +185,9 @@ class StatusBar(QWidget):
         self.percentage = percentage.Percentage()
         self._hbox.addWidget(self.percentage)
 
+        self.backforward = backforward.Backforward()
+        self._hbox.addWidget(self.backforward)
+
         self.tabindex = tabindex.TabIndex()
         self._hbox.addWidget(self.tabindex)
 
@@ -186,45 +197,45 @@ class StatusBar(QWidget):
         self.prog = progress.Progress(self)
         self._hbox.addWidget(self.prog)
 
-        objreg.get('config').changed.connect(self.maybe_hide)
+        objreg.get('config').changed.connect(self._on_config_changed)
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    @config.change_filter('ui', 'hide-statusbar')
+    @pyqtSlot(str, str)
+    def _on_config_changed(self, section, option):
+        if section != 'ui':
+            return
+        if option == 'hide-statusbar':
+            self.maybe_hide()
+        elif option == 'statusbar-pdading':
+            self._set_hbox_padding()
+
+    @pyqtSlot()
     def maybe_hide(self):
         """Hide the statusbar if it's configured to do so."""
         hide = config.get('ui', 'hide-statusbar')
-        if hide or self._page_fullscreen:
+        tab = self._current_tab()
+        if hide or (tab is not None and tab.data.fullscreen):
             self.hide()
         else:
             self.show()
 
-    @config.change_filter('ui', 'statusbar-padding')
-    def set_hbox_padding(self):
+    def _set_hbox_padding(self):
         padding = config.get('ui', 'statusbar-padding')
         self._hbox.setContentsMargins(padding.left, 0, padding.right, 0)
 
-    @pyqtProperty(bool)
-    def prompt_active(self):
-        """Getter for self.prompt_active, so it can be used as Qt property."""
-        return self._prompt_active
+    @pyqtProperty('QStringList')
+    def color_flags(self):
+        """Getter for self.color_flags, so it can be used as Qt property."""
+        return self._color_flags.to_stringlist()
 
-    @pyqtProperty(bool)
-    def command_active(self):
-        """Getter for self.command_active, so it can be used as Qt property."""
-        return self._command_active
-
-    @pyqtProperty(bool)
-    def insert_active(self):
-        """Getter for self.insert_active, so it can be used as Qt property."""
-        return self._insert_active
-
-    @pyqtProperty(str)
-    def caret_mode(self):
-        """Getter for self._caret_mode, so it can be used as Qt property."""
-        return self._caret_mode.name
+    def _current_tab(self):
+        """Get the currently displayed tab."""
+        window = objreg.get('tabbed-browser', scope='window',
+                            window=self._win_id)
+        return window.currentWidget()
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,command,caret}_active.
@@ -233,28 +244,27 @@ class StatusBar(QWidget):
         updated by Qt properly.
         """
         if mode == usertypes.KeyMode.insert:
-            log.statusbar.debug("Setting insert_active to {}".format(val))
-            self._insert_active = val
+            log.statusbar.debug("Setting insert flag to {}".format(val))
+            self._color_flags.insert = val
         if mode == usertypes.KeyMode.command:
-            log.statusbar.debug("Setting command_active to {}".format(val))
-            self._command_active = val
+            log.statusbar.debug("Setting command flag to {}".format(val))
+            self._color_flags.command = val
         elif mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
-            log.statusbar.debug("Setting prompt_active to {}".format(val))
-            self._prompt_active = val
+            log.statusbar.debug("Setting prompt flag to {}".format(val))
+            self._color_flags.prompt = val
         elif mode == usertypes.KeyMode.caret:
-            tab = objreg.get('tabbed-browser', scope='window',
-                             window=self._win_id).currentWidget()
-            log.statusbar.debug("Setting caret_mode - val {}, selection "
+            tab = self._current_tab()
+            log.statusbar.debug("Setting caret flag - val {}, selection "
                                 "{}".format(val, tab.caret.selection_enabled))
             if val:
                 if tab.caret.selection_enabled:
                     self._set_mode_text("{} selection".format(mode.name))
-                    self._caret_mode = CaretMode.selection
+                    self._color_flags.caret = ColorFlags.CaretMode.selection
                 else:
                     self._set_mode_text(mode.name)
-                    self._caret_mode = CaretMode.on
+                    self._color_flags.caret = ColorFlags.CaretMode.on
             else:
-                self._caret_mode = CaretMode.off
+                self._color_flags.caret = ColorFlags.CaretMode.off
         self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
 
     def _set_mode_text(self, mode):
@@ -309,10 +319,15 @@ class StatusBar(QWidget):
                         usertypes.KeyMode.yesno]:
             self.set_mode_active(old_mode, False)
 
-    @pyqtSlot(bool)
-    def on_page_fullscreen_requested(self, on):
-        self._page_fullscreen = on
+    @pyqtSlot(browsertab.AbstractTab)
+    def on_tab_changed(self, tab):
+        """Notify sub-widgets when the tab has been changed."""
+        self.url.on_tab_changed(tab)
+        self.prog.on_tab_changed(tab)
+        self.percentage.on_tab_changed(tab)
+        self.backforward.on_tab_changed(tab)
         self.maybe_hide()
+        assert tab.private == self._color_flags.private
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,10 +21,9 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt, QUrl
 
-from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import style
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, urlutils
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
@@ -138,8 +137,10 @@ class UrlText(textbase.TextBase):
         """
         if url is None:
             self._normal_url = None
+        elif not url.isValid():
+            self._normal_url = "Invalid URL!"
         else:
-            self._normal_url = url.toDisplayString()
+            self._normal_url = urlutils.safe_display_string(url)
         self._normal_url_type = UrlType.normal
         self._update_url()
 
@@ -156,17 +157,19 @@ class UrlText(textbase.TextBase):
         if link:
             qurl = QUrl(link)
             if qurl.isValid():
-                self._hover_url = qurl.toDisplayString()
+                self._hover_url = urlutils.safe_display_string(qurl)
             else:
-                self._hover_url = link
+                self._hover_url = '(invalid URL!) {}'.format(link)
         else:
             self._hover_url = None
         self._update_url()
 
-    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
         self._hover_url = None
-        self._normal_url = tab.url().toDisplayString()
+        if tab.url().isValid():
+            self._normal_url = urlutils.safe_display_string(tab.url())
+        else:
+            self._normal_url = ''
         self.on_load_status_changed(tab.load_status().name)
         self._update_url()

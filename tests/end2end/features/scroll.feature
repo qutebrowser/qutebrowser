@@ -39,6 +39,7 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
+    @qtwebengine_flaky
     Scenario: Scrolling left and right with count
         When I run :scroll-px 10 0 with count 2
         And I wait until the scroll position changed to 20/0
@@ -146,7 +147,6 @@ Feature: Scrolling
 
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
-        And I wait until the scroll position changed
         # Make sure it doesn't hang
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown
@@ -292,6 +292,13 @@ Feature: Scrolling
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
+    Scenario: :scroll-page with --bottom-navigate when not at the bottom
+        When I run :scroll-px 0 10
+        And I wait until the scroll position changed
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then the following tabs should be open:
+            - data/scroll/simple.html
+
     Scenario: :scroll-page with --top-navigate
         When I run :scroll-page --top-navigate prev 0 -1
         Then data/hello3.txt should be loaded
@@ -314,3 +321,12 @@ Feature: Scrolling
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
+
+    Scenario: Scrolling to anchor in background tab
+        When I set general -> log-javascript-console to info
+        And I open about:blank
+        And I run :tab-only
+        And I open data/scroll/simple.html#anchor in a new background tab
+        And I run :tab-next
+        And I run :jseval --world main checkAnchor()
+        Then "[*] [PASS] Positions equal: *" should be logged

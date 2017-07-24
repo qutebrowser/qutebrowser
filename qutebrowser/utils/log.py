@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -94,7 +94,7 @@ LOGGER_NAMES = [
     'commands', 'signals', 'downloads',
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
-    'webelem', 'prompt', 'network'
+    'webelem', 'prompt', 'network', 'sql'
 ]
 
 
@@ -141,6 +141,7 @@ sessions = logging.getLogger('sessions')
 webelem = logging.getLogger('webelem')
 prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
+sql = logging.getLogger('sql')
 
 
 ram_handler = None
@@ -161,11 +162,6 @@ def stub(suffix=''):
     misc.warning(text)
 
 
-class CriticalQtWarning(Exception):
-
-    """Exception raised when there's a critical Qt warning."""
-
-
 def init_log(args):
     """Init loggers based on the argparse namespace passed."""
     level = args.loglevel.upper()
@@ -182,9 +178,10 @@ def init_log(args):
     root = logging.getLogger()
     global console_filter
     if console is not None:
+        console_filter = LogFilter(None)
         if args.logfilter is not None:
-            console_filter = LogFilter(args.logfilter.split(','))
-            console.addFilter(console_filter)
+            console_filter.names = args.logfilter.split(',')
+        console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
@@ -346,7 +343,6 @@ def qt_message_handler(msg_type, context, msg):
         QtCore.QtFatalMsg: logging.CRITICAL,
     }
     try:
-        # pylint: disable=no-member,useless-suppression
         qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
     except AttributeError:
         # Qt < 5.5
@@ -399,12 +395,10 @@ def qt_message_handler(msg_type, context, msg):
         "Image of format '' blocked because it is not considered safe. If you "
             "are sure it is safe to do so, you can white-list the format by "
             "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
-        # Installing Qt from the installer may cause it looking for SSL3 which
-        # may not be available on the system
-        "QSslSocket: cannot resolve SSLv2_client_method",
-        "QSslSocket: cannot resolve SSLv2_server_method",
-        "QSslSocket: cannot resolve SSLv3_client_method",
-        "QSslSocket: cannot resolve SSLv3_server_method",
+        # Installing Qt from the installer may cause it looking for SSL3 or
+        # OpenSSL 1.0 which may not be available on the system
+        "QSslSocket: cannot resolve ",
+        "QSslSocket: cannot call unresolved function ",
         # When enabling debugging with QtWebEngine
         "Remote debugging server started successfully. Try pointing a "
             "Chromium-based browser to ",
@@ -423,17 +417,7 @@ def qt_message_handler(msg_type, context, msg):
                 'with: -9805',  # flake8: disable=E131
         ]
 
-    # Messages which will trigger an exception immediately
-    critical_msgs = [
-        'Could not parse stylesheet of object',
-    ]
-
-    if any(msg.strip().startswith(pattern) for pattern in critical_msgs):
-        # For some reason, the stack gets lost when raising here...
-        logger = logging.getLogger('misc')
-        logger.error("Got critical Qt warning!", stack_info=True)
-        raise CriticalQtWarning(msg)
-    elif any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
+    if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]

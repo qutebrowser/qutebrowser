@@ -187,6 +187,7 @@ Feature: Various utility commands.
 
     # :stop/:reload
 
+    @flaky
     Scenario: :stop
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
@@ -308,6 +309,15 @@ Feature: Various utility commands.
             - about:blank
             - qute://help/index.html (active)
 
+    # https://github.com/qutebrowser/qutebrowser/issues/2513
+    Scenario: Opening link with qute:help
+        When the documentation is up to date
+        And I run :tab-only
+        And I open qute:help without waiting
+        And I wait for "Changing title for idx 0 to 'qutebrowser help'" in the log
+        And I hint with args "links normal" and follow a
+        Then qute://help/quickstart.html should be loaded
+
     # :history
 
     Scenario: :history without arguments
@@ -354,7 +364,7 @@ Feature: Various utility commands.
         And I open data/misc/test.pdf
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: pdfjs is not implemented yet @qtwebkit_ng_xfail: https://github.com/annulen/webkit/issues/428
+    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
         # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
@@ -382,7 +392,7 @@ Feature: Various utility commands.
         And I run :debug-pyeval QApplication.instance().activeModalWidget().close()
         Then no crash should happen
 
-    # On Windows/OS X, we get a "QPrintDialog: Cannot be used on non-native
+    # On Windows/macOS, we get a "QPrintDialog: Cannot be used on non-native
     # printers" qWarning.
     #
     # Disabled because it causes weird segfaults and QPainter warnings in Qt...
@@ -405,12 +415,12 @@ Feature: Various utility commands.
     # :pyeval
     Scenario: Running :pyeval
         When I run :debug-pyeval 1+1
-        And I wait until qute:pyeval is loaded
+        And I wait until qute://pyeval is loaded
         Then the page should contain the plaintext "2"
 
     Scenario: Causing exception in :pyeval
         When I run :debug-pyeval 1/0
-        And I wait until qute:pyeval is loaded
+        And I wait until qute://pyeval is loaded
         Then the page should contain the plaintext "ZeroDivisionError"
 
     Scenario: Running :pyeval with --quiet
@@ -462,26 +472,30 @@ Feature: Various utility commands.
     Scenario: Setting a custom user-agent header
         When I set network -> user-agent to toaster
         And I open headers
+        And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
+        And the javascript message "toaster" should be logged
 
     Scenario: Setting the default user-agent header
         When I set network -> user-agent to <empty>
         And I open headers
+        And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to Mozilla/5.0 *
+        And the javascript message "Mozilla/5.0 *" should be logged
 
     ## :messages
 
-    Scenario: Showing error messages
+    Scenario: :messages without level
         When I run :message-error the-error-message
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages
-        Then qute://log?level=error should be loaded
+        Then qute://log?level=info should be loaded
         And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
-        And the page should not contain the plaintext "the-warning-message"
-        And the page should not contain the plaintext "the-info-message"
+        And the page should contain the plaintext "the-warning-message"
+        And the page should contain the plaintext "the-info-message"
 
     Scenario: Showing messages of type 'warning' or greater
         When I run :message-error the-error-message
@@ -512,19 +526,17 @@ Feature: Various utility commands.
         When I run :messages cataclysmic
         Then the error "Invalid log level cataclysmic!" should be shown
 
-    Scenario: Using qute:log directly
-        When I open qute:log
+    Scenario: Using qute://log directly
+        When I open qute://log without waiting
+        # With Qt 5.9, we don't get a loaded message?
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
 
-    Scenario: Using qute:plainlog directly
-        When I open qute:plainlog
+    Scenario: Using qute://plainlog directly
+        When I open qute://plainlog without waiting
+        # With Qt 5.9, we don't get a loaded message?
+        And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
-
-    Scenario: Using :messages without messages
-        Given I have a fresh instance
-        When I run :messages
-        Then qute://log?level=error should be loaded
-        And the page should contain the plaintext "No messages to show."
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
@@ -538,6 +550,16 @@ Feature: Various utility commands.
         When I run :message-i "Hello World" (invalid command)
         Then the error "message-i: no such command" should be shown
 
+     Scenario: Multiple leading : in command
+        When I run :::::set-cmd-text ::::message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+
+    Scenario: Whitespace in command
+        When I run :   :  set-cmd-text :  :  message-i "Hello World"
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+
     # We can't run :message-i as startup command, so we use
     # :set-cmd-text
 
@@ -545,26 +567,6 @@ Feature: Various utility commands.
         When I run :set-cmd-text :message-i "Hello World"
         And I run :command-accept
         Then the message "Hello World" should be shown
-
-    ## https://github.com/qutebrowser/qutebrowser/issues/1219
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
-    Scenario: Sharing cookies with private browsing
-        When I set general -> private-browsing to true
-        And I open cookies/set?qute-test=42 without waiting
-        And I wait until cookies is loaded
-        And I open cookies in a new tab
-        And I set general -> private-browsing to false
-        Then the cookie qute-test should be set to 42
-
-    ## https://github.com/qutebrowser/qutebrowser/issues/1742
-
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_xfail: private browsing is not implemented yet
-    Scenario: Private browsing is activated in QtWebKit without restart
-        When I set general -> private-browsing to true
-        And I open data/javascript/localstorage.html
-        And I set general -> private-browsing to false
-        Then the page should contain the plaintext "Local storage status: not working"
 
     @no_xvfb
     Scenario: :window-only
@@ -632,7 +634,7 @@ Feature: Various utility commands.
         And I run :command-history-prev
         And I run :command-accept
         Then the message "blah" should be shown
- 
+
     Scenario: Browsing through commands 
         When I run :set-cmd-text :message-info blarg
         And I run :command-accept
@@ -644,7 +646,7 @@ Feature: Various utility commands.
         And I run :command-history-next
         And I run :command-accept
         Then the message "blarg" should be shown
- 
+
     Scenario: Calling previous command when history is empty
         Given I have a fresh instance
         When I run :set-cmd-text :
@@ -658,20 +660,6 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the error "No command given" should be shown
 
-    @qtwebengine_todo: private browsing is not implemented yet @qtwebkit_ng_skip: private browsing is not implemented yet
-    Scenario: Calling previous command with private-browsing mode
-        When I run :set-cmd-text :message-info blah
-        And I run :command-accept
-        And I set general -> private-browsing to true
-        And I run :set-cmd-text :message-error "This should only be shown once"
-        And I run :command-accept
-        And I wait for the error "This should only be shown once"
-        And I run :set-cmd-text :
-        And I run :command-history-prev
-        And I run :command-accept
-        And I set general -> private-browsing to false
-        Then the message "blah" should be shown
-
     ## Modes blacklisted for :enter-mode
 
     Scenario: Trying to enter command mode with :enter-mode
@@ -681,15 +669,28 @@ Feature: Various utility commands.
     ## Renderer crashes
 
     # Skipped on Windows as "... has stopped working" hangs.
-    @qtwebkit_skip @no_invalid_lines @posix
+    @qtwebkit_skip @no_invalid_lines @posix @qt<5.9
     Scenario: Renderer crash
         When I run :open -t chrome://crash
         Then the error "Renderer process crashed" should be shown
 
-    @qtwebkit_skip @no_invalid_lines
+    @qtwebkit_skip @no_invalid_lines @qt<5.9
     Scenario: Renderer kill
         When I run :open -t chrome://kill
         Then the error "Renderer process was killed" should be shown
+
+    # Skipped on Windows as "... has stopped working" hangs.
+    @qtwebkit_skip @no_invalid_lines @posix @qt>=5.9
+    Scenario: Renderer crash (5.9)
+        When I run :open -t chrome://crash
+        Then "Renderer process crashed" should be logged
+        And "* 'Error loading chrome://crash/'" should be logged
+
+    @qtwebkit_skip @no_invalid_lines @qt>=5.9
+    Scenario: Renderer kill (5.9)
+        When I run :open -t chrome://kill
+        Then "Renderer process was killed" should be logged
+        And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
     @qtwebkit_skip @no_invalid_lines
@@ -701,5 +702,9 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
-        And the following tabs should be open:
-            - data/numbers/3.txt (active)
+
+    ## Other
+
+    Scenario: Open qute://version
+        When I open qute://version
+        Then the page should contain the plaintext "Version info"

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Backend-independent qute:* code.
+"""Backend-independent qute://* code.
 
 Module attributes:
     pyeval_output: The output of the last :pyeval command.
@@ -26,16 +26,17 @@ Module attributes:
 
 import json
 import os
-import sys
 import time
 import urllib.parse
+import datetime
+import pkg_resources
 
-from PyQt5.QtCore import QUrlQuery
+from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
 from qutebrowser.config import config
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg)
+                               objreg, usertypes, qtutils)
 from qutebrowser.misc import objects
 
 
@@ -77,12 +78,25 @@ class QuteSchemeError(Exception):
         super().__init__(errorstring)
 
 
-class add_handler:  # pylint: disable=invalid-name
+class Redirect(Exception):
 
-    """Decorator to register a qute:* URL handler.
+    """Exception to signal a redirect should happen.
 
     Attributes:
-        _name: The 'foo' part of qute:foo
+        url: The URL to redirect to, as a QUrl.
+    """
+
+    def __init__(self, url):
+        super().__init__(url.toDisplayString())
+        self.url = url
+
+
+class add_handler:  # pylint: disable=invalid-name
+
+    """Decorator to register a qute://* URL handler.
+
+    Attributes:
+        _name: The 'foo' part of qute://foo
         backend: Limit which backends the handler can run with.
     """
 
@@ -105,7 +119,7 @@ class add_handler:  # pylint: disable=invalid-name
     def wrong_backend_handler(self, url):
         """Show an error page about using the invalid backend."""
         html = jinja.render('error.html',
-                            title="Error while opening qute:url",
+                            title="Error while opening qute://url",
                             url=url.toDisplayString(),
                             error='{} is not available with this '
                                   'backend'.format(url.toDisplayString()),
@@ -127,13 +141,19 @@ def data_for_url(url):
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))
+    if path and not host:
+        new_url = QUrl()
+        new_url.setScheme('qute')
+        new_url.setHost(path)
+        new_url.setPath('/')
+        if new_url.host():  # path was a valid host
+            raise Redirect(new_url)
+
     try:
-        handler = _HANDLERS[path]
+        handler = _HANDLERS[host]
     except KeyError:
-        try:
-            handler = _HANDLERS[host]
-        except KeyError:
-            raise NoHandlerFound(url)
+        raise NoHandlerFound(url)
+
     try:
         mimetype, data = handler(url)
     except OSError as e:
@@ -152,7 +172,7 @@ def data_for_url(url):
 
 @add_handler('bookmarks')
 def qute_bookmarks(_url):
-    """Handler for qute:bookmarks. Display all quickmarks / bookmarks."""
+    """Handler for qute://bookmarks. Display all quickmarks / bookmarks."""
     bookmarks = sorted(objreg.get('bookmark-manager').marks.items(),
                        key=lambda x: x[1])  # Sort by title
     quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
@@ -165,68 +185,36 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
-@add_handler('history')  # noqa
+def history_data(start_time, offset=None):
+    """Return history data.
+
+    Arguments:
+        start_time: select history starting from this timestamp.
+        offset: number of items to skip
+    """
+    # history atimes are stored as ints, ensure start_time is not a float
+    start_time = int(start_time)
+    hist = objreg.get('web-history')
+    if offset is not None:
+        entries = hist.entries_before(start_time, limit=1000, offset=offset)
+    else:
+        # end is 24hrs earlier than start
+        end_time = start_time - 24*60*60
+        entries = hist.entries_between(end_time, start_time)
+
+    return [{"url": e.url, "title": e.title or e.url, "time": e.atime}
+            for e in entries]
+
+
+@add_handler('history')
 def qute_history(url):
-    """Handler for qute:history. Display and serve history."""
-    def history_iter(start_time, reverse=False):
-        """Iterate through the history and get items we're interested.
-
-        Arguments:
-            reverse -- whether to reverse the history_dict before iterating.
-            start_time -- select history starting from this timestamp.
-        """
-        history = objreg.get('web-history').history_dict.values()
-        if reverse:
-            history = reversed(history)
-
-        end_time = start_time - 24*60*60  # end is 24hrs earlier than start
-
-        # when history_dict is not reversed, we need to keep track of last item
-        # so that we can yield its atime
-        last_item = None
-
-        for item in history:
-            # Skip redirects
-            # Skip qute:// links
-            if item.redirect or item.url.scheme() == 'qute':
-                continue
-
-            # Skip items out of time window
-            item_newer = item.atime > start_time
-            item_older = item.atime <= end_time
-            if reverse:
-                # history_dict is reversed, we are going back in history.
-                # so:
-                #     abort if item is older than start_time+24hr
-                #     skip if item is newer than start
-                if item_older:
-                    yield {"next": int(item.atime)}
-                    return
-                if item_newer:
-                    continue
-            else:
-                # history_dict isn't reversed, we are going forward in history.
-                # so:
-                #     abort if item is newer than start_time
-                #     skip if item is older than start_time+24hrs
-                if item_older:
-                    last_item = item
-                    continue
-                if item_newer:
-                    yield {"next": int(last_item.atime if last_item else -1)}
-                    return
-
-            # Use item's url as title if there's no title.
-            item_url = item.url.toDisplayString()
-            item_title = item.title if item.title else item_url
-            item_time = int(item.atime * 1000)
-
-            yield {"url": item_url, "title": item_title, "time": item_time}
-
-        # if we reached here, we had reached the end of history
-        yield {"next": int(last_item.atime if last_item else -1)}
-
+    """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
+        try:
+            offset = QUrlQuery(url).queryItemValue("offset")
+            offset = int(offset) if offset else None
+        except ValueError as e:
+            raise QuteSchemeError("Query parameter offset is invalid", e)
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
@@ -234,26 +222,57 @@ def qute_history(url):
         except ValueError as e:
             raise QuteSchemeError("Query parameter start_time is invalid", e)
 
-        if sys.hexversion >= 0x03050000:
-            # On Python >= 3.5 we can reverse the ordereddict in-place and thus
-            # apply an additional performance improvement in history_iter.
-            # On my machine, this gets us down from 550ms to 72us with 500k old
-            # items.
-            history = history_iter(start_time, reverse=True)
-        else:
-            # On Python 3.4, we can't do that, so we'd need to copy the entire
-            # history to a list. There, filter first and then reverse it here.
-            history = reversed(list(history_iter(start_time, reverse=False)))
-
-        return 'text/html', json.dumps(list(history))
+        return 'text/html', json.dumps(history_data(start_time, offset))
     else:
-        return 'text/html', jinja.render('history.html', title='History',
-                session_interval=config.get('ui', 'history-session-interval'))
+        if (
+            config.get('content', 'allow-javascript') and
+            (objects.backend == usertypes.Backend.QtWebEngine or
+             qtutils.is_qtwebkit_ng())
+        ):
+            return 'text/html', jinja.render(
+                'history.html',
+                title='History',
+                session_interval=config.get('ui', 'history-session-interval')
+            )
+        else:
+            # Get current date from query parameter, if not given choose today.
+            curr_date = datetime.date.today()
+            try:
+                query_date = QUrlQuery(url).queryItemValue("date")
+                if query_date:
+                    curr_date = datetime.datetime.strptime(query_date,
+                        "%Y-%m-%d").date()
+            except ValueError:
+                log.misc.debug("Invalid date passed to qute:history: " +
+                    query_date)
+
+            one_day = datetime.timedelta(days=1)
+            next_date = curr_date + one_day
+            prev_date = curr_date - one_day
+
+            # start_time is the last second of curr_date
+            start_time = time.mktime(next_date.timetuple()) - 1
+            history = [
+                (i["url"], i["title"],
+                 datetime.datetime.fromtimestamp(i["time"]),
+                 QUrl(i["url"]).host())
+                for i in history_data(start_time)
+            ]
+
+            return 'text/html', jinja.render(
+                'history_nojs.html',
+                title='History',
+                history=history,
+                curr_date=curr_date,
+                next_date=next_date,
+                prev_date=prev_date,
+                today=datetime.date.today(),
+            )
 
 
 @add_handler('javascript')
 def qute_javascript(url):
-    """Handler for qute:javascript.
+    """Handler for qute://javascript.
 
     Return content of file given as query parameter.
     """
@@ -267,7 +286,7 @@ def qute_javascript(url):
 
 @add_handler('pyeval')
 def qute_pyeval(_url):
-    """Handler for qute:pyeval."""
+    """Handler for qute://pyeval."""
     html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
     return 'text/html', html
 
@@ -275,7 +294,7 @@ def qute_pyeval(_url):
 @add_handler('version')
 @add_handler('verizon')
 def qute_version(_url):
-    """Handler for qute:version."""
+    """Handler for qute://version."""
     html = jinja.render('version.html', title='Version info',
                         version=version.version(),
                         copyright=qutebrowser.__copyright__)
@@ -284,7 +303,7 @@ def qute_version(_url):
 
 @add_handler('plainlog')
 def qute_plainlog(url):
-    """Handler for qute:plainlog.
+    """Handler for qute://plainlog.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
@@ -304,7 +323,7 @@ def qute_plainlog(url):
 
 @add_handler('log')
 def qute_log(url):
-    """Handler for qute:log.
+    """Handler for qute://log.
 
     An optional query parameter specifies the minimum log level to print.
     For example, qute://log?level=warning prints warnings and errors.
@@ -325,13 +344,13 @@ def qute_log(url):
 
 @add_handler('gpl')
 def qute_gpl(_url):
-    """Handler for qute:gpl. Return HTML content as string."""
+    """Handler for qute://gpl. Return HTML content as string."""
     return 'text/html', utils.read_file('html/COPYING.html')
 
 
 @add_handler('help')
 def qute_help(url):
-    """Handler for qute:help."""
+    """Handler for qute://help."""
     try:
         utils.read_file('html/doc/index.html')
     except OSError:
@@ -360,3 +379,14 @@ def qute_help(url):
     else:
         data = utils.read_file(path)
         return 'text/html', data
+
+
+@add_handler('backend-warning')
+def qute_backend_warning(_url):
+    """Handler for qute://backend-warning."""
+    html = jinja.render('backend-warning.html',
+                        distribution=version.distribution(),
+                        Distribution=version.Distribution,
+                        version=pkg_resources.parse_version,
+                        title="Legacy backend warning")
+    return 'text/html', html

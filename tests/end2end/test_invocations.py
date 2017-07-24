@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
+import subprocess
 import socket
 import sys
 import logging
@@ -28,7 +29,6 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from end2end.fixtures import quteprocess, testprocess
 from qutebrowser.utils import qtutils
 
 
@@ -59,7 +59,8 @@ def temp_basedir_env(tmpdir, short_tmpdir):
     runtime_dir.chmod(0o700)
 
     (data_dir / 'qutebrowser' / 'state').write_text(
-        '[general]\nquickstart-done = 1', encoding='utf-8', ensure=True)
+        '[general]\nquickstart-done = 1\nbackend-warning-shown=1',
+        encoding='utf-8', ensure=True)
 
     env = {
         'XDG_DATA_HOME': str(data_dir),
@@ -138,10 +139,10 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
 
 def test_no_loglines(request, quteproc_new):
-    """Test qute:log with --loglines=0."""
+    """Test qute://log with --loglines=0."""
     quteproc_new.start(args=['--temp-basedir', '--loglines=0'] +
                        _base_args(request.config))
-    quteproc_new.open_path('qute:log')
+    quteproc_new.open_path('qute://log')
     assert quteproc_new.get_content() == 'Log output was disabled.'
 
 
@@ -161,25 +162,29 @@ def test_optimize(request, quteproc_new, capfd, level):
     quteproc_new.wait_for_quit()
 
 
+@pytest.mark.not_frozen
+@pytest.mark.flaky  # Fails sometimes with empty output...
 def test_version(request):
     """Test invocation with --version argument."""
-    args = ['--version'] + _base_args(request.config)
+    args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)
     # can't use quteproc_new here because it's confused by
     # early process termination
-    proc = quteprocess.QuteProc(request)
-    proc.proc.setProcessChannelMode(QProcess.SeparateChannels)
+    proc = QProcess()
+    proc.setProcessChannelMode(QProcess.SeparateChannels)
 
-    try:
-        proc.start(args)
-        proc.wait_for_quit()
-    except testprocess.ProcessExited:
-        assert proc.proc.exitStatus() == QProcess.NormalExit
-    else:
-        pytest.fail("Process did not exit!")
+    proc.start(sys.executable, args)
+    ok = proc.waitForStarted(2000)
+    assert ok
+    ok = proc.waitForFinished(2000)
+    assert ok
+    assert proc.exitStatus() == QProcess.NormalExit
 
-    output = bytes(proc.proc.readAllStandardOutput()).decode('utf-8')
+    stdout = bytes(proc.readAllStandardOutput()).decode('utf-8')
+    print(stdout)
+    stderr = bytes(proc.readAllStandardError()).decode('utf-8')
+    print(stderr)
 
-    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
+    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
 
 
 @pytest.mark.skipif(not qtutils.version_check('5.3'),
@@ -252,5 +257,54 @@ def test_command_on_start(request, quteproc_new):
     args = (['--temp-basedir'] + _base_args(request.config) +
             [':quickmark-add https://www.example.com/ example'])
     quteproc_new.start(args)
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+def test_launching_with_python2():
+    try:
+        proc = subprocess.Popen(['python2', '-m', 'qutebrowser',
+                                '--no-err-windows'], stderr=subprocess.PIPE)
+    except FileNotFoundError:
+        pytest.skip("python2 not found")
+    _stdout, stderr = proc.communicate()
+    assert proc.returncode == 1
+    error = "At least Python 3.4 is required to run qutebrowser"
+    assert stderr.decode('ascii').startswith(error)
+
+
+def test_initial_private_browsing(request, quteproc_new):
+    """Make sure the initial window is private when the setting is set."""
+    args = (_base_args(request.config) +
+            ['--temp-basedir', '-s', 'general', 'private-browsing', 'true'])
+    quteproc_new.start(args)
+
+    quteproc_new.compare_session("""
+        windows:
+            - private: True
+              tabs:
+              - history:
+                - url: about:blank
+    """)
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+
+def test_loading_empty_session(tmpdir, request, quteproc_new):
+    """Make sure loading an empty session opens a window."""
+    session = tmpdir / 'session.yml'
+    session.write('windows: []')
+
+    args = _base_args(request.config) + ['--temp-basedir', '-r', str(session)]
+    quteproc_new.start(args)
+
+    quteproc_new.compare_session("""
+        windows:
+            - tabs:
+              - history:
+                - url: about:blank
+    """)
+
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()

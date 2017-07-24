@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,12 +22,44 @@
 import collections
 import os.path
 import itertools
+import sys
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import configdata, textwrapper
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import log, utils, qtutils, message, usertypes
+from qutebrowser.utils import (log, utils, qtutils, message, usertypes, objreg,
+                               standarddir, error)
+from qutebrowser.completion.models import miscmodels
+
+
+def init(parent=None):
+    """Read and save keybindings.
+
+    Args:
+        parent: The parent to use for the KeyConfigParser.
+    """
+    args = objreg.get('args')
+    try:
+        key_config = KeyConfigParser(standarddir.config(), 'keys.conf',
+                                     args.relaxed_config, parent=parent)
+    except (KeyConfigError, UnicodeDecodeError) as e:
+        log.init.exception(e)
+        errstr = "Error while reading key config:\n"
+        if e.lineno is not None:
+            errstr += "In line {}: ".format(e.lineno)
+        error.handle_fatal_exc(e, args, "Error while reading key config!",
+                               pre_text=errstr)
+        # We didn't really initialize much so far, so we just quit hard.
+        sys.exit(usertypes.Exit.err_key_config)
+    else:
+        objreg.register('key-config', key_config)
+        save_manager = objreg.get('save-manager')
+        filename = os.path.join(standarddir.config(), 'keys.conf')
+        save_manager.add_saveable(
+            'key-config', key_config.save, key_config.config_dirty,
+            config_opt=('general', 'auto-save-config'), filename=filename,
+            dirty=key_config.is_dirty)
 
 
 class KeyConfigError(Exception):
@@ -142,13 +174,18 @@ class KeyConfigParser(QObject):
     def save(self):
         """Save the key config file."""
         log.destroy.debug("Saving key config to {}".format(self._configfile))
-        with qtutils.savefile_open(self._configfile, encoding='utf-8') as f:
-            data = str(self)
-            f.write(data)
+
+        try:
+            with qtutils.savefile_open(self._configfile,
+                                       encoding='utf-8') as f:
+                data = str(self)
+                f.write(data)
+        except OSError as e:
+            message.error("Could not save key config: {}".format(e))
 
     @cmdutils.register(instance='key-config', maxsplit=1, no_cmd_split=True,
                        no_replace_variables=True)
-    @cmdutils.argument('command', completion=usertypes.Completion.bind)
+    @cmdutils.argument('command', completion=miscmodels.bind)
     def bind(self, key, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 
@@ -252,6 +289,7 @@ class KeyConfigParser(QObject):
         """
         # {'sectname': {'keychain1': 'command', 'keychain2': 'command'}, ...}
         bindings_to_add = collections.OrderedDict()
+        mark_dirty = False
 
         for sectname, sect in configdata.KEY_DATA.items():
             sectname = self._normalize_sectname(sectname)
@@ -261,6 +299,7 @@ class KeyConfigParser(QObject):
                     if not only_new or self._is_new(sectname, command, e):
                         assert e not in bindings_to_add[sectname]
                         bindings_to_add[sectname][e] = command
+                        mark_dirty = True
 
         for sectname, sect in bindings_to_add.items():
             if not sect:
@@ -271,7 +310,7 @@ class KeyConfigParser(QObject):
                     self._add_binding(sectname, keychain, command)
             self.changed.emit(sectname)
 
-        if bindings_to_add:
+        if mark_dirty:
             self._mark_config_dirty()
 
     def _is_new(self, sectname, command, keychain):
@@ -315,7 +354,7 @@ class KeyConfigParser(QObject):
                         else:
                             line = line.strip()
                             self._read_command(line)
-                    except KeyConfigError as e:
+                    except (KeyConfigError, cmdexc.CommandError) as e:
                         if relaxed:
                             continue
                         else:

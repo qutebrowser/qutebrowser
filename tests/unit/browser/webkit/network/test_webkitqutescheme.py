@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Daniel Schadt
+# Copyright 2016-2017 Daniel Schadt
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import logging
 
+import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes

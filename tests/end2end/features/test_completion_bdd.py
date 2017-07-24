@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,5 +24,5 @@ bdd.scenarios('completion.feature')
 @bdd.then(bdd.parsers.parse("the completion model should be {model}"))
 def check_model(quteproc, model):
     """Make sure the completion model was set to something."""
-    pattern = "Setting completion model to {} with pattern *".format(model)
+    pattern = "Starting {} completion *".format(model)
     quteproc.wait_for(message=pattern)

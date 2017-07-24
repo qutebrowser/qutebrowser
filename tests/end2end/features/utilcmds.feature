@@ -145,7 +145,7 @@ Feature: Miscellaneous utility commands exposed to the user.
         And I run :message-info oldstuff
         And I run :repeat 20 message-info otherstuff
         And I run :message-info newstuff
-        And I open qute:log
+        And I open qute://log
         Then the page should contain the plaintext "newstuff"
         And the page should not contain the plaintext "oldstuff"
 
@@ -164,3 +164,10 @@ Feature: Miscellaneous utility commands exposed to the user.
     Scenario: Using debug-log-filter with invalid filter
         When I run :debug-log-filter blah
         Then the error "filters: Invalid value blah - expected one of: statusbar, *" should be shown
+
+    Scenario: Using debug-log-filter
+        When I run :debug-log-filter commands,ipc,webview
+        And I run :enter-mode insert
+        And I run :debug-log-filter none
+        And I run :leave-mode
+        Then "Entering mode KeyMode.insert *" should not be logged

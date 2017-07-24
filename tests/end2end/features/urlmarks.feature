@@ -7,12 +7,12 @@ Feature: quickmarks and bookmarks
     Scenario: Saving a bookmark
         When I open data/title.html
         And I run :bookmark-add
-        Then the message "Bookmarked http://localhost:*/data/title.html!" should be shown
+        Then the message "Bookmarked http://localhost:*/data/title.html" should be shown
         And the bookmark file should contain "http://localhost:*/data/title.html Test title"
 
     Scenario: Saving a bookmark with a provided url and title
         When I run :bookmark-add http://example.com "some example title"
-        Then the message "Bookmarked http://example.com!" should be shown
+        Then the message "Bookmarked http://example.com" should be shown
         And the bookmark file should contain "http://example.com some example title"
 
     Scenario: Saving a bookmark with a url but no title
@@ -76,7 +76,7 @@ Feature: quickmarks and bookmarks
 
     Scenario: Loading a bookmark with -t and -b
         When I run :bookmark-load -t -b about:blank
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a bookmark which does not exist
         When I run :bookmark-del doesnotexist
@@ -200,7 +200,7 @@ Feature: quickmarks and bookmarks
     Scenario: Loading a quickmark with -t and -b
         When I run :quickmark-add http://localhost:(port)/data/numbers/17.txt seventeen
         When I run :quickmark-load -t -b seventeen
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a quickmark which does not exist
         When I run :quickmark-del doesnotexist
@@ -225,12 +225,12 @@ Feature: quickmarks and bookmarks
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/20.txt twenty
         And I run :quickmark-add http://localhost:(port)/data/numbers/21.txt twentyone
-        And I open qute:bookmarks
+        And I open qute://bookmarks
         Then the page should contain the plaintext "twenty"
         And the page should contain the plaintext "twentyone"
 
     Scenario: Listing bookmarks
         When I open data/title.html in a new tab
         And I run :bookmark-add
-        And I open qute:bookmarks
+        And I open qute://bookmarks
         Then the page should contain the plaintext "Test title"

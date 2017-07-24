@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -59,13 +59,9 @@ class TestCheckOverflow:
     def test_bad(self):
         int32_max = 2 ** 31 - 1
 
-        with pytest.raises(cmdexc.CommandError) as excinfo:
+        with pytest.raises(cmdexc.CommandError, match="Numeric argument is "
+                           "too large for internal int representation."):
             cmdutils.check_overflow(int32_max + 1, 'int')
-
-        expected_str = ("Numeric argument is too large for internal int "
-                        "representation.")
-
-        assert str(excinfo.value) == expected_str
 
 
 class TestCheckExclusive:
@@ -75,10 +71,9 @@ class TestCheckExclusive:
         cmdutils.check_exclusive(flags, [])
 
     def test_bad(self):
-        with pytest.raises(cmdexc.CommandError) as excinfo:
+        with pytest.raises(cmdexc.CommandError,
+                           match="Only one of -x/-y/-z can be given!"):
             cmdutils.check_exclusive([True, True], 'xyz')
-
-        assert str(excinfo.value) == "Only one of -x/-y/-z can be given!"
 
 
 class TestRegister:
@@ -241,15 +236,13 @@ class TestRegister:
         assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([0], {})
 
     def test_count_without_default(self):
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError, match="fun: handler has count parameter "
+                           "without default!"):
             @cmdutils.register()
             @cmdutils.argument('count', count=True)
             def fun(count):
                 """Blah."""
                 pass
-
-        expected = "fun: handler has count parameter without default!"
-        assert str(excinfo.value) == expected
 
     @pytest.mark.parametrize('hide', [True, False])
     def test_pos_args(self, hide):
@@ -355,12 +348,9 @@ class TestRegister:
             """Blah."""
             pass
 
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError, match="fun: handler has keyword only "
+                           "argument 'target' without default!"):
             fun = cmdutils.register()(fun)
-
-        expected = ("fun: handler has keyword only argument 'target' without "
-                    "default!")
-        assert str(excinfo.value) == expected
 
     def test_typed_keyword_only_without_default(self):
         # https://github.com/qutebrowser/qutebrowser/issues/1872
@@ -368,12 +358,9 @@ class TestRegister:
             """Blah."""
             pass
 
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError, match="fun: handler has keyword only "
+                           "argument 'target' without default!"):
             fun = cmdutils.register()(fun)
-
-        expected = ("fun: handler has keyword only argument 'target' without "
-                    "default!")
-        assert str(excinfo.value) == expected
 
 
 class TestArgument:
@@ -381,12 +368,11 @@ class TestArgument:
     """Test the @cmdutils.argument decorator."""
 
     def test_invalid_argument(self):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="fun has no argument foo!"):
             @cmdutils.argument('foo')
             def fun(bar):
                 """Blah."""
                 pass
-        assert str(excinfo.value) == "fun has no argument foo!"
 
     def test_storage(self):
         @cmdutils.argument('foo', flag='x')
@@ -402,26 +388,21 @@ class TestArgument:
 
     def test_wrong_order(self):
         """When @cmdutils.argument is used above (after) @register, fail."""
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match=r"@cmdutils.argument got called "
+                           r"above \(after\) @cmdutils.register for fun!"):
             @cmdutils.argument('bar', flag='y')
             @cmdutils.register()
             def fun(bar):
                 """Blah."""
                 pass
 
-        text = ("@cmdutils.argument got called above (after) "
-                "@cmdutils.register for fun!")
-
-        assert str(excinfo.value) == text
-
     def test_count_and_win_id_same_arg(self):
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError,
+                           match="Argument marked as both count/win_id!"):
             @cmdutils.argument('arg', count=True, win_id=True)
             def fun(arg=0):
                 """Blah."""
                 pass
-
-        assert str(excinfo.value) == "Argument marked as both count/win_id!"
 
     def test_no_docstring(self, caplog):
         with caplog.at_level(logging.WARNING):
@@ -464,9 +445,9 @@ class TestRun:
         if ok:
             cmd.run(win_id=0)
         else:
-            with pytest.raises(cmdexc.PrerequisitesError) as excinfo:
+            with pytest.raises(cmdexc.PrerequisitesError,
+                               match=r'.* backend\.'):
                 cmd.run(win_id=0)
-            assert str(excinfo.value).endswith(' backend.')
 
     def test_no_args(self):
         cmd = _get_cmd()
@@ -488,6 +469,5 @@ class TestRun:
         monkeypatch.setattr(command.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         cmd = cmdutils.cmd_dict['fun']
-        with pytest.raises(cmdexc.PrerequisitesError) as excinfo:
+        with pytest.raises(cmdexc.PrerequisitesError, match=r'.* backend\.'):
             cmd.run(win_id=0)
-        assert str(excinfo.value).endswith(' backend.')

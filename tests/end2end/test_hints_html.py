@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,12 +21,12 @@
 
 import os
 import os.path
+import textwrap
+import collections
 
 import yaml
 import pytest
 import bs4
-import textwrap
-import collections
 
 
 def collect_tests():

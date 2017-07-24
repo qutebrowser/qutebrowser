@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 lamarpavel
-# Copyright 2015-2016 Alexey Nabrodov (Averrin)
+# Copyright 2015-2017 lamarpavel
+# Copyright 2015-2017 Alexey Nabrodov (Averrin)
+# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -86,7 +87,10 @@ def add_diversity(table):
         ('Wget/1.16.1 (linux-gnu)',
          "wget 1.16.1"),
         ('curl/7.40.0',
-         "curl 7.40.0")
+         "curl 7.40.0"),
+        ('Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 '
+         '(KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+         "Mobile Generic Android")
     ]
     return table
 

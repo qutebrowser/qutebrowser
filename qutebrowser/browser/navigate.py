@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -79,8 +79,7 @@ def _find_prevnext(prev, elems):
             return e
 
     # Then check for regular links/buttons.
-    filterfunc = webelem.FILTERS[webelem.Group.prevnext]
-    elems = [e for e in elems if e.tag_name() != 'link' and filterfunc(e)]
+    elems = [e for e in elems if e.tag_name() != 'link']
     option = 'prev-regexes' if prev else 'next-regexes'
     if not elems:
         return None
@@ -128,20 +127,21 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
             return
         qtutils.ensure_valid(url)
 
+        cur_tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+
         if window:
             from qutebrowser.mainwindow import mainwindow
-            new_window = mainwindow.MainWindow()
+            new_window = mainwindow.MainWindow(
+                private=cur_tabbed_browser.private)
             new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
             tabbed_browser.tabopen(url, background=False)
         elif tab:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            tabbed_browser.tabopen(url, background=background)
+            cur_tabbed_browser.tabopen(url, background=background)
         else:
             browsertab.openurl(url)
 
-    selector = ', '.join([webelem.SELECTORS[webelem.Group.links],
-                          webelem.SELECTORS[webelem.Group.prevnext]])
-    browsertab.elements.find_css(selector, _prevnext_cb)
+    browsertab.elements.find_css(webelem.SELECTORS[webelem.Group.links],
+                                 _prevnext_cb)

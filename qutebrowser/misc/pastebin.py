@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 class PastebinClient(QObject):
 
-    """A client for http://p.cmpl.cc/ using HTTPClient.
+    """A client for Stikked pastebins using HTTPClient.
 
     Attributes:
         _client: The HTTPClient used.
@@ -41,7 +41,7 @@ class PastebinClient(QObject):
                arg: The error message, as string.
     """
 
-    API_URL = 'http://paste.the-compiler.org/api/'
+    API_URL = 'https://crashes.qutebrowser.org/api/'
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,6 @@
 
 from PyQt5.QtCore import pyqtSlot
 
-from qutebrowser.browser import browsertab
 from qutebrowser.mainwindow.statusbar import textbase
 
 
@@ -51,7 +50,6 @@ class Percentage(textbase.TextBase):
         else:
             self.setText('[{:2}%]'.format(y))
 
-    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
         self.set_perc(*tab.scroller.pos_perc())

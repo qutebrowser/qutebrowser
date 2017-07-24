@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -170,8 +170,15 @@ def debug_cache_stats():
     """Print LRU cache stats."""
     config_info = objreg.get('config').get.cache_info()
     style_info = style.get_stylesheet.cache_info()
+    try:
+        from PyQt5.QtWebKit import QWebHistoryInterface
+        interface = QWebHistoryInterface.defaultInterface()
+        history_info = interface.historyContains.cache_info()
+    except ImportError:
+        history_info = None
     log.misc.debug('config: {}'.format(config_info))
     log.misc.debug('style: {}'.format(style_info))
+    log.misc.debug('history: {}'.format(history_info))
 
 
 @cmdutils.register(debug=True)
@@ -228,7 +235,7 @@ def debug_pyeval(s, quiet=False):
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
+        tabbed_browser.openurl(QUrl('qute://pyeval'), newtab=True)
 
 
 @cmdutils.register(debug=True)
@@ -293,14 +300,23 @@ def debug_log_filter(filters: str):
     """Change the log filter for console logging.
 
     Args:
-        filters: A comma separated list of logger names.
+        filters: A comma separated list of logger names. Can also be "none" to
+                 clear any existing filters.
     """
-    if set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        log.console_filter.names = filters.split(',')
-    else:
+    if log.console_filter is None:
+        raise cmdexc.CommandError("No log.console_filter. Not attached "
+                                  "to a console?")
+
+    if filters.strip().lower() == 'none':
+        log.console_filter.names = None
+        return
+
+    if not set(filters.split(',')).issubset(log.LOGGER_NAMES):
         raise cmdexc.CommandError("filters: Invalid value {} - expected one "
                                   "of: {}".format(filters,
                                                   ', '.join(log.LOGGER_NAMES)))
+
+    log.console_filter.names = filters.split(',')
 
 
 @cmdutils.register()

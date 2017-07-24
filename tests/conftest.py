@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import,wildcard-import,unused-wildcard-import
 
 """The qutebrowser test suite conftest file."""
 
@@ -34,7 +34,7 @@ pytest.register_assert_rewrite('helpers')
 from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
-from helpers.fixtures import *  # pylint: disable=wildcard-import
+from helpers.fixtures import *
 from qutebrowser.utils import qtutils
 
 
@@ -50,8 +50,8 @@ def _apply_platform_markers(config, item):
         ('posix', os.name != 'posix', "Requires a POSIX os"),
         ('windows', os.name != 'nt', "Requires Windows"),
         ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
-        ('osx', sys.platform != 'darwin', "Requires OS X"),
-        ('not_osx', sys.platform == 'darwin', "Skipped on OS X"),
+        ('mac', sys.platform != 'darwin', "Requires macOS"),
+        ('not_mac', sys.platform == 'darwin', "Skipped on macOS"),
         ('not_frozen', getattr(sys, 'frozen', False),
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
@@ -168,10 +168,9 @@ def pytest_configure(config):
     webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
     config.webengine = bool(webengine_arg or webengine_env)
     # Fail early if QtWebEngine is not available
-    # pylint: disable=no-name-in-module,unused-variable,useless-suppression
+    # pylint: disable=unused-variable
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
-    # pylint: enable=no-name-in-module,unused-variable,useless-suppression
 
 
 @pytest.fixture(scope='session', autouse=True)

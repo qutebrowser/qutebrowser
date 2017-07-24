@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,9 +27,9 @@ import platform
 import subprocess
 import importlib
 import collections
+import pkg_resources
 
-from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
-                          QLibraryInfo)
+from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
 
@@ -45,8 +45,56 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
+
+
+DistributionInfo = collections.namedtuple(
+    'DistributionInfo', ['id', 'parsed', 'version', 'pretty'])
+
+
+Distribution = usertypes.enum(
+    'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
+                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
+
+
+def distribution():
+    """Get some information about the running Linux distribution.
+
+    Returns:
+        A DistributionInfo object, or None if no info could be determined.
+            parsed: A Distribution enum member
+            version: A Version object, or None
+            pretty: Always a string (might be "Unknown")
+    """
+    filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
+    info = {}
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if (not line) or line.startswith('#'):
+                    continue
+                k, v = line.split("=", maxsplit=1)
+                info[k] = v.strip('"')
+    except (OSError, UnicodeDecodeError):
+        return None
+
+    pretty = info.get('PRETTY_NAME', 'Unknown')
+
+    if 'VERSION_ID' in info:
+        dist_version = pkg_resources.parse_version(info['VERSION_ID'])
+    else:
+        dist_version = None
+
+    dist_id = info.get('ID', None)
+    try:
+        parsed = Distribution[dist_id]
+    except KeyError:
+        parsed = Distribution.unknown
+
+    return DistributionInfo(parsed=parsed, version=dist_version, pretty=pretty,
+                            id=dist_id)
 
 
 def _git_str():
@@ -138,6 +186,7 @@ def _module_versions():
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
         ('typing', []),
+        ('OpenGL', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])
@@ -231,14 +280,6 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
-def qt_version():
-    """Get a Qt version string based on the runtime/compiled versions."""
-    if qVersion() != QT_VERSION_STR:
-        return '{} (compiled {})'.format(qVersion(), QT_VERSION_STR)
-    else:
-        return qVersion()
-
-
 def _chromium_version():
     """Get the Chromium version for QtWebEngine."""
     if QWebEngineProfile is None:
@@ -256,8 +297,8 @@ def _chromium_version():
 def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return 'QtWebKit{} (WebKit {})'.format(
-            '-NG' if qtutils.is_qtwebkit_ng(qWebKitVersion()) else '',
+        return '{} (WebKit {})'.format(
+            'QtWebKit-NG' if qtutils.is_qtwebkit_ng() else 'legacy QtWebKit',
             qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
@@ -278,18 +319,18 @@ def version():
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'Qt: {}'.format(qt_version()),
+        'Qt: {}'.format(earlyinit.qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]
 
     lines += _module_versions()
 
-    lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
     lines += [
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-        '',
+        'pdf.js: {}'.format(_pdfjs_version()),
+        'sqlite: {}'.format(sql.version()),
+        'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
+                                     if QSslSocket.supportsSsl() else 'no'),
     ]
 
     qapp = QApplication.instance()
@@ -302,6 +343,14 @@ def version():
     lines += [
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
+    ]
+    dist = distribution()
+    if dist is not None:
+        lines += [
+            'Linux distribution: {} ({})'.format(dist.pretty, dist.parsed.name)
+        ]
+
+    lines += [
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
         "Qt library executable path: {}, data path: {}".format(
@@ -309,7 +358,9 @@ def version():
             QLibraryInfo.location(QLibraryInfo.DataPath)
         )
     ]
-    lines += _os_info()
+
+    if not dist or dist.parsed == Distribution.unknown:
+        lines += _os_info()
 
     lines += [
         '',
@@ -319,3 +370,53 @@ def version():
         lines += ['{}: {}'.format(name, path)]
 
     return '\n'.join(lines)
+
+
+def opengl_vendor():  # pragma: no cover
+    """Get the OpenGL vendor used.
+
+    This returns a string such as 'nouveau' or
+    'Intel Open Source Technology Center'; or None if the vendor can't be
+    determined.
+    """
+    # We're doing those imports here because this is only available with Qt 5.4
+    # or newer.
+    from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+                             QOffscreenSurface)
+    assert QApplication.instance()
+
+    old_context = QOpenGLContext.currentContext()
+    old_surface = None if old_context is None else old_context.surface()
+
+    surface = QOffscreenSurface()
+    surface.create()
+
+    ctx = QOpenGLContext()
+    ok = ctx.create()
+    if not ok:
+        log.init.debug("opengl_vendor: Creating context failed!")
+        return None
+
+    ok = ctx.makeCurrent(surface)
+    if not ok:
+        log.init.debug("opengl_vendor: Making context current failed!")
+        return None
+
+    try:
+        if ctx.isOpenGLES():
+            # Can't use versionFunctions there
+            return None
+
+        vp = QOpenGLVersionProfile()
+        vp.setVersion(2, 0)
+
+        vf = ctx.versionFunctions(vp)
+        if vf is None:
+            log.init.debug("opengl_vendor: Getting version functions failed!")
+            return None
+
+        return vf.glGetString(vf.GL_VENDOR)
+    finally:
+        ctx.doneCurrent()
+        if old_context and old_surface:
+            old_context.makeCurrent(old_surface)

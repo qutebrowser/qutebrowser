@@ -8,7 +8,7 @@ graft icons
 graft doc/img
 graft misc/apparmor
 graft misc/userscripts
-recursive-include scripts *.py
+recursive-include scripts *.py *.sh
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include COPYING doc/* README.asciidoc CONTRIBUTING.asciidoc FAQ.asciidoc INSTALL.asciidoc CHANGELOG.asciidoc
@@ -30,20 +30,15 @@ prune tests
 prune qutebrowser/3rdparty
 prune misc/requirements
 prune misc/docker
-exclude .editorconfig
 exclude pytest.ini
 exclude qutebrowser.rcc
-exclude .coveragerc
-exclude .pylintrc
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
-exclude .appveyor.yml
-exclude .travis.yml
+exclude .*
 exclude codecov.yml
-exclude .pydocstylerc
 exclude misc/appveyor_install.py
 exclude misc/qutebrowser.spec
-exclude .flake8
+exclude misc/qutebrowser.nsi
 
 global-exclude __pycache__ *.pyc *.pyo

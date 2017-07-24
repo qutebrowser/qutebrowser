@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -408,7 +408,7 @@ class TestDefaultConfig:
         If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
         and then increment the version.
         """
-        assert qutebrowser.__version__ == '0.10.1'
+        assert qutebrowser.__version__ == '0.11.0'
 
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),

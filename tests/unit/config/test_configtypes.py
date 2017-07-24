@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -1031,16 +1031,16 @@ class TestFont:
         klass(none_ok=True).validate(val)
 
     @pytest.mark.parametrize('val', [
-        font_xfail('green "Foobar Neue"'),
-        font_xfail('italic green "Foobar Neue"'),
-        font_xfail('bold bold "Foobar Neue"'),
-        font_xfail('bold italic "Foobar Neue"'),
-        font_xfail('10pt 20px "Foobar Neue"'),
-        font_xfail('bold'),
-        font_xfail('italic'),
-        font_xfail('green'),
-        font_xfail('10pt'),
-        font_xfail('10pt ""'),
+        pytest.param('green "Foobar Neue"', marks=font_xfail),
+        pytest.param('italic green "Foobar Neue"', marks=font_xfail),
+        pytest.param('bold bold "Foobar Neue"', marks=font_xfail),
+        pytest.param('bold italic "Foobar Neue"', marks=font_xfail),
+        pytest.param('10pt 20px "Foobar Neue"', marks=font_xfail),
+        pytest.param('bold', marks=font_xfail),
+        pytest.param('italic', marks=font_xfail),
+        pytest.param('green', marks=font_xfail),
+        pytest.param('10pt', marks=font_xfail),
+        pytest.param('10pt ""', marks=font_xfail),
         '',
     ])
     def test_validate_invalid(self, klass, val):
@@ -1134,9 +1134,11 @@ class TestRegex:
     def test_validate_valid(self, klass, val):
         klass(none_ok=True).validate(val)
 
-    @pytest.mark.parametrize('val', [r'(foo|bar))?baz[fis]h', '', '(' * 500],
-                             ids=['unmatched parens', 'empty',
-                                  'too many parens'])
+    @pytest.mark.parametrize('val', [
+        pytest.param(r'(foo|bar))?baz[fis]h', id='unmatched parens'),
+        pytest.param('', id='empty'),
+        pytest.param('(' * 500, id='too many parens'),
+    ])
     def test_validate_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().validate(val)
@@ -1255,9 +1257,10 @@ class TestFile:
             '/home/foo/.config/', 'foobar')
 
     @pytest.mark.parametrize('configtype, value, raises', [
-        (configtypes.File(), 'foobar', True),
-        (configtypes.File(required=False), 'foobar', False),
-    ], ids=['file-foobar', 'file-optional-foobar'])
+        pytest.param(configtypes.File(), 'foobar', True, id='file-foobar'),
+        pytest.param(configtypes.File(required=False), 'foobar', False,
+                     id='file-optional-foobar'),
+    ])
     def test_validate_rel_inexistent(self, os_mock, monkeypatch, configtype,
                                      value, raises):
         """Test with a relative path and standarddir.config returning None."""
@@ -1382,48 +1385,6 @@ class TestDirectory:
     def test_transform_empty(self, klass):
         """Test transform with none_ok = False and an empty value."""
         assert klass().transform('') is None
-
-
-class TestWebKitByte:
-
-    """Test WebKitBytes."""
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.WebKitBytes
-
-    @pytest.mark.parametrize('maxsize, val', [
-        (None, ''),
-        (None, '42'),
-        (None, '56k'),
-        (None, '56K'),
-        (10, '10'),
-        (2048, '2k'),
-    ])
-    def test_validate_valid(self, klass, maxsize, val):
-        klass(none_ok=True, maxsize=maxsize).validate(val)
-
-    @pytest.mark.parametrize('maxsize, val', [
-        (None, ''),
-        (None, '-1'),
-        (None, '-1k'),
-        (None, '56x'),
-        (None, '56kk'),
-        (10, '11'),
-        (999, '1k'),
-    ])
-    def test_validate_invalid(self, klass, maxsize, val):
-        with pytest.raises(configexc.ValidationError):
-            klass(maxsize=maxsize).validate(val)
-
-    @pytest.mark.parametrize('val, expected', [
-        ('', None),
-        ('10', 10),
-        ('1k', 1024),
-        ('1t', 1024 ** 4),
-    ])
-    def test_transform(self, klass, val, expected):
-        assert klass().transform(val) == expected
 
 
 class TestShellCommand:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -102,6 +102,19 @@ def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
     view.show_message(usertypes.MessageLevel.info, 'test')
     with qtbot.waitSignal(view._clear_timer.timeout):
         config_stub.set('ui', 'message-timeout', 100)
+
+
+@pytest.mark.parametrize('count, expected', [(1, 100), (3, 300),
+                                             (5, 500), (7, 500)])
+def test_show_multiple_messages_longer(view, count, expected):
+    """When there are multiple messages, messages should be shown longer.
+
+    There is an upper maximum to avoid messages never disappearing.
+    """
+    for message_number in range(1, count+1):
+        view.show_message(usertypes.MessageLevel.info,
+                          'test ' + str(message_number))
+    assert view._clear_timer.interval() == expected
 
 
 @pytest.mark.parametrize('replace1, replace2, length', [

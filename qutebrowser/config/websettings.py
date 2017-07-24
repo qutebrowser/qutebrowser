@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# We get various "abstract but not overridden" warnings
+# pylint: disable=abstract-method
+
 """Bridge from QWeb(Engine)Settings to our own settings."""
+
+from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, debug, usertypes
@@ -28,85 +33,53 @@ UNSET = object()
 
 class Base:
 
-    """Base class for QWeb(Engine)Settings wrappers.
+    """Base class for QWeb(Engine)Settings wrappers."""
 
-    Attributes:
-        _default: The default value of this setting.
-    """
+    def __init__(self, default=UNSET):
+        self._default = default
 
-    # Needs to be overridden by subclasses in
-    # webkitsettings.py/webenginesettings.py
-    GLOBAL_SETTINGS = None
-
-    def __init__(self):
-        self._default = UNSET
+    def _get_global_settings(self):
+        """Get a list of global QWeb(Engine)Settings to use."""
+        raise NotImplementedError
 
     def _get_settings(self, settings):
-        """Get the QWeb(Engine)Settings object to use.
-
-        Args:
-            settings: The QWeb(Engine)Settings instance to use, or None to use
-                      the global instance.
-        """
-        if settings is None:
-            return self.GLOBAL_SETTINGS()  # pylint: disable=not-callable
-        else:
-            return settings
-
-    def save_default(self, settings=None):
-        """Save the default value based on the currently set one.
-
-        This does nothing if no getter is configured for this setting.
+        """Get a list of QWeb(Engine)Settings objects to use.
 
         Args:
             settings: The QWeb(Engine)Settings instance to use, or None to use
                       the global instance.
 
         Return:
-            The saved default value.
+            A list of QWeb(Engine)Settings objects. The first one should be
+            used for reading.
         """
-        try:
-            self._default = self.get(settings)
-            return self._default
-        except AttributeError:
-            return None
-
-    def restore_default(self, settings=None):
-        """Restore the default value from the saved one.
-
-        This does nothing if the default has never been set.
-
-        Args:
-            settings: The QWeb(Engine)Settings instance to use, or None to use
-                      the global instance.
-        """
-        if self._default is not UNSET:
-            log.config.vdebug("Restoring default {!r}.".format(self._default))
-            self._set(self._default, settings=settings)
-
-    def get(self, settings=None):
-        """Get the value of this setting.
-
-        Must be overridden by subclasses.
-
-        Args:
-            settings: The QWeb(Engine)Settings instance to use, or None to use
-                      the global instance.
-        """
-        raise NotImplementedError
+        if settings is None:
+            return self._get_global_settings()
+        else:
+            return [settings]
 
     def set(self, value, settings=None):
         """Set the value of this setting.
 
         Args:
-            value: The value to set.
+            value: The value to set, or None to restore the default.
             settings: The QWeb(Engine)Settings instance to use, or None to use
                       the global instance.
         """
         if value is None:
-            self.restore_default(settings)
+            self.set_default(settings=settings)
         else:
             self._set(value, settings=settings)
+
+    def set_default(self, settings=None):
+        """Set the default value for this setting.
+
+        Not implemented for most settings.
+        """
+        if self._default is UNSET:
+            raise ValueError("No default set for {!r}".format(self))
+        else:
+            self._set(self._default, settings=settings)
 
     def _set(self, value, settings):
         """Inner function to set the value of this setting.
@@ -126,109 +99,71 @@ class Attribute(Base):
     """A setting set via QWeb(Engine)Settings::setAttribute.
 
     Attributes:
-        self._attribute: A QWeb(Engine)Settings::WebAttribute instance.
+        self._attributes: A list of QWeb(Engine)Settings::WebAttribute members.
     """
 
     ENUM_BASE = None
 
-    def __init__(self, attribute):
-        super().__init__()
-        self._attribute = attribute
+    def __init__(self, *attributes, default=UNSET):
+        super().__init__(default=default)
+        self._attributes = list(attributes)
 
     def __repr__(self):
-        return utils.get_repr(
-            self, attribute=debug.qenum_key(self.ENUM_BASE, self._attribute),
-            constructor=True)
-
-    def get(self, settings=None):
-        return self._get_settings(settings).attribute(self._attribute)
+        attributes = [debug.qenum_key(self.ENUM_BASE, attr)
+                      for attr in self._attributes]
+        return utils.get_repr(self, attributes=attributes, constructor=True)
 
     def _set(self, value, settings=None):
-        self._get_settings(settings).setAttribute(self._attribute, value)
+        for obj in self._get_settings(settings):
+            for attribute in self._attributes:
+                obj.setAttribute(attribute, value)
 
 
 class Setter(Base):
 
-    """A setting set via QWeb(Engine)Settings getter/setter methods.
+    """A setting set via a QWeb(Engine)Settings setter method.
 
     This will pass the QWeb(Engine)Settings instance ("self") as first argument
-    to the methods, so self._getter/self._setter are the *unbound* methods.
+    to the methods, so self._setter is the *unbound* method.
 
     Attributes:
-        _getter: The unbound QWeb(Engine)Settings method to get this value, or
-                 None.
         _setter: The unbound QWeb(Engine)Settings method to set this value.
-        _args: An iterable of the arguments to pass to the setter/getter
-               (before the value, for the setter).
+        _args: An iterable of the arguments to pass to the setter (before the
+               value).
         _unpack: Whether to unpack args (True) or pass them directly (False).
     """
 
-    def __init__(self, getter, setter, args=(), unpack=False):
-        super().__init__()
-        self._getter = getter
+    def __init__(self, setter, args=(), unpack=False, default=UNSET):
+        super().__init__(default=default)
         self._setter = setter
         self._args = args
         self._unpack = unpack
 
     def __repr__(self):
-        return utils.get_repr(self, getter=self._getter, setter=self._setter,
-                              args=self._args, unpack=self._unpack,
-                              constructor=True)
-
-    def get(self, settings=None):
-        if self._getter is None:
-            raise AttributeError("No getter set!")
-        return self._getter(self._get_settings(settings), *self._args)
+        return utils.get_repr(self, setter=self._setter, args=self._args,
+                              unpack=self._unpack, constructor=True)
 
     def _set(self, value, settings=None):
-        args = [self._get_settings(settings)]
-        args.extend(self._args)
-        if self._unpack:
-            args.extend(value)
-        else:
-            args.append(value)
-        self._setter(*args)
-
-
-class NullStringSetter(Setter):
-
-    """A setter for settings requiring a null QString as default.
-
-    This overrides save_default so None is saved for an empty string. This is
-    needed for the CSS media type, because it returns an empty Python string
-    when getting the value, but setting it to the default requires passing None
-    (a null QString) instead of an empty string.
-    """
-
-    def save_default(self, settings=None):
-        try:
-            val = self.get(settings)
-        except AttributeError:
-            return None
-        if val == '':
-            self._set(None, settings=settings)
-        else:
-            self._set(val, settings=settings)
-        return val
+        for obj in self._get_settings(settings):
+            args = [obj]
+            args.extend(self._args)
+            if self._unpack:
+                args.extend(value)
+            else:
+                args.append(value)
+            self._setter(*args)
 
 
 class StaticSetter(Setter):
 
-    """A setting set via static QWeb(Engine)Settings getter/setter methods.
+    """A setting set via a static QWeb(Engine)Settings method.
 
-    self._getter/self._setter are the *bound* methods.
+    self._setter is the *bound* method.
     """
-
-    def get(self, settings=None):
-        if settings is not None:
-            raise ValueError("'settings' may not be set with GlobalSetters!")
-        if self._getter is None:
-            raise AttributeError("No getter set!")
-        return self._getter(*self._args)
 
     def _set(self, value, settings=None):
         if settings is not None:
-            raise ValueError("'settings' may not be set with GlobalSetters!")
+            raise ValueError("'settings' may not be set with StaticSetters!")
         args = list(self._args)
         if self._unpack:
             args.extend(value)
@@ -237,13 +172,28 @@ class StaticSetter(Setter):
         self._setter(*args)
 
 
+class FontFamilySetter(Setter):
+
+    """A setter for a font family.
+
+    Gets the default value from QFont.
+    """
+
+    def __init__(self, setter, font, qfont):
+        super().__init__(setter=setter, args=[font])
+        self._qfont = qfont
+
+    def set_default(self, settings=None):
+        font = QFont()
+        font.setStyleHint(self._qfont)
+        value = font.defaultFamily()
+        self._set(value, settings=settings)
+
+
 def init_mappings(mappings):
     """Initialize all settings based on a settings mapping."""
     for sectname, section in mappings.items():
         for optname, mapping in section.items():
-            default = mapping.save_default()
-            log.config.vdebug("Saved default for {} -> {}: {!r}".format(
-                sectname, optname, default))
             value = config.get(sectname, optname)
             log.config.vdebug("Setting {} -> {} to {!r}".format(
                 sectname, optname, value))

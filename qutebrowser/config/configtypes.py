@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -915,60 +915,6 @@ class FormatString(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-class WebKitBytes(BaseType):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        maxsize: The maximum size to be used.
-
-    Class attributes:
-        SUFFIXES: A mapping of size suffixes to multiplicators.
-    """
-
-    SUFFIXES = {
-        'k': 1024 ** 1,
-        'm': 1024 ** 2,
-        'g': 1024 ** 3,
-        't': 1024 ** 4,
-        'p': 1024 ** 5,
-        'e': 1024 ** 6,
-        'z': 1024 ** 7,
-        'y': 1024 ** 8,
-    }
-
-    def __init__(self, maxsize=None, none_ok=False):
-        super().__init__(none_ok)
-        self.maxsize = maxsize
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            val = self.transform(value)
-        except ValueError:
-            raise configexc.ValidationError(value, "must be a valid integer "
-                                            "with optional suffix!")
-        if self.maxsize is not None and val > self.maxsize:
-            raise configexc.ValidationError(value, "must be {} "
-                                            "maximum!".format(self.maxsize))
-        if val < 0:
-            raise configexc.ValidationError(value, "must be 0 minimum!")
-
-    def transform(self, value):
-        if not value:
-            return None
-        elif any(value.lower().endswith(c) for c in self.SUFFIXES):
-            suffix = value[-1].lower()
-            val = value[:-1]
-            multiplicator = self.SUFFIXES[suffix]
-        else:
-            val = value
-            multiplicator = 1
-        return int(val) * multiplicator
-
-
 class ShellCommand(BaseType):
 
     """A shellcommand which is split via shlex.
@@ -1452,7 +1398,11 @@ class UserAgent(BaseType):
 
             ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
              'Gecko',
-             "IE 11.0 for Desktop Win7 64-bit")
+             "IE 11.0 for Desktop Win7 64-bit"),
+
+            ('Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 '
+             '(KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+             "Mobile Generic Android")
         ]
         return out
 

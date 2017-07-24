@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,9 +42,10 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion.models import instances as completionmodels
+from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
+from qutebrowser.config.parsers import keyconf
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -53,10 +54,10 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit)
+                              crashsignal, earlyinit, objects, sql)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error, debug)
+                               objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -136,7 +137,7 @@ def init(args, crash_handler):
 
     try:
         _init_modules(args, crash_handler)
-    except (OSError, UnicodeDecodeError) as e:
+    except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
         error.handle_fatal_exc(e, args, "Error while initializing!",
                                pre_text="Error while initializing")
         sys.exit(usertypes.Exit.err_init)
@@ -157,7 +158,7 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
-    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
+    objreg.get('web-history').import_txt()
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
@@ -170,12 +171,15 @@ def _init_icon():
     for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
         filename = ':/icons/qutebrowser-{}x{}.png'.format(size, size)
         pixmap = QPixmap(filename)
-        qtutils.ensure_not_null(pixmap)
-        fallback_icon.addPixmap(pixmap)
-    qtutils.ensure_not_null(fallback_icon)
+        if pixmap.isNull():
+            log.init.warning("Failed to load {}".format(filename))
+        else:
+            fallback_icon.addPixmap(pixmap)
     icon = QIcon.fromTheme('qutebrowser', fallback_icon)
-    qtutils.ensure_not_null(icon)
-    qApp.setWindowIcon(icon)
+    if icon.isNull():
+        log.init.warning("Failed to load icon")
+    else:
+        qApp.setWindowIcon(icon)
 
 
 def _process_args(args):
@@ -192,14 +196,14 @@ def _process_args(args):
     session_manager = objreg.get('session-manager')
     if not session_manager.did_load:
         log.init.debug("Initializing main window...")
-        window = mainwindow.MainWindow()
+        window = mainwindow.MainWindow(private=None)
         if not args.nowindow:
             window.show()
         qApp.setActiveWindow(window)
 
     process_pos_args(args.command)
     _open_startpage()
-    _open_quickstart(args)
+    _open_special_pages(args)
 
     delta = datetime.datetime.now() - earlyinit.START_TIME
     log.init.debug("Init finished after {}s".format(delta.total_seconds()))
@@ -316,23 +320,40 @@ def _open_startpage(win_id=None):
                     tabbed_browser.tabopen(url)
 
 
-def _open_quickstart(args):
-    """Open quickstart if it's the first start.
+def _open_special_pages(args):
+    """Open special notification pages which are only shown once.
+
+    Currently this is:
+      - Quickstart page if it's the first start.
+      - Legacy QtWebKit warning if needed.
 
     Args:
         args: The argparse namespace.
     """
     if args.basedir is not None:
-        # With --basedir given, don't open quickstart.
+        # With --basedir given, don't open anything.
         return
+
     state_config = objreg.get('state-config')
-    try:
-        quickstart_done = state_config['general']['quickstart-done'] == '1'
-    except KeyError:
-        quickstart_done = False
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+
+    # Legacy QtWebKit warning
+
+    needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
+                     not qtutils.is_qtwebkit_ng())
+    warning_shown = state_config['general'].get('backend-warning-shown') == '1'
+
+    if not warning_shown and needs_warning:
+        tabbed_browser.tabopen(QUrl('qute://backend-warning'),
+                               background=False)
+        state_config['general']['backend-warning-shown'] = '1'
+
+    # Quickstart page
+
+    quickstart_done = state_config['general'].get('quickstart-done') == '1'
+
     if not quickstart_done:
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='last-focused')
         tabbed_browser.tabopen(
             QUrl('https://www.qutebrowser.org/quickstart.html'))
         state_config['general']['quickstart-done'] = '1'
@@ -340,8 +361,9 @@ def _open_quickstart(args):
 
 def _save_version():
     """Save the current version to the state config."""
-    state_config = objreg.get('state-config')
-    state_config['general']['version'] = qutebrowser.__version__
+    state_config = objreg.get('state-config', None)
+    if state_config is not None:
+        state_config['general']['version'] = qutebrowser.__version__
 
 
 def on_focus_changed(_old, new):
@@ -389,10 +411,8 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing network...")
     networkmanager.init()
 
-    if qtutils.version_check('5.8'):
-        # Otherwise we can only initialize it for QtWebKit because of crashes
-        log.init.debug("Initializing proxy...")
-        proxy.init()
+    log.init.debug("Initializing proxy...")
+    proxy.init()
 
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
@@ -401,6 +421,17 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing config...")
     config.init(qApp)
     save_manager.init_autosave()
+
+    log.init.debug("Initializing keys...")
+    keyconf.init(qApp)
+
+    log.init.debug("Initializing sql...")
+    try:
+        sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+    except sql.SqlException as e:
+        error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                               pre_text='Error initializing SQL')
+        sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing web history...")
     history.init(qApp)
@@ -438,9 +469,6 @@ def _init_modules(args, crash_handler):
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
 
-    log.init.debug("Initializing completions...")
-    completionmodels.init()
-
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
@@ -449,23 +477,6 @@ def _init_modules(args, crash_handler):
     macros.init()
     # Init backend-specific stuff
     browsertab.init()
-
-
-def _init_late_modules(args):
-    """Initialize modules which can be inited after the window is shown."""
-    log.init.debug("Reading web history...")
-    reader = objreg.get('web-history').async_read()
-    with debug.log_time(log.init, 'Reading history'):
-        while True:
-            QApplication.processEvents()
-            try:
-                next(reader)
-            except StopIteration:
-                break
-            except (OSError, UnicodeDecodeError) as e:
-                error.handle_fatal_exc(e, args, "Error while initializing!",
-                                       pre_text="Error while initializing")
-                sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:
@@ -615,7 +626,7 @@ class Quitter:
         # Save the session if one is given.
         if session is not None:
             session_manager = objreg.get('session-manager')
-            session_manager.save(session)
+            session_manager.save(session, with_private=True)
         # Open a new process and immediately shutdown the existing one
         try:
             args, cwd = self._get_restart_args(pages, session)
@@ -647,14 +658,14 @@ class Quitter:
         self._shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
-
-        session_manager = objreg.get('session-manager')
-        if session is not None:
-            session_manager.save(session, last_window=last_window,
-                                 load_next_time=True)
-        elif config.get('general', 'save-session'):
-            session_manager.save(sessions.default, last_window=last_window,
-                                 load_next_time=True)
+        session_manager = objreg.get('session-manager', None)
+        if session_manager is not None:
+            if session is not None:
+                session_manager.save(session, last_window=last_window,
+                                     load_next_time=True)
+            elif config.get('general', 'save-session'):
+                session_manager.save(sessions.default, last_window=last_window,
+                                     load_next_time=True)
 
         if prompt.prompt_queue.shutdown():
             # If shutdown was called while we were asking a question, we're in
@@ -671,7 +682,7 @@ class Quitter:
             # event loop, so we can shut down immediately.
             self._shutdown(status, restart=restart)
 
-    def _shutdown(self, status, restart):
+    def _shutdown(self, status, restart):  # noqa
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         if qApp is None:
@@ -680,7 +691,9 @@ class Quitter:
         # Remove eventfilter
         try:
             log.destroy.debug("Removing eventfilter...")
-            qApp.removeEventFilter(objreg.get('event-filter'))
+            event_filter = objreg.get('event-filter', None)
+            if event_filter is not None:
+                qApp.removeEventFilter(event_filter)
         except AttributeError:
             pass
         # Close all windows
@@ -722,13 +735,15 @@ class Quitter:
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
         objreg.get('signal-handler').deactivate()
-        objreg.get('session-manager').delete_autosave()
+        session_manager = objreg.get('session-manager', None)
+        if session_manager is not None:
+            session_manager.delete_autosave()
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
 
     @cmdutils.register(instance='quitter', name='wq')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def save_and_quit(self, name=sessions.default):
         """Save open pages and quit.
 
@@ -784,7 +799,7 @@ class Application(QApplication):
     def exit(self, status):
         """Extend QApplication::exit to log the event."""
         log.destroy.debug("Now calling QApplication::exit.")
-        if self._args.debug_exit:
+        if 'debug-exit' in self._args.debug_flags:
             if hunter is None:
                 print("Not logging late shutdown because hunter could not be "
                       "imported!", file=sys.stderr)

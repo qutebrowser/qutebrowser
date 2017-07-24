@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -156,6 +156,10 @@ def qflags_key(base, value, add_base=False, klass=None):
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+
+    if not value:
+        return qenum_key(base, value, add_base, klass)
+
     bits = []
     names = []
     mask = 0x01

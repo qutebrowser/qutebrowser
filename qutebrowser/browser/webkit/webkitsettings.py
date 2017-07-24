@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# We get various "abstract but not overridden" warnings
+# pylint: disable=abstract-method
+
 """Bridge from QWebSettings to our own settings.
 
 Module attributes:
@@ -26,43 +29,66 @@ Module attributes:
 
 import os.path
 
-from PyQt5.QtWebKit import QWebSettings, qWebKitVersion
+from PyQt5.QtGui import QFont
+from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg, urlutils, qtutils, message
+from qutebrowser.utils import standarddir, objreg, urlutils, qtutils
 from qutebrowser.browser import shared
 
 
-class Attribute(websettings.Attribute):
+class Base(websettings.Base):
+
+    """Base settings class with appropriate _get_global_settings."""
+
+    def _get_global_settings(self):
+        return [QWebSettings.globalSettings()]
+
+
+class Attribute(Base, websettings.Attribute):
 
     """A setting set via QWebSettings::setAttribute."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
     ENUM_BASE = QWebSettings
 
 
-class Setter(websettings.Setter):
+class Setter(Base, websettings.Setter):
 
-    """A setting set via QWebSettings getter/setter methods."""
+    """A setting set via a QWebSettings setter method."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
-
-
-class NullStringSetter(websettings.NullStringSetter):
-
-    """A setter for settings requiring a null QString as default."""
-
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
-class StaticSetter(websettings.StaticSetter):
+class StaticSetter(Base, websettings.StaticSetter):
 
-    """A setting set via static QWebSettings getter/setter methods."""
+    """A setting set via a static QWebSettings setter method."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    pass
 
 
-class CookiePolicy(websettings.Base):
+class FontFamilySetter(Base, websettings.FontFamilySetter):
+
+    """A setter for a font family.
+
+    Gets the default value from QFont.
+    """
+
+    def __init__(self, font):
+        # Mapping from QWebSettings::QWebSettings() in
+        # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+        font_to_qfont = {
+            QWebSettings.StandardFont: QFont.Serif,
+            QWebSettings.FixedFont: QFont.Monospace,
+            QWebSettings.SerifFont: QFont.Serif,
+            QWebSettings.SansSerifFont: QFont.SansSerif,
+            QWebSettings.CursiveFont: QFont.Cursive,
+            QWebSettings.FantasyFont: QFont.Fantasy,
+        }
+        super().__init__(setter=QWebSettings.setFontFamily, font=font,
+                         qfont=font_to_qfont[font])
+
+
+class CookiePolicy(Base):
 
     """The ThirdPartyCookiePolicy setting is different from other settings."""
 
@@ -73,12 +99,9 @@ class CookiePolicy(websettings.Base):
         'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
     }
 
-    def get(self, settings=None):
-        return config.get('content', 'cookies-accept')
-
     def _set(self, value, settings=None):
-        QWebSettings.globalSettings().setThirdPartyCookiePolicy(
-            self.MAPPING[value])
+        for obj in self._get_settings(settings):
+            obj.setThirdPartyCookiePolicy(self.MAPPING[value])
 
 
 def _set_user_stylesheet():
@@ -88,21 +111,9 @@ def _set_user_stylesheet():
     QWebSettings.globalSettings().setUserStyleSheetUrl(url)
 
 
-def _init_private_browsing():
-    if config.get('general', 'private-browsing'):
-        if qtutils.is_qtwebkit_ng(qWebKitVersion()):
-            message.warning("Private browsing is not fully implemented by "
-                            "QtWebKit-NG!")
-        QWebSettings.setIconDatabasePath('')
-    else:
-        QWebSettings.setIconDatabasePath(standarddir.cache())
-
-
 def update_settings(section, option):
     """Update global settings when qwebsettings changed."""
-    if (section, option) == ('general', 'private-browsing'):
-        _init_private_browsing()
-    elif section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
+    if section == 'ui' and option in ['hide-scrollbar', 'user-stylesheet']:
         _set_user_stylesheet()
 
     websettings.update_mappings(MAPPINGS, section, option)
@@ -113,14 +124,20 @@ def init(_args):
     cache_path = standarddir.cache()
     data_path = standarddir.data()
 
-    _init_private_browsing()
-
+    QWebSettings.setIconDatabasePath(standarddir.cache())
     QWebSettings.setOfflineWebApplicationCachePath(
         os.path.join(cache_path, 'application-cache'))
     QWebSettings.globalSettings().setLocalStoragePath(
         os.path.join(data_path, 'local-storage'))
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
+
+    if (config.get('general', 'private-browsing') and
+            not qtutils.version_check('5.4.2')):
+        # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
+        # Won't work when private browsing is not enabled globally, but that's
+        # the best we can do...
+        QWebSettings.setIconDatabasePath('')
 
     websettings.init_mappings(MAPPINGS)
     _set_user_stylesheet()
@@ -146,14 +163,10 @@ MAPPINGS = {
             Attribute(QWebSettings.JavascriptCanCloseWindows),
         'javascript-can-access-clipboard':
             Attribute(QWebSettings.JavascriptCanAccessClipboard),
-        #'allow-java':
-        #   Attribute(QWebSettings.JavaEnabled),
         'allow-plugins':
             Attribute(QWebSettings.PluginsEnabled),
         'webgl':
             Attribute(QWebSettings.WebGLEnabled),
-        'css-regions':
-            Attribute(QWebSettings.CSSRegionsEnabled),
         'hyperlink-auditing':
             Attribute(QWebSettings.HyperlinkAuditingEnabled),
         'local-content-can-access-remote-urls':
@@ -175,44 +188,28 @@ MAPPINGS = {
     },
     'fonts': {
         'web-family-standard':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.StandardFont]),
+            FontFamilySetter(QWebSettings.StandardFont),
         'web-family-fixed':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.FixedFont]),
+            FontFamilySetter(QWebSettings.FixedFont),
         'web-family-serif':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.SerifFont]),
+            FontFamilySetter(QWebSettings.SerifFont),
         'web-family-sans-serif':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.SansSerifFont]),
+            FontFamilySetter(QWebSettings.SansSerifFont),
         'web-family-cursive':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.CursiveFont]),
+            FontFamilySetter(QWebSettings.CursiveFont),
         'web-family-fantasy':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.FantasyFont]),
+            FontFamilySetter(QWebSettings.FantasyFont),
         'web-size-minimum':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
+            Setter(QWebSettings.setFontSize,
                    args=[QWebSettings.MinimumFontSize]),
         'web-size-minimum-logical':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
+            Setter(QWebSettings.setFontSize,
                    args=[QWebSettings.MinimumLogicalFontSize]),
         'web-size-default':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
+            Setter(QWebSettings.setFontSize,
                    args=[QWebSettings.DefaultFontSize]),
         'web-size-default-fixed':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
+            Setter(QWebSettings.setFontSize,
                    args=[QWebSettings.DefaultFixedFontSize]),
     },
     'ui': {
@@ -221,9 +218,6 @@ MAPPINGS = {
         'frame-flattening':
             Attribute(QWebSettings.FrameFlatteningEnabled),
         # user-stylesheet is handled separately
-        'css-media-type':
-            NullStringSetter(getter=QWebSettings.cssMediaType,
-                             setter=QWebSettings.setCSSMediaType),
         'smooth-scrolling':
             Attribute(QWebSettings.ScrollAnimatorEnabled),
         #'accelerated-compositing':
@@ -232,40 +226,22 @@ MAPPINGS = {
         #   Attribute(QWebSettings.TiledBackingStoreEnabled),
     },
     'storage': {
-        'offline-storage-database':
-            Attribute(QWebSettings.OfflineStorageDatabaseEnabled),
-        'offline-web-application-storage':
+        'offline-web-application-cache':
             Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),
         'local-storage':
-            Attribute(QWebSettings.LocalStorageEnabled),
+            Attribute(QWebSettings.LocalStorageEnabled,
+                      QWebSettings.OfflineStorageDatabaseEnabled),
         'maximum-pages-in-cache':
-            StaticSetter(getter=QWebSettings.maximumPagesInCache,
-                         setter=QWebSettings.setMaximumPagesInCache),
-        'object-cache-capacities':
-            StaticSetter(getter=None,
-                         setter=QWebSettings.setObjectCacheCapacities,
-                         unpack=True),
-        'offline-storage-default-quota':
-            StaticSetter(getter=QWebSettings.offlineStorageDefaultQuota,
-                         setter=QWebSettings.setOfflineStorageDefaultQuota),
-        'offline-web-application-cache-quota':
-            StaticSetter(
-                getter=QWebSettings.offlineWebApplicationCacheQuota,
-                setter=QWebSettings.setOfflineWebApplicationCacheQuota),
+            StaticSetter(QWebSettings.setMaximumPagesInCache),
     },
     'general': {
-        'private-browsing':
-            Attribute(QWebSettings.PrivateBrowsingEnabled),
         'developer-extras':
             Attribute(QWebSettings.DeveloperExtrasEnabled),
         'print-element-backgrounds':
             Attribute(QWebSettings.PrintElementBackgrounds),
         'xss-auditing':
             Attribute(QWebSettings.XSSAuditingEnabled),
-        'site-specific-quirks':
-            Attribute(QWebSettings.SiteSpecificQuirksEnabled),
         'default-encoding':
-            Setter(getter=QWebSettings.defaultTextEncoding,
-                   setter=QWebSettings.setDefaultTextEncoding),
+            Setter(QWebSettings.setDefaultTextEncoding),
     }
 }

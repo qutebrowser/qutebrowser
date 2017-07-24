@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,6 +24,7 @@ import pytest
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginedownloads
+from helpers import utils
 
 
 @pytest.mark.parametrize('path, expected', [
@@ -31,8 +32,10 @@ from qutebrowser.browser.webengine import webenginedownloads
     ('foo(1)', 'foo'),
     ('foo(a)', 'foo(a)'),
     ('foo1', 'foo1'),
-    ('foo%20bar', 'foo bar'),
-    ('foo%2Fbar', 'bar'),
+    pytest.param('foo%20bar', 'foo bar', marks=utils.qt58),
+    pytest.param('foo%2Fbar', 'bar', marks=utils.qt58),
+    pytest.param('foo%20bar', 'foo%20bar', marks=utils.qt59),
+    pytest.param('foo%2Fbar', 'foo%2Fbar', marks=utils.qt59),
 ])
 def test_get_suggested_filename(path, expected):
     assert webenginedownloads._get_suggested_filename(path) == expected

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Daniel Schadt
+# Copyright 2015-2017 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -20,10 +20,10 @@
 """Test the built-in directory browser."""
 
 import os
-import bs4
 import collections
 
 import pytest
+import bs4
 
 from PyQt5.QtCore import QUrl
 from qutebrowser.utils import urlutils
