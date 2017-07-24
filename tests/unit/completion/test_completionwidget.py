@@ -240,3 +240,8 @@ def test_completion_item_del_no_selection(completionview):
     with pytest.raises(cmdexc.CommandError, match='No item selected!'):
         completionview.completion_item_del()
     assert not func.called
+
+
+def test_resize_no_model(completionview, qtbot):
+    """Ensure no crash if resizeEvent is triggered with no model (#2854)."""
+    completionview.resizeEvent(None)
