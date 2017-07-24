@@ -87,6 +87,7 @@ def test_set_pattern(completionview):
     completionview.set_model(model)
     completionview.set_pattern('foo')
     model.set_pattern.assert_called_with('foo')
+    assert not completionview.selectionModel().currentIndex().isValid()
 
 
 def test_set_pattern_no_model(completionview):

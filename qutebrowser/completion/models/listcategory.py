@@ -21,11 +21,10 @@
 
 import re
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QModelIndex, QRegExp
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from qutebrowser.utils import qtutils
-from qutebrowser.commands import cmdexc
 
 
 class ListCategory(QSortFilterProxyModel):
@@ -91,12 +90,3 @@ class ListCategory(QSortFilterProxyModel):
             return False
         else:
             return left < right
-
-    def delete_cur_item(self, index):
-        """Delete the row at the given index."""
-        if not self.delete_func:
-            raise cmdexc.CommandError("Cannot delete this item.")
-        data = [self.data(index.sibling(index.row(), i))
-                for i in range(self.columnCount())]
-        self.delete_func(data)
-        self.removeRow(index.row(), QModelIndex())
