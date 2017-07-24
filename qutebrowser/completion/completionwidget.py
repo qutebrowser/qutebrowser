@@ -148,6 +148,8 @@ class CompletionView(QTreeView):
 
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
+        if self.model() is None:
+            return
         width = self.size().width()
         column_widths = self.model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
