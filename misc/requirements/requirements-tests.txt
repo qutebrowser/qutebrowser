@@ -5,7 +5,7 @@ cheroot==5.7.0
 click==6.7
 # colorama==0.3.9
 coverage==4.4.1
-decorator==4.1.1
+decorator==4.1.2
 EasyProcess==0.2.3
 fields==5.0.0
 Flask==0.12.2
