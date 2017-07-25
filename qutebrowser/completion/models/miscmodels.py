@@ -126,11 +126,12 @@ def bind(key):
         key: the key being bound.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmd_name = objreg.get('key-config').get_bindings_for('normal').get(key)
+    cmd_text = objreg.get('key-config').get_bindings_for('normal').get(key)
 
-    if cmd_name:
+    if cmd_text:
+        cmd_name = cmd_text.split(' ')[0]
         cmd = cmdutils.cmd_dict.get(cmd_name)
-        data = [(cmd_name, cmd.desc, key)]
+        data = [(cmd_text, cmd.desc, key)]
         model.add_category(listcategory.ListCategory("Current", data))
 
     cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
