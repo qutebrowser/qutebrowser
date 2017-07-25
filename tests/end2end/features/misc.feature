@@ -700,6 +700,7 @@ Feature: Various utility commands.
         And I open data/numbers/2.txt in a new tab
         And I run :open chrome://kill
         And I wait for "Renderer process was killed" in the log
+        And I wait for "Showed error page for renderer termination" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
 
