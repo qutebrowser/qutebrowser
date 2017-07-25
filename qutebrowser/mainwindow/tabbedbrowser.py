@@ -710,7 +710,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         def show_error_page(html):
             tab.set_html(html)
-            log.webview.debug("Showed error page for renderer termination")
+            log.webview.error(msg)
 
         if qtutils.version_check('5.9'):
             url_string = tab.url(requested=True).toDisplayString()
@@ -718,7 +718,6 @@ class TabbedBrowser(tabwidget.TabWidget):
                 'error.html', title="Error loading {}".format(url_string),
                 url=url_string, error=msg, icon='')
             QTimer.singleShot(100, lambda: show_error_page(error_page))
-            log.webview.error(msg)
         else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
             message.error(msg)
