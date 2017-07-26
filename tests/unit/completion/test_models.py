@@ -583,7 +583,7 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     _patch_cmdutils(monkeypatch, stubs,
                     'qutebrowser.completion.models.miscmodels.cmdutils')
     config_stub.data['aliases'] = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop',
+    key_config_stub.set_bindings_for('normal', {'s': 'stop now',
                                                 'rr': 'roll',
                                                 'ro': 'rock'})
     model = miscmodels.bind('s')
@@ -593,14 +593,14 @@ def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
 
     _check_completions(model, {
         "Current": [
-            ('stop', 'stop qutebrowser', 's'),
+            ('stop now', 'stop qutebrowser', 's'),
         ],
         "Commands": [
             ('drop', 'drop all user data', ''),
             ('hide', '', ''),
             ('rock', "Alias for 'roll'", 'ro'),
             ('roll', 'never gonna give you up', 'rr'),
-            ('stop', 'stop qutebrowser', 's'),
+            ('stop', 'stop qutebrowser', ''),
         ]
     })
 
