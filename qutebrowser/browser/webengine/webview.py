@@ -23,13 +23,15 @@ import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
+                                      QWebEngineScript)
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import certificateerror, webenginesettings
+from qutebrowser.browser.webengine import (certificateerror, webenginesettings,
+                                           webenginetab)
 from qutebrowser.config import config
 from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
-                               objreg)
+                               objreg, qtutils)
 
 
 class WebEngineView(QWebEngineView):
@@ -309,3 +311,4 @@ class WebEnginePage(QWebEnginePage):
             message.error(msg)
             return False
         return True
+

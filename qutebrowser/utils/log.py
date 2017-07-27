@@ -142,6 +142,7 @@ webelem = logging.getLogger('webelem')
 prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
 sql = logging.getLogger('sql')
+greasemonkey = logging.getLogger('greasemonkey')
 
 
 ram_handler = None

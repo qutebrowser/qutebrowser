@@ -86,6 +86,12 @@ class BrowserPage(QWebPage):
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
+        self.mainFrame().javaScriptWindowObjectCleared.connect(
+            self.inject_userjs_start)
+        self.mainFrame().initialLayoutCompleted.connect(
+            self.inject_userjs_end)
+        self.mainFrame().loadFinished.connect(
+            self.inject_userjs_idle)
 
     if PYQT_VERSION > 0x050300:
         # WORKAROUND (remove this when we bump the requirements to 5.3.1)
@@ -292,6 +298,33 @@ class BrowserPage(QWebPage):
             self._ignore_load_started = False
         else:
             self.error_occurred = False
+
+    @pyqtSlot()
+    def inject_userjs_start(self):
+        self.inject_userjs(load="start")
+
+    def inject_userjs_end(self):
+        self.inject_userjs(load="end")
+
+    def inject_userjs_idle(self):
+        self.inject_userjs(load="idle")
+
+    def inject_userjs(self, load="end"):
+        log.webview.debug('JS window object cleared')
+        greasemonkey = objreg.get('greasemonkey')
+        url = self.currentFrame().url()
+        start_scripts, end_scripts, idle_scripts = greasemonkey.scripts_for(url.toDisplayString())
+        if load == "start":
+            toload = start_scripts
+        elif load == "end":
+            toload = end_scripts
+        elif load == "idle":
+            toload = idle_scripts
+        log.greasemonkey.debug('scripts: {}'.format(toload))
+
+        for script in toload:
+            log.webview.debug('Running GM script: {}'.format(script.name()))
+            self.currentFrame().evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
