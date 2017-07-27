@@ -31,8 +31,6 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from qutebrowser.utils import log, standarddir
 from qutebrowser.commands import cmdutils
 
-# TODO: GM_ bootstrap
-
 
 def _scripts_dir():
     """Get the directory of the scripts."""
@@ -186,7 +184,7 @@ unsafeWindow = window;
             props, _code = matches
         except ValueError:
             props = ""
-        script = cls(re.findall(cls.PROPS_REGEX, props), code)
+        script = cls(re.findall(cls.PROPS_REGEX, props), source)
         script.script_meta = '"{}"'.format("\\n".join(props.split('\n')[2:]))
         return script
 
