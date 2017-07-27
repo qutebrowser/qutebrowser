@@ -201,7 +201,8 @@ unsafeWindow = window;
             scriptName=self.name,
             scriptInfo=self._meta_json(),
             scriptMeta=self.script_meta)
-        return '\n'.join([gm_bootstrap, self._code])
+        return '\n'.join(
+            ["(function(){", gm_bootstrap, self._code, "})();"])
 
     def _meta_json(self):
         return json.dumps({
