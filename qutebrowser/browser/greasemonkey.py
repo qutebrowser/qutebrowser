@@ -10,8 +10,6 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
 from qutebrowser.commands import cmdutils
 
-# TODO: GM_ bootstrap
-
 def _scripts_dir():
     """Get the directory of the scripts"""
     directory = config.get('storage', 'greasemonkey-directory')
@@ -161,7 +159,7 @@ unsafeWindow = window
     @classmethod
     def parse(cls, source):
         props, code = re.split(cls.HEADER_REGEX, source)
-        return cls(re.findall(cls.PROPS_REGEX, props), code)
+        return cls(re.findall(cls.PROPS_REGEX, props), source)
 
 
     def includes(self):
