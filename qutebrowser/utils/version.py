@@ -186,7 +186,6 @@ def _module_versions():
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
         ('typing', []),
-        ('OpenGL', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])

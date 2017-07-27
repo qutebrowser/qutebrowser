@@ -118,7 +118,6 @@ The following software and libraries are required to run qutebrowser:
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
 * http://pyyaml.org/wiki/PyYAML[PyYAML]
-* http://pyopengl.sourceforge.net/[PyOpenGL] when using QtWebEngine
 
 The following libraries are optional:
 

@@ -28,6 +28,9 @@ Module attributes:
 """
 
 import os
+import sys
+import ctypes
+import ctypes.util
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -198,6 +201,11 @@ def init(args):
     """Initialize the global QWebSettings."""
     if args.enable_webengine_inspector:
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
+
+    # WORKAROUND for
+    # https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
+    if sys.platform == 'linux':
+        ctypes.CDLL(ctypes.util.find_library("GL"), mode=ctypes.RTLD_GLOBAL)
 
     _init_profiles()
 

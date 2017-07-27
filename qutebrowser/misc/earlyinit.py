@@ -344,12 +344,6 @@ def check_libraries(backend):
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
         modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
-        # Workaround for a black screen with some setups
-        # https://github.com/spyder-ide/spyder/issues/3226
-        if not os.environ.get('QUTE_NO_OPENGL_WORKAROUND'):
-            # Hide "No OpenGL_accelerate module loaded: ..." message
-            logging.getLogger('OpenGL.acceleratesupport').propagate = False
-            modules['OpenGL.GL'] = _missing_str("PyOpenGL")
     else:
         assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
