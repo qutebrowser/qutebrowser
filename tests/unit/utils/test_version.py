@@ -505,7 +505,6 @@ class ImportFake:
             'typing': True,
             'PyQt5.QtWebEngineWidgets': True,
             'PyQt5.QtWebKitWidgets': True,
-            'OpenGL': True,
         }
         self.version_attribute = '__version__'
         self.version = '1.2.3'
