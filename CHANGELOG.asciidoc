@@ -29,7 +29,7 @@ Breaking changes
 - The QtWebEngine backend is now used by default if available.
 - New config system which ignores the old config file.
 - The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
-  that PyQt5.QtOpenGL is still a depdency.
+  that PyQt5.QtOpenGL is still a dependency.
 
 Major changes
 ~~~~~~~~~~~~~
