@@ -36,7 +36,6 @@ import traceback
 import signal
 import importlib
 import datetime
-import logging
 try:
     import tkinter
 except ImportError:
