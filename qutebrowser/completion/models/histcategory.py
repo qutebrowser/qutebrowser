@@ -92,11 +92,14 @@ class HistoryCategory(QSqlQueryModel):
         with debug.log_time('sql', 'Running completion query'):
             self._query.run(pat=pattern)
         self.setQuery(self._query)
+        print(self.rowCount())
 
-    def removeRows(self, _row, _count, _parent=None):
+    def removeRows(self, idx, _count, _parent=None):
         """Override QAbstractItemModel::removeRows to re-run sql query."""
         # re-run query to reload updated table
         with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()
         self.setQuery(self._query)
+        while self.rowCount() < idx.row():
+            self.fetchMore()
         return True
