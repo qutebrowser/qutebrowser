@@ -252,6 +252,27 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
     })
 
 
+@pytest.mark.parametrize('row, removed', [
+    (0, 'aw'),
+    (1, 'ddg'),
+    (2, 'wiki'),
+])
+def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
+    """Test deleting a quickmark from the quickmark completion model."""
+    model = miscmodels.quickmark()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(row, 0, parent)
+
+    before = set(quickmarks.marks.keys())
+    model.delete_cur_item(idx)
+    after = set(quickmarks.marks.keys())
+    assert before.difference(after) == {removed}
+
+
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = miscmodels.bookmark()
@@ -266,6 +287,27 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
             ('https://python.org', 'Welcome to Python.org', None),
         ]
     })
+
+
+@pytest.mark.parametrize('row, removed', [
+    (0, 'http://qutebrowser.org'),
+    (1, 'https://github.com'),
+    (2, 'https://python.org'),
+])
+def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
+    """Test deleting a quickmark from the quickmark completion model."""
+    model = miscmodels.bookmark()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(row, 0, parent)
+
+    before = set(bookmarks.marks.keys())
+    model.delete_cur_item(idx)
+    after = set(bookmarks.marks.keys())
+    assert before.difference(after) == {removed}
 
 
 def test_url_completion(qtmodeltester, web_history_populated,
