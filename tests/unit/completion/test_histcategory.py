@@ -22,7 +22,6 @@
 import datetime
 
 import pytest
-from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import histcategory
@@ -147,6 +146,22 @@ def test_remove_rows(hist, model_validator):
     model_validator.set_model(cat)
     cat.set_pattern('')
     hist.delete('url', 'foo')
-    # histcategory does not care which index was removed, it just regenerates
-    cat.removeRows(QModelIndex(), 1)
+    cat.removeRows(0, 1)
     model_validator.validate([('bar', 'Bar', '')])
+
+
+def test_remove_rows_fetch(hist):
+    """removeRows should fetch enough data to make the current index valid."""
+    # we cannot use model_validator as it will fetch everything up front
+    hist.insert_batch({'url': [str(i) for i in range(300)]})
+    cat = histcategory.HistoryCategory()
+    cat.set_pattern('')
+
+    # sanity check that we didn't fetch everything up front
+    assert cat.rowCount() < 300
+    cat.fetchMore()
+    assert cat.rowCount() == 300
+
+    hist.delete('url', '298')
+    cat.removeRows(297, 1)
+    assert cat.rowCount() == 299
