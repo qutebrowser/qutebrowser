@@ -215,11 +215,6 @@ class TestSave:
         objreg.delete('main-window', scope='window', window=0)
         objreg.delete('tabbed-browser', scope='window', window=0)
 
-    def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
-        session_path = tmpdir / 'foo.yml'
-        with qtbot.waitSignal(sess_man.update_completion):
-            sess_man.save(str(session_path))
-
     def test_no_state_config(self, sess_man, tmpdir, state_config):
         session_path = tmpdir / 'foo.yml'
         sess_man.save(str(session_path))
@@ -365,14 +360,6 @@ class TestLoadTab:
         loaded_item = fake_webview.loaded_history[0]
         assert loaded_item.url == QUrl(url)
         assert loaded_item.original_url == expected
-
-
-def test_delete_update_completion_signal(sess_man, qtbot, tmpdir):
-    sess = tmpdir / 'foo.yml'
-    sess.ensure()
-
-    with qtbot.waitSignal(sess_man.update_completion):
-        sess_man.delete(str(sess))
 
 
 class TestListSessions:
