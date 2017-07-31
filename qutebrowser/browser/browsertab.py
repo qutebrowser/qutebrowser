@@ -706,7 +706,9 @@ class AbstractTab(QWidget):
 
     def _handle_auto_insert_mode(self, ok):
         """Handle auto-insert-mode after loading finished."""
-        if not config.get('input', 'auto-insert-mode') or not ok:
+        # Checks if the tab is in foreground first, then eventually sets the mode
+        foreground = self is objreg.get('tabbed-browser', scope='window', window=self.win_id).currentWidget()
+        if not config.get('input', 'auto-insert-mode') or not foreground or not ok:
             return
 
         cur_mode = self._mode_manager.mode
