@@ -495,7 +495,6 @@ class ImportFake:
             ('yaml', True),
             ('cssutils', True),
             ('typing', True),
-            ('OpenGL', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])

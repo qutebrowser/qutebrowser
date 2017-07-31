@@ -23,7 +23,7 @@ import os
 import os.path
 
 import sip
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
+from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
 try:
@@ -106,13 +106,7 @@ class SessionManager(QObject):
                               closed.
         _current: The name of the currently loaded session, or None.
         did_load: Set when a session was loaded.
-
-    Signals:
-        update_completion: Emitted when the session completion should get
-                           updated.
     """
-
-    update_completion = pyqtSignal()
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
@@ -303,8 +297,7 @@ class SessionManager(QObject):
                           encoding='utf-8', allow_unicode=True)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
-        else:
-            self.update_completion.emit()
+
         if load_next_time:
             state_config = objreg.get('state-config')
             state_config['general']['session'] = name
@@ -425,7 +418,6 @@ class SessionManager(QObject):
             os.remove(path)
         except OSError as e:
             raise SessionError(e)
-        self.update_completion.emit()
 
     def list_sessions(self):
         """Get a list of all session names."""

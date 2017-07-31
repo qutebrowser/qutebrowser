@@ -148,6 +148,8 @@ class CompletionView(QTreeView):
 
     def _resize_columns(self):
         """Resize the completion columns based on column_widths."""
+        if self.model() is None:
+            return
         width = self.size().width()
         column_widths = self.model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
@@ -252,6 +254,10 @@ class CompletionView(QTreeView):
 
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+
+        # if the last item is focused, try to fetch more
+        if idx.row() == self.model().rowCount(idx.parent()) - 1:
+            self.expandAll()
 
         count = self.model().count()
         if count == 0:

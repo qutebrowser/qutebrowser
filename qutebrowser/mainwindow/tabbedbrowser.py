@@ -708,13 +708,16 @@ class TabbedBrowser(tabwidget.TabWidget):
         }
         msg = messages[status]
 
+        def show_error_page(html):
+            tab.set_html(html)
+            log.webview.error(msg)
+
         if qtutils.version_check('5.9'):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),
                 url=url_string, error=msg, icon='')
-            QTimer.singleShot(0, lambda: tab.set_html(error_page))
-            log.webview.error(msg)
+            QTimer.singleShot(100, lambda: show_error_page(error_page))
         else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
             message.error(msg)

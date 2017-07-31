@@ -45,8 +45,8 @@ pointers:
 
 * https://github.com/qutebrowser/qutebrowser/labels/easy[Issues which should
 be easy to solve]
-* https://github.com/qutebrowser/qutebrowser/labels/not%20code[Issues which
-require little/no coding]
+* https://github.com/qutebrowser/qutebrowser/labels/component%3A%20docs[Documentation
+* issues which require little/no coding]
 
 If you prefer C++ or Javascript to Python, see the relevant issues which involve
 work in those languages:

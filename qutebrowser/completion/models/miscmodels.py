@@ -60,17 +60,33 @@ def helptopic():
 
 def quickmark():
     """A CompletionModel filled with all quickmarks."""
+    def delete(data):
+        """Delete a quickmark from the completion menu."""
+        name = data[0]
+        quickmark_manager = objreg.get('quickmark-manager')
+        log.completion.debug('Deleting quickmark {}'.format(name))
+        quickmark_manager.delete(name)
+
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('quickmark-manager').marks.items()
-    model.add_category(listcategory.ListCategory('Quickmarks', marks))
+    model.add_category(listcategory.ListCategory('Quickmarks', marks,
+                                                 delete_func=delete))
     return model
 
 
 def bookmark():
     """A CompletionModel filled with all bookmarks."""
+    def delete(data):
+        """Delete a bookmark from the completion menu."""
+        urlstr = data[0]
+        log.completion.debug('Deleting bookmark {}'.format(urlstr))
+        bookmark_manager = objreg.get('bookmark-manager')
+        bookmark_manager.delete(urlstr)
+
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('bookmark-manager').marks.items()
-    model.add_category(listcategory.ListCategory('Bookmarks', marks))
+    model.add_category(listcategory.ListCategory('Bookmarks', marks,
+                                                 delete_func=delete))
     return model
 
 
@@ -126,11 +142,12 @@ def bind(key):
         key: the key being bound.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmd_name = objreg.get('key-config').get_bindings_for('normal').get(key)
+    cmd_text = objreg.get('key-config').get_bindings_for('normal').get(key)
 
-    if cmd_name:
+    if cmd_text:
+        cmd_name = cmd_text.split(' ')[0]
         cmd = cmdutils.cmd_dict.get(cmd_name)
-        data = [(cmd_name, cmd.desc, key)]
+        data = [(cmd_text, cmd.desc, key)]
         model.add_category(listcategory.ListCategory("Current", data))
 
     cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
