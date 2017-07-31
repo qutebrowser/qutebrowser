@@ -22,7 +22,7 @@ parse-type==0.3.4
 py==1.4.34
 pytest==3.1.3
 pytest-bdd==2.18.2
-pytest-benchmark==3.1.0
+pytest-benchmark==3.1.1
 pytest-catchlog==1.2.2
 pytest-cov==2.5.1
 pytest-faulthandler==1.3.1
@@ -35,5 +35,5 @@ pytest-travis-fold==1.2.0
 pytest-xvfb==1.0.0
 PyVirtualDisplay==0.2.1
 six==1.10.0
-vulture==0.19
+vulture==0.21
 Werkzeug==0.12.2
