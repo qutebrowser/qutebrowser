@@ -111,7 +111,7 @@ def filter_func(item):
         True if the missing function should be filtered/ignored, False
         otherwise.
     """
-    return bool(re.match(r'[a-z]+[A-Z][a-zA-Z]+', str(item)))
+    return bool(re.match(r'[a-z]+[A-Z][a-zA-Z]+', item.name))
 
 
 def report(items):
@@ -125,7 +125,7 @@ def report(items):
         relpath = os.path.relpath(item.filename)
         path = relpath if not relpath.startswith('..') else item.filename
         output.append("{}:{}: Unused {} '{}'".format(path, item.lineno,
-                                                     item.typ, item))
+                                                     item.typ, item.name))
     return output
 
 
