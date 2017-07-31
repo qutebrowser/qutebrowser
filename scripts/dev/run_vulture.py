@@ -89,6 +89,12 @@ def whitelist_generator():
     # vulture doesn't notice the hasattr() and thus thinks netrc_used is unused
     # in NetworkManager.on_authentication_required
     yield 'PyQt5.QtNetwork.QNetworkReply.netrc_used'
+    yield 'qutebrowser.browser.downloads.last_used_directory'
+    yield 'PaintContext.clip'  # from completiondelegate.py
+    yield 'logging.LogRecord.log_color'  # from logging.py
+    yield 'scripts.utils.use_color'  # from asciidoc2html.py
+    for attr in ['pyeval_output', 'log_clipboard', 'fake_clipboard']:
+        yield 'qutebrowser.misc.utilcmds.' + attr
 
     for attr in ['fileno', 'truncate', 'closed', 'readable']:
         yield 'qutebrowser.utils.qtutils.PyQIODevice.' + attr
