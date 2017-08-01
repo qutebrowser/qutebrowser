@@ -185,7 +185,8 @@ class WebHistory(sql.SqlTable):
 
         # http://xn--pple-43d.com/ with
         # https://bugreports.qt.io/browse/QTBUG-60364
-        if url in ['http://.com/', 'https://www..com/']:
+        if url in ['http://.com/', 'https://.com/',
+                   'http://www..com/', 'https://www..com/']:
             return None
 
         url = QUrl(url)

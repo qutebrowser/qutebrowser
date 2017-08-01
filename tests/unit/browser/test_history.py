@@ -281,6 +281,8 @@ def test_import_txt(hist, data_tmpdir, monkeypatch, stubs):
 
     # https://bugreports.qt.io/browse/QTBUG-60364
     '12345 http://.com/',
+    '12345 https://.com/',
+    '12345 http://www..com/',
     '12345 https://www..com/',
 
     # issue #2646
