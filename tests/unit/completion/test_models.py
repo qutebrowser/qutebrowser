@@ -119,8 +119,8 @@ def quickmarks(quickmark_manager_stub):
     """Pre-populate the quickmark-manager stub with some quickmarks."""
     quickmark_manager_stub.marks = collections.OrderedDict([
         ('aw', 'https://wiki.archlinux.org'),
-        ('ddg', 'https://duckduckgo.com'),
         ('wiki', 'https://wikipedia.org'),
+        ('ddg', 'https://duckduckgo.com'),
     ])
     return quickmark_manager_stub
 
@@ -246,16 +246,16 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
     _check_completions(model, {
         "Quickmarks": [
             ('aw', 'https://wiki.archlinux.org', None),
-            ('ddg', 'https://duckduckgo.com', None),
             ('wiki', 'https://wikipedia.org', None),
+            ('ddg', 'https://duckduckgo.com', None),
         ]
     })
 
 
 @pytest.mark.parametrize('row, removed', [
     (0, 'aw'),
-    (1, 'ddg'),
-    (2, 'wiki'),
+    (1, 'wiki'),
+    (2, 'ddg'),
 ])
 def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
     """Test deleting a quickmark from the quickmark completion model."""
@@ -282,17 +282,17 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
             ('https://github.com', 'GitHub', None),
             ('https://python.org', 'Welcome to Python.org', None),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ]
     })
 
 
 @pytest.mark.parametrize('row, removed', [
-    (0, 'http://qutebrowser.org'),
-    (1, 'https://github.com'),
-    (2, 'https://python.org'),
+    (0, 'https://github.com'),
+    (1, 'https://python.org'),
+    (2, 'http://qutebrowser.org'),
 ])
 def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     """Test deleting a quickmark from the quickmark completion model."""
@@ -326,14 +326,14 @@ def test_url_completion(qtmodeltester, web_history_populated,
 
     _check_completions(model, {
         "Quickmarks": [
-            ('https://duckduckgo.com', 'ddg', None),
             ('https://wiki.archlinux.org', 'aw', None),
             ('https://wikipedia.org', 'wiki', None),
+            ('https://duckduckgo.com', 'ddg', None),
         ],
         "Bookmarks": [
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
             ('https://github.com', 'GitHub', None),
             ('https://python.org', 'Welcome to Python.org', None),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ],
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),
@@ -385,12 +385,12 @@ def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
 
     # sanity checks
     assert model.data(parent) == "Bookmarks"
-    assert model.data(idx) == 'https://github.com'
+    assert model.data(idx) == 'https://python.org'
     assert 'https://github.com' in bookmarks.marks
 
     len_before = len(bookmarks.marks)
     model.delete_cur_item(idx)
-    assert 'https://github.com' not in bookmarks.marks
+    assert 'https://python.org' not in bookmarks.marks
     assert len_before == len(bookmarks.marks) + 1
 
 
@@ -408,12 +408,12 @@ def test_url_completion_delete_quickmark(qtmodeltester,
 
     # sanity checks
     assert model.data(parent) == "Quickmarks"
-    assert model.data(idx) == 'https://duckduckgo.com'
+    assert model.data(idx) == 'https://wiki.archlinux.org'
     assert 'ddg' in quickmarks.marks
 
     len_before = len(quickmarks.marks)
     model.delete_cur_item(idx)
-    assert 'ddg' not in quickmarks.marks
+    assert 'aw' not in quickmarks.marks
     assert len_before == len(quickmarks.marks) + 1
 
 
@@ -456,9 +456,9 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Sessions": [('1', None, None),
-                     ('2', None, None),
-                     ('default', None, None)]
+        "Sessions": [('default', None, None),
+                     ('1', None, None),
+                     ('2', None, None)]
     })
 
 

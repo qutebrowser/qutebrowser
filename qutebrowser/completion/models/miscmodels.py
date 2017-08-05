@@ -54,7 +54,7 @@ def helptopic():
             settings.append((name, desc))
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    model.add_category(listcategory.ListCategory("Settings", settings))
+    model.add_category(listcategory.ListCategory("Settings", sorted(settings)))
     return model
 
 
@@ -180,4 +180,4 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
             bindings = ', '.join(cmd_to_keys.get(name, []))
             cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
 
-    return cmdlist
+    return sorted(cmdlist)
