@@ -31,6 +31,7 @@ import sys
 import re
 import collections
 
+from qutebrowser.browser.webengine.spell import get_available_languages
 from qutebrowser.config import configtypes as typ
 from qutebrowser.config import sections as sect
 from qutebrowser.config.value import SettingValue
@@ -407,6 +408,18 @@ def data(readonly=False):
             ('prompt-filebrowser',
              SettingValue(typ.Bool(), 'true'),
              "Show a filebrowser in upload/download prompts."),
+
+            ('spell',
+             SettingValue(typ.Bool(), 'true',
+                          backends=[usertypes.Backend.QtWebEngine]),
+             'Enable spell checking.'),
+
+            ('spell-languages',
+             SettingValue(typ.List(typ.String(valid_values=typ.ValidValues(
+                 *[(lang.code, lang.name)
+                   for lang in get_available_languages()]
+             )), none_ok=True), ''),
+             'Spell checking language.'),
 
             readonly=readonly
         )),

@@ -17,6 +17,7 @@ include requirements.txt
 include tox.ini
 include qutebrowser.py
 include misc/cheatsheet.svg
+include misc/lang_list
 
 prune www
 prune scripts/dev
