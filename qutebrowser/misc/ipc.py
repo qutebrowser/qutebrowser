@@ -20,7 +20,6 @@
 """Utilities for IPC with existing instances."""
 
 import os
-import sys
 import time
 import json
 import getpass
@@ -41,8 +40,8 @@ ATIME_INTERVAL = 60 * 60 * 3 * 1000  # 3 hours
 PROTOCOL_VERSION = 1
 
 
-def _get_socketname_legacy(basedir):
-    """Legacy implementation of _get_socketname."""
+def _get_socketname_windows(basedir):
+    """Get a socketname to use for Windows."""
     parts = ['qutebrowser', getpass.getuser()]
     if basedir is not None:
         md5 = hashlib.md5(basedir.encode('utf-8')).hexdigest()
@@ -50,10 +49,10 @@ def _get_socketname_legacy(basedir):
     return '-'.join(parts)
 
 
-def _get_socketname(basedir, legacy=False):
+def _get_socketname(basedir):
     """Get a socketname to use."""
-    if legacy or os.name == 'nt':
-        return _get_socketname_legacy(basedir)
+    if os.name == 'nt':  # pragma: no cover
+        return _get_socketname_windows(basedir)
 
     parts_to_hash = [getpass.getuser()]
     if basedir is not None:
@@ -415,41 +414,7 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def _has_legacy_server(name):
-    """Check if there is a legacy server.
-
-    Args:
-        name: The name to try to connect to.
-
-    Return:
-        True if there is a server with the given name, False otherwise.
-    """
-    socket = QLocalSocket()
-    log.ipc.debug("Trying to connect to {}".format(name))
-    socket.connectToServer(name)
-
-    err = socket.error()
-
-    if err != QLocalSocket.UnknownSocketError:
-        log.ipc.debug("Socket error: {} ({})".format(
-            socket.errorString(), err))
-
-    os_x_fail = (sys.platform == 'darwin' and
-                 socket.errorString() == 'QLocalSocket::connectToServer: '
-                                         'Unknown error 38')
-
-    if err not in [QLocalSocket.ServerNotFoundError,
-                   QLocalSocket.ConnectionRefusedError] and not os_x_fail:
-        return True
-
-    socket.disconnectFromServer()
-    if socket.state() != QLocalSocket.UnconnectedState:
-        socket.waitForDisconnected(CONNECT_TIMEOUT)
-    return False
-
-
-def send_to_running_instance(socketname, command, target_arg, *,
-                             legacy_name=None, socket=None):
+def send_to_running_instance(socketname, command, target_arg, *, socket=None):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -459,7 +424,6 @@ def send_to_running_instance(socketname, command, target_arg, *,
         command: The command to send to the running instance.
         target_arg: --target command line argument
         socket: The socket to read data from, or None.
-        legacy_name: The legacy name to first try to connect to.
 
     Return:
         True if connecting was successful, False if no connection was made.
@@ -467,13 +431,8 @@ def send_to_running_instance(socketname, command, target_arg, *,
     if socket is None:
         socket = QLocalSocket()
 
-    if legacy_name is not None and _has_legacy_server(legacy_name):
-        name_to_use = legacy_name
-    else:
-        name_to_use = socketname
-
-    log.ipc.debug("Connecting to {}".format(name_to_use))
-    socket.connectToServer(name_to_use)
+    log.ipc.debug("Connecting to {}".format(socketname))
+    socket.connectToServer(socketname)
 
     connected = socket.waitForConnected(CONNECT_TIMEOUT)
     if connected:
@@ -527,12 +486,10 @@ def send_or_listen(args):
         None if an instance was running and received our request.
     """
     socketname = _get_socketname(args.basedir)
-    legacy_socketname = _get_socketname(args.basedir, legacy=True)
     try:
         try:
             sent = send_to_running_instance(socketname, args.command,
-                                            args.target,
-                                            legacy_name=legacy_socketname)
+                                            args.target)
             if sent:
                 return None
             log.init.debug("Starting IPC server...")
@@ -545,8 +502,7 @@ def send_or_listen(args):
             log.init.debug("Got AddressInUseError, trying again.")
             time.sleep(0.5)
             sent = send_to_running_instance(socketname, args.command,
-                                            args.target,
-                                            legacy_name=legacy_socketname)
+                                            args.target)
             if sent:
                 return None
             else:

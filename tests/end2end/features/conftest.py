@@ -61,8 +61,8 @@ def pytest_runtest_makereport(item, call):
 
     if (not hasattr(report.longrepr, 'addsection') or
             not hasattr(report, 'scenario')):
-        # In some conditions (on OS X and Windows it seems), report.longrepr is
-        # actually a tuple. This is handled similarily in pytest-qt too.
+        # In some conditions (on macOS and Windows it seems), report.longrepr
+        # is actually a tuple. This is handled similarily in pytest-qt too.
         #
         # Since this hook is invoked for any test, we also need to skip it for
         # non-BDD ones.

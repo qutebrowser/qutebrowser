@@ -29,8 +29,9 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
-from qutebrowser.browser import browsertab, history
-from qutebrowser.utils import usertypes
+from qutebrowser.browser import browsertab
+from qutebrowser.config import configexc
+from qutebrowser.utils import usertypes, utils
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -221,6 +222,24 @@ class FakeWebTabScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
 
+class FakeWebTabHistory(browsertab.AbstractHistory):
+
+    """Fake for Web{Kit,Engine}History."""
+
+    def __init__(self, tab, *, can_go_back, can_go_forward):
+        super().__init__(tab)
+        self._can_go_back = can_go_back
+        self._can_go_forward = can_go_forward
+
+    def can_go_back(self):
+        assert self._can_go_back is not None
+        return self._can_go_back
+
+    def can_go_forward(self):
+        assert self._can_go_forward is not None
+        return self._can_go_forward
+
+
 class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
@@ -228,12 +247,14 @@ class FakeWebTab(browsertab.AbstractTab):
     def __init__(self, url=FakeUrl(), title='', tab_id=0, *,
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
-                 progress=0):
+                 progress=0, can_go_back=None, can_go_forward=None):
         super().__init__(win_id=0, mode_manager=None, private=False)
         self._load_status = load_status
         self._title = title
         self._url = url
         self._progress = progress
+        self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
+                                         can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
@@ -385,6 +406,10 @@ class InstaTimer(QObject):
     def setInterval(self, interval):
         pass
 
+    @staticmethod
+    def singleShot(_interval, fun):
+        fun()
+
 
 class FakeYamlConfig:
 
@@ -454,24 +479,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
         self.delete(key)
 
 
-class WebHistoryStub(QObject):
-
-    """Stub for the web-history object."""
-
-    add_completion_item = pyqtSignal(history.Entry)
-    cleared = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.history_dict = collections.OrderedDict()
-
-    def __iter__(self):
-        return iter(self.history_dict.values())
-
-    def __len__(self):
-        return len(self.history_dict)
-
-
 class HostBlockerStub:
 
     """Stub for the host-blocker object."""
@@ -536,7 +543,10 @@ class TabbedBrowserStub(QObject):
         return self.current_index
 
     def currentWidget(self):
-        return self.tabs[self.currentIndex() - 1]
+        idx = self.currentIndex()
+        if idx == -1:
+            return None
+        return self.tabs[idx - 1]
 
     def tabopen(self, url):
         self.opened_url = url

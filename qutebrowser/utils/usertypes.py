@@ -236,13 +236,6 @@ KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
                            'jump_mark', 'record_macro', 'run_macro'])
 
 
-# Available command completions
-Completion = enum('Completion', ['command', 'section', 'option', 'value',
-                                 'helptopic', 'quickmark_by_name',
-                                 'bookmark_by_url', 'url', 'tab', 'sessions',
-                                 'bind'])
-
-
 # Exit statuses for errors. Needs to be an int for sys.exit.
 Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
                      'err_config', 'err_key_config'], is_int=True, start=0)

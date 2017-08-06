@@ -28,6 +28,11 @@ import functools
 import faulthandler
 import os.path
 import collections
+try:
+    # WORKAROUND for segfaults when using pdb in pytest for some reason...
+    import readline  # pylint: disable=unused-import
+except ImportError:
+    pass
 
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)

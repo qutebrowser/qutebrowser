@@ -51,12 +51,13 @@ def init():
     global _qute_scheme_handler
     app = QApplication.instance()
 
-    software_rendering = os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1'
+    software_rendering = (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
+                          'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ)
     if version.opengl_vendor() == 'nouveau' and not software_rendering:
         # FIXME:qtwebengine display something more sophisticated here
         raise browsertab.WebTabError(
             "QtWebEngine is not supported with Nouveau graphics (unless "
-            "LIBGL_ALWAYS_SOFTWARE is set as environment variable).")
+            "QT_XCB_FORCE_SOFTWARE_OPENGL is set as environment variable).")
 
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
@@ -406,17 +407,17 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
-    def back(self):
-        self._history.back()
-
-    def forward(self):
-        self._history.forward()
-
     def can_go_back(self):
         return self._history.canGoBack()
 
     def can_go_forward(self):
         return self._history.canGoForward()
+
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        return self._history.goToItem(item)
 
     def serialize(self):
         if not qtutils.version_check('5.9'):
@@ -611,6 +612,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def shutdown(self):
         self.shutting_down.emit()
+        self.action.exit_fullscreen()
         if qtutils.version_check('5.8', exact=True):
             # WORKAROUND for
             # https://bugreports.qt.io/browse/QTBUG-58563
@@ -711,7 +713,8 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
-        if qtutils.version_check('5.9'):
+        if (qtutils.version_check('5.9') and
+                not qtutils.version_check('5.9.2')):
             # WORKAROUND for
             # https://bugreports.qt.io/browse/QTBUG-61506
             self.search.clear()

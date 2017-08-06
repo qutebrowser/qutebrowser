@@ -11,6 +11,7 @@ exclude = .*,__pycache__,resources.py
 #       (for pytest's __tracebackhide__)
 # F401: Unused import
 # N802: function name should be lowercase
+# N806: variable in function should be lowercase
 # P101: format string does contain unindexed parameters
 # P102: docstring does contain unindexed parameters
 # P103: other string does contain unindexed parameters
@@ -38,7 +39,7 @@ putty-ignore =
     /# pragma: no mccabe/ : +C901
     tests/*/test_*.py : +D100,D101,D401
     tests/conftest.py : +F403
-    tests/unit/browser/webkit/test_history.py : +N806
+    tests/unit/browser/test_history.py : +N806
     tests/helpers/fixtures.py : +N806
     tests/unit/browser/webkit/http/test_content_disposition.py : +D400
     scripts/dev/ci/appveyor_install.py : +FI53

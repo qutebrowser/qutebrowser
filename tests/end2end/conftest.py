@@ -149,7 +149,7 @@ def pytest_collection_modifyitems(config, items):
          not config.webengine and qtutils.is_qtwebkit_ng()),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
-        ('qtwebengine_osx_xfail', 'Fails on OS X with QtWebEngine',
+        ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
          pytest.mark.xfail, config.webengine and sys.platform == 'darwin'),
     ]
 

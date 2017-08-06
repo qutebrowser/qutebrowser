@@ -27,7 +27,7 @@ Using the packages
 Install the dependencies via apt-get:
 
 ----
-# apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python3-sip python3-jinja2 python3-pygments python3-yaml
+# apt-get install python3-lxml python-tox python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python3-sip python3-jinja2 python3-pygments python3-yaml python3-pyqt5.qtsql libqt5sql5-sqlite
 ----
 
 On Debian Stretch or Ubuntu 17.04 or later, it's also recommended to use the
@@ -53,7 +53,7 @@ Build it from git
 Install the dependencies via apt-get:
 
 ----
-# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python-tox python3-sip python3-dev
+# apt-get install python3-pyqt5 python3-pyqt5.qtwebkit python3-pyqt5.qtquick python-tox python3-sip python3-dev python3-pyqt5.qtsql libqt5sql5-sqlite
 ----
 
 On Debian Stretch or Ubuntu 17.04 or later, it's also recommended to install
@@ -277,13 +277,13 @@ $ pip install tox
 
 Then <<tox,install qutebrowser via tox>>.
 
-On OS X
--------
+On macOS
+--------
 
 Prebuilt binary
 ~~~~~~~~~~~~~~~
 
-The easiest way to install qutebrowser on OS X is to use the prebuilt `.app`
+The easiest way to install qutebrowser on macOS is to use the prebuilt `.app`
 files from the
 https://github.com/qutebrowser/qutebrowser/releases[release page].
 

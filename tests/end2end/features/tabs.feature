@@ -1075,6 +1075,16 @@ Feature: Tab management
             - data/numbers/2.txt (pinned)
             - data/numbers/3.txt (active)
 
+    Scenario: :tab-pin with an invalid count
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-pin with count 23
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
     Scenario: Pinned :tab-close prompt yes
         When I open data/numbers/1.txt
         And I run :tab-pin

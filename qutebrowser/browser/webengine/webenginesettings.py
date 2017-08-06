@@ -28,7 +28,9 @@ Module attributes:
 """
 
 import os
-import logging
+import sys
+import ctypes
+import ctypes.util
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -203,12 +205,10 @@ def init(args):
     if args.enable_webengine_inspector:
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
-    # Workaround for a black screen with some setups
-    # https://github.com/spyder-ide/spyder/issues/3226
-    if not os.environ.get('QUTE_NO_OPENGL_WORKAROUND'):
-        # Hide "No OpenGL_accelerate module loaded: ..." message
-        logging.getLogger('OpenGL.acceleratesupport').propagate = False
-        from OpenGL import GL  # pylint: disable=unused-variable
+    # WORKAROUND for
+    # https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
+    if sys.platform == 'linux':
+        ctypes.CDLL(ctypes.util.find_library("GL"), mode=ctypes.RTLD_GLOBAL)
 
     _init_profiles()
 

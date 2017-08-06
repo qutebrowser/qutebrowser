@@ -337,12 +337,12 @@ def check_libraries(backend):
                                  "or Install via pip.",
                          pip="PyYAML"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
+        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
                                                            webengine=True)
         modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
-        modules['OpenGL'] = _missing_str("PyOpenGL")
     else:
         assert backend == 'webkit'
         modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")

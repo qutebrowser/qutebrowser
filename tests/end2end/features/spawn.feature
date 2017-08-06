@@ -60,8 +60,3 @@ Feature: :spawn
     Scenario: Running :spawn with userscript that expects the stdin getting closed
         When I run :spawn -u (testdata)/userscripts/stdinclose.py
         Then the message "stdin closed" should be shown
-
-    @posix
-    Scenario: Running :spawn -d with userscript that expects the stdin getting closed
-        When I run :spawn -d -u (testdata)/userscripts/stdinclose.py
-        Then the message "stdin closed" should be shown

@@ -759,37 +759,6 @@ def test_sanitize_filename_empty_replacement():
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
 
 
-class TestNewestSlice:
-
-    """Test newest_slice."""
-
-    def test_count_minus_two(self):
-        """Test with a count of -2."""
-        with pytest.raises(ValueError):
-            utils.newest_slice([], -2)
-
-    @pytest.mark.parametrize('items, count, expected', [
-        # Count of -1 (all elements).
-        (range(20), -1, range(20)),
-        # Count of 0 (no elements).
-        (range(20), 0, []),
-        # Count which is much smaller than the iterable.
-        (range(20), 5, [15, 16, 17, 18, 19]),
-        # Count which is exactly one smaller."""
-        (range(5), 4, [1, 2, 3, 4]),
-        # Count which is just as large as the iterable."""
-        (range(5), 5, range(5)),
-        # Count which is one bigger than the iterable.
-        (range(5), 6, range(5)),
-        # Count which is much bigger than the iterable.
-        (range(5), 50, range(5)),
-    ])
-    def test_good(self, items, count, expected):
-        """Test slices which shouldn't raise an exception."""
-        sliced = utils.newest_slice(items, count)
-        assert list(sliced) == list(expected)
-
-
 class TestGetSetClipboard:
 
     @pytest.fixture(autouse=True)

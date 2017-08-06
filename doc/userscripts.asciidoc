@@ -60,7 +60,7 @@ Sending commands
 Normal qutebrowser commands can be written to `$QUTE_FIFO` and will be
 executed.
 
-On Unix/OS X, this is a named pipe and commands written to it will get executed
+On Unix/macOS, this is a named pipe and commands written to it will get executed
 immediately.
 
 On Windows, this is a regular file, and the commands in it will be executed as

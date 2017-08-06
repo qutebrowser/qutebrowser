@@ -45,7 +45,7 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
-from qutebrowser.misc import objects, earlyinit
+from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 
 
@@ -186,7 +186,6 @@ def _module_versions():
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
         ('typing', []),
-        ('OpenGL', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])
@@ -326,11 +325,11 @@ def version():
 
     lines += _module_versions()
 
-    lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
     lines += [
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-        '',
+        'pdf.js: {}'.format(_pdfjs_version()),
+        'sqlite: {}'.format(sql.version()),
+        'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
+                                     if QSslSocket.supportsSsl() else 'no'),
     ]
 
     qapp = QApplication.instance()
