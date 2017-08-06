@@ -36,6 +36,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
 
 from qutebrowser.browser import shared
+from qutebrowser.browser.webengine.spell import get_installed_languages
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import utils, standarddir, javascript, qtutils
 
@@ -125,6 +126,22 @@ class PersistentCookiePolicy(DefaultProfileSetter):
             QWebEngineProfile.AllowPersistentCookies if value else
             QWebEngineProfile.NoPersistentCookies
         )
+
+
+class DictionaryLanguageSetter(DefaultProfileSetter):
+
+    """Sets paths to dictionary files based on language codes."""
+
+    def __init__(self):
+        super().__init__('setSpellCheckLanguages')
+
+    def _set(self, value, settings=None):
+        if settings is not None:
+            raise ValueError("'settings' may not be set with "
+                             "DictionaryLanguageSetter!")
+        files = [lang.file[:-5]
+                 for lang in get_installed_languages() if lang.code in value]
+        super()._set(files, settings)
 
 
 def _init_stylesheet(profile):
@@ -299,6 +316,9 @@ MAPPINGS = {
 
     'scrolling.smooth':
         Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
+
+    'spell': DefaultProfileSetter('setSpellCheckEnabled'),
+    'spell-languages': DictionaryLanguageSetter()
 }
 
 try:
