@@ -35,5 +35,5 @@ pytest-travis-fold==1.2.0
 pytest-xvfb==1.0.0
 PyVirtualDisplay==0.2.1
 six==1.10.0
-vulture==0.21
+vulture==0.22
 Werkzeug==0.12.2
