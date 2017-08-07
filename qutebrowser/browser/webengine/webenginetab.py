@@ -20,6 +20,7 @@
 """Wrapper over a QWebEngineView."""
 
 import os
+import math
 import functools
 
 import sip
@@ -50,12 +51,13 @@ def init():
     global _qute_scheme_handler
     app = QApplication.instance()
 
-    software_rendering = os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1'
+    software_rendering = (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
+                          'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ)
     if version.opengl_vendor() == 'nouveau' and not software_rendering:
         # FIXME:qtwebengine display something more sophisticated here
         raise browsertab.WebTabError(
             "QtWebEngine is not supported with Nouveau graphics (unless "
-            "LIBGL_ALWAYS_SOFTWARE is set as environment variable).")
+            "QT_XCB_FORCE_SOFTWARE_OPENGL is set as environment variable).")
 
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
@@ -342,7 +344,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             else:
                 perc_y = min(100, round(100 / dy * jsret['px']['y']))
 
-            self._at_bottom = dy >= jsret['px']['y']
+            self._at_bottom = math.ceil(jsret['px']['y']) >= dy
             self._pos_perc = perc_x, perc_y
 
             self.perc_changed.emit(*self._pos_perc)
@@ -409,17 +411,17 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
-    def back(self):
-        self._history.back()
-
-    def forward(self):
-        self._history.forward()
-
     def can_go_back(self):
         return self._history.canGoBack()
 
     def can_go_forward(self):
         return self._history.canGoForward()
+
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        return self._history.goToItem(item)
 
     def serialize(self):
         if not qtutils.version_check('5.9'):
@@ -500,18 +502,18 @@ class WebEngineElements(browsertab.AbstractElements):
             callback(elem)
 
     def find_css(self, selector, callback, *, only_visible=False):
-        js_code = javascript.assemble('webelem', 'find_all', selector,
+        js_code = javascript.assemble('webelem', 'find_css', selector,
                                       only_visible)
         js_cb = functools.partial(self._js_cb_multiple, callback)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_id(self, elem_id, callback):
-        js_code = javascript.assemble('webelem', 'element_by_id', elem_id)
+        js_code = javascript.assemble('webelem', 'find_id', elem_id)
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_focused(self, callback):
-        js_code = javascript.assemble('webelem', 'focus_element')
+        js_code = javascript.assemble('webelem', 'find_focused')
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
 
@@ -519,7 +521,7 @@ class WebEngineElements(browsertab.AbstractElements):
         assert pos.x() >= 0
         assert pos.y() >= 0
         pos /= self._tab.zoom.factor()
-        js_code = javascript.assemble('webelem', 'element_at_pos',
+        js_code = javascript.assemble('webelem', 'find_at_pos',
                                       pos.x(), pos.y())
         js_cb = functools.partial(self._js_cb_single, callback)
         self._tab.run_js_async(js_code, js_cb)
@@ -614,9 +616,11 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def shutdown(self):
         self.shutting_down.emit()
-        # WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-58563
-        self.search.clear()
+        self.action.exit_fullscreen()
+        if qtutils.version_check('5.8', exact=True):
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-58563
+            self.search.clear()
         self._widget.shutdown()
 
     def reload(self, *, force=False):
@@ -709,6 +713,16 @@ class WebEngineTab(browsertab.AbstractTab):
             notification = miscwidgets.FullscreenNotification(self)
             notification.show()
             notification.set_timeout(3000)
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Clear search when a new load is started if needed."""
+        if (qtutils.version_check('5.9') and
+                not qtutils.version_check('5.9.2')):
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-61506
+            self.search.clear()
+        super()._on_load_started()
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):

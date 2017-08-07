@@ -40,3 +40,6 @@ rules:
      prefer-destructuring: "off"
      line-comment-position: "off"
      no-inline-comments: "off"
+     array-bracket-newline: "off"
+     array-element-newline: "off"
+     no-multi-spaces: ["error", {"ignoreEOLComments": true}]

@@ -72,8 +72,8 @@ Is there an adblocker?::
     http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
     impact] on browsing speed and
     https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
-    usage], so implementing it properly might take some time and won't be done
-    for v0.1 if at all.
+    usage], so implementing support for AdBlockPlus-like lists is currently not
+    a priority.
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video
@@ -171,6 +171,20 @@ What's the difference between insert and passthrough mode?::
     be useful to rebind escape to something else in passthrough mode only, to be
     able to send an escape keypress to the website.
 
+Why takes it longer to open an URL in qutebrowser than in chromium?::
+    When opening an URL in an existing instance the normal qutebrowser
+    Python script is started and a few PyQt libraries need to be
+    loaded until it is detected that there is an instance running
+    where the URL is then passed to. This takes some time.
+    One workaround is to use this
+    https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
+    and place it in your $PATH with the name "qutebrowser". This
+    script passes the URL via an unix socket to qutebrowser (if its
+    running already) using socat which is much faster and starts a new
+    qutebrowser if it is not running already. Also check if you want
+    to use webengine as backend in line 17 and change it to your
+    needs.
+    
 == Troubleshooting
 
 Configuration not saved after modifying config.::
@@ -210,6 +224,18 @@ https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%2
 it's still
 https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%20resolution%20%3D%20Done%20and%20fixVersion%20in%20(5.4.0%2C%20%225.4.0%20Alpha%22%2C%20%225.4.0%20Beta%22%2C%20%225.4.0%20RC%22)%20and%20priority%20in%20(%22P2%3A%20Important%22%2C%20%22P1%3A%20Critical%22%2C%20%22P0%3A%20Blocker%22)[nearly
 20 important bugs].
+
+When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the console prints a traceback on Gentoo Linux or another Source-Based Distro::
+    As stated in https://gcc.gnu.org/gcc-6/changes.html[GCC's Website] GCC 6 has introduced some optimizations that could break non-conforming codebases, like QtWebEngine. +
+    As a workaround, you can disable the nullpointer check optimization by adding the -fno-delete-null-pointer-checks flag while compiling. +
+    On gentoo, you just need to add it into your make.conf, like this: +
+    
+    CFLAGS="... -fno-delete-null-pointer-checks"
+    CXXFLAGS="... -fno-delete-null-pointer-checks"
++
+And then re-emerging qtwebengine with: +
+    
+    emerge -1 qtwebengine
 
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in

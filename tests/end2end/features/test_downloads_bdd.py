@@ -21,6 +21,7 @@ import os
 import sys
 import shlex
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('downloads.feature')
 
@@ -51,6 +52,14 @@ def temporary_download_dir(quteproc, tmpdir):
 def clean_old_downloads(quteproc):
     quteproc.send_cmd(':download-cancel --all')
     quteproc.send_cmd(':download-clear')
+
+
+@bdd.when("the unwritable dir is unwritable")
+def check_unwritable(tmpdir):
+    unwritable = tmpdir / 'downloads' / 'unwritable'
+    if os.access(str(unwritable), os.W_OK):
+        # Docker container or similar
+        pytest.skip("Unwritable dir was writable")
 
 
 @bdd.when("I wait until the download is finished")

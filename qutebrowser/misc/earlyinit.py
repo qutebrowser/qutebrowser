@@ -253,14 +253,29 @@ def get_backend(args):
         return 'webengine'
 
 
+def qt_version(qversion=None, qt_version_str=None):
+    """Get a Qt version string based on the runtime/compiled versions."""
+    if qversion is None:
+        from PyQt5.QtCore import qVersion
+        qversion = qVersion()
+    if qt_version_str is None:
+        from PyQt5.QtCore import QT_VERSION_STR
+        qt_version_str = QT_VERSION_STR
+
+    if qversion != qt_version_str:
+        return '{} (compiled {})'.format(qversion, qt_version_str)
+    else:
+        return qversion
+
+
 def check_qt_version(backend):
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
-    from qutebrowser.utils import qtutils, version
+    from qutebrowser.utils import qtutils
     if (not qtutils.version_check('5.2.0', strict=True) or
             PYQT_VERSION < 0x050200):
         text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
-                "PyQt {} is installed.".format(version.qt_version(),
+                "PyQt {} is installed.".format(qt_version(),
                                                PYQT_VERSION_STR))
         _die(text)
     elif (backend == 'webengine' and (
@@ -268,7 +283,7 @@ def check_qt_version(backend):
             PYQT_VERSION < 0x050700)):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
                 "QtWebEngine support, but Qt {} / PyQt {} is installed."
-                .format(version.qt_version(), PYQT_VERSION_STR))
+                .format(qt_version(), PYQT_VERSION_STR))
         _die(text)
 
 
@@ -321,6 +336,8 @@ def check_libraries(backend):
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
                          pip="PyYAML"),
+        'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
+        'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
     }
     if backend == 'webengine':
         modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",

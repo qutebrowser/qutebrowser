@@ -21,6 +21,7 @@
 
 import io
 import sys
+import collections
 import os.path
 import subprocess
 import contextlib
@@ -475,28 +476,31 @@ class ImportFake:
     """A fake for __import__ which is used by the import_fake fixture.
 
     Attributes:
-        exists: A dict mapping module names to bools. If True, the import will
-                success. Otherwise, it'll fail with ImportError.
+        modules: A dict mapping module names to bools. If True, the import will
+                 success. Otherwise, it'll fail with ImportError.
         version_attribute: The name to use in the fake modules for the version
                            attribute.
         version: The version to use for the modules.
         _real_import: Saving the real __import__ builtin so the imports can be
-                      done normally for modules not in self.exists.
+                      done normally for modules not in self. modules.
     """
 
     def __init__(self):
-        self.exists = {
-            'sip': True,
-            'colorama': True,
-            'pypeg2': True,
-            'jinja2': True,
-            'pygments': True,
-            'yaml': True,
-            'cssutils': True,
-            'typing': True,
-            'PyQt5.QtWebEngineWidgets': True,
-            'PyQt5.QtWebKitWidgets': True,
-        }
+        self.modules = collections.OrderedDict([
+            ('sip', True),
+            ('colorama', True),
+            ('pypeg2', True),
+            ('jinja2', True),
+            ('pygments', True),
+            ('yaml', True),
+            ('cssutils', True),
+            ('typing', True),
+            ('PyQt5.QtWebEngineWidgets', True),
+            ('PyQt5.QtWebKitWidgets', True),
+        ])
+        self.no_version_attribute = ['sip', 'typing',
+                                     'PyQt5.QtWebEngineWidgets',
+                                     'PyQt5.QtWebKitWidgets']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
@@ -508,10 +512,10 @@ class ImportFake:
             The imported fake module, or None if normal importing should be
             used.
         """
-        if name not in self.exists:
+        if name not in self.modules:
             # Not one of the modules to test -> use real import
             return None
-        elif self.exists[name]:
+        elif self.modules[name]:
             ns = types.SimpleNamespace()
             if self.version_attribute is not None:
                 setattr(ns, self.version_attribute, self.version)
@@ -550,14 +554,14 @@ class TestModuleVersions:
 
     """Tests for _module_versions()."""
 
-    @pytest.mark.usefixtures('import_fake')
-    def test_all_present(self):
+    def test_all_present(self, import_fake):
         """Test with all modules present in version 1.2.3."""
-        expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
-                    'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
-                    'cssutils: 1.2.3', 'typing: yes',
-                    'PyQt5.QtWebEngineWidgets: yes',
-                    'PyQt5.QtWebKitWidgets: yes']
+        expected = []
+        for name in import_fake.modules:
+            if name in import_fake.no_version_attribute:
+                expected.append('{}: yes'.format(name))
+            else:
+                expected.append('{}: 1.2.3'.format(name))
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
@@ -573,36 +577,31 @@ class TestModuleVersions:
             idx: The index where the given text is expected.
             expected: The expected text.
         """
-        import_fake.exists[module] = False
+        import_fake.modules[module] = False
         assert version._module_versions()[idx] == expected
 
-    @pytest.mark.parametrize('value, expected', [
-        ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
-                     'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                     'cssutils: yes', 'typing: yes',
-                     'PyQt5.QtWebEngineWidgets: yes',
-                     'PyQt5.QtWebKitWidgets: yes']),
-        ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
-                             'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                             'cssutils: yes', 'typing: yes',
-                             'PyQt5.QtWebEngineWidgets: yes',
-                             'PyQt5.QtWebKitWidgets: yes']),
-        (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
-                'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes',
-                'PyQt5.QtWebEngineWidgets: yes',
-                'PyQt5.QtWebKitWidgets: yes']),
+    @pytest.mark.parametrize('attribute, expected_modules', [
+        ('VERSION', ['colorama']),
+        ('SIP_VERSION_STR', ['sip']),
+        (None, []),
     ])
-    def test_version_attribute(self, value, expected, import_fake):
+    def test_version_attribute(self, attribute, expected_modules, import_fake):
         """Test with a different version attribute.
 
         VERSION is tested for old colorama versions, and None to make sure
         things still work if some package suddenly doesn't have __version__.
 
         Args:
-            value: The name of the version attribute.
+            attribute: The name of the version attribute.
             expected: The expected return value.
         """
-        import_fake.version_attribute = value
+        import_fake.version_attribute = attribute
+        expected = []
+        for name in import_fake.modules:
+            if name in expected_modules:
+                expected.append('{}: 1.2.3'.format(name))
+            else:
+                expected.append('{}: yes'.format(name))
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('name, has_version', [
@@ -668,8 +667,8 @@ class TestOsInfo:
         (('', ('', '', ''), ''), ''),
         (('x', ('1', '2', '3'), 'y'), 'x, 1.2.3, y'),
     ])
-    def test_os_x_fake(self, monkeypatch, mac_ver, mac_ver_str):
-        """Test with a fake OS X.
+    def test_mac_fake(self, monkeypatch, mac_ver, mac_ver_str):
+        """Test with a fake macOS.
 
         Args:
             mac_ver: The tuple to set platform.mac_ver() to.
@@ -698,9 +697,9 @@ class TestOsInfo:
         """Make sure there are no exceptions with a real Windows."""
         version._os_info()
 
-    @pytest.mark.osx
-    def test_os_x_real(self):
-        """Make sure there are no exceptions with a real OS X."""
+    @pytest.mark.mac
+    def test_mac_real(self):
+        """Make sure there are no exceptions with a real macOS."""
         version._os_info()
 
 
@@ -758,33 +757,22 @@ class FakeQSslSocket:
 
     Attributes:
         _version: What QSslSocket::sslLibraryVersionString() should return.
+        _support: Whether SSL is supported.
     """
 
-    def __init__(self, version=None):
+    def __init__(self, version=None, support=True):
         self._version = version
+        self._support = support
 
     def supportsSsl(self):
         """Fake for QSslSocket::supportsSsl()."""
-        return True
+        return self._support
 
     def sslLibraryVersionString(self):
         """Fake for QSslSocket::sslLibraryVersionString()."""
         if self._version is None:
             raise AssertionError("Got called with version None!")
         return self._version
-
-
-@pytest.mark.parametrize('same', [True, False])
-def test_qt_version(monkeypatch, same):
-    if same:
-        qt_version_str = '5.4.0'
-        expected = '5.4.0'
-    else:
-        qt_version_str = '5.3.0'
-        expected = '5.4.0 (compiled 5.3.0)'
-    monkeypatch.setattr(version, 'qVersion', lambda: '5.4.0')
-    monkeypatch.setattr(version, 'QT_VERSION_STR', qt_version_str)
-    assert version.qt_version() == expected
 
 
 @pytest.mark.parametrize('ua, expected', [
@@ -811,18 +799,30 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
-@pytest.mark.parametrize(['git_commit', 'frozen', 'style', 'with_webkit',
-                          'known_distribution'], [
-    (True, False, True, True, True),  # normal
-    (False, False, True, True, True),  # no git commit
-    (True, True, True, True, True),  # frozen
-    (True, True, False, True, True),  # no style
-    (True, False, True, False, True),  # no webkit
-    (True, False, True, 'ng', True),  # QtWebKit-NG
-    (True, False, True, True, False),  # unknown Linux distribution
-])
-def test_version_output(git_commit, frozen, style, with_webkit,
-                        known_distribution, stubs, monkeypatch):
+class VersionParams:
+
+    def __init__(self, name, git_commit=True, frozen=False, style=True,
+                 with_webkit=True, known_distribution=True, ssl_support=True):
+        self.name = name
+        self.git_commit = git_commit
+        self.frozen = frozen
+        self.style = style
+        self.with_webkit = with_webkit
+        self.known_distribution = known_distribution
+        self.ssl_support = ssl_support
+
+
+@pytest.mark.parametrize('params', [
+    VersionParams('normal'),
+    VersionParams('no-git-commit', git_commit=False),
+    VersionParams('frozen', frozen=True),
+    VersionParams('no-style', style=False),
+    VersionParams('no-webkit', with_webkit=False),
+    VersionParams('webkit-ng', with_webkit='ng'),
+    VersionParams('unknown-dist', known_distribution=False),
+    VersionParams('no-ssl', ssl_support=False),
+], ids=lambda param: param.name)
+def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineProfile:
         def httpUserAgent(self):
@@ -832,49 +832,51 @@ def test_version_output(git_commit, frozen, style, with_webkit,
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
-        '_git_str': lambda: ('GIT COMMIT' if git_commit else None),
+        '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
         'PYQT_VERSION_STR': 'PYQT VERSION',
-        'QT_VERSION_STR': 'QT VERSION',
-        'qVersion': lambda: 'QT VERSION',
+        'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'QSslSocket': FakeQSslSocket('SSL VERSION'),
+        'QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
+        'QApplication': (stubs.FakeQApplication(style='STYLE')
+                         if params.style else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'sql.version': lambda: 'SQLITE VERSION',
     }
 
     substitutions = {
-        'git_commit': '\nGit commit: GIT COMMIT' if git_commit else '',
-        'style': '\nStyle: STYLE' if style else '',
+        'git_commit': '\nGit commit: GIT COMMIT' if params.git_commit else '',
+        'style': '\nStyle: STYLE' if params.style else '',
         'qt': 'QT VERSION',
-        'frozen': str(frozen),
+        'frozen': str(params.frozen),
         'import_path': import_path,
     }
 
-    if with_webkit:
+    if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
         patches['QWebEngineProfile'] = None
-        if with_webkit == 'ng':
+        if params.with_webkit == 'ng':
+            backend = 'QtWebKit-NG'
             patches['qtutils.is_qtwebkit_ng'] = lambda: True
-            substitutions['backend'] = 'QtWebKit-NG (WebKit WEBKIT VERSION)'
         else:
+            backend = 'legacy QtWebKit'
             patches['qtutils.is_qtwebkit_ng'] = lambda: False
-            substitutions['backend'] = 'QtWebKit (WebKit WEBKIT VERSION)'
+        substitutions['backend'] = backend + ' (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
         patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
-    if known_distribution:
+    if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
             parsed=version.Distribution.arch, version=None,
             pretty='LINUX DISTRIBUTION', id='arch')
@@ -886,10 +888,12 @@ def test_version_output(git_commit, frozen, style, with_webkit,
         substitutions['linuxdist'] = ''
         substitutions['osinfo'] = 'OS INFO 1\nOS INFO 2\n'
 
+    substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
+
     for attr, val in patches.items():
         monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
 
-    if frozen:
+    if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
@@ -905,7 +909,8 @@ def test_version_output(git_commit, frozen, style, with_webkit,
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
-        SSL: SSL VERSION
+        sqlite: SQLITE VERSION
+        QtNetwork SSL: {ssl}
         {style}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}

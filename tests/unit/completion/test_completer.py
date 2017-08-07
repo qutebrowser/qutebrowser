@@ -26,7 +26,6 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
-from qutebrowser.utils import usertypes
 from qutebrowser.commands import command, cmdutils
 
 
@@ -34,11 +33,10 @@ class FakeCompletionModel(QStandardItemModel):
 
     """Stub for a completion model."""
 
-    DUMB_SORT = None
-
-    def __init__(self, kind, parent=None):
+    def __init__(self, kind, *pos_args, parent=None):
         super().__init__(parent)
         self.kind = kind
+        self.pos_args = list(pos_args)
 
 
 class CompletionWidgetStub(QObject):
@@ -70,39 +68,45 @@ def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
 
 
 @pytest.fixture(autouse=True)
-def instances(monkeypatch):
-    """Mock the instances module so get returns a fake completion model."""
-    # populate a model for each completion type, with a nested structure for
-    # option and value completion
-    instances = {kind: FakeCompletionModel(kind)
-                 for kind in usertypes.Completion}
-    instances[usertypes.Completion.option] = {
-        'general': FakeCompletionModel(usertypes.Completion.option),
-    }
-    instances[usertypes.Completion.value] = {
-        'general': {
-            'editor': FakeCompletionModel(usertypes.Completion.value),
-        }
-    }
-    monkeypatch.setattr(completer, 'instances', instances)
+def miscmodels_patch(mocker):
+    """Patch the miscmodels module to provide fake completion functions.
+
+    Technically some of these are not part of miscmodels, but rolling them into
+    one module is easier and sufficient for mocking. The only one referenced
+    directly by Completer is miscmodels.command.
+    """
+    m = mocker.patch('qutebrowser.completion.completer.miscmodels',
+                     autospec=True)
+    m.command = lambda *args: FakeCompletionModel('command', *args)
+    m.helptopic = lambda *args: FakeCompletionModel('helptopic', *args)
+    m.quickmark = lambda *args: FakeCompletionModel('quickmark', *args)
+    m.bookmark = lambda *args: FakeCompletionModel('bookmark', *args)
+    m.session = lambda *args: FakeCompletionModel('session', *args)
+    m.buffer = lambda *args: FakeCompletionModel('buffer', *args)
+    m.bind = lambda *args: FakeCompletionModel('bind', *args)
+    m.url = lambda *args: FakeCompletionModel('url', *args)
+    m.section = lambda *args: FakeCompletionModel('section', *args)
+    m.option = lambda *args: FakeCompletionModel('option', *args)
+    m.value = lambda *args: FakeCompletionModel('value', *args)
+    return m
 
 
 @pytest.fixture(autouse=True)
-def cmdutils_patch(monkeypatch, stubs):
+def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
     """Patch the cmdutils module to provide fake commands."""
-    @cmdutils.argument('section_', completion=usertypes.Completion.section)
-    @cmdutils.argument('option', completion=usertypes.Completion.option)
-    @cmdutils.argument('value', completion=usertypes.Completion.value)
+    @cmdutils.argument('section_', completion=miscmodels_patch.section)
+    @cmdutils.argument('option', completion=miscmodels_patch.option)
+    @cmdutils.argument('value', completion=miscmodels_patch.value)
     def set_command(section_=None, option=None, value=None):
         """docstring."""
         pass
 
-    @cmdutils.argument('topic', completion=usertypes.Completion.helptopic)
+    @cmdutils.argument('topic', completion=miscmodels_patch.helptopic)
     def show_help(tab=False, bg=False, window=False, topic=None):
         """docstring."""
         pass
 
-    @cmdutils.argument('url', completion=usertypes.Completion.url)
+    @cmdutils.argument('url', completion=miscmodels_patch.url)
     @cmdutils.argument('count', count=True)
     def openurl(url=None, implicit=False, bg=False, tab=False, window=False,
                 count=None):
@@ -110,7 +114,7 @@ def cmdutils_patch(monkeypatch, stubs):
         pass
 
     @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('command', completion=usertypes.Completion.command)
+    @cmdutils.argument('command', completion=miscmodels_patch.command)
     def bind(key, win_id, command=None, *, mode='normal', force=False):
         """docstring."""
         pass
@@ -140,60 +144,61 @@ def _set_cmd_prompt(cmd, txt):
     cmd.setCursorPosition(txt.index('|'))
 
 
-@pytest.mark.parametrize('txt, kind, pattern', [
-    (':nope|', usertypes.Completion.command, 'nope'),
-    (':nope |', None, ''),
-    (':set |', usertypes.Completion.section, ''),
-    (':set gen|', usertypes.Completion.section, 'gen'),
-    (':set general |', usertypes.Completion.option, ''),
-    (':set what |', None, ''),
-    (':set general editor |', usertypes.Completion.value, ''),
-    (':set general editor gv|', usertypes.Completion.value, 'gv'),
-    (':set general editor "gvim -f"|', usertypes.Completion.value, 'gvim -f'),
-    (':set general editor "gvim |', usertypes.Completion.value, 'gvim'),
-    (':set general huh |', None, ''),
-    (':help |', usertypes.Completion.helptopic, ''),
-    (':help     |', usertypes.Completion.helptopic, ''),
-    (':open |', usertypes.Completion.url, ''),
-    (':bind |', None, ''),
-    (':bind <c-x> |', usertypes.Completion.command, ''),
-    (':bind <c-x> foo|', usertypes.Completion.command, 'foo'),
-    (':bind <c-x>| foo', None, '<c-x>'),
-    (':set| general ', usertypes.Completion.command, 'set'),
-    (':|set general ', usertypes.Completion.command, 'set'),
-    (':set gene|ral ignore-case', usertypes.Completion.section, 'general'),
-    (':|', usertypes.Completion.command, ''),
-    (':   |', usertypes.Completion.command, ''),
-    ('/|', None, ''),
-    (':open -t|', None, ''),
-    (':open --tab|', None, ''),
-    (':open -t |', usertypes.Completion.url, ''),
-    (':open --tab |', usertypes.Completion.url, ''),
-    (':open | -t', usertypes.Completion.url, ''),
-    (':tab-detach |', None, ''),
-    (':bind --mode=caret <c-x> |', usertypes.Completion.command, ''),
-    pytest.param(':bind --mode caret <c-x> |', usertypes.Completion.command,
-                 '', marks=pytest.mark.xfail(reason='issue #74')),
-    (':set -t -p |', usertypes.Completion.section, ''),
-    (':open -- |', None, ''),
-    (':gibberish nonesense |', None, ''),
-    ('/:help|', None, ''),
-    ('::bind|', usertypes.Completion.command, ':bind'),
+@pytest.mark.parametrize('txt, kind, pattern, pos_args', [
+    (':nope|', 'command', 'nope', []),
+    (':nope |', None, '', []),
+    (':set |', 'section', '', []),
+    (':set gen|', 'section', 'gen', []),
+    (':set general |', 'option', '', ['general']),
+    (':set what |', 'option', '', ['what']),
+    (':set general editor |', 'value', '', ['general', 'editor']),
+    (':set general editor gv|', 'value', 'gv', ['general', 'editor']),
+    (':set general editor "gvim -f"|', 'value', 'gvim -f',
+        ['general', 'editor']),
+    (':set general editor "gvim |', 'value', 'gvim', ['general', 'editor']),
+    (':set general huh |', 'value', '', ['general', 'huh']),
+    (':help |', 'helptopic', '', []),
+    (':help     |', 'helptopic', '', []),
+    (':open |', 'url', '', []),
+    (':bind |', None, '', []),
+    (':bind <c-x> |', 'command', '', ['<c-x>']),
+    (':bind <c-x> foo|', 'command', 'foo', ['<c-x>']),
+    (':bind <c-x>| foo', None, '<c-x>', []),
+    (':set| general ', 'command', 'set', []),
+    (':|set general ', 'command', 'set', []),
+    (':set gene|ral ignore-case', 'section', 'general', []),
+    (':|', 'command', '', []),
+    (':   |', 'command', '', []),
+    ('/|', None, '', []),
+    (':open -t|', None, '', []),
+    (':open --tab|', None, '', []),
+    (':open -t |', 'url', '', []),
+    (':open --tab |', 'url', '', []),
+    (':open | -t', 'url', '', []),
+    (':tab-detach |', None, '', []),
+    (':bind --mode=caret <c-x> |', 'command', '', ['<c-x>']),
+    pytest.param(':bind --mode caret <c-x> |', 'command', '', [],
+                 marks=pytest.mark.xfail(reason='issue #74')),
+    (':set -t -p |', 'section', '', []),
+    (':open -- |', None, '', []),
+    (':gibberish nonesense |', None, '', []),
+    ('/:help|', None, '', []),
+    ('::bind|', 'command', ':bind', []),
 ])
-def test_update_completion(txt, kind, pattern, status_command_stub,
+def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
-    assert completion_widget_stub.set_model.call_count == 1
-    args = completion_widget_stub.set_model.call_args[0]
-    # the outer model is just for sorting; srcmodel is the completion model
     if kind is None:
-        assert args[0] is None
+        assert completion_widget_stub.set_pattern.call_count == 0
     else:
-        assert args[0].srcmodel.kind == kind
-        assert args[1] == pattern
+        assert completion_widget_stub.set_model.call_count == 1
+        model = completion_widget_stub.set_model.call_args[0][0]
+        assert model.kind == kind
+        assert model.pos_args == pos_args
+        completion_widget_stub.set_pattern.assert_called_once_with(pattern)
 
 
 @pytest.mark.parametrize('before, newtxt, after', [

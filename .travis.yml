@@ -1,6 +1,7 @@
 sudo: required
 dist: trusty
 language: generic
+group: edge
 
 matrix:
   include:
@@ -16,9 +17,6 @@ matrix:
       env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
     - os: linux
-      env: DOCKER=archlinux-ng
-      services: docker
-    - os: linux
       env: DOCKER=ubuntu-xenial
       services: docker
     - os: linux
@@ -27,12 +25,16 @@ matrix:
       env: TESTENV=py36-pyqt571
     - os: linux
       language: python
+      python: 3.6
+      env: TESTENV=py36-pyqt58
+    - os: linux
+      language: python
       python: 3.5
-      env: TESTENV=py35-pyqt58
+      env: TESTENV=py35-pyqt59
     - os: linux
       language: python
       python: 3.6
-      env: TESTENV=py36-pyqt58
+      env: TESTENV=py36-pyqt59
     - os: osx
       env: TESTENV=py36 OSX=elcapitan
       osx_image: xcode7.3

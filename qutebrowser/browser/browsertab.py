@@ -465,16 +465,32 @@ class AbstractHistory:
     def current_idx(self):
         raise NotImplementedError
 
-    def back(self):
-        raise NotImplementedError
+    def back(self, count=1):
+        idx = self.current_idx() - count
+        if idx >= 0:
+            self._go_to_item(self._item_at(idx))
+        else:
+            self._go_to_item(self._item_at(0))
+            raise WebTabError("At beginning of history.")
 
-    def forward(self):
-        raise NotImplementedError
+    def forward(self, count=1):
+        idx = self.current_idx() + count
+        if idx < len(self):
+            self._go_to_item(self._item_at(idx))
+        else:
+            self._go_to_item(self._item_at(len(self) - 1))
+            raise WebTabError("At end of history.")
 
     def can_go_back(self):
         raise NotImplementedError
 
     def can_go_forward(self):
+        raise NotImplementedError
+
+    def _item_at(self, i):
+        raise NotImplementedError
+
+    def _go_to_item(self, item):
         raise NotImplementedError
 
     def serialize(self):

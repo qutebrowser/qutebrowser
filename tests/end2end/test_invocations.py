@@ -163,6 +163,7 @@ def test_optimize(request, quteproc_new, capfd, level):
 
 
 @pytest.mark.not_frozen
+@pytest.mark.flaky  # Fails sometimes with empty output...
 def test_version(request):
     """Test invocation with --version argument."""
     args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)
@@ -178,10 +179,12 @@ def test_version(request):
     assert ok
     assert proc.exitStatus() == QProcess.NormalExit
 
-    output = bytes(proc.readAllStandardOutput()).decode('utf-8')
-    print(output)
+    stdout = bytes(proc.readAllStandardOutput()).decode('utf-8')
+    print(stdout)
+    stderr = bytes(proc.readAllStandardError()).decode('utf-8')
+    print(stderr)
 
-    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', output) is not None
+    assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
 
 
 @pytest.mark.skipif(not qtutils.version_check('5.3'),

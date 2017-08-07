@@ -29,8 +29,7 @@ import importlib
 import collections
 import pkg_resources
 
-from PyQt5.QtCore import (QT_VERSION_STR, PYQT_VERSION_STR, qVersion,
-                          QLibraryInfo)
+from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
 
@@ -46,7 +45,7 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 
 
@@ -280,14 +279,6 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
-def qt_version():
-    """Get a Qt version string based on the runtime/compiled versions."""
-    if qVersion() != QT_VERSION_STR:
-        return '{} (compiled {})'.format(qVersion(), QT_VERSION_STR)
-    else:
-        return qVersion()
-
-
 def _chromium_version():
     """Get the Chromium version for QtWebEngine."""
     if QWebEngineProfile is None:
@@ -305,8 +296,9 @@ def _chromium_version():
 def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return 'QtWebKit{} (WebKit {})'.format(
-            '-NG' if qtutils.is_qtwebkit_ng() else '', qWebKitVersion())
+        return '{} (WebKit {})'.format(
+            'QtWebKit-NG' if qtutils.is_qtwebkit_ng() else 'legacy QtWebKit',
+            qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend
@@ -326,18 +318,18 @@ def version():
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'Qt: {}'.format(qt_version()),
+        'Qt: {}'.format(earlyinit.qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]
 
     lines += _module_versions()
 
-    lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
     lines += [
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-        '',
+        'pdf.js: {}'.format(_pdfjs_version()),
+        'sqlite: {}'.format(sql.version()),
+        'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
+                                     if QSslSocket.supportsSsl() else 'no'),
     ]
 
     qapp = QApplication.instance()

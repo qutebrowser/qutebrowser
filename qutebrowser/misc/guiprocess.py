@@ -154,8 +154,8 @@ class GUIProcess(QObject):
             log.procs.debug("Process started.")
             self._started = True
         else:
-            message.error("Error while spawning {}: {}.".format(
-                self._what, self._proc.error()))
+            message.error("Error while spawning {}: {}".format(
+                self._what, ERROR_STRINGS[self._proc.error()]))
 
     def exit_status(self):
         return self._proc.exitStatus()

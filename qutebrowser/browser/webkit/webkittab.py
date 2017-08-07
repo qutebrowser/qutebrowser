@@ -33,7 +33,6 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
 from qutebrowser.browser.webkit.network import webkitqutescheme
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
@@ -42,12 +41,6 @@ from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 def init():
     """Initialize QtWebKit-specific modules."""
     qapp = QApplication.instance()
-
-    if not qtutils.version_check('5.8'):
-        # Otherwise we initialize it globally in app.py
-        log.init.debug("Initializing proxy...")
-        proxy.init()
-
     log.init.debug("Initializing js-bridge...")
     js_bridge = webkitqutescheme.JSBridge(qapp)
     objreg.register('js-bridge', js_bridge)
@@ -513,17 +506,17 @@ class WebKitHistory(browsertab.AbstractHistory):
     def current_idx(self):
         return self._history.currentItemIndex()
 
-    def back(self):
-        self._history.back()
-
-    def forward(self):
-        self._history.forward()
-
     def can_go_back(self):
         return self._history.canGoBack()
 
     def can_go_forward(self):
         return self._history.canGoForward()
+
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        return self._history.goToItem(item)
 
     def serialize(self):
         return qtutils.serialize(self._history)

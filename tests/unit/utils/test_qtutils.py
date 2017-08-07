@@ -550,7 +550,7 @@ if test_file is not None and sys.platform != 'darwin':
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
 
-    # Those are not run on OS X because that seems to cause a hang sometimes.
+    # Those are not run on macOS because that seems to cause a hang sometimes.
 
     @pytest.fixture(scope='session', autouse=True)
     def clean_up_python_testfile():

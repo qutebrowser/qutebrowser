@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import itertools
 import contextlib
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
@@ -96,7 +95,7 @@ class BaseLineParser(QObject):
         """
         assert self._configfile is not None
         if self._opened:
-            raise IOError("Refusing to double-open AppendLineParser.")
+            raise IOError("Refusing to double-open LineParser.")
         self._opened = True
         try:
             if self._binary:
@@ -131,73 +130,6 @@ class BaseLineParser(QObject):
     def clear(self):
         """Clear the contents of the file."""
         raise NotImplementedError
-
-
-class AppendLineParser(BaseLineParser):
-
-    """LineParser which reads lazily and appends data to existing one.
-
-    Attributes:
-        _new_data: The data which was added in this session.
-    """
-
-    def __init__(self, configdir, fname, *, parent=None):
-        super().__init__(configdir, fname, binary=False, parent=parent)
-        self.new_data = []
-        self._fileobj = None
-
-    def __iter__(self):
-        if self._fileobj is None:
-            raise ValueError("Iterating without open() being called!")
-        file_iter = (line.rstrip('\n') for line in self._fileobj)
-        return itertools.chain(file_iter, iter(self.new_data))
-
-    @contextlib.contextmanager
-    def open(self):
-        """Open the on-disk history file. Needed for __iter__."""
-        try:
-            with self._open('r') as f:
-                self._fileobj = f
-                yield
-        except FileNotFoundError:
-            self._fileobj = []
-            yield
-        finally:
-            self._fileobj = None
-
-    def get_recent(self, count=4096):
-        """Get the last count bytes from the underlying file."""
-        with self._open('r') as f:
-            f.seek(0, os.SEEK_END)
-            size = f.tell()
-            try:
-                if size - count > 0:
-                    offset = size - count
-                else:
-                    offset = 0
-                f.seek(offset)
-                data = f.readlines()
-            finally:
-                f.seek(0, os.SEEK_END)
-        return data
-
-    def save(self):
-        do_save = self._prepare_save()
-        if not do_save:
-            return
-        with self._open('a') as f:
-            self._write(f, self.new_data)
-        self.new_data = []
-        self._after_save()
-
-    def clear(self):
-        do_save = self._prepare_save()
-        if not do_save:
-            return
-        with self._open('w'):
-            pass
-        self.new_data = []
-        self._after_save()
 
 
 class LineParser(BaseLineParser):
@@ -240,7 +172,7 @@ class LineParser(BaseLineParser):
     def save(self):
         """Save the config file."""
         if self._opened:
-            raise IOError("Refusing to double-open AppendLineParser.")
+            raise IOError("Refusing to double-open LineParser.")
         do_save = self._prepare_save()
         if not do_save:
             return

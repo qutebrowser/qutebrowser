@@ -243,7 +243,7 @@ Feature: Using hints
 
     ### hints -> auto-follow-timeout
 
-    @not_osx
+    @not_mac
     Scenario: Ignoring key presses after auto-following hints
         When I set hints -> auto-follow-timeout to 1000
         And I set hints -> mode to number
