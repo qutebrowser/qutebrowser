@@ -426,7 +426,7 @@ class SessionManager(QObject):
             base, ext = os.path.splitext(filename)
             if ext == '.yml':
                 sessions.append(base)
-        return sessions
+        return sorted(sessions)
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
