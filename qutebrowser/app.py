@@ -44,7 +44,6 @@ import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, websettings, configexc
-from qutebrowser.config.parsers import keyconf
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -412,9 +411,6 @@ def _init_modules(args, crash_handler):
     config.init(qApp)
     save_manager.init_autosave()
 
-    log.init.debug("Initializing keys...")
-    keyconf.init(qApp)
-
     log.init.debug("Initializing sql...")
     try:
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
@@ -631,7 +627,7 @@ class Quitter:
             return True
 
     @cmdutils.register(instance='quitter', name='quit')
-    @cmdutils.argument('session', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('session', completion=miscmodels.session)
     def quit(self, save=False, session=None):
         """Quit qutebrowser.
 

@@ -33,6 +33,7 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
+from qutebrowser.browser.network import proxy
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 

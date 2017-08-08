@@ -21,7 +21,6 @@
 
 """Fake objects/stubs."""
 
-import collections
 from unittest import mock
 
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
@@ -30,8 +29,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab
-from qutebrowser.config import configexc
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
 

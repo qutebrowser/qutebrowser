@@ -230,6 +230,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)
+    @cmdutils.argument('values', completion=configmodel.value)
     @cmdutils.argument('win_id', win_id=True)
     def set(self, win_id, option=None, *values, temp=False, print_=False):
         """Set an option.
@@ -310,7 +311,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
-    @cmdutils.argument('command', completion=usertypes.Completion.bind)
+    @cmdutils.argument('command', completion=configmodel.bind)
     def bind(self, key, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 

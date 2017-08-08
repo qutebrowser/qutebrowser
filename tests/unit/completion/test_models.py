@@ -29,7 +29,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
-from qutebrowser.config import sections, value
+from qutebrowser.config import sections, value, configdata, configtype
 from qutebrowser.utils import objreg
 
 
@@ -76,7 +76,8 @@ def _patch_cmdutils(monkeypatch, stubs, symbol):
 def _patch_configdata(monkeypatch, stubs, symbol):
     """Patch the configdata module to provide fake data."""
     data = collections.OrderedDict([
-        ('general', sections.KeyValue(
+        ('general.time', configdata.Option(
+            name='general.time'
             ('time',
                 value.SettingValue(stubs.FakeConfigType('fast', 'slow'),
                                    default='slow'),
@@ -141,8 +142,8 @@ def bookmarks(bookmark_manager_stub):
 @pytest.fixture
 def web_history(init_sql, stubs, config_stub):
     """Fixture which provides a web-history object."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': -1}
+    config_stub.completion.timestamp_format = '%Y-%m-%d'
+    config_stub.completion.web_history_max_items = -1
     stub = history.WebHistory()
     objreg.register('web-history', stub)
     yield stub
@@ -182,7 +183,7 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
     """
     _patch_cmdutils(monkeypatch, stubs,
                     'qutebrowser.completion.models.miscmodels.cmdutils')
-    config_stub.data['aliases'] = {'rock': 'roll'}
+    config_stub.aliases = {'rock': 'roll'}
     key_config_stub.set_bindings_for('normal', {'s': 'stop',
                                                 'rr': 'roll',
                                                 'ro': 'rock'})
@@ -443,7 +444,7 @@ def test_url_completion_delete_history(qtmodeltester,
 def test_url_completion_zero_limit(config_stub, web_history, quickmarks,
                                    bookmarks):
     """Make sure there's no history if the limit was set to zero."""
-    config_stub.data['completion']['web-history-max-items'] = 0
+    config_stub.completion.web_history_max_items = 0
     model = urlmodel.url()
     model.set_pattern('')
     category = model.index(2, 0)  # "History" normally
@@ -520,32 +521,9 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
+def test_setting_option_completion(qtmodeltester, monkeypatch, stubs):
     module = 'qutebrowser.completion.models.configmodel'
     _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    _patch_config_section_desc(monkeypatch, stubs,
-                               module + '.configdata.SECTION_DESC')
-    model = configmodel.section()
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        "Sections": [
-            ('general', 'General/miscellaneous options.', None),
-            ('searchengines', 'Definitions of search engines ...', None),
-            ('ui', 'General options related to the user interface.', None),
-        ]
-    })
-
-
-def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
-                                   config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {'ui': {'gesture': 'off',
-                               'mind': 'on',
-                               'voice': 'sometimes'}}
     model = configmodel.option('ui')
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -583,35 +561,6 @@ def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
     _check_completions(model, {
         'searchengines': [('DEFAULT', '', 'https://duckduckgo.com/?q={}')]
     })
-
-
-def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
-                                  config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {'general': {'volume': '0'}}
-    model = configmodel.value('general', 'volume')
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        "Current/Default": [
-            ('0', 'Current value', None),
-            ('11', 'Default value', None),
-        ],
-        "Completions": [
-            ('0', '', None),
-            ('11', '', None),
-        ]
-    })
-
-
-def test_setting_value_completion_empty(monkeypatch, stubs, config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {'general': {}}
-    assert configmodel.value('general', 'typo') is None
 
 
 def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,

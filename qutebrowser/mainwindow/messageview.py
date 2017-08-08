@@ -77,6 +77,7 @@ class MessageView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._messages = []
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
@@ -88,7 +89,6 @@ class MessageView(QWidget):
         config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
-        self._messages = []
 
     def sizeHint(self):
         """Get the proposed height for the view."""

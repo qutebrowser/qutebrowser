@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
-                               jinja)
+                               jinja, debug)
 from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
 from qutebrowser.mainwindow.statusbar import bar
 from qutebrowser.completion import completionwidget, completer
