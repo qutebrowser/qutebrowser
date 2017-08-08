@@ -164,6 +164,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='manjaro', parsed=version.Distribution.manjaro,
          version=None, pretty='Manjaro Linux')),
+    # Funtoo
+    ("""
+        ID="funtoo"
+        NAME="Funtoo GNU/Linux"
+        PRETTY_NAME="Linux"
+     """,
+     version.DistributionInfo(
+         id='funtoo', parsed=version.Distribution.gentoo,
+         version=None, pretty='Funtoo GNU/Linux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
