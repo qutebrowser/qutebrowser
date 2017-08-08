@@ -81,6 +81,8 @@ def distribution():
         return None
 
     pretty = info.get('PRETTY_NAME', 'Unknown')
+    if pretty == 'Linux':  # Thanks, Funtoo
+        pretty = info.get('NAME', pretty)
 
     if 'VERSION_ID' in info:
         dist_version = pkg_resources.parse_version(info['VERSION_ID'])
@@ -88,8 +90,11 @@ def distribution():
         dist_version = None
 
     dist_id = info.get('ID', None)
+    id_mappings = {
+        'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
+    }
     try:
-        parsed = Distribution[dist_id]
+        parsed = Distribution[id_mappings.get(dist_id, dist_id)]
     except KeyError:
         parsed = Distribution.unknown
 
