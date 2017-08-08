@@ -29,7 +29,7 @@ def section():
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     sections = ((name, configdata.SECTION_DESC[name].splitlines()[0].strip())
                 for name in configdata.DATA)
-    model.add_category(listcategory.ListCategory("Sections", sections))
+    model.add_category(listcategory.ListCategory("Sections", sorted(sections)))
     return model
 
 
@@ -57,7 +57,7 @@ def option(sectname):
         config = objreg.get('config')
         val = config.get(sectname, name, raw=True)
         options.append((name, desc, val))
-    model.add_category(listcategory.ListCategory(sectname, options))
+    model.add_category(listcategory.ListCategory(sectname, sorted(options)))
     return model
 
 
@@ -92,5 +92,6 @@ def value(sectname, optname):
         [(current, "Current value"), (default, "Default value")])
     model.add_category(cur_cat)
     if vals is not None:
-        model.add_category(listcategory.ListCategory("Completions", vals))
+        model.add_category(listcategory.ListCategory("Completions",
+                                                     sorted(vals)))
     return model
