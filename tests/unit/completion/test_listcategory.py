@@ -31,7 +31,7 @@ from qutebrowser.completion.models import listcategory
 
     ('foo',
      [('foob', ''), ('fooc', ''), ('fooa', '')],
-     [('fooa', ''), ('foob', ''), ('fooc', '')]),
+     [('foob', ''), ('fooc', ''), ('fooa', '')]),
 
     # prefer foobar as it starts with the pattern
     ('foo',
