@@ -840,6 +840,33 @@ def open_file(filename, cmdline=None):
     proc.start_detached(cmd, args)
 
 
+class NumberSet:
+
+    """Fancy number set class that elements of its objects are defined in text
+    in some convenient notation, and such objects supports 'in' operator.
+
+    Attributes:
+        text: set representation in text. E.g. '1,5,8-last,32,2'.
+        nummax: value to represent 'last'
+    """
+
+    def __init__(self, text, nummax):
+        self.text = text.lower().replace('last', str(nummax))
+        self.__parse_text_into_ranges()
+
+    def __contains__(self, other):
+        return any(other in r for r in self.ranges)
+
+    def __parse_text_into_ranges(self):
+        self.ranges = []
+        for part in self.text.split(','):
+            if '-' in part:
+                start, end = part.split('-')
+                self.ranges.append(range(int(start), int(end) + 1))
+            else:
+                self.ranges.append(range(int(part), int(part) + 1))
+
+
 def expand_windows_drive(path):
     r"""Expand a drive-path like E: into E:\.
 

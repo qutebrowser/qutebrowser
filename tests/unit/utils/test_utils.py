@@ -894,6 +894,30 @@ class TestOpenFile:
         m.assert_called_with(QUrl('file:///foo/bar'))
 
 
+@pytest.mark.parametrize('txtset, nummax, expected', [
+    ('5-0', 10, []),
+    ('5-0,1-5', 10, [1,2,3,4,5]),
+    ('5-0,1-5,last', 10, [1,2,3,4,5,10]),
+    ('5-0,1,1-5,last', 10, [1,2,3,4,5,10]),
+    ('last,5-0,1-5,last', 10, [1,2,3,4,5,10]),
+    ('-5-0', 10, ValueError),
+    ('-5-0,1-5', 10, ValueError),
+    ('5-0,-1-5', 10, ValueError),
+    ('5--0,1-5', 10, ValueError),
+    ('5-0,-1-5,last', 10, ValueError),
+    ('5-0,,1-5', 10, ValueError),
+    ('5-0,1-5,,last', 10, ValueError),
+    ('5-,0,1-5', 10, ValueError)
+])
+def test_NumberSet(txtset, nummax, expected):
+    if expected is ValueError:
+        with pytest.raises(ValueError):
+            utils.NumberSet(txtset, nummax)
+    else:
+        numset = utils.NumberSet(txtset, nummax)
+        assert [i for i in range(0, nummax + 1) if i in numset] == expected
+
+
 @pytest.mark.parametrize('path, expected', [
     ('E:', 'E:\\'),
     ('e:', 'e:\\'),
