@@ -938,7 +938,7 @@ class DownloadModel(QAbstractListModel):
                     "No downloads!".format(indexset)
                   )
 
-        # support --all/-a
+        # support --all/-a for backwards compatibility
         if all_ == True:
             indexset = '1-last'
             message.warning(
@@ -953,17 +953,14 @@ class DownloadModel(QAbstractListModel):
 
         # parse the indexset into number intervals list
         try:
-            indexset_p = utils.parse_numsettxt_into_numints(indexset, len(self))
+            indexset_p = utils.NumberSet(indexset, len(self))
         except ValueError:
             raise cmdexc.CommandError(
                     "Invalid index set '{}'!".format(indexset)
                   )
 
         # identify downloads indexes that fall in the indexset
-        ins = utils.which_nums_in_numints(
-                range(1, len(self) + 1),
-                indexset_p
-              )
+        ins = [i for i in range(1, len(self) + 1) if i in indexset_p]
 
         # tell the user if no downloads matched his query
         if len(ins) == 0:

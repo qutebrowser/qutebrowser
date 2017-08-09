@@ -895,31 +895,27 @@ class TestOpenFile:
 
 
 @pytest.mark.parametrize('txtset, nummax, expected', [
-    ('0-5,9-100,last', 500, [(0, 5), (9, 100), (500, 500)]),
-    ('0-5,9-100,last-3', 500, [(0, 5), (9, 100), (500, 3)]),
-    ('0-5,9-100,last-7000', 500, [(0, 5), (9, 100), (500, 7000)]),
-    ('6-9,3-5', 500, [(6, 9), (3, 5)]),
-    ('5-7,0-10', 500, [(5, 7), (0, 10)]),
-    ('-5', 500, 'malformed'),
-    ('0--5', 500, 'malformed'),
-    ('foo-bar', 500, 'malformed'),
+    ('5-0', 10, []),
+    ('5-0,1-5', 10, [1,2,3,4,5]),
+    ('5-0,1-5,last', 10, [1,2,3,4,5,10]),
+    ('5-0,1,1-5,last', 10, [1,2,3,4,5,10]),
+    ('last,5-0,1-5,last', 10, [1,2,3,4,5,10]),
+    ('-5-0', 10, ValueError),
+    ('-5-0,1-5', 10, ValueError),
+    ('5-0,-1-5', 10, ValueError),
+    ('5--0,1-5', 10, ValueError),
+    ('5-0,-1-5,last', 10, ValueError),
+    ('5-0,,1-5', 10, ValueError),
+    ('5-0,1-5,,last', 10, ValueError),
+    ('5-,0,1-5', 10, ValueError)
 ])
-def test_parse_numsettxt_into_numints(txtset, nummax, expected):
-    try:
-        assert utils.parse_numsettxt_into_numints(txtset, nummax) == expected
-    except ValueError:
-        assert expected == 'malformed'
-
-
-@pytest.mark.parametrize('nums, numints, expected', [
-    ([501], [(0, 5), (9, 100), (500, 500)], []),
-    ([3, 6, 50], [(0, 5), (9, 100), (500, 3)], [3, 50]),
-    ([501, 0], [(0, 5), (9, 100), (500, 7000)], [0, 501]),
-    ([501, 0, 6, 9, 3, 5, 8, 4], [(6, 9), (3, 5)], [6, 9, 3, 5, 8, 4]),
-    ([501, 0, 5, 7, 10, 5, 8, 4], [(5, 7), (0, 10)], [0, 5, 7, 10, 5, 8, 4]),
-])
-def test_which_nums_in_numints(nums, numints, expected):
-    assert utils.which_nums_in_numints(nums, numints) == expected
+def test_NumberSet(txtset, nummax, expected):
+    if expected is ValueError:
+        with pytest.raises(ValueError):
+            utils.NumberSet(txtset, nummax)
+    else:
+        numset = utils.NumberSet(txtset, nummax)
+        assert [i for i in range(0, nummax + 1) if i in numset] == expected
 
 
 @pytest.mark.parametrize('path, expected', [
