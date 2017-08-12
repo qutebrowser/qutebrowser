@@ -19,7 +19,7 @@
 
 
 from os.path import basename
-#from requests import head
+from requests import head
 
 import pytest
 
@@ -36,6 +36,13 @@ POLISH = spell.Language('pl-PL',
                         'pl-PL-3-0.bdic')
 
 LANGUAGE_LIST = [AFRIKAANS, ENGLISH, POLISH]
+
+
+def test_get_installed_languages(mocker):
+    # return an empty list if the dir doesn't exist
+    mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
+                 lambda: '/some-non-existing-dir')
+    assert spell.get_installed_languages() == []
 
 
 def test_get_available_languages():
@@ -64,13 +71,13 @@ def test_install(tmpdir, mocker):
     mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
                  lambda: str(tmpdir))
     spell.install(LANGUAGE_LIST)
-    installed_files = [basename(file) for file in tmpdir.listdir()]
+    installed_files = [basename(str(file)) for file in tmpdir.listdir()]
     expected_files = [lang.file for lang in LANGUAGE_LIST]
     assert sorted(installed_files) == sorted(expected_files)
 
 
-#def test_available_langs():
-#    for lang in spell.get_available_languages():
-#        lang_url = '{}/{}'.format(spell.repository_url, lang.file)
-#        code, text, headers = head(lang_url)
-#        assert code == 200
+def test_available_langs():
+    for lang in spell.get_available_languages():
+        lang_url = '{}/{}'.format(spell.repository_url, lang.file)
+        response = head(lang_url)
+        assert response.status_code == 302

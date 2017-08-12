@@ -95,6 +95,8 @@ def get_available_languages():
 
 def get_installed_languages():
     """Return a list of Language objects of all installed languages."""
+    if not os.path.isdir(get_dictionary_dir()):
+        return []
     installed_files = [os.path.basename(file)
                        for file in os.listdir(get_dictionary_dir())]
     all_languages = get_available_languages()
