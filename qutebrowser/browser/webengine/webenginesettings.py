@@ -131,7 +131,7 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
     """Sets paths to dictionary files based on language codes."""
 
     def __init__(self):
-        super().__init__('setSpellCheckLanguages')
+        super().__init__('setSpellCheckLanguages', default=[])
 
     def _set(self, value, settings=None):
         if settings is not None:
@@ -301,7 +301,7 @@ MAPPINGS = {
     'ui': {
         'smooth-scrolling':
             Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
-        'spell': DefaultProfileSetter('setSpellCheckEnabled'),
+        'spell': DefaultProfileSetter('setSpellCheckEnabled', default=True),
         'spell-languages': DictionaryLanguageSetter()
     },
     'storage': {

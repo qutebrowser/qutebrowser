@@ -19,6 +19,7 @@
 
 
 from os.path import basename
+#from requests import head
 
 import pytest
 
@@ -62,8 +63,14 @@ def test_filter_languages():
 def test_install(tmpdir, mocker):
     mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
                  lambda: str(tmpdir))
-    all_languages = spell.get_available_languages()
-    spell.install(all_languages)
+    spell.install(LANGUAGE_LIST)
     installed_files = [basename(file) for file in tmpdir.listdir()]
-    expected_files = [lang.file for lang in all_languages]
+    expected_files = [lang.file for lang in LANGUAGE_LIST]
     assert sorted(installed_files) == sorted(expected_files)
+
+
+#def test_available_langs():
+#    for lang in spell.get_available_languages():
+#        lang_url = '{}/{}'.format(spell.repository_url, lang.file)
+#        code, text, headers = head(lang_url)
+#        assert code == 200
