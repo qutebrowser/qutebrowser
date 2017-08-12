@@ -21,6 +21,7 @@
 
 import os
 from urllib.request import urlretrieve
+from qutebrowser import basedir
 
 from PyQt5.QtCore import QLibraryInfo
 
@@ -81,9 +82,8 @@ def get_dictionary_dir():
 
 def get_language_list_file():
     """Return the path to the file with the list of all available languages."""
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    # TODO: not sure how to determine the following path 'the right way'
-    return os.path.join(root_dir, '../../../', 'misc', 'lang_list')
+    package_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(package_dir, 'langs.tsv')
 
 
 def get_available_languages():
