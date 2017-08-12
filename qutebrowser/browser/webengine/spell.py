@@ -25,6 +25,7 @@ from qutebrowser import basedir
 
 from PyQt5.QtCore import QLibraryInfo
 
+repository_url = 'https://redirector.gvt1.com/edgedl/chrome/dict'
 
 class Language:
 
@@ -126,7 +127,6 @@ def filter_languages(languages, selected, by=lambda lang: lang.code,
 
 def install(languages):
     """Install languages."""
-    repository_url = 'https://redirector.gvt1.com/edgedl/chrome/dict'
     for lang in languages:
         try:
             print('Installing {}: {}'.format(lang.code, lang.name))
