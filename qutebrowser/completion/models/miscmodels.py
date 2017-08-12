@@ -39,22 +39,11 @@ def helptopic():
 
     cmdlist = _get_cmd_completions(include_aliases=False, include_hidden=True,
                                    prefix=':')
-    settings = []
-    for sectname, sectdata in configdata.DATA.items():
-        for optname in sectdata:
-            try:
-                desc = sectdata.descriptions[optname]
-            except (KeyError, AttributeError):
-                # Some stuff (especially ValueList items) don't have a
-                # description.
-                desc = ""
-            else:
-                desc = desc.splitlines()[0]
-            name = '{}->{}'.format(sectname, optname)
-            settings.append((name, desc))
+    settings = ((opt.name, opt.description)
+                for opt in configdata.DATA.values())
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    model.add_category(listcategory.ListCategory("Settings", settings))
+    model.add_category(listcategory.ListCategory("Settings", sorted(settings)))
     return model
 
 
@@ -135,6 +124,26 @@ def buffer():
     return model
 
 
+def bind(key):
+    """A CompletionModel filled with all bindable commands and descriptions.
+
+    Args:
+        key: the key being bound.
+    """
+    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
+    cmd_text = config.key_instance.get_bindings_for('normal').get(key)
+
+    if cmd_text:
+        cmd_name = cmd_text.split(' ')[0]
+        cmd = cmdutils.cmd_dict.get(cmd_name)
+        data = [(cmd_text, cmd.desc, key)]
+        model.add_category(listcategory.ListCategory("Current", data))
+
+    cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
+    model.add_category(listcategory.ListCategory("Commands", cmdlist))
+    return model
+
+
 def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
     """Get a list of completions info for commands, sorted by name.
 
@@ -155,10 +164,9 @@ def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
             bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 
-    # FIXME:conf
-    # if include_aliases:
-    #     for name, cmd in config.section('aliases').items():
-    #         bindings = ', '.join(cmd_to_keys.get(name, []))
-    #         cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
+    if include_aliases:
+        for name, cmd in config.val.aliases.items():
+            bindings = ', '.join(cmd_to_keys.get(name, []))
+            cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
 
     return cmdlist

@@ -29,8 +29,10 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
-from qutebrowser.config import sections, value, configdata, configtype
+from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import objreg
+from qutebrowser.browser import history
+from qutebrowser.commands import cmdutils
 
 
 def _check_completions(model, expected):
@@ -61,60 +63,69 @@ def _check_completions(model, expected):
     assert sum(model.column_widths) == 100
 
 
-def _patch_cmdutils(monkeypatch, stubs, symbol):
+@pytest.fixture()
+def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
-    cmd_utils = stubs.FakeCmdUtils({
-        'stop': stubs.FakeCommand(name='stop', desc='stop qutebrowser'),
-        'drop': stubs.FakeCommand(name='drop', desc='drop all user data'),
-        'roll': stubs.FakeCommand(name='roll', desc='never gonna give you up'),
-        'hide': stubs.FakeCommand(name='hide', hide=True),
-        'depr': stubs.FakeCommand(name='depr', deprecated=True),
+    return monkeypatch.setattr(cmdutils, 'cmd_dict', {
+        'quit': stubs.FakeCommand(name='quit', desc='quit qutebrowser'),
+        'open': stubs.FakeCommand(name='open', desc='open a url'),
+        'prompt-yes': stubs.FakeCommand(name='prompt-yes', deprecated=True),
+        'scroll': stubs.FakeCommand(name='scroll',
+            desc='Scroll the current tab in the given direction.',
+            hide=True),
     })
-    monkeypatch.setattr(symbol, cmd_utils)
 
 
-def _patch_configdata(monkeypatch, stubs, symbol):
+@pytest.fixture()
+def configdata_stub(monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
-    data = collections.OrderedDict([
-        ('general.time', configdata.Option(
-            name='general.time'
-            ('time',
-                value.SettingValue(stubs.FakeConfigType('fast', 'slow'),
-                                   default='slow'),
-                'Is an illusion.\n\nLunchtime doubly so.'),
-            ('volume',
-                value.SettingValue(stubs.FakeConfigType('0', '11'),
-                                   default='11'),
-                'Goes to 11'))),
-        ('ui', sections.KeyValue(
-            ('gesture',
-                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                   default='off'),
-                'Waggle your hands to control qutebrowser'),
-            ('mind',
-                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                   default='off'),
-                'Enable mind-control ui (experimental)'),
-            ('voice',
-                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                   default='off'),
-                'Whether to respond to voice commands'))),
-        ('searchengines', sections.ValueList(
-            stubs.FakeConfigType(), stubs.FakeConfigType(),
-            ('DEFAULT', 'https://duckduckgo.com/?q={}'),
-        )),
-    ])
-    monkeypatch.setattr(symbol, data)
-
-
-def _patch_config_section_desc(monkeypatch, stubs, symbol):
-    """Patch the configdata module to provide fake SECTION_DESC."""
-    section_desc = {
-        'general': 'General/miscellaneous options.',
-        'ui': 'General options related to the user interface.',
-        'searchengines': 'Definitions of search engines ...',
-    }
-    monkeypatch.setattr(symbol, section_desc)
+    return monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
+        ('aliases', configdata.Option(
+            name='aliases',
+            description='Aliases for commands.',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.Command(),
+            ),
+            default={'q': 'quit'},
+            backends=[],
+            raw_backends=None)),
+        ('bindings.default', configdata.Option(
+            name='bindings.default',
+            description='Default keybindings',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.Dict(
+                    keytype=configtypes.String(),
+                    valtype=configtypes.Command(),
+                ),
+            ),
+            default={
+                'normal': {
+                    '<ctrl+q>': 'quit'
+                }
+            },
+            backends=[],
+            raw_backends=None)),
+        ('bindings.commands', configdata.Option(
+            name='bindings.commands',
+            description='Default keybindings',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.Dict(
+                    keytype=configtypes.String(),
+                    valtype=configtypes.Command(),
+                ),
+            ),
+            default={
+                'normal': {
+                    '<ctrl+q>': 'quit',
+                    'ZQ': 'quit'
+                }
+            },
+            backends=[],
+            raw_backends=None)),
+    ]))
 
 
 @pytest.fixture
@@ -142,8 +153,8 @@ def bookmarks(bookmark_manager_stub):
 @pytest.fixture
 def web_history(init_sql, stubs, config_stub):
     """Fixture which provides a web-history object."""
-    config_stub.completion.timestamp_format = '%Y-%m-%d'
-    config_stub.completion.web_history_max_items = -1
+    config_stub.val.completion.timestamp_format = '%Y-%m-%d'
+    config_stub.val.completion.web_history_max_items = -1
     stub = history.WebHistory()
     objreg.register('web-history', stub)
     yield stub
@@ -171,7 +182,7 @@ def web_history_populated(web_history):
     return web_history
 
 
-def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
+def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
                             key_config_stub):
     """Test the results of command completion.
 
@@ -181,12 +192,6 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    _patch_cmdutils(monkeypatch, stubs,
-                    'qutebrowser.completion.models.miscmodels.cmdutils')
-    config_stub.aliases = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop',
-                                                'rr': 'roll',
-                                                'ro': 'rock'})
     model = miscmodels.command()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -194,28 +199,24 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
 
     _check_completions(model, {
         "Commands": [
-            ('drop', 'drop all user data', ''),
-            ('rock', "Alias for 'roll'", 'ro'),
-            ('roll', 'never gonna give you up', 'rr'),
-            ('stop', 'stop qutebrowser', 's'),
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
         ]
     })
 
 
-def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
+def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
+                         configdata_stub, config_stub):
     """Test the results of command completion.
 
     Validates that:
         - only non-deprecated commands are included
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
-        - aliases are included
+        - aliases are not included
         - only the first line of a multiline description is shown
     """
-    module = 'qutebrowser.completion.models.miscmodels'
-    key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
-    _patch_cmdutils(monkeypatch, stubs, module + '.cmdutils')
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
     model = miscmodels.helptopic()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -223,18 +224,14 @@ def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
 
     _check_completions(model, {
         "Commands": [
-            (':drop', 'drop all user data', ''),
-            (':hide', '', ''),
-            (':roll', 'never gonna give you up', 'rr'),
-            (':stop', 'stop qutebrowser', 's'),
+            (':open', 'open a url', ''),
+            (':quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            (':scroll', 'Scroll the current tab in the given direction.', '')
         ],
         "Settings": [
-            ('general->time', 'Is an illusion.', None),
-            ('general->volume', 'Goes to 11', None),
-            ('searchengines->DEFAULT', '', None),
-            ('ui->gesture', 'Waggle your hands to control qutebrowser', None),
-            ('ui->mind', 'Enable mind-control ui (experimental)', None),
-            ('ui->voice', 'Whether to respond to voice commands', None),
+            ('aliases', 'Aliases for commands.', None),
+            ('bindings.commands', 'Default keybindings', None),
+            ('bindings.default', 'Default keybindings', None),
         ]
     })
 
@@ -444,7 +441,7 @@ def test_url_completion_delete_history(qtmodeltester,
 def test_url_completion_zero_limit(config_stub, web_history, quickmarks,
                                    bookmarks):
     """Make sure there's no history if the limit was set to zero."""
-    config_stub.completion.web_history_max_items = 0
+    config_stub.val.completion.web_history_max_items = 0
     model = urlmodel.url()
     model.set_pattern('')
     category = model.index(2, 0)  # "History" normally
@@ -521,80 +518,49 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_setting_option_completion(qtmodeltester, monkeypatch, stubs):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    model = configmodel.option('ui')
+def test_setting_option_completion(qtmodeltester, config_stub,
+                                   configdata_stub):
+    model = configmodel.option()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "ui": [
-            ('gesture', 'Waggle your hands to control qutebrowser', 'off'),
-            ('mind', 'Enable mind-control ui (experimental)', 'on'),
-            ('voice', 'Whether to respond to voice commands', 'sometimes'),
+        "Options": [
+            ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
+            ('bindings.commands', 'Default keybindings',
+                '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit"}}'),
+            ('bindings.default', 'Default keybindings',
+                '{"normal": {"<ctrl+q>": "quit"}}'),
         ]
     })
 
 
-def test_setting_option_completion_empty(monkeypatch, stubs, config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    assert configmodel.option('typo') is None
-
-
-def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
-                                             config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {
-        'searchengines': {
-            'DEFAULT': 'https://duckduckgo.com/?q={}'
-        }
-    }
-    model = configmodel.option('searchengines')
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        'searchengines': [('DEFAULT', '', 'https://duckduckgo.com/?q={}')]
-    })
-
-
-def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
-                         key_config_stub):
+def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
+                         key_config_stub, configdata_stub):
     """Test the results of keybinding command completion.
 
     Validates that:
-        - only non-hidden and non-deprecated commands are included
+        - only non-deprecated commands are included
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    _patch_cmdutils(monkeypatch, stubs,
-                    'qutebrowser.completion.models.miscmodels.cmdutils')
-    config_stub.data['aliases'] = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop now',
-                                                'rr': 'roll',
-                                                'ro': 'rock'})
-    model = miscmodels.bind('s')
+    model = miscmodels.bind('ZQ')
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Current": [
-            ('stop now', 'stop qutebrowser', 's'),
+            ('quit', 'quit qutebrowser', 'ZQ'),
         ],
         "Commands": [
-            ('drop', 'drop all user data', ''),
-            ('hide', '', ''),
-            ('rock', "Alias for 'roll'", 'ro'),
-            ('roll', 'never gonna give you up', 'rr'),
-            ('stop', 'stop qutebrowser', ''),
-        ]
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('scroll', 'Scroll the current tab in the given direction.', '')
+        ],
     })
 
 

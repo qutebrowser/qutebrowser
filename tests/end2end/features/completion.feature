@@ -61,11 +61,11 @@ Feature: Using completion
         Then the error "Session hello not found!" should be shown
 
     Scenario: Using option completion
-        When I run :set-cmd-text -s :set colors
+        When I run :set-cmd-text -s :set
         Then the completion model should be option
 
     Scenario: Using value completion
-        When I run :set-cmd-text -s :set colors statusbar.bg
+        When I run :set-cmd-text -s :set aliases
         Then the completion model should be value
 
     Scenario: Deleting an open tab via the completion

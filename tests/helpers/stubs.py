@@ -421,16 +421,6 @@ class FakeYamlConfig:
         self.loaded = True
 
 
-class FakeConfigType:
-
-    """A stub to provide valid_values for typ attribute of a SettingValue."""
-
-    def __init__(self, *valid_values):
-        # normally valid_values would be a ValidValues, but for simplicity of
-        # testing this can be a simple list: [(val, desc), (val, desc), ...]
-        self.complete = lambda: [(val, '') for val in valid_values]
-
-
 class StatusBarCommandStub(QLineEdit):
 
     """Stub for the statusbar command prompt."""

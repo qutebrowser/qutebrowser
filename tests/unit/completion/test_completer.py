@@ -29,10 +29,6 @@ from qutebrowser.completion import completer
 from qutebrowser.commands import command, cmdutils
 
 
-pytestmark = pytest.mark.skip("FIXME:conf reintroduce after new completion "
-                              "is in")
-
-
 class FakeCompletionModel(QStandardItemModel):
 
     """Stub for a completion model."""
@@ -67,8 +63,8 @@ def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
                   completion_widget_stub):
     """Create the completer used for testing."""
     monkeypatch.setattr(completer, 'QTimer', stubs.InstaTimer)
-    config_stub.data = {'completion': {'show': 'auto'}}
-    return completer.Completer(status_command_stub, 0, completion_widget_stub)
+    config_stub.val.completion.show = 'auto'
+    return completer.Completer(status_command_stub, completion_widget_stub)
 
 
 @pytest.fixture(autouse=True)
@@ -246,14 +242,14 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
     """Test that on_selection_changed modifies the cmd text properly.
 
     The | represents the current cursor position in the cmd prompt.
-    If quick-complete is True and there is only 1 completion (count == 1),
+    If quick is True and there is only 1 completion (count == 1),
     then we expect a space to be appended after the current word.
     """
     model = unittest.mock.Mock()
     completion_widget_stub.model.return_value = model
 
-    def check(quick_complete, count, expected_txt, expected_pos):
-        config_stub.data['completion']['quick-complete'] = quick_complete
+    def check(quick, count, expected_txt, expected_pos):
+        config_stub.val.completion.quick = quick
         model.count = lambda: count
         _set_cmd_prompt(status_command_stub, before)
         completer_obj.on_selection_changed(newtxt)
@@ -288,7 +284,7 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     model = unittest.mock.Mock()
     model.count = unittest.mock.Mock(return_value=1)
     completion_widget_stub.model.return_value = model
-    config_stub.data['completion']['quick-complete'] = True
+    config_stub.val.completion.quick = True
 
     _set_cmd_prompt(status_command_stub, ':open |')
     completer_obj.on_selection_changed('http://example.com')
