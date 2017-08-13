@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2017 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 

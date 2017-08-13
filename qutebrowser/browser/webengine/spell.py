@@ -1,4 +1,4 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2017 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
@@ -20,12 +20,13 @@
 """Installing and configuring spell-checking for QtWebEngine."""
 
 import os
+from urllib.parse import urljoin
 from urllib.request import urlretrieve
-from qutebrowser import basedir
 
 from PyQt5.QtCore import QLibraryInfo
 
-repository_url = 'https://redirector.gvt1.com/edgedl/chrome/dict'
+repository_url = 'https://redirector.gvt1.com/edgedl/chrome/dict/'
+
 
 class Language:
 
@@ -77,8 +78,8 @@ class Language:
 
 def get_dictionary_dir():
     """Return the path to the QtWebEngine's dictionaries directory."""
-    return QLibraryInfo.location(QLibraryInfo.DataPath) + \
-        '/qtwebengine_dictionaries'
+    return os.path.join(QLibraryInfo.location(QLibraryInfo.DataPath),
+                        '/qtwebengine_dictionaries')
 
 
 def get_language_list_file():
@@ -132,13 +133,14 @@ def install(languages):
     for lang in languages:
         try:
             print('Installing {}: {}'.format(lang.code, lang.name))
-            lang_url = '{}/{}'.format(repository_url, lang.file)
+            lang_url = urljoin(repository_url, lang.file)
             if not os.path.isdir(get_dictionary_dir()):
                 print('WARN: {} does not exist, creating the directory'.format(
                     get_dictionary_dir()))
                 os.makedirs(get_dictionary_dir())
             print('Downloading {}'.format(lang_url))
-            urlretrieve(lang_url, get_dictionary_dir() + '/' + lang.file)
+            urlretrieve(lang_url,
+                        os.path.join(get_dictionary_dir(), lang.file))
             print('Done.')
         except PermissionError as e:
             print(e)

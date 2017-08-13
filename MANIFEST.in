@@ -11,13 +11,13 @@ graft misc/userscripts
 recursive-include scripts *.py *.sh
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
+include qutebrowser/browser/webengine/langs.tsv
 include COPYING doc/* README.asciidoc CONTRIBUTING.asciidoc FAQ.asciidoc INSTALL.asciidoc CHANGELOG.asciidoc
 include qutebrowser.desktop
 include requirements.txt
 include tox.ini
 include qutebrowser.py
 include misc/cheatsheet.svg
-include misc/lang_list
 
 prune www
 prune scripts/dev
