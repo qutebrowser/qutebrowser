@@ -2048,8 +2048,9 @@ class CommandDispatcher:
                     message.info(out)
 
         if file:
+            path = os.path.expanduser(js_code)
             try:
-                with open(js_code, 'r', encoding='utf-8') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     js_code = f.read()
             except OSError as e:
                 raise cmdexc.CommandError(str(e))
