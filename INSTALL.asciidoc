@@ -206,17 +206,7 @@ It's recommended to install `qt5.qtwebengine` and start with
 On openSUSE
 -----------
 
-There are prebuilt RPMs available for Tumbleweed and Leap 42.1:
-
-http://software.opensuse.org/download.html?project=home%3Aarpraher&package=qutebrowser[One Click Install]
-
-Or add the repo manually:
-
-----
-# zypper addrepo http://download.opensuse.org/repositories/home:arpraher/openSUSE_Tumbleweed/home:arpraher.repo
-# zypper refresh
-# zypper install qutebrowser
-----
+There are prebuilt RPMs available at https://software.opensuse.org/download.html?project=network&package=qutebrowser[OBS].
 
 On OpenBSD
 ----------
