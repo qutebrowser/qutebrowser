@@ -19,9 +19,10 @@
 
 
 from os.path import basename
-from requests import head
+from urllib.parse import urljoin
 
 import pytest
+from requests import head
 
 from qutebrowser.browser.webengine import spell
 
@@ -78,6 +79,6 @@ def test_install(tmpdir, mocker):
 
 def test_available_langs():
     for lang in spell.get_available_languages():
-        lang_url = '{}/{}'.format(spell.repository_url, lang.file)
+        lang_url = urljoin(spell.repository_url, lang.file)
         response = head(lang_url)
         assert response.status_code == 302
