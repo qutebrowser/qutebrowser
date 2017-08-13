@@ -17,36 +17,29 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+import logging
+import re
 
 import pytest_bdd as bdd
+
 bdd.scenarios('history.feature')
 
 
-@bdd.then(bdd.parsers.parse("the history file should contain:\n{expected}"))
-def check_history(quteproc, httpbin, expected):
-    history_file = os.path.join(quteproc.basedir, 'data', 'history')
-    quteproc.send_cmd(':save history')
-    quteproc.wait_for(message=':save saved history')
+@bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
+def check_history(quteproc, httpbin, tmpdir, expected):
+    path = tmpdir / 'history'
+    quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
+    quteproc.wait_for(category='message', loglevel=logging.INFO,
+                      message='Dumped history to {}'.format(path))
 
-    expected = expected.replace('(port)', str(httpbin.port)).splitlines()
+    with path.open('r', encoding='utf-8') as f:
+        # ignore access times, they will differ in each run
+        actual = '\n'.join(re.sub('^\\d+-?', '', line).strip() for line in f)
 
-    with open(history_file, 'r', encoding='utf-8') as f:
-        lines = []
-        for line in f:
-            if not line.strip():
-                continue
-            print('history line: ' + line)
-            atime, line = line.split(' ', maxsplit=1)
-            line = line.rstrip()
-            if '-' in atime:
-                flags = atime.split('-')[1]
-                line = '{} {}'.format(flags, line)
-            lines.append(line)
-
-    assert lines == expected
+    expected = expected.replace('(port)', str(httpbin.port))
+    assert actual == expected
 
 
-@bdd.then("the history file should be empty")
-def check_history_empty(quteproc, httpbin):
-    check_history(quteproc, httpbin, '')
+@bdd.then("the history should be empty")
+def check_history_empty(quteproc, httpbin, tmpdir):
+    check_history(quteproc, httpbin, tmpdir, '')

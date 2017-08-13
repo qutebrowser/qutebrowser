@@ -225,6 +225,18 @@ it's still
 https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%20resolution%20%3D%20Done%20and%20fixVersion%20in%20(5.4.0%2C%20%225.4.0%20Alpha%22%2C%20%225.4.0%20Beta%22%2C%20%225.4.0%20RC%22)%20and%20priority%20in%20(%22P2%3A%20Important%22%2C%20%22P1%3A%20Critical%22%2C%20%22P0%3A%20Blocker%22)[nearly
 20 important bugs].
 
+When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the console prints a traceback on Gentoo Linux or another Source-Based Distro::
+    As stated in https://gcc.gnu.org/gcc-6/changes.html[GCC's Website] GCC 6 has introduced some optimizations that could break non-conforming codebases, like QtWebEngine. +
+    As a workaround, you can disable the nullpointer check optimization by adding the -fno-delete-null-pointer-checks flag while compiling. +
+    On gentoo, you just need to add it into your make.conf, like this: +
+    
+    CFLAGS="... -fno-delete-null-pointer-checks"
+    CXXFLAGS="... -fno-delete-null-pointer-checks"
++
+And then re-emerging qtwebengine with: +
+    
+    emerge -1 qtwebengine
+
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in
     https://github.com/qutebrowser/qutebrowser/issues[the issue tracker] or

@@ -702,3 +702,9 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
+
+    ## Other
+
+    Scenario: Open qute://version
+        When I open qute://version
+        Then the page should contain the plaintext "Version info"

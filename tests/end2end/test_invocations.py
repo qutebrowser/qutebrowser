@@ -163,6 +163,7 @@ def test_optimize(request, quteproc_new, capfd, level):
 
 
 @pytest.mark.not_frozen
+@pytest.mark.flaky  # Fails sometimes with empty output...
 def test_version(request):
     """Test invocation with --version argument."""
     args = ['-m', 'qutebrowser', '--version'] + _base_args(request.config)

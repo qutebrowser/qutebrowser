@@ -215,11 +215,6 @@ class TestSave:
         objreg.delete('main-window', scope='window', window=0)
         objreg.delete('tabbed-browser', scope='window', window=0)
 
-    def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
-        session_path = tmpdir / 'foo.yml'
-        with qtbot.waitSignal(sess_man.update_completion):
-            sess_man.save(str(session_path))
-
     def test_no_state_config(self, sess_man, tmpdir, state_config):
         session_path = tmpdir / 'foo.yml'
         sess_man.save(str(session_path))
@@ -367,14 +362,6 @@ class TestLoadTab:
         assert loaded_item.original_url == expected
 
 
-def test_delete_update_completion_signal(sess_man, qtbot, tmpdir):
-    sess = tmpdir / 'foo.yml'
-    sess.ensure()
-
-    with qtbot.waitSignal(sess_man.update_completion):
-        sess_man.delete(str(sess))
-
-
 class TestListSessions:
 
     def test_no_sessions(self, tmpdir):
@@ -385,7 +372,7 @@ class TestListSessions:
         (tmpdir / 'foo.yml').ensure()
         (tmpdir / 'bar.yml').ensure()
         sess_man = sessions.SessionManager(str(tmpdir))
-        assert sorted(sess_man.list_sessions()) == ['bar', 'foo']
+        assert sess_man.list_sessions() == ['bar', 'foo']
 
     def test_with_other_files(self, tmpdir):
         (tmpdir / 'foo.yml').ensure()

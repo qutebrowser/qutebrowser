@@ -32,23 +32,23 @@ Feature: Using completion
 
     Scenario: Using command completion
         When I run :set-cmd-text :
-        Then the completion model should be CommandCompletionModel
+        Then the completion model should be command
 
     Scenario: Using help completion
         When I run :set-cmd-text -s :help
-        Then the completion model should be HelpCompletionModel
+        Then the completion model should be helptopic
 
     Scenario: Using quickmark completion
         When I run :set-cmd-text -s :quickmark-load
-        Then the completion model should be QuickmarkCompletionModel
+        Then the completion model should be quickmark
 
     Scenario: Using bookmark completion
         When I run :set-cmd-text -s :bookmark-load
-        Then the completion model should be BookmarkCompletionModel
+        Then the completion model should be bookmark
 
     Scenario: Using bind completion
         When I run :set-cmd-text -s :bind X
-        Then the completion model should be BindCompletionModel
+        Then the completion model should be bind
 
     Scenario: Using session completion
         Given I open data/hello.txt
@@ -62,37 +62,11 @@ Feature: Using completion
 
     Scenario: Using option completion
         When I run :set-cmd-text -s :set colors
-        Then the completion model should be SettingOptionCompletionModel
+        Then the completion model should be option
 
     Scenario: Using value completion
         When I run :set-cmd-text -s :set colors statusbar.bg
-        Then the completion model should be SettingValueCompletionModel
-
-    Scenario: Updating the completion in realtime
-        Given I have a fresh instance
-        And I set completion -> quick-complete to false
-        When I open data/hello.txt
-        And I run :set-cmd-text -s :buffer
-        And I run :completion-item-focus next
-        And I open data/hello2.txt in a new background tab
-        And I run :completion-item-focus next
-        And I open data/hello3.txt in a new background tab
-        And I run :completion-item-focus next
-        And I run :command-accept
-        Then the following tabs should be open:
-            - data/hello.txt
-            - data/hello2.txt
-            - data/hello3.txt (active)
-
-    Scenario: Updating the value completion in realtime
-        Given I set colors -> statusbar.bg to green
-        When I run :set-cmd-text -s :set colors statusbar.bg
-        And I set colors -> statusbar.bg to yellow
-        And I run :completion-item-focus next
-        And I run :completion-item-focus next
-        And I set colors -> statusbar.bg to red
-        And I run :command-accept
-        Then colors -> statusbar.bg should be yellow
+        Then the completion model should be value
 
     Scenario: Deleting an open tab via the completion
         Given I have a fresh instance

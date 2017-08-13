@@ -164,6 +164,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='manjaro', parsed=version.Distribution.manjaro,
          version=None, pretty='Manjaro Linux')),
+    # Funtoo
+    ("""
+        ID="funtoo"
+        NAME="Funtoo GNU/Linux"
+        PRETTY_NAME="Linux"
+     """,
+     version.DistributionInfo(
+         id='funtoo', parsed=version.Distribution.gentoo,
+         version=None, pretty='Funtoo GNU/Linux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -495,7 +504,6 @@ class ImportFake:
             ('yaml', True),
             ('cssutils', True),
             ('typing', True),
-            ('OpenGL', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
@@ -849,6 +857,7 @@ def test_version_output(params, stubs, monkeypatch):
                          if params.style else
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'sql.version': lambda: 'SQLITE VERSION',
     }
 
     substitutions = {
@@ -909,6 +918,7 @@ def test_version_output(params, stubs, monkeypatch):
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
+        sqlite: SQLITE VERSION
         QtNetwork SSL: {ssl}
         {style}
         Platform: PLATFORM, ARCHITECTURE{linuxdist}

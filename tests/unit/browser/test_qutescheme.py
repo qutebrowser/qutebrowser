@@ -89,16 +89,17 @@ class TestHistoryHandler:
         items = []
         for i in range(entry_count):
             entry_atime = now - i * interval
-            entry = history.Entry(atime=str(entry_atime),
-                url=QUrl("www.x.com/" + str(i)), title="Page " + str(i))
+            entry = {"atime": str(entry_atime),
+                     "url": QUrl("www.x.com/" + str(i)),
+                     "title": "Page " + str(i)}
             items.insert(0, entry)
 
         return items
 
     @pytest.fixture
-    def fake_web_history(self, fake_save_manager, tmpdir):
+    def fake_web_history(self, fake_save_manager, tmpdir, init_sql):
         """Create a fake web-history and register it into objreg."""
-        web_history = history.WebHistory(tmpdir.dirname, 'fake-history')
+        web_history = history.WebHistory()
         objreg.register('web-history', web_history)
         yield web_history
         objreg.delete('web-history')
@@ -107,8 +108,7 @@ class TestHistoryHandler:
     def fake_history(self, fake_web_history, entries):
         """Create fake history."""
         for item in entries:
-            fake_web_history._add_entry(item)
-        fake_web_history.save()
+            fake_web_history.add_url(**item)
 
     @pytest.mark.parametrize("start_time_offset, expected_item_count", [
         (0, 4),
@@ -123,45 +123,25 @@ class TestHistoryHandler:
         url = QUrl("qute://history/data?start_time=" + str(start_time))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
-        items = [item for item in items if 'time' in item]  # skip 'next' item
 
         assert len(items) == expected_item_count
 
         # test times
         end_time = start_time - 24*60*60
         for item in items:
-            assert item['time'] <= start_time * 1000
-            assert item['time'] > end_time * 1000
-
-    @pytest.mark.parametrize("start_time_offset, next_time", [
-        (0, 24*60*60),
-        (24*60*60, 48*60*60),
-        (48*60*60, -1),
-        (72*60*60, -1)
-    ])
-    def test_qutehistory_next(self, start_time_offset, next_time, now):
-        """Ensure qute://history/data returns correct items."""
-        start_time = now - start_time_offset
-        url = QUrl("qute://history/data?start_time=" + str(start_time))
-        _mimetype, data = qutescheme.qute_history(url)
-        items = json.loads(data)
-        items = [item for item in items if 'next' in item]  # 'next' items
-        assert len(items) == 1
-
-        if next_time == -1:
-            assert items[0]["next"] == -1
-        else:
-            assert items[0]["next"] == now - next_time
+            assert item['time'] <= start_time
+            assert item['time'] > end_time
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
-        # items must be earliest-first to ensure history is sorted properly
-        for t in range(100000, 0, -1):  # one history per second
-            entry = history.Entry(
-                atime=str(now - t),
-                url=QUrl('www.x.com/{}'.format(t)),
-                title='x at {}'.format(t))
-            fake_web_history._add_entry(entry)
+        r = range(100000)
+        entries = {
+            'atime': [int(now - t) for t in r],
+            'url': ['www.x.com/{}'.format(t) for t in r],
+            'title': ['x at {}'.format(t) for t in r],
+            'redirect': [False for _ in r],
+        }
 
+        fake_web_history.insert_batch(entries)
         url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, data = benchmark(qutescheme.qute_history, url)
         assert len(json.loads(data)) > 1

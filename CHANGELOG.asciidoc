@@ -28,6 +28,8 @@ Breaking changes
 - New dependency on ruamel.yaml; dropped PyYAML dependency.
 - The QtWebEngine backend is now used by default if available.
 - New config system which ignores the old config file.
+- The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
+  that PyQt5.QtOpenGL is still a dependency.
 
 Major changes
 ~~~~~~~~~~~~~
@@ -49,6 +51,8 @@ Changed
 - Using `:download` now uses the page's title as filename.
 - Using `:back` or `:forward` with a count now skips intermediate pages.
 - When there are multiple messages shown, the timeout is increased.
+- `:search` now only clears the search if one was displayed before, so pressing
+  `<Escape>` doesn't un-focus inputs anymore.
 
 Fixes
 ~~~~~
@@ -67,6 +71,8 @@ Fixes
 - Fixed printing on macOS.
 - Closing a pinned tab via mouse now also prompts for confirmation.
 - The "try again" button on error pages works correctly again.
+- :spawn -u -d is now disallowed.
+- :spawn -d shows error messages correctly now.
 
 v0.11.0
 -------

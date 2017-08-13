@@ -23,7 +23,7 @@ import functools
 import collections
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QSize
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
@@ -449,13 +449,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            if self.tabBar().vertical:
-                tab_size = QSize(self.width() - self.tabBar().width(),
-                                 self.height())
-            else:
-                tab_size = QSize(self.width(),
-                                 self.height() - self.tabBar().height())
-            tab.resize(tab_size)
+            tab.resize(self.currentWidget().size())
             self.tab_index_changed.emit(self.currentIndex(), self.count())
         else:
             self.setCurrentWidget(tab)
@@ -714,13 +708,16 @@ class TabbedBrowser(tabwidget.TabWidget):
         }
         msg = messages[status]
 
+        def show_error_page(html):
+            tab.set_html(html)
+            log.webview.error(msg)
+
         if qtutils.version_check('5.9'):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),
                 url=url_string, error=msg, icon='')
-            QTimer.singleShot(0, lambda: tab.set_html(error_page))
-            log.webview.error(msg)
+            QTimer.singleShot(100, lambda: show_error_page(error_page))
         else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
             message.error(msg)

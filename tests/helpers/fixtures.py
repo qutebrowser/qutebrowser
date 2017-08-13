@@ -41,7 +41,7 @@ import helpers.stubs as stubsmod
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
-from qutebrowser.misc import savemanager
+from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
 
 from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QEvent, QSize, Qt, QObject
@@ -258,17 +258,8 @@ def bookmark_manager_stub(stubs):
 
 
 @pytest.fixture
-def web_history_stub(stubs):
-    """Fixture which provides a fake web-history object."""
-    stub = stubs.WebHistoryStub()
-    objreg.register('web-history', stub)
-    yield stub
-    objreg.delete('web-history')
-
-
-@pytest.fixture
 def session_manager_stub(stubs):
-    """Fixture which provides a fake web-history object."""
+    """Fixture which provides a fake session-manager object."""
     stub = stubs.SessionManagerStub()
     objreg.register('session-manager', stub)
     yield stub
@@ -482,3 +473,37 @@ def short_tmpdir():
     """A short temporary directory for a XDG_RUNTIME_DIR."""
     with tempfile.TemporaryDirectory() as tdir:
         yield py.path.local(tdir)  # pylint: disable=no-member
+
+
+@pytest.fixture
+def init_sql(data_tmpdir):
+    """Initialize the SQL module, and shut it down after the test."""
+    path = str(data_tmpdir / 'test.db')
+    sql.init(path)
+    yield
+    sql.close()
+
+
+class ModelValidator:
+
+    """Validates completion models."""
+
+    def __init__(self, modeltester):
+        modeltester.data_display_may_return_none = True
+        self._model = None
+        self._modeltester = modeltester
+
+    def set_model(self, model):
+        self._model = model
+        self._modeltester.check(model)
+
+    def validate(self, expected):
+        assert self._model.rowCount() == len(expected)
+        for row, items in enumerate(expected):
+            for col, item in enumerate(items):
+                assert self._model.data(self._model.index(row, col)) == item
+
+
+@pytest.fixture
+def model_validator(qtmodeltester):
+    return ModelValidator(qtmodeltester)

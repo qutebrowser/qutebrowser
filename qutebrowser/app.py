@@ -42,9 +42,10 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion.models import instances as completionmodels
+from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import style, config, websettings, configexc
+from qutebrowser.config.parsers import keyconf
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -53,10 +54,10 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects)
+                              crashsignal, earlyinit, objects, sql)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error, debug)
+                               objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -157,7 +158,7 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
-    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
+    objreg.get('web-history').import_txt()
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
@@ -421,6 +422,17 @@ def _init_modules(args, crash_handler):
     config.init(qApp)
     save_manager.init_autosave()
 
+    log.init.debug("Initializing keys...")
+    keyconf.init(qApp)
+
+    log.init.debug("Initializing sql...")
+    try:
+        sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+    except sql.SqlException as e:
+        error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                               pre_text='Error initializing SQL')
+        sys.exit(usertypes.Exit.err_init)
+
     log.init.debug("Initializing web history...")
     history.init(qApp)
 
@@ -457,9 +469,6 @@ def _init_modules(args, crash_handler):
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
 
-    log.init.debug("Initializing completions...")
-    completionmodels.init()
-
     log.init.debug("Misc initialization...")
     if config.get('ui', 'hide-wayland-decoration'):
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
@@ -468,23 +477,6 @@ def _init_modules(args, crash_handler):
     macros.init()
     # Init backend-specific stuff
     browsertab.init()
-
-
-def _init_late_modules(args):
-    """Initialize modules which can be inited after the window is shown."""
-    log.init.debug("Reading web history...")
-    reader = objreg.get('web-history').async_read()
-    with debug.log_time(log.init, 'Reading history'):
-        while True:
-            QApplication.processEvents()
-            try:
-                next(reader)
-            except StopIteration:
-                break
-            except (OSError, UnicodeDecodeError) as e:
-                error.handle_fatal_exc(e, args, "Error while initializing!",
-                                       pre_text="Error while initializing")
-                sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:
@@ -751,7 +743,7 @@ class Quitter:
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
 
     @cmdutils.register(instance='quitter', name='wq')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def save_and_quit(self, name=sessions.default):
         """Save open pages and quit.
 
