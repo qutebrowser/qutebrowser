@@ -492,7 +492,7 @@ class SessionManager(QObject):
         try:
             if only_active_window:
                 name = self.save(name, only_window=win_id,
-                                 with_private=with_private)
+                                 with_private=True)
             else:
                 name = self.save(name, with_private=with_private)
         except SessionError as e:
