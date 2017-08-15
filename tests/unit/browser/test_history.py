@@ -143,23 +143,27 @@ def test_delete_url(hist):
     assert completion_diff == {('http://example.com/1', '', 0)}
 
 
-@pytest.mark.parametrize('url, atime, title, redirect, expected_url', [
-    ('http://www.example.com', 12346, 'the title', False,
-        'http://www.example.com'),
-    ('http://www.example.com', 12346, 'the title', True,
-        'http://www.example.com'),
-    ('http://www.example.com/spa ce', 12346, 'the title', False,
-        'http://www.example.com/spa%20ce'),
-    ('https://user:pass@example.com', 12346, 'the title', False,
-        'https://user@example.com'),
-])
-def test_add_url(qtbot, hist, url, atime, title, redirect, expected_url):
+@pytest.mark.parametrize(
+    'url, atime, title, redirect, history_url, completion_url', [
+
+        ('http://www.example.com', 12346, 'the title', False,
+            'http://www.example.com', 'http://www.example.com'),
+        ('http://www.example.com', 12346, 'the title', True,
+            'http://www.example.com', None),
+        ('http://www.example.com/sp ce', 12346, 'the title', False,
+            'http://www.example.com/sp%20ce', 'http://www.example.com/sp ce'),
+        ('https://user:pass@example.com', 12346, 'the title', False,
+            'https://user@example.com', 'https://user@example.com'),
+    ]
+)
+def test_add_url(qtbot, hist, url, atime, title, redirect, history_url,
+                 completion_url):
     hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
-    assert list(hist) == [(expected_url, title, atime, redirect)]
-    if redirect:
+    assert list(hist) == [(history_url, title, atime, redirect)]
+    if completion_url is None:
         assert not len(hist.completion)
     else:
-        assert list(hist.completion) == [(expected_url, title, atime)]
+        assert list(hist.completion) == [(completion_url, title, atime)]
 
 
 def test_add_url_invalid(qtbot, hist, caplog):

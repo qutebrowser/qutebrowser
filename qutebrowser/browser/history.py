@@ -159,13 +159,12 @@ class WebHistory(sql.SqlTable):
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())
-        url_str = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        self.insert({'url': url_str,
+        self.insert({'url': self._format_url(url),
                      'title': title,
                      'atime': atime,
                      'redirect': redirect})
         if not redirect:
-            self.completion.insert({'url': url_str,
+            self.completion.insert({'url': self._format_completion_url(url),
                                     'title': title,
                                     'last_atime': atime},
                                    replace=True)
@@ -249,12 +248,13 @@ class WebHistory(sql.SqlTable):
                     if parsed is None:
                         continue
                     url, title, atime, redirect = parsed
-                    data['url'].append(url)
+                    data['url'].append(self._format_url(url))
                     data['title'].append(title)
                     data['atime'].append(atime)
                     data['redirect'].append(redirect)
                     if not redirect:
-                        completion_data['url'].append(url)
+                        completion_data['url'].append(
+                            self._format_completion_url(url))
                         completion_data['title'].append(title)
                         completion_data['last_atime'].append(atime)
                 except ValueError as ex:
@@ -262,6 +262,12 @@ class WebHistory(sql.SqlTable):
                                      .format(i, path, ex))
         self.insert_batch(data)
         self.completion.insert_batch(completion_data, replace=True)
+
+    def _format_url(self, url):
+        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+
+    def _format_completion_url(self, url):
+        return url.toString(QUrl.RemovePassword)
 
     @cmdutils.register(instance='web-history', debug=True)
     def debug_dump_history(self, dest):
