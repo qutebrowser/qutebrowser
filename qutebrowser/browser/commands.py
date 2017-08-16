@@ -1011,7 +1011,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', completion=miscmodels.buffer)
-    def buffer(self, index):
+    def tab_select(self, index):
         """Select tab by index or url/title best match.
 
         Focuses window if necessary.
@@ -1068,7 +1068,7 @@ class CommandDispatcher:
     def tab_focus(self, index: typing.Union[str, int]=None, count=None):
         """Select the tab given as argument/[count].
 
-        If neither count nor index are given, it behaves like tab-next.
+        If neither count nor index are given, command text is set to tab-select.
         If both are given, use count.
 
         Args:
@@ -1087,7 +1087,8 @@ class CommandDispatcher:
             self._tab_focus_last(show_error=False)
             return
         elif index is None:
-            self.tab_next()
+            status_command = objreg.get('status-command', scope='window', window=self._win_id)
+            status_command.set_cmd_text(':tab-select ')
             return
 
         if index < 0:
