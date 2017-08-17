@@ -48,6 +48,8 @@ class WebHistory(sql.SqlTable):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
+        if len(self.completion) == 0:
+            self._rebuild_completion()
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
@@ -70,6 +72,17 @@ class WebHistory(sql.SqlTable):
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
+
+    def _rebuild_completion(self):
+        data = {'url': [], 'title': [], 'last_atime': []}
+        # select the latest entry for each url
+        q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
+                      'WHERE NOT redirect GROUP BY url')
+        for entry in q.run():
+            data['url'].append(entry.url)
+            data['title'].append(entry.title)
+            data['last_atime'].append(entry.atime)
+        self.completion.insert_batch(data)
 
     def get_recent(self):
         """Get the most recent history entries."""
