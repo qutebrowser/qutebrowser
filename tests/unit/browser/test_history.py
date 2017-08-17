@@ -353,3 +353,17 @@ def test_debug_dump_history_nonexistent(hist, tmpdir):
     histfile = tmpdir / 'nonexistent' / 'history'
     with pytest.raises(cmdexc.CommandError):
         hist.debug_dump_history(str(histfile))
+
+
+def test_rebuild_completion(hist):
+    hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+    hist.add_url(QUrl('example.com/1'), redirect=False, atime=2)
+    hist.add_url(QUrl('example.com/2%203'), redirect=False, atime=3)
+    hist.add_url(QUrl('example.com/3'), redirect=True, atime=4)
+    hist.completion.delete_all()
+
+    hist2 = history.WebHistory()
+    assert list(hist2.completion) == [
+        ('example.com/1', '', 2),
+        ('example.com/2 3', '', 3),
+    ]
