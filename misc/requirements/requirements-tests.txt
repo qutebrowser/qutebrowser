@@ -14,7 +14,7 @@ Flask==0.12.2
 glob2==0.5
 httpbin==0.5.0
 hunter==1.4.1
-hypothesis==3.17.0
+hypothesis==3.18.0
 idna==2.5
 itsdangerous==0.24
 # Jinja2==2.9.6
@@ -41,5 +41,5 @@ PyVirtualDisplay==0.2.1
 requests==2.18.3
 six==1.10.0
 urllib3==1.22
-vulture==0.23
+vulture==0.24
 Werkzeug==0.12.2
