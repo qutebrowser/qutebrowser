@@ -78,8 +78,7 @@ def whitelist_generator():
         yield 'qutebrowser.browser.qutescheme.qute_' + name
 
     # Other false-positives
-    yield ('qutebrowser.completion.models.sortfilter.CompletionFilterModel().'
-           'lessThan')
+    yield 'qutebrowser.completion.models.listcategory.ListCategory().lessThan'
     yield 'qutebrowser.utils.jinja.Loader.get_source'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
@@ -107,12 +106,6 @@ def whitelist_generator():
     for name, member in inspect.getmembers(configtypes, inspect.isclass):
         yield 'qutebrowser.config.configtypes.' + name
 
-    ### FIXME:conf
-    ## completion
-    for name in ['Section', 'Option', 'Value']:
-        klass = 'Setting{}CompletionModel'.format(name)
-        yield 'qutebrowser.completion.models.configmodel.' + klass
-    # in qutebrowser.completion.models.miscmodels._get_cmd_completions
     yield 'include_aliases'
     ## FIXME:conf TODO
     yield 'qutebrowser.config.configdata.DEFAULT_FONT_SIZE'

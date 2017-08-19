@@ -18,7 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 # FIXME:conf
-# pylint: disable=undefined-variable
 
 """Tests for completion models."""
 

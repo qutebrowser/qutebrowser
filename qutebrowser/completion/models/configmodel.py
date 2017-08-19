@@ -20,8 +20,7 @@
 """Functions that return config-related completion models."""
 
 from qutebrowser.config import configdata, configexc, config
-from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.utils import objreg
+from qutebrowser.completion.models import completionmodel, listcategory, util
 from qutebrowser.commands import cmdutils
 
 
@@ -34,12 +33,12 @@ def option():
     return model
 
 
-def value(optname, *values):
+def value(optname, *_values):
     """A CompletionModel filled with setting values.
 
     Args:
         optname: The name of the config option this model shows.
-        values: The values already provided on the command line.
+        _values: The values already provided on the command line.
     """
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
 

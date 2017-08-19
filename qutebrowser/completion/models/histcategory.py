@@ -38,9 +38,9 @@ class HistoryCategory(QSqlQueryModel):
         self.name = "History"
 
         # replace ' in timestamp-format to avoid breaking the query
+        timestamp_format = config.val.completion.timestamp_format
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
-                   .format(config.val.completion.timestamp_format
-                           .replace("'", "`")))
+                   .format(timestamp_format.replace("'", "`")))
 
         self._query = sql.Query(' '.join([
             "SELECT url, title, {}".format(timefmt),
