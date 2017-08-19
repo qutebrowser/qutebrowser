@@ -29,7 +29,7 @@ from qutebrowser.config import configdata, configexc, configtypes, configfiles
 from qutebrowser.utils import utils, objreg, message, log, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.completion.models import configmodel, miscmodels
+from qutebrowser.completion.models import configmodel
 
 # An easy way to access the config from other code via config.val.foo
 val = None
@@ -311,7 +311,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
-    @cmdutils.argument('command', completion=miscmodels.bind)
+    @cmdutils.argument('command', completion=configmodel.bind)
     def bind(self, key, command=None, *, mode='normal', force=False):
         """Bind a key to a command.
 

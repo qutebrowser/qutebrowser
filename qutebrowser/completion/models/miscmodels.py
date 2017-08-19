@@ -19,16 +19,16 @@
 
 """Functions that return miscellaneous completion models."""
 
-from qutebrowser.config import config, configdata
+from qutebrowser.config import configdata
 from qutebrowser.utils import objreg, log
-from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.commands import cmdutils
+from qutebrowser.completion.models import completionmodel, listcategory, util
 
 
 def command():
     """A CompletionModel filled with non-hidden commands and descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmdlist = _get_cmd_completions(include_aliases=True, include_hidden=False)
+    cmdlist = util.get_cmd_completions(include_aliases=True,
+                                       include_hidden=False)
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
     return model
 
@@ -37,8 +37,8 @@ def helptopic():
     """A CompletionModel filled with help topics."""
     model = completionmodel.CompletionModel()
 
-    cmdlist = _get_cmd_completions(include_aliases=False, include_hidden=True,
-                                   prefix=':')
+    cmdlist = util.get_cmd_completions(include_aliases=False,
+                                       include_hidden=True, prefix=':')
     settings = ((opt.name, opt.description)
                 for opt in configdata.DATA.values())
 
@@ -122,51 +122,3 @@ def buffer():
         model.add_category(cat)
 
     return model
-
-
-def bind(key):
-    """A CompletionModel filled with all bindable commands and descriptions.
-
-    Args:
-        key: the key being bound.
-    """
-    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmd_text = config.key_instance.get_bindings_for('normal').get(key)
-
-    if cmd_text:
-        cmd_name = cmd_text.split(' ')[0]
-        cmd = cmdutils.cmd_dict.get(cmd_name)
-        data = [(cmd_text, cmd.desc, key)]
-        model.add_category(listcategory.ListCategory("Current", data))
-
-    cmdlist = _get_cmd_completions(include_hidden=True, include_aliases=True)
-    model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    return model
-
-
-def _get_cmd_completions(include_hidden, include_aliases, prefix=''):
-    """Get a list of completions info for commands, sorted by name.
-
-    Args:
-        include_hidden: True to include commands annotated with hide=True.
-        include_aliases: True to include command aliases.
-        prefix: String to append to the command name.
-
-    Return: A list of tuples of form (name, description, bindings).
-    """
-    assert cmdutils.cmd_dict
-    cmdlist = []
-    cmd_to_keys = config.key_instance.get_reverse_bindings_for('normal')
-    for obj in set(cmdutils.cmd_dict.values()):
-        hide_debug = obj.debug and not objreg.get('args').debug
-        hide_hidden = obj.hide and not include_hidden
-        if not (hide_debug or hide_hidden or obj.deprecated):
-            bindings = ', '.join(cmd_to_keys.get(obj.name, []))
-            cmdlist.append((prefix + obj.name, obj.desc, bindings))
-
-    if include_aliases:
-        for name, cmd in config.val.aliases.items():
-            bindings = ', '.join(cmd_to_keys.get(name, []))
-            cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
-
-    return cmdlist

@@ -546,7 +546,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    model = miscmodels.bind('ZQ')
+    model = configmodel.bind('ZQ')
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
