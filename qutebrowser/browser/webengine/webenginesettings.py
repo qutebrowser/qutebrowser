@@ -133,7 +133,8 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
     """Sets paths to dictionary files based on language codes."""
 
     def __init__(self):
-        super().__init__('setSpellCheckLanguages')
+        super().__init__('setSpellCheckLanguages', default=[],
+                         min_version='5.8')
 
     def _set(self, value, settings=None):
         if settings is not None:
