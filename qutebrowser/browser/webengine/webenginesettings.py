@@ -27,10 +27,10 @@ Module attributes:
                 constants.
 """
 
-import os
-import sys
 import ctypes
 import ctypes.util
+import os
+import sys
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -39,8 +39,8 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine.spell import get_installed_languages
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import objreg, utils, standarddir, javascript, qtutils
-
+from qutebrowser.utils import (objreg, utils, standarddir, javascript, qtutils,
+                               message)
 
 # The default QWebEngineProfile
 default_profile = None
@@ -96,9 +96,10 @@ class DefaultProfileSetter(websettings.Base):
 
     """A setting set on the QWebEngineProfile."""
 
-    def __init__(self, setter, default=websettings.UNSET):
+    def __init__(self, setter, default=websettings.UNSET, min_version=None):
         super().__init__(default)
         self._setter = setter
+        self.min_version = min_version
 
     def __repr__(self):
         return utils.get_repr(self, setter=self._setter, constructor=True)
@@ -107,8 +108,12 @@ class DefaultProfileSetter(websettings.Base):
         if settings is not None:
             raise ValueError("'settings' may not be set with "
                              "DefaultProfileSetters!")
-        setter = getattr(default_profile, self._setter)
-        setter(value)
+        if self.min_version is None or qtutils.version_check(self.min_version):
+            setter = getattr(default_profile, self._setter)
+            setter(value)
+        else:
+            message.info('Qt version {} or higher required to use {}.'
+                         .format(self.min_version, self._setter))
 
 
 class PersistentCookiePolicy(DefaultProfileSetter):
@@ -134,7 +139,8 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
     """Sets paths to dictionary files based on language codes."""
 
     def __init__(self):
-        super().__init__('setSpellCheckLanguages', default=[])
+        super().__init__('setSpellCheckLanguages', default=[],
+                         min_version='5.8')
 
     def _set(self, value, settings=None):
         if settings is not None:
@@ -309,7 +315,8 @@ MAPPINGS = {
     'ui': {
         'smooth-scrolling':
             Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
-        'spell': DefaultProfileSetter('setSpellCheckEnabled', default=True),
+        'spell': DefaultProfileSetter('setSpellCheckEnabled', default=True,
+                                      min_version='5.8'),
         'spell-languages': DictionaryLanguageSetter()
     },
     'storage': {
