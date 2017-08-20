@@ -113,7 +113,7 @@ pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit python3-py
 
 pip_install pip
 pip_install -r misc/requirements/requirements-tox.txt
-travis_retry sudo python -m scripts.install_dict en-US
+travis_retry sudo python3 -m scripts.install_dict en-US
 
 pip --version
 tox --version
