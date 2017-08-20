@@ -79,7 +79,7 @@ class Language:
 def get_dictionary_dir():
     """Return the path to the QtWebEngine's dictionaries directory."""
     return os.path.join(QLibraryInfo.location(QLibraryInfo.DataPath),
-                        '/qtwebengine_dictionaries')
+                        'qtwebengine_dictionaries')
 
 
 def get_language_list_file():
