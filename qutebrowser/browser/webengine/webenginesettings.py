@@ -146,9 +146,16 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
         if settings is not None:
             raise ValueError("'settings' may not be set with "
                              "DictionaryLanguageSetter!")
-        files = [lang.file[:-5]
-                 for lang in get_installed_languages() if lang.code in value]
-        super()._set(files, settings)
+        installed_langs = dict([(lang.code, lang.file)
+                                for lang in get_installed_languages()])
+        lang_files = []
+        for lang_code in value:
+            if lang_code in installed_langs:
+                lang_files.append(installed_langs[lang_code][:-5])
+            else:
+                message.warning('Language {} is not installed.'
+                                .format(lang_code))
+        super()._set(lang_files, settings)
 
 
 def _init_stylesheet(profile):
