@@ -372,7 +372,7 @@ class TestListSessions:
         (tmpdir / 'foo.yml').ensure()
         (tmpdir / 'bar.yml').ensure()
         sess_man = sessions.SessionManager(str(tmpdir))
-        assert sorted(sess_man.list_sessions()) == ['bar', 'foo']
+        assert sess_man.list_sessions() == ['bar', 'foo']
 
     def test_with_other_files(self, tmpdir):
         (tmpdir / 'foo.yml').ensure()

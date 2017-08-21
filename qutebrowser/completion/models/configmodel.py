@@ -29,7 +29,7 @@ def option():
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     options = ((x.name, x.description, config.instance.get_str(x.name))
                for x in configdata.DATA.values())
-    model.add_category(listcategory.ListCategory("Options", options))
+    model.add_category(listcategory.ListCategory("Options", sorted(options)))
     return model
 
 
@@ -55,7 +55,8 @@ def value(optname, *_values):
 
     vals = opt.typ.complete()
     if vals is not None:
-        model.add_category(listcategory.ListCategory("Completions", vals))
+        model.add_category(listcategory.ListCategory("Completions",
+                                                     sorted(vals)))
     return model
 
 
