@@ -48,7 +48,7 @@ class WebHistory(sql.SqlTable):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
-        if len(self.completion) == 0:
+        if not self.completion:
             self._rebuild_completion()
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')

@@ -367,3 +367,13 @@ def test_rebuild_completion(hist):
         ('example.com/1', '', 2),
         ('example.com/2 3', '', 3),
     ]
+
+
+def test_no_rebuild_completion(hist):
+    """Ensure that completion is not regenerated unless completely empty."""
+    hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+    hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+    hist.completion.delete('url', 'example.com/2')
+
+    hist2 = history.WebHistory()
+    assert list(hist2.completion) == [('example.com/1', '', 1)]
