@@ -23,14 +23,14 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should exist
 
     Scenario: Using :download with no URL
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I open data/downloads/downloads.html
         And I run :download
         And I wait until the download is finished
         Then the downloaded file Simple downloads.html should exist
 
     Scenario: Using :download with no URL on an image
-        When I set storage -> prompt-download-directory to false
+        When I set downloads.location.prompt to false
         And I open data/downloads/qutebrowser.png
         And I run :download
         And I wait until the download is finished
