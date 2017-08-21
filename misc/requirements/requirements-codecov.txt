@@ -5,5 +5,5 @@ chardet==3.0.4
 codecov==2.0.9
 coverage==4.4.1
 idna==2.6
-requests==2.18.3
+requests==2.18.4
 urllib3==1.22
