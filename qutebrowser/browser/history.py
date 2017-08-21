@@ -30,6 +30,10 @@ from qutebrowser.utils import (utils, objreg, log, usertypes, message,
 from qutebrowser.misc import objects, sql
 
 
+# increment to indicate that HistoryCompletion must be regenerated
+_USER_VERSION = 1
+
+
 class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
@@ -48,7 +52,10 @@ class WebHistory(sql.SqlTable):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
+        if sql.Query('pragma user_version').run().value() < _USER_VERSION:
+            self.completion.delete_all()
         if not self.completion:
+            # either the table is out-of-date or the user wiped it manually
             self._rebuild_completion()
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
@@ -83,6 +90,7 @@ class WebHistory(sql.SqlTable):
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
         self.completion.insert_batch(data)
+        sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
     def get_recent(self):
         """Get the most recent history entries."""

@@ -377,3 +377,20 @@ def test_no_rebuild_completion(hist):
 
     hist2 = history.WebHistory()
     assert list(hist2.completion) == [('example.com/1', '', 1)]
+
+
+def test_user_version(hist, monkeypatch):
+    """Ensure that completion is regenerated if user_version is incremented."""
+    hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+    hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+    hist.completion.delete('url', 'example.com/2')
+
+    hist2 = history.WebHistory()
+    assert list(hist2.completion) == [('example.com/1', '', 1)]
+
+    monkeypatch.setattr(history, '_USER_VERSION', history._USER_VERSION + 1)
+    hist3 = history.WebHistory()
+    assert list(hist3.completion) == [
+        ('example.com/1', '', 1),
+        ('example.com/2', '', 2),
+    ]
