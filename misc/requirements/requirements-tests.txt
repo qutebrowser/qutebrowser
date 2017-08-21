@@ -9,7 +9,7 @@ decorator==4.1.2
 EasyProcess==0.2.3
 fields==5.0.0
 Flask==0.12.2
-glob2==0.5
+glob2==0.6
 httpbin==0.5.0
 hunter==1.4.1
 hypothesis==3.18.0
