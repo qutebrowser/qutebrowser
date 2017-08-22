@@ -143,7 +143,7 @@ def run(files):
 
         whitelist_file.close()
 
-        vult = vulture.Vulture(exclude=[], verbose=False)
+        vult = vulture.Vulture(verbose=False)
         vult.scavenge(files + [whitelist_file.name])
 
         os.remove(whitelist_file.name)
