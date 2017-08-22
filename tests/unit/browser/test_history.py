@@ -356,16 +356,22 @@ def test_debug_dump_history_nonexistent(hist, tmpdir):
 
 
 def test_rebuild_completion(hist):
-    hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-    hist.add_url(QUrl('example.com/1'), redirect=False, atime=2)
-    hist.add_url(QUrl('example.com/2%203'), redirect=False, atime=3)
-    hist.add_url(QUrl('example.com/3'), redirect=True, atime=4)
+    hist.insert({'url': 'example.com/1', 'title': 'example1',
+                 'redirect': False, 'atime': 1})
+    hist.insert({'url': 'example.com/1', 'title': 'example1',
+                 'redirect': False, 'atime': 2})
+    hist.insert({'url': 'example.com/2%203', 'title': 'example2',
+                 'redirect': False, 'atime': 3})
+    hist.insert({'url': 'example.com/3', 'title': 'example3',
+                 'redirect': True, 'atime': 4})
+    hist.insert({'url': 'example.com/2 3', 'title': 'example2',
+                 'redirect': False, 'atime': 5})
     hist.completion.delete_all()
 
     hist2 = history.WebHistory()
     assert list(hist2.completion) == [
-        ('example.com/1', '', 2),
-        ('example.com/2 3', '', 3),
+        ('example.com/1', 'example1', 2),
+        ('example.com/2 3', 'example2', 5),
     ]
 
 

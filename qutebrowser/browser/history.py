@@ -84,12 +84,12 @@ class WebHistory(sql.SqlTable):
         data = {'url': [], 'title': [], 'last_atime': []}
         # select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
-                      'WHERE NOT redirect GROUP BY url')
+                      'WHERE NOT redirect GROUP BY url ORDER BY atime asc')
         for entry in q.run():
             data['url'].append(self._format_completion_url(QUrl(entry.url)))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
-        self.completion.insert_batch(data)
+        self.completion.insert_batch(data, replace=True)
         sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
     def get_recent(self):
