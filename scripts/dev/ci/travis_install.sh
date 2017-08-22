@@ -113,7 +113,6 @@ pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit python3-py
 
 pip_install pip
 pip_install -r misc/requirements/requirements-tox.txt
-travis_retry sudo python3 -m scripts.install_dict en-US
 
 pip --version
 tox --version
@@ -122,6 +121,7 @@ case $TESTENV in
     py34-cov)
         pip_install -r misc/requirements/requirements-codecov.txt
         apt_install xvfb $pyqt_pkgs libpython3.4-dev gdb apport libqt5webkit5-dbg python3-pyqt5-dbg python3-pyqt5.qtquick-dbg python3-pyqt5.qtwebkit-dbg python3-dbg
+        travis_retry sudo python3 -m scripts.install_dict en-US
         check_pyqt
         ;;
     py3*-pyqt*)
