@@ -131,7 +131,7 @@ def report(items):
                        key=lambda e: (e.filename.lower(), e.first_lineno)):
         relpath = os.path.relpath(item.filename)
         path = relpath if not relpath.startswith('..') else item.filename
-        output.append("{}:{}: Unused {} '{}'".format(path, item.lineno,
+        output.append("{}:{}: Unused {} '{}'".format(path, item.first_lineno,
                                                      item.typ, item.name))
     return output
 
