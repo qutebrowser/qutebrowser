@@ -127,10 +127,11 @@ def report(items):
     properties which get used for the items.
     """
     output = []
-    for item in sorted(items, key=lambda e: (e.filename.lower(), e.lineno)):
+    for item in sorted(items,
+                       key=lambda e: (e.filename.lower(), e.first_lineno)):
         relpath = os.path.relpath(item.filename)
         path = relpath if not relpath.startswith('..') else item.filename
-        output.append("{}:{}: Unused {} '{}'".format(path, item.lineno,
+        output.append("{}:{}: Unused {} '{}'".format(path, item.first_lineno,
                                                      item.typ, item.name))
     return output
 
@@ -143,7 +144,7 @@ def run(files):
 
         whitelist_file.close()
 
-        vult = vulture.Vulture(exclude=[], verbose=False)
+        vult = vulture.Vulture(verbose=False)
         vult.scavenge(files + [whitelist_file.name])
 
         os.remove(whitelist_file.name)
