@@ -30,6 +30,10 @@ from qutebrowser.utils import (utils, objreg, log, usertypes, message,
 from qutebrowser.misc import objects, sql
 
 
+# increment to indicate that HistoryCompletion must be regenerated
+_USER_VERSION = 1
+
+
 class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
@@ -48,6 +52,11 @@ class WebHistory(sql.SqlTable):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
+        if sql.Query('pragma user_version').run().value() < _USER_VERSION:
+            self.completion.delete_all()
+        if not self.completion:
+            # either the table is out-of-date or the user wiped it manually
+            self._rebuild_completion()
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
@@ -70,6 +79,18 @@ class WebHistory(sql.SqlTable):
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
+
+    def _rebuild_completion(self):
+        data = {'url': [], 'title': [], 'last_atime': []}
+        # select the latest entry for each url
+        q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
+                      'WHERE NOT redirect GROUP BY url ORDER BY atime asc')
+        for entry in q.run():
+            data['url'].append(self._format_completion_url(QUrl(entry.url)))
+            data['title'].append(entry.title)
+            data['last_atime'].append(entry.atime)
+        self.completion.insert_batch(data, replace=True)
+        sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
     def get_recent(self):
         """Get the most recent history entries."""
@@ -159,13 +180,12 @@ class WebHistory(sql.SqlTable):
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())
-        url_str = url.toString(QUrl.FullyEncoded | QUrl.RemovePassword)
-        self.insert({'url': url_str,
+        self.insert({'url': self._format_url(url),
                      'title': title,
                      'atime': atime,
                      'redirect': redirect})
         if not redirect:
-            self.completion.insert({'url': url_str,
+            self.completion.insert({'url': self._format_completion_url(url),
                                     'title': title,
                                     'last_atime': atime},
                                    replace=True)
@@ -249,12 +269,13 @@ class WebHistory(sql.SqlTable):
                     if parsed is None:
                         continue
                     url, title, atime, redirect = parsed
-                    data['url'].append(url)
+                    data['url'].append(self._format_url(url))
                     data['title'].append(title)
                     data['atime'].append(atime)
                     data['redirect'].append(redirect)
                     if not redirect:
-                        completion_data['url'].append(url)
+                        completion_data['url'].append(
+                            self._format_completion_url(url))
                         completion_data['title'].append(title)
                         completion_data['last_atime'].append(atime)
                 except ValueError as ex:
@@ -262,6 +283,12 @@ class WebHistory(sql.SqlTable):
                                      .format(i, path, ex))
         self.insert_batch(data)
         self.completion.insert_batch(completion_data, replace=True)
+
+    def _format_url(self, url):
+        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+
+    def _format_completion_url(self, url):
+        return url.toString(QUrl.RemovePassword)
 
     @cmdutils.register(instance='web-history', debug=True)
     def debug_dump_history(self, dest):
