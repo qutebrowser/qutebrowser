@@ -43,9 +43,19 @@ class PixelMetrics(enum.IntEnum):
 
     icon_padding = QStyle.PM_CustomBase
 
+from anytree import Node, PreOrderIter, RenderTree, AsciiStyle, AbstractStyle
+
+
+class TreeTabStyle(AbstractStyle):
+    """Class used only to set style of tree guidelines
+    """
+
+    def __init__(self):
+        super(TreeTabStyle, self).__init__(u'\u2502  ',
+                                        u'\u251c\u2500 ',
+                                        u'\u2514\u2500 ')
 
 class TabWidget(QTabWidget):
-
     """The tab widget used for TabbedBrowser.
 
     Signals:
@@ -79,6 +89,9 @@ class TabWidget(QTabWidget):
         bar.setDrawBase(False)
         self._init_config()
         config.instance.changed.connect(self._init_config)
+
+        # root of the tab tree, common for all tabs in the window
+        self.tree_root = Node(None)
 
     @config.change_filter('tabs')
     def _init_config(self):
@@ -150,7 +163,17 @@ class TabWidget(QTabWidget):
 
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
-        fields['index'] = idx + 1
+
+        # TODO move to custom TreeTab class as a function with memoziation
+        tree_prefixes = [pre[3:] for pre, _, _ in RenderTree(self.tree_root, style=TreeTabStyle)]
+
+        # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root
+        if len(tree_prefixes) > self.count():
+            tree_prefix = tree_prefixes[idx+1]
+        else:
+            tree_prefix = ""
+
+        fields['index'] = tree_prefix + str(idx + 1)
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()
@@ -248,15 +271,49 @@ class TabWidget(QTabWidget):
             for idx in range(self.count()):
                 self.update_tab_title(idx)
 
+    def print_tree_tab_structure(self, notes=""):
+        """A debugging function for logging state of the tree tabs"""
+        with open("qutebrowser_treetab.log", 'a') as f:
+
+            f.write("%s" % notes)
+
+            cur_tab = self.tabBar()._current_tab()
+
+            for pre, _, node in RenderTree(self.tree_root, style=AsciiStyle()):
+                if node.name:
+                    name = node.name.tab_id
+                else:
+                    name = "ROOT"
+
+                is_cur = ""
+                if cur_tab and cur_tab.node == node:
+                    is_cur = "*"
+
+                f.write("%s%s%s\n" % (pre, name, is_cur))
+
+    def update_tree_tab_positions(self):
+        """Update tab positions acording tree structure"""
+        for idx, node in enumerate(PreOrderIter(self.tree_root)):
+            if idx > 0:
+                cur_idx = self.indexOf(node.name)
+                self.tabBar().moveTab(cur_idx, idx-1)
+
+        # debbuging
+        self.print_tree_tab_structure("---- Tree Tab Update ----\n")
+
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
         self.update_tab_titles()
 
+        self.update_tree_tab_positions()
+
     def tabRemoved(self, idx):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
         self.update_tab_titles()
+
+        self.update_tree_tab_positions()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.
@@ -305,6 +362,9 @@ class TabWidget(QTabWidget):
         Return:
             The index of the newly added tab.
         """
+
+        cur_tab = self.tabBar()._current_tab()
+
         if text_or_empty is None:
             icon = None
             text = icon_or_text
@@ -313,7 +373,19 @@ class TabWidget(QTabWidget):
             icon = icon_or_text
             text = text_or_empty
             new_idx = super().insertTab(idx, page, icon, '')
+
         self.set_page_title(new_idx, text)
+
+        new_node = self.widget(new_idx).node
+
+        if cur_tab and cur_tab != self.widget(new_idx):
+            new_node.parent = cur_tab.node
+        else:
+            new_node.parent = self.tree_root
+
+        # positions cannot be changed before setting the title
+        self.update_tree_tab_positions()
+
         return new_idx
 
     @pyqtSlot(int)

@@ -357,8 +357,40 @@ class TabbedBrowser(QWidget):
                 else:
                     self._undo_stack[-1].append(entry)
 
+        cur_node = tab.node
+
+        self.print_tree_tab_structure("State before tab removing\n")
+
+        node_parent   = cur_node.parent
+
+        if node_parent:
+
+            node_siblings = list(node_parent.children)
+            node_children = cur_node.children
+
+            if node_children:
+                next_node = node_children[0]
+
+                # prvni node se stane parentem pro ostatní děti
+                for n in node_children[1:]:
+                    n.parent = next_node
+
+                # swap nodes
+                node_idx = node_siblings.index(cur_node)
+                node_siblings[node_idx] = next_node
+
+                node_parent.children = tuple(node_siblings)
+                cur_node.children = tuple()
+
+            cur_node.parent = None
+        else:
+            print("!!! ERROR !!! Tab ID %s\n" % tab.tab_id)
+
+        self.print_tree_tab_structure("State AFTER tab removing\n")
+
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
+
         if not crashed:
             # WORKAROUND for a segfault when we delete the crashed tab.
             # see https://bugreports.qt.io/browse/QTBUG-58698
@@ -479,8 +511,11 @@ class TabbedBrowser(QWidget):
                                 parent=self.widget)
         self._connect_tab_signals(tab)
 
-        if idx is None:
-            idx = self._get_new_tab_idx(related)
+        # this was necessary to remove otherwise it was making a hell of a mess in tree structure
+        # if idx is None:
+        #     idx = self._get_new_tab_idx(explicit)
+        idx = self._get_new_tab_idx(explicit)
+
         self.widget.insertTab(idx, tab, "")
 
         if url is not None:
@@ -614,6 +649,8 @@ class TabbedBrowser(QWidget):
         self.widget.set_page_title(idx, text)
         if idx == self.widget.currentIndex():
             self._update_window_title()
+
+        self.print_tree_tab_structure("---- Title Changed ----\n")
 
     @pyqtSlot(browsertab.AbstractTab, QUrl)
     def on_url_changed(self, tab, url):

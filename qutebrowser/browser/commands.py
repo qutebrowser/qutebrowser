@@ -1728,3 +1728,92 @@ class CommandDispatcher:
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_print(self):
+        """Test
+
+        Args:
+
+        """
+        self._tabbed_browser.print_tree_tab_structure("---- Printing from Command ----\n")
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_promote(self):
+        """Test
+
+        Args:
+
+        """
+
+        tab = self._current_widget()
+
+        grandparent = tab.node.parent.parent
+
+        if grandparent:
+            tab.node.parent = grandparent
+
+
+        self._tabbed_browser.update_tab_titles()
+        self._tabbed_browser.update_tree_tab_positions()
+        self._tabbed_browser.print_tree_tab_structure("---- Printing from Command ----\n")
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_demote(self):
+        """Tets
+
+        Args:
+        """
+
+        cur_node = self._current_widget().node
+
+        # always assume there is a parent
+        siblings = list(cur_node.parent.children)
+
+        if siblings and len(siblings) > 1:
+
+            # we want upper tab in the same subtree as current node
+            node_idx = siblings.index(cur_node) - 1
+
+            if node_idx >= 0:
+
+                cur_node.parent = siblings[node_idx]
+
+                self._tabbed_browser.update_tab_titles()
+                self._tabbed_browser.update_tree_tab_positions()
+                self._tabbed_browser.print_tree_tab_structure("---- Printing from Command ----\n")
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_rotate_up(self):
+        """Tets
+
+        Args:
+        """
+        node = self._current_widget().node
+
+        parent = node.parent
+        siblings = list(parent.children)
+
+        if siblings:
+            siblings.append(siblings.pop(0))
+
+            parent.children = siblings
+
+        self._tabbed_browser.update_tree_tab_positions()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_next_on_same_level(self):
+
+        cur_node = self._current_widget().node
+
+        # always assume there is a parent
+        siblings = list(cur_node.parent.children)
+
+        if siblings and len(siblings) > 1:
+
+            # we want upper tab in the same subtree as current node
+            node_idx = siblings.index(cur_node)
+
+            next_node = siblings[node_idx+1]
+
+            self._set_current_index(self._tabbed_browser.indexOf(next_node.name))
