@@ -10,7 +10,7 @@ EasyProcess==0.2.3
 fields==5.0.0
 Flask==0.12.2
 glob2==0.6
-httpbin==0.5.0
+httpbin==0.6.1
 hunter==1.4.1
 hypothesis==3.19.1
 itsdangerous==0.24
