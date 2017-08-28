@@ -585,6 +585,7 @@ completion.web_history_max_items:
   type:
     name: Int
     minval: -1
+    maxval: maxint64
   desc: >-
     How many URLs to show in the web history.
 
