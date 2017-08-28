@@ -141,17 +141,21 @@ def _init_stylesheet(profile):
 
     css = shared.get_user_stylesheet()
     source = """
-        (function() {{
+        (function setStylesheet() {{
+            if (document.head === null) {{
+                setTimeout(setStylesheet);
+                return;
+            }}
             var css = document.createElement('style');
             css.setAttribute('type', 'text/css');
             css.appendChild(document.createTextNode('{}'));
-            document.getElementsByTagName('head')[0].appendChild(css);
+            document.head.insertBefore(css, document.head.firstChild);
         }})()
     """.format(javascript.string_escape(css))
 
     script = QWebEngineScript()
     script.setName('_qute_stylesheet')
-    script.setInjectionPoint(QWebEngineScript.DocumentReady)
+    script.setInjectionPoint(QWebEngineScript.DocumentCreation)
     script.setWorldId(QWebEngineScript.ApplicationWorld)
     script.setRunsOnSubFrames(True)
     script.setSourceCode(source)
