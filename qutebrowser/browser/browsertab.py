@@ -61,9 +61,6 @@ def init():
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
-    else:
-        from qutebrowser.browser.webkit import webkittab
-        webkittab.init()
 
 
 class WebTabError(Exception):

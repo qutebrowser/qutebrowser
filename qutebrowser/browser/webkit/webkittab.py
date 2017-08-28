@@ -33,16 +33,7 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.browser.network import proxy
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
-
-
-def init():
-    """Initialize QtWebKit-specific modules."""
-    if not qtutils.version_check('5.8'):
-        # Otherwise we initialize it globally in app.py
-        log.init.debug("Initializing proxy...")
-        proxy.init()
 
 
 class WebKitAction(browsertab.AbstractAction):
