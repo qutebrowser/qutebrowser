@@ -905,3 +905,36 @@ class TestOpenFile:
 ])
 def test_expand_windows_drive(path, expected):
     assert utils.expand_windows_drive(path) == expected
+
+
+@pytest.mark.parametrize('txtset, minnum, maxnum, expected', [
+    ('5-0', 1, 10, {1, 2, 3, 4, 5}),
+    ('5-0,1-5', 1, 10, {1, 2, 3, 4, 5}),
+    ('5-0,1-5,last', 1, 10, {1, 2, 3, 4, 5, 10}),
+    ('5-0,1, 1-5,last', 1, 10, {1, 2, 3, 4, 5, 10}),
+    ('last,5-0,1-5,last', 1, 10, {1, 2, 3, 4, 5, 10}),
+    ('0-3,7-100', 1, 10, {1, 2, 3, 7, 8, 9, 10}),
+    ('5-0,,1-5', 1, 10, {1, 2, 3, 4, 5}),
+    ('5-0,1-5,,last', 1, 10, {1, 2, 3, 4, 5, 10}),
+    ('first-last', 1, 10, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}),
+    ('first-5', 3, 10, {3, 4, 5}),
+    ('1-5', 3, 10, {3, 4, 5}),
+    ('5-0', 0, 10, {0, 1, 2, 3, 4, 5}),
+    ('11', 1, 10, set()),
+    ('2', 3, 10, set()),
+    ('-5-0', 1, 10, ValueError),
+    ('-5-0,1-5', 1, 10, ValueError),
+    ('5-0,-1-5', 1, 10, ValueError),
+    ('5--0,1-5', 1, 10, ValueError),
+    ('5-0,-1-5,last', 1, 10, ValueError),
+    ('5-,0,1-5', 1, 10, ValueError),
+    ('-5', 1, 10, ValueError),
+    ('0--5', 1, 10, ValueError),
+    ('foo-bar', 1, 10, ValueError)
+])
+def test_parse_number_sets(txtset, minnum, maxnum, expected):
+    if expected is ValueError:
+        with pytest.raises(ValueError):
+            utils.parse_number_sets(txtset, minnum, maxnum)
+    else:
+        assert utils.parse_number_sets(txtset, minnum, maxnum) == expected
