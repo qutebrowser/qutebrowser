@@ -250,6 +250,7 @@ class AbstractZoom(QObject):
         self._default_zoom_changed = False
         self._init_neighborlist()
         config.instance.changed.connect(self._on_config_changed)
+        self._zoom_factor = float(config.val.zoom.default) / 100
 
         # # FIXME:qtwebengine is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
@@ -301,14 +302,21 @@ class AbstractZoom(QObject):
             self._neighborlist.fuzzyval = int(factor * 100)
         if factor < 0:
             raise ValueError("Can't zoom to factor {}!".format(factor))
-        self._default_zoom_changed = True
+
+        default_zoom_factor = float(config.val.zoom.default) / 100
+        self._default_zoom_changed = (factor != default_zoom_factor)
+
+        self._zoom_factor = factor
         self._set_factor_internal(factor)
 
     def factor(self):
-        raise NotImplementedError
+        return self._zoom_factor
 
     def set_default(self):
         self._set_factor_internal(float(config.val.zoom.default) / 100)
+
+    def set_current(self):
+        self._set_factor_internal(self._zoom_factor)
 
 
 class AbstractCaret(QObject):
@@ -754,6 +762,8 @@ class AbstractTab(QWidget):
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
         self._handle_auto_insert_mode(ok)
+
+        self.zoom.set_current()
 
     @pyqtSlot()
     def _on_history_trigger(self):
