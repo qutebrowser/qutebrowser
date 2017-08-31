@@ -8,3 +8,5 @@ MarkupSafe==1.1.0
 Pygments==2.3.1
 pyPEG2==2.15.2
 PyYAML==3.13
+PyYAML==3.12
+anytree==2.2.1
