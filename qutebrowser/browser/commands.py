@@ -1755,8 +1755,7 @@ class CommandDispatcher:
 
 
         self._tabbed_browser.update_tab_titles()
-        self._tabbed_browser.update_tree_tab_positions()
-        self._tabbed_browser.print_tree_tab_structure("---- Printing from Command ----\n")
+        self._tabbed_browser.update_tree_tab_positions('command: tree_tab_promote')
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
@@ -1780,8 +1779,7 @@ class CommandDispatcher:
                 cur_node.parent = siblings[node_idx]
 
                 self._tabbed_browser.update_tab_titles()
-                self._tabbed_browser.update_tree_tab_positions()
-                self._tabbed_browser.print_tree_tab_structure("---- Printing from Command ----\n")
+                self._tabbed_browser.update_tree_tab_positions('command: tree_tab_demote')
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_rotate_up(self):
@@ -1799,7 +1797,7 @@ class CommandDispatcher:
 
             parent.children = siblings
 
-        self._tabbed_browser.update_tree_tab_positions()
+        self._tabbed_browser.update_tree_tab_positions('command: tree_tab_rotate_up')
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_next_on_same_level(self):
