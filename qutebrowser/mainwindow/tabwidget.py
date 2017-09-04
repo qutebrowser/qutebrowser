@@ -36,6 +36,8 @@ from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
 
+# FIXME: only for debugging - remove before releasing
+# import ipdb
 
 class PixelMetrics(enum.IntEnum):
 
