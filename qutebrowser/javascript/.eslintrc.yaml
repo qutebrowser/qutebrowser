@@ -43,3 +43,4 @@ rules:
      array-bracket-newline: "off"
      array-element-newline: "off"
      no-multi-spaces: ["error", {"ignoreEOLComments": true}]
+     function-paren-newline: "off"
