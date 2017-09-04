@@ -175,6 +175,12 @@ If video or sound don't seem to work, try installing the gstreamer plugins:
 # emerge -av gst-plugins-{base,good,bad,ugly,libav}
 ----
 
+To be able to play videos with proprietary codecs with QtWebEngine, you will
+need to turn off the `bindist` flag for `dev-qt/qtwebengine`.
+
+See the https://wiki.gentoo.org/wiki/Qutebrowser#USE_flags[Gentoo Wiki] for
+more information.
+
 
 On Void Linux
 -------------
