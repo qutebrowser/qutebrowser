@@ -282,16 +282,12 @@ class TabWidget(QTabWidget):
             cur_tab = self.tabBar()._current_tab()
 
             for pre, _, node in RenderTree(self.tree_root, style=AsciiStyle()):
-                if node.name:
-                    name = node.name.tab_id
-                else:
-                    name = "ROOT"
+                name = node.name.tab_id if node.name else 'ROOT'
+                curr = '*' if cur_tab and cur_tab.node == node else ''
 
-                is_cur = ""
-                if cur_tab and cur_tab.node == node:
-                    is_cur = "*"
+                f.write("%s%s%s\n" % (pre, name, curr))
 
-                f.write("%s%s%s\n" % (pre, name, is_cur))
+            f.write("\n")
 
     def update_tree_tab_positions(self):
         """Update tab positions acording tree structure"""
