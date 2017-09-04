@@ -24,20 +24,20 @@ from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
 
-def command(*, info=None):  # pylint: disable=unused-argument
+def command(*, info):
     """A CompletionModel filled with non-hidden commands and descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmdlist = util.get_cmd_completions(include_aliases=True,
+    cmdlist = util.get_cmd_completions(info, include_aliases=True,
                                        include_hidden=False)
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
     return model
 
 
-def helptopic(*, info=None):  # pylint: disable=unused-argument
+def helptopic(*, info):
     """A CompletionModel filled with help topics."""
     model = completionmodel.CompletionModel()
 
-    cmdlist = util.get_cmd_completions(include_aliases=False,
+    cmdlist = util.get_cmd_completions(info, include_aliases=False,
                                        include_hidden=True, prefix=':')
     settings = ((opt.name, opt.description)
                 for opt in configdata.DATA.values())

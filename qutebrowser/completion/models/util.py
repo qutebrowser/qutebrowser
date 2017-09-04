@@ -21,13 +21,13 @@
 
 from qutebrowser.utils import objreg
 from qutebrowser.commands import cmdutils
-from qutebrowser.config import config
 
 
-def get_cmd_completions(include_hidden, include_aliases, prefix=''):
+def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
     """Get a list of completions info for commands, sorted by name.
 
     Args:
+        info: The CompletionInfo.
         include_hidden: True to include commands annotated with hide=True.
         include_aliases: True to include command aliases.
         prefix: String to append to the command name.
@@ -36,7 +36,7 @@ def get_cmd_completions(include_hidden, include_aliases, prefix=''):
     """
     assert cmdutils.cmd_dict
     cmdlist = []
-    cmd_to_keys = config.key_instance.get_reverse_bindings_for('normal')
+    cmd_to_keys = info.keyconf.get_reverse_bindings_for('normal')
     for obj in set(cmdutils.cmd_dict.values()):
         hide_debug = obj.debug and not objreg.get('args').debug
         hide_hidden = obj.hide and not include_hidden
@@ -45,7 +45,7 @@ def get_cmd_completions(include_hidden, include_aliases, prefix=''):
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 
     if include_aliases:
-        for name, cmd in config.val.aliases.items():
+        for name, cmd in info.config.get('aliases').items():
             bindings = ', '.join(cmd_to_keys.get(name, []))
             cmdlist.append((name, "Alias for '{}'".format(cmd), bindings))
 

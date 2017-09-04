@@ -189,7 +189,7 @@ def info(config_stub, key_config_stub):
 
 
 def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
-                            key_config_stub):
+                            key_config_stub, info):
     """Test the results of command completion.
 
     Validates that:
@@ -198,7 +198,7 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    model = miscmodels.command()
+    model = miscmodels.command(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -213,7 +213,7 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
 
 
 def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
-                         configdata_stub, config_stub):
+                         configdata_stub, config_stub, info):
     """Test the results of command completion.
 
     Validates that:
@@ -223,7 +223,7 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
         - aliases are not included
         - only the first line of a multiline description is shown
     """
-    model = miscmodels.helptopic()
+    model = miscmodels.helptopic(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)

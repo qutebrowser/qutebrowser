@@ -76,7 +76,7 @@ def bind(key, *, info):
         data = [(cmd_text, cmd.desc, key)]
         model.add_category(listcategory.ListCategory("Current", data))
 
-    cmdlist = util.get_cmd_completions(include_hidden=True,
+    cmdlist = util.get_cmd_completions(info, include_hidden=True,
                                        include_aliases=True)
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
     return model
