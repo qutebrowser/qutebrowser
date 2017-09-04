@@ -382,9 +382,7 @@ class TabbedBrowser(QWidget):
 
             cur_node.parent = None
         else:
-            print("!!! ERROR !!! Tab ID %s\n" % tab.tab_id)
-
-        self.print_tree_tab_structure("State AFTER tab removing\n")
+            self.print_tree_tab_structure("!!! ERROR !!! Tab ID %s\n" % tab.tab_id)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
