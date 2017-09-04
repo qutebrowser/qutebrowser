@@ -297,7 +297,7 @@ class TabWidget(QTabWidget):
                 self.tabBar().moveTab(cur_idx, idx-1)
 
         # debbuging
-        self.print_tree_tab_structure("---- Tree Tab Update ----\n")
+        self.print_tree_tab_structure("---- Tree Tab Update ---- " + caller_info + "\n")
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""

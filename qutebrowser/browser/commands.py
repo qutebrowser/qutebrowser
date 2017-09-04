@@ -82,6 +82,8 @@ class CommandDispatcher:
         """Convenience method to set the current widget index."""
         cmdutils.check_overflow(idx, 'int')
         self._tabbed_browser.widget.setCurrentIndex(idx)
+        self._tabbed_browser.setCurrentIndex(idx)
+        self._tabbed_browser.print_tree_tab_structure("---- Printing from Command _set_current_index ----\n")
 
     def _current_index(self):
         """Convenience method to get the current widget index."""
@@ -1736,7 +1738,7 @@ class CommandDispatcher:
         Args:
 
         """
-        self._tabbed_browser.print_tree_tab_structure("---- Printing from Command ----\n")
+        self._tabbed_browser.print_tree_tab_structure("---- Printing from Command tree_tab_printf----\n")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_promote(self):
