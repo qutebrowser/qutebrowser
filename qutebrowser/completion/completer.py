@@ -19,12 +19,19 @@
 
 """Completer attached to a CompletionView."""
 
+import collections
+
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import log, utils, debug
 from qutebrowser.completion.models import miscmodels
+
+
+# Context passed into all completion functions
+CompletionInfo = collections.namedtuple('CompletionInfo',
+    ['config', 'keyconf'])
 
 
 class Completer(QObject):
@@ -231,7 +238,9 @@ class Completer(QObject):
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
             with debug.log_time(log.completion,
                     'Starting {} completion'.format(func.__name__)):
-                model = func(*args)
+                info = CompletionInfo(config=config.instance,
+                                      keyconf=config.key_instance)
+                model = func(*args, info=info)
             with debug.log_time(log.completion, 'Set completion model'):
                 completion.set_model(model)
 

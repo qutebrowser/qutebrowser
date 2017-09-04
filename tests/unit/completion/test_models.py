@@ -27,6 +27,7 @@ from datetime import datetime
 import pytest
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import objreg
@@ -181,6 +182,12 @@ def web_history_populated(web_history):
     return web_history
 
 
+@pytest.fixture
+def info(config_stub, key_config_stub):
+    return completer.CompletionInfo(config=config_stub,
+                                    keyconf=key_config_stub)
+
+
 def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
                             key_config_stub):
     """Test the results of command completion.
@@ -310,7 +317,7 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
 
 
 def test_url_completion(qtmodeltester, web_history_populated,
-                        quickmarks, bookmarks):
+                        quickmarks, bookmarks, info):
     """Test the results of url completion.
 
     Verify that:
@@ -318,7 +325,7 @@ def test_url_completion(qtmodeltester, web_history_populated,
         - entries are sorted by access time
         - only the most recent entry is included for each url
     """
-    model = urlmodel.url()
+    model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -361,20 +368,20 @@ def test_url_completion(qtmodeltester, web_history_populated,
     ('foobar', '', '%', 0),
 ])
 def test_url_completion_pattern(web_history, quickmark_manager_stub,
-                                bookmark_manager_stub, url, title, pattern,
-                                rowcount):
+                                bookmark_manager_stub, info,
+                                url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     web_history.add_url(QUrl(url), title)
-    model = urlmodel.url()
+    model = urlmodel.url(info=info)
     model.set_pattern(pattern)
     # 2, 0 is History
     assert model.rowCount(model.index(2, 0)) == rowcount
 
 
 def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
-                                        web_history, quickmarks):
+                                        web_history, quickmarks, info):
     """Test deleting a bookmark from the url completion model."""
-    model = urlmodel.url()
+    model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -393,11 +400,10 @@ def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
     assert len_before == len(bookmarks.marks) + 1
 
 
-def test_url_completion_delete_quickmark(qtmodeltester,
-                                         quickmarks, web_history, bookmarks,
-                                         qtbot):
+def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
+                                         quickmarks, web_history, bookmarks):
     """Test deleting a bookmark from the url completion model."""
-    model = urlmodel.url()
+    model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -416,11 +422,11 @@ def test_url_completion_delete_quickmark(qtmodeltester,
     assert len_before == len(quickmarks.marks) + 1
 
 
-def test_url_completion_delete_history(qtmodeltester,
+def test_url_completion_delete_history(qtmodeltester, info,
                                        web_history_populated,
                                        quickmarks, bookmarks):
     """Test deleting a history entry."""
-    model = urlmodel.url()
+    model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -437,11 +443,11 @@ def test_url_completion_delete_history(qtmodeltester,
     assert 'https://python.org' not in web_history_populated
 
 
-def test_url_completion_zero_limit(config_stub, web_history, quickmarks,
+def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
                                    bookmarks):
     """Make sure there's no history if the limit was set to zero."""
     config_stub.val.completion.web_history_max_items = 0
-    model = urlmodel.url()
+    model = urlmodel.url(info=info)
     model.set_pattern('')
     category = model.index(2, 0)  # "History" normally
     assert model.data(category) is None
@@ -518,8 +524,8 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
 
 
 def test_setting_option_completion(qtmodeltester, config_stub,
-                                   configdata_stub):
-    model = configmodel.option()
+                                   configdata_stub, info):
+    model = configmodel.option(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -536,7 +542,7 @@ def test_setting_option_completion(qtmodeltester, config_stub,
 
 
 def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
-                         key_config_stub, configdata_stub):
+                         key_config_stub, configdata_stub, info):
     """Test the results of keybinding command completion.
 
     Validates that:
@@ -545,7 +551,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    model = configmodel.bind('ZQ')
+    model = configmodel.bind('ZQ', info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -563,7 +569,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
     })
 
 
-def test_url_completion_benchmark(benchmark,
+def test_url_completion_benchmark(benchmark, info,
                                   quickmark_manager_stub,
                                   bookmark_manager_stub,
                                   web_history):
@@ -586,7 +592,7 @@ def test_url_completion_benchmark(benchmark,
         for i in range(1000)])
 
     def bench():
-        model = urlmodel.url()
+        model = urlmodel.url(info=info)
         model.set_pattern('')
         model.set_pattern('e')
         model.set_pattern('ex')

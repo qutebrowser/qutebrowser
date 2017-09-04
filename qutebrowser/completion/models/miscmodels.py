@@ -24,7 +24,7 @@ from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
 
-def command():
+def command(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with non-hidden commands and descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     cmdlist = util.get_cmd_completions(include_aliases=True,
@@ -33,7 +33,7 @@ def command():
     return model
 
 
-def helptopic():
+def helptopic(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with help topics."""
     model = completionmodel.CompletionModel()
 
@@ -47,7 +47,7 @@ def helptopic():
     return model
 
 
-def quickmark():
+def quickmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all quickmarks."""
     def delete(data):
         """Delete a quickmark from the completion menu."""
@@ -63,7 +63,7 @@ def quickmark():
     return model
 
 
-def bookmark():
+def bookmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all bookmarks."""
     def delete(data):
         """Delete a bookmark from the completion menu."""
@@ -79,7 +79,7 @@ def bookmark():
     return model
 
 
-def session():
+def session(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with session names."""
     model = completionmodel.CompletionModel()
     try:
@@ -92,7 +92,7 @@ def session():
     return model
 
 
-def buffer():
+def buffer(*, info=None):  # pylint: disable=unused-argument
     """A model to complete on open tabs across all windows.
 
     Used for switching the buffer command.

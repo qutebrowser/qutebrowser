@@ -33,10 +33,11 @@ class FakeCompletionModel(QStandardItemModel):
 
     """Stub for a completion model."""
 
-    def __init__(self, kind, *pos_args, parent=None):
+    def __init__(self, kind, *pos_args, info, parent=None):
         super().__init__(parent)
         self.kind = kind
         self.pos_args = list(pos_args)
+        self.info = info
 
 
 class CompletionWidgetStub(QObject):
@@ -77,17 +78,21 @@ def miscmodels_patch(mocker):
     """
     m = mocker.patch('qutebrowser.completion.completer.miscmodels',
                      autospec=True)
-    m.command = lambda *args: FakeCompletionModel('command', *args)
-    m.helptopic = lambda *args: FakeCompletionModel('helptopic', *args)
-    m.quickmark = lambda *args: FakeCompletionModel('quickmark', *args)
-    m.bookmark = lambda *args: FakeCompletionModel('bookmark', *args)
-    m.session = lambda *args: FakeCompletionModel('session', *args)
-    m.buffer = lambda *args: FakeCompletionModel('buffer', *args)
-    m.bind = lambda *args: FakeCompletionModel('bind', *args)
-    m.url = lambda *args: FakeCompletionModel('url', *args)
-    m.section = lambda *args: FakeCompletionModel('section', *args)
-    m.option = lambda *args: FakeCompletionModel('option', *args)
-    m.value = lambda *args: FakeCompletionModel('value', *args)
+
+    def func(name):
+        return lambda *args, info: FakeCompletionModel(name, *args, info=info)
+
+    m.command = func('command')
+    m.helptopic = func('helptopic')
+    m.quickmark = func('quickmark')
+    m.bookmark = func('bookmark')
+    m.session = func('session')
+    m.buffer = func('buffer')
+    m.bind = func('bind')
+    m.url = func('url')
+    m.section = func('section')
+    m.option = func('option')
+    m.value = func('value')
     return m
 
 
@@ -186,7 +191,8 @@ def _set_cmd_prompt(cmd, txt):
     ('::bind|', 'command', ':bind', []),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
-                           completer_obj, completion_widget_stub):
+                           completer_obj, completion_widget_stub, config_stub,
+                           key_config_stub):
     """Test setting the completion widget's model based on command text."""
     # this test uses | as a placeholder for the current cursor position
     _set_cmd_prompt(status_command_stub, txt)
@@ -198,6 +204,8 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
         model = completion_widget_stub.set_model.call_args[0][0]
         assert model.kind == kind
         assert model.pos_args == pos_args
+        assert model.info.config == config_stub
+        assert model.info.keyconf == key_config_stub
         completion_widget_stub.set_pattern.assert_called_once_with(pattern)
 
 

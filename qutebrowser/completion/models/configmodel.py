@@ -19,31 +19,32 @@
 
 """Functions that return config-related completion models."""
 
-from qutebrowser.config import configdata, configexc, config
+from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
 from qutebrowser.commands import cmdutils
 
 
-def option():
+def option(*, info):
     """A CompletionModel filled with settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((x.name, x.description, config.instance.get_str(x.name))
+    options = ((x.name, x.description, info.config.get_str(x.name))
                for x in configdata.DATA.values())
     model.add_category(listcategory.ListCategory("Options", sorted(options)))
     return model
 
 
-def value(optname, *_values):
+def value(optname, *_values, info):
     """A CompletionModel filled with setting values.
 
     Args:
         optname: The name of the config option this model shows.
         _values: The values already provided on the command line.
+        info: A CompletionInfo instance.
     """
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
 
     try:
-        current = str(config.instance.get(optname) or '""')
+        current = str(info.config.get(optname) or '""')
     except configexc.NoOptionError:
         return None
 
@@ -60,14 +61,14 @@ def value(optname, *_values):
     return model
 
 
-def bind(key):
+def bind(key, *, info):
     """A CompletionModel filled with all bindable commands and descriptions.
 
     Args:
         key: the key being bound.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmd_text = config.key_instance.get_bindings_for('normal').get(key)
+    cmd_text = info.keyconf.get_bindings_for('normal').get(key)
 
     if cmd_text:
         cmd_name = cmd_text.split(' ')[0]
