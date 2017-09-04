@@ -304,8 +304,6 @@ class TabWidget(QTabWidget):
         super().tabInserted(idx)
         self.update_tab_titles()
 
-        self.update_tree_tab_positions()
-
     def tabRemoved(self, idx):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
