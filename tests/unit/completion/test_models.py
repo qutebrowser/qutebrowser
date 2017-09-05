@@ -118,10 +118,10 @@ def configdata_stub(monkeypatch, configdata_init):
                 ),
             ),
             default={
-                'normal': collections.OrderedDict({
+                'normal': collections.OrderedDict([
                     ('<ctrl+q>', 'quit'),
                     ('ZQ', 'quit'),
-                })
+                ])
             },
             backends=[],
             raw_backends=None)),
