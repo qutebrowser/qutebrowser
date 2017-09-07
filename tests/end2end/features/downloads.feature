@@ -594,7 +594,8 @@ Feature: Downloading things from a website.
         Then the downloaded file content-size should exist
 
     Scenario: Downloading to unwritable destination
-        When I set downloads.location.prompt to false
+        When the unwritable dir is unwritable
+        And I set downloads.location.prompt to false
         And I run :download http://localhost:(port)/data/downloads/download.bin --dest (tmpdir)/downloads/unwritable
         Then the error "Download error: Permission denied" should be shown
 

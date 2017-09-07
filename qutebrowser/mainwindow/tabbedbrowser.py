@@ -721,7 +721,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),
-                url=url_string, error=msg, icon='')
+                url=url_string, error=msg)
             QTimer.singleShot(100, lambda: show_error_page(error_page))
         else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
