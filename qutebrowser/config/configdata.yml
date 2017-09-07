@@ -581,7 +581,7 @@ completion.timestamp_format:
   desc: How to format timestamps (e.g. for the history completion).
 
 completion.web_history_max_items:
-  default: 1000
+  default: -1
   type:
     name: Int
     minval: -1

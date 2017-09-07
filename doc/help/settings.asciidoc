@@ -1067,15 +1067,11 @@ Default: +pass:[white]+
 == colors.tabs.selected.even.bg
 Background color of selected even tabs.
 
-<<<<<<< HEAD
 Default: +pass:[black]+
 
 [[colors.tabs.selected.even.fg]]
 == colors.tabs.selected.even.fg
 Foreground color of selected even tabs.
-=======
-Valid values:
->>>>>>> upstream/master
 
 Default: +pass:[white]+
 
