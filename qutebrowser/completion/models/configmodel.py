@@ -27,8 +27,8 @@ from qutebrowser.commands import cmdutils
 def option(*, info):
     """A CompletionModel filled with settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((x.name, x.description, info.config.get_str(x.name))
-               for x in configdata.DATA.values())
+    options = ((opt.name, opt.description, info.config.get_str(opt.name))
+               for opt in configdata.DATA.values())
     model.add_category(listcategory.ListCategory("Options", sorted(options)))
     return model
 
@@ -44,12 +44,12 @@ def value(optname, *_values, info):
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
 
     try:
-        current = str(info.config.get(optname) or '""')
+        current = info.config.get_str(optname) or '""'
     except configexc.NoOptionError:
         return None
 
-    opt = configdata.DATA[optname]
-    default = str(opt.default or '""')
+    opt = info.config.get_opt(optname)
+    default = opt.typ.to_str(opt.default)
     cur_cat = listcategory.ListCategory("Current/Default",
         [(current, "Current value"), (default, "Default value")])
     model.add_category(cur_cat)
@@ -68,7 +68,7 @@ def bind(key, *, info):
         key: the key being bound.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmd_text = info.keyconf.get_bindings_for('normal').get(key)
+    cmd_text = info.keyconf.get_command(key, 'normal')
 
     if cmd_text:
         cmd_name = cmd_text.split(' ')[0]
