@@ -85,7 +85,6 @@ class MessageView(QWidget):
 
         self._clear_timer = QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
-        self._set_clear_timer_interval()
         config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
