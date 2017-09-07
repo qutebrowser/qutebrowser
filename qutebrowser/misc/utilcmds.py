@@ -171,9 +171,17 @@ def debug_cache_stats():
     prefix_info = configdata.is_valid_prefix.cache_info()
     # pylint: disable=protected-access
     render_stylesheet_info = config._render_stylesheet.cache_info()
-    # pylint: enable=protected-access
+    try:
+        from PyQt5.QtWebKit import QWebHistoryInterface
+        interface = QWebHistoryInterface.defaultInterface()
+        history_info = interface.historyContains.cache_info()
+    except ImportError:
+        history_info = None
+
     log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
     log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
+    log.misc.debug('history: {}'.format(history_info))
+
 
 
 @cmdutils.register(debug=True)
