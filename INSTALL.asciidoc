@@ -85,7 +85,7 @@ qutebrowser is available in the official repositories for Fedora 22 and newer.
 # dnf install qutebrowser
 ----
 
-It's also recommended to install `qt5-qtwebengine` and start with `--backend
+It's also recommended to install `python3-qt5-webengine` and start with `--backend
 webengine` to use the new backend.
 
 On Archlinux
