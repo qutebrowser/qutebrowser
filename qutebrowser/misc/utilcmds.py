@@ -183,7 +183,6 @@ def debug_cache_stats():
     log.misc.debug('history: {}'.format(history_info))
 
 
-
 @cmdutils.register(debug=True)
 def debug_console():
     """Show the debugging console."""
