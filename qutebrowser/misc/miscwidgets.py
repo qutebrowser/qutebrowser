@@ -245,8 +245,7 @@ class WrapperLayout(QLayout):
     def sizeHint(self):
         return self._widget.sizeHint()
 
-    def itemAt(self, _index):  # pragma: no cover
-        # For some reason this sometimes gets called by Qt.
+    def itemAt(self, _index):
         return None
 
     def takeAt(self, _index):

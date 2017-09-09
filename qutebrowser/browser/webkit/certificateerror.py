@@ -41,7 +41,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         try:
             # Qt >= 5.4
             return hash(self._error)
-        except TypeError:  # pragma: no cover
+        except TypeError:
             return hash((self._error.certificate().toDer(),
                          self._error.error()))
 

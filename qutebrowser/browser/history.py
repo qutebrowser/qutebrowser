@@ -173,9 +173,7 @@ class WebHistory(sql.SqlTable):
                       (hidden in completion)
             atime: Override the atime used to add the entry
         """
-        if not url.isValid():  # pragma: no cover
-            # the no cover pragma is a WORKAROUND for this not being covered in
-            # old Qt versions.
+        if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
@@ -320,6 +318,6 @@ def init(parent=None):
     history = WebHistory(parent=parent)
     objreg.register('web-history', history)
 
-    if objects.backend == usertypes.Backend.QtWebKit:
+    if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory
         webkithistory.init(history)
