@@ -60,7 +60,7 @@ brew_install() {
 
 pip_install() {
     # this uses python2
-    travis_retry sudo -H python -m pip install "$@"
+    travis_retry python -m pip install "$@"
 }
 
 npm_install() {
@@ -124,22 +124,22 @@ case $TESTENV in
         check_pyqt
         ;;
     py3*-pyqt*)
-        apt_install xvfb geoclue gdb apport
+        #apt_install xvfb geoclue gdb apport
         ;;
     pylint|vulture)
-        apt_install $pyqt_pkgs libpython3.4-dev
+        #apt_install $pyqt_pkgs libpython3.4-dev
         check_pyqt
         ;;
     flake8)
-        apt_install libpython3.4-dev
+        #apt_install libpython3.4-dev
         ;;
     docs)
-        apt_install $pyqt_pkgs asciidoc libpython3.4-dev
+        #apt_install $pyqt_pkgs asciidoc libpython3.4-dev
         asciidoc --version
         check_pyqt
         ;;
     misc)
-        apt_install libpython3.4-dev
+        #apt_install libpython3.4-dev
         ;;
     pyroma|check-manifest)
         ;;

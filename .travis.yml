@@ -66,10 +66,6 @@ cache:
     - $HOME/.cache/pip
     - $HOME/build/qutebrowser/qutebrowser/.cache
 
-before_install:
-  # We need to do this so we pick up the system-wide python properly
-  - 'export PATH="/usr/bin:$PATH"'
-
 install:
   - bash scripts/dev/ci/travis_install.sh
   - ulimit -c unlimited
