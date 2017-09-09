@@ -41,7 +41,7 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion.models import instances as completionmodels
+from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
@@ -52,10 +52,10 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects)
+                              crashsignal, earlyinit, objects, sql)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error, debug)
+                               objreg, usertypes, standarddir, error)
 # We import utilcmds to run the cmdutils.register decorators.
 
 
@@ -154,7 +154,7 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
-    QTimer.singleShot(10, functools.partial(_init_late_modules, args))
+    objreg.get('web-history').import_txt()
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
@@ -400,10 +400,8 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing network...")
     networkmanager.init()
 
-    if qtutils.version_check('5.8'):
-        # Otherwise we can only initialize it for QtWebKit because of crashes
-        log.init.debug("Initializing proxy...")
-        proxy.init()
+    log.init.debug("Initializing proxy...")
+    proxy.init()
 
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
@@ -412,6 +410,14 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing config...")
     config.init(qApp)
     save_manager.init_autosave()
+
+    log.init.debug("Initializing sql...")
+    try:
+        sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+    except sql.SqlException as e:
+        error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                               pre_text='Error initializing SQL')
+        sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing web history...")
     history.init(qApp)
@@ -449,9 +455,6 @@ def _init_modules(args, crash_handler):
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
 
-    log.init.debug("Initializing completions...")
-    completionmodels.init()
-
     log.init.debug("Misc initialization...")
     if config.val.window.hide_wayland_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
@@ -460,23 +463,6 @@ def _init_modules(args, crash_handler):
     macros.init()
     # Init backend-specific stuff
     browsertab.init()
-
-
-def _init_late_modules(args):
-    """Initialize modules which can be inited after the window is shown."""
-    log.init.debug("Reading web history...")
-    reader = objreg.get('web-history').async_read()
-    with debug.log_time(log.init, 'Reading history'):
-        while True:
-            QApplication.processEvents()
-            try:
-                next(reader)
-            except StopIteration:
-                break
-            except (OSError, UnicodeDecodeError) as e:
-                error.handle_fatal_exc(e, args, "Error while initializing!",
-                                       pre_text="Error while initializing")
-                sys.exit(usertypes.Exit.err_init)
 
 
 class Quitter:
@@ -626,7 +612,7 @@ class Quitter:
         # Save the session if one is given.
         if session is not None:
             session_manager = objreg.get('session-manager')
-            session_manager.save(session)
+            session_manager.save(session, with_private=True)
         # Open a new process and immediately shutdown the existing one
         try:
             args, cwd = self._get_restart_args(pages, session)
@@ -641,7 +627,7 @@ class Quitter:
             return True
 
     @cmdutils.register(instance='quitter', name='quit')
-    @cmdutils.argument('session', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('session', completion=miscmodels.session)
     def quit(self, save=False, session=None):
         """Quit qutebrowser.
 
@@ -760,7 +746,7 @@ class Quitter:
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
 
     @cmdutils.register(instance='quitter', name='wq')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def save_and_quit(self, name=sessions.default):
         """Save open pages and quit.
 

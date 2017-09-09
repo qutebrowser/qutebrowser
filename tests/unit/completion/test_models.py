@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# FIXME:conf
-# pylint: disable=undefined-variable
-
 """Tests for completion models."""
 
 import collections
@@ -27,15 +24,13 @@ from datetime import datetime
 
 import pytest
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QTreeView
 
-from qutebrowser.completion.models import (miscmodels, urlmodel, configmodel,
-                                           sortfilter)
+from qutebrowser.completion import completer
+from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.config import configdata, configtypes
+from qutebrowser.utils import objreg
 from qutebrowser.browser import history
-
-
-pytestmark = pytest.mark.skip("FIXME:conf reintroduce after new completion "
-                              "is in")
+from qutebrowser.commands import cmdutils
 
 
 def _check_completions(model, expected):
@@ -49,90 +44,86 @@ def _check_completions(model, expected):
                 ...
             }
     """
+    actual = {}
     assert model.rowCount() == len(expected)
     for i in range(0, model.rowCount()):
-        actual_cat = model.item(i)
-        catname = actual_cat.text()
-        assert catname in expected
-        expected_cat = expected[catname]
-        assert actual_cat.rowCount() == len(expected_cat)
-        for j in range(0, actual_cat.rowCount()):
-            name = actual_cat.child(j, 0)
-            desc = actual_cat.child(j, 1)
-            misc = actual_cat.child(j, 2)
-            actual_item = (name.text(), desc.text(), misc.text())
-            assert actual_item in expected_cat
+        catidx = model.index(i, 0)
+        catname = model.data(catidx)
+        actual[catname] = []
+        for j in range(model.rowCount(catidx)):
+            name = model.data(model.index(j, 0, parent=catidx))
+            desc = model.data(model.index(j, 1, parent=catidx))
+            misc = model.data(model.index(j, 2, parent=catidx))
+            actual[catname].append((name, desc, misc))
+    assert actual == expected
+    # sanity-check the column_widths
+    assert len(model.column_widths) == 3
+    assert sum(model.column_widths) == 100
 
 
-def _patch_cmdutils(monkeypatch, stubs, symbol):
+@pytest.fixture()
+def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
-    cmd_utils = stubs.FakeCmdUtils({
-        'stop': stubs.FakeCommand(name='stop', desc='stop qutebrowser'),
-        'drop': stubs.FakeCommand(name='drop', desc='drop all user data'),
-        'roll': stubs.FakeCommand(name='roll', desc='never gonna give you up'),
-        'hide': stubs.FakeCommand(name='hide', hide=True),
-        'depr': stubs.FakeCommand(name='depr', deprecated=True),
+    return monkeypatch.setattr(cmdutils, 'cmd_dict', {
+        'quit': stubs.FakeCommand(name='quit', desc='quit qutebrowser'),
+        'open': stubs.FakeCommand(name='open', desc='open a url'),
+        'prompt-yes': stubs.FakeCommand(name='prompt-yes', deprecated=True),
+        'scroll': stubs.FakeCommand(name='scroll',
+            desc='Scroll the current tab in the given direction.',
+            hide=True),
     })
-    monkeypatch.setattr(symbol, cmd_utils)
 
 
-def _patch_configdata(monkeypatch, stubs, symbol):
+@pytest.fixture()
+def configdata_stub(monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
-    data = collections.OrderedDict([
-        ('general', sections.KeyValue(
-            ('time',
-                value.SettingValue(stubs.FakeConfigType('fast', 'slow'),
-                                   default='slow'),
-                'Is an illusion.\n\nLunchtime doubly so.'),
-            ('volume',
-                value.SettingValue(stubs.FakeConfigType('0', '11'),
-                                   default='11'),
-                'Goes to 11'))),
-        ('ui', sections.KeyValue(
-            ('gesture',
-                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                   default='off'),
-                'Waggle your hands to control qutebrowser'),
-            ('mind',
-                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                   default='off'),
-                'Enable mind-control ui (experimental)'),
-            ('voice',
-                value.SettingValue(stubs.FakeConfigType(('on', 'off')),
-                                   default='off'),
-                'Whether to respond to voice commands'))),
-        ('searchengines', sections.ValueList(
-            stubs.FakeConfigType(), stubs.FakeConfigType(),
-            ('DEFAULT', 'https://duckduckgo.com/?q={}'),
-        )),
-    ])
-    monkeypatch.setattr(symbol, data)
-
-
-def _patch_config_section_desc(monkeypatch, stubs, symbol):
-    """Patch the configdata module to provide fake SECTION_DESC."""
-    section_desc = {
-        'general': 'General/miscellaneous options.',
-        'ui': 'General options related to the user interface.',
-        'searchengines': 'Definitions of search engines ...',
-    }
-    monkeypatch.setattr(symbol, section_desc)
-
-
-def _mock_view_index(model, category_idx, child_idx, qtbot):
-    """Create a tree view from a model and set the current index.
-
-    Args:
-        model: model to create a fake view for.
-        category_idx: index of the category to select.
-        child_idx: index of the child item under that category to select.
-    """
-    view = QTreeView()
-    qtbot.add_widget(view)
-    view.setModel(model)
-    idx = model.indexFromItem(model.item(category_idx).child(child_idx))
-    view.setCurrentIndex(idx)
-    return view
+    return monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
+        ('aliases', configdata.Option(
+            name='aliases',
+            description='Aliases for commands.',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.Command(),
+            ),
+            default={'q': 'quit'},
+            backends=[],
+            raw_backends=None)),
+        ('bindings.default', configdata.Option(
+            name='bindings.default',
+            description='Default keybindings',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.Dict(
+                    keytype=configtypes.String(),
+                    valtype=configtypes.Command(),
+                ),
+            ),
+            default={
+                'normal': {
+                    '<ctrl+q>': 'quit'
+                }
+            },
+            backends=[],
+            raw_backends=None)),
+        ('bindings.commands', configdata.Option(
+            name='bindings.commands',
+            description='Default keybindings',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.Dict(
+                    keytype=configtypes.String(),
+                    valtype=configtypes.Command(),
+                ),
+            ),
+            default={
+                'normal': collections.OrderedDict([
+                    ('<ctrl+q>', 'quit'),
+                    ('ZQ', 'quit'),
+                ])
+            },
+            backends=[],
+            raw_backends=None)),
+    ]))
 
 
 @pytest.fixture
@@ -140,8 +131,8 @@ def quickmarks(quickmark_manager_stub):
     """Pre-populate the quickmark-manager stub with some quickmarks."""
     quickmark_manager_stub.marks = collections.OrderedDict([
         ('aw', 'https://wiki.archlinux.org'),
-        ('ddg', 'https://duckduckgo.com'),
         ('wiki', 'https://wikipedia.org'),
+        ('ddg', 'https://duckduckgo.com'),
     ])
     return quickmark_manager_stub
 
@@ -158,24 +149,45 @@ def bookmarks(bookmark_manager_stub):
 
 
 @pytest.fixture
-def web_history(stubs, web_history_stub):
-    """Pre-populate the web-history stub with some history entries."""
-    web_history_stub.history_dict = collections.OrderedDict([
-        ('http://qutebrowser.org', history.Entry(
-            datetime(2015, 9, 5).timestamp(),
-            QUrl('http://qutebrowser.org'), 'qutebrowser | qutebrowser')),
-        ('https://python.org', history.Entry(
-            datetime(2016, 3, 8).timestamp(),
-            QUrl('https://python.org'), 'Welcome to Python.org')),
-        ('https://github.com', history.Entry(
-            datetime(2016, 5, 1).timestamp(),
-            QUrl('https://github.com'), 'GitHub')),
-    ])
-    return web_history_stub
+def web_history(init_sql, stubs, config_stub):
+    """Fixture which provides a web-history object."""
+    config_stub.val.completion.timestamp_format = '%Y-%m-%d'
+    config_stub.val.completion.web_history_max_items = -1
+    stub = history.WebHistory()
+    objreg.register('web-history', stub)
+    yield stub
+    objreg.delete('web-history')
 
 
-def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
-                            key_config_stub):
+@pytest.fixture
+def web_history_populated(web_history):
+    """Pre-populate the web-history database."""
+    web_history.add_url(
+        url=QUrl('http://qutebrowser.org'),
+        title='qutebrowser',
+        atime=datetime(2015, 9, 5).timestamp()
+    )
+    web_history.add_url(
+        url=QUrl('https://python.org'),
+        title='Welcome to Python.org',
+        atime=datetime(2016, 3, 8).timestamp()
+    )
+    web_history.add_url(
+        url=QUrl('https://github.com'),
+        title='https://github.com',
+        atime=datetime(2016, 5, 1).timestamp()
+    )
+    return web_history
+
+
+@pytest.fixture
+def info(config_stub, key_config_stub):
+    return completer.CompletionInfo(config=config_stub,
+                                    keyconf=key_config_stub)
+
+
+def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
+                            key_config_stub, info):
     """Test the results of command completion.
 
     Validates that:
@@ -184,169 +196,272 @@ def test_command_completion(qtmodeltester, monkeypatch, stubs, config_stub,
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    _patch_cmdutils(monkeypatch, stubs,
-                    'qutebrowser.completion.models.miscmodels.cmdutils')
-    config_stub.data['aliases'] = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop',
-                                                'rr': 'roll',
-                                                'ro': 'rock'})
-    model = miscmodels.CommandCompletionModel()
+    model = miscmodels.command(info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Commands": [
-            ('stop', 'stop qutebrowser', 's'),
-            ('drop', 'drop all user data', ''),
-            ('roll', 'never gonna give you up', 'rr'),
-            ('rock', "Alias for 'roll'", 'ro'),
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
         ]
     })
 
 
-def test_help_completion(qtmodeltester, monkeypatch, stubs, key_config_stub):
+def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
+                         configdata_stub, config_stub, info):
     """Test the results of command completion.
 
     Validates that:
         - only non-deprecated commands are included
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
-        - aliases are included
+        - aliases are not included
         - only the first line of a multiline description is shown
     """
-    module = 'qutebrowser.completion.models.miscmodels'
-    key_config_stub.set_bindings_for('normal', {'s': 'stop', 'rr': 'roll'})
-    _patch_cmdutils(monkeypatch, stubs, module + '.cmdutils')
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    model = miscmodels.HelpCompletionModel()
+    model = miscmodels.helptopic(info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Commands": [
-            (':stop', 'stop qutebrowser', 's'),
-            (':drop', 'drop all user data', ''),
-            (':roll', 'never gonna give you up', 'rr'),
-            (':hide', '', ''),
+            (':open', 'open a url', ''),
+            (':quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            (':scroll', 'Scroll the current tab in the given direction.', '')
         ],
         "Settings": [
-            ('general->time', 'Is an illusion.', ''),
-            ('general->volume', 'Goes to 11', ''),
-            ('ui->gesture', 'Waggle your hands to control qutebrowser', ''),
-            ('ui->mind', 'Enable mind-control ui (experimental)', ''),
-            ('ui->voice', 'Whether to respond to voice commands', ''),
-            ('searchengines->DEFAULT', '', ''),
+            ('aliases', 'Aliases for commands.', None),
+            ('bindings.commands', 'Default keybindings', None),
+            ('bindings.default', 'Default keybindings', None),
         ]
     })
 
 
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
-    model = miscmodels.QuickmarkCompletionModel()
+    model = miscmodels.quickmark()
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Quickmarks": [
-            ('aw', 'https://wiki.archlinux.org', ''),
-            ('ddg', 'https://duckduckgo.com', ''),
-            ('wiki', 'https://wikipedia.org', ''),
+            ('aw', 'https://wiki.archlinux.org', None),
+            ('wiki', 'https://wikipedia.org', None),
+            ('ddg', 'https://duckduckgo.com', None),
         ]
     })
+
+
+@pytest.mark.parametrize('row, removed', [
+    (0, 'aw'),
+    (1, 'wiki'),
+    (2, 'ddg'),
+])
+def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
+    """Test deleting a quickmark from the quickmark completion model."""
+    model = miscmodels.quickmark()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(row, 0, parent)
+
+    before = set(quickmarks.marks.keys())
+    model.delete_cur_item(idx)
+    after = set(quickmarks.marks.keys())
+    assert before.difference(after) == {removed}
 
 
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
-    model = miscmodels.BookmarkCompletionModel()
+    model = miscmodels.bookmark()
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', ''),
-            ('https://python.org', 'Welcome to Python.org', ''),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+            ('https://github.com', 'GitHub', None),
+            ('https://python.org', 'Welcome to Python.org', None),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ]
     })
 
 
-def test_url_completion(qtmodeltester, config_stub, web_history, quickmarks,
-                        bookmarks):
+@pytest.mark.parametrize('row, removed', [
+    (0, 'https://github.com'),
+    (1, 'https://python.org'),
+    (2, 'http://qutebrowser.org'),
+])
+def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
+    """Test deleting a quickmark from the quickmark completion model."""
+    model = miscmodels.bookmark()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    parent = model.index(0, 0)
+    idx = model.index(row, 0, parent)
+
+    before = set(bookmarks.marks.keys())
+    model.delete_cur_item(idx)
+    after = set(bookmarks.marks.keys())
+    assert before.difference(after) == {removed}
+
+
+def test_url_completion(qtmodeltester, web_history_populated,
+                        quickmarks, bookmarks, info):
     """Test the results of url completion.
 
     Verify that:
         - quickmarks, bookmarks, and urls are included
-        - no more than 'web-history-max-items' history entries are included
-        - the most recent entries are included
+        - entries are sorted by access time
+        - only the most recent entry is included for each url
     """
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 2}
-    model = urlmodel.UrlCompletionModel()
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Quickmarks": [
-            ('https://wiki.archlinux.org', 'aw', ''),
-            ('https://duckduckgo.com', 'ddg', ''),
-            ('https://wikipedia.org', 'wiki', ''),
+            ('https://wiki.archlinux.org', 'aw', None),
+            ('https://wikipedia.org', 'wiki', None),
+            ('https://duckduckgo.com', 'ddg', None),
         ],
         "Bookmarks": [
-            ('https://github.com', 'GitHub', ''),
-            ('https://python.org', 'Welcome to Python.org', ''),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', ''),
+            ('https://github.com', 'GitHub', None),
+            ('https://python.org', 'Welcome to Python.org', None),
+            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
         ],
         "History": [
+            ('https://github.com', 'https://github.com', '2016-05-01'),
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
-            ('https://github.com', 'GitHub', '2016-05-01'),
+            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
     })
 
 
-def test_url_completion_delete_bookmark(qtmodeltester, config_stub,
-                                        web_history, quickmarks, bookmarks,
-                                        qtbot):
+@pytest.mark.parametrize('url, title, pattern, rowcount', [
+    ('example.com', 'Site Title', '', 1),
+    ('example.com', 'Site Title', 'ex', 1),
+    ('example.com', 'Site Title', 'am', 1),
+    ('example.com', 'Site Title', 'com', 1),
+    ('example.com', 'Site Title', 'ex com', 1),
+    ('example.com', 'Site Title', 'com ex', 0),
+    ('example.com', 'Site Title', 'ex foo', 0),
+    ('example.com', 'Site Title', 'foo com', 0),
+    ('example.com', 'Site Title', 'exm', 0),
+    ('example.com', 'Site Title', 'Si Ti', 1),
+    ('example.com', 'Site Title', 'Ti Si', 0),
+    ('example.com', '', 'foo', 0),
+    ('foo_bar', '', '_', 1),
+    ('foobar', '', '_', 0),
+    ('foo%bar', '', '%', 1),
+    ('foobar', '', '%', 0),
+])
+def test_url_completion_pattern(web_history, quickmark_manager_stub,
+                                bookmark_manager_stub, info,
+                                url, title, pattern, rowcount):
+    """Test that url completion filters by url and title."""
+    web_history.add_url(QUrl(url), title)
+    model = urlmodel.url(info=info)
+    model.set_pattern(pattern)
+    # 2, 0 is History
+    assert model.rowCount(model.index(2, 0)) == rowcount
+
+
+def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
+                                        web_history, quickmarks, info):
     """Test deleting a bookmark from the url completion model."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 2}
-    model = urlmodel.UrlCompletionModel()
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    # delete item (1, 0) -> (bookmarks, 'https://github.com' )
-    view = _mock_view_index(model, 1, 0, qtbot)
-    model.delete_cur_item(view)
-    assert 'https://github.com' not in bookmarks.marks
-    assert 'https://python.org' in bookmarks.marks
-    assert 'http://qutebrowser.org' in bookmarks.marks
+    parent = model.index(1, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "Bookmarks"
+    assert model.data(idx) == 'https://python.org'
+    assert 'https://github.com' in bookmarks.marks
+
+    len_before = len(bookmarks.marks)
+    model.delete_cur_item(idx)
+    assert 'https://python.org' not in bookmarks.marks
+    assert len_before == len(bookmarks.marks) + 1
 
 
-def test_url_completion_delete_quickmark(qtmodeltester, config_stub,
-                                         web_history, quickmarks, bookmarks,
-                                         qtbot):
+def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
+                                         quickmarks, web_history, bookmarks):
     """Test deleting a bookmark from the url completion model."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 2}
-    model = urlmodel.UrlCompletionModel()
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    # delete item (0, 1) -> (quickmarks, 'ddg' )
-    view = _mock_view_index(model, 0, 1, qtbot)
-    model.delete_cur_item(view)
-    assert 'aw' in quickmarks.marks
-    assert 'ddg' not in quickmarks.marks
-    assert 'wiki' in quickmarks.marks
+    parent = model.index(0, 0)
+    idx = model.index(0, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "Quickmarks"
+    assert model.data(idx) == 'https://wiki.archlinux.org'
+    assert 'ddg' in quickmarks.marks
+
+    len_before = len(quickmarks.marks)
+    model.delete_cur_item(idx)
+    assert 'aw' not in quickmarks.marks
+    assert len_before == len(quickmarks.marks) + 1
+
+
+def test_url_completion_delete_history(qtmodeltester, info,
+                                       web_history_populated,
+                                       quickmarks, bookmarks):
+    """Test deleting a history entry."""
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    parent = model.index(2, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "History"
+    assert model.data(idx) == 'https://python.org'
+
+    assert 'https://python.org' in web_history_populated
+    model.delete_cur_item(idx)
+    assert 'https://python.org' not in web_history_populated
+
+
+def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
+                                   bookmarks):
+    """Make sure there's no history if the limit was set to zero."""
+    config_stub.val.completion.web_history_max_items = 0
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    category = model.index(2, 0)  # "History" normally
+    assert model.data(category) is None
 
 
 def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
-    model = miscmodels.SessionCompletionModel()
+    model = miscmodels.session()
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Sessions": [('default', '', ''), ('1', '', ''), ('2', '', '')]
+        "Sessions": [('default', None, None),
+                     ('1', None, None),
+                     ('2', None, None)]
     })
 
 
@@ -360,7 +475,8 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     tabbed_browser_stubs[1].tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.TabCompletionModel()
+    model = miscmodels.buffer()
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
@@ -376,7 +492,7 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     })
 
 
-def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
+def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                                win_registry, tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].tabs = [
@@ -387,160 +503,100 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, qtbot, app_stub,
     tabbed_browser_stubs[1].tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
-    model = miscmodels.TabCompletionModel()
+    model = miscmodels.buffer()
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    view = _mock_view_index(model, 0, 1, qtbot)
-    qtbot.add_widget(view)
-    model.delete_cur_item(view)
+    parent = model.index(0, 0)
+    idx = model.index(1, 0, parent)
+
+    # sanity checks
+    assert model.data(parent) == "0"
+    assert model.data(idx) == '0/2'
+
+    model.delete_cur_item(idx)
     actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
 
 
-def test_setting_section_completion(qtmodeltester, monkeypatch, stubs):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    _patch_config_section_desc(monkeypatch, stubs,
-                               module + '.configdata.SECTION_DESC')
-    model = configmodel.SettingSectionCompletionModel()
+def test_setting_option_completion(qtmodeltester, config_stub,
+                                   configdata_stub, info):
+    model = configmodel.option(info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Sections": [
-            ('general', 'General/miscellaneous options.', ''),
-            ('ui', 'General options related to the user interface.', ''),
-            ('searchengines', 'Definitions of search engines ...', ''),
+        "Options": [
+            ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
+            ('bindings.commands', 'Default keybindings',
+                '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit"}}'),
+            ('bindings.default', 'Default keybindings',
+                '{"normal": {"<ctrl+q>": "quit"}}'),
         ]
     })
 
 
-def test_setting_option_completion(qtmodeltester, monkeypatch, stubs,
-                                   config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {'ui': {'gesture': 'off',
-                               'mind': 'on',
-                               'voice': 'sometimes'}}
-    model = configmodel.SettingOptionCompletionModel('ui')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        "ui": [
-            ('gesture', 'Waggle your hands to control qutebrowser', 'off'),
-            ('mind', 'Enable mind-control ui (experimental)', 'on'),
-            ('voice', 'Whether to respond to voice commands', 'sometimes'),
-        ]
-    })
-
-
-def test_setting_option_completion_valuelist(qtmodeltester, monkeypatch, stubs,
-                                             config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {
-        'searchengines': {
-            'DEFAULT': 'https://duckduckgo.com/?q={}'
-        }
-    }
-    model = configmodel.SettingOptionCompletionModel('searchengines')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        'searchengines': [('DEFAULT', '', 'https://duckduckgo.com/?q={}')]
-    })
-
-
-def test_setting_value_completion(qtmodeltester, monkeypatch, stubs,
-                                  config_stub):
-    module = 'qutebrowser.completion.models.configmodel'
-    _patch_configdata(monkeypatch, stubs, module + '.configdata.DATA')
-    config_stub.data = {'general': {'volume': '0'}}
-    model = configmodel.SettingValueCompletionModel('general', 'volume')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        "Current/Default": [
-            ('0', 'Current value', ''),
-            ('11', 'Default value', ''),
-        ],
-        "Completions": [
-            ('0', '', ''),
-            ('11', '', ''),
-        ]
-    })
-
-
-def test_bind_completion(qtmodeltester, monkeypatch, stubs, config_stub,
-                         key_config_stub):
+def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
+                         key_config_stub, configdata_stub, info):
     """Test the results of keybinding command completion.
 
     Validates that:
-        - only non-hidden and non-deprecated commands are included
+        - only non-deprecated commands are included
         - the command description is shown in the desc column
         - the binding (if any) is shown in the misc column
         - aliases are included
     """
-    _patch_cmdutils(monkeypatch, stubs,
-                    'qutebrowser.completion.models.miscmodels.cmdutils')
-    config_stub.data['aliases'] = {'rock': 'roll'}
-    key_config_stub.set_bindings_for('normal', {'s': 'stop',
-                                                'rr': 'roll',
-                                                'ro': 'rock'})
-    model = miscmodels.BindCompletionModel()
+    model = configmodel.bind('ZQ', info=info)
+    model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
+        "Current": [
+            ('quit', 'quit qutebrowser', 'ZQ'),
+        ],
         "Commands": [
-            ('stop', 'stop qutebrowser', 's'),
-            ('drop', 'drop all user data', ''),
-            ('hide', '', ''),
-            ('roll', 'never gonna give you up', 'rr'),
-            ('rock', "Alias for 'roll'", 'ro'),
-        ]
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('scroll', 'Scroll the current tab in the given direction.', '')
+        ],
     })
 
 
-def test_url_completion_benchmark(benchmark, config_stub,
+def test_url_completion_benchmark(benchmark, info,
                                   quickmark_manager_stub,
                                   bookmark_manager_stub,
-                                  web_history_stub):
+                                  web_history):
     """Benchmark url completion."""
-    config_stub.data['completion'] = {'timestamp-format': '%Y-%m-%d',
-                                      'web-history-max-items': 1000}
+    r = range(100000)
+    entries = {
+        'last_atime': list(r),
+        'url': ['http://example.com/{}'.format(i) for i in r],
+        'title': ['title{}'.format(i) for i in r]
+    }
 
-    entries = [history.Entry(
-        atime=i,
-        url=QUrl('http://example.com/{}'.format(i)),
-        title='title{}'.format(i))
-        for i in range(100000)]
+    web_history.completion.insert_batch(entries)
 
-    web_history_stub.history_dict = collections.OrderedDict(
-        ((e.url_str(), e) for e in entries))
+    quickmark_manager_stub.marks = collections.OrderedDict([
+        ('title{}'.format(i), 'example.com/{}'.format(i))
+        for i in range(1000)])
 
-    quickmark_manager_stub.marks = collections.OrderedDict(
-        (e.title, e.url_str())
-        for e in entries[0:1000])
-
-    bookmark_manager_stub.marks = collections.OrderedDict(
-        (e.url_str(), e.title)
-        for e in entries[0:1000])
+    bookmark_manager_stub.marks = collections.OrderedDict([
+        ('example.com/{}'.format(i), 'title{}'.format(i))
+        for i in range(1000)])
 
     def bench():
-        model = urlmodel.UrlCompletionModel()
-        filtermodel = sortfilter.CompletionFilterModel(model)
-        filtermodel.set_pattern('')
-        filtermodel.set_pattern('e')
-        filtermodel.set_pattern('ex')
-        filtermodel.set_pattern('ex ')
-        filtermodel.set_pattern('ex 1')
-        filtermodel.set_pattern('ex 12')
-        filtermodel.set_pattern('ex 123')
+        model = urlmodel.url(info=info)
+        model.set_pattern('')
+        model.set_pattern('e')
+        model.set_pattern('ex')
+        model.set_pattern('ex ')
+        model.set_pattern('ex 1')
+        model.set_pattern('ex 12')
+        model.set_pattern('ex 123')
 
     benchmark(bench)

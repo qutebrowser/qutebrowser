@@ -23,7 +23,7 @@ import functools
 import collections
 
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl, QSize
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
@@ -239,6 +239,19 @@ class TabbedBrowser(tabwidget.TabWidget):
         for tab in self.widgets():
             self._remove_tab(tab)
 
+    def tab_close_prompt_if_pinned(self, tab, force, yes_action):
+        """Helper method for tab_close.
+
+        If tab is pinned, prompt. If everything is good, run yes_action.
+        """
+        if tab.data.pinned and not force:
+            message.confirm_async(
+                title='Pinned Tab',
+                text="Are you sure you want to close a pinned tab?",
+                yes_action=yes_action, default=False)
+        else:
+            yes_action()
+
     def close_tab(self, tab, *, add_undo=True):
         """Close a tab.
 
@@ -348,7 +361,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             newtab = self.tabopen(url, background=False, idx=idx)
 
         newtab.history.deserialize(history_data)
-        self.set_tab_pinned(idx, pinned)
+        self.set_tab_pinned(newtab, pinned)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):
@@ -372,7 +385,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("Got invalid tab {} for index {}!".format(
                 tab, idx))
             return
-        self.close_tab(tab)
+        self.tab_close_prompt_if_pinned(
+            tab, False, lambda: self.close_tab(tab))
 
     @pyqtSlot(browsertab.AbstractTab)
     def on_window_close_requested(self, widget):
@@ -443,13 +457,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
             # layout anyways.
-            if self.tabBar().vertical:
-                tab_size = QSize(self.width() - self.tabBar().width(),
-                                 self.height())
-            else:
-                tab_size = QSize(self.width(),
-                                 self.height() - self.tabBar().height())
-            tab.resize(tab_size)
+            tab.resize(self.currentWidget().size())
             self.tab_index_changed.emit(self.currentIndex(), self.count())
         else:
             self.setCurrentWidget(tab)
@@ -705,13 +713,16 @@ class TabbedBrowser(tabwidget.TabWidget):
         }
         msg = messages[status]
 
+        def show_error_page(html):
+            tab.set_html(html)
+            log.webview.error(msg)
+
         if qtutils.version_check('5.9'):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),
                 url=url_string, error=msg)
-            QTimer.singleShot(0, lambda: tab.set_html(error_page))
-            log.webview.error(msg)
+            QTimer.singleShot(100, lambda: show_error_page(error_page))
         else:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
             message.error(msg)

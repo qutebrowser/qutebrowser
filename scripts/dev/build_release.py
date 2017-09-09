@@ -64,7 +64,7 @@ def call_tox(toxenv, *args, python=sys.executable):
     env['PYTHON'] = python
     env['PATH'] = os.environ['PATH'] + os.pathsep + os.path.dirname(python)
     subprocess.check_call(
-        [sys.executable, '-m', 'tox', '-v', '-e', toxenv] + list(args),
+        [sys.executable, '-m', 'tox', '-vv', '-e', toxenv] + list(args),
         env=env)
 
 
@@ -92,7 +92,7 @@ def smoke_test(executable):
                            '--temp-basedir', 'about:blank', ':later 500 quit'])
 
 
-def patch_osx_app():
+def patch_mac_app():
     """Patch .app to copy missing data and link some libs.
 
     See https://github.com/pyinstaller/pyinstaller/issues/2276
@@ -109,8 +109,11 @@ def patch_osx_app():
     for f in glob.glob(os.path.join(qtwe_core_dir, 'Resources', '*')):
         dest = os.path.join(app_path, 'Contents', 'Resources')
         if os.path.isdir(f):
-            shutil.copytree(f, os.path.join(dest, f))
+            dir_dest = os.path.join(dest, os.path.basename(f))
+            print("Copying directory {} to {}".format(f, dir_dest))
+            shutil.copytree(f, dir_dest)
         else:
+            print("Copying {} to {}".format(f, dest))
             shutil.copy(f, dest)
     # Link dependencies
     for lib in ['QtCore', 'QtWebEngineCore', 'QtQuick', 'QtQml', 'QtNetwork',
@@ -122,37 +125,45 @@ def patch_osx_app():
                    os.path.join(dest, lib))
 
 
-def build_osx():
-    """Build OS X .dmg/.app."""
+def build_mac():
+    """Build macOS .dmg/.app."""
+    utils.print_title("Cleaning up...")
+    for f in ['wc.dmg', 'template.dmg']:
+        try:
+            os.remove(f)
+        except FileNotFoundError:
+            pass
+    for d in ['dist', 'build']:
+        shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
+    # Currently disabled because QtWebEngine has no pdfjs support
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r')
     utils.print_title("Patching .app")
-    patch_osx_app()
+    patch_mac_app()
     utils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
-    utils.print_title("Cleaning up...")
-    for f in ['wc.dmg', 'template.dmg']:
-        os.remove(f)
-    for d in ['dist', 'build']:
-        shutil.rmtree(d)
 
     dmg_name = 'qutebrowser-{}.dmg'.format(qutebrowser.__version__)
     os.rename('qutebrowser.dmg', dmg_name)
 
     utils.print_title("Running smoke test")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        subprocess.check_call(['hdiutil', 'attach', dmg_name,
-                               '-mountpoint', tmpdir])
-        try:
-            binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
-                                  'MacOS', 'qutebrowser')
-            smoke_test(binary)
-        finally:
-            subprocess.check_call(['hdiutil', 'detach', tmpdir])
 
-    return [(dmg_name, 'application/x-apple-diskimage', 'OS X .dmg')]
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            subprocess.check_call(['hdiutil', 'attach', dmg_name,
+                                   '-mountpoint', tmpdir])
+            try:
+                binary = os.path.join(tmpdir, 'qutebrowser.app', 'Contents',
+                                      'MacOS', 'qutebrowser')
+                smoke_test(binary)
+            finally:
+                subprocess.call(['hdiutil', 'detach', tmpdir])
+    except PermissionError as e:
+        print("Failed to remove tempdir: {}".format(e))
+
+    return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
 def patch_windows(out_dir):
@@ -167,6 +178,7 @@ def patch_windows(out_dir):
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
+    # Currently disabled because QtWebEngine has no pdfjs support
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
@@ -203,8 +215,8 @@ def build_windows():
                            '/DVERSION={}'.format(qutebrowser.__version__),
                            'misc/qutebrowser.nsi'])
 
-    name_32 = 'qutebrowser-{}-win32.msi'.format(qutebrowser.__version__)
-    name_64 = 'qutebrowser-{}-amd64.msi'.format(qutebrowser.__version__)
+    name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
+    name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
 
     artifacts += [
         (os.path.join('dist', name_32),
@@ -280,6 +292,14 @@ def build_sdist():
     return artifacts
 
 
+def read_github_token():
+    """Read the GitHub API token from disk."""
+    token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
+    with open(token_file, encoding='ascii') as f:
+        token = f.read().strip()
+    return token
+
+
 def github_upload(artifacts, tag):
     """Upload the given artifacts to GitHub.
 
@@ -290,9 +310,7 @@ def github_upload(artifacts, tag):
     import github3
     utils.print_title("Uploading to github...")
 
-    token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
-    with open(token_file, encoding='ascii') as f:
-        token = f.read().strip()
+    token = read_github_token()
     gh = github3.login(token=token)
     repo = gh.repository('qutebrowser', 'qutebrowser')
 
@@ -329,6 +347,12 @@ def main():
 
     upload_to_pypi = False
 
+    if args.upload is not None:
+        # Fail early when trying to upload without github3 installed
+        # or without API token
+        import github3  # pylint: disable=unused-variable
+        read_github_token()
+
     if os.name == 'nt':
         if sys.maxsize > 2**32:
             # WORKAROUND
@@ -342,7 +366,7 @@ def main():
         artifacts = build_windows()
     elif sys.platform == 'darwin':
         run_asciidoc2html(args)
-        artifacts = build_osx()
+        artifacts = build_mac()
     else:
         artifacts = build_sdist()
         upload_to_pypi = True

@@ -70,6 +70,8 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
     {{ install_webengine('qt5-qtwebengine') }}
 {% elif distribution.parsed == Distribution.opensuse %}
     {{ install_webengine('libqt5-qtwebengine') }}
+{% elif distribution.parsed == Distribution.gentoo %}
+    {{ install_webengine('dev-qt/qtwebengine') }}
 {% else %}
     {{ unknown_system() }}
 {% endif %}

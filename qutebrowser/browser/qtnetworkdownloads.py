@@ -412,7 +412,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
                 mhtml.start_download_checked, tab=tab))
             message.global_bridge.ask(question, blocking=False)
 
-    def get_request(self, request, *, target=None, **kwargs):
+    def get_request(self, request, *, target=None,
+                    suggested_fn=None, **kwargs):
         """Start a download with a QNetworkRequest.
 
         Args:
@@ -428,7 +429,9 @@ class DownloadManager(downloads.AbstractDownloadManager):
         request.setAttribute(QNetworkRequest.CacheLoadControlAttribute,
                              QNetworkRequest.AlwaysNetwork)
 
-        if request.url().scheme().lower() != 'data':
+        if suggested_fn is not None:
+            pass
+        elif request.url().scheme().lower() != 'data':
             suggested_fn = urlutils.filename_from_url(request.url())
         else:
             # We might be downloading a binary blob embedded on a page or even

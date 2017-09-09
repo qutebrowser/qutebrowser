@@ -24,7 +24,6 @@ from qutebrowser.utils import usertypes
 
 def test_validation_error():
     e = configexc.ValidationError('val', 'msg')
-    assert e.section is None
     assert e.option is None
     assert str(e) == "Invalid value 'val' - msg"
 

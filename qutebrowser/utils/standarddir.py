@@ -107,7 +107,7 @@ def runtime():
     if sys.platform.startswith('linux'):
         typ = QStandardPaths.RuntimeLocation
     else:  # pragma: no cover
-        # RuntimeLocation is a weird path on OS X and Windows.
+        # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
 
     overridden, path = _from_args(typ, _args)

@@ -19,12 +19,19 @@
 
 """Completer attached to a CompletionView."""
 
+import collections
+
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
-from qutebrowser.utils import usertypes, log, utils
-from qutebrowser.completion.models import instances, sortfilter
+from qutebrowser.utils import log, utils, debug
+from qutebrowser.completion.models import miscmodels
+
+
+# Context passed into all completion functions
+CompletionInfo = collections.namedtuple('CompletionInfo',
+    ['config', 'keyconf'])
 
 
 class Completer(QObject):
@@ -38,6 +45,7 @@ class Completer(QObject):
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
+        _last_completion_func: The completion function used for the last text.
     """
 
     def __init__(self, cmd, parent=None):
@@ -50,6 +58,7 @@ class Completer(QObject):
         self._timer.timeout.connect(self._update_completion)
         self._last_cursor_pos = None
         self._last_text = None
+        self._last_completion_func = None
         self._cmd.update_completion.connect(self.schedule_completion_update)
 
     def __repr__(self):
@@ -60,37 +69,8 @@ class Completer(QObject):
         completion = self.parent()
         return completion.model()
 
-    def _get_completion_model(self, completion, pos_args):
-        """Get a completion model based on an enum member.
-
-        Args:
-            completion: A usertypes.Completion member.
-            pos_args: The positional args entered before the cursor.
-
-        Return:
-            A completion model or None.
-        """
-        if completion == usertypes.Completion.option:
-            section = pos_args[0]
-            model = instances.get(completion).get(section)
-        elif completion == usertypes.Completion.value:
-            section = pos_args[0]
-            option = pos_args[1]
-            try:
-                model = instances.get(completion)[section][option]
-            except KeyError:
-                # No completion model for this section/option.
-                model = None
-        else:
-            model = instances.get(completion)
-
-        if model is None:
-            return None
-        else:
-            return sortfilter.CompletionFilterModel(source=model, parent=self)
-
     def _get_new_completion(self, before_cursor, under_cursor):
-        """Get a new completion.
+        """Get the completion function based on the current command text.
 
         Args:
             before_cursor: The command chunks before the cursor.
@@ -107,8 +87,8 @@ class Completer(QObject):
         log.completion.debug("After removing flags: {}".format(before_cursor))
         if not before_cursor:
             # '|' or 'set|'
-            model = instances.get(usertypes.Completion.command)
-            return sortfilter.CompletionFilterModel(source=model, parent=self)
+            log.completion.debug('Starting command completion')
+            return miscmodels.command
         try:
             cmd = cmdutils.cmd_dict[before_cursor[0]]
         except KeyError:
@@ -117,14 +97,11 @@ class Completer(QObject):
             return None
         argpos = len(before_cursor) - 1
         try:
-            completion = cmd.get_pos_arg_info(argpos).completion
+            func = cmd.get_pos_arg_info(argpos).completion
         except IndexError:
             log.completion.debug("No completion in position {}".format(argpos))
             return None
-        if completion is None:
-            return None
-        model = self._get_completion_model(completion, before_cursor[1:])
-        return model
+        return func
 
     def _quote(self, s):
         """Quote s if it needs quoting for the commandline.
@@ -239,6 +216,7 @@ class Completer(QObject):
             # FIXME complete searches
             # https://github.com/qutebrowser/qutebrowser/issues/32
             completion.set_model(None)
+            self._last_completion_func = None
             return
 
         before_cursor, pattern, after_cursor = self._partition()
@@ -247,13 +225,26 @@ class Completer(QObject):
             before_cursor, pattern, after_cursor))
 
         pattern = pattern.strip("'\"")
-        model = self._get_new_completion(before_cursor, pattern)
+        func = self._get_new_completion(before_cursor, pattern)
 
-        log.completion.debug("Setting completion model to {} with pattern '{}'"
-            .format(model.srcmodel.__class__.__name__ if model else 'None',
-                    pattern))
+        if func is None:
+            log.completion.debug('Clearing completion')
+            completion.set_model(None)
+            self._last_completion_func = None
+            return
 
-        completion.set_model(model, pattern)
+        if func != self._last_completion_func:
+            self._last_completion_func = func
+            args = (x for x in before_cursor[1:] if not x.startswith('-'))
+            with debug.log_time(log.completion,
+                    'Starting {} completion'.format(func.__name__)):
+                info = CompletionInfo(config=config.instance,
+                                      keyconf=config.key_instance)
+                model = func(*args, info=info)
+            with debug.log_time(log.completion, 'Set completion model'):
+                completion.set_model(model)
+
+        completion.set_pattern(pattern)
 
     def _change_completed_part(self, newtext, before, after, immediate=False):
         """Change the part we're currently completing in the commandline.

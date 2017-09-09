@@ -26,7 +26,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QStyleFactory)
+                             QStyleFactory, QWidget)
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
@@ -94,17 +94,18 @@ class TabWidget(QTabWidget):
         bar.set_tab_data(idx, 'indicator-color', color)
         bar.update(bar.tabRect(idx))
 
-    def set_tab_pinned(self, idx, pinned, *, loading=False):
+    def set_tab_pinned(self, tab: QWidget,
+                       pinned: bool, *, loading: bool = False) -> None:
         """Set the tab status as pinned.
 
         Args:
-            idx: The tab index.
+            tab: The tab to pin
             pinned: Pinned tab state to set.
             loading: Whether to ignore current data state when
                      counting pinned_count.
         """
         bar = self.tabBar()
-        tab = self.widget(idx)
+        idx = self.indexOf(tab)
 
         # Only modify pinned_count if we had a change
         # always modify pinned_count if we are loading
@@ -487,14 +488,10 @@ class TabBar(QTabBar):
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
         elif self.count() == 0:
-            # This happens on startup on OS X.
+            # This happens on startup on macOS.
             # We return it directly rather than setting `size' because we don't
             # want to ensure it's valid in this special case.
             return QSize()
-        elif self.count() * minimum_size.width() > self.width():
-            # If we don't have enough space, we return the minimum size so we
-            # get scroll buttons as soon as needed.
-            size = minimum_size
         else:
             try:
                 pinned = self.tab_data(index, 'pinned')
@@ -522,13 +519,13 @@ class TabBar(QTabBar):
                 width = no_pinned_width / (self.count() - self.pinned_count)
             else:
 
-                # If we *do* have enough space, tabs should occupy the whole
-                # window width. If there are pinned tabs their size will be
-                # subtracted from the total window width.
-                # During shutdown the self.count goes down,
-                # but the self.pinned_count not - this generates some odd
+                # Tabs should attempt to occupy the whole window width. If
+                # there are pinned tabs their size will be subtracted from the
+                # total window width.  During shutdown the self.count goes
+                # down, but the self.pinned_count not - this generates some odd
                 # behavior. To avoid this we compare self.count against
-                # self.pinned_count.
+                # self.pinned_count. If we end up having too little space, we
+                # set the minimum size below.
                 if self.pinned_count > 0 and no_pinned_count > 0:
                     width = no_pinned_width / no_pinned_count
                 else:
@@ -539,6 +536,10 @@ class TabBar(QTabBar):
             if (no_pinned_count > 0 and
                     index < no_pinned_width % no_pinned_count):
                 width += 1
+
+            # If we don't have enough space, we return the minimum size so we
+            # get scroll buttons as soon as needed.
+            width = max(width, minimum_size.width())
 
             size = QSize(width, height)
         qtutils.ensure_valid(size)
@@ -750,6 +751,17 @@ class TabBarStyle(QCommonStyle):
             rct = super().subElementRect(sr, opt, widget)
             return rct
         else:
+            try:
+                # We need this so the left scroll button is aligned properly.
+                # Otherwise, empty space will be shown after the last tab even
+                # though the button width is set to 0
+                #
+                # QStyle.SE_TabBarScrollLeftButton was added in Qt 5.7
+                if sr == QStyle.SE_TabBarScrollLeftButton:
+                    return super().subElementRect(sr, opt, widget)
+            except AttributeError:
+                pass
+
             return self._style.subElementRect(sr, opt, widget)
 
     def _tab_layout(self, opt):

@@ -204,3 +204,9 @@ Feature: Special qute:// pages
         # With Qt 5.9, we don't get a loaded message?
         And I wait for "Changing title for idx * to 'log'" in the log
         Then no crash should happen
+
+    # :version
+
+    Scenario: Open qute://version
+        When I open qute://version
+        Then the page should contain the plaintext "Version info"

@@ -23,14 +23,15 @@ import os
 import os.path
 
 import sip
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject, QPoint, QTimer
+from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
 
-from qutebrowser.utils import (standarddir, objreg, qtutils, log, usertypes,
-                               message, utils)
+from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
+                               utils)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
+from qutebrowser.completion.models import miscmodels
 
 
 default = object()  # Sentinel value
@@ -101,13 +102,7 @@ class SessionManager(QObject):
                               closed.
         _current: The name of the currently loaded session, or None.
         did_load: Set when a session was loaded.
-
-    Signals:
-        update_completion: Emitted when the session completion should get
-                           updated.
     """
-
-    update_completion = pyqtSignal()
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
@@ -297,8 +292,7 @@ class SessionManager(QObject):
                 utils.yaml_dump(data, f)
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
-        else:
-            self.update_completion.emit()
+
         if load_next_time:
             state_config = objreg.get('state-config')
             state_config['general']['session'] = name
@@ -401,7 +395,7 @@ class SessionManager(QObject):
                     tab_to_focus = i
                 if new_tab.data.pinned:
                     tabbed_browser.set_tab_pinned(
-                        i, new_tab.data.pinned, loading=True)
+                        new_tab, new_tab.data.pinned, loading=True)
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
@@ -419,7 +413,6 @@ class SessionManager(QObject):
             os.remove(path)
         except OSError as e:
             raise SessionError(e)
-        self.update_completion.emit()
 
     def list_sessions(self):
         """Get a list of all session names."""
@@ -428,10 +421,10 @@ class SessionManager(QObject):
             base, ext = os.path.splitext(filename)
             if ext == '.yml':
                 sessions.append(base)
-        return sessions
+        return sorted(sessions)
 
     @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def session_load(self, name, clear=False, temp=False, force=False):
         """Load a session.
 
@@ -459,7 +452,7 @@ class SessionManager(QObject):
                     win.close()
 
     @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('with_private', flag='p')
     def session_save(self, name: str = default, current=False, quiet=False,
@@ -498,7 +491,7 @@ class SessionManager(QObject):
                 message.info("Saved session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
-    @cmdutils.argument('name', completion=usertypes.Completion.sessions)
+    @cmdutils.argument('name', completion=miscmodels.session)
     def session_delete(self, name, force=False):
         """Delete a session.
 

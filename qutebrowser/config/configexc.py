@@ -41,14 +41,12 @@ class ValidationError(Error):
     """Raised when a value for a config type was invalid.
 
     Attributes:
-        section: Section in which the error occurred (added when catching and
-                 re-raising the exception).
-        option: Option in which the error occurred.
+        value: Config value that triggered the error.
+        msg: Additional error message.
     """
 
     def __init__(self, value, msg):
         super().__init__("Invalid value '{}' - {}".format(value, msg))
-        self.section = None
         self.option = None
 
 

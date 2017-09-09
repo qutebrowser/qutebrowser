@@ -103,8 +103,8 @@ def pytest_runtest_makereport(item, call):
     httpbin_log = getattr(item, '_httpbin_log', None)
 
     if not hasattr(report.longrepr, 'addsection'):
-        # In some conditions (on OS X and Windows it seems), report.longrepr is
-        # actually a tuple. This is handled similarily in pytest-qt too.
+        # In some conditions (on macOS and Windows it seems), report.longrepr
+        # is actually a tuple. This is handled similarily in pytest-qt too.
         return
 
     if pytest.config.getoption('--capture') == 'no':
