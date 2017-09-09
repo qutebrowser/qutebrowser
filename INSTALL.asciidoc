@@ -85,7 +85,7 @@ qutebrowser is available in the official repositories for Fedora 22 and newer.
 # dnf install qutebrowser
 ----
 
-It's also recommended to install `qt5-qtwebengine` and start with `--backend
+It's also recommended to install `python3-qt5-webengine` and start with `--backend
 webengine` to use the new backend.
 
 On Archlinux
@@ -174,6 +174,12 @@ If video or sound don't seem to work, try installing the gstreamer plugins:
 ----
 # emerge -av gst-plugins-{base,good,bad,ugly,libav}
 ----
+
+To be able to play videos with proprietary codecs with QtWebEngine, you will
+need to turn off the `bindist` flag for `dev-qt/qtwebengine`.
+
+See the https://wiki.gentoo.org/wiki/Qutebrowser#USE_flags[Gentoo Wiki] for
+more information.
 
 
 On Void Linux

@@ -153,3 +153,26 @@ Feature: Using private browsing
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
                 - url: http://localhost:*/data/numbers/2.txt
+
+
+  Scenario: Saving a private session with only-active-window
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a private window
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :session-save --only-active-window window_session_name
+        And I run :window-only
+        And I run :tab-only
+        And I run :session-load -c window_session_name
+        And I wait until data/numbers/5.txt is loaded
+        Then the session should look like:
+            windows:
+                - tabs:
+                    - history:
+                        - url: http://localhost:*/data/numbers/3.txt
+                    - history:
+                        - url: http://localhost:*/data/numbers/4.txt
+                    - history:
+                        - active: true
+                          url: http://localhost:*/data/numbers/5.txt
