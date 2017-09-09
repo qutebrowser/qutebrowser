@@ -43,6 +43,10 @@ matrix:
       env: TESTENV=flake8
     - os: linux
       env: TESTENV=docs
+      addons:
+         apt:
+           packages:
+           - asciidoc
     - os: linux
       env: TESTENV=vulture
     - os: linux
@@ -53,6 +57,9 @@ matrix:
       env: TESTENV=check-manifest
     - os: linux
       env: TESTENV=eslint
+      language: node_js
+      python: null
+      node_js: node
   allow_failures:
     - os: osx
       env: TESTENV=py36 OSX=elcapitan

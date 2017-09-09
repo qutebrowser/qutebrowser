@@ -65,8 +65,8 @@ pip_install() {
 
 npm_install() {
     # Make sure npm is up-to-date first
-    travis_retry sudo npm install -g npm
-    travis_retry sudo npm install -g "$@"
+    travis_retry npm install -g npm
+    travis_retry npm install -g "$@"
 }
 
 install_node() {
@@ -123,7 +123,7 @@ case $TESTENV in
         ;;
     pylint|vulture)
         #apt_install $pyqt_pkgs libpython3.4-dev
-        check_pyqt
+        #check_pyqt
         ;;
     flake8)
         #apt_install libpython3.4-dev
@@ -139,7 +139,6 @@ case $TESTENV in
     pyroma|check-manifest)
         ;;
     eslint)
-        install_node
         echo "node: $(node --version)"
         echo "npm: $(npm --version)"
         npm_install eslint
