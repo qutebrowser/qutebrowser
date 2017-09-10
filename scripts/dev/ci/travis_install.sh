@@ -109,43 +109,7 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     exit 0
 fi
 
-pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit python3-pyqt5.qtsql libqt5sql5-sqlite"
-
-pip_install pip
-pip_install -r misc/requirements/requirements-tox.txt
-
-pip --version
-tox --version
-
-case $TESTENV in
-    py3*-pyqt*)
-        #apt_install xvfb geoclue gdb apport
-        ;;
-    pylint|vulture)
-        #apt_install $pyqt_pkgs libpython3.4-dev
-        #check_pyqt
-        ;;
-    flake8)
-        #apt_install libpython3.4-dev
-        ;;
-    docs)
-        #apt_install $pyqt_pkgs asciidoc libpython3.4-dev
-        asciidoc --version
-        check_pyqt
-        ;;
-    misc)
-        #apt_install libpython3.4-dev
-        ;;
-    pyroma|check-manifest)
-        ;;
-    eslint)
-        echo "node: $(node --version)"
-        echo "npm: $(npm --version)"
-        npm_install eslint
-        echo "eslint: $(eslint --version)"
-        ;;
-    *)
-        echo "Unknown testenv $TESTENV!" >&2
-        exit 1
-        ;;
-esac
+if [[ $TESTENV != eslint ]]; then
+    pip_install pip
+    pip_install -r misc/requirements/requirements-tox.txt
+fi
