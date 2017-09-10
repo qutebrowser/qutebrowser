@@ -1,3 +1,4 @@
+#!/bin/bash
 # vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -42,17 +43,6 @@ travis_retry() {
     return $result
 }
 
-apt_install() {
-    sudo tee /etc/apt/sources.list <<EOF
-deb http://us.archive.ubuntu.com/ubuntu/ trusty main
-deb http://us.archive.ubuntu.com/ubuntu/ trusty-security main
-deb http://us.archive.ubuntu.com/ubuntu/ trusty-updates main
-EOF
-    sudo rm -rf /etc/apt/sources.list.d
-    travis_retry sudo apt-get -y -q update
-    travis_retry sudo apt-get -y -q install --no-install-recommends "$@"
-}
-
 brew_install() {
     brew update
     brew install "$@"
@@ -61,18 +51,6 @@ brew_install() {
 pip_install() {
     # this uses python2
     travis_retry python -m pip install "$@"
-}
-
-npm_install() {
-    # Make sure npm is up-to-date first
-    travis_retry npm install -g npm
-    travis_retry npm install -g "$@"
-}
-
-install_node() {
-    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-    travis_retry sudo apt-get -y -q update
-    travis_retry sudo apt-get -y -q install --no-install-recommends nodejs
 }
 
 check_pyqt() {
