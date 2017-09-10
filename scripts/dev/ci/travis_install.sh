@@ -53,6 +53,12 @@ pip_install() {
     travis_retry python -m pip install "$@"
 }
 
+npm_install() {
+    # Make sure npm is up-to-date first
+    travis_retry npm install -g npm
+    travis_retry npm install -g "$@"
+}
+
 check_pyqt() {
     python3 <<EOF
 import sys
@@ -87,7 +93,12 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     exit 0
 fi
 
-if [[ $TESTENV != eslint ]]; then
-    pip_install pip
-    pip_install -r misc/requirements/requirements-tox.txt
-fi
+case $TESTENV in
+    eslint)
+        npm_install eslint
+        ;;
+    *)
+        pip_install pip
+        pip_install -r misc/requirements/requirements-tox.txt
+        ;;
+esac
