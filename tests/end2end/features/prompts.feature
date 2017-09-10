@@ -219,22 +219,6 @@ Feature: Prompts
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
-    @ci @not_mac @qt!=5.8
-    Scenario: Always accepting geolocation
-        When I set content -> geolocation to true
-        And I open data/prompt/geolocation.html in a new tab
-        And I run :click-element id button
-        Then the javascript message "geolocation permission denied" should not be logged
-
-    @ci @not_mac @qt!=5.8
-    Scenario: geolocation with ask -> true
-        When I set content -> geolocation to ask
-        And I open data/prompt/geolocation.html in a new tab
-        And I run :click-element id button
-        And I wait for a prompt
-        And I run :prompt-accept yes
-        Then the javascript message "geolocation permission denied" should not be logged
-
     Scenario: geolocation with ask -> false
         When I set content -> geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
