@@ -2,6 +2,7 @@ sudo: false
 dist: trusty
 language: python
 group: edge
+python: 3.6
 
 matrix:
   include:
@@ -18,16 +19,13 @@ matrix:
       env: DOCKER=ubuntu-xenial
       services: docker
     - os: linux
-      python: 3.6
       env: TESTENV=py36-pyqt571
     - os: linux
-      python: 3.6
       env: TESTENV=py36-pyqt58
     - os: linux
       python: 3.5
       env: TESTENV=py35-pyqt59
     - os: linux
-      python: 3.6
       env: TESTENV=py36-pyqt59-cov
     - os: osx
       env: TESTENV=py36 OSX=elcapitan
@@ -38,7 +36,6 @@ matrix:
     #   osx_image: xcode6.4
     - os: linux
       env: TESTENV=pylint PYTHON=python3.6
-      python: 3.6
     - os: linux
       env: TESTENV=flake8
     - os: linux
