@@ -66,6 +66,14 @@ def is_ignored_lowlevel_message(message):
         return True
     elif message == 'getrlimit(RLIMIT_NOFILE) failed':
         return True
+    # Travis CI containers don't have a /etc/machine-id
+    elif message.endswith('D-Bus library appears to be incorrectly set up; '
+                          'failed to read machine uuid: Failed to open '
+                          '"/etc/machine-id": No such file or directory'):
+        return True
+    elif message == ('See the manual page for dbus-uuidgen to correct this '
+                     'issue.'):
+        return True
     return False
 
 
