@@ -13,11 +13,11 @@ Content-Transfer-Encoding: quoted-printable
 Content-Location: http://localhost:(port)/data/downloads/mhtml/simple/simple.html
 
 <!DOCTYPE html><html><head><meta http-equiv=3D"Content-Type" content=3D"tex=
-t/html; charset=3DUTF-8">
+t/html; charset=3DUTF-8"><style type=3D"text/css">
+html > ::-webkit-scrollbar { width: 0px; height: 0px; }</style>
        =20
         <title>Simple MHTML test</title>
-    <style type=3D"text/css">
-html > ::-webkit-scrollbar { width: 0px; height: 0px; }</style></head>
+    </head>
     <body>
         <a href=3D"http://localhost:(port)/">normal link to another page</a>
    =20
