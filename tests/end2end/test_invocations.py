@@ -175,7 +175,7 @@ def test_version(request):
     proc.start(sys.executable, args)
     ok = proc.waitForStarted(2000)
     assert ok
-    ok = proc.waitForFinished(2000)
+    ok = proc.waitForFinished(10000)
 
     stdout = bytes(proc.readAllStandardOutput()).decode('utf-8')
     print(stdout)
