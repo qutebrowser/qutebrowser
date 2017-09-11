@@ -74,7 +74,7 @@ Feature: Using completion
         Given I have a fresh instance
         When I open data/hello.txt
         And I open data/hello2.txt in a new tab
-        And I run :set-cmd-text -s :buffer
+        And I run :set-cmd-text -s :tab-select
         And I run :completion-item-focus next
         And I run :completion-item-focus next
         And I run :completion-item-del
@@ -86,9 +86,9 @@ Feature: Using completion
         When I open data/hello.txt
         And I open data/hello2.txt in a new tab
         # Tricking completer into not updating tabs
-        And I run :set-cmd-text -s :buffer
+        And I run :set-cmd-text -s :tab-select
         And I run :tab-move 1
-        And I run :buffer hello2.txt
+        And I run :tab-select hello2.txt
         Then the following tabs should be open:
             - data/hello2.txt (active)
             - data/hello.txt
