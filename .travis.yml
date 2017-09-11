@@ -58,8 +58,6 @@ matrix:
       language: node_js
       python: null
       node_js: node
-  allow_failures:
-    - os: osx
   fast_finish: true
 
 cache:
