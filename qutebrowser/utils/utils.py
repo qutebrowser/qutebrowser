@@ -856,3 +856,47 @@ def expand_windows_drive(path):
         return path + "\\"
     else:
         return path
+
+
+def parse_number_sets(txtset, minnum, maxnum):
+    """Parse comma delimited numbers and ranges into a set.
+
+    Parse the given numbers set in text format, and return it as a list of
+    numbers, such that the numbers are never smaller than minnum, and never
+    greater than maxnum.
+
+    Args:
+        txtset: Number set specification. E.g. '1,5,first,8-last,2', where
+                'first' and 'last' are keywords denoting the minimum and
+                maximum allowable numbers respectively.
+        minnum: Minimum allowable number.
+        maxnum: Maximum allowable number.
+    """
+    txtset = txtset.lower() \
+                   .replace('last', str(maxnum)) \
+                   .replace('first', str(minnum))
+    numset = set()
+    parts = txtset.split(',')
+    for part in parts:
+        if part:
+            if part.find('-') != -1:
+                [start, end] = part.split('-')
+                start = int(start)
+                end = int(end)
+
+                if start > end:
+                    start, end = end, start
+
+                if start < minnum:
+                    start = minnum
+                if end > maxnum:
+                    end = maxnum
+
+                for i in range(start, end+1):
+                    numset.add(i)
+            else:
+                i = int(part)
+                if i >= minnum and i <= maxnum:
+                    numset.add(i)
+
+    return numset

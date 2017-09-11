@@ -655,10 +655,40 @@ Feature: Tab management
               - history:
                 - url: http://localhost:*/data/numbers/2.txt
 
+    Scenario: Detaching multiple tabs
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I open data/numbers/6.txt in a new tab
+        And I open data/numbers/7.txt in a new tab
+        And I run :tab-detach 4-7
+        And I wait until data/numbers/7.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/3.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/4.txt
+              - history:
+                - url: http://localhost:*/data/numbers/5.txt
+              - history:
+                - url: http://localhost:*/data/numbers/6.txt
+              - history:
+                - url: http://localhost:*/data/numbers/7.txt
+
     Scenario: Detach tab from window with only one tab
         When I open data/hello.txt
         And I run :tab-detach
-        Then the error "Cannot detach one tab." should be shown
+        Then the error "Cannot detach all tabs." should be shown
 
     # :undo
 

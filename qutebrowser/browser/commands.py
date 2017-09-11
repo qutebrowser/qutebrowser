@@ -131,13 +131,17 @@ class CommandDispatcher:
         if window or private:
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
+            return tabbed_browser
         elif tab:
             tabbed_browser.tabopen(url, background=False, explicit=explicit)
+            return tabbed_browser
         elif background:
             tabbed_browser.tabopen(url, background=True, explicit=explicit)
+            return tabbed_browser
         else:
             widget = self._current_widget()
             widget.openurl(url)
+            return tabbed_browser
 
     def _cntwidget(self, count=None):
         """Return a widget based on a count/idx.
@@ -514,14 +518,44 @@ class CommandDispatcher:
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_detach(self):
-        """Detach the current tab to its own window."""
-        if self._count() < 2:
-            raise cmdexc.CommandError("Cannot detach one tab.")
-        url = self._current_url()
-        self._open(url, window=True)
-        cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
+    def tab_detach(self, indexset=None):
+        """Detach tab(s) to their own window.
+
+        Args:
+            indexset: Specify the set of tab indexes to detach. E.g.
+                '2,5,6-last,3', where 'last' is special keyword that denotes
+                the last tab. If you specify numbers smaller than 1, or greater
+                than 'last', then those numbers will be silently ignored. You
+                must leave at least 1 tab in the current window. If left empty
+                only the current tab will be detached
+        """
+        if indexset is None:
+            indexes_to_detach = [self._current_index()+1]
+        else:
+            try:
+                indexes_to_detach = utils.parse_number_sets(indexset,
+                                                            1,
+                                                            self._count())
+            except ValueError:
+                raise cmdexc.CommandError(
+                    "Invalid index set '{}'!".format(indexset))
+
+        if self._count() <= len(indexes_to_detach):
+            raise cmdexc.CommandError("Cannot detach all tabs.")
+
+        tabs_urls_to_detach = []
+        for i in indexes_to_detach:
+            j = i - 1
+            tabs_urls_to_detach.append((self._tabbed_browser.widget(j),
+                                        self._tabbed_browser.tab_url(j)))
+
+        tabbed_browser = None
+        for t, u in tabs_urls_to_detach:
+            if tabbed_browser is None:
+                tabbed_browser = self._open(u, window=True)
+            else:
+                tabbed_browser.tabopen(u)
+            self._tabbed_browser.close_tab(t, add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
