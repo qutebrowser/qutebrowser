@@ -68,12 +68,16 @@ def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
     assert actual == expected
 
 
-def test_progress_affecting_statusbar_height(fake_statusbar, progress_widget):
+def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
+                                             progress_widget):
     """Make sure the statusbar stays the same height when progress is shown.
 
     https://github.com/qutebrowser/qutebrowser/issues/886
     https://github.com/qutebrowser/qutebrowser/pull/890
     """
+    # For some reason on Windows, with Courier, there's a 1px difference.
+    config_stub.val.fonts.statusbar = '8pt monospace'
+
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height
 
