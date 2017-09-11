@@ -1684,9 +1684,9 @@ colors.webpage.bg:
 ## fonts
 
 fonts.monospace:
-  default: xos4 Terminus, Terminus, Monospace, "DejaVu Sans Mono", Monaco, "Bitstream
+  default: '"xos4 Terminus", Terminus, Monospace, "DejaVu Sans Mono", Monaco, "Bitstream
     Vera Sans Mono", "Andale Mono", "Courier New", Courier, "Liberation Mono", monospace,
-    Fixed, Consolas, Terminal
+    Fixed, Consolas, Terminal'
   type: Font
   desc: >-
     Default monospace fonts.
