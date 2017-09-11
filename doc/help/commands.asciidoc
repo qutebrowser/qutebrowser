@@ -88,7 +88,6 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<undo,undo>>|Re-open a closed tab.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
-|<<wq,wq>>|Save open pages and quit.
 |<<yank,yank>>|Yank something to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
@@ -952,15 +951,6 @@ Show the source of the current page in a new tab.
 [[window-only]]
 === window-only
 Close all windows except for the current one.
-
-[[wq]]
-=== wq
-Syntax: +:wq ['name']+
-
-Save open pages and quit.
-
-==== positional arguments
-* +'name'+: The name of the session.
 
 [[yank]]
 === yank

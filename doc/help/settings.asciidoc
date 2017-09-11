@@ -496,7 +496,7 @@ Default:
 * +pass:[Ss]+: +pass:[open qute://settings]+
 * +pass:[T]+: +pass:[tab-focus]+
 * +pass:[ZQ]+: +pass:[quit]+
-* +pass:[ZZ]+: +pass:[wq]+
+* +pass:[ZZ]+: +pass:[quit --save]+
 * +pass:[[[]+: +pass:[navigate prev]+
 * +pass:[]]]+: +pass:[navigate next]+
 * +pass:[`]+: +pass:[enter-mode set_mark]+
