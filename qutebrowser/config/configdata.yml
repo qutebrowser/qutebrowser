@@ -1983,7 +1983,7 @@ bindings.default:
       <Ctrl-V>: enter-mode passthrough
       <Ctrl-Q>: quit
       ZQ: quit
-      ZZ: wq
+      ZZ: quit --save
       <Ctrl-F>: scroll-page 0 1
       <Ctrl-B>: scroll-page 0 -1
       <Ctrl-D>: scroll-page 0 0.5
