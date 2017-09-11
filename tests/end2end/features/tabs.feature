@@ -644,7 +644,6 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :tab-detach
-        And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
             windows:
             - tabs:
@@ -1007,6 +1006,56 @@ Feature: Tab management
         When I open data/title.html
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
+
+    # :tab-take
+
+    Scenario: Take a tab from another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :tab-take 0/1
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+
+    Scenario: Take a tab from the same window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-take 0/1
+        Then the error "Can't take a tab from the same window" should be shown
+
+    # :tab-give
+
+    Scenario: Give a tab to another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :tab-give 0
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+            - tabs:
+              - history:
+                - url: about:blank
+
+    Scenario: Give a tab to the same window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-give 0
+        Then the error "Can't give a tab to the same window" should be shown
 
     # Other
 
