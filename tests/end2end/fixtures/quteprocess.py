@@ -74,6 +74,13 @@ def is_ignored_lowlevel_message(message):
     elif message == ('See the manual page for dbus-uuidgen to correct this '
                      'issue.'):
         return True
+    # Travis CI macOS:
+    # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
+    # selectedTextBackgroundColor from default ()
+
+    elif message.endswith("Couldn't set selectedTextBackgroundColor from "
+                          "default ()"):
+        return True
     return False
 
 
