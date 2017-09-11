@@ -291,7 +291,6 @@ Feature: Yanking and pasting.
         # Compare
         Then the javascript message "textarea contents: onHello worlde two three four" should be logged
 
-    @qtwebengine_mac_xfail
     Scenario: Inserting text into a text field with undo
         When I set content.javascript.log to info
         And I open data/paste_primary.html

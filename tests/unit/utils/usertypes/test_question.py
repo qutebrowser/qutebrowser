@@ -89,3 +89,12 @@ def test_abort_typeerror(question, qtbot, mocker, caplog):
     with caplog.at_level(logging.ERROR, 'misc'):
         question.abort()
     assert caplog.records[0].message == 'Error while aborting question'
+
+
+def test_abort_twice(question, qtbot):
+    """Abort a question twice."""
+    with qtbot.wait_signal(question.aborted):
+        question.abort()
+    assert question.is_aborted
+    with qtbot.assert_not_emitted(question.aborted):
+        question.abort()

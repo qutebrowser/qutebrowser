@@ -1,3 +1,4 @@
+#!/bin/bash
 # vim: ft=sh fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
@@ -42,37 +43,19 @@ travis_retry() {
     return $result
 }
 
-apt_install() {
-    sudo tee /etc/apt/sources.list <<EOF
-deb http://us.archive.ubuntu.com/ubuntu/ trusty main
-deb http://us.archive.ubuntu.com/ubuntu/ trusty-security main
-deb http://us.archive.ubuntu.com/ubuntu/ trusty-updates main
-EOF
-    sudo rm -rf /etc/apt/sources.list.d
-    travis_retry sudo apt-get -y -q update
-    travis_retry sudo apt-get -y -q install --no-install-recommends "$@"
-}
-
 brew_install() {
     brew update
     brew install "$@"
 }
 
 pip_install() {
-    # this uses python2
-    travis_retry sudo -H python -m pip install "$@"
+    travis_retry python3 -m pip install "$@"
 }
 
 npm_install() {
     # Make sure npm is up-to-date first
-    travis_retry sudo npm install -g npm
-    travis_retry sudo npm install -g "$@"
-}
-
-install_node() {
-    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-    travis_retry sudo apt-get -y -q update
-    travis_retry sudo apt-get -y -q install --no-install-recommends nodejs
+    travis_retry npm install -g npm
+    travis_retry npm install -g "$@"
 }
 
 check_pyqt() {
@@ -103,55 +86,18 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
     brew_install python3 qt5 pyqt5
 
     pip_install -r misc/requirements/requirements-tox.txt
-    pip --version
+    python3 -m pip --version
     tox --version
     check_pyqt
     exit 0
 fi
 
-pyqt_pkgs="python3-pyqt5 python3-pyqt5.qtquick python3-pyqt5.qtwebkit python3-pyqt5.qtsql libqt5sql5-sqlite"
-
-pip_install pip
-pip_install -r misc/requirements/requirements-tox.txt
-
-pip --version
-tox --version
-
 case $TESTENV in
-    py34-cov)
-        pip_install -r misc/requirements/requirements-codecov.txt
-        apt_install xvfb $pyqt_pkgs libpython3.4-dev gdb apport libqt5webkit5-dbg python3-pyqt5-dbg python3-pyqt5.qtquick-dbg python3-pyqt5.qtwebkit-dbg python3-dbg
-        check_pyqt
-        ;;
-    py3*-pyqt*)
-        apt_install xvfb geoclue gdb apport
-        ;;
-    pylint|vulture)
-        apt_install $pyqt_pkgs libpython3.4-dev
-        check_pyqt
-        ;;
-    flake8)
-        apt_install libpython3.4-dev
-        ;;
-    docs)
-        apt_install $pyqt_pkgs asciidoc libpython3.4-dev
-        asciidoc --version
-        check_pyqt
-        ;;
-    misc)
-        apt_install libpython3.4-dev
-        ;;
-    pyroma|check-manifest)
-        ;;
     eslint)
-        install_node
-        echo "node: $(node --version)"
-        echo "npm: $(npm --version)"
         npm_install eslint
-        echo "eslint: $(eslint --version)"
         ;;
     *)
-        echo "Unknown testenv $TESTENV!" >&2
-        exit 1
+        pip_install pip
+        pip_install -r misc/requirements/requirements-tox.txt
         ;;
 esac

@@ -66,6 +66,21 @@ def is_ignored_lowlevel_message(message):
         return True
     elif message == 'getrlimit(RLIMIT_NOFILE) failed':
         return True
+    # Travis CI containers don't have a /etc/machine-id
+    elif message.endswith('D-Bus library appears to be incorrectly set up; '
+                          'failed to read machine uuid: Failed to open '
+                          '"/etc/machine-id": No such file or directory'):
+        return True
+    elif message == ('See the manual page for dbus-uuidgen to correct this '
+                     'issue.'):
+        return True
+    # Travis CI macOS:
+    # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
+    # selectedTextBackgroundColor from default ()
+
+    elif message.endswith("Couldn't set selectedTextBackgroundColor from "
+                          "default ()"):
+        return True
     return False
 
 
@@ -127,6 +142,11 @@ def is_ignored_chromium_message(line):
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
+
+        # macOS on Travis
+        # [5140:5379:0911/063441.239771:ERROR:mach_port_broker.mm(175)]
+        # Unknown process 5176 is sending Mach IPC messages!
+        'Unknown process * is sending Mach IPC messages!',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)

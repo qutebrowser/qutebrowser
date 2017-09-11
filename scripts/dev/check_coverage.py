@@ -53,8 +53,6 @@ PERFECT_FILES = [
         'browser/webkit/cookies.py'),
     ('tests/unit/browser/test_history.py',
         'browser/history.py'),
-    ('tests/unit/browser/test_history.py',
-        'browser/webkit/webkithistory.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
         'browser/webkit/http.py'),
     ('tests/unit/browser/webkit/http/test_content_disposition.py',
@@ -73,7 +71,7 @@ PERFECT_FILES = [
     ('tests/unit/browser/test_signalfilter.py',
         'browser/signalfilter.py'),
     (None,
-        'browser/webkit/certificateerror.py'),
+        'browser/webengine/certificateerror.py'),
     # ('tests/unit/browser/test_tab.py',
     #     'browser/tab.py'),
 
@@ -272,8 +270,8 @@ def main_check():
         subprocess.check_call([sys.executable, '-m', 'coverage', 'report',
                                '--show-missing', '--include', filters])
         print()
-        print("To debug this, run 'tox -e py35-cov' (or py34-cov) locally and "
-              "check htmlcov/index.html")
+        print("To debug this, run 'tox -e py36-pyqt59-cov' "
+              "(or py35-pyqt59-cov) locally and check htmlcov/index.html")
         print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 
