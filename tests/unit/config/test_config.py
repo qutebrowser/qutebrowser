@@ -572,7 +572,7 @@ class TestBindConfigCommand:
         Should show an error.
         """
         with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.unbind(key, mode)
+            commands.unbind(key, mode=mode)
 
 
 class TestConfig:

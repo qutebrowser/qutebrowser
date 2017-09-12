@@ -347,7 +347,7 @@ class ConfigCommands:
             raise cmdexc.CommandError("bind: {}".format(e))
 
     @cmdutils.register(instance='config-commands')
-    def unbind(self, key, mode='normal'):
+    def unbind(self, key, *, mode='normal'):
         """Unbind a keychain.
 
         Args:

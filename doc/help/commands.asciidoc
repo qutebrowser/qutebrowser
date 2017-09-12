@@ -933,13 +933,15 @@ How many tabs to switch back.
 
 [[unbind]]
 === unbind
-Syntax: +:unbind 'key' ['mode']+
+Syntax: +:unbind [*--mode* 'mode'] 'key'+
 
 Unbind a keychain.
 
 ==== positional arguments
 * +'key'+: The keychain or special key (inside <...>) to unbind.
-* +'mode'+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
+
+==== optional arguments
+* +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 
 [[undo]]
