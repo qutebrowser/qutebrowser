@@ -76,7 +76,7 @@ def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
     https://github.com/qutebrowser/qutebrowser/pull/890
     """
     # For some reason on Windows, with Courier, there's a 1px difference.
-    config_stub.val.fonts.statusbar = '8pt monospace'
+    config_stub.val.fonts.statusbar = '8pt Monospace'
 
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height
