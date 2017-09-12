@@ -320,7 +320,8 @@ class ConfigCommands:
             command: The command to execute, with optional args, or None to
                      print the current binding.
             mode: A comma-separated list of modes to bind the key in
-                  (default: `normal`).
+                  (default: `normal`). See `:help bindings.commands` for the
+                  available modes.
             force: Rebind the key if it is already bound.
         """
         if command is None:
@@ -352,6 +353,7 @@ class ConfigCommands:
         Args:
             key: The keychain or special key (inside <...>) to unbind.
             mode: A mode to unbind the key in (default: `normal`).
+                  See `:help bindings.commands` for the available modes.
         """
         try:
             self._keyconfig.unbind(key, mode=mode, save_yaml=True)

@@ -308,7 +308,9 @@ For simple keys (no `<>`-signs), a capital letter means the key is pressed with 
 If you want a binding to do nothing, bind it to the `nop` command. If you want a default binding to be passed through to the website, bind it to null.
 Note that some commands which are only useful for bindings (but not used interactively) are hidden from the command completion. See `:help` for a full list of available commands.
 The following modes are available:
+
 * normal: The default mode, where most commands are invoked.
+
 * insert: Entered when an input field is focused on a website, or by
   pressing `i` in normal mode. Passes through almost all keypresses to the
   website, but has some bindings like `<Ctrl-e>` to open an external editor.
@@ -328,7 +330,7 @@ The following modes are available:
 
 * prompt: Entered when there's a prompt to display, like for download
   locations or when invoked from JavaScript.
-
+  +
   You can bind normal keys in this mode, but they will be only active when a
   yes/no-prompt is asked. For other prompt modes, you can only bind special
   keys.

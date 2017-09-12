@@ -2177,7 +2177,9 @@ bindings.commands:
 
     The following modes are available:
 
+
     * normal: The default mode, where most commands are invoked.
+
 
     * insert: Entered when an input field is focused on a website, or by
       pressing `i` in normal mode. Passes through almost all keypresses to the
@@ -2198,7 +2200,7 @@ bindings.commands:
 
     * prompt: Entered when there's a prompt to display, like for download
       locations or when invoked from JavaScript.
-
+      +
       You can bind normal keys in this mode, but they will be only active when a
       yes/no-prompt is asked. For other prompt modes, you can only bind special
       keys.
