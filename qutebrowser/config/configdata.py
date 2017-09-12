@@ -982,14 +982,14 @@ def data(readonly=False):
 
             ('next-regexes',
              SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
-                          r'\bnext\b,\bmore\b,\bnewer\b,\b[>→≫]\b,\b(>>|»)\b,'
-                          r'\bcontinue\b'),
+                          r'\bnext\b,\bmore\b,\bnewer\b,^[>→≫]($$),'
+                          r'\^(>>|»)($$),bcontinue\b'),
              "A comma-separated list of regexes to use for 'next' links."),
 
             ('prev-regexes',
              SettingValue(typ.List(typ.Regex(flags=re.IGNORECASE)),
-                          r'\bprev(ious)?\b,\bback\b,\bolder\b,\b[<←≪]\b,'
-                          r'\b(<<|«)\b'),
+                          r'\bprev(ious)?\b,\bback\b,\bolder\b,^[<←≪]($$),'
+                          r'^(<<|«)($$)'),
              "A comma-separated list of regexes to use for 'prev' links."),
 
             ('find-implementation',
