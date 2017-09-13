@@ -7,11 +7,13 @@ Feature: Keyboard input
     # :clear-keychain
 
     Scenario: Clearing the keychain
-        When I run :bind foo message-error test12
-        And I run :bind bar message-info test12-2
-        And I press the keys "fo"
+        When I run :bind ,foo message-error test12
+        And I run :bind ,bar message-info test12-2
+        And I press the keys ",fo"
         And I run :clear-keychain
-        And I press the keys "bar"
+        And I press the keys ",bar"
+        And I run :unbind ,foo
+        And I run :unbind ,bar
         Then the message "test12-2" should be shown
 
     # input.forward_unbound_keys

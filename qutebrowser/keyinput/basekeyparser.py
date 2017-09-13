@@ -20,7 +20,6 @@
 """Base class for vim-like key sequence parser."""
 
 import re
-import functools
 import unicodedata
 
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -41,7 +40,6 @@ class BaseKeyParser(QObject):
             partial: No keychain matched yet, but it's still possible in the
                      future.
             definitive: Keychain matches exactly.
-            ambiguous: There are both a partial and a definitive match.
             none: No more matches possible.
 
         Types: type of a key binding.
@@ -59,7 +57,6 @@ class BaseKeyParser(QObject):
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
         _keystring: The currently entered key sequence
-        _ambiguous_timer: Timer for delayed execution with ambiguous bindings.
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -78,16 +75,13 @@ class BaseKeyParser(QObject):
     do_log = True
     passthrough = False
 
-    Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
-                                     'other', 'none'])
+    Match = usertypes.enum('Match', ['partial', 'definitive', 'other', 'none'])
     Type = usertypes.enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent)
         self._win_id = win_id
-        self._ambiguous_timer = usertypes.Timer(self, 'ambiguous-match')
-        self._ambiguous_timer.setSingleShot(True)
         self._modename = None
         self._keystring = ''
         if supports_count is None:
@@ -189,7 +183,6 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring, no text char")
             return self.Match.none
 
-        self._stop_timers()
         key_mappings = config.val.bindings.key_mappings
         txt = key_mappings.get(txt, txt)
         self._keystring += txt
@@ -207,10 +200,6 @@ class BaseKeyParser(QObject):
                 self._keystring))
             self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
-        elif match == self.Match.ambiguous:
-            self._debug_log("Ambiguous match for '{}'.".format(
-                self._keystring))
-            self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
             self._debug_log("No match for '{}' (added {})".format(
                 self._keystring, txt))
@@ -230,11 +219,9 @@ class BaseKeyParser(QObject):
 
         Return:
             A tuple (matchtype, binding).
-                matchtype: Match.definitive, Match.ambiguous, Match.partial or
-                           Match.none
-                binding: - None with Match.partial/Match.none
-                         - The found binding with Match.definitive/
-                           Match.ambiguous
+                matchtype: Match.definitive, Match.partial or Match.none.
+                binding: - None with Match.partial/Match.none.
+                         - The found binding with Match.definitive.
         """
         # A (cmd_input, binding) tuple (k, v of bindings) or None.
         definitive_match = None
@@ -252,57 +239,12 @@ class BaseKeyParser(QObject):
             elif binding.startswith(cmd_input):
                 partial_match = True
                 break
-        if definitive_match is not None and partial_match:
-            return (self.Match.ambiguous, definitive_match[1])
-        elif definitive_match is not None:
+        if definitive_match is not None:
             return (self.Match.definitive, definitive_match[1])
         elif partial_match:
             return (self.Match.partial, None)
         else:
             return (self.Match.none, None)
-
-    def _stop_timers(self):
-        """Stop a delayed execution if any is running."""
-        if self._ambiguous_timer.isActive() and self.do_log:
-            log.keyboard.debug("Stopping delayed execution.")
-        self._ambiguous_timer.stop()
-        try:
-            self._ambiguous_timer.timeout.disconnect()
-        except TypeError:
-            # no connections
-            pass
-
-    def _handle_ambiguous_match(self, binding, count):
-        """Handle an ambiguous match.
-
-        Args:
-            binding: The command-string to execute.
-            count: The count to pass.
-        """
-        self._debug_log("Ambiguous match for '{}'".format(self._keystring))
-        time = config.val.input.ambiguous_timeout
-        if time == 0:
-            # execute immediately
-            self.clear_keystring()
-            self.execute(binding, self.Type.chain, count)
-        else:
-            # execute in `time' ms
-            self._debug_log("Scheduling execution of {} in {}ms".format(
-                binding, time))
-            self._ambiguous_timer.setInterval(time)
-            self._ambiguous_timer.timeout.connect(
-                functools.partial(self.delayed_exec, binding, count))
-            self._ambiguous_timer.start()
-
-    def delayed_exec(self, command, count):
-        """Execute a delayed command.
-
-        Args:
-            command/count: As if passed to self.execute()
-        """
-        self._debug_log("Executing delayed command now!")
-        self.clear_keystring()
-        self.execute(command, self.Type.chain, count)
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.

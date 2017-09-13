@@ -37,7 +37,6 @@ def keyparser(key_config_stub):
         0, supports_count=True, supports_chains=True)
     kp.execute = mock.Mock()
     yield kp
-    assert not kp._ambiguous_timer.isActive()
 
 
 @pytest.fixture
@@ -242,50 +241,14 @@ class TestKeyChain:
             'message-info 0', keyparser.Type.chain, None)
         assert keyparser._keystring == ''
 
-    def test_ambiguous_keychain(self, qapp, handle_text, config_stub,
-                                keyparser):
-        config_stub.val.input.ambiguous_timeout = 100
-        timer = keyparser._ambiguous_timer
-        assert not timer.isActive()
-        # We start with 'a' where the keychain gives us an ambiguous result.
-        # Then we check if the timer has been set up correctly
-        handle_text((Qt.Key_A, 'a'))
-        assert not keyparser.execute.called
-        assert timer.isSingleShot()
-        assert timer.interval() == 100
-        assert timer.isActive()
-        # Now we type an 'x' and check 'ax' has been executed and the timer
-        # stopped.
-        handle_text((Qt.Key_X, 'x'))
-        keyparser.execute.assert_called_once_with(
-            'message-info ax', keyparser.Type.chain, None)
-        assert not timer.isActive()
-        assert keyparser._keystring == ''
-
-    def test_ambiguous_keychain_no_timeout(self, handle_text, config_stub,
-                                           keyparser):
-        config_stub.val.input.ambiguous_timeout = 0
+    def test_ambiguous_keychain(self, handle_text, keyparser):
         handle_text((Qt.Key_A, 'a'))
         assert keyparser.execute.called
-        assert not keyparser._ambiguous_timer.isActive()
 
     def test_invalid_keychain(self, handle_text, keyparser):
         handle_text((Qt.Key_B, 'b'))
         handle_text((Qt.Key_C, 'c'))
         assert keyparser._keystring == ''
-
-    def test_ambiguous_delayed_exec(self, handle_text, config_stub, qtbot,
-                                    keyparser):
-        config_stub.val.input.ambiguous_timeout = 100
-
-        # 'a' is an ambiguous result.
-        handle_text((Qt.Key_A, 'a'))
-        assert not keyparser.execute.called
-        assert keyparser._ambiguous_timer.isActive()
-        # We wait for the timeout to occur.
-        with qtbot.waitSignal(keyparser.keystring_updated):
-            pass
-        assert keyparser.execute.called
 
 
 class TestCount:

@@ -191,7 +191,6 @@
 |<<hints.uppercase,hints.uppercase>>|Make chars in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|The maximum time in minutes between two history items for them to be considered being from the same browsing session.
 |<<ignore_case,ignore_case>>|Find text on a page case-insensitively.
-|<<input.ambiguous_timeout,input.ambiguous_timeout>>|Timeout (in milliseconds) for ambiguous key bindings.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Forward unbound keys to the webview in normal mode.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
@@ -2049,13 +2048,6 @@ Valid values:
  * +smart+: Search case-sensitively if there are capital chars
 
 Default: +pass:[smart]+
-
-[[input.ambiguous_timeout]]
-== input.ambiguous_timeout
-Timeout (in milliseconds) for ambiguous key bindings.
-If the current input forms both a complete match and a partial match, the complete match will be executed after this time.
-
-Default: +pass:[500]+
 
 [[input.forward_unbound_keys]]
 == input.forward_unbound_keys

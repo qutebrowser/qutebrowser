@@ -794,19 +794,6 @@ hints.uppercase:
 
 ## input
 
-# FIXME:conf get rid of this?
-input.ambiguous_timeout:
-  default: 500
-  type:
-    name: Int
-    minval: 0
-    maxval: maxint
-  desc: >-
-    Timeout (in milliseconds) for ambiguous key bindings.
-
-    If the current input forms both a complete match and a partial match, the complete
-    match will be executed after this time.
-
 input.forward_unbound_keys:
   default: auto
   type:
