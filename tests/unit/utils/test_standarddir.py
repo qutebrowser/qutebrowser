@@ -44,13 +44,13 @@ def clear_standarddir_cache(monkeypatch):
     monkeypatch.setattr(standarddir, '_locations', {})
 
 
-def test_fake_mac_auto_config(tmpdir, monkeypatch):
-    """Test standardir.config(auto=True) on a fake Mac."""
+def test_fake_mac_config(tmpdir, monkeypatch):
+    """Test standardir.config on a fake Mac."""
     monkeypatch.setattr(sys, 'platform', 'darwin')
     monkeypatch.setenv('HOME', str(tmpdir))
     expected = str(tmpdir) + '/.qutebrowser'  # always with /
     standarddir._init_config(args=None)
-    assert standarddir.config(auto=True) == expected
+    assert standarddir.config() == expected
 
 
 # FIXME:conf

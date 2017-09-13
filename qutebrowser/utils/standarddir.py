@@ -60,15 +60,15 @@ def _init_config(args):
                 path = os.path.join(path, appname)
     _create(path)
     _locations[Location.config] = path
+    _locations[Location.auto_config] = path
 
-    # auto config
+    # Override the normal (non-auto) config on macOS
     if sys.platform == 'darwin':
         overridden, path = _from_args(typ, args)
-        _locations.pop(Location.auto_config, None)  # Remove old state
-        if not overridden:
+        if not overridden:  # pragma: no branch
             path = os.path.expanduser('~/.qutebrowser')
-        _create(path)
-        _locations[Location.auto_config] = path
+            _create(path)
+            _locations[Location.config] = path
 
 
 def config(auto=False):
@@ -78,10 +78,7 @@ def config(auto=False):
     which is different on macOS.
     """
     if auto:
-        try:
-            return _locations[Location.auto_config]
-        except KeyError:
-            pass
+        return _locations[Location.auto_config]
     return _locations[Location.config]
 
 
