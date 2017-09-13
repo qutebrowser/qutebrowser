@@ -26,11 +26,14 @@ import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
-from qutebrowser.utils import log, qtutils, debug
+from qutebrowser.utils import log, qtutils, debug, usertypes
+
+# The cached locations
+_locations = {}
 
 
-# The argparse namespace passed to init()
-_args = None
+Location = usertypes.enum('Location', ['config', 'data', 'system_data',
+                                       'cache', 'download', 'runtime'])
 
 
 class EmptyValueError(Exception):
@@ -38,10 +41,10 @@ class EmptyValueError(Exception):
     """Error raised when QStandardPaths returns an empty value."""
 
 
-def config():
-    """Get a location for configs."""
+def _init_config(args):
+    """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
         appname = QCoreApplication.instance().applicationName()
@@ -50,13 +53,17 @@ def config():
             # https://bugreports.qt.io/browse/QTBUG-38872
             path = os.path.join(path, appname)
     _create(path)
-    return path
+    _locations[Location.config] = path
 
 
-def data():
-    """Get a location for data."""
+def config():
+    return _locations[Location.config]
+
+
+def _init_data(args):
+    """Initialize the location for data."""
     typ = QStandardPaths.DataLocation
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
         if os.name == 'nt':
@@ -68,49 +75,71 @@ def data():
             if data_path == config_path:
                 path = os.path.join(path, 'data')
     _create(path)
-    return path
+    _locations[Location.data] = path
+
+
+def data():
+    return _locations[Location.data]
+
+
+def _init_system_data(_args):
+    """Initialize the location for system-wide data.
+
+    This path may be read-only."""
+    _locations.pop(Location.system_data, None)  # Remove old state
+    if sys.platform.startswith('linux'):
+        path = "/usr/share/qutebrowser"
+        if os.path.exists(path):
+            _locations[Location.system_data] = path
 
 
 def system_data():
-    """Get a location for system-wide data. This path may be read-only."""
-    if sys.platform.startswith('linux'):
-        path = "/usr/share/qutebrowser"
-        if not os.path.exists(path):
-            path = data()
-    else:
-        path = data()
-    return path
+    try:
+        return _locations[Location.system_data]
+    except KeyError:
+        return _locations[Location.data]
+
+
+def _init_cache(args):
+    """Initialize the location for the cache."""
+    typ = QStandardPaths.CacheLocation
+    overridden, path = _from_args(typ, args)
+    if not overridden:
+        path = _writable_location(typ)
+    _create(path)
+    _locations[Location.cache] = path
 
 
 def cache():
-    """Get a location for the cache."""
-    typ = QStandardPaths.CacheLocation
-    overridden, path = _from_args(typ, _args)
+    return _locations[Location.cache]
+
+
+def _init_download(args):
+    """Initialize the location for downloads.
+
+    Note this is only the default directory as found by Qt.
+    """
+    typ = QStandardPaths.DownloadLocation
+    overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
     _create(path)
-    return path
+    _locations[Location.download] = path
 
 
 def download():
-    """Get a location for downloads."""
-    typ = QStandardPaths.DownloadLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-    _create(path)
-    return path
+    return _locations[Location.download]
 
 
-def runtime():
-    """Get a location for runtime data."""
+def _init_runtime(args):
+    """Initialize location for runtime data."""
     if sys.platform.startswith('linux'):
         typ = QStandardPaths.RuntimeLocation
-    else:  # pragma: no cover
+    else:
         # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
 
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
 
     if not overridden:
         try:
@@ -132,7 +161,11 @@ def runtime():
         appname = QCoreApplication.instance().applicationName()
         path = os.path.join(path, appname)
     _create(path)
-    return path
+    _locations[Location.runtime] = path
+
+
+def runtime():
+    return _locations[Location.runtime]
 
 
 def _writable_location(typ):
@@ -195,13 +228,26 @@ def _create(path):
         pass
 
 
+def _init_dirs(args=None):
+    """Create and cache standard directory locations.
+
+    Mainly in a separate function because we need to call it in tests.
+    """
+    _init_config(args)
+    _init_data(args)
+    _init_system_data(args)
+    _init_cache(args)
+    _init_download(args)
+    _init_runtime(args)
+
+
 def init(args):
     """Initialize all standard dirs."""
-    global _args
     if args is not None:
         # args can be None during tests
         log.init.debug("Base directory: {}".format(args.basedir))
-    _args = args
+
+    _init_dirs(args)
     _init_cachedir_tag()
     if args is not None:
         _move_webengine_data()

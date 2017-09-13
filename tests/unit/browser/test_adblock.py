@@ -316,7 +316,8 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
 
 
 @pytest.mark.parametrize('location', ['content', 'comment'])
-def test_invalid_utf8(config_stub, download_stub, tmpdir, caplog, location):
+def test_invalid_utf8(config_stub, download_stub, init_standarddir, tmpdir,
+                      caplog, location):
     """Make sure invalid UTF-8 is handled correctly.
 
     See https://github.com/qutebrowser/qutebrowser/issues/2301

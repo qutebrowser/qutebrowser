@@ -35,7 +35,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, standarddir
 
 import qutebrowser.app  # To register commands
 
@@ -155,6 +155,14 @@ def qapp(qapp):
     """Change the name of the QApplication instance."""
     qapp.setApplicationName('qute_test')
     return qapp
+
+
+@pytest.fixture
+def init_standarddir(qapp):
+    """Initialize the standarddir module for tests which need it."""
+    standarddir._init_dirs()
+    yield
+    standarddir._locations = {}
 
 
 def pytest_addoption(parser):
