@@ -224,7 +224,6 @@ def _path_info():
         'data': standarddir.data(),
         'system_data': standarddir.system_data(),
         'cache': standarddir.cache(),
-        'download': standarddir.download(),
         'runtime': standarddir.runtime(),
     }
 

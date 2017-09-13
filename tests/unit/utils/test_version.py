@@ -463,7 +463,6 @@ def test_path_info(monkeypatch):
         'data': lambda: 'DATA PATH',
         'system_data': lambda: 'SYSTEM DATA PATH',
         'cache': lambda: 'CACHE PATH',
-        'download': lambda: 'DOWNLOAD PATH',
         'runtime': lambda: 'RUNTIME PATH',
     }
 
@@ -476,7 +475,6 @@ def test_path_info(monkeypatch):
     assert pathinfo['data'] == 'DATA PATH'
     assert pathinfo['system_data'] == 'SYSTEM DATA PATH'
     assert pathinfo['cache'] == 'CACHE PATH'
-    assert pathinfo['download'] == 'DOWNLOAD PATH'
     assert pathinfo['runtime'] == 'RUNTIME PATH'
 
 
