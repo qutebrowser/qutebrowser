@@ -49,6 +49,7 @@ def test_fake_mac_auto_config(tmpdir, monkeypatch):
     monkeypatch.setattr(sys, 'platform', 'darwin')
     monkeypatch.setenv('HOME', str(tmpdir))
     expected = str(tmpdir) + '/.qutebrowser'  # always with /
+    standarddir._init_config(args=None)
     assert standarddir.config(auto=True) == expected
 
 
