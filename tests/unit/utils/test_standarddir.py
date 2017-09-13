@@ -159,8 +159,8 @@ class TestStandardDir:
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['Application Support', 'qute_test']),
         (standarddir.config, 1, ['qute_test']),
-        (lambda: standarddir.config(auto=True), 2,
-         [os.path.expanduser('~'), '.qutebrowser']),
+        (lambda: standarddir.config(auto=True), 0,
+         os.path.expanduser('~').split(os.sep) + ['.qutebrowser']),
         (standarddir.cache, 2, ['Caches', 'qute_test']),
         (standarddir.download, 1, ['Downloads']),
     ])
@@ -275,6 +275,7 @@ class TestCreatingDir:
         m.makedirs = os.makedirs
         m.sep = os.sep
         m.path.join = os.path.join
+        m.expanduser = os.path.expanduser
         m.path.exists.return_value = False
         m.path.abspath = lambda x: x
 
