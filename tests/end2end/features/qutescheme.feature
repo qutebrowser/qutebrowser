@@ -200,9 +200,7 @@ Feature: Special qute:// pages
         Then no crash should happen
 
     Scenario: Using qute://plainlog directly
-        When I open qute://plainlog without waiting
-        # With Qt 5.9, we don't get a loaded message?
-        And I wait for "Changing title for idx * to 'log'" in the log
+        When I open qute://plainlog
         Then no crash should happen
 
     # :version
