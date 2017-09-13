@@ -930,6 +930,16 @@ scrolling.bar:
   default: false
   desc: Show a scrollbar.
 
+scrolling.smooth:
+  type: Bool
+  default: false
+  desc: >-
+    Enable smooth scrolling for web pages.
+
+    Note smooth scrolling does not work with the `:scroll-px` command.
+
+## statusbar
+
 statusbar.hide:
   type: Bool
   default: false
@@ -948,14 +958,6 @@ statusbar.position:
   type: VerticalPosition
   default: bottom
   desc: The position of the status bar.
-
-scrolling.smooth:
-  type: Bool
-  default: false
-  desc: >-
-    Enable smooth scrolling for web pages.
-
-    Note smooth scrolling does not work with the `:scroll-px` command.
 
 ## tabs
 
