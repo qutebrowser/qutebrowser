@@ -1952,6 +1952,8 @@ Valid values:
 
 Default: +pass:[python]+
 
+This setting is only available with the QtWebKit backend.
+
 [[hints.hide_unmatched_rapid_hints]]
 == hints.hide_unmatched_rapid_hints
 Hide unmatched hints in rapid mode.

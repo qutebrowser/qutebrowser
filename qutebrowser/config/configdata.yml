@@ -718,6 +718,7 @@ hints.dictionary:
 
 hints.find_implementation:
   default: python
+  backend: QtWebKit
   type:
     name: String
     valid_values:
