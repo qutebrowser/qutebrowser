@@ -197,8 +197,7 @@ Feature: Using hints
         Then the error "No elements found." should be shown
 
     Scenario: Clicking input with existing text
-        When I set content.javascript.log to info
-        And I open data/hints/input.html
+        When I open data/hints/input.html
         And I run :click-element id qute-input-existing
         And I wait for "Entering mode KeyMode.insert *" in the log
         And I run :fake-key new

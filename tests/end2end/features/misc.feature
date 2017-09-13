@@ -50,20 +50,19 @@ Feature: Various utility commands.
     ## :jseval
 
     Scenario: :jseval
-        When I set content.javascript.log to info
-        And I run :jseval console.log("Hello from JS!");
+        When I run :jseval console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then the message "No output or error" should be shown
 
     Scenario: :jseval without logging
-        When I set content.javascript.log to none
+        When I set content.javascript.log to {"unknown": "none", "info": "none", "warning": "debug", "error": "debug"}
         And I run :jseval console.log("Hello from JS!");
+        And I set content.javascript.log to {"unknown": "debug", "info": "debug", "warning": "debug", "error": "debug"}
         Then the message "No output or error" should be shown
         And "[:*] Hello from JS!" should not be logged
 
     Scenario: :jseval with --quiet
-        When I set content.javascript.log to info
-        And I run :jseval --quiet console.log("Hello from JS!");
+        When I run :jseval --quiet console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "No output or error" should not be logged
 
@@ -77,16 +76,14 @@ Feature: Various utility commands.
 
     @qtwebengine_skip
     Scenario: :jseval with --world on QtWebKit
-        When I set content.javascript.log to info
-        And I run :jseval --world=1 console.log("Hello from JS!");
+        When I run :jseval --world=1 console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
         And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
-        When I set content.javascript.log to info
-        And I open data/misc/jseval.html
+        When I open data/misc/jseval.html
         And I run :jseval do_log()
         Then the javascript message "Hello from the page!" should not be logged
         And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
@@ -94,23 +91,20 @@ Feature: Various utility commands.
 
     @qtwebkit_skip
     Scenario: :jseval using the main world
-        When I set content.javascript.log to info
-        And I open data/misc/jseval.html
+        When I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval using the main world as name
-        When I set content.javascript.log to info
-        And I open data/misc/jseval.html
+        When I open data/misc/jseval.html
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that exists as js-code
-        When I set content.javascript.log to info
-        And I run :jseval --file (testdata)/misc/jseval_file.js
+        When I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
         And the javascript message "Hello again from JS!" should be logged
         And "No output or error" should be logged

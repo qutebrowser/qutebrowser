@@ -5,8 +5,7 @@ Feature: Javascript stuff
     Integration with javascript.
 
     Scenario: Using console.log
-        When I set content.javascript.log to debug
-        And I open data/javascript/consolelog.html
+        When I open data/javascript/consolelog.html
         Then the javascript message "console.log works!" should be logged
 
     Scenario: Opening/Closing a window via JS
@@ -111,7 +110,6 @@ Feature: Javascript stuff
 
     Scenario: Checking visible/invisible window size
         When I run :tab-only
-        And I set content.javascript.log to info
         And I open data/javascript/windowsize.html in a new background tab
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next
@@ -119,7 +117,6 @@ Feature: Javascript stuff
 
     Scenario: Checking visible/invisible window size with vertical tabbar
         When I run :tab-only
-        And I set content.javascript.log to info
         And I set tabs.position to left
         And I open data/javascript/windowsize.html in a new background tab
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log

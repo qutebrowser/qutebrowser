@@ -467,7 +467,6 @@ def javascript_message_logged(quteproc, message):
 def javascript_message_not_logged(quteproc, message):
     """Make sure the given message was *not* logged via javascript."""
     quteproc.ensure_not_logged(category='js',
-                               function='javaScriptConsoleMessage',
                                message='[*] {}'.format(message))
 
 

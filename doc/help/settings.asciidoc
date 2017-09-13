@@ -125,7 +125,7 @@
 |<<content.javascript.can_close_tabs,content.javascript.can_close_tabs>>|Whether JavaScript can close tabs.
 |<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Whether JavaScript can open new tabs without user interaction.
 |<<content.javascript.enabled,content.javascript.enabled>>|Enables or disables JavaScript.
-|<<content.javascript.log,content.javascript.log>>|How to log JavaScript console messages.
+|<<content.javascript.log,content.javascript.log>>|Log levels to use for JavaScript console logging messages.
 |<<content.javascript.modal_dialog,content.javascript.modal_dialog>>|Use the standard JavaScript modal dialog for `alert()` and `confirm()`
 |<<content.javascript.prompt,content.javascript.prompt>>|Show javascript prompts.
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Whether locally loaded documents are allowed to access other local urls.
@@ -1466,15 +1466,15 @@ Default: +pass:[true]+
 
 [[content.javascript.log]]
 == content.javascript.log
-How to log JavaScript console messages.
+Log levels to use for JavaScript console logging messages.
+On QtWebKit, the "unknown" setting is always used.
 
-Valid values:
+Default: 
 
- * +none+: Don't log messages.
- * +debug+: Log messages with debug level.
- * +info+: Log messages with info level.
-
-Default: +pass:[debug]+
+- +pass:[error]+: +pass:[debug]+
+- +pass:[info]+: +pass:[debug]+
+- +pass:[unknown]+: +pass:[debug]+
+- +pass:[warning]+: +pass:[debug]+
 
 [[content.javascript.modal_dialog]]
 == content.javascript.modal_dialog

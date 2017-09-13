@@ -3,9 +3,6 @@
 Feature: Prompts
     Various prompts (javascript, SSL errors, authentification, etc.)
 
-    Background:
-        Given I set content.javascript.log to debug
-
     # Javascript
 
     Scenario: Javascript alert

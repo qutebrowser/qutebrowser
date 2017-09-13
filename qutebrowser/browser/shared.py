@@ -119,6 +119,22 @@ def javascript_alert(url, js_msg, abort_on):
                 abort_on=abort_on)
 
 
+def javascript_log_message(level, source, line, msg):
+    """Display a JavaScript log message."""
+    logstring = "[{}:{}] {}".format(source, line, msg)
+    # Needs to line up with the values allowed for the
+    # content.javascript.log setting.
+    logmap = {
+        'none': lambda arg: None,
+        'debug': log.js.debug,
+        'info': log.js.info,
+        'warning': log.js.warning,
+        'error': log.js.error,
+    }
+    logger = logmap[config.val.content.javascript.log[level.name]]
+    logger(logstring)
+
+
 def ignore_certificate_errors(url, errors, abort_on):
     """Display a certificate error question.
 

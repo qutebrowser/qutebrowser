@@ -388,13 +388,26 @@ content.javascript.enabled:
 
 content.javascript.log:
   type:
-    name: String
-    valid_values:
-      - none: "Don't log messages."
-      - debug: Log messages with debug level.
-      - info: Log messages with info level.
-  default: debug
-  desc: How to log JavaScript console messages.
+    name: Dict
+    fixed_keys: ['unknown', 'info', 'warning', 'error']
+    keytype: String
+    valtype:
+      name: String
+      valid_values:
+        - none: "Don't log messages."
+        - debug: Log messages with debug level.
+        - info: Log messages with info level.
+        - warning: Log messages with warning level.
+        - error: Log messages with error level.
+  default:
+    unknown: debug
+    info: debug
+    warning: debug
+    error: debug
+  desc: >-
+    Log levels to use for JavaScript console logging messages.
+
+    On QtWebKit, the "unknown" setting is always used.
 
 content.javascript.modal_dialog:
   type: Bool

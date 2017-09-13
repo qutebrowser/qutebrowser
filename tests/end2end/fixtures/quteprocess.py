@@ -405,7 +405,6 @@ class QuteProc(testprocess.Process):
             The LogLine.
         """
         line = self.wait_for(category='js',
-                             function='javaScriptConsoleMessage',
                              message='[*] {}'.format(message))
         line.expected = True
         return line
@@ -445,7 +444,6 @@ class QuteProc(testprocess.Process):
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
         is_js_error = (msg.category == 'js' and
-                       msg.function == 'javaScriptConsoleMessage' and
                        testutils.pattern_match(pattern='[*] [FAIL] *',
                                                value=msg.message))
         # Try to complain about the most common mistake when accidentally
@@ -464,7 +462,6 @@ class QuteProc(testprocess.Process):
 
         for msg in self._data:
             if (msg.category == 'js' and
-                    msg.function == 'javaScriptConsoleMessage' and
                     testutils.pattern_match(pattern='[*] [SKIP] *',
                                             value=msg.message)):
                 skip_texts.append(msg.message.partition(' [SKIP] ')[2])
