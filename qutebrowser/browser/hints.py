@@ -792,6 +792,8 @@ class HintManager(QObject):
         else:
             self._context.filterstr = filterstr
 
+        log.hints.debug("Filtering hints on {!r}".format(filterstr))
+
         visible = []
         for label in self._context.all_labels:
             try:
