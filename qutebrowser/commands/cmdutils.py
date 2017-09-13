@@ -86,27 +86,6 @@ class register:  # pylint: disable=invalid-name
         self._name = name
         self._kwargs = kwargs
 
-    def _get_name(self, func):
-        """Get the name(s) which should be used for the current command.
-
-        If the name hasn't been overridden explicitly, the function name is
-        transformed.
-
-        If it has been set, it can either be a string which is
-        used directly, or an iterable.
-
-        Args:
-            func: The function to get the name of.
-
-        Return:
-            A list of names, with the main name being the first item.
-        """
-        if self._name is None:
-            return [func.__name__.lower().replace('_', '-')]
-        else:
-            assert isinstance(self._name, str)
-            return self._name
-
     def __call__(self, func):
         """Register the command before running the function.
 

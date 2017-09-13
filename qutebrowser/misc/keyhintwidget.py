@@ -95,14 +95,10 @@ class KeyHintView(QLabel):
                        for glob in config.val.keyhint.blacklist)
 
         bindings_dict = config.key_instance.get_bindings_for(modename)
-        if not bindings_dict:
-            bindings = []
-        else:
-            bindings = [(k, v) for (k, v)
-                        in sorted(bindings_dict.items())
-                        if k.startswith(prefix) and
-                        not utils.is_special_key(k) and
-                        not blacklisted(k)]
+        bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
+                    if k.startswith(prefix) and
+                    not utils.is_special_key(k) and
+                    not blacklisted(k)]
 
         if not bindings:
             self._show_timer.stop()
