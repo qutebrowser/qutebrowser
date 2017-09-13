@@ -472,6 +472,8 @@ def test_init(mocker, tmpdir, with_args):
     if with_args:
         args = types.SimpleNamespace(basedir=str(tmpdir))
         m = mocker.patch('qutebrowser.utils.standarddir._move_webengine_data')
+        m_windows = mocker.patch('qutebrowser.utils.standarddir._move_windows')
+        m_mac = mocker.patch('qutebrowser.utils.standarddir._move_macos')
     else:
         args = None
 
@@ -480,6 +482,15 @@ def test_init(mocker, tmpdir, with_args):
     assert standarddir._locations != {}
     if with_args:
         assert m.called
+        if sys.platform == 'darwin':
+            assert not m_windows.called
+            assert m_mac.called
+        elif os.name == 'nt':
+            assert m_windows.called
+            assert not m_mac.called
+        else:
+            assert not m_windows.called
+            assert not m_mac.called
 
 
 @pytest.mark.linux
