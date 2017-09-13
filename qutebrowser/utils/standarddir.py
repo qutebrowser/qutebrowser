@@ -266,7 +266,7 @@ def init(args):
 
     _init_dirs(args)
     _init_cachedir_tag()
-    if args is not None:
+    if args is not None and getattr(args, 'basedir', None) is None:
         _move_webengine_data()
         if sys.platform == 'darwin':  # pragma: no cover
             _move_macos()

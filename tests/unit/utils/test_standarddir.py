@@ -475,8 +475,8 @@ class TestDataMigrations:
                 'qutebrowser.conf').exists()
 
 
-@pytest.mark.parametrize('with_args', [True, False])
-def test_init(mocker, tmpdir, with_args):
+@pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
+def test_init(mocker, tmpdir, args_kind):
     """Do some sanity checks for standarddir.init().
 
     Things like _init_cachedir_tag() and _move_webengine_data() are tested in
@@ -484,18 +484,21 @@ def test_init(mocker, tmpdir, with_args):
     """
     assert standarddir._locations == {}
 
-    if with_args:
+    m = mocker.patch('qutebrowser.utils.standarddir._move_webengine_data')
+    m_windows = mocker.patch('qutebrowser.utils.standarddir._move_windows')
+    m_mac = mocker.patch('qutebrowser.utils.standarddir._move_macos')
+    if args_kind == 'normal':
+        args = types.SimpleNamespace(basedir=None)
+    elif args_kind == 'basedir':
         args = types.SimpleNamespace(basedir=str(tmpdir))
-        m = mocker.patch('qutebrowser.utils.standarddir._move_webengine_data')
-        m_windows = mocker.patch('qutebrowser.utils.standarddir._move_windows')
-        m_mac = mocker.patch('qutebrowser.utils.standarddir._move_macos')
     else:
+        assert args_kind == 'none'
         args = None
 
     standarddir.init(args)
 
     assert standarddir._locations != {}
-    if with_args:
+    if args_kind == 'normal':
         assert m.called
         if sys.platform == 'darwin':
             assert not m_windows.called
@@ -506,6 +509,10 @@ def test_init(mocker, tmpdir, with_args):
         else:
             assert not m_windows.called
             assert not m_mac.called
+    else:
+        assert not m.called
+        assert not m_windows.called
+        assert not m_mac.called
 
 
 @pytest.mark.linux
