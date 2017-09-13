@@ -64,7 +64,8 @@ class YamlConfig:
 
     def __init__(self):
         save_manager = objreg.get('save-manager')
-        self._filename = os.path.join(standarddir.config(), 'autoconfig.yml')
+        self._filename = os.path.join(standarddir.config(auto=True),
+                                      'autoconfig.yml')
         save_manager.add_saveable('yaml-config', self._save)
         self.values = {}
 
@@ -113,6 +114,6 @@ def init(config):
     # This fixes one of the corruption issues here:
     # https://github.com/qutebrowser/qutebrowser/issues/515
 
-    path = os.path.join(standarddir.config(), 'qsettings')
+    path = os.path.join(standarddir.config(auto=True), 'qsettings')
     for fmt in [QSettings.NativeFormat, QSettings.IniFormat]:
         QSettings.setPath(fmt, QSettings.UserScope, path)

@@ -89,6 +89,7 @@ class TestStandardDir:
     @pytest.mark.parametrize('func, varname', [
         (standarddir.data, 'XDG_DATA_HOME'),
         (standarddir.config, 'XDG_CONFIG_HOME'),
+        (lambda: standarddir.config(auto=True), 'XDG_CONFIG_HOME'),
         (standarddir.cache, 'XDG_CACHE_HOME'),
         (standarddir.runtime, 'XDG_RUNTIME_DIR'),
     ])
@@ -107,6 +108,7 @@ class TestStandardDir:
     @pytest.mark.parametrize('func, subdirs', [
         (standarddir.data, ['.local', 'share', 'qute_test']),
         (standarddir.config, ['.config', 'qute_test']),
+        (lambda: standarddir.config(auto=True), ['.config', 'qute_test']),
         (standarddir.cache, ['.cache', 'qute_test']),
         (standarddir.download, ['Downloads']),
     ])
@@ -139,6 +141,7 @@ class TestStandardDir:
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['qute_test', 'data']),
         (standarddir.config, 1, ['qute_test']),
+        (lambda: standarddir.config(auto=True), 1, ['qute_test']),
         (standarddir.cache, 2, ['qute_test', 'cache']),
         (standarddir.download, 1, ['Downloads']),
     ])
@@ -150,6 +153,8 @@ class TestStandardDir:
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['Application Support', 'qute_test']),
         (standarddir.config, 1, ['qute_test']),
+        # FIXME:conf Actually support auto=True
+        (lambda: standarddir.config(auto=True), 1, ['qute_test']),
         (standarddir.cache, 2, ['Caches', 'qute_test']),
         (standarddir.download, 1, ['Downloads']),
     ])
@@ -166,16 +171,20 @@ class TestArguments:
 
     """Tests the --basedir argument."""
 
-    @pytest.mark.parametrize('typ', [
-        'config', 'data', 'cache', 'download',
-        pytest.param('runtime', marks=pytest.mark.linux)])
-    def test_basedir(self, tmpdir, typ):
+    @pytest.mark.parametrize('typ, args', [
+        ('config', []),
+        ('config', [True]),  # user config
+        ('data', []),
+        ('cache', []),
+        ('download', []),
+        pytest.param('runtime', [], marks=pytest.mark.linux)])
+    def test_basedir(self, tmpdir, typ, args):
         """Test --basedir."""
         expected = str(tmpdir / typ)
-        args = types.SimpleNamespace(basedir=str(tmpdir))
-        standarddir._init_dirs(args)
+        init_args = types.SimpleNamespace(basedir=str(tmpdir))
+        standarddir._init_dirs(init_args)
         func = getattr(standarddir, typ)
-        assert func() == expected
+        assert func(*args) == expected
 
     def test_basedir_relative(self, tmpdir):
         """Test --basedir with a relative path."""

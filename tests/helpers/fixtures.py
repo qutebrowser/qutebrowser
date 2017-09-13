@@ -449,7 +449,7 @@ def config_tmpdir(monkeypatch, tmpdir):
     confdir = tmpdir / 'config'
     path = str(confdir)
     os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'config', lambda: path)
+    monkeypatch.setattr(standarddir, 'config', lambda auto=False: path)
     return confdir
 
 
@@ -462,7 +462,7 @@ def data_tmpdir(monkeypatch, tmpdir):
     datadir = tmpdir / 'data'
     path = str(datadir)
     os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'data', lambda: path)
+    monkeypatch.setattr(standarddir, 'data', lambda system=False: path)
     return datadir
 
 

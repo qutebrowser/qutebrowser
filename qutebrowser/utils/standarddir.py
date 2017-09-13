@@ -56,7 +56,13 @@ def _init_config(args):
     _locations[Location.config] = path
 
 
-def config():
+def config(auto=False):
+    """Get the location for the config directory.
+
+    If auto=True is given, get the location for the autoconfig.yml directory,
+    which is different on macOS.
+    """
+    # FIXME:conf handle auto=True
     return _locations[Location.config]
 
 
