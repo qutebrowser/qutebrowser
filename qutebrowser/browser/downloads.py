@@ -73,11 +73,18 @@ def download_dir():
     remember_dir = config.val.downloads.location.remember
 
     if remember_dir and last_used_directory is not None:
-        return last_used_directory
+        ddir = last_used_directory
     elif directory is None:
-        return standarddir.download()
+        ddir = standarddir.download()
     else:
-        return directory
+        ddir = directory
+
+    try:
+        os.makedirs(ddir)
+    except FileExistsError:
+        pass
+
+    return ddir
 
 
 def immediate_download_path(prompt_download_directory=None):

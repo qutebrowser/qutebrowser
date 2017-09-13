@@ -118,12 +118,12 @@ def _init_download(args):
     """Initialize the location for downloads.
 
     Note this is only the default directory as found by Qt.
+    Therefore, we also don't create it.
     """
     typ = QStandardPaths.DownloadLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
-    _create(path)
     _locations[Location.download] = path
 
 

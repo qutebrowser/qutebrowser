@@ -418,3 +418,15 @@ def test_init(mocker, tmpdir, with_args):
     assert standarddir._locations != {}
     if with_args:
         assert m.called
+
+
+@pytest.mark.linux
+def test_downloads_dir_not_crated(monkeypatch, tmpdir):
+    """Make sure ~/Downloads is not created."""
+    download_dir = tmpdir / 'Downloads'
+    monkeypatch.setenv('HOME', str(tmpdir))
+    # Make sure xdg-user-dirs.dirs is not picked up
+    monkeypatch.delenv('XDG_CONFIG_HOME', raising=False)
+    standarddir._init_dirs()
+    assert standarddir.download() == str(download_dir)
+    assert not download_dir.exists()
