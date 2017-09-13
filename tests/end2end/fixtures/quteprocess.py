@@ -147,6 +147,10 @@ def is_ignored_chromium_message(line):
         # [5140:5379:0911/063441.239771:ERROR:mach_port_broker.mm(175)]
         # Unknown process 5176 is sending Mach IPC messages!
         'Unknown process * is sending Mach IPC messages!',
+        # [5205:44547:0913/142945.003625:ERROR:node_controller.cc(1268)] Error
+        # on receiving Mach ports FFA56F125F699ADB.E28E252911A8704B. Dropping
+        # message.
+        'Error on receiving Mach ports *. Dropping message.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
