@@ -279,7 +279,7 @@ class TestSystemData:
         monkeypatch.setattr('sys.platform', "linux")
         monkeypatch.setattr(os.path, 'exists', lambda path: True)
         standarddir._init_dirs()
-        assert standarddir.system_data() == "/usr/share/qutebrowser"
+        assert standarddir.data(system=True) == "/usr/share/qutebrowser"
 
     @pytest.mark.linux
     def test_system_datadir_not_exist_linux(self, monkeypatch, tmpdir,
@@ -288,7 +288,7 @@ class TestSystemData:
         fake_args.basedir = str(tmpdir)
         monkeypatch.setattr(os.path, 'exists', lambda path: False)
         standarddir._init_dirs(fake_args)
-        assert standarddir.system_data() == standarddir.data()
+        assert standarddir.data(system=True) == standarddir.data()
 
     def test_system_datadir_unsupportedos(self, monkeypatch, tmpdir,
                                           fake_args):
@@ -296,7 +296,7 @@ class TestSystemData:
         fake_args.basedir = str(tmpdir)
         monkeypatch.setattr('sys.platform', "potato")
         standarddir._init_dirs(fake_args)
-        assert standarddir.system_data() == standarddir.data()
+        assert standarddir.data(system=True) == standarddir.data()
 
 
 class TestMoveWebEngineData:

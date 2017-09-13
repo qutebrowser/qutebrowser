@@ -77,15 +77,7 @@ def _init_data(args):
     _create(path)
     _locations[Location.data] = path
 
-
-def data():
-    return _locations[Location.data]
-
-
-def _init_system_data(_args):
-    """Initialize the location for system-wide data.
-
-    This path may be read-only."""
+    # system_data
     _locations.pop(Location.system_data, None)  # Remove old state
     if sys.platform.startswith('linux'):
         path = "/usr/share/qutebrowser"
@@ -93,11 +85,18 @@ def _init_system_data(_args):
             _locations[Location.system_data] = path
 
 
-def system_data():
-    try:
-        return _locations[Location.system_data]
-    except KeyError:
-        return _locations[Location.data]
+def data(system=False):
+    """Get the data directory.
+
+    If system=True is given, gets the system-wide (probably non-writable) data
+    directory.
+    """
+    if system:
+        try:
+            return _locations[Location.system_data]
+        except KeyError:
+            pass
+    return _locations[Location.data]
 
 
 def _init_cache(args):
@@ -235,7 +234,6 @@ def _init_dirs(args=None):
     """
     _init_config(args)
     _init_data(args)
-    _init_system_data(args)
     _init_cache(args)
     _init_download(args)
     _init_runtime(args)

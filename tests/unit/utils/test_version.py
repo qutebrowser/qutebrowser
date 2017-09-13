@@ -460,8 +460,8 @@ def test_path_info(monkeypatch):
     """Test _path_info()."""
     patches = {
         'config': lambda: 'CONFIG PATH',
-        'data': lambda: 'DATA PATH',
-        'system_data': lambda: 'SYSTEM DATA PATH',
+        'data': lambda system=False: ('SYSTEM DATA PATH' if system
+                                      else 'DATA PATH'),
         'cache': lambda: 'CACHE PATH',
         'runtime': lambda: 'RUNTIME PATH',
     }
@@ -473,7 +473,7 @@ def test_path_info(monkeypatch):
 
     assert pathinfo['config'] == 'CONFIG PATH'
     assert pathinfo['data'] == 'DATA PATH'
-    assert pathinfo['system_data'] == 'SYSTEM DATA PATH'
+    assert pathinfo['system data'] == 'SYSTEM DATA PATH'
     assert pathinfo['cache'] == 'CACHE PATH'
     assert pathinfo['runtime'] == 'RUNTIME PATH'
 

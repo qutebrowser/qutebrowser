@@ -222,7 +222,7 @@ def _path_info():
     return {
         'config': standarddir.config(),
         'data': standarddir.data(),
-        'system_data': standarddir.system_data(),
+        'system data': standarddir.data(system=True),
         'cache': standarddir.cache(),
         'runtime': standarddir.runtime(),
     }
