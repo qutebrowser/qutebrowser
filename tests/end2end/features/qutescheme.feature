@@ -78,9 +78,9 @@ Feature: Special qute:// pages
         And I open qute://settings
         # scroll to the right - the table does not fit in the default screen
         And I run :scroll-perc -x 100
+        And I run :jseval document.getElementById('input-ignore_case').value = ''
         And I run :click-element id input-ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
-        And I press the key "<Ctrl+Backspace>"
         And I press the keys "always"
         And I press the key "<Escape>"
         # an explicit Tab to unfocus the input field seems to stabilize the tests
@@ -92,9 +92,9 @@ Feature: Special qute:// pages
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen
         And I run :scroll-perc -x 100
+        And I run :jseval document.getElementById('input-ignore_case').value = ''
         And I run :click-element id input-ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
-        And I press the key "<Ctrl+Backspace>"
         And I press the keys "foo"
         And I press the key "<Escape>"
         # an explicit Tab to unfocus the input field seems to stabilize the tests
