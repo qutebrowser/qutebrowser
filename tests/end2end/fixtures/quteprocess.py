@@ -77,9 +77,28 @@ def is_ignored_lowlevel_message(message):
     # Travis CI macOS:
     # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
     # selectedTextBackgroundColor from default ()
-
     elif message.endswith("Couldn't set selectedTextBackgroundColor from "
                           "default ()"):
+        return True
+    # Mac Mini:
+    # <<<< VTVideoEncoderSelection >>>>
+    # VTSelectAndCreateVideoEncoderInstanceInternal: no video encoder found for
+    # 'avc1'
+    #
+    # [22:32:03.636] VTSelectAndCreateVideoEncoderInstanceInternal signalled
+    # err=-12908 (err) (Video encoder not available) at
+    # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
+    # VideoToolbox/VTVideoEncoderSelection.c line 1245
+    #
+    # [22:32:03.636] VTCompressionSessionCreate signalled err=-12908 (err)
+    # (Could not select and open encoder instance) at
+    # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
+    # VideoToolbox/VTCompressionSession.c # line 946
+    elif 'VTSelectAndCreateVideoEncoderInstanceInternal' in message:
+        return True
+    elif 'VTSelectAndCreateVideoEncoderInstanceInternal' in message:
+        return True
+    elif 'VTCompressionSessionCreate' in message:
         return True
     return False
 
