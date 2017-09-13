@@ -57,6 +57,7 @@ def test_fake_mac_config(tmpdir, monkeypatch):
 # needs AppDataLocation
 @pytest.mark.qt55
 @pytest.mark.parametrize('what', ['data', 'config'])
+@pytest.mark.not_mac
 def test_fake_windows_data_config(tmpdir, monkeypatch, what):
     """Make sure the config is correct on a fake Windows."""
     monkeypatch.setattr(os, 'name', 'nt')
@@ -158,8 +159,8 @@ class TestStandardDir:
 
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['Application Support', 'qute_test']),
-        (standarddir.config, 1, ['qute_test']),
-        (lambda: standarddir.config(auto=True), 0,
+        (lambda: standarddir.config(auto=True), 1, ['qute_test']),
+        (standarddir.config, 0,
          os.path.expanduser('~').split(os.sep) + ['.qutebrowser']),
         (standarddir.cache, 2, ['Caches', 'qute_test']),
         (standarddir.download, 1, ['Downloads']),
