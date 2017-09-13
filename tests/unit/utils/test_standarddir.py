@@ -36,19 +36,6 @@ pytestmark = pytest.mark.usefixtures('qapp')
 
 
 @pytest.fixture(autouse=True)
-def change_qapp_name(qapp):
-    """Change the name of the QApplication instance.
-
-    This changes the applicationName for all tests in this module to
-    "qute_test".
-    """
-    old_name = qapp.applicationName()
-    qapp.setApplicationName('qute_test')
-    yield
-    qapp.setApplicationName(old_name)
-
-
-@pytest.fixture(autouse=True)
 def clear_standarddir_cache(monkeypatch):
     """Make sure the standarddir cache is cleared before/after each test."""
     monkeypatch.setattr(standarddir, '_locations', {})
