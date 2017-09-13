@@ -18,7 +18,7 @@
 
 """Tests for qutebrowser.config.configfiles."""
 
-import os
+import sys
 
 import pytest
 
@@ -103,7 +103,7 @@ def test_init(init_patch, config_tmpdir):
     configfiles.init(config=None)
 
     # Make sure qsettings land in a subdir
-    if os.name != 'nt':
+    if sys.platform == 'linux':
         settings = QSettings()
         settings.setValue("hello", "world")
         settings.sync()
