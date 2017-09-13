@@ -26,7 +26,7 @@ import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
-from qutebrowser.utils import log, qtutils, debug, usertypes
+from qutebrowser.utils import log, qtutils, debug, usertypes, message
 
 # The cached locations
 _locations = {}
@@ -46,13 +46,20 @@ def _init_config(args):
     typ = QStandardPaths.ConfigLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
-        path = _writable_location(typ)
-        appname = QCoreApplication.instance().applicationName()
-        if path.split(os.sep)[-1] != appname:  # pragma: no branch
-            # WORKAROUND - see
-            # https://bugreports.qt.io/browse/QTBUG-38872
-            path = os.path.join(path, appname)
+        if os.name == 'nt':
+            app_data_path = _writable_location(
+                QStandardPaths.AppDataLocation)
+            path = os.path.join(app_data_path, 'config')
+        else:
+            path = _writable_location(typ)
+            appname = QCoreApplication.instance().applicationName()
+            if path.split(os.sep)[-1] != appname:  # pragma: no branch
+                # WORKAROUND - see
+                # https://bugreports.qt.io/browse/QTBUG-38872
+                path = os.path.join(path, appname)
     _create(path)
+    if sys.platform == 'darwin':  # pragma: no cover
+        _create(os.path.expanduser('~/.qutebrowser'))
     _locations[Location.config] = path
 
 
@@ -62,7 +69,8 @@ def config(auto=False):
     If auto=True is given, get the location for the autoconfig.yml directory,
     which is different on macOS.
     """
-    # FIXME:conf handle auto=True
+    if auto and sys.platform == 'darwin':
+        return os.path.expanduser('~/.qutebrowser')
     return _locations[Location.config]
 
 
@@ -71,15 +79,12 @@ def _init_data(args):
     typ = QStandardPaths.DataLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
-        path = _writable_location(typ)
         if os.name == 'nt':
-            # Under windows, config/data might end up in the same directory.
-            data_path = QStandardPaths.writableLocation(
-                QStandardPaths.DataLocation)
-            config_path = QStandardPaths.writableLocation(
-                QStandardPaths.ConfigLocation)
-            if data_path == config_path:
-                path = os.path.join(path, 'data')
+            app_data_path = _writable_location(
+                QStandardPaths.AppDataLocation)
+            path = os.path.join(app_data_path, 'data')
+        else:
+            path = _writable_location(typ)
     _create(path)
     _locations[Location.data] = path
 
@@ -255,6 +260,42 @@ def init(args):
     _init_cachedir_tag()
     if args is not None:
         _move_webengine_data()
+        if sys.platform == 'darwin':  # pragma: no cover
+            _move_macos()
+        elif os.name == 'nt':  # pragma: no cover
+            _move_windows()
+
+
+def _move_macos():
+    """Move most config files to new location on macOS."""
+    old_config = config(auto=True)  # ~/Library/Preferences/qutebrowser
+    new_config = config()  # ~/.qutebrowser
+    for f in os.listdir(old_config):
+        if f not in ['qsettings', 'autoconfig.yml']:
+            _move_data(os.path.join(old_config, f),
+                       os.path.join(new_config, f))
+
+
+def _move_windows():
+    """Move the whole qutebrowser directory from Local to Roaming AppData."""
+    # %APPDATA%\Local\qutebrowser
+    old_appdata_dir = _writable_location(QStandardPaths.DataLocation)
+    # %APPDATA%\Roaming\qutebrowser
+    new_appdata_dir = _writable_location(QStandardPaths.AppDataLocation)
+
+    # data subfolder
+    old_data = os.path.join(old_appdata_dir, 'data')
+    new_data = os.path.join(new_appdata_dir, 'data')
+    ok = _move_data(old_data, new_data)
+    if not ok:  # pragma: no cover
+        return
+
+    # config files
+    new_config_dir = os.path.join(new_appdata_dir, 'config')
+    _create(new_config_dir)
+    for f in os.listdir(old_appdata_dir):
+        _move_data(os.path.join(old_appdata_dir, f),
+                   os.path.join(new_config_dir, f))
 
 
 def _init_cachedir_tag():
@@ -280,43 +321,53 @@ def _move_webengine_data():
     """Move QtWebEngine data from an older location to the new one."""
     # Do NOT use _writable_location here as that'd give us a wrong path
     old_data_dir = QStandardPaths.writableLocation(QStandardPaths.DataLocation)
+    new_data_dir = os.path.join(data(), 'webengine')
+    ok = _move_data(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
+                    new_data_dir)
+    if not ok:
+        return
+
     old_cache_dir = QStandardPaths.writableLocation(
         QStandardPaths.CacheLocation)
-    new_data_dir = os.path.join(data(), 'webengine')
     new_cache_dir = os.path.join(cache(), 'webengine')
-
-    if (not os.path.exists(os.path.join(old_data_dir, 'QtWebEngine')) and
-            not os.path.exists(os.path.join(old_cache_dir, 'QtWebEngine'))):
+    ok = _move_data(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
+                    new_cache_dir)
+    if not ok:
         return
 
-    log.init.debug("Moving QtWebEngine data from {} to {}".format(
-        old_data_dir, new_data_dir))
-    log.init.debug("Moving QtWebEngine cache from {} to {}".format(
-        old_cache_dir, new_cache_dir))
+    # Remove e.g.
+    # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
+    if old_data_dir.split(os.sep)[-2:] == ['qutebrowser', 'qutebrowser']:
+        log.init.debug("Removing {} / {}".format(
+            old_data_dir, old_cache_dir))
+        for old_dir in old_data_dir, old_cache_dir:
+            os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
+            os.rmdir(old_dir)
 
-    if os.path.exists(new_data_dir):
-        log.init.warning("Failed to move old QtWebEngine data as {} already "
-                         "exists!".format(new_data_dir))
-        return
-    if os.path.exists(new_cache_dir):
-        log.init.warning("Failed to move old QtWebEngine cache as {} already "
-                         "exists!".format(new_cache_dir))
-        return
+
+def _move_data(old, new):
+    """Migrate data from an old to a new directory.
+
+    If the old directory does not exist, the migration is skipped.
+    If the new directory already exists, an error is shown.
+
+    Return: True if moving succeeded, False otherwise.
+    """
+    if not os.path.exists(old):
+        return False
+
+    log.init.debug("Migrating data from {} to {}".format(old, new))
+
+    if os.path.exists(new):
+        message.error("Failed to move data from {} as {} already exists!"
+                      .format(old, new))
+        return False
 
     try:
-        shutil.move(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
-                    new_data_dir)
-        shutil.move(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
-                    new_cache_dir)
-
-        # Remove e.g.
-        # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
-        if old_data_dir.split(os.sep)[-2:] == ['qutebrowser', 'qutebrowser']:
-            log.init.debug("Removing {} / {}".format(
-                old_data_dir, old_cache_dir))
-            for old_dir in old_data_dir, old_cache_dir:
-                os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
-                os.rmdir(old_dir)
+        shutil.move(old, new)
     except OSError as e:
-        log.init.exception("Failed to move old QtWebEngine data/cache: "
-                           "{}".format(e))
+        message.error("Failed to move data from {} to {}: {}".format(
+            old, new, e))
+        return False
+
+    return True

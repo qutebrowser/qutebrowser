@@ -20,6 +20,7 @@
 """Tests for qutebrowser.utils.standarddir."""
 
 import os
+import sys
 import os.path
 import types
 import collections
@@ -43,23 +44,24 @@ def clear_standarddir_cache(monkeypatch):
     monkeypatch.setattr(standarddir, '_locations', {})
 
 
-@pytest.mark.parametrize('data_subdir, config_subdir, expected', [
-    ('foo', 'foo', 'foo/data'),
-    ('foo', 'bar', 'foo'),
-])
-def test_get_fake_windows_equal_dir(data_subdir, config_subdir, expected,
-                                    monkeypatch, tmpdir):
-    """Test _get with a fake Windows OS with equal data/config dirs."""
-    locations = {
-        QStandardPaths.DataLocation: str(tmpdir / data_subdir),
-        QStandardPaths.ConfigLocation: str(tmpdir / config_subdir),
-    }
-    monkeypatch.setattr(standarddir.os, 'name', 'nt')
+def test_fake_mac_auto_config(tmpdir, monkeypatch):
+    """Test standardir.config(auto=True) on a fake Mac."""
+    monkeypatch.setattr(sys, 'platform', 'darwin')
+    monkeypatch.setenv('HOME', str(tmpdir))
+    expected = str(tmpdir) + '/.qutebrowser'  # always with /
+    assert standarddir.config(auto=True) == expected
+
+
+@pytest.mark.parametrize('what', ['data', 'config'])
+def test_fake_windows_data_config(tmpdir, monkeypatch, what):
+    """Make sure the config is correct on a fake Windows."""
+    monkeypatch.setattr(os, 'name', 'nt')
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
-                        locations.get)
+                        lambda typ: str(tmpdir))
+    standarddir._init_config(args=None)
     standarddir._init_data(args=None)
-    expected = str(tmpdir / expected)
-    assert standarddir.data() == expected
+    func = getattr(standarddir, what)
+    assert func() == str(tmpdir / what)
 
 
 class TestWritableLocation:
@@ -140,8 +142,8 @@ class TestStandardDir:
 
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['qute_test', 'data']),
-        (standarddir.config, 1, ['qute_test']),
-        (lambda: standarddir.config(auto=True), 1, ['qute_test']),
+        (standarddir.config, 2, ['qute_test', 'config']),
+        (lambda: standarddir.config(auto=True), 2, ['qute_test', 'config']),
         (standarddir.cache, 2, ['qute_test', 'cache']),
         (standarddir.download, 1, ['Downloads']),
     ])
@@ -153,8 +155,8 @@ class TestStandardDir:
     @pytest.mark.parametrize('func, elems, expected', [
         (standarddir.data, 2, ['Application Support', 'qute_test']),
         (standarddir.config, 1, ['qute_test']),
-        # FIXME:conf Actually support auto=True
-        (lambda: standarddir.config(auto=True), 1, ['qute_test']),
+        (lambda: standarddir.config(auto=True), 2,
+         [os.path.expanduser('~'), '.qutebrowser']),
         (standarddir.cache, 2, ['Caches', 'qute_test']),
         (standarddir.download, 1, ['Downloads']),
     ])
@@ -308,33 +310,47 @@ class TestSystemData:
         assert standarddir.data(system=True) == standarddir.data()
 
 
-class TestMoveWebEngineData:
+class TestDataMigrations:
 
-    """Test moving QtWebEngine data from an old location."""
+    """Test moving various data from an old to a new location."""
 
     @pytest.fixture(autouse=True)
-    def patch_standardpaths(self, tmpdir, monkeypatch):
+    def patch_standardpaths(self, files, tmpdir, monkeypatch):
         locations = {
-            QStandardPaths.DataLocation: str(tmpdir / 'data'),
+            QStandardPaths.DataLocation: str(files.local_data_dir),
             QStandardPaths.CacheLocation: str(tmpdir / 'cache'),
+            QStandardPaths.AppDataLocation: str(files.roaming_data_dir),
         }
         monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                             locations.get)
+
         monkeypatch.setattr(standarddir, 'data',
                             lambda: str(tmpdir / 'new_data'))
         monkeypatch.setattr(standarddir, 'cache',
                             lambda: str(tmpdir / 'new_cache'))
+        monkeypatch.setattr(
+            standarddir, 'config', lambda auto=False:
+            str(files.auto_config_dir if auto else files.config_dir))
 
     @pytest.fixture
     def files(self, tmpdir):
-        files = collections.namedtuple('Files', ['old_data', 'new_data',
-                                                 'old_cache', 'new_cache'])
+        files = collections.namedtuple('Files', [
+            'old_webengine_data', 'new_webengine_data',
+            'old_webengine_cache', 'new_webengine_cache',
+            'auto_config_dir', 'config_dir',
+            'local_data_dir', 'roaming_data_dir'])
         return files(
-            old_data=tmpdir / 'data' / 'QtWebEngine' / 'Default' / 'datafile',
-            new_data=tmpdir / 'new_data' / 'webengine' / 'datafile',
-            old_cache=(tmpdir / 'cache' / 'QtWebEngine' / 'Default' /
-                       'cachefile'),
-            new_cache=(tmpdir / 'new_cache' / 'webengine' / 'cachefile'),
+            old_webengine_data=(tmpdir / 'data' / 'QtWebEngine' / 'Default' /
+                                'datafile'),
+            new_webengine_data=tmpdir / 'new_data' / 'webengine' / 'datafile',
+            old_webengine_cache=(tmpdir / 'cache' / 'QtWebEngine' / 'Default' /
+                                 'cachefile'),
+            new_webengine_cache=(tmpdir / 'new_cache' / 'webengine' /
+                                 'cachefile'),
+            auto_config_dir=tmpdir / 'auto_config',
+            config_dir=tmpdir / 'config',
+            local_data_dir=tmpdir / 'data',
+            roaming_data_dir=tmpdir / 'roaming-data',
         )
 
     def test_no_webengine_dir(self, caplog):
@@ -344,32 +360,37 @@ class TestMoveWebEngineData:
                        for rec in caplog.records)
 
     def test_moving_data(self, files):
-        files.old_data.ensure()
-        files.old_cache.ensure()
+        files.old_webengine_data.ensure()
+        files.old_webengine_cache.ensure()
 
         standarddir._move_webengine_data()
 
-        assert not files.old_data.exists()
-        assert not files.old_cache.exists()
-        assert files.new_data.exists()
-        assert files.new_cache.exists()
+        assert not files.old_webengine_data.exists()
+        assert not files.old_webengine_cache.exists()
+        assert files.new_webengine_data.exists()
+        assert files.new_webengine_cache.exists()
 
     @pytest.mark.parametrize('what', ['data', 'cache'])
     def test_already_existing(self, files, caplog, what):
-        files.old_data.ensure()
-        files.old_cache.ensure()
+        files.old_webengine_data.ensure()
+        files.old_webengine_cache.ensure()
 
         if what == 'data':
-            files.new_data.ensure()
+            files.new_webengine_data.ensure()
+            old_path = str(files.old_webengine_data.dirname)
+            new_path = str(files.new_webengine_data.dirname)
         else:
-            files.new_cache.ensure()
+            files.new_webengine_cache.ensure()
+            old_path = str(files.old_webengine_cache.dirname)
+            new_path = str(files.new_webengine_cache.dirname)
 
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.ERROR):
             standarddir._move_webengine_data()
 
         record = caplog.records[-1]
-        expected = "Failed to move old QtWebEngine {}".format(what)
-        assert record.message.startswith(expected)
+        expected = "Failed to move data from {} as {} already exists!".format(
+            old_path, new_path)
+        assert record.message == expected
 
     def test_deleting_empty_dirs(self, monkeypatch, tmpdir):
         """When we have a qutebrowser/qutebrowser subfolder, clean it up."""
@@ -396,15 +417,40 @@ class TestMoveWebEngineData:
         """When there was an error it should be logged."""
         mock = mocker.Mock(side_effect=OSError('error'))
         monkeypatch.setattr(standarddir.shutil, 'move', mock)
-        files.old_data.ensure()
-        files.old_cache.ensure()
+        files.old_webengine_data.ensure()
+        files.old_webengine_cache.ensure()
 
         with caplog.at_level(logging.ERROR):
             standarddir._move_webengine_data()
 
         record = caplog.records[-1]
-        expected = "Failed to move old QtWebEngine data/cache: error"
+        expected = "Failed to move data from {} to {}: error".format(
+            files.old_webengine_data.dirname, files.new_webengine_data.dirname)
         assert record.message == expected
+
+    def test_move_macos(self, files):
+        """Test moving configs on macOS."""
+        (files.auto_config_dir / 'autoconfig.yml').ensure()
+        (files.auto_config_dir / 'quickmarks').ensure()
+        files.config_dir.ensure(dir=True)
+
+        standarddir._move_macos()
+
+        assert (files.auto_config_dir / 'autoconfig.yml').exists()
+        assert not (files.config_dir / 'autoconfig.yml').exists()
+        assert not (files.auto_config_dir / 'quickmarks').exists()
+        assert (files.config_dir / 'quickmarks').exists()
+
+    def test_move_windows(self, files):
+        """Test moving configs on Windows."""
+        (files.local_data_dir / 'data' / 'blocked-hosts').ensure()
+        (files.local_data_dir / 'qutebrowser.conf').ensure()
+
+        standarddir._move_windows()
+
+        assert (files.roaming_data_dir / 'data' / 'blocked-hosts').exists()
+        assert (files.roaming_data_dir / 'config' /
+                'qutebrowser.conf').exists()
 
 
 @pytest.mark.parametrize('with_args', [True, False])
