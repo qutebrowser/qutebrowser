@@ -141,7 +141,7 @@
 |<<content.proxy,content.proxy>>|The proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
-|<<content.user_stylesheets,content.user_stylesheets>>|A list of user stylesheets filenames to use.
+|<<content.user_stylesheets,content.user_stylesheets>>|A list of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enables or disables WebGL.
 |<<content.xss_auditing,content.xss_auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|The directory to save downloads to.
@@ -1653,7 +1653,7 @@ Default: +pass:[ask]+
 
 [[content.user_stylesheets]]
 == content.user_stylesheets
-A list of user stylesheets filenames to use.
+A list of user stylesheet filenames to use.
 
 Default: empty
 
