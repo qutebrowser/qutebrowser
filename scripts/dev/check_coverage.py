@@ -154,6 +154,8 @@ PERFECT_FILES = [
     ('tests/unit/utils/test_javascript.py',
         'utils/javascript.py'),
 
+    (None,
+        'completion/models/util.py'),
     ('tests/unit/completion/test_models.py',
         'completion/models/urlmodel.py'),
     ('tests/unit/completion/test_histcategory.py',
