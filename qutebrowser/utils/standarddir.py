@@ -32,7 +32,8 @@ from qutebrowser.utils import log, qtutils, debug, usertypes, message
 _locations = {}
 
 
-Location = usertypes.enum('Location', ['config', 'data', 'system_data',
+Location = usertypes.enum('Location', ['config', 'auto_config',
+                                       'data', 'system_data',
                                        'cache', 'download', 'runtime'])
 
 
@@ -58,9 +59,16 @@ def _init_config(args):
                 # https://bugreports.qt.io/browse/QTBUG-38872
                 path = os.path.join(path, appname)
     _create(path)
-    if sys.platform == 'darwin':  # pragma: no cover
-        _create(os.path.expanduser('~/.qutebrowser'))
     _locations[Location.config] = path
+
+    # auto config
+    if sys.platform == 'darwin':
+        overridden, path = _from_args(typ, args)
+        _locations.pop(Location.auto_config, None)  # Remove old state
+        if not overridden:
+            path = os.path.expanduser('~/.qutebrowser')
+        _create(path)
+        _locations[Location.auto_config] = path
 
 
 def config(auto=False):
@@ -69,8 +77,11 @@ def config(auto=False):
     If auto=True is given, get the location for the autoconfig.yml directory,
     which is different on macOS.
     """
-    if auto and sys.platform == 'darwin':
-        return os.path.expanduser('~/.qutebrowser')
+    if auto:
+        try:
+            return _locations[Location.auto_config]
+        except KeyError:
+            pass
     return _locations[Location.config]
 
 
