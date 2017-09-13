@@ -435,6 +435,19 @@ class TestDataMigrations:
             files.old_webengine_data.dirname, files.new_webengine_data.dirname)
         assert record.message == expected
 
+    def test_existing_but_empty(self, tmpdir):
+        """Make sure moving works with an empty destination dir."""
+        old_dir = tmpdir / 'old' / 'foo'
+        new_dir = tmpdir / 'new' / 'foo'
+        old_file = old_dir / 'file'
+        new_file = new_dir / 'file'
+        old_file.ensure()
+        new_dir.ensure(dir=True)
+
+        standarddir._move_data(str(old_dir), str(new_dir))
+        assert not old_file.exists()
+        assert new_file.exists()
+
     def test_move_macos(self, files):
         """Test moving configs on macOS."""
         (files.auto_config_dir / 'autoconfig.yml').ensure()
