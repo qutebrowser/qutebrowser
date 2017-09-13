@@ -62,6 +62,7 @@ def _apply_platform_markers(config, item):
         ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', os.name == 'nt' and config.webengine,
          "Broken with QtWebEngine on Windows"),
+        ('qt55', not qtutils.version_check('5.5'), "Requires Qt 5.5 or newer"),
     ]
 
     for searched_marker, condition, default_reason in markers:

@@ -53,6 +53,9 @@ def test_fake_mac_auto_config(tmpdir, monkeypatch):
     assert standarddir.config(auto=True) == expected
 
 
+# FIXME:conf
+# needs AppDataLocation
+@pytest.mark.qt55
 @pytest.mark.parametrize('what', ['data', 'config'])
 def test_fake_windows_data_config(tmpdir, monkeypatch, what):
     """Make sure the config is correct on a fake Windows."""
@@ -311,6 +314,9 @@ class TestSystemData:
         assert standarddir.data(system=True) == standarddir.data()
 
 
+# FIXME:conf
+# needs AppDataLocation
+@pytest.mark.qt55
 class TestDataMigrations:
 
     """Test moving various data from an old to a new location."""
