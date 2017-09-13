@@ -359,9 +359,11 @@ def _move_data(old, new):
     log.init.debug("Migrating data from {} to {}".format(old, new))
 
     if os.path.exists(new):
-        message.error("Failed to move data from {} as {} already exists!"
-                      .format(old, new))
-        return False
+        if os.listdir(new):
+            message.error("Failed to move data from {} as {} is non-empty!"
+                          .format(old, new))
+            return False
+        os.rmdir(new)
 
     try:
         shutil.move(old, new)

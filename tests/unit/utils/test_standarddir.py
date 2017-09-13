@@ -389,7 +389,7 @@ class TestDataMigrations:
             standarddir._move_webengine_data()
 
         record = caplog.records[-1]
-        expected = "Failed to move data from {} as {} already exists!".format(
+        expected = "Failed to move data from {} as {} is non-empty!".format(
             old_path, new_path)
         assert record.message == expected
 
