@@ -132,6 +132,9 @@ def is_ignored_chromium_message(line):
         # [30981:30992:0605/200633.041364:ERROR:cert_verify_proc_nss.cc(918)]
         # CERT_PKIXVerifyCert for localhost failed err=-8179
         'CERT_PKIXVerifyCert for localhost failed err=*',
+        # [1:1:0914/130428.060976:ERROR:broker_posix.cc(41)] Invalid node
+        # channel message
+        'Invalid node channel message',
 
         # Not reproducible anymore?
 
