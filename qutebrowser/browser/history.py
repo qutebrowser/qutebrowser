@@ -144,8 +144,9 @@ class WebHistory(sql.SqlTable):
         Args:
             url: URL string to delete.
         """
-        self.delete('url', url)
-        self.completion.delete('url', url)
+        qurl = QUrl(url)
+        self.delete('url', self._format_url(qurl))
+        self.completion.delete('url', self._format_completion_url(qurl))
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):

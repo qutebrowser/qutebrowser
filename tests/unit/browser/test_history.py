@@ -126,21 +126,25 @@ def test_clear_force(qtbot, tmpdir, hist):
     assert not len(hist.completion)
 
 
-def test_delete_url(hist):
+@pytest.mark.parametrize('raw, escaped', [
+    ('http://example.com/1', 'http://example.com/1'),
+    ('http://example.com/1 2', 'http://example.com/1%202'),
+])
+def test_delete_url(hist, raw, escaped):
     hist.add_url(QUrl('http://example.com/'), atime=0)
-    hist.add_url(QUrl('http://example.com/1'), atime=0)
+    hist.add_url(QUrl(escaped), atime=0)
     hist.add_url(QUrl('http://example.com/2'), atime=0)
 
     before = set(hist)
     completion_before = set(hist.completion)
 
-    hist.delete_url(QUrl('http://example.com/1'))
+    hist.delete_url(QUrl(raw))
 
     diff = before.difference(set(hist))
-    assert diff == {('http://example.com/1', '', 0, False)}
+    assert diff == {(escaped, '', 0, False)}
 
     completion_diff = completion_before.difference(set(hist.completion))
-    assert completion_diff == {('http://example.com/1', '', 0)}
+    assert completion_diff == {(raw, '', 0)}
 
 
 @pytest.mark.parametrize(
