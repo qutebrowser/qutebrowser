@@ -240,8 +240,6 @@ class ConfigCommands:
 
         If the option name ends with '!' and it is a boolean value, toggle it.
 
-        //
-
         Args:
             option: The name of the option.
             values: The value to set, or the values to cycle through.
@@ -457,6 +455,9 @@ class Config(QObject):
         """
         opt = self.get_opt(name)
         converted = opt.typ.from_str(value)
+        log.config.debug("Setting {} (type {}) to {!r} (converted from {!r})"
+                         .format(name, opt.typ.__class__.__name__, converted,
+                                 value))
         self._set_value(opt, converted)
         if save_yaml:
             self._yaml.values[name] = converted

@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import json
 import textwrap
 
 import pytest_bdd as bdd
@@ -41,7 +42,7 @@ def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
         with open(sys.argv[1], 'w', encoding='utf-8') as f:
             f.write(data)
     """.format(text=text, replacement=replacement)))
-    editor = '"{}" "{}" {{}}'.format(sys.executable, script)
+    editor = json.dumps([sys.executable, str(script), '{}'])
     quteproc.set_setting('editor.command', editor)
 
 
@@ -55,5 +56,5 @@ def set_up_editor(quteproc, httpbin, tmpdir, text):
         with open(sys.argv[1], 'w', encoding='utf-8') as f:
             f.write({text!r})
     """.format(text=text)))
-    editor = '"{}" "{}" {{}}'.format(sys.executable, script)
+    editor = json.dumps([sys.executable, str(script), '{}'])
     quteproc.set_setting('editor.command', editor)

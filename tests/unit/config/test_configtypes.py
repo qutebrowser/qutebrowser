@@ -1699,10 +1699,10 @@ class TestShellCommand:
         return configtypes.ShellCommand
 
     @pytest.mark.parametrize('kwargs, val, expected', [
-        ({}, 'foobar', ['foobar']),
-        ({'placeholder': '{}'}, 'foo {} bar', ['foo', '{}', 'bar']),
-        ({'placeholder': '{}'}, 'foo{}bar', ['foo{}bar']),
-        ({'placeholder': '{}'}, 'foo "bar {}"', ['foo', 'bar {}']),
+        ({}, '[foobar]', ['foobar']),
+        ({'placeholder': '{}'}, '[foo, "{}", bar]', ['foo', '{}', 'bar']),
+        ({'placeholder': '{}'}, '["foo{}bar"]', ['foo{}bar']),
+        ({'placeholder': '{}'}, '[foo, "bar {}"]', ['foo', 'bar {}']),
     ])
     def test_valid(self, klass, kwargs, val, expected):
         cmd = klass(**kwargs)
@@ -1710,9 +1710,8 @@ class TestShellCommand:
         assert cmd.to_py(expected) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({'placeholder': '{}'}, 'foo bar'),
-        ({'placeholder': '{}'}, 'foo { } bar'),
-        ({}, 'foo"'),  # not splittable with shlex
+        ({'placeholder': '{}'}, '[foo, bar]'),
+        ({'placeholder': '{}'}, '[foo, "{", "}", bar'),
     ])
     def test_from_str_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):

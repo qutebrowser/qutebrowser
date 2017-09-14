@@ -293,22 +293,29 @@ class TestSetConfigCommand:
         assert msg.text == 'url.auto_search = never'
 
     @pytest.mark.parametrize('temp', [True, False])
-    def test_set_simple(self, monkeypatch, commands, config_stub, temp):
-        """Run ':set [-t] url.auto_search dns'.
+    @pytest.mark.parametrize('option, old_value, inp, new_value', [
+        ('url.auto_search', 'naive', 'dns', 'dns'),
+        # https://github.com/qutebrowser/qutebrowser/issues/2962
+        ('editor.command', ['gvim', '-f', '{}'], '[emacs, "{}"]',
+         ['emacs', '{}']),
+    ])
+    def test_set_simple(self, monkeypatch, commands, config_stub,
+                        temp, option, old_value, inp, new_value):
+        """Run ':set [-t] option value'.
 
         Should set the setting accordingly.
         """
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
-        assert config_stub.val.url.auto_search == 'naive'
+        assert config_stub.get(option) == old_value
 
-        commands.set(0, 'url.auto_search', 'dns', temp=temp)
+        commands.set(0, option, inp, temp=temp)
 
-        assert config_stub.val.url.auto_search == 'dns'
+        assert config_stub.get(option) == new_value
 
         if temp:
-            assert 'url.auto_search' not in config_stub._yaml.values
+            assert option not in config_stub._yaml.values
         else:
-            assert config_stub._yaml.values['url.auto_search'] == 'dns'
+            assert config_stub._yaml.values[option] == new_value
 
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_temp_override(self, commands, config_stub, temp):

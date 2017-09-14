@@ -46,7 +46,6 @@ Config types can do different conversations:
 
 import re
 import html
-import shlex
 import codecs
 import os.path
 import itertools
@@ -1239,7 +1238,7 @@ class FormatString(BaseType):
 
 class ShellCommand(List):
 
-    """A shellcommand which is split via shlex.
+    """A shell command as a list.
 
     Attributes:
         placeholder: If there should be a placeholder.
@@ -1248,19 +1247,6 @@ class ShellCommand(List):
     def __init__(self, placeholder=False, none_ok=False):
         super().__init__(valtype=String(), none_ok=none_ok)
         self.placeholder = placeholder
-
-    def from_str(self, value):
-        self._basic_str_validation(value)
-        if not value:
-            return None
-
-        try:
-            split_val = shlex.split(value)
-        except ValueError as e:
-            raise configexc.ValidationError(value, str(e))
-
-        self.to_py(split_val)
-        return split_val
 
     def to_py(self, value):
         value = super().to_py(value)
