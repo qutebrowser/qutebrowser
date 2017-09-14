@@ -467,12 +467,15 @@ class TestDataMigrations:
         """Test moving configs on Windows."""
         (files.local_data_dir / 'data' / 'blocked-hosts').ensure()
         (files.local_data_dir / 'qutebrowser.conf').ensure()
+        (files.local_data_dir / 'cache' / 'cachefile').ensure()
 
         standarddir._move_windows()
 
         assert (files.roaming_data_dir / 'data' / 'blocked-hosts').exists()
         assert (files.roaming_data_dir / 'config' /
                 'qutebrowser.conf').exists()
+        assert not (files.roaming_data_dir / 'cache').exists()
+        assert (files.local_data_dir / 'cache' / 'cachefile').exists()
 
 
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])
