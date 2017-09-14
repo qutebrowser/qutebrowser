@@ -126,7 +126,7 @@ class ConfigAPI:
             self.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def finalize(self):
-        """Needs to get called after reading config.py is done."""
+        """Do work which needs to be done after reading config.py."""
         self._config.update_mutables()
 
     def get(self, name):

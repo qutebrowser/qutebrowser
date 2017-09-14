@@ -24,7 +24,7 @@ import contextlib
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
 from qutebrowser.utils import utils, objreg, message, log, usertypes

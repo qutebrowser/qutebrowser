@@ -98,6 +98,7 @@ class ConfigFileErrors(Error):
         self.errors = errors
 
     def to_html(self):
+        """Get the error texts as a HTML snippet."""
         from qutebrowser.utils import jinja
         template = jinja.environment.from_string("""
         Errors occurred while reading {{ basename }}:

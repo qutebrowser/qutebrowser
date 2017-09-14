@@ -105,6 +105,9 @@ def whitelist_generator():
 
     for name, member in inspect.getmembers(configtypes, inspect.isclass):
         yield 'qutebrowser.config.configtypes.' + name
+    yield 'qutebrowser.config.configexc.ConfigErrorDesc.traceback'
+    yield 'qutebrowser.config.configfiles.ConfigAPI.load_autoconfig'
+    yield 'types.ModuleType.c'  # configfiles:read_config_py
 
     yield 'include_aliases'
     ## FIXME:conf TODO
