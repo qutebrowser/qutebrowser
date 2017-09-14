@@ -777,12 +777,12 @@ class TestContainer:
         new_container = new_container.favicons
         assert new_container._prefix == 'tabs.favicons'
 
-    @pytest.mark.parametrize('confpy, expected', [
-        (True, 'rgb'),
-        (False, QColor.Rgb),
+    @pytest.mark.parametrize('configapi, expected', [
+        (object(), 'rgb'),
+        (None, QColor.Rgb),
     ])
-    def test_getattr_option(self, container, confpy, expected):
-        container._confpy = confpy
+    def test_getattr_option(self, container, configapi, expected):
+        container._configapi = configapi
         # Use an option with a to_py() so we can check the conversion.
         assert container.colors.downloads.system.fg == expected
 
@@ -877,7 +877,7 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
         config_py_lines.append('config.load_autoconfig = False')
     config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
 
-    config.init(args=None)
+    config.init()
 
     objreg.get('config-commands')
     assert isinstance(config.instance, config.Config)
@@ -899,4 +899,4 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
 def test_init_invalid_change_filter(init_patch):
     config.change_filter('foobar')
     with pytest.raises(configexc.NoOptionError):
-        config.init(args=None)
+        config.init()

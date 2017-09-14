@@ -110,24 +110,24 @@ class ConfigAPI:
         errors: Errors which occurred while setting options.
     """
 
-    def __init__(self, config, keyconfig, container):
+    def __init__(self, config, keyconfig):
         self._config = config
         self._keyconfig = keyconfig
-        self.val = container
         self.load_autoconfig = True
         self.errors = []
+        self.val = None  # Set when initialized
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
         try:
             yield
         except configexc.Error as e:
-            self.errors.append(configexc.ConfigErrorDesc(action, name, e))
+            text = "While {} '{}'".format(action, name)
+            self.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def finalize(self):
         """Needs to get called after reading config.py is done."""
         self._config.update_mutables()
-        self.errors += self.val._errors  # pylint: disable=protected-access
 
     def get(self, name):
         with self._handle_error('getting', name):
@@ -155,32 +155,42 @@ def read_config_py(filename=None):
         if not os.path.exists(filename):
             return None
 
-    container = config.ConfigContainer(config.instance, confpy=True)
-    api = ConfigAPI(config.instance, config.key_instance, container)
+    api = ConfigAPI(config.instance, config.key_instance)
+    container = config.ConfigContainer(config.instance, configapi=api)
+    api.val = container
+
     module = types.ModuleType('config')
     module.config = api
-    module.c = api.val
+    module.c = container
     module.__file__ = filename
+
     basename = os.path.basename(filename)
 
     try:
         with open(filename, mode='rb') as f:
             source = f.read()
     except OSError as e:
-        raise configexc.ConfigFileError(basename, e.strerror)
+        text = "Error while reading {}".format(basename)
+        desc = configexc.ConfigErrorDesc(text, e)
+        raise configexc.ConfigFileErrors(basename, [desc])
 
     try:
         code = compile(source, filename, 'exec')
     except ValueError as e:
         # source contains NUL bytes
-        raise configexc.ConfigFileError(basename, str(e))
-    except SyntaxError:
-        raise configexc.ConfigFileUnhandledException(basename)
+        desc = configexc.ConfigErrorDesc("Error while compiling", e)
+        raise configexc.ConfigFileErrors(basename, [desc])
+    except SyntaxError as e:
+        desc = configexc.ConfigErrorDesc("Syntax Error", e,
+                                         traceback=traceback.format_exc())
+        raise configexc.ConfigFileErrors(basename, [desc])
 
     try:
         exec(code, module.__dict__)
-    except Exception:
-        raise configexc.ConfigFileUnhandledException(basename)
+    except Exception as e:
+        api.errors.append(configexc.ConfigErrorDesc(
+            "Unhandled exception",
+            exception=e, traceback=traceback.format_exc()))
 
     api.finalize()
     if api.errors:

@@ -408,7 +408,7 @@ def _init_modules(args, crash_handler):
     objreg.register('readline-bridge', readline_bridge)
 
     log.init.debug("Initializing config...")
-    config.init(args, qApp)
+    config.init(qApp)
     save_manager.init_autosave()
 
     log.init.debug("Initializing sql...")

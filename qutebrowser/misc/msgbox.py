@@ -41,6 +41,7 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
         A new QMessageBox.
     """
     box = QMessageBox(parent)
+    box.setAttribute(Qt.WA_DeleteOnClose)
     box.setIcon(icon)
     box.setStandardButtons(buttons)
     if on_finished is not None:

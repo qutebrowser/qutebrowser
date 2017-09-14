@@ -24,10 +24,11 @@ import contextlib
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes, error
-from qutebrowser.misc import objects
+from qutebrowser.utils import utils, objreg, message, log, usertypes
+from qutebrowser.misc import objects, msgbox
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
 
@@ -35,6 +36,7 @@ from qutebrowser.completion.models import configmodel
 val = None
 instance = None
 key_instance = None
+_errbox = None
 
 # Keeping track of all change filters to validate them later.
 _change_filters = []
@@ -500,27 +502,28 @@ class ConfigContainer:
     Attributes:
         _config: The Config object.
         _prefix: The __getattr__ chain leading up to this object.
-        _confpy: If True, get values suitable for config.py and
-                 do not raise exceptions.
-        _errors: If confpy=True is given, a list of configexc.ConfigErrorDesc.
+        _configapi: If given, get values suitable for config.py and
+                    add errors to the given ConfigAPI object.
     """
 
-    def __init__(self, config, confpy=False, prefix=''):
+    def __init__(self, config, configapi=None, prefix=''):
         self._config = config
         self._prefix = prefix
-        self._confpy = confpy
-        self._errors = []
+        self._configapi = configapi
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, config=self._config,
-                              confpy=self._confpy, prefix=self._prefix)
+                              configapi=self._configapi, prefix=self._prefix)
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
         try:
             yield
         except configexc.Error as e:
-            self._errors.append(configexc.ConfigErrorDesc(action, name, e))
+            if self._configapi is None:
+                raise
+            text = "While {} '{}'".format(action, name)
+            self._configapi.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def __getattr__(self, attr):
         """Get an option or a new ConfigContainer with the added prefix.
@@ -536,14 +539,17 @@ class ConfigContainer:
 
         name = self._join(attr)
         if configdata.is_valid_prefix(name):
-            return ConfigContainer(config=self._config, confpy=self._confpy,
+            return ConfigContainer(config=self._config,
+                                   configapi=self._configapi,
                                    prefix=name)
 
         with self._handle_error('getting', name):
-            if self._confpy:
-                return self._config.get_obj(name)
-            else:
+            if self._configapi is None:
+                # access from Python code
                 return self._config.get(name)
+            else:
+                # access from config.py
+                return self._config.get_obj(name)
 
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
@@ -630,7 +636,7 @@ class StyleSheetObserver(QObject):
             instance.changed.connect(self._update_stylesheet)
 
 
-def init(args, parent=None):
+def init(parent=None):
     """Initialize the config.
 
     Args:
@@ -655,9 +661,13 @@ def init(args, parent=None):
 
     try:
         config_api = configfiles.read_config_py()
-    except configexc.ConfigFileError as e:
-        error.handle_fatal_exc(e, args=args,
-                               title="Error while loading config")
+    except configexc.ConfigFileErrors as e:
+        global _errbox
+        _errbox = msgbox.msgbox(parent=None,
+                                title="Error while reading config",
+                                text=e.to_html(),
+                                icon=QMessageBox.Warning,
+                                plain_text=False)
         config_api = None
 
     if getattr(config_api, 'load_autoconfig', True):

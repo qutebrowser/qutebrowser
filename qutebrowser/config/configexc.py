@@ -20,7 +20,7 @@
 """Exceptions related to config parsing."""
 
 
-import traceback
+from qutebrowser.utils import jinja
 
 
 class Error(Exception):
@@ -75,49 +75,46 @@ class NoOptionError(Error):
         self.option = option
 
 
-class ConfigFileError(Error):
-
-    """Raised when there was an error while loading a config file."""
-
-    def __init__(self, basename, msg):
-        super().__init__("Failed to load {}: {}".format(basename, msg))
-
-
-class ConfigFileUnhandledException(ConfigFileError):
-
-    """Raised when there was an unhandled exception while loading config.py.
-
-    Needs to be raised from an exception handler.
-    """
-
-    def __init__(self, basename):
-        super().__init__(basename, "Unhandled exception\n\n{}".format(
-            traceback.format_exc()))
-
-
 class ConfigErrorDesc:
 
     """A description of an error happening while reading the config.
 
     Attributes:
-        _action: What action has been taken, e.g 'set'
-        _name: The option which was set, or the key which was bound.
-        _exception: The exception which happened.
+        text: The text to show.
+        exception: The exception which happened.
+        traceback: The formatted traceback of the exception.
     """
 
-    def __init__(self, action, name, exception):
-        self._action = action
-        self._exception = exception
-        self._name = name
-
-    def __str__(self):
-        return "While {} {}: {}".format(
-            self._action, self._name, self._exception)
+    def __init__(self, text, exception, traceback=None):
+        self.text = text
+        self.exception = exception
+        self.traceback = traceback
 
 
-class ConfigFileErrors(ConfigFileError):
+class ConfigFileErrors(Error):
 
     """Raised when multiple errors occurred inside the config."""
 
     def __init__(self, basename, errors):
-        super().__init__(basename, "\n\n".join(str(err) for err in errors))
+        super().__init__("Errors occurred while reading {}".format(basename))
+        self.basename = basename
+        self.errors = errors
+
+    def to_html(self):
+        template = jinja.environment.from_string("""
+        Errors occurred while reading {{ basename }}:
+
+        <ul>
+          {% for error in errors %}
+            <li>
+              <b>{{ error.text }}</b>: {{ error.exception }}
+              {% if error.traceback != none %}
+                <pre>
+        """.rstrip() + "\n{{ error.traceback }}" + """
+                </pre>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        """)
+        return template.render(basename=self.basename, errors=self.errors)
