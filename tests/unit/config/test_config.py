@@ -877,7 +877,7 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
         config_py_lines.append('config.load_autoconfig = False')
     config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
 
-    config.init()
+    config.init(args=None)
 
     objreg.get('config-commands')
     assert isinstance(config.instance, config.Config)
@@ -899,4 +899,4 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
 def test_init_invalid_change_filter(init_patch):
     config.change_filter('foobar')
     with pytest.raises(configexc.NoOptionError):
-        config.init()
+        config.init(args=None)

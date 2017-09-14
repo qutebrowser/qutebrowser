@@ -26,7 +26,7 @@ import functools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes
+from qutebrowser.utils import utils, objreg, message, log, usertypes, error
 from qutebrowser.misc import objects
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
@@ -500,17 +500,27 @@ class ConfigContainer:
     Attributes:
         _config: The Config object.
         _prefix: The __getattr__ chain leading up to this object.
-        _confpy: If True, get values suitable for config.py.
+        _confpy: If True, get values suitable for config.py and
+                 do not raise exceptions.
+        _errors: If confpy=True is given, a list of configexc.ConfigErrorDesc.
     """
 
     def __init__(self, config, confpy=False, prefix=''):
         self._config = config
         self._prefix = prefix
         self._confpy = confpy
+        self._errors = []
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, config=self._config,
                               confpy=self._confpy, prefix=self._prefix)
+
+    @contextlib.contextmanager
+    def _handle_error(self, action, name):
+        try:
+            yield
+        except configexc.Error as e:
+            self._errors.append(configexc.ConfigErrorDesc(action, name, e))
 
     def __getattr__(self, attr):
         """Get an option or a new ConfigContainer with the added prefix.
@@ -529,16 +539,20 @@ class ConfigContainer:
             return ConfigContainer(config=self._config, confpy=self._confpy,
                                    prefix=name)
 
-        if self._confpy:
-            return self._config.get_obj(name)
-        else:
-            return self._config.get(name)
+        with self._handle_error('getting', name):
+            if self._confpy:
+                return self._config.get_obj(name)
+            else:
+                return self._config.get(name)
 
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
         if attr.startswith('_'):
             return super().__setattr__(attr, value)
-        self._config.set_obj(self._join(attr), value)
+
+        name = self._join(attr)
+        with self._handle_error('setting', name):
+            self._config.set_obj(name, value)
 
     def _join(self, attr):
         """Get the prefix joined with the given attribute."""
@@ -616,7 +630,7 @@ class StyleSheetObserver(QObject):
             instance.changed.connect(self._update_stylesheet)
 
 
-def init(parent=None):
+def init(args, parent=None):
     """Initialize the config.
 
     Args:
@@ -639,7 +653,13 @@ def init(parent=None):
     config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 
-    config_api = configfiles.read_config_py()
+    try:
+        config_api = configfiles.read_config_py()
+    except configexc.ConfigFileError as e:
+        error.handle_fatal_exc(e, args=args,
+                               title="Error while loading config")
+        config_api = None
+
     if getattr(config_api, 'load_autoconfig', True):
         instance.read_yaml()
 

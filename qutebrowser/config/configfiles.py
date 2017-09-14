@@ -22,10 +22,13 @@
 import types
 import os.path
 import textwrap
+import traceback
 import configparser
+import contextlib
 
 from PyQt5.QtCore import QSettings
 
+from qutebrowser.config import configexc
 from qutebrowser.utils import objreg, standarddir, utils, qtutils
 
 
@@ -104,6 +107,7 @@ class ConfigAPI:
         _keyconfig: The KeyConfig object.
         val: A matching ConfigContainer object.
         load_autoconfig: Whether autoconfig.yml should be loaded.
+        errors: Errors which occurred while setting options.
     """
 
     def __init__(self, config, keyconfig, container):
@@ -111,24 +115,41 @@ class ConfigAPI:
         self._keyconfig = keyconfig
         self.val = container
         self.load_autoconfig = True
+        self.errors = []
+
+    @contextlib.contextmanager
+    def _handle_error(self, action, name):
+        try:
+            yield
+        except configexc.Error as e:
+            self.errors.append(configexc.ConfigErrorDesc(action, name, e))
+
+    def finalize(self):
+        """Needs to get called after reading config.py is done."""
+        self._config.update_mutables()
+        self.errors += self.val._errors  # pylint: disable=protected-access
 
     def get(self, name):
-        return self._config.get_obj(name)
+        with self._handle_error('getting', name):
+            return self._config.get_obj(name)
 
     def set(self, name, value):
-        self._config.set_obj(name, value)
+        with self._handle_error('setting', name):
+            self._config.set_obj(name, value)
 
     def bind(self, key, command, *, mode, force=False):
-        self._keyconfig.bind(key, command, mode=mode, force=force)
+        with self._handle_error('binding', key):
+            self._keyconfig.bind(key, command, mode=mode, force=force)
 
     def unbind(self, key, *, mode):
-        self._keyconfig.unbind(key, mode=mode)
+        with self._handle_error('unbinding', key):
+            self._keyconfig.unbind(key, mode=mode)
 
 
 def read_config_py(filename=None):
     """Read a config.py file."""
     from qutebrowser.config import config
-    # FIXME:conf error handling
+
     if filename is None:
         filename = os.path.join(standarddir.config(), 'config.py')
         if not os.path.exists(filename):
@@ -140,13 +161,30 @@ def read_config_py(filename=None):
     module.config = api
     module.c = api.val
     module.__file__ = filename
+    basename = os.path.basename(filename)
 
-    with open(filename, mode='rb') as f:
-        source = f.read()
-    code = compile(source, filename, 'exec')
-    exec(code, module.__dict__)
+    try:
+        with open(filename, mode='rb') as f:
+            source = f.read()
+    except OSError as e:
+        raise configexc.ConfigFileError(basename, e.strerror)
 
-    config.instance.update_mutables()
+    try:
+        code = compile(source, filename, 'exec')
+    except ValueError as e:
+        # source contains NUL bytes
+        raise configexc.ConfigFileError(basename, str(e))
+    except SyntaxError:
+        raise configexc.ConfigFileUnhandledException(basename)
+
+    try:
+        exec(code, module.__dict__)
+    except Exception:
+        raise configexc.ConfigFileUnhandledException(basename)
+
+    api.finalize()
+    if api.errors:
+        raise configexc.ConfigFileErrors(basename, api.errors)
 
     return api
 

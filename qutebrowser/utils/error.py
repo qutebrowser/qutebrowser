@@ -19,6 +19,7 @@
 
 """Tools related to error printing/displaying."""
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.utils import log, utils
@@ -35,7 +36,8 @@ def _get_name(exc):
     return name
 
 
-def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
+def handle_fatal_exc(exc, args, title, *, pre_text='', post_text='',
+                     richtext=False):
     """Handle a fatal "expected" exception by displaying an error box.
 
     If --no-err-windows is given as argument, the text is logged to the error
@@ -47,6 +49,7 @@ def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
         title: The title to be used for the error message.
         pre_text: The text to be displayed before the exception text.
         post_text: The text to be displayed after the exception text.
+        richtext: If given, interpret the given text as rich text.
     """
     if args.no_err_windows:
         lines = [
@@ -66,4 +69,6 @@ def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
         if post_text:
             msg_text += '\n\n{}'.format(post_text)
         msgbox = QMessageBox(QMessageBox.Critical, title, msg_text)
+        if richtext:
+            msgbox.setTextFormat(Qt.RichText)
         msgbox.exec_()

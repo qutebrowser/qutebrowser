@@ -20,6 +20,9 @@
 """Exceptions related to config parsing."""
 
 
+import traceback
+
+
 class Error(Exception):
 
     """Base exception for config-related errors."""
@@ -70,3 +73,51 @@ class NoOptionError(Error):
     def __init__(self, option):
         super().__init__("No option {!r}".format(option))
         self.option = option
+
+
+class ConfigFileError(Error):
+
+    """Raised when there was an error while loading a config file."""
+
+    def __init__(self, basename, msg):
+        super().__init__("Failed to load {}: {}".format(basename, msg))
+
+
+class ConfigFileUnhandledException(ConfigFileError):
+
+    """Raised when there was an unhandled exception while loading config.py.
+
+    Needs to be raised from an exception handler.
+    """
+
+    def __init__(self, basename):
+        super().__init__(basename, "Unhandled exception\n\n{}".format(
+            traceback.format_exc()))
+
+
+class ConfigErrorDesc:
+
+    """A description of an error happening while reading the config.
+
+    Attributes:
+        _action: What action has been taken, e.g 'set'
+        _name: The option which was set, or the key which was bound.
+        _exception: The exception which happened.
+    """
+
+    def __init__(self, action, name, exception):
+        self._action = action
+        self._exception = exception
+        self._name = name
+
+    def __str__(self):
+        return "While {} {}: {}".format(
+            self._action, self._name, self._exception)
+
+
+class ConfigFileErrors(ConfigFileError):
+
+    """Raised when multiple errors occurred inside the config."""
+
+    def __init__(self, basename, errors):
+        super().__init__(basename, "\n\n".join(str(err) for err in errors))
