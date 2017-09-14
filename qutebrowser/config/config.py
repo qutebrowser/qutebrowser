@@ -500,15 +500,17 @@ class ConfigContainer:
     Attributes:
         _config: The Config object.
         _prefix: The __getattr__ chain leading up to this object.
+        _confpy: If True, get values suitable for config.py.
     """
 
-    def __init__(self, config, prefix=''):
+    def __init__(self, config, confpy=False, prefix=''):
         self._config = config
         self._prefix = prefix
+        self._confpy = confpy
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, config=self._config,
-                              prefix=self._prefix)
+                              confpy=self._confpy, prefix=self._prefix)
 
     def __getattr__(self, attr):
         """Get an option or a new ConfigContainer with the added prefix.
@@ -524,9 +526,13 @@ class ConfigContainer:
 
         name = self._join(attr)
         if configdata.is_valid_prefix(name):
-            return ConfigContainer(config=self._config, prefix=name)
+            return ConfigContainer(config=self._config, confpy=self._confpy,
+                                   prefix=name)
 
-        return self._config.get(name)
+        if self._confpy:
+            return self._config.get_obj(name)
+        else:
+            return self._config.get(name)
 
     def __setattr__(self, attr, value):
         """Set the given option in the config."""

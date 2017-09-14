@@ -134,7 +134,8 @@ def read_config_py(filename=None):
         if not os.path.exists(filename):
             return None
 
-    api = ConfigAPI(config.instance, config.key_instance, config.val)
+    container = config.ConfigContainer(config.instance, confpy=True)
+    api = ConfigAPI(config.instance, config.key_instance, container)
     module = types.ModuleType('config')
     module.config = api
     module.c = api.val
@@ -144,6 +145,8 @@ def read_config_py(filename=None):
         source = f.read()
     code = compile(source, filename, 'exec')
     exec(code, module.__dict__)
+
+    config.instance.update_mutables()
 
     return api
 

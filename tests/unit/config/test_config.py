@@ -777,8 +777,14 @@ class TestContainer:
         new_container = new_container.favicons
         assert new_container._prefix == 'tabs.favicons'
 
-    def test_getattr_option(self, container):
-        assert container.tabs.show == 'always'
+    @pytest.mark.parametrize('confpy, expected', [
+        (True, 'rgb'),
+        (False, QColor.Rgb),
+    ])
+    def test_getattr_option(self, container, confpy, expected):
+        container._confpy = confpy
+        # Use an option with a to_py() so we can check the conversion.
+        assert container.colors.downloads.system.fg == expected
 
     def test_getattr_invalid(self, container):
         with pytest.raises(configexc.NoOptionError) as excinfo:

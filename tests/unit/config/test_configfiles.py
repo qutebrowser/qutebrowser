@@ -161,6 +161,11 @@ class TestConfigPy:
         expected = {'normal': {'o': None}}
         assert config.instance._values['bindings.commands'] == expected
 
+    def test_mutating(self, confpy):
+        confpy.write('c.aliases["foo"] = "message-info foo"')
+        configfiles.read_config_py(confpy.filename)
+        assert config.instance._values['aliases']['foo'] == 'message-info foo'
+
     def test_reading_default_location(self, config_tmpdir):
         (config_tmpdir / 'config.py').write_text(
             'c.colors.hints.bg = "red"', 'utf-8')
