@@ -20,9 +20,6 @@
 """Exceptions related to config parsing."""
 
 
-from qutebrowser.utils import jinja
-
-
 class Error(Exception):
 
     """Base exception for config-related errors."""
@@ -101,6 +98,7 @@ class ConfigFileErrors(Error):
         self.errors = errors
 
     def to_html(self):
+        from qutebrowser.utils import jinja
         template = jinja.environment.from_string("""
         Errors occurred while reading {{ basename }}:
 
