@@ -24,6 +24,7 @@ import functools
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtNetwork import QAuthenticator
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
@@ -133,6 +134,8 @@ class WebEnginePage(QWebEnginePage):
         self._is_shutting_down = False
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
+        self.proxyAuthenticationRequired.connect(
+            self._on_proxy_authentication_required)
         self._theme_color = theme_color
         self._set_bg_color()
         objreg.get('config').changed.connect(self._set_bg_color)
@@ -143,6 +146,11 @@ class WebEnginePage(QWebEnginePage):
         if col is None:
             col = self._theme_color
         self.setBackgroundColor(col)
+
+    @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
+    def _on_proxy_authentication_required(self, url, authenticator, proxyHost):
+        log.webview.debug("Proxy authentication required for URL: %s"%url.toString())
+        shared.authentication_required(url, authenticator, [self.shutting_down, self.loadStarted])
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
