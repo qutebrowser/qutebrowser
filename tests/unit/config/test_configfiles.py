@@ -22,7 +22,7 @@ import sys
 
 import pytest
 
-from qutebrowser.config import configfiles
+from qutebrowser.config import config, configfiles
 from qutebrowser.utils import objreg
 
 from PyQt5.QtCore import QSettings
@@ -89,6 +89,87 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
         assert '  colors.hints.fg: magenta' in lines
     if insert:
         assert '  tabs.show: never' in lines
+
+
+class TestConfigPy:
+
+    """Tests for ConfigAPI and read_config_py()."""
+
+    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
+
+    class ConfPy:
+
+        """Helper class to get a confpy fixture."""
+
+        def __init__(self, tmpdir):
+            self._confpy = tmpdir / 'config.py'
+            self.filename = str(self._confpy)
+
+        def write(self, *lines):
+            text = '\n'.join(lines)
+            self._confpy.write_text(text, 'utf-8', ensure=True)
+
+    @pytest.fixture
+    def confpy(self, tmpdir):
+        return self.ConfPy(tmpdir)
+
+    @pytest.mark.parametrize('line', [
+        'c.colors.hints.bg = "red"',
+        'config.val.colors.hints.bg = "red"',
+        'config.set("colors.hints.bg", "red")',
+    ])
+    def test_set(self, confpy, line):
+        confpy.write(line)
+        configfiles.read_config_py(confpy.filename)
+        assert config.instance._values['colors.hints.bg'] == 'red'
+
+    @pytest.mark.parametrize('set_first', [True, False])
+    @pytest.mark.parametrize('get_line', [
+        'c.colors.hints.fg',
+        'config.get("colors.hints.fg")',
+    ])
+    def test_get(self, confpy, set_first, get_line):
+        """Test whether getting options works correctly.
+
+        We test this by doing the following:
+           - Set colors.hints.fg to some value (inside the config.py with
+             set_first, outside of it otherwise).
+           - In the config.py, read .fg and set .bg to the same value.
+           - Verify that .bg has been set correctly.
+        """
+        # pylint: disable=bad-config-option
+        config.val.colors.hints.fg = 'green'
+        if set_first:
+            confpy.write('c.colors.hints.fg = "red"',
+                         'c.colors.hints.bg = {}'.format(get_line))
+            expected = 'red'
+        else:
+            confpy.write('c.colors.hints.bg = {}'.format(get_line))
+            expected = 'green'
+        configfiles.read_config_py(confpy.filename)
+        assert config.instance._values['colors.hints.bg'] == expected
+
+    def test_bind(self, confpy):
+        confpy.write('config.bind(",a", "message-info foo", mode="normal")')
+        configfiles.read_config_py(confpy.filename)
+        expected = {'normal': {',a': 'message-info foo'}}
+        assert config.instance._values['bindings.commands'] == expected
+
+    def test_unbind(self, confpy):
+        confpy.write('config.unbind("o", mode="normal")')
+        configfiles.read_config_py(confpy.filename)
+        expected = {'normal': {'o': None}}
+        assert config.instance._values['bindings.commands'] == expected
+
+    def test_reading_default_location(self, config_tmpdir):
+        (config_tmpdir / 'config.py').write_text(
+            'c.colors.hints.bg = "red"', 'utf-8')
+        configfiles.read_config_py()
+        assert config.instance._values['colors.hints.bg'] == 'red'
+
+    def test_reading_missing_default_location(self, config_tmpdir):
+        assert not (config_tmpdir / 'config.py').exists()
+        configfiles.read_config_py()  # Should not crash
 
 
 @pytest.fixture

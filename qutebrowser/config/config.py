@@ -625,13 +625,16 @@ def init(parent=None):
     val = ConfigContainer(instance)
     key_instance = KeyConfig(instance)
 
+    for cf in _change_filters:
+        cf.validate()
+
     configtypes.Font.monospace_fonts = val.fonts.monospace
 
     config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 
-    for cf in _change_filters:
-        cf.validate()
-    instance.read_yaml()
+    config_api = configfiles.read_config_py()
+    if getattr(config_api, 'load_autoconfig', True):
+        instance.read_yaml()
 
     configfiles.init(instance)

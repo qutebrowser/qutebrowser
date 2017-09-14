@@ -19,6 +19,7 @@
 
 """Configuration files residing on disk."""
 
+import types
 import os.path
 import textwrap
 import configparser
@@ -88,6 +89,63 @@ class YamlConfig:
                 self.values = utils.yaml_load(f)['global']
         except FileNotFoundError:
             pass
+
+
+class ConfigAPI:
+
+    """Object which gets passed to config.py as "config" object.
+
+    This is a small wrapper over the Config object, but with more
+    straightforward method names (get/set call get_obj/set_obj) and a more
+    shallow API.
+
+    Attributes:
+        _config: The main Config object to use.
+        _keyconfig: The KeyConfig object.
+        val: A matching ConfigContainer object.
+        load_autoconfig: Whether autoconfig.yml should be loaded.
+    """
+
+    def __init__(self, config, keyconfig, container):
+        self._config = config
+        self._keyconfig = keyconfig
+        self.val = container
+        self.load_autoconfig = True
+
+    def get(self, name):
+        return self._config.get_obj(name)
+
+    def set(self, name, value):
+        self._config.set_obj(name, value)
+
+    def bind(self, key, command, *, mode, force=False):
+        self._keyconfig.bind(key, command, mode=mode, force=force)
+
+    def unbind(self, key, *, mode):
+        self._keyconfig.unbind(key, mode=mode)
+
+
+def read_config_py(filename=None):
+    """Read a config.py file."""
+    from qutebrowser.config import config
+    # FIXME:conf error handling
+    if filename is None:
+        filename = os.path.join(standarddir.config(), 'config.py')
+        if not os.path.exists(filename):
+            return None
+
+    api = ConfigAPI(config.instance, config.key_instance, config.val)
+    module = types.ModuleType('config')
+    module.config = api
+    module.c = api.val
+    module.__file__ = filename
+
+    with open(filename, mode='rb') as f:
+        source = f.read()
+    code = compile(source, filename, 'exec')
+    exec(code, module.__dict__)
+
+    return api
 
 
 def init(config):

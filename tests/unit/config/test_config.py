@@ -852,16 +852,24 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, '_change_filters', [])
     yield
-    objreg.delete('config-commands')
-    try:
-        objreg.delete('state-config')
-    except KeyError:
-        pass
+    for obj in ['config-commands', 'state-config', 'command-history']:
+        try:
+            objreg.delete(obj)
+        except KeyError:
+            pass
 
 
-def test_init(init_patch, fake_save_manager, config_tmpdir):
-    (config_tmpdir / 'autoconfig.yml').write_text(
-        'global:\n  colors.hints.fg: magenta', 'utf-8', ensure=True)
+@pytest.mark.parametrize('load_autoconfig', [True, False])
+def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
+    autoconfig_file = config_tmpdir / 'autoconfig.yml'
+    config_py_file = config_tmpdir / 'config.py'
+
+    autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
+                               'utf-8', ensure=True)
+    config_py_lines = ['c.colors.hints.bg = "red"']
+    if not load_autoconfig:
+        config_py_lines.append('config.load_autoconfig = False')
+    config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
 
     config.init()
 
@@ -875,7 +883,11 @@ def test_init(init_patch, fake_save_manager, config_tmpdir):
     fake_save_manager.add_saveable.assert_any_call(
         'yaml-config', unittest.mock.ANY)
 
-    assert config.instance._values['colors.hints.fg'] == 'magenta'
+    assert config.instance._values['colors.hints.bg'] == 'red'
+    if load_autoconfig:
+        assert config.instance._values['colors.hints.fg'] == 'magenta'
+    else:
+        assert 'colors.hints.fg' not in config.instance._values
 
 
 def test_init_invalid_change_filter(init_patch):
