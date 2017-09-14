@@ -475,7 +475,9 @@ class QuteProc(testprocess.Process):
             value=msg.message)
 
         is_log_error = (msg.loglevel > logging.INFO and
-                        not msg.message.startswith("Ignoring world ID"))
+                        not msg.message.startswith("Ignoring world ID") and
+                        not msg.message.startswith(
+                            "Could not initialize QtNetwork SSL support."))
         return is_log_error or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
