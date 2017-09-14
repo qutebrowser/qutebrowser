@@ -57,9 +57,9 @@ Feature: Various utility commands.
     Scenario: :jseval without logging
         When I set content.javascript.log to {"unknown": "none", "info": "none", "warning": "debug", "error": "debug"}
         And I run :jseval console.log("Hello from JS!");
+        And I wait for "No output or error" in the log
         And I set content.javascript.log to {"unknown": "debug", "info": "debug", "warning": "debug", "error": "debug"}
-        Then the message "No output or error" should be shown
-        And "[:*] Hello from JS!" should not be logged
+        Then "[:*] Hello from JS!" should not be logged
 
     Scenario: :jseval with --quiet
         When I run :jseval --quiet console.log("Hello from JS!");
