@@ -111,7 +111,7 @@ class Completer(QObject):
         """
         if not s:
             return "''"
-        elif any(c in s for c in ' \'\t\n\\'):
+        elif any(c in s for c in ' "\'\t\n\\'):
             # use single quotes, and put single quotes into double quotes
             # the string $'b is then quoted as '$'"'"'b'
             return "'" + s.replace("'", "'\"'\"'") + "'"

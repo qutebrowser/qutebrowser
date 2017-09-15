@@ -240,6 +240,10 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
      ":set fonts hints '12px Hack'|"),
     (":set fonts hints 'Comic| Sans'", '12px Hack',
      ":set fonts hints '12px Hack'|"),
+    # Make sure " is quoted properly
+    (':set url.start_pages \'["https://www.|example.com"]\'',
+     '["https://www.example.org"]',
+     ':set url.start_pages \'["https://www.example.org"]\'|'),
     # open has maxsplit=0, so treat the last two tokens as one and don't quote
     (':open foo bar|', 'baz', ':open baz|'),
     (':open foo| bar', 'baz', ':open baz|'),
