@@ -278,6 +278,14 @@ class TestAll:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(object())
 
+    def test_completion_validity(self, klass):
+        """Make sure all completions are actually valid values."""
+        typ = klass()
+        completions = typ.complete()
+        if completions is not None:
+            for value, _desc in completions:
+                typ.from_str(value)
+
 
 class TestBaseType:
 
@@ -640,24 +648,24 @@ class TestFlagList:
     def test_complete(self, klass):
         """Test completing by doing some samples."""
         typ = klass(set_valid_values=True)
-        completions = [e[0] for e in typ.complete()]
-        assert 'foo' in completions
-        assert 'bar' in completions
-        assert 'baz' in completions
-        assert 'foo,bar' in completions
+        completions = [json.loads(e[0]) for e in typ.complete()]
+        assert ['foo'] in completions
+        assert ['bar'] in completions
+        assert ['baz'] in completions
+        assert ['foo', 'bar'] in completions
         for val in completions:
-            assert 'baz,' not in val
-            assert ',baz' not in val
+            if len(val) > 1:
+                assert 'baz' not in val
 
     def test_complete_all_valid_values(self, klass):
         typ = klass(set_valid_values=True)
         typ.combinable_values = None
-        completions = [e[0] for e in typ.complete()]
-        assert 'foo' in completions
-        assert 'bar' in completions
-        assert 'baz' in completions
-        assert 'foo,bar' in completions
-        assert 'foo,baz' in completions
+        completions = [json.loads(e[0]) for e in typ.complete()]
+        assert ['foo'] in completions
+        assert ['bar'] in completions
+        assert ['baz'] in completions
+        assert ['foo', 'bar'] in completions
+        assert ['foo', 'baz'] in completions
 
     def test_complete_no_valid_values(self, klass):
         assert klass().complete() is None
@@ -1909,18 +1917,6 @@ class TestConfirmQuit:
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
-
-    def test_complete(self, klass):
-        """Test completing by doing some samples."""
-        completions = [e[0] for e in klass().complete()]
-        assert 'always' in completions
-        assert 'never' in completions
-        assert 'multiple-tabs,downloads' in completions
-        for val in completions:
-            assert 'always,' not in val
-            assert ',always' not in val
-            assert 'never,' not in val
-            assert ',never' not in val
 
 
 class TestTimestampTemplate:

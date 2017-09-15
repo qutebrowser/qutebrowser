@@ -510,7 +510,7 @@ class FlagList(List):
         # Single value completions
         for value in valid_values:
             desc = valid_values.descriptions.get(value, "")
-            out.append((value, desc))
+            out.append((json.dumps([value]), desc))
 
         combinables = self.combinable_values
         if combinables is None:
@@ -518,7 +518,7 @@ class FlagList(List):
         # Generate combinations of each possible value combination
         for size in range(2, len(combinables) + 1):
             for combination in itertools.combinations(combinables, size):
-                out.append((','.join(combination), ''))
+                out.append((json.dumps(combination), ''))
         return out
 
 
