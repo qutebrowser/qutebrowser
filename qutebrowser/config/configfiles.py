@@ -26,6 +26,7 @@ import traceback
 import configparser
 import contextlib
 
+import yaml
 from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import configexc
@@ -86,12 +87,37 @@ class YamlConfig:
 
     def load(self):
         """Load self.values from the configured YAML file."""
-        # FIXME:conf error handling
         try:
             with open(self._filename, 'r', encoding='utf-8') as f:
-                self.values = utils.yaml_load(f)['global']
+                yaml_data = utils.yaml_load(f)
         except FileNotFoundError:
-            pass
+            return
+        except OSError as e:
+            desc = configexc.ConfigErrorDesc("While reading", e)
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+        except yaml.YAMLError as e:
+            desc = configexc.ConfigErrorDesc("While parsing", e)
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        try:
+            global_obj = yaml_data['global']
+        except KeyError:
+            desc = configexc.ConfigErrorDesc(
+                "While loading data",
+                "Toplevel object does not contain 'global' key.")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+        except TypeError:
+            desc = configexc.ConfigErrorDesc("While loading data",
+                                             "Toplevel object is not a dict.")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        if not isinstance(global_obj, dict):
+            desc = configexc.ConfigErrorDesc(
+                "While loading data",
+                "'global' object is not a dict")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        self.values = global_obj
 
 
 class ConfigAPI:

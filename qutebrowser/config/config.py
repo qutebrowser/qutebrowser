@@ -671,10 +671,21 @@ def init(parent=None):
                                 text=e.to_html(),
                                 icon=QMessageBox.Warning,
                                 plain_text=False)
-    else:
-        _errbox = None
 
-    if getattr(config_api, 'load_autoconfig', True):
-        instance.read_yaml()
+    try:
+        if getattr(config_api, 'load_autoconfig', True):
+            try:
+                instance.read_yaml()
+            except configexc.ConfigFileErrors as e:
+                raise  # caught in outer block
+            except configexc.Error as e:
+                desc = configexc.ConfigErrorDesc("Error", e)
+                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+    except configexc.ConfigFileErrors as e:
+        _errbox = msgbox.msgbox(parent=None,
+                                title="Error while reading config",
+                                text=e.to_html(),
+                                icon=QMessageBox.Warning,
+                                plain_text=False)
 
     configfiles.init(instance)

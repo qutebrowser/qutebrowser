@@ -601,7 +601,6 @@ class TestConfig:
         assert caplog.records[0].message == expected_message
 
     def test_read_yaml(self, conf):
-        # FIXME:conf what about wrong values?
         assert not conf._yaml.loaded
         conf._yaml.values['content.plugins'] = True
 
@@ -609,6 +608,11 @@ class TestConfig:
 
         assert conf._yaml.loaded
         assert conf._values['content.plugins'] is True
+
+    def test_read_yaml_invalid(self, conf):
+        conf._yaml.values['foo.bar'] = True
+        with pytest.raises(configexc.NoOptionError):
+            conf.read_yaml()
 
     def test_get_opt_valid(self, conf):
         assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
@@ -878,13 +882,17 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 
 @pytest.mark.parametrize('load_autoconfig', [True, False])
 @pytest.mark.parametrize('config_py', [True, 'error', False])
+@pytest.mark.parametrize('invalid_yaml', [True, False])
 def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
-              load_autoconfig, config_py):
+              load_autoconfig, config_py, invalid_yaml):
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
     config_py_file = config_tmpdir / 'config.py'
 
-    autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
-                               'utf-8', ensure=True)
+    if invalid_yaml:
+        autoconfig_file.write_text('42', 'utf-8', ensure=True)
+    else:
+        autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
+                                   'utf-8', ensure=True)
 
     if config_py:
         config_py_lines = ['c.colors.hints.bg = "red"']
@@ -900,8 +908,12 @@ def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
         qtbot.add_widget(config._errbox)
         expected = "Errors occurred while reading config.py:"
         assert config._errbox.text().strip().startswith(expected)
+    elif invalid_yaml and (load_autoconfig or not config_py):
+        qtbot.add_widget(config._errbox)
+        expected = "Errors occurred while reading autoconfig.yml:"
+        assert config._errbox.text().strip().startswith(expected)
     else:
-        assert config._errbox is None
+        assert config._errbox is None, config._errbox.text()
 
     objreg.get('config-commands')
     assert isinstance(config.instance, config.Config)
@@ -911,13 +923,15 @@ def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
     fake_save_manager.add_saveable.assert_any_call(
         'yaml-config', unittest.mock.ANY)
 
-    if config_py and load_autoconfig:
+    if config_py and load_autoconfig and not invalid_yaml:
         assert config.instance._values == {
             'colors.hints.bg': 'red',
             'colors.hints.fg': 'magenta',
         }
     elif config_py:
         assert config.instance._values == {'colors.hints.bg': 'red'}
+    elif invalid_yaml:
+        assert config.instance._values == {}
     else:
         assert config.instance._values == {'colors.hints.fg': 'magenta'}
 
