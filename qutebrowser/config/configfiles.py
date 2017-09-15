@@ -198,7 +198,7 @@ def read_config_py(filename=None):
 
     try:
         code = compile(source, filename, 'exec')
-    except ValueError as e:
+    except (ValueError, TypeError) as e:
         # source contains NUL bytes
         desc = configexc.ConfigErrorDesc("Error while compiling", e)
         raise configexc.ConfigFileErrors(basename, [desc])
