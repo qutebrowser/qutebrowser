@@ -18,13 +18,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-
-
 """Tool to import data from other browsers.
 
 Currently only importing bookmarks from Netscape Bookmark files is supported.
 """
-
 
 import argparse
 
@@ -49,43 +46,74 @@ def main():
         if args.keyword_query:
             bookmark_types.append('keyword')
     if not bookmark_types:
-        bookmark_types = ['bookmark','keyword']
+        bookmark_types = ['bookmark', 'keyword']
     if not output_format:
         output_format = 'quickmark'
 
     if args.browser in ['chromium', 'firefox', 'ie']:
-        import_netscape_bookmarks(args.bookmarks,bookmark_types,output_format)
+        import_netscape_bookmarks(args.bookmarks, bookmark_types,
+                                  output_format)
 
 
 def get_args():
     """Get the argparse parser."""
     parser = argparse.ArgumentParser(
         epilog="To import bookmarks from Chromium, Firefox or IE, "
-               "export them to HTML in your browsers bookmark manager. "
-               "By default, this script will output in a quickmarks format.")
-    parser.add_argument('browser', help="Which browser? (chromium, firefox)",
-                        choices=['chromium', 'firefox', 'ie'],
-                        metavar='browser')
-    parser.add_argument('-b', help="Output in bookmark format.",
-                        dest='bookmark_output', action='store_true',
-                        default=False, required=False)
-    parser.add_argument('-q', help="Output in quickmark format (default).",
-                        dest='quickmark_output', action='store_true',
-                        default=False,required=False)
-    parser.add_argument('-s', help="Output search engine format",
-                        dest='search_output', action='store_true',
-                        default=False,required=False)
-    parser.add_argument('--newconfig', help="Output search engine format for new config.py format",
-                        default=False,action='store_true',required=False)
-    parser.add_argument('-S', help="Import search engines",
-                        dest='search_query', action='store_true',
-                        default=False,required=False)
-    parser.add_argument('-B', help="Import plain bookmarks (no keywords)",
-                        dest='bookmark_query', action='store_true',
-                        default=False,required=False)
-    parser.add_argument('-K', help="Import keywords (no search)",
-                        dest='keyword_query', action='store_true',
-                        default=False,required=False)
+        "export them to HTML in your browsers bookmark manager. "
+        "By default, this script will output in a quickmarks format.")
+    parser.add_argument(
+        'browser',
+        help="Which browser? (chromium, firefox)",
+        choices=['chromium', 'firefox', 'ie'],
+        metavar='browser')
+    parser.add_argument(
+        '-b',
+        help="Output in bookmark format.",
+        dest='bookmark_output',
+        action='store_true',
+        default=False,
+        required=False)
+    parser.add_argument(
+        '-q',
+        help="Output in quickmark format (default).",
+        dest='quickmark_output',
+        action='store_true',
+        default=False,
+        required=False)
+    parser.add_argument(
+        '-s',
+        help="Output search engine format",
+        dest='search_output',
+        action='store_true',
+        default=False,
+        required=False)
+    parser.add_argument(
+        '--newconfig',
+        help="Output search engine format for new config.py format",
+        default=False,
+        action='store_true',
+        required=False)
+    parser.add_argument(
+        '-S',
+        help="Import search engines",
+        dest='search_query',
+        action='store_true',
+        default=False,
+        required=False)
+    parser.add_argument(
+        '-B',
+        help="Import plain bookmarks (no keywords)",
+        dest='bookmark_query',
+        action='store_true',
+        default=False,
+        required=False)
+    parser.add_argument(
+        '-K',
+        help="Import keywords (no search)",
+        dest='keyword_query',
+        action='store_true',
+        default=False,
+        required=False)
     parser.add_argument('bookmarks', help="Bookmarks file (html format)")
     args = parser.parse_args()
     return args
@@ -100,16 +128,24 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
     with open(bookmarks_file, encoding='utf-8') as f:
         soup = bs4.BeautifulSoup(f, 'html.parser')
     bookmark_query = {
-        'search':
-        lambda tag: (tag.name == 'a') and ('shortcuturl' in tag.attrs) and ('%s' in tag['href']),
-        'keyword':
-        lambda tag: (tag.name == 'a') and ('shortcuturl' in tag.attrs) and ('%s' not in tag['href']),
-        'bookmark':
-        lambda tag: (tag.name == 'a') and ('shortcuturl' not in tag.attrs) and (tag.string)
+        'search': lambda tag: (
+            (tag.name == 'a') and
+            ('shortcuturl' in tag.attrs) and
+            ('%s' in tag['href'])),
+        'keyword': lambda tag: (
+            (tag.name == 'a') and
+            ('shortcuturl' in tag.attrs) and
+            ('%s' not in tag['href'])),
+        'bookmark': lambda tag: (
+            (tag.name == 'a') and
+            ('shortcuturl' not in tag.attrs) and
+            (tag.string)),
     }
     output_template = {
         'ncsearch': {
-            'search': "c.url.searchengines['{tag[shortcuturl]}'] = '{tag[href]}' #{tag.string}"
+            'search':
+            "c.url.searchengines['{tag[shortcuturl]}'] = "
+            "'{tag[href]}' #{tag.string}"
         },
         'search': {
             'search': '{tag[shortcuturl]} = {tag[href]} #{tag.string}',
@@ -127,10 +163,11 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
     for typ in bookmark_types:
         tags = soup.findAll(bookmark_query[typ])
         for tag in tags:
-            if typ=='search':
-                tag['href'] = tag['href'].replace('%s','{}')
+            if typ == 'search':
+                tag['href'] = tag['href'].replace('%s', '{}')
             if tag['href'] not in bookmarks:
-                bookmarks.append(output_template[output_format][typ].format(tag=tag))
+                bookmarks.append(
+                    output_template[output_format][typ].format(tag=tag))
     for bookmark in bookmarks:
         print(bookmark)
 
