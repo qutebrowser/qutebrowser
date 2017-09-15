@@ -10,7 +10,6 @@
 |==============
 |Setting|Description
 |<<aliases,aliases>>|Aliases for commands.
-|<<auto_save.config,auto_save.config>>|Save the config automatically on quit.
 |<<auto_save.interval,auto_save.interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
 |<<auto_save.session,auto_save.session>>|Always restore open sites when qutebrowser is reopened.
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
@@ -262,19 +261,6 @@ Default:
 - +pass:[q]+: +pass:[quit]+
 - +pass:[w]+: +pass:[session-save]+
 - +pass:[wq]+: +pass:[quit --save]+
-
-[[auto_save.config]]
-=== auto_save.config
-Save the config automatically on quit.
-
-Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
-
-Default: +pass:[true]+
 
 [[auto_save.interval]]
 === auto_save.interval

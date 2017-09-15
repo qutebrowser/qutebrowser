@@ -87,11 +87,6 @@ session_default_name:
 
 ## auto_save
 
-auto_save.config:
-  type: Bool
-  default: true
-  desc: Save the config automatically on quit.
-
 auto_save.interval:
   type:
     name: Int

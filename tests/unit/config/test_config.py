@@ -347,14 +347,14 @@ class TestSetConfigCommand:
         assert msg.text == 'url.auto_search = dns'
 
     def test_set_toggle(self, commands, config_stub):
-        """Run ':set auto_save.config!'.
+        """Run ':set auto_save.session!'.
 
         Should toggle the value.
         """
-        assert config_stub.val.auto_save.config
-        commands.set(0, 'auto_save.config!')
-        assert not config_stub.val.auto_save.config
-        assert not config_stub._yaml.values['auto_save.config']
+        assert not config_stub.val.auto_save.session
+        commands.set(0, 'auto_save.session!')
+        assert config_stub.val.auto_save.session
+        assert config_stub._yaml.values['auto_save.session']
 
     def test_set_toggle_nonbool(self, commands, config_stub):
         """Run ':set url.auto_search!'.
@@ -368,13 +368,13 @@ class TestSetConfigCommand:
         assert config_stub.val.url.auto_search == 'naive'
 
     def test_set_toggle_print(self, commands, config_stub, message_mock):
-        """Run ':set -p auto_save.config!'.
+        """Run ':set -p auto_save.session!'.
 
         Should toggle the value and show the new value.
         """
-        commands.set(0, 'auto_save.config!', print_=True)
+        commands.set(0, 'auto_save.session!', print_=True)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
-        assert msg.text == 'auto_save.config = false'
+        assert msg.text == 'auto_save.session = true'
 
     def test_set_invalid_option(self, commands):
         """Run ':set foo bar'.
@@ -385,14 +385,14 @@ class TestSetConfigCommand:
             commands.set(0, 'foo', 'bar')
 
     def test_set_invalid_value(self, commands):
-        """Run ':set auto_save.config blah'.
+        """Run ':set auto_save.session blah'.
 
         Should show an error.
         """
         with pytest.raises(cmdexc.CommandError,
                            match="set: Invalid value 'blah' - must be a "
                            "boolean!"):
-            commands.set(0, 'auto_save.config', 'blah')
+            commands.set(0, 'auto_save.session', 'blah')
 
     def test_set_wrong_backend(self, commands, monkeypatch):
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
