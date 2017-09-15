@@ -2026,13 +2026,12 @@ bindings.default:
     passthrough:
       <Ctrl-V>: leave-mode
     command:
-      # FIXME:conf what to do about up/down?
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next
+      <Up>: command-history-prev
+      <Down>: command-history-next
       <Shift-Tab>: completion-item-focus prev
-      <Up>: completion-item-focus prev
       <Tab>: completion-item-focus next
-      <Down>: completion-item-focus next
       <Ctrl-Tab>: completion-item-focus next-category
       <Ctrl-Shift-Tab>: completion-item-focus prev-category
       <Ctrl-D>: completion-item-del
