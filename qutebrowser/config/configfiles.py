@@ -193,9 +193,6 @@ def read_config_py(filename=None):
             exception=e, traceback=traceback.format_exc()))
 
     api.finalize()
-    if api.errors:
-        raise configexc.ConfigFileErrors(basename, api.errors)
-
     return api
 
 

@@ -660,15 +660,19 @@ def init(parent=None):
     objreg.register('config-commands', config_commands)
 
     global _errbox
+    config_api = None
+
     try:
         config_api = configfiles.read_config_py()
+        # Raised here so we get the config_api back.
+        if config_api.errors:
+            raise configexc.ConfigFileErrors('config.py', config_api.errors)
     except configexc.ConfigFileErrors as e:
         _errbox = msgbox.msgbox(parent=None,
                                 title="Error while reading config",
                                 text=e.to_html(),
                                 icon=QMessageBox.Warning,
                                 plain_text=False)
-        config_api = None
     else:
         _errbox = None
 
