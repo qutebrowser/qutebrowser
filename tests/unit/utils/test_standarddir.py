@@ -53,8 +53,7 @@ def test_fake_mac_config(tmpdir, monkeypatch):
     assert standarddir.config() == expected
 
 
-# FIXME:conf
-# needs AppDataLocation
+# FIXME:conf needs AppDataLocation
 @pytest.mark.qt55
 @pytest.mark.parametrize('what', ['data', 'config'])
 @pytest.mark.not_mac
@@ -316,8 +315,7 @@ class TestSystemData:
         assert standarddir.data(system=True) == standarddir.data()
 
 
-# FIXME:conf
-# needs AppDataLocation
+# FIXME:conf needs AppDataLocation
 @pytest.mark.qt55
 class TestDataMigrations:
 
