@@ -221,7 +221,7 @@ class TestConfigPy:
 
     def test_oserror(self, tmpdir):
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
-            configfiles.read_config_py(tmpdir / 'foo')
+            configfiles.read_config_py(str(tmpdir / 'foo'))
 
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
