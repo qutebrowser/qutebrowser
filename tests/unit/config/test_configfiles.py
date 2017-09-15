@@ -115,7 +115,6 @@ class TestConfigPy:
 
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',
-        'config.val.colors.hints.bg = "red"',
         'config.set("colors.hints.bg", "red")',
     ])
     def test_set(self, confpy, line):
@@ -232,6 +231,15 @@ class TestConfigPy:
         assert tblines[0] == "Traceback (most recent call last):"
         assert tblines[-1] == "ZeroDivisionError: division by zero"
         assert "    1/0" in tblines
+
+    def test_config_val(self, confpy):
+        """Using config.val should not work in config.py files."""
+        confpy.write("config.val.colors.hints.bg = 'red'")
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, AttributeError)
 
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):

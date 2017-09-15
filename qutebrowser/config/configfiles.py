@@ -157,7 +157,6 @@ def read_config_py(filename=None):
 
     api = ConfigAPI(config.instance, config.key_instance)
     container = config.ConfigContainer(config.instance, configapi=api)
-    api.val = container
 
     module = types.ModuleType('config')
     module.config = api
