@@ -82,14 +82,12 @@ Feature: Miscellaneous utility commands exposed to the user.
         When I run :debug-all-objects
         Then "*Qt widgets - *Qt objects - *" should be logged
 
-    # ## :debug-cache-stats
+    ## :debug-cache-stats
 
-    # # FIXME:conf
-
-    # Scenario: :debug-cache-stats
-    #     When I run :debug-cache-stats
-    #     Then "config: CacheInfo(*)" should be logged
-    #     And "style: CacheInfo(*)" should be logged
+    Scenario: :debug-cache-stats
+        When I run :debug-cache-stats
+        Then "is_valid_prefix: CacheInfo(*)" should be logged
+        And "_render_stylesheet: CacheInfo(*)" should be logged
 
     ## :debug-console
 
