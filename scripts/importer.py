@@ -109,7 +109,7 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
     }
     output_template = {
         'ncsearch': {
-            'search': "config.val.url.searchengines['{tag[shortcuturl]}'] = '{tag[href]}' #{tag.string}"
+            'search': "c.url.searchengines['{tag[shortcuturl]}'] = '{tag[href]}' #{tag.string}"
         },
         'search': {
             'search': '{tag[shortcuturl]} = {tag[href]} #{tag.string}',
