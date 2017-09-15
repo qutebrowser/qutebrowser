@@ -18,6 +18,7 @@
 
 """Tests for qutebrowser.config.configfiles."""
 
+import os
 import sys
 
 import pytest
@@ -89,6 +90,49 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
         assert '  colors.hints.fg: magenta' in lines
     if insert:
         assert '  tabs.show: never' in lines
+
+
+@pytest.mark.parametrize('line, text, exception', [
+    ('%', 'While parsing', 'while scanning a directive'),
+    ('global: 42', 'While loading data', "'global' object is not a dict"),
+    ('foo: 42', 'While loading data',
+     "Toplevel object does not contain 'global' key"),
+    ('42', 'While loading data', "Toplevel object is not a dict"),
+])
+def test_yaml_config_invalid(fake_save_manager, config_tmpdir,
+                             line, text, exception):
+    autoconfig = config_tmpdir / 'autoconfig.yml'
+    autoconfig.write_text(line, 'utf-8', ensure=True)
+
+    yaml = configfiles.YamlConfig()
+
+    with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+        yaml.load()
+
+    assert len(excinfo.value.errors) == 1
+    error = excinfo.value.errors[0]
+    assert error.text == text
+    assert str(error.exception).splitlines()[0] == exception
+    assert error.traceback is None
+
+
+def test_yaml_oserror(fake_save_manager, config_tmpdir):
+    autoconfig = config_tmpdir / 'autoconfig.yml'
+    autoconfig.ensure()
+    autoconfig.chmod(0)
+    if os.access(str(autoconfig), os.R_OK):
+        # Docker container or similar
+        pytest.skip("File was still readable")
+
+    yaml = configfiles.YamlConfig()
+    with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+        yaml.load()
+
+    assert len(excinfo.value.errors) == 1
+    error = excinfo.value.errors[0]
+    assert error.text == "While reading"
+    assert isinstance(error.exception, OSError)
+    assert error.traceback is None
 
 
 class TestConfigPy:

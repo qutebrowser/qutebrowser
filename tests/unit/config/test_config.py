@@ -880,18 +880,22 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
             pass
 
 
-@pytest.mark.parametrize('load_autoconfig', [True, False])
+@pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
 @pytest.mark.parametrize('config_py', [True, 'error', False])
-@pytest.mark.parametrize('invalid_yaml', [True, False])
+@pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', False])
 def test_init(init_patch, fake_save_manager, config_tmpdir, mocker,
               load_autoconfig, config_py, invalid_yaml):
     # Prepare files
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
     config_py_file = config_tmpdir / 'config.py'
 
-    if invalid_yaml:
+    if invalid_yaml == '42':
         autoconfig_file.write_text('42', 'utf-8', ensure=True)
+    elif invalid_yaml == 'unknown':
+        autoconfig_file.write_text('global:\n  colors.foobar: magenta\n',
+                                   'utf-8', ensure=True)
     else:
+        assert not invalid_yaml
         autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
                                    'utf-8', ensure=True)
 

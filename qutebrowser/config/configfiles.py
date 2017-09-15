@@ -104,11 +104,11 @@ class YamlConfig:
         except KeyError:
             desc = configexc.ConfigErrorDesc(
                 "While loading data",
-                "Toplevel object does not contain 'global' key.")
+                "Toplevel object does not contain 'global' key")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
         except TypeError:
             desc = configexc.ConfigErrorDesc("While loading data",
-                                             "Toplevel object is not a dict.")
+                                             "Toplevel object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         if not isinstance(global_obj, dict):
