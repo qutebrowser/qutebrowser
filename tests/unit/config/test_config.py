@@ -877,25 +877,26 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 
 
 @pytest.mark.parametrize('load_autoconfig', [True, False])
-@pytest.mark.parametrize('config_py_errors', [True, False])
+@pytest.mark.parametrize('config_py', [True, 'error', False])
 def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
-              load_autoconfig, config_py_errors):
+              load_autoconfig, config_py):
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
     config_py_file = config_tmpdir / 'config.py'
 
     autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
                                'utf-8', ensure=True)
-    config_py_lines = ['c.colors.hints.bg = "red"']
-    if not load_autoconfig:
-        config_py_lines.append('config.load_autoconfig = False')
-    if config_py_errors:
-        config_py_lines.append('c.foo = 42')
 
-    config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
+    if config_py:
+        config_py_lines = ['c.colors.hints.bg = "red"']
+        if not load_autoconfig:
+            config_py_lines.append('config.load_autoconfig = False')
+        if config_py == 'error':
+            config_py_lines.append('c.foo = 42')
+        config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
 
     config.init()
 
-    if config_py_errors:
+    if config_py == 'error':
         qtbot.add_widget(config._errbox)
         expected = "Errors occurred while reading config.py:"
         assert config._errbox.text().strip().startswith(expected)
@@ -912,11 +913,15 @@ def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
     fake_save_manager.add_saveable.assert_any_call(
         'yaml-config', unittest.mock.ANY)
 
-    assert config.instance._values['colors.hints.bg'] == 'red'
-    if load_autoconfig:
-        assert config.instance._values['colors.hints.fg'] == 'magenta'
+    if config_py and load_autoconfig:
+        assert config.instance._values == {
+            'colors.hints.bg': 'red',
+            'colors.hints.fg': 'magenta',
+        }
+    elif config_py:
+        assert config.instance._values == {'colors.hints.bg': 'red'}
     else:
-        assert 'colors.hints.fg' not in config.instance._values
+        assert config.instance._values == {'colors.hints.fg': 'magenta'}
 
 
 def test_init_invalid_change_filter(init_patch):

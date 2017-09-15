@@ -149,21 +149,20 @@ class ConfigAPI:
 def read_config_py(filename=None):
     """Read a config.py file."""
     from qutebrowser.config import config
+    api = ConfigAPI(config.instance, config.key_instance)
 
     if filename is None:
         filename = os.path.join(standarddir.config(), 'config.py')
         if not os.path.exists(filename):
-            return None
+            return api
 
-    api = ConfigAPI(config.instance, config.key_instance)
     container = config.ConfigContainer(config.instance, configapi=api)
+    basename = os.path.basename(filename)
 
     module = types.ModuleType('config')
     module.config = api
     module.c = container
     module.__file__ = filename
-
-    basename = os.path.basename(filename)
 
     try:
         with open(filename, mode='rb') as f:
