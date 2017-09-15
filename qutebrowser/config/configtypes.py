@@ -526,8 +526,8 @@ class Bool(BaseType):
 
     """A boolean setting, either `true` or `false`.
 
-    When setting from a string, `1`, `yes`, `on` and `true` count as true, while
-    `0`, `no`, `off` and `false` count as false (case-insensitive).
+    When setting from a string, `1`, `yes`, `on` and `true` count as true,
+    while `0`, `no`, `off` and `false` count as false (case-insensitive).
     """
 
     def __init__(self, none_ok=False):

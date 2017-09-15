@@ -324,7 +324,7 @@ def init_patch(qapp, fake_save_manager, config_tmpdir, data_tmpdir,
 
 
 def test_init(init_patch, config_tmpdir):
-    configfiles.init(config=None)
+    configfiles.init()
 
     # Make sure qsettings land in a subdir
     if sys.platform == 'linux':

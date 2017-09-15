@@ -220,7 +220,7 @@ def read_config_py(filename=None):
     return api
 
 
-def init(config):
+def init():
     """Initialize config storage not related to the main config."""
     state = StateConfig()
     objreg.register('state-config', state)

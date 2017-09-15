@@ -32,7 +32,6 @@ import itertools
 import textwrap
 import unittest.mock
 import types
-import os
 
 import pytest
 import py.path  # pylint: disable=no-name-in-module

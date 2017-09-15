@@ -688,4 +688,4 @@ def init(parent=None):
                                plain_text=False)
         errbox.exec_()
 
-    configfiles.init(instance)
+    configfiles.init()

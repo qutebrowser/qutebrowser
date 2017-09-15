@@ -883,6 +883,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
 @pytest.mark.parametrize('config_py', [True, 'error', False])
 @pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', False])
+# pylint: disable=too-many-branches
 def test_init(init_patch, fake_save_manager, config_tmpdir, mocker,
               load_autoconfig, config_py, invalid_yaml):
     # Prepare files
@@ -905,7 +906,8 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, mocker,
             config_py_lines.append('config.load_autoconfig = False')
         if config_py == 'error':
             config_py_lines.append('c.foo = 42')
-        config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
+        config_py_file.write_text('\n'.join(config_py_lines),
+                                  'utf-8', ensure=True)
 
     msgbox_mock = mocker.patch('qutebrowser.config.config.msgbox.msgbox',
                                autospec=True)

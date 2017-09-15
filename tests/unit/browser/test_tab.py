@@ -22,8 +22,6 @@ import pytest
 from PyQt5.QtCore import PYQT_VERSION
 
 from qutebrowser.browser import browsertab
-from qutebrowser.keyinput import modeman
-from qutebrowser.utils import objreg
 
 pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 
