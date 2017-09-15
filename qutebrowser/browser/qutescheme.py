@@ -34,7 +34,7 @@ import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
-from qutebrowser.config import config, configdata, configexc
+from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, usertypes, qtutils)
 from qutebrowser.misc import objects
@@ -421,3 +421,14 @@ def qute_settings(url):
                         configdata=configdata,
                         confget=config.instance.get_str)
     return 'text/html', html
+
+
+@add_handler('configdiff')
+def qute_configdiff(_url):
+    """Handler for qute://configdiff."""
+    try:
+        return 'text/html', configdiff.get_diff()
+    except OSError as e:
+        error = (b'Failed to read old config: ' +
+                 str(e.strerror).encode('utf-8'))
+        return 'text/plain', error
