@@ -42,8 +42,6 @@ Config types can do different conversations:
   This also validates whether the object is actually correct (type/value).
 """
 
-# FIXME:conf show the type docstrings in the documentation
-
 import re
 import html
 import codecs
@@ -311,7 +309,9 @@ class MappingType(BaseType):
 
 class String(BaseType):
 
-    """Base class for a string setting (case-insensitive).
+    """A string value.
+
+    See the setting's valid values for more information on allowed values.
 
     Attributes:
         minlen: Minimum length (inclusive).
@@ -404,7 +404,10 @@ class UniqueCharString(String):
 
 class List(BaseType):
 
-    """Base class for a (string-)list setting."""
+    """A list of values.
+
+    When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
+    """
 
     _show_valtype = True
 
@@ -474,10 +477,10 @@ class List(BaseType):
 
 class FlagList(List):
 
-    """Base class for a list setting that contains one or more flags.
+    """A list of flags.
 
-    Lists with duplicate flags are invalid and each item is checked against
-    self.valid_values (if not empty).
+    Lists with duplicate flags are invalid. Each item is checked against
+    the valid values of the setting.
     """
 
     combinable_values = None
@@ -521,7 +524,11 @@ class FlagList(List):
 
 class Bool(BaseType):
 
-    """Base class for a boolean setting."""
+    """A boolean setting, either `true` or `false`.
+
+    When setting from a string, `1`, `yes`, `on` and `true` count as true, while
+    `0`, `no`, `off` and `false` count as false (case-insensitive).
+    """
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
@@ -552,7 +559,7 @@ class Bool(BaseType):
 
 class BoolAsk(Bool):
 
-    """A yes/no/ask question."""
+    """Like `Bool`, but `ask` is allowed as additional value."""
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
@@ -950,6 +957,8 @@ class QtFont(Font):
 
     """A Font which gets converted to a QFont."""
 
+    __doc__ = Font.__doc__  # for src2asciidoc.py
+
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
@@ -1010,6 +1019,9 @@ class QtFont(Font):
 class Regex(BaseType):
 
     """A regular expression.
+
+    When setting from `config.py`, both a string or a `re.compile(...)` object
+    are valid.
 
     Attributes:
         flags: The flags to be used when a string is passed.
@@ -1077,7 +1089,10 @@ class Regex(BaseType):
 
 class Dict(BaseType):
 
-    """A dictionary of values."""
+    """A dictionary of values.
+
+    When setting from a string, pass a json-like dict, e.g. `{"key", "value"}`.
+    """
 
     def __init__(self, keytype, valtype, *, fixed_keys=None,
                  required_keys=None, none_ok=False):
@@ -1214,7 +1229,7 @@ class Directory(BaseType):
 
 class FormatString(BaseType):
 
-    """A string with '{foo}'-placeholders."""
+    """A string with placeholders."""
 
     def __init__(self, fields, none_ok=False):
         super().__init__(none_ok)
@@ -1240,6 +1255,8 @@ class ShellCommand(List):
 
     """A shell command as a list.
 
+    See the documentation for `List`.
+
     Attributes:
         placeholder: If there should be a placeholder.
     """
@@ -1261,7 +1278,7 @@ class ShellCommand(List):
 
 class Proxy(BaseType):
 
-    """A proxy URL or special value."""
+    """A proxy URL, or `system`/`none`."""
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
@@ -1332,7 +1349,7 @@ class SearchEngineUrl(BaseType):
 
 class FuzzyUrl(BaseType):
 
-    """A single URL."""
+    """A URL which gets interpreted as search if needed."""
 
     def to_py(self, value):
         from qutebrowser.utils import urlutils
@@ -1426,7 +1443,7 @@ class VerticalPosition(String):
 
 class Url(BaseType):
 
-    """A URL."""
+    """A URL as a string."""
 
     def to_py(self, value):
         self._basic_py_validation(value, str)

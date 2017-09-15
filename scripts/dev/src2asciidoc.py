@@ -37,7 +37,7 @@ import qutebrowser.app
 from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser, commands
 from qutebrowser.commands import cmdutils, argparser
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import docutils, usertypes
 
 FILE_HEADER = """
@@ -149,6 +149,36 @@ def _get_setting_quickref():
     for opt in sorted(configdata.DATA.values()):
         desc = opt.description.splitlines()[0]
         out.append('|<<{},{}>>|{}'.format(opt.name, opt.name, desc))
+    out.append('|==============')
+    return '\n'.join(out)
+
+
+def _get_configtypes():
+    """Get configtypes classes to document."""
+    predicate = lambda e: (inspect.isclass(e) and
+                           e not in [configtypes.BaseType,
+                                     configtypes.MappingType,
+                                     # pylint: disable=protected-access
+                                     configtypes._Numeric] and
+                           issubclass(e, configtypes.BaseType))
+    yield from inspect.getmembers(configtypes, predicate)
+
+
+def _get_setting_types_quickref():
+    """Generate the setting types quick reference."""
+    out = []
+    out.append('[[types]]')
+    out.append('[options="header",width="75%",cols="25%,75%"]')
+    out.append('|==============')
+    out.append('|Type|Description')
+
+    for name, typ in _get_configtypes():
+        parser = docutils.DocstringParser(typ)
+        desc = parser.short_desc
+        if parser.long_desc:
+            desc += '\n\n' + parser.long_desc
+        out.append('|{}|{}'.format(name, desc))
+
     out.append('|==============')
     return '\n'.join(out)
 
@@ -383,8 +413,11 @@ def _generate_setting_option(f, opt):
     """Generate documentation for a single section."""
     f.write("\n")
     f.write('[[{}]]'.format(opt.name) + "\n")
-    f.write("== {}".format(opt.name) + "\n")
+    f.write("=== {}".format(opt.name) + "\n")
     f.write(opt.description + "\n")
+    f.write("\n")
+    f.write('Type: <<types,{typ}>>\n'.format(
+        typ=opt.typ.__class__.__name__))
     f.write("\n")
 
     valid_values = opt.typ.get_valid_values()
@@ -408,10 +441,13 @@ def generate_settings(filename):
     configdata.init()
     with _open_file(filename) as f:
         f.write(FILE_HEADER)
-        f.write("= Settings\n")
+        f.write("= Setting reference\n\n")
+        f.write("== All settings\n")
         f.write(_get_setting_quickref() + "\n")
         for opt in sorted(configdata.DATA.values()):
             _generate_setting_option(f, opt)
+        f.write("\n== Setting types\n")
+        f.write(_get_setting_types_quickref() + "\n")
 
 
 def _format_block(filename, what, data):
