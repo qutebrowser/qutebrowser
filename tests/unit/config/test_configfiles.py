@@ -284,6 +284,8 @@ class TestConfigPy:
         error = api.errors[0]
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, AttributeError)
+        message = "'ConfigAPI' object has no attribute 'val'"
+        assert str(error.exception) == message
 
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):

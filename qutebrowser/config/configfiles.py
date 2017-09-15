@@ -131,7 +131,6 @@ class ConfigAPI:
     Attributes:
         _config: The main Config object to use.
         _keyconfig: The KeyConfig object.
-        val: A matching ConfigContainer object.
         load_autoconfig: Whether autoconfig.yml should be loaded.
         errors: Errors which occurred while setting options.
     """
@@ -141,7 +140,6 @@ class ConfigAPI:
         self._keyconfig = keyconfig
         self.load_autoconfig = True
         self.errors = []
-        self.val = None  # Set when initialized
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
