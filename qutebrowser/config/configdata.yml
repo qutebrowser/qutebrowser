@@ -1871,9 +1871,9 @@ bindings.default:
       o: set-cmd-text -s :open
       go: set-cmd-text :open {url:pretty}
       O: set-cmd-text -s :open -t
-      gO: set-cmd-text :open -t -i {url:pretty}
+      gO: set-cmd-text :open -t -r {url:pretty}
       xo: set-cmd-text -s :open -b
-      xO: set-cmd-text :open -b -i {url:pretty}
+      xO: set-cmd-text :open -b -r {url:pretty}
       wo: set-cmd-text -s :open -w
       wO: set-cmd-text :open -w {url:pretty}
       /: set-cmd-text /
@@ -1917,7 +1917,7 @@ bindings.default:
       ;i: hint images
       ;I: hint images tab
       ;o: hint links fill :open {hint-url}
-      ;O: hint links fill :open -t -i {hint-url}
+      ;O: hint links fill :open -t -r {hint-url}
       ;y: hint links yank
       ;Y: hint links yank-primary
       ;r: hint --rapid links tab-bg
