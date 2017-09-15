@@ -883,8 +883,9 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 @pytest.mark.parametrize('load_autoconfig', [True, False])
 @pytest.mark.parametrize('config_py', [True, 'error', False])
 @pytest.mark.parametrize('invalid_yaml', [True, False])
-def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
+def test_init(init_patch, fake_save_manager, config_tmpdir, mocker,
               load_autoconfig, config_py, invalid_yaml):
+    # Prepare files
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
     config_py_file = config_tmpdir / 'config.py'
 
@@ -902,19 +903,28 @@ def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
             config_py_lines.append('c.foo = 42')
         config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
 
+    msgbox_mock = mocker.patch('qutebrowser.config.config.msgbox.msgbox',
+                               autospec=True)
+
     config.init()
 
+    # Check error messages
+    expected_errors = []
     if config_py == 'error':
-        qtbot.add_widget(config._errbox)
-        expected = "Errors occurred while reading config.py:"
-        assert config._errbox.text().strip().startswith(expected)
-    elif invalid_yaml and (load_autoconfig or not config_py):
-        qtbot.add_widget(config._errbox)
-        expected = "Errors occurred while reading autoconfig.yml:"
-        assert config._errbox.text().strip().startswith(expected)
+        expected_errors.append("Errors occurred while reading config.py:")
+    if invalid_yaml and (load_autoconfig or not config_py):
+        expected_errors.append("Errors occurred while reading autoconfig.yml:")
+    if expected_errors:
+        assert len(expected_errors) == len(msgbox_mock.call_args_list)
+        comparisons = zip(
+            expected_errors,
+            [call[1]['text'] for call in msgbox_mock.call_args_list])
+        for expected, actual in comparisons:
+            assert actual.strip().startswith(expected)
     else:
-        assert config._errbox is None, config._errbox.text()
+        assert not msgbox_mock.called
 
+    # Make sure things have been init'ed
     objreg.get('config-commands')
     assert isinstance(config.instance, config.Config)
     assert isinstance(config.key_instance, config.KeyConfig)
@@ -923,6 +933,7 @@ def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
     fake_save_manager.add_saveable.assert_any_call(
         'yaml-config', unittest.mock.ANY)
 
+    # Check config values
     if config_py and load_autoconfig and not invalid_yaml:
         assert config.instance._values == {
             'colors.hints.bg': 'red',

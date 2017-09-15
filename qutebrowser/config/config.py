@@ -36,7 +36,6 @@ from qutebrowser.completion.models import configmodel
 val = None
 instance = None
 key_instance = None
-_errbox = None
 
 # Keeping track of all change filters to validate them later.
 _change_filters = []
@@ -657,7 +656,6 @@ def init(parent=None):
     config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 
-    global _errbox
     config_api = None
 
     try:
@@ -666,11 +664,12 @@ def init(parent=None):
         if config_api.errors:
             raise configexc.ConfigFileErrors('config.py', config_api.errors)
     except configexc.ConfigFileErrors as e:
-        _errbox = msgbox.msgbox(parent=None,
-                                title="Error while reading config",
-                                text=e.to_html(),
-                                icon=QMessageBox.Warning,
-                                plain_text=False)
+        errbox = msgbox.msgbox(parent=None,
+                               title="Error while reading config",
+                               text=e.to_html(),
+                               icon=QMessageBox.Warning,
+                               plain_text=False)
+        errbox.exec_()
 
     try:
         if getattr(config_api, 'load_autoconfig', True):
@@ -682,10 +681,11 @@ def init(parent=None):
                 desc = configexc.ConfigErrorDesc("Error", e)
                 raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
     except configexc.ConfigFileErrors as e:
-        _errbox = msgbox.msgbox(parent=None,
-                                title="Error while reading config",
-                                text=e.to_html(),
-                                icon=QMessageBox.Warning,
-                                plain_text=False)
+        errbox = msgbox.msgbox(parent=None,
+                               title="Error while reading config",
+                               text=e.to_html(),
+                               icon=QMessageBox.Warning,
+                               plain_text=False)
+        errbox.exec_()
 
     configfiles.init(instance)
