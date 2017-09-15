@@ -386,7 +386,6 @@ class Config(QObject):
     def _set_value(self, opt, value):
         """Set the given option to the given value."""
         if objects.backend is not None:
-            # FIXME:conf Validate all backends after init
             if objects.backend not in opt.backends:
                 raise configexc.BackendError(objects.backend)
 
@@ -402,7 +401,6 @@ class Config(QObject):
         self._yaml.load()
         for name, value in self._yaml.values.items():
             self._set_value(self.get_opt(name), value)
-        # FIXME:conf when to emit changed() here?
 
     def get_opt(self, name):
         """Get a configdata.Option object for the given setting."""
