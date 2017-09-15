@@ -158,14 +158,6 @@ def qapp(qapp):
     return qapp
 
 
-@pytest.fixture
-def init_standarddir(qapp):
-    """Initialize the standarddir module for tests which need it."""
-    standarddir._init_dirs()
-    yield
-    standarddir._locations = {}
-
-
 def pytest_addoption(parser):
     parser.addoption('--qute-delay', action='store', default=0, type=int,
                      help="Delay between qutebrowser commands.")

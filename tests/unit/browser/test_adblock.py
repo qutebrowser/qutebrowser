@@ -316,7 +316,7 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
 
 
 @pytest.mark.parametrize('location', ['content', 'comment'])
-def test_invalid_utf8(config_stub, download_stub, init_standarddir, tmpdir,
+def test_invalid_utf8(config_stub, download_stub, tmpdir, data_tmpdir,
                       caplog, location):
     """Make sure invalid UTF-8 is handled correctly.
 

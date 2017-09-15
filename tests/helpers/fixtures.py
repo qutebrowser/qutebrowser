@@ -460,6 +460,19 @@ def data_tmpdir(monkeypatch, tmpdir):
 
 
 @pytest.fixture
+def runtime_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/runtime as the runtime dir.
+
+    Use this to avoid creating a 'real' runtime dir.
+    """
+    runtimedir = tmpdir / 'runtime'
+    path = str(runtimedir)
+    os.mkdir(path)
+    monkeypatch.setattr(standarddir, 'runtime', lambda: path)
+    return runtimedir
+
+
+@pytest.fixture
 def redirect_webengine_data(data_tmpdir, monkeypatch):
     """Set XDG_DATA_HOME and HOME to a temp location.
 

@@ -59,7 +59,7 @@ class TestQtFIFOReader:
     userscripts._POSIXUserscriptRunner,
     userscripts._WindowsUserscriptRunner,
 ])
-def runner(request, init_standarddir):
+def runner(request, runtime_tmpdir):
     if (os.name != 'posix' and
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
