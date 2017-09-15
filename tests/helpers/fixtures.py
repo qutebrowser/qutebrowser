@@ -229,13 +229,6 @@ def config_stub(stubs, monkeypatch, configdata_init):
 
 
 @pytest.fixture
-def default_config():
-    """Fixture that provides and registers an empty default config object."""
-    # FIXME:conf
-    return None
-
-
-@pytest.fixture
 def key_config_stub(config_stub, monkeypatch):
     """Fixture which provides a fake key config object."""
     keyconf = config.KeyConfig(config_stub)
