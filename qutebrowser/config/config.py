@@ -659,16 +659,18 @@ def init(parent=None):
     config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 
+    global _errbox
     try:
         config_api = configfiles.read_config_py()
     except configexc.ConfigFileErrors as e:
-        global _errbox
         _errbox = msgbox.msgbox(parent=None,
                                 title="Error while reading config",
                                 text=e.to_html(),
                                 icon=QMessageBox.Warning,
                                 plain_text=False)
         config_api = None
+    else:
+        _errbox = None
 
     if getattr(config_api, 'load_autoconfig', True):
         instance.read_yaml()

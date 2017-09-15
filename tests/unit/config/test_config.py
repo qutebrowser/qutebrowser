@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.config."""
 
 import copy
+import types
 import unittest.mock
 
 import pytest
@@ -795,6 +796,16 @@ class TestContainer:
         container.content.cookies.store = False
         assert config_stub._values['content.cookies.store'] is False
 
+    def test_confapi_errors(self, container):
+        configapi = types.SimpleNamespace(errors=[])
+        container._configapi = configapi
+        container.tabs.foobar  # pylint: disable=pointless-statement
+
+        assert len(configapi.errors) == 1
+        error = configapi.errors[0]
+        assert error.text == "While getting 'tabs.foobar'"
+        assert str(error.exception) == "No option 'tabs.foobar'"
+
 
 class StyleObj(QObject):
 
@@ -866,7 +877,9 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 
 
 @pytest.mark.parametrize('load_autoconfig', [True, False])
-def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
+@pytest.mark.parametrize('config_py_errors', [True, False])
+def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
+              load_autoconfig, config_py_errors):
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
     config_py_file = config_tmpdir / 'config.py'
 
@@ -875,9 +888,19 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, load_autoconfig):
     config_py_lines = ['c.colors.hints.bg = "red"']
     if not load_autoconfig:
         config_py_lines.append('config.load_autoconfig = False')
+    if config_py_errors:
+        config_py_lines.append('c.foo = 42')
+
     config_py_file.write_text('\n'.join(config_py_lines), 'utf-8', ensure=True)
 
     config.init()
+
+    if config_py_errors:
+        qtbot.add_widget(config._errbox)
+        expected = "Errors occurred while reading config.py:"
+        assert config._errbox.text().strip().startswith(expected)
+    else:
+        assert config._errbox is None
 
     objreg.get('config-commands')
     assert isinstance(config.instance, config.Config)

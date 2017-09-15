@@ -18,6 +18,8 @@
 
 """Tests for qutebrowser.config.configexc."""
 
+import textwrap
+
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes
 
@@ -43,3 +45,34 @@ def test_duplicate_key_error():
     e = configexc.DuplicateKeyError('asdf')
     assert isinstance(e, configexc.KeybindingError)
     assert str(e) == "Duplicate key asdf"
+
+
+def test_config_file_errors():
+    err1 = configexc.ConfigErrorDesc("Error text 1", Exception("Exception 1"))
+    err2 = configexc.ConfigErrorDesc("Error text 2", Exception("Exception 2"),
+                                     "Fake traceback")
+    errors = configexc.ConfigFileErrors("config.py", [err1, err2])
+    html = errors.to_html()
+    assert textwrap.dedent(html) == textwrap.dedent("""
+        Errors occurred while reading config.py:
+
+        <ul>
+
+            <li>
+              <b>Error text 1</b>: Exception 1
+
+            </li>
+
+            <li>
+              <b>Error text 2</b>: Exception 2
+
+                <pre>
+Fake traceback
+                </pre>
+
+            </li>
+
+        </ul>
+    """)
+    # Make sure the traceback is not indented
+    assert '<pre>\nFake traceback\n' in html
