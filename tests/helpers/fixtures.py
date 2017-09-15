@@ -440,9 +440,8 @@ def config_tmpdir(monkeypatch, tmpdir):
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
     confdir = tmpdir / 'config'
-    path = str(confdir)
-    os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'config', lambda auto=False: path)
+    confdir.ensure(dir=True)
+    monkeypatch.setattr(standarddir, 'config', lambda auto=False: str(confdir))
     return confdir
 
 
@@ -453,9 +452,8 @@ def data_tmpdir(monkeypatch, tmpdir):
     Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
     """
     datadir = tmpdir / 'data'
-    path = str(datadir)
-    os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'data', lambda system=False: path)
+    datadir.ensure(dir=True)
+    monkeypatch.setattr(standarddir, 'data', lambda system=False: str(datadir))
     return datadir
 
 
@@ -466,9 +464,8 @@ def runtime_tmpdir(monkeypatch, tmpdir):
     Use this to avoid creating a 'real' runtime dir.
     """
     runtimedir = tmpdir / 'runtime'
-    path = str(runtimedir)
-    os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'runtime', lambda: path)
+    runtimedir.ensure(dir=True)
+    monkeypatch.setattr(standarddir, 'runtime', lambda: str(runtimedir))
     return runtimedir
 
 
