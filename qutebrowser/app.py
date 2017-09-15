@@ -324,6 +324,7 @@ def _open_special_pages(args):
         return
 
     state_config = objreg.get('state-config')
+    general_sect = state_config['general']
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
@@ -331,21 +332,32 @@ def _open_special_pages(args):
 
     needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
                      not qtutils.is_qtwebkit_ng())
-    warning_shown = state_config['general'].get('backend-warning-shown') == '1'
+    warning_shown = general_sect.get('backend-warning-shown') == '1'
 
     if not warning_shown and needs_warning:
         tabbed_browser.tabopen(QUrl('qute://backend-warning'),
                                background=False)
-        state_config['general']['backend-warning-shown'] = '1'
+        general_sect['backend-warning-shown'] = '1'
 
     # Quickstart page
 
-    quickstart_done = state_config['general'].get('quickstart-done') == '1'
+    quickstart_done = general_sect.get('quickstart-done') == '1'
 
     if not quickstart_done:
         tabbed_browser.tabopen(
             QUrl('https://www.qutebrowser.org/quickstart.html'))
-        state_config['general']['quickstart-done'] = '1'
+        general_sect['quickstart-done'] = '1'
+
+    # Setting migration page
+
+    needs_migration = os.path.exists(
+        os.path.join(standarddir.config(), 'qutebrowser.conf'))
+    migration_shown = general_sect.get('config-migration-shown') == '1'
+
+    if needs_migration and not migration_shown:
+        tabbed_browser.tabopen(QUrl('qute://help/configuring.html'),
+                               background=False)
+        general_sect['config-migration-shown'] = '1'
 
 
 def _save_version():

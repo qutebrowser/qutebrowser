@@ -350,19 +350,6 @@ def qute_gpl(_url):
 @add_handler('help')
 def qute_help(url):
     """Handler for qute://help."""
-    try:
-        utils.read_file('html/doc/index.html')
-    except OSError:
-        html = jinja.render(
-            'error.html',
-            title="Error while loading documentation",
-            url=url.toDisplayString(),
-            error="This most likely means the documentation was not generated "
-                  "properly. If you are running qutebrowser from the git "
-                  "repository, please run scripts/asciidoc2html.py. "
-                  "If you're running a released version this is a bug, please "
-                  "use :report to report it.")
-        return 'text/html', html
     urlpath = url.path()
     if not urlpath or urlpath == '/':
         urlpath = 'index.html'
@@ -375,7 +362,20 @@ def qute_help(url):
     if urlpath.endswith('.png'):
         return 'image/png', utils.read_file(path, binary=True)
     else:
-        data = utils.read_file(path)
+        try:
+            data = utils.read_file(path)
+        except OSError:
+            html = jinja.render(
+                'error.html',
+                title="Error while loading documentation",
+                url=url.toDisplayString(),
+                error="This most likely means the documentation was not "
+                      "generated properly. If you are running qutebrowser "
+                      "from the git repository, please run "
+                      "scripts/asciidoc2html.py. If you're running a released "
+                      "version this is a bug, please use :report to report "
+                      "it.")
+            return 'text/html', html
         return 'text/html', data
 
 
