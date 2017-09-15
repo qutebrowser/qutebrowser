@@ -29,6 +29,7 @@ import os
 import time
 import urllib.parse
 import datetime
+import textwrap
 import pkg_resources
 
 from PyQt5.QtCore import QUrlQuery, QUrl
@@ -358,24 +359,45 @@ def qute_help(url):
     if not docutils.docs_up_to_date(urlpath):
         message.error("Your documentation is outdated! Please re-run "
                       "scripts/asciidoc2html.py.")
+
     path = 'html/doc/{}'.format(urlpath)
     if urlpath.endswith('.png'):
         return 'image/png', utils.read_file(path, binary=True)
-    else:
+
+    try:
+        data = utils.read_file(path)
+    except OSError:
+        # No .html around, let's see if we find the asciidoc
+        asciidoc_path = path.replace('.html', '.asciidoc')
+        if asciidoc_path.startswith('html/doc/'):
+            asciidoc_path = asciidoc_path.replace('html/doc/', '../doc/help/')
+
         try:
-            data = utils.read_file(path)
+            asciidoc = utils.read_file(asciidoc_path)
         except OSError:
-            html = jinja.render(
-                'error.html',
-                title="Error while loading documentation",
-                url=url.toDisplayString(),
-                error="This most likely means the documentation was not "
-                      "generated properly. If you are running qutebrowser "
-                      "from the git repository, please run "
-                      "scripts/asciidoc2html.py. If you're running a released "
-                      "version this is a bug, please use :report to report "
-                      "it.")
-            return 'text/html', html
+            asciidoc = None
+
+        if asciidoc is None:
+            raise
+
+        preamble = textwrap.dedent("""
+            There was an error loading the documentation!
+
+            This most likely means the documentation was not generated
+            properly. If you are running qutebrowser from the git repository,
+            please (re)run scripts/asciidoc2html.py and reload this page.
+
+            If you're running a released version this is a bug, please use
+            :report to report it.
+
+            Falling back to the plaintext version.
+
+            ---------------------------------------------------------------
+
+
+        """)
+        return 'text/plain', (preamble + asciidoc).encode('utf-8')
+    else:
         return 'text/html', data
 
 
