@@ -239,7 +239,7 @@ def check(fileobj, perfect_files):
         is_bad = line_cov < 100 or branch_cov < 100
 
         if filename in perfect_src_files and is_bad:
-            text = "{} has {}% line and {}% branch coverage!".format(
+            text = "{} has {:.2f}% line and {:.2f}% branch coverage!".format(
                 filename, line_cov, branch_cov)
             messages.append(Message(MsgType.insufficent_coverage, filename,
                                     text))
