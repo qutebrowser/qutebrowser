@@ -20,9 +20,12 @@
 
 """Tests for misc.cmdhistory.History."""
 
+import unittest.mock
+
 import pytest
 
 from qutebrowser.misc import cmdhistory
+from qutebrowser.utils import objreg
 
 
 HISTORY = ['first', 'second', 'third', 'fourth', 'fifth']
@@ -167,3 +170,15 @@ def test_append_double(hist):
     hist.append('fifth')
     # assert that the new 'fifth' is not added
     assert hist.history[-2:] == ['fourth', 'fifth']
+
+
+@pytest.fixture
+def init_patch():
+    yield
+    objreg.delete('command-history')
+
+
+def test_init(init_patch, fake_save_manager, data_tmpdir, config_stub):
+    cmdhistory.init()
+    fake_save_manager.add_saveable.assert_any_call(
+        'command-history', unittest.mock.ANY, unittest.mock.ANY)

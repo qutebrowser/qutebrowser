@@ -199,18 +199,6 @@ def init(config):
     state = StateConfig()
     objreg.register('state-config', state)
 
-    # We need to import this here because lineparser needs config.
-    # FIXME:conf add this to the Command widget or something?
-    from qutebrowser.misc import lineparser
-    save_manager = objreg.get('save-manager')
-    command_history = lineparser.LimitLineParser(
-        standarddir.data(), 'cmd-history',
-        limit='completion.cmd_history_max_items',
-        parent=config)
-    objreg.register('command-history', command_history)
-    save_manager.add_saveable('command-history', command_history.save,
-                              command_history.changed)
-
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it
     # doesn't overwrite our config.

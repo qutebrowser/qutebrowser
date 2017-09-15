@@ -277,7 +277,6 @@ def init_patch(qapp, fake_save_manager, config_tmpdir, data_tmpdir,
                config_stub):
     yield
     objreg.delete('state-config')
-    objreg.delete('command-history')
 
 
 def test_init(init_patch, config_tmpdir):

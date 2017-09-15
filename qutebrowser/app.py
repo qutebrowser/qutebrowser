@@ -52,7 +52,7 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects, sql)
+                              crashsignal, earlyinit, objects, sql, cmdhistory)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir, error)
@@ -418,6 +418,9 @@ def _init_modules(args, crash_handler):
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
+
+    log.init.debug("Initializing command history...")
+    cmdhistory.init()
 
     log.init.debug("Initializing web history...")
     history.init(qApp)

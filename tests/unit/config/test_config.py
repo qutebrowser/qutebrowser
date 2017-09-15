@@ -869,7 +869,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, '_change_filters', [])
     yield
-    for obj in ['config-commands', 'state-config', 'command-history']:
+    for obj in ['config-commands', 'state-config']:
         try:
             objreg.delete(obj)
         except KeyError:
@@ -906,8 +906,6 @@ def test_init(qtbot, init_patch, fake_save_manager, config_tmpdir,
     objreg.get('config-commands')
     assert isinstance(config.instance, config.Config)
     assert isinstance(config.key_instance, config.KeyConfig)
-    fake_save_manager.add_saveable.assert_any_call(
-        'command-history', unittest.mock.ANY, unittest.mock.ANY)
     fake_save_manager.add_saveable.assert_any_call(
         'state-config', unittest.mock.ANY)
     fake_save_manager.add_saveable.assert_any_call(
