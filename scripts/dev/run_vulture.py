@@ -110,8 +110,6 @@ def whitelist_generator():
     yield 'types.ModuleType.c'  # configfiles:read_config_py
 
     yield 'include_aliases'
-    ## FIXME:conf TODO
-    yield 'qutebrowser.config.configdata.DEFAULT_FONT_SIZE'
 
     for attr in ['_get_default_metavar_for_optional',
                  '_get_default_metavar_for_positional', '_metavar_formatter']:

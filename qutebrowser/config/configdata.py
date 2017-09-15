@@ -24,9 +24,6 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
-# FIXME:conf reintroduce interpolation?
-
-import sys
 import collections
 import functools
 
@@ -34,12 +31,6 @@ from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 
 DATA = None
-
-
-# FIXME:conf what to do about this?
-DEFAULT_FONT_SIZE = '10pt' if sys.platform == 'darwin' else '8pt'
-
-
 Option = collections.namedtuple('Option', ['name', 'typ', 'default',
                                            'backends', 'raw_backends',
                                            'description'])
