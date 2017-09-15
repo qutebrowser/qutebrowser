@@ -22,7 +22,7 @@ import sys
 
 import pytest
 
-from qutebrowser.config import config, configfiles
+from qutebrowser.config import config, configfiles, configexc
 from qutebrowser.utils import objreg
 
 from PyQt5.QtCore import QSettings
@@ -175,6 +175,93 @@ class TestConfigPy:
     def test_reading_missing_default_location(self, config_tmpdir):
         assert not (config_tmpdir / 'config.py').exists()
         configfiles.read_config_py()  # Should not crash
+
+    def test_oserror(self, tmpdir):
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(tmpdir / 'foo')
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert isinstance(error.exception, OSError)
+        assert error.text == "Error while reading foo"
+        assert error.traceback is None
+
+    def test_nul_bytes(self, confpy):
+        confpy.write('\0')
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(confpy.filename)
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert isinstance(error.exception, ValueError)
+        assert error.text == "Error while compiling"
+        exception_text = 'source code string cannot contain null bytes'
+        assert str(error.exception) == exception_text
+        assert error.traceback is None
+
+    def test_syntax_error(self, confpy):
+        confpy.write('+')
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(confpy.filename)
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert isinstance(error.exception, SyntaxError)
+        assert error.text == "Syntax Error"
+        exception_text = 'invalid syntax (config.py, line 1)'
+        assert str(error.exception) == exception_text
+
+        tblines = error.traceback.strip().splitlines()
+        assert tblines[0] == "Traceback (most recent call last):"
+        assert tblines[-1] == "SyntaxError: invalid syntax"
+        assert "    +" in tblines
+        assert "    ^" in tblines
+
+    def test_unhandled_exception(self, confpy):
+        confpy.write("config.load_autoconfig = False", "1/0")
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert not api.load_autoconfig
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ZeroDivisionError)
+
+        tblines = error.traceback.strip().splitlines()
+        assert tblines[0] == "Traceback (most recent call last):"
+        assert tblines[-1] == "ZeroDivisionError: division by zero"
+        assert "    1/0" in tblines
+
+    @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
+    def test_config_error(self, confpy, line):
+        confpy.write(line, "config.load_autoconfig = False")
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert not api.load_autoconfig
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "While setting 'foo'"
+        assert isinstance(error.exception, configexc.NoOptionError)
+        assert str(error.exception) == "No option 'foo'"
+        assert error.traceback is None
+
+    def test_multiple_errors(self, confpy):
+        confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 3
+
+        for error in api.errors[:2]:
+            assert error.text == "While setting 'foo'"
+            assert isinstance(error.exception, configexc.NoOptionError)
+            assert str(error.exception) == "No option 'foo'"
+            assert error.traceback is None
+
+        error = api.errors[2]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ZeroDivisionError)
+        assert error.traceback is not None
 
 
 @pytest.fixture
