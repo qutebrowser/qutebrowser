@@ -407,7 +407,7 @@ class Config(QObject):
         try:
             return configdata.DATA[name]
         except KeyError:
-            raise configexc.NoOptionError(name)
+            raise configexc.NoOptionError(name) from None
 
     def get(self, name):
         """Get the given setting converted for Python code."""
