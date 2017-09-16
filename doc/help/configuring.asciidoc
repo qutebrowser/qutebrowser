@@ -20,7 +20,7 @@ Configuring qutebrowser via the user interface
 The easy (but less flexible) way to configure qutebrowser is using its user
 interface or command line. Changes you make this way are immediately active
 (with the exception of a few settings, where this is pointed out in the
-documentation) are persisted in an `autoconfig.yml` file.
+documentation) and are persisted in an `autoconfig.yml` file.
 
 Using the link:commands.html#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
@@ -38,6 +38,9 @@ link:commands.html#unbind[`:unbind`] commands:
 - Unbinding: `:unbind ,v`
 - Changing an existing binding: `bind --force ,v message-info foo`
 
+Key chains starting with a comma are ideal for custom bindings, as the comma key
+will never be used in a default keybinding.
+
 The `autoconfig.yml` file is located in the "config" folder listed on the
 link:qute://version[] page. On macOS, the "auto config" folder is used, which is
 different from where hand-written config files are kept.
@@ -47,10 +50,11 @@ different from where hand-written config files are kept.
 Configuring qutebrowser via config.py
 -------------------------------------
 
-For more powerful configuration, you can write a `config.py` file. Since it's a
-Python file, you have much more flexibility for configuration. Note that
-qutebrowser will never touch this file - this means you'll be responsible for
-updating it when upgrading to a newer qutebrowser version.
+For more powerful configuration possibilities, you can create a `config.py`
+file. Since it's a Python file, you have much more flexibility for
+configuration. Note that qutebrowser will never touch this file - this means
+you'll be responsible for updating it when upgrading to a newer qutebrowser
+version.
 
 The file should be located in the "config" location listed on
 link:qute://version[], which is typically `~/.config/qutebrowser/config.py` on
@@ -59,8 +63,8 @@ Linux, `~/.qutebrowser/config.py` on macOS, and
 
 Two global objects are pre-defined when executing the file: `c` and `config`.
 
-Setting settings
-~~~~~~~~~~~~~~~~
+Changing settings
+~~~~~~~~~~~~~~~~~
 
 `c` is a shorthand object to easily set settings like this:
 
@@ -145,6 +149,9 @@ To unbind a key (either a key which has been bound before, or a default binding)
 ----
 config.unbind(',v', mode='normal')
 ----
+
+Key chains starting with a comma are ideal for custom bindings, as the comma key
+will never be used in a default keybinding.
 
 To suppress loading of any default keybindings, you can set `c.bindings.defaults
 = {}`.
