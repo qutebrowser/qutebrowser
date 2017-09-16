@@ -23,6 +23,7 @@ import shlex
 
 import pytest
 import pytest_bdd as bdd
+from PyQt5.QtNetwork import QSslSocket
 bdd.scenarios('downloads.feature')
 
 
@@ -52,6 +53,12 @@ def temporary_download_dir(quteproc, tmpdir):
 def clean_old_downloads(quteproc):
     quteproc.send_cmd(':download-cancel --all')
     quteproc.send_cmd(':download-clear')
+
+
+@bdd.when("SSL is supported")
+def check_ssl():
+    if not QSslSocket.supportsSsl():
+        pytest.skip("QtNetwork SSL not supported")
 
 
 @bdd.when("the unwritable dir is unwritable")

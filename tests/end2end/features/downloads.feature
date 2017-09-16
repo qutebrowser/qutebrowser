@@ -92,7 +92,8 @@ Feature: Downloading things from a website.
         Then no crash should happen
 
     Scenario: Downloading with SSL errors (issue 1413)
-        When I clear SSL errors
+        When SSL is supported
+        And I clear SSL errors
         And I set content.ssl_strict to ask
         And I set downloads.location.prompt to false
         And I download an SSL page
