@@ -14,6 +14,22 @@ qutebrowser does no automatic migration for the new configuration. However,
 there's a special link:qute://configdiff[config diff page] which will show you
 the changes you did in your old configuration, compared to the old defaults.
 
+Other changes in default settings:
+
+- `<Up>` and `<Down>` in the completion now navigate through command history
+  instead of selecting completion items. You can get back the old behavior by
+  doing:
++
+----
+:bind -f -m command <Up> completion-item-focus prev
+:bind -f -m command <Down> completion-item-focus next
+----
+
+- The default for `completion.web_history_max_items` is now set to `-1`, showing
+  an unlimited number of items in the completion for `:open` as the new
+  sqlite-based completion is much faster. If the `:open` completion is too slow
+  on your machine, set an appropriate limit again.
+
 Configuring qutebrowser via the user interface
 ----------------------------------------------
 
