@@ -742,8 +742,10 @@ def get_diff():
                     continue
                 dest.append(line.rstrip())
 
-    conf_delta = difflib.unified_diff(OLD_CONF.splitlines(), old_conf_lines)
-    key_delta = difflib.unified_diff(OLD_KEYS_CONF.splitlines(), old_key_lines)
+    conf_delta = difflib.unified_diff(OLD_CONF.lstrip().splitlines(),
+                                      old_conf_lines)
+    key_delta = difflib.unified_diff(OLD_KEYS_CONF.lstrip().splitlines(),
+                                     old_key_lines)
 
     conf_diff = '\n'.join(conf_delta)
     key_diff = '\n'.join(key_delta)
