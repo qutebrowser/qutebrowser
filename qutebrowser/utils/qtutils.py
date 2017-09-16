@@ -249,12 +249,14 @@ def unset_organization():
     This is primarily needed in config.py.
     """
     qapp = QApplication.instance()
-    orgname = qapp.organizationName()
-    qapp.setOrganizationName(None)
+    if qapp is not None:
+        orgname = qapp.organizationName()
+        qapp.setOrganizationName(None)
     try:
         yield
     finally:
-        qapp.setOrganizationName(orgname)
+        if qapp is not None:
+            qapp.setOrganizationName(orgname)
 
 
 class PyQIODevice(io.BufferedIOBase):
