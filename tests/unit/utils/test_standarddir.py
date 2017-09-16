@@ -21,11 +21,14 @@
 
 import os
 import sys
+import json
 import os.path
 import types
+import textwrap
 import collections
 import logging
 import textwrap
+import subprocess
 
 from PyQt5.QtCore import QStandardPaths
 import pytest
@@ -485,3 +488,33 @@ def test_downloads_dir_not_created(monkeypatch, tmpdir):
     standarddir._init_dirs()
     assert standarddir.download() == str(download_dir)
     assert not download_dir.exists()
+
+
+def test_no_qapplication(qapp, tmpdir):
+    """Make sure directories with/without QApplication are equal."""
+    sub_code = """
+        import sys
+        import json
+        sys.path = sys.argv[1:]  # make sure we have the same python path
+
+        from PyQt5.QtWidgets import QApplication
+        from qutebrowser.utils import standarddir
+
+        assert QApplication.instance() is None
+
+        standarddir.APPNAME = 'qute_test'
+        standarddir._init_dirs()
+
+        locations = {k.name: v for k, v in standarddir._locations.items()}
+        print(json.dumps(locations))
+    """
+    pyfile = tmpdir / 'sub.py'
+    pyfile.write_text(textwrap.dedent(sub_code), encoding='ascii')
+
+    output = subprocess.check_output([sys.executable, str(pyfile)] + sys.path,
+                                     universal_newlines=True)
+    sub_locations = json.loads(output)
+
+    standarddir._init_dirs()
+    locations = {k.name: v for k, v in standarddir._locations.items()}
+    assert sub_locations == locations
