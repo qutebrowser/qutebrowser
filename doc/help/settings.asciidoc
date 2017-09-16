@@ -460,7 +460,9 @@ Default:
 * +pass:[&lt;Ctrl-PgUp&gt;]+: +pass:[tab-prev]+
 * +pass:[&lt;Ctrl-Q&gt;]+: +pass:[quit]+
 * +pass:[&lt;Ctrl-Return&gt;]+: +pass:[follow-selected -t]+
+* +pass:[&lt;Ctrl-Shift-N&gt;]+: +pass:[open -p]+
 * +pass:[&lt;Ctrl-Shift-T&gt;]+: +pass:[undo]+
+* +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[close]+
 * +pass:[&lt;Ctrl-T&gt;]+: +pass:[open -t]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[tab-focus last]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[scroll-page 0 -0.5]+

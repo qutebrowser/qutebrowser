@@ -1877,8 +1877,10 @@ bindings.default:
       ga: open -t
       <Ctrl-T>: open -t
       <Ctrl-N>: open -w
+      <Ctrl-Shift-N>: open -p
       d: tab-close
       <Ctrl-W>: tab-close
+      <Ctrl-Shift-W>: close
       D: tab-close -o
       co: tab-only
       T: tab-focus
