@@ -120,16 +120,16 @@ PERFECT_FILES = [
     ('tests/unit/mainwindow/test_messageview.py',
         'mainwindow/messageview.py'),
 
-    ('tests/unit/config/test_configtypes.py',
-        'config/configtypes.py'),
+    ('tests/unit/config/test_config.py',
+        'config/config.py'),
     ('tests/unit/config/test_configdata.py',
         'config/configdata.py'),
     ('tests/unit/config/test_configexc.py',
         'config/configexc.py'),
-    ('tests/unit/config/test_textwrapper.py',
-        'config/textwrapper.py'),
-    ('tests/unit/config/test_style.py',
-        'config/style.py'),
+    ('tests/unit/config/test_configfiles.py',
+        'config/configfiles.py'),
+    ('tests/unit/config/test_configtypes.py',
+        'config/configtypes.py'),
 
     ('tests/unit/utils/test_qtutils.py',
         'utils/qtutils.py'),
@@ -154,6 +154,8 @@ PERFECT_FILES = [
     ('tests/unit/utils/test_javascript.py',
         'utils/javascript.py'),
 
+    (None,
+        'completion/models/util.py'),
     ('tests/unit/completion/test_models.py',
         'completion/models/urlmodel.py'),
     ('tests/unit/completion/test_histcategory.py',
@@ -237,7 +239,7 @@ def check(fileobj, perfect_files):
         is_bad = line_cov < 100 or branch_cov < 100
 
         if filename in perfect_src_files and is_bad:
-            text = "{} has {}% line and {}% branch coverage!".format(
+            text = "{} has {:.2f}% line and {:.2f}% branch coverage!".format(
                 filename, line_cov, branch_cov)
             messages.append(Message(MsgType.insufficent_coverage, filename,
                                     text))

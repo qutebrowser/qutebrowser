@@ -255,8 +255,8 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
-            conf = objreg.get('config')
-            self._crash_info.append(("Config", conf.dump_userconfig()))
+            self._crash_info.append(("Config",
+                                     config.instance.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
         try:
@@ -432,7 +432,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._chk_log = QCheckBox("Include a debug log in the report",
                                   checked=True)
         try:
-            if config.get('general', 'private-browsing'):
+            if config.val.content.private_browsing:
                 self._chk_log.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -524,7 +524,7 @@ class FatalCrashDialog(_CrashDialog):
                                       "accessed pages in the report.",
                                       checked=True)
         try:
-            if config.get('general', 'private-browsing'):
+            if config.val.content.private_browsing:
                 self._chk_history.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -635,8 +635,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
         traceback.print_exc()
     print("\n---- Config ----", file=sys.stderr)
     try:
-        conf = objreg.get('config')
-        print(conf.dump_userconfig(), file=sys.stderr)
+        print(config.instance.dump_userconfig(), file=sys.stderr)
     except Exception:
         traceback.print_exc()
     print("\n---- Commandline args ----", file=sys.stderr)

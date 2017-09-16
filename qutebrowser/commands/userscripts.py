@@ -376,7 +376,7 @@ def _lookup_path(cmd):
     """
     directories = [
         os.path.join(standarddir.data(), "userscripts"),
-        os.path.join(standarddir.system_data(), "userscripts"),
+        os.path.join(standarddir.data(system=True), "userscripts"),
     ]
     for directory in directories:
         cmd_path = os.path.join(directory, cmd)
@@ -417,7 +417,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         lambda cmd:
         log.commands.debug("Got userscript command: {}".format(cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
-    user_agent = config.get('network', 'user-agent')
+    user_agent = config.val.content.headers.user_agent
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
 

@@ -26,11 +26,15 @@ import os.path
 
 from PyQt5.QtCore import QCoreApplication, QStandardPaths
 
-from qutebrowser.utils import log, qtutils, debug
+from qutebrowser.utils import log, qtutils, debug, usertypes, message
+
+# The cached locations
+_locations = {}
 
 
-# The argparse namespace passed to init()
-_args = None
+Location = usertypes.enum('Location', ['config', 'auto_config',
+                                       'data', 'system_data',
+                                       'cache', 'download', 'runtime'])
 
 
 class EmptyValueError(Exception):
@@ -38,79 +42,122 @@ class EmptyValueError(Exception):
     """Error raised when QStandardPaths returns an empty value."""
 
 
-def config():
-    """Get a location for configs."""
+def _init_config(args):
+    """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
     if not overridden:
-        path = _writable_location(typ)
-        appname = QCoreApplication.instance().applicationName()
-        if path.split(os.sep)[-1] != appname:  # pragma: no branch
-            # WORKAROUND - see
-            # https://bugreports.qt.io/browse/QTBUG-38872
-            path = os.path.join(path, appname)
-    _create(path)
-    return path
-
-
-def data():
-    """Get a location for data."""
-    typ = QStandardPaths.DataLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
         if os.name == 'nt':
-            # Under windows, config/data might end up in the same directory.
-            data_path = QStandardPaths.writableLocation(
-                QStandardPaths.DataLocation)
-            config_path = QStandardPaths.writableLocation(
-                QStandardPaths.ConfigLocation)
-            if data_path == config_path:
-                path = os.path.join(path, 'data')
+            app_data_path = _writable_location(
+                QStandardPaths.AppDataLocation)
+            path = os.path.join(app_data_path, 'config')
+        else:
+            path = _writable_location(typ)
+            appname = QCoreApplication.instance().applicationName()
+            if path.split(os.sep)[-1] != appname:  # pragma: no branch
+                # WORKAROUND - see
+                # https://bugreports.qt.io/browse/QTBUG-38872
+                path = os.path.join(path, appname)
     _create(path)
-    return path
+    _locations[Location.config] = path
+    _locations[Location.auto_config] = path
+
+    # Override the normal (non-auto) config on macOS
+    if sys.platform == 'darwin':
+        overridden, path = _from_args(typ, args)
+        if not overridden:  # pragma: no branch
+            path = os.path.expanduser('~/.qutebrowser')
+            _create(path)
+            _locations[Location.config] = path
 
 
-def system_data():
-    """Get a location for system-wide data. This path may be read-only."""
+def config(auto=False):
+    """Get the location for the config directory.
+
+    If auto=True is given, get the location for the autoconfig.yml directory,
+    which is different on macOS.
+    """
+    if auto:
+        return _locations[Location.auto_config]
+    return _locations[Location.config]
+
+
+def _init_data(args):
+    """Initialize the location for data."""
+    typ = QStandardPaths.DataLocation
+    overridden, path = _from_args(typ, args)
+    if not overridden:
+        if os.name == 'nt':
+            app_data_path = _writable_location(
+                QStandardPaths.AppDataLocation)
+            path = os.path.join(app_data_path, 'data')
+        else:
+            path = _writable_location(typ)
+    _create(path)
+    _locations[Location.data] = path
+
+    # system_data
+    _locations.pop(Location.system_data, None)  # Remove old state
     if sys.platform.startswith('linux'):
         path = "/usr/share/qutebrowser"
-        if not os.path.exists(path):
-            path = data()
-    else:
-        path = data()
-    return path
+        if os.path.exists(path):
+            _locations[Location.system_data] = path
+
+
+def data(system=False):
+    """Get the data directory.
+
+    If system=True is given, gets the system-wide (probably non-writable) data
+    directory.
+    """
+    if system:
+        try:
+            return _locations[Location.system_data]
+        except KeyError:
+            pass
+    return _locations[Location.data]
+
+
+def _init_cache(args):
+    """Initialize the location for the cache."""
+    typ = QStandardPaths.CacheLocation
+    overridden, path = _from_args(typ, args)
+    if not overridden:
+        path = _writable_location(typ)
+    _create(path)
+    _locations[Location.cache] = path
 
 
 def cache():
-    """Get a location for the cache."""
-    typ = QStandardPaths.CacheLocation
-    overridden, path = _from_args(typ, _args)
+    return _locations[Location.cache]
+
+
+def _init_download(args):
+    """Initialize the location for downloads.
+
+    Note this is only the default directory as found by Qt.
+    Therefore, we also don't create it.
+    """
+    typ = QStandardPaths.DownloadLocation
+    overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
-    _create(path)
-    return path
+    _locations[Location.download] = path
 
 
 def download():
-    """Get a location for downloads."""
-    typ = QStandardPaths.DownloadLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-    _create(path)
-    return path
+    return _locations[Location.download]
 
 
-def runtime():
-    """Get a location for runtime data."""
+def _init_runtime(args):
+    """Initialize location for runtime data."""
     if sys.platform.startswith('linux'):
         typ = QStandardPaths.RuntimeLocation
-    else:  # pragma: no cover
+    else:
         # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
 
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
 
     if not overridden:
         try:
@@ -132,7 +179,11 @@ def runtime():
         appname = QCoreApplication.instance().applicationName()
         path = os.path.join(path, appname)
     _create(path)
-    return path
+    _locations[Location.runtime] = path
+
+
+def runtime():
+    return _locations[Location.runtime]
 
 
 def _writable_location(typ):
@@ -195,16 +246,65 @@ def _create(path):
         pass
 
 
+def _init_dirs(args=None):
+    """Create and cache standard directory locations.
+
+    Mainly in a separate function because we need to call it in tests.
+    """
+    _init_config(args)
+    _init_data(args)
+    _init_cache(args)
+    _init_download(args)
+    _init_runtime(args)
+
+
 def init(args):
     """Initialize all standard dirs."""
-    global _args
     if args is not None:
         # args can be None during tests
         log.init.debug("Base directory: {}".format(args.basedir))
-    _args = args
+
+    _init_dirs(args)
     _init_cachedir_tag()
-    if args is not None:
+    if args is not None and getattr(args, 'basedir', None) is None:
         _move_webengine_data()
+        if sys.platform == 'darwin':  # pragma: no cover
+            _move_macos()
+        elif os.name == 'nt':  # pragma: no cover
+            _move_windows()
+
+
+def _move_macos():
+    """Move most config files to new location on macOS."""
+    old_config = config(auto=True)  # ~/Library/Preferences/qutebrowser
+    new_config = config()  # ~/.qutebrowser
+    for f in os.listdir(old_config):
+        if f not in ['qsettings', 'autoconfig.yml']:
+            _move_data(os.path.join(old_config, f),
+                       os.path.join(new_config, f))
+
+
+def _move_windows():
+    """Move the whole qutebrowser directory from Local to Roaming AppData."""
+    # %APPDATA%\Local\qutebrowser
+    old_appdata_dir = _writable_location(QStandardPaths.DataLocation)
+    # %APPDATA%\Roaming\qutebrowser
+    new_appdata_dir = _writable_location(QStandardPaths.AppDataLocation)
+
+    # data subfolder
+    old_data = os.path.join(old_appdata_dir, 'data')
+    new_data = os.path.join(new_appdata_dir, 'data')
+    ok = _move_data(old_data, new_data)
+    if not ok:  # pragma: no cover
+        return
+
+    # config files
+    new_config_dir = os.path.join(new_appdata_dir, 'config')
+    _create(new_config_dir)
+    for f in os.listdir(old_appdata_dir):
+        if f != 'cache':
+            _move_data(os.path.join(old_appdata_dir, f),
+                      os.path.join(new_config_dir, f))
 
 
 def _init_cachedir_tag():
@@ -230,43 +330,55 @@ def _move_webengine_data():
     """Move QtWebEngine data from an older location to the new one."""
     # Do NOT use _writable_location here as that'd give us a wrong path
     old_data_dir = QStandardPaths.writableLocation(QStandardPaths.DataLocation)
+    new_data_dir = os.path.join(data(), 'webengine')
+    ok = _move_data(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
+                    new_data_dir)
+    if not ok:
+        return
+
     old_cache_dir = QStandardPaths.writableLocation(
         QStandardPaths.CacheLocation)
-    new_data_dir = os.path.join(data(), 'webengine')
     new_cache_dir = os.path.join(cache(), 'webengine')
-
-    if (not os.path.exists(os.path.join(old_data_dir, 'QtWebEngine')) and
-            not os.path.exists(os.path.join(old_cache_dir, 'QtWebEngine'))):
+    ok = _move_data(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
+                    new_cache_dir)
+    if not ok:
         return
 
-    log.init.debug("Moving QtWebEngine data from {} to {}".format(
-        old_data_dir, new_data_dir))
-    log.init.debug("Moving QtWebEngine cache from {} to {}".format(
-        old_cache_dir, new_cache_dir))
+    # Remove e.g.
+    # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
+    if old_data_dir.split(os.sep)[-2:] == ['qutebrowser', 'qutebrowser']:
+        log.init.debug("Removing {} / {}".format(
+            old_data_dir, old_cache_dir))
+        for old_dir in old_data_dir, old_cache_dir:
+            os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
+            os.rmdir(old_dir)
 
-    if os.path.exists(new_data_dir):
-        log.init.warning("Failed to move old QtWebEngine data as {} already "
-                         "exists!".format(new_data_dir))
-        return
-    if os.path.exists(new_cache_dir):
-        log.init.warning("Failed to move old QtWebEngine cache as {} already "
-                         "exists!".format(new_cache_dir))
-        return
+
+def _move_data(old, new):
+    """Migrate data from an old to a new directory.
+
+    If the old directory does not exist, the migration is skipped.
+    If the new directory already exists, an error is shown.
+
+    Return: True if moving succeeded, False otherwise.
+    """
+    if not os.path.exists(old):
+        return False
+
+    log.init.debug("Migrating data from {} to {}".format(old, new))
+
+    if os.path.exists(new):
+        if not os.path.isdir(new) or os.listdir(new):
+            message.error("Failed to move data from {} as {} is non-empty!"
+                          .format(old, new))
+            return False
+        os.rmdir(new)
 
     try:
-        shutil.move(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
-                    new_data_dir)
-        shutil.move(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
-                    new_cache_dir)
-
-        # Remove e.g.
-        # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
-        if old_data_dir.split(os.sep)[-2:] == ['qutebrowser', 'qutebrowser']:
-            log.init.debug("Removing {} / {}".format(
-                old_data_dir, old_cache_dir))
-            for old_dir in old_data_dir, old_cache_dir:
-                os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
-                os.rmdir(old_dir)
+        shutil.move(old, new)
     except OSError as e:
-        log.init.exception("Failed to move old QtWebEngine data/cache: "
-                           "{}".format(e))
+        message.error("Failed to move data from {} to {}: {}".format(
+            old, new, e))
+        return False
+
+    return True

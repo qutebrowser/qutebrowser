@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QLabel, QFileSystemModel, QTreeView, QSizePolicy)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import style, config
+from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
@@ -233,29 +233,28 @@ class PromptContainer(QWidget):
     """
 
     STYLESHEET = """
-        {% set prompt_radius = config.get('ui', 'prompt-radius') %}
         QWidget#PromptContainer {
-            {% if config.get('ui', 'status-position') == 'top' %}
-                border-bottom-left-radius: {{ prompt_radius }}px;
-                border-bottom-right-radius: {{ prompt_radius }}px;
+            {% if conf.statusbar.position == 'top' %}
+                border-bottom-left-radius: {{ conf.prompt.radius }}px;
+                border-bottom-right-radius: {{ conf.prompt.radius }}px;
             {% else %}
-                border-top-left-radius: {{ prompt_radius }}px;
-                border-top-right-radius: {{ prompt_radius }}px;
+                border-top-left-radius: {{ conf.prompt.radius }}px;
+                border-top-right-radius: {{ conf.prompt.radius }}px;
             {% endif %}
         }
 
         QWidget {
-            font: {{ font['prompts'] }};
-            color: {{ color['prompts.fg'] }};
-            background-color: {{ color['prompts.bg'] }};
+            font: {{ conf.fonts.prompts }};
+            color: {{ conf.colors.prompts.fg }};
+            background-color: {{ conf.colors.prompts.bg }};
         }
 
         QTreeView {
-            selection-background-color: {{ color['prompts.selected.bg'] }};
+            selection-background-color: {{ conf.colors.prompts.selected.bg }};
         }
 
         QTreeView::item:selected, QTreeView::item:selected:hover {
-            background-color: {{ color['prompts.selected.bg'] }};
+            background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
     update_geometry = pyqtSignal()
@@ -269,7 +268,7 @@ class PromptContainer(QWidget):
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)
@@ -483,9 +482,8 @@ class _BasePrompt(QWidget):
         self._key_grid = QGridLayout()
         self._key_grid.setVerticalSpacing(0)
 
-        key_config = objreg.get('key-config')
         # The bindings are all in the 'prompt' mode, even for yesno prompts
-        all_bindings = key_config.get_reverse_bindings_for('prompt')
+        all_bindings = config.key_instance.get_reverse_bindings_for('prompt')
         labels = []
 
         for cmd, text in self._allowed_commands():
@@ -566,7 +564,7 @@ class FilenamePrompt(_BasePrompt):
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
 
-        if config.get('ui', 'prompt-filebrowser'):
+        if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
@@ -628,7 +626,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
-        if config.get('ui', 'prompt-filebrowser'):
+        if config.val.prompt.filebrowser:
             self._vbox.addWidget(self._file_view)
         else:
             self._file_view.hide()

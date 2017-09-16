@@ -44,7 +44,7 @@ show it.
 *-V*, *--version*::
     Show version and quit.
 
-*-s* 'SECTION' 'OPTION' 'VALUE', *--set* 'SECTION' 'OPTION' 'VALUE'::
+*-s* 'OPTION' 'VALUE', *--set* 'OPTION' 'VALUE'::
     Set a temporary setting for this session.
 
 *-r* 'SESSION', *--restore* 'SESSION'::

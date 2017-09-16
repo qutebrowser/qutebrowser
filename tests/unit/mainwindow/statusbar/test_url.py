@@ -32,20 +32,6 @@ from helpers import utils
 @pytest.fixture
 def url_widget(qtbot, monkeypatch, config_stub):
     """Fixture providing a Url widget."""
-    config_stub.data = {
-        'colors': {
-            'statusbar.url.bg': 'white',
-            'statusbar.url.fg': 'black',
-            'statusbar.url.fg.success': 'yellow',
-            'statusbar.url.fg.success.https': 'green',
-            'statusbar.url.fg.error': 'red',
-            'statusbar.url.fg.warn': 'orange',
-            'statusbar.url.fg.hover': 'blue'
-        },
-        'fonts': {},
-    }
-    monkeypatch.setattr(
-        'qutebrowser.mainwindow.statusbar.url.style.config', config_stub)
     widget = url.UrlText()
     qtbot.add_widget(widget)
     assert not widget.isVisible()

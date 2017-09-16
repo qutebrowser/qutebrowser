@@ -101,13 +101,12 @@ def dirbrowser_html(path):
     except OSError as e:
         html = jinja.render('error.html',
                             title="Error while reading directory",
-                            url='file:///{}'.format(path), error=str(e),
-                            icon='')
+                            url='file:///{}'.format(path), error=str(e))
         return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     files = get_file_list(path, all_files, os.path.isfile)
     directories = get_file_list(path, all_files, os.path.isdir)
-    html = jinja.render('dirbrowser.html', title=title, url=path, icon='',
+    html = jinja.render('dirbrowser.html', title=title, url=path,
                         parent=parent, files=files, directories=directories)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 

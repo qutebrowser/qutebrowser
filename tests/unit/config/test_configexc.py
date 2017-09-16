@@ -18,37 +18,61 @@
 
 """Tests for qutebrowser.config.configexc."""
 
+import textwrap
+
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes
 
 
 def test_validation_error():
     e = configexc.ValidationError('val', 'msg')
-    assert e.section is None
     assert e.option is None
     assert str(e) == "Invalid value 'val' - msg"
 
 
-def test_no_section_error():
-    e = configexc.NoSectionError('sect')
-    assert e.section == 'sect'
-    assert str(e) == "Section 'sect' does not exist!"
-
-
 def test_no_option_error():
-    e = configexc.NoOptionError('opt', 'sect')
-    assert e.section == 'sect'
+    e = configexc.NoOptionError('opt')
     assert e.option == 'opt'
-    assert str(e) == "No option 'opt' in section 'sect'"
-
-
-def test_interpolation_syntax_error():
-    e = configexc.InterpolationSyntaxError('opt', 'sect', 'msg')
-    assert e.section == 'sect'
-    assert e.option == 'opt'
-    assert str(e) == 'msg'
+    assert str(e) == "No option 'opt'"
 
 
 def test_backend_error():
     e = configexc.BackendError(usertypes.Backend.QtWebKit)
     assert str(e) == "This setting is not available with the QtWebKit backend!"
+
+
+def test_duplicate_key_error():
+    e = configexc.DuplicateKeyError('asdf')
+    assert isinstance(e, configexc.KeybindingError)
+    assert str(e) == "Duplicate key asdf"
+
+
+def test_config_file_errors():
+    err1 = configexc.ConfigErrorDesc("Error text 1", Exception("Exception 1"))
+    err2 = configexc.ConfigErrorDesc("Error text 2", Exception("Exception 2"),
+                                     "Fake traceback")
+    errors = configexc.ConfigFileErrors("config.py", [err1, err2])
+    html = errors.to_html()
+    assert textwrap.dedent(html) == textwrap.dedent("""
+        Errors occurred while reading config.py:
+
+        <ul>
+
+            <li>
+              <b>Error text 1</b>: Exception 1
+
+            </li>
+
+            <li>
+              <b>Error text 2</b>: Exception 2
+
+                <pre>
+Fake traceback
+                </pre>
+
+            </li>
+
+        </ul>
+    """)
+    # Make sure the traceback is not indented
+    assert '<pre>\nFake traceback\n' in html

@@ -25,7 +25,7 @@ import re
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
-from qutebrowser.config import config, configexc
+from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split
@@ -81,19 +81,17 @@ def replace_variables(win_id, arglist):
     return args
 
 
-class CommandRunner(QObject):
+class CommandParser:
 
-    """Parse and run qutebrowser commandline commands.
+    """Parse qutebrowser commandline commands.
 
     Attributes:
-        _win_id: The window this CommandRunner is associated with.
+
         _partial_match: Whether to allow partial command matches.
     """
 
-    def __init__(self, win_id, partial_match=False, parent=None):
-        super().__init__(parent)
+    def __init__(self, partial_match=False):
         self._partial_match = partial_match
-        self._win_id = win_id
 
     def _get_alias(self, text, default=None):
         """Get an alias from the config.
@@ -108,9 +106,10 @@ class CommandRunner(QObject):
         """
         parts = text.strip().split(maxsplit=1)
         try:
-            alias = config.get('aliases', parts[0])
-        except (configexc.NoOptionError, configexc.NoSectionError):
+            alias = config.val.aliases[parts[0]]
+        except KeyError:
             return default
+
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
         except IndexError:
@@ -119,7 +118,7 @@ class CommandRunner(QObject):
             new_cmd += ' '
         return new_cmd
 
-    def parse_all(self, text, aliases=True, *args, **kwargs):
+    def _parse_all_gen(self, text, aliases=True, *args, **kwargs):
         """Split a command on ;; and parse all parts.
 
         If the first command in the commandline is a non-split one, it only
@@ -153,6 +152,10 @@ class CommandRunner(QObject):
             sub_texts = [text]
         for sub in sub_texts:
             yield self.parse(sub, *args, **kwargs)
+
+    def parse_all(self, *args, **kwargs):
+        """Wrapper over parse_all."""
+        return list(self._parse_all_gen(*args, **kwargs))
 
     def parse(self, text, *, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
@@ -253,6 +256,20 @@ class CommandRunner(QObject):
             # already.
             return split_args
 
+
+class CommandRunner(QObject):
+
+    """Parse and run qutebrowser commandline commands.
+
+    Attributes:
+        _win_id: The window this CommandRunner is associated with.
+    """
+
+    def __init__(self, win_id, partial_match=False, parent=None):
+        super().__init__(parent)
+        self._parser = CommandParser(partial_match=partial_match)
+        self._win_id = win_id
+
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
 
@@ -267,7 +284,7 @@ class CommandRunner(QObject):
                                   window=self._win_id)
         cur_mode = mode_manager.mode
 
-        for result in self.parse_all(text):
+        for result in self._parser.parse_all(text):
             if result.cmd.no_replace_variables:
                 args = result.args
             else:
@@ -294,7 +311,7 @@ class CommandRunner(QObject):
         """Run a command and display exceptions in the statusbar."""
         try:
             self.run(text, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
+        except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())
 
     @pyqtSlot(str, int)
@@ -306,5 +323,5 @@ class CommandRunner(QObject):
         """
         try:
             self.run(text, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
+        except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())

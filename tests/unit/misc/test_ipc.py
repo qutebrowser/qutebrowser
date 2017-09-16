@@ -35,7 +35,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import objreg, qtutils
+from qutebrowser.utils import objreg, qtutils, standarddir
 from helpers import stubs
 
 
@@ -88,6 +88,7 @@ def qlocalsocket(qapp):
 @pytest.fixture(autouse=True)
 def fake_runtime_dir(monkeypatch, short_tmpdir):
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(short_tmpdir))
+    standarddir._init_dirs()
     return short_tmpdir
 
 

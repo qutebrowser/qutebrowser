@@ -15,7 +15,8 @@ def get_data_files():
         ('../qutebrowser/img', 'img'),
         ('../qutebrowser/javascript', 'javascript'),
         ('../qutebrowser/html/doc', 'html/doc'),
-        ('../qutebrowser/git-commit-id', '')
+        ('../qutebrowser/git-commit-id', ''),
+        ('../qutebrowser/config/configdata.yml', 'config'),
     ]
 
     # if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):

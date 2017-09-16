@@ -17,17 +17,17 @@ Feature: Opening pages
                   url: http://localhost:*/data/numbers/1.txt
 
     Scenario: :open without URL
-        When I set general -> default-page to http://localhost:(port)/data/numbers/11.txt
+        When I set url.default_page to http://localhost:(port)/data/numbers/11.txt
         And I run :open
         Then data/numbers/11.txt should be loaded
 
     Scenario: :open without URL and -t
-        When I set general -> default-page to http://localhost:(port)/data/numbers/2.txt
+        When I set url.default_page to http://localhost:(port)/data/numbers/2.txt
         And I run :open -t
         Then data/numbers/2.txt should be loaded
 
     Scenario: :open with invalid URL
-        When I set general -> auto-search to false
+        When I set url.auto_search to never
         And I run :open foo!
         Then the error "Invalid URL" should be shown
 
@@ -36,8 +36,8 @@ Feature: Opening pages
         Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Searching with :open
-        When I set general -> auto-search to naive
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/numbers/{}.txt
+        When I set url.auto_search to naive
+        And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/numbers/{}.txt"}
         And I run :open 3
         Then data/numbers/3.txt should be loaded
 
@@ -76,10 +76,10 @@ Feature: Opening pages
                 - active: true
                   url: http://localhost:*/data/numbers/6.txt
 
-    Scenario: Opening in a new tab (explicit)
+    Scenario: Opening in a new tab (unrelated)
         Given I open about:blank
-        When I set tabs -> new-tab-position-explicit to next
-        And I set tabs -> new-tab-position to prev
+        When I set tabs.new_position.unrelated to next
+        And I set tabs.new_position.related to prev
         And I run :tab-only
         And I run :open -t http://localhost:(port)/data/numbers/7.txt
         And I wait until data/numbers/7.txt is loaded
@@ -87,12 +87,12 @@ Feature: Opening pages
             - about:blank
             - data/numbers/7.txt (active)
 
-    Scenario: Opening in a new tab (implicit)
+    Scenario: Opening in a new tab (related)
         Given I open about:blank
-        When I set tabs -> new-tab-position-explicit to next
-        And I set tabs -> new-tab-position to prev
+        When I set tabs.new_position.unrelated to next
+        And I set tabs.new_position.related to prev
         And I run :tab-only
-        And I run :open -t -i http://localhost:(port)/data/numbers/8.txt
+        And I run :open -t --related http://localhost:(port)/data/numbers/8.txt
         And I wait until data/numbers/8.txt is loaded
         Then the following tabs should be open:
             - data/numbers/8.txt (active)

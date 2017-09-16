@@ -254,6 +254,11 @@ Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
 JsWorld = enum('JsWorld', ['main', 'application', 'user', 'jseval'])
 
 
+# Log level of a JS message. This needs to match up with the keys allowed for
+# the content.javascript.log setting.
+JsLogLevel = enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
+
+
 MessageLevel = enum('MessageLevel', ['error', 'warning', 'info'])
 
 

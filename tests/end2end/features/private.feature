@@ -47,7 +47,7 @@ Feature: Using private browsing
         When I open cookies/set?qute-test=42 without waiting in a private window
         And I wait until cookies is loaded
         And I open cookies in a new tab
-        And I set general -> private-browsing to false
+        And I set content.private_browsing to false
         Then the cookie qute-test should be set to 42
 
     Scenario: Opening private window with :navigate increment
@@ -124,7 +124,7 @@ Feature: Using private browsing
 
     # https://github.com/qutebrowser/qutebrowser/issues/2638
     Scenario: Turning off javascript with private browsing
-        When I set content -> allow-javascript to false
+        When I set content.javascript.enabled to false
         And I open data/javascript/consolelog.html in a private window
         Then the javascript message "console.log works!" should not be logged
 

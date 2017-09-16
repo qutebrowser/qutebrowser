@@ -73,3 +73,8 @@ def test_partial_compare_not_equal(val1, val2, error):
 ])
 def test_pattern_match(pattern, value, expected):
     assert utils.pattern_match(pattern=pattern, value=value) == expected
+
+
+def test_nop_contextmanager():
+    with utils.nop_contextmanager():
+        pass

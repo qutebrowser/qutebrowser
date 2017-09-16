@@ -44,7 +44,7 @@ class ProxyFactory(QNetworkProxyFactory):
         Return:
            None if proxy is correct, otherwise an error message.
         """
-        proxy = config.get('network', 'proxy')
+        proxy = config.val.content.proxy
         if isinstance(proxy, pac.PACFetcher):
             return proxy.fetch_error()
         else:
@@ -59,7 +59,7 @@ class ProxyFactory(QNetworkProxyFactory):
         Return:
             A list of QNetworkProxy objects in order of preference.
         """
-        proxy = config.get('network', 'proxy')
+        proxy = config.val.content.proxy
         if proxy is configtypes.SYSTEM_PROXY:
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
@@ -69,7 +69,7 @@ class ProxyFactory(QNetworkProxyFactory):
         for p in proxies:
             if p.type() != QNetworkProxy.NoProxy:
                 capabilities = p.capabilities()
-                if config.get('network', 'proxy-dns-requests'):
+                if config.val.content.proxy_dns_requests:
                     capabilities |= QNetworkProxy.HostNameLookupCapability
                 else:
                     capabilities &= ~QNetworkProxy.HostNameLookupCapability

@@ -21,7 +21,7 @@
 
 # Opens all links to feeds defined in the head of a site
 #
-# Ideal for use with tabs-are-windows. Set a hotkey to launch this script, then:
+# Ideal for use with tabs_are_windows. Set a hotkey to launch this script, then:
 #   :bind gF spawn --userscript openfeeds
 #
 # Use the hotkey to open the feeds in new tab/window, press 'gF' to open

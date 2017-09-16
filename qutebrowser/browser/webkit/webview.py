@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
@@ -88,7 +88,7 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        objreg.get('config').changed.connect(self._set_bg_color)
+        config.instance.changed.connect(self._set_bg_color)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
@@ -107,10 +107,10 @@ class WebView(QWebView):
             # deleted
             pass
 
-    @config.change_filter('colors', 'webpage.bg')
+    @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
-        col = config.get('colors', 'webpage.bg')
+        col = config.val.colors.webpage.bg
         palette = self.palette()
         if col is None:
             col = self.style().standardPalette().color(QPalette.Base)
@@ -135,22 +135,6 @@ class WebView(QWebView):
             url: The URL to load as QUrl
         """
         self.load(url)
-        if url.scheme() == 'qute':
-            frame = self.page().mainFrame()
-            frame.javaScriptWindowObjectCleared.connect(self.add_js_bridge)
-
-    @pyqtSlot()
-    def add_js_bridge(self):
-        """Add the javascript bridge for qute://... pages."""
-        frame = self.sender()
-        if not isinstance(frame, QWebFrame):
-            log.webview.error("Got non-QWebFrame {!r} in "
-                              "add_js_bridge!".format(frame))
-            return
-
-        if frame.url().scheme() == 'qute':
-            bridge = objreg.get('js-bridge')
-            frame.addToJavaScriptWindowObject('qute', bridge)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -285,10 +269,10 @@ class WebView(QWebView):
         This is implemented here as we don't need it for QtWebEngine.
         """
         if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
-            background_tabs = config.get('tabs', 'background-tabs')
+            background = config.val.tabs.background
             if e.modifiers() & Qt.ShiftModifier:
-                background_tabs = not background_tabs
-            if background_tabs:
+                background = not background
+            if background:
                 target = usertypes.ClickTarget.tab_bg
             else:
                 target = usertypes.ClickTarget.tab

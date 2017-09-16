@@ -25,7 +25,7 @@ bdd.scenarios('open.feature')
 
 def test_open_s(quteproc, ssl_server):
     """Test :open with -s."""
-    quteproc.set_setting('network', 'ssl-strict', 'false')
+    quteproc.set_setting('content.ssl_strict', 'false')
     quteproc.send_cmd(':open -s http://localhost:{}/'.format(ssl_server.port))
     quteproc.mark_expected(category='message',
                            loglevel=logging.ERROR,
