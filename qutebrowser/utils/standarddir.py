@@ -323,7 +323,7 @@ def _move_windows():
     for f in os.listdir(old_appdata_dir):
         if f != 'cache':
             _move_data(os.path.join(old_appdata_dir, f),
-                      os.path.join(new_config_dir, f))
+                       os.path.join(new_config_dir, f))
 
 
 def _init_cachedir_tag():

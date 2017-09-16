@@ -476,7 +476,7 @@ def test_init(mocker, tmpdir, args_kind):
 
 
 @pytest.mark.linux
-def test_downloads_dir_not_crated(monkeypatch, tmpdir):
+def test_downloads_dir_not_created(monkeypatch, tmpdir):
     """Make sure ~/Downloads is not created."""
     download_dir = tmpdir / 'Downloads'
     monkeypatch.setenv('HOME', str(tmpdir))
