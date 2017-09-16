@@ -148,7 +148,15 @@ class WebEnginePage(QWebEnginePage):
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
     def _on_proxy_authentication_required(self, url, authenticator, proxyHost):
-        shared.authentication_required(url, authenticator, [self.shutting_down, self.loadStarted])
+        answer = shared.authentication_required(url, authenticator, [self.shutting_down, self.loadStarted])
+        if answer is None:
+            authenticator.setUser(None)
+            authenticator.setPassword(None)
+            url_string = url.toDisplayString()
+            error_page = jinja.render(
+                'error.html', title="Error loading page: {}".format(url_string),
+                url=url_string, error="Proxy authentication required.", icon='')
+            self.setHtml(error_page)
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
