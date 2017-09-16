@@ -27,7 +27,6 @@ import types
 import textwrap
 import collections
 import logging
-import textwrap
 import subprocess
 
 from PyQt5.QtCore import QStandardPaths

@@ -193,10 +193,11 @@ def _writable_location(typ):
 
     # Types we are sure we handle correctly below.
     assert typ in [
-        QStandardPaths.ConfigLocation, QStandardPaths.AppDataLocation,
-        QStandardPaths.DataLocation, QStandardPaths.CacheLocation,
-        QStandardPaths.DownloadLocation, QStandardPaths.RuntimeLocation,
-        QStandardPaths.TempLocation], typ_str
+        QStandardPaths.ConfigLocation, QStandardPaths.DataLocation,
+        QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
+        QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
+        # FIXME old Qt
+        getattr(QStandardPaths, 'AppDataLocation', object())], typ_str
 
     with qtutils.unset_organization():
         path = QStandardPaths.writableLocation(typ)
