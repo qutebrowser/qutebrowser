@@ -202,8 +202,9 @@ def read_config_py(filename=None):
     # Add config directory to python path, so config.py can import other files
     # in logical places
     old_path = sys.path.copy()
-    if standarddir.config() not in sys.path:
-        sys.path.insert(0, standarddir.config())
+    config_dir = os.path.dirname(filename)
+    if config_dir not in sys.path:
+        sys.path.insert(0, config_dir)
 
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
