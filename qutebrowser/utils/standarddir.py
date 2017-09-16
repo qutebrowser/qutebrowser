@@ -287,7 +287,6 @@ def init(args):
     _init_dirs(args)
     _init_cachedir_tag()
     if args is not None and getattr(args, 'basedir', None) is None:
-        _move_webengine_data()
         if sys.platform == 'darwin':  # pragma: no cover
             _move_macos()
         elif os.name == 'nt':  # pragma: no cover
@@ -344,41 +343,6 @@ def _init_cachedir_tag():
                         "cachedir/\n")
         except OSError:
             log.init.exception("Failed to create CACHEDIR.TAG")
-
-
-def _move_webengine_data():
-    """Move QtWebEngine data from an older location to the new one."""
-    # Do NOT use _writable_location here as that'd give us a wrong path.
-    # We want a path ending in qutebrowser/qutebrowser/ (with organization and
-    # application name)
-    new_data_dir = os.path.join(data(), 'webengine')
-    old_data_dir = QStandardPaths.writableLocation(QStandardPaths.DataLocation)
-    if old_data_dir.split(os.sep)[-2:] != [APPNAME, APPNAME]:
-        old_data_dir = os.path.join(old_data_dir, APPNAME, APPNAME)
-
-    ok = _move_data(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
-                    new_data_dir)
-    if not ok:
-        return
-
-    new_cache_dir = os.path.join(cache(), 'webengine')
-    old_cache_dir = QStandardPaths.writableLocation(
-        QStandardPaths.CacheLocation)
-    if old_cache_dir.split(os.sep)[-2:] != [APPNAME, APPNAME]:
-        old_cache_dir = os.path.join(old_cache_dir, APPNAME, APPNAME)
-
-    ok = _move_data(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
-                    new_cache_dir)
-    if not ok:
-        return
-
-    # Remove e.g.
-    # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
-    log.init.debug("Removing {} / {}".format(
-        old_data_dir, old_cache_dir))
-    for old_dir in old_data_dir, old_cache_dir:
-        os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
-        os.rmdir(old_dir)
 
 
 def _move_data(old, new):
