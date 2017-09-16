@@ -400,7 +400,7 @@ class TestMove:
 
     def test_no_old_dir(self, dirs, caplog):
         """Nothing should happen without any old directory."""
-        standarddir._move_data(dirs.old, dirs.new)
+        standarddir._move_data(str(dirs.old), str(dirs.new))
         assert not any(rec.message.startswith('Migrating data from')
                        for rec in caplog.records)
 
