@@ -7,16 +7,10 @@ python: 3.6
 matrix:
   include:
     - os: linux
-      env: DOCKER=debian-jessie
-      services: docker
-    - os: linux
       env: DOCKER=archlinux
       services: docker
     - os: linux
       env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
-      services: docker
-    - os: linux
-      env: DOCKER=ubuntu-xenial
       services: docker
     - os: linux
       env: TESTENV=py36-pyqt571
