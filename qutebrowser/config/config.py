@@ -585,7 +585,8 @@ def _render_stylesheet(stylesheet):
     """Render the given stylesheet jinja template."""
     # Imported here to avoid a Python 3.4 circular import
     from qutebrowser.utils import jinja
-    template = jinja.environment.from_string(stylesheet)
+    with jinja.environment.no_autoescape():
+        template = jinja.environment.from_string(stylesheet)
     return template.render(conf=val)
 
 

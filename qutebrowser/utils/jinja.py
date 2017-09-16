@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import contextlib
 import traceback
 import mimetypes
 import html
@@ -82,21 +83,19 @@ class Environment(jinja2.Environment):
 
     def __init__(self):
         super().__init__(loader=Loader('html'),
-                         autoescape=self._guess_autoescape,
+                         autoescape=lambda _name: self._autoescape,
                          undefined=jinja2.StrictUndefined)
         self.globals['resource_url'] = self._resource_url
         self.globals['file_url'] = urlutils.file_url
         self.globals['data_url'] = self._data_url
+        self._autoescape = True
 
-    def _guess_autoescape(self, template_name):
-        """Turn auto-escape on/off based on the file type.
-
-        Based on http://jinja.pocoo.org/docs/dev/api/#autoescaping
-        """
-        if template_name is None or '.' not in template_name:
-            return False
-        ext = template_name.rsplit('.', 1)[1]
-        return ext in ['html', 'htm', 'xml']
+    @contextlib.contextmanager
+    def no_autoescape(self):
+        """Context manager to temporarily turn off autoescaping."""
+        self._autoescape = False
+        yield
+        self._autoescape = True
 
     def _resource_url(self, path):
         """Load images from a relative path (to qutebrowser).

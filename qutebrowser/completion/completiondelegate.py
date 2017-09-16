@@ -194,7 +194,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
                 color: {{ conf.colors.completion.match.fg }};
             }
         """
-        template = jinja.environment.from_string(stylesheet)
+        with jinja.environment.no_autoescape():
+            template = jinja.environment.from_string(stylesheet)
         self._doc.setDefaultStyleSheet(template.render(conf=config.val))
 
         if index.parent().isValid():
