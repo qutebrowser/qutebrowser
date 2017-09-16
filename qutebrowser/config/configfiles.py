@@ -21,6 +21,7 @@
 
 import types
 import os.path
+import sys
 import textwrap
 import traceback
 import configparser
@@ -198,6 +199,12 @@ def read_config_py(filename=None):
         if not os.path.exists(filename):
             return api
 
+    # Add config directory to python path, so config.py can import other files
+    # in logical places
+    old_path = sys.path.copy()
+    if standarddir.config() not in sys.path:
+        sys.path.insert(0, standarddir.config())
+
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
 
@@ -231,6 +238,9 @@ def read_config_py(filename=None):
         api.errors.append(configexc.ConfigErrorDesc(
             "Unhandled exception",
             exception=e, traceback=traceback.format_exc()))
+
+    # Restore previous path, to protect qutebrowser's imports
+    sys.path = old_path
 
     api.finalize()
     return api
