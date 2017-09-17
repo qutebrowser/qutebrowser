@@ -137,7 +137,7 @@ def test_yaml_oserror(fake_save_manager, config_tmpdir):
 
 class TestConfigPyModules:
 
-    """Test for ConfigPy Modules"""
+    """Test for ConfigPy Modules."""
 
     pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
