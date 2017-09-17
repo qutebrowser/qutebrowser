@@ -248,7 +248,8 @@ foobar.run(config)""")
 
         tblines = error.traceback.strip().splitlines()
         assert tblines[0] == "Traceback (most recent call last):"
-        assert tblines[-1] == "ImportError: No module named 'foobar'"
+        assert (tblines[-1] == "ImportError: No module named 'foobar'" or
+                tblines[-1] == "ModuleNotFoundError: No module named 'foobar'")
 
 
 class TestConfigPy:
