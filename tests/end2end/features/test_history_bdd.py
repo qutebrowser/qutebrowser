@@ -29,7 +29,8 @@ bdd.scenarios('history.feature')
 @pytest.fixture(autouse=True)
 def turn_on_sql_history(quteproc):
     """Make sure SQL writing is enabled for tests in this module."""
-    quteproc.send_cmd(":debug-pyeval objreg.get('args').debug_flags.remove('no-sql-history')")
+    quteproc.send_cmd(":debug-pyeval objreg.get('args')."
+                      "debug_flags.remove('no-sql-history')")
     quteproc.wait_for_load_finished_url('qute://pyeval')
 
 
