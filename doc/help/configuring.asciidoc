@@ -11,8 +11,8 @@ Migrating older configurations
 ------------------------------
 
 qutebrowser does no automatic migration for the new configuration. However,
-there's a special link:qute://configdiff[config diff page] which will show you
-the changes you did in your old configuration, compared to the old defaults.
+there's a special link:qute://configdiff[] page in qutebrowser, which will show
+you the changes you did in your old configuration, compared to the old defaults.
 
 Other changes in default settings:
 
@@ -38,30 +38,33 @@ interface or command line. Changes you make this way are immediately active
 (with the exception of a few settings, where this is pointed out in the
 documentation) and are persisted in an `autoconfig.yml` file.
 
-Using the link:commands.html#set[`:set`] command and command completion, you
-can quickly set settings interactively, for example `:set tabs.position left`.
+The `autoconfig.yml` file is located in the "config" folder listed on the
+link:qute://version[] page. On macOS, the "auto config" folder is used, which is
+different from where hand-written config files are kept.
 
-To get more help about a setting, use e.g. `:help tabs.position`.
+However, **do not** edit `autoconfig.yml` by hand. Instead, see the next
+section.
 
 If you want to customize many settings, you can open the link:qute://settings[]
 page by running `:set` without any arguments, where all settings are listed and
 customizable.
 
+Using the link:commands.html#set[`:set`] command and command completion, you
+can quickly set settings interactively, for example `:set tabs.position left`.
+
+To get more help about a setting, use e.g. `:help tabs.position`.
+
 To bind and unbind keys, you can use the link:commands.html#bind[`:bind`] and
 link:commands.html#unbind[`:unbind`] commands:
 
-- Binding a key: `:bind ,v spawn mpv {url}`
-- Unbinding: `:unbind ,v`
-- Changing an existing binding: `bind --force ,v message-info foo`
+- Binding the key chain "`,`, `v`" to the `:spawn mpv {url}` command: `:bind ,v
+  spawn mpv {url}`
+- Unbinding the same key chain: `:unbind ,v`
+- Changing an existing binding: `bind --force ,v message-info foo`. Without
+  `--force`, qutebrowser will show an error because `,v` is already bound.
 
 Key chains starting with a comma are ideal for custom bindings, as the comma key
 will never be used in a default keybinding.
-
-The `autoconfig.yml` file is located in the "config" folder listed on the
-link:qute://version[] page. On macOS, the "auto config" folder is used, which is
-different from where hand-written config files are kept.
-
-**Do not** edit `autoconfig.yml` by hand. Instead, see the next section.
 
 Configuring qutebrowser via config.py
 -------------------------------------
@@ -77,13 +80,14 @@ link:qute://version[], which is typically `~/.config/qutebrowser/config.py` on
 Linux, `~/.qutebrowser/config.py` on macOS, and
 `%APPDATA%/qutebrowser/config.py` on Windows.
 
-Two global objects are pre-defined when executing the file: `c` and `config`.
+Two global objects are pre-defined when running `config.py`: `c` and `config`.
 
 Changing settings
 ~~~~~~~~~~~~~~~~~
 
 `c` is a shorthand object to easily set settings like this:
 
+.config.py:
 [source,python]
 ----
 c.tabs.position = "left"
@@ -105,9 +109,9 @@ accepted values depend on the type of the option. Commonly used are:
     previous elements.
   * `c.url.start_pages.append("https://www.python.org/")` to add a new value.
 
-Any other config types (e.g. a color) are specified as a string, with the
-exception of the `Regex` type which can take either a string (with an `r` prefix
-to preserve backslashes) or a Python regex object:
+Any other config types (e.g. a color) are specified as a string. The only
+exception is the `Regex` type, which can take either a string (with an `r`
+prefix to preserve backslashes) or a Python regex object:
 
 - `c.hints.next_regexes.append(r'\bvor\b')`
 - `c.hints.prev_regexes.append(re.compile(r'\bzurück\b'))`
@@ -122,6 +126,7 @@ Using strings for setting names
 If you want to set settings based on their name as a string, use the
 `config.set` method:
 
+.config.py:
 [source,python]
 ----
 config.set('content.javascript.enabled', False)
@@ -147,6 +152,7 @@ setting.
 
 To bind a key:
 
+.config.py:
 [source,python]
 ----
 config.bind(',v', 'spawn mpv {url}', mode='normal')
@@ -179,6 +185,7 @@ If you want all customization done via `:set`, `:bind` and `:unbind` to be
 temporary, you can suppress loading `autoconfig.yml` in your `config.py` by
 doing:
 
+.config.py:
 [source,python]
 ----
 config.load_autoconfig = False
