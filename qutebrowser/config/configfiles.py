@@ -265,7 +265,6 @@ def _post_config_load(save_tuple):
     sys.path = save_tuple[0]
     for module in set(sys.modules).difference(save_tuple[1]):
         del sys.modules[module]
-    pass
 
 
 def init():

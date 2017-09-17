@@ -134,6 +134,144 @@ def test_yaml_oserror(fake_save_manager, config_tmpdir):
     assert error.traceback is None
 
 
+class TestConfigPyModules:
+
+    """Test for ConfigPy Modules."""
+
+    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
+    _old_sys_path = sys.path.copy()
+
+    class ConfPy:
+
+        """Helper class to get a confpy fixture."""
+
+        def __init__(self, tmpdir):
+            self._confpy = tmpdir / 'config.py'
+            self.filename = str(self._confpy)
+
+        def write(self, *lines):
+            text = '\n'.join(lines)
+            self._confpy.write_text(text, 'utf-8', ensure=True)
+
+    class QbModulePy:
+
+        """Helper class to get a QbModulePy fixture."""
+
+        def __init__(self, tmpdir):
+            self._qbmodulepy = tmpdir / 'qbmodule.py'
+            self.filename = str(self._qbmodulepy)
+
+        def write(self, *lines):
+            text = '\n'.join(lines)
+            self._qbmodulepy.write_text(text, 'utf-8', ensure=True)
+
+    @pytest.fixture
+    def confpy(self, tmpdir):
+        return self.ConfPy(tmpdir)
+
+    @pytest.fixture
+    def qbmodulepy(self, tmpdir):
+        return self.QbModulePy(tmpdir)
+
+    def setup_method(self, method):
+        # If we plan to add tests that modify modules themselves, that should
+        # be saved as well
+        TestConfigPyModules._old_sys_path = sys.path.copy()
+
+    def teardown_method(self, method):
+        # Restore path to save the rest of the tests
+        sys.path = TestConfigPyModules._old_sys_path
+
+    def test_bind_in_module(self, confpy, qbmodulepy):
+        qbmodulepy.write("""def run(config):
+    config.bind(",a", "message-info foo", mode="normal")""")
+        confpy.write("""import qbmodule
+qbmodule.run(config)""")
+        api = configfiles.read_config_py(confpy.filename)
+        expected = {'normal': {',a': 'message-info foo'}}
+        assert len(api.errors) == 0
+        assert config.instance._values['bindings.commands'] == expected
+
+    def test_clear_path(self, confpy, qbmodulepy, tmpdir):
+        qbmodulepy.write("""def run(config):
+    config.bind(",a", "message-info foo", mode="normal")""")
+        confpy.write("""import qbmodule
+qbmodule.run(config)""")
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 0
+        assert tmpdir not in sys.path
+
+    def test_clear_modules(self, confpy, qbmodulepy):
+        qbmodulepy.write("""def run(config):
+    config.bind(",a", "message-info foo", mode="normal")""")
+        confpy.write("""import qbmodule
+qbmodule.run(config)""")
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 0
+        assert "qbmodule" not in sys.modules.keys()
+
+    def test_clear_modules_on_err(self, confpy, qbmodulepy):
+        qbmodulepy.write("""def run(config):
+    1/0""")
+        confpy.write("""import qbmodule
+qbmodule.run(config)""")
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ZeroDivisionError)
+
+        tblines = error.traceback.strip().splitlines()
+        assert tblines[0] == "Traceback (most recent call last):"
+        assert tblines[-1] == "ZeroDivisionError: division by zero"
+        assert "    1/0" in tblines
+        assert "qbmodule" not in sys.modules.keys()
+
+    def test_clear_path_on_err(self, confpy, qbmodulepy, tmpdir):
+        qbmodulepy.write("""def run(config):
+    1/0""")
+        confpy.write("""import qbmodule
+qbmodule.run(config)""")
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ZeroDivisionError)
+
+        tblines = error.traceback.strip().splitlines()
+        assert tblines[0] == "Traceback (most recent call last):"
+        assert tblines[-1] == "ZeroDivisionError: division by zero"
+        assert "    1/0" in tblines
+        assert tmpdir not in sys.path
+
+    def test_fail_on_nonexistent_module(self, confpy, qbmodulepy, tmpdir):
+        qbmodulepy.write("""def run(config):
+    pass""")
+        confpy.write("""import foobar
+foobar.run(config)""")
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ImportError)
+
+        tblines = error.traceback.strip().splitlines()
+        assert tblines[0] == "Traceback (most recent call last):"
+        assert tblines[-1].endswith("Error: No module named 'foobar'")
+
+    def test_no_double_if_path_exists(self, confpy, qbmodulepy, tmpdir):
+        sys.path.insert(0, tmpdir)
+        confpy.write("""import sys
+if sys.path[1:].count(sys.path[0]) != 0:
+    raise Exception('Path not expected')""")
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 0
+        assert sys.path.count(tmpdir) == 1
+
+
 class TestConfigPy:
 
     """Tests for ConfigAPI and read_config_py()."""
