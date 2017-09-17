@@ -50,7 +50,7 @@ the <span class="mono">qute://settings</span> page or caret browsing).</span>
     {% elif distribution.version >= version('17.04') %}
         {{ install_webengine('python3-pyqt5.qtwebengine') }}
     {% elif distribution.version >= version('16.04') %}
-        QtWebEngine is only available in Ubuntu's repositories since 17.04, but you can <a href="https://github.com/qutebrowser/qutebrowser/blob/master/INSTALL.asciidoc#installing-qutebrowser-with-tox">install qutebrowser via tox</a> with <span class="mono">tox -e mkvenv-pypi</span> to use the new backend.
+        QtWebEngine is only available in Ubuntu's repositories since 17.04, but you can <a href="https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#installing-qutebrowser-with-tox">install qutebrowser via tox</a> with <span class="mono">tox -e mkvenv-pypi</span> to use the new backend.
     {% else %}
         Unfortunately, no easy way is known to install QtWebEngine on Ubuntu &lt; 16.04. {{ please_open_issue() }}
     {% endif %}

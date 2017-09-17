@@ -9,7 +9,7 @@ qutebrowser
 // QUTE_WEB_HIDE
 image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
 
-image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/COPYING"]
+image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/doc/COPYING"]
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
 image:https://requires.io/github/qutebrowser/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/qutebrowser/qutebrowser/requirements/?branch=master"]
 image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/qutebrowser/qutebrowser"]
@@ -36,7 +36,7 @@ Downloads
 ---------
 
 See the https://github.com/qutebrowser/qutebrowser/releases[github releases
-page] for available downloads and the link:INSTALL.asciidoc[INSTALL] file for
+page] for available downloads and the link:doc/install.asciidoc[INSTALL] file for
 detailed instructions on how to get qutebrowser running on various platforms.
 
 Documentation
@@ -49,11 +49,11 @@ available:
 image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
-* link:FAQ.asciidoc[Frequently asked questions]
+* link:doc/faq.asciidoc[Frequently asked questions]
 * link:doc/help/configuring.html[Configuring qutebrowser]
-* link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
-* link:INSTALL.asciidoc[INSTALL]
-* link:CHANGELOG.asciidoc[Change Log]
+* link:doc/contributing.asciidoc[Contributing to qutebrowser]
+* link:doc/install.asciidoc[Installing qutebrowser]
+* link:doc/changelog.asciidoc[Change Log]
 * link:doc/stacktrace.asciidoc[Reporting segfaults]
 * link:doc/userscripts.asciidoc[How to write userscripts]
 
@@ -79,7 +79,7 @@ Contributions / Bugs
 --------------------
 
 You want to contribute to qutebrowser? Awesome! Please read
-link:CONTRIBUTING.asciidoc[the contribution guidelines] for details and
+link:doc/contributing.asciidoc[the contribution guidelines] for details and
 useful hints.
 
 If you found a bug or have a feature request, you can report it in several
@@ -129,8 +129,8 @@ The following libraries are optional:
 * http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 
-See link:INSTALL.asciidoc[INSTALL] for directions on how to install qutebrowser
-and its dependencies.
+See link:doc/install.asciidoc[the documentation] for directions on how to
+install qutebrowser and its dependencies.
 
 Donating
 --------
