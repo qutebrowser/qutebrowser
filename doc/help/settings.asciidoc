@@ -2084,7 +2084,7 @@ Font used for the hints.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 13px monospace]+
+Default: +pass:[bold 10pt monospace]+
 
 [[fonts.keyhint]]
 === fonts.keyhint

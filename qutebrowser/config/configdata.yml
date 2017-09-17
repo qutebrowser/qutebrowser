@@ -1713,7 +1713,7 @@ fonts.downloads:
   desc: Font used for the downloadbar.
 
 fonts.hints:
-  default: bold 13px monospace
+  default: bold 10pt monospace
   type: Font
   desc: Font used for the hints.
 
