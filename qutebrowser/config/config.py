@@ -426,7 +426,14 @@ class Config(QObject):
         # Then we watch the returned object for changes.
         if isinstance(obj, (dict, list)):
             if mutable:
-                self._mutables.append((name, copy.deepcopy(obj), obj))
+                mutable_exists = False
+                for mutable_name, old_value, new_value in self._mutables:
+                    if mutable_name == name:
+                        mutable_exists = True
+                        obj = new_value
+                        break
+                if not mutable_exists:
+                    self._mutables.append((name, copy.deepcopy(obj), obj))
         else:
             # Shouldn't be mutable (and thus hashable)
             assert obj.__hash__ is not None, obj
