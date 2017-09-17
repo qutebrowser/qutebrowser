@@ -32,6 +32,8 @@ Breaking changes
   that PyQt5.QtOpenGL is still a dependency.
 - Migrating QtWebEngine data written by versions before 2016-11-15 (before
   v0.9.0) is now not supported anymore.
+- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
+  work properly anymore.
 - Various documentation files got moved to the doc/ subfolder,
  `qutebrowser.desktop` got moved to misc/.
 
@@ -46,12 +48,12 @@ Added
 ~~~~~
 
 - New back/forward indicator in the statusbar
+- New `bindings.key_mappings` setting to map keys to other keys
+- New `qt_args` setting to pass additional arguments to Qt/Chromium
 
 Changed
 ~~~~~~~
 
-- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
-  work properly anymore.
 - Using `:download` now uses the page's title as filename.
 - Using `:back` or `:forward` with a count now skips intermediate pages.
 - When there are multiple messages shown, the timeout is increased.
