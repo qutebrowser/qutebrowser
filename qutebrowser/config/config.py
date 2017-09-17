@@ -703,4 +703,4 @@ def late_init(save_manager):
     _init_errors = []
 
     instance.init_save_manager(save_manager)
-    objreg.get('state-config').init_save_manager(save_manager)
+    configfiles.state.init_save_manager(save_manager)

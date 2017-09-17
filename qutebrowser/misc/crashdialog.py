@@ -38,7 +38,7 @@ import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, usertypes
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin, objects)
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 
 
 def parse_fatal_stacktrace(text):
@@ -159,11 +159,12 @@ class _CrashDialog(QDialog):
         self._vbox.addWidget(contact)
         self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
         try:
-            state = objreg.get('state-config')
             try:
-                self._contact.setPlainText(state['general']['contact-info'])
+                info = configfiles.state['general']['contact-info']
             except KeyError:
                 self._contact.setPlaceholderText("Mail or IRC nickname")
+            else:
+                self._contact.setPlainText(info)
         except Exception:
             log.misc.exception("Failed to get contact information!")
             self._contact.setPlaceholderText("Mail or IRC nickname")
@@ -296,8 +297,8 @@ class _CrashDialog(QDialog):
     def _save_contact_info(self):
         """Save the contact info to disk."""
         try:
-            state = objreg.get('state-config')
-            state['general']['contact-info'] = self._contact.toPlainText()
+            info = self._contact.toPlainText()
+            configfiles.state['general']['contact-info'] = info
         except Exception:
             log.misc.exception("Failed to save contact information!")
 

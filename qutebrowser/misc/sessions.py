@@ -30,7 +30,7 @@ import yaml
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils)
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 
 
@@ -294,8 +294,7 @@ class SessionManager(QObject):
             raise SessionError(e)
 
         if load_next_time:
-            state_config = objreg.get('state-config')
-            state_config['general']['session'] = name
+            configfiles.state['general']['session'] = name
         return name
 
     def save_autosave(self):

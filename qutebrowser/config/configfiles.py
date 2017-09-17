@@ -29,8 +29,13 @@ import contextlib
 import yaml
 from PyQt5.QtCore import QSettings
 
+import qutebrowser
 from qutebrowser.config import configexc
 from qutebrowser.utils import objreg, standarddir, utils, qtutils
+
+
+# The StateConfig instance
+state = None
 
 
 class StateConfig(configparser.ConfigParser):
@@ -232,8 +237,9 @@ def read_config_py(filename=None):
 
 def init():
     """Initialize config storage not related to the main config."""
+    global state
     state = StateConfig()
-    objreg.register('state-config', state)
+    state['general']['version'] = qutebrowser.__version__
 
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it

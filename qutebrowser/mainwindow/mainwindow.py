@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
 from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
@@ -365,9 +365,8 @@ class MainWindow(QWidget):
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
-        state_config = objreg.get('state-config')
         try:
-            data = state_config['geometry']['mainwindow']
+            data = configfiles.state['geometry']['mainwindow']
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
@@ -380,10 +379,9 @@ class MainWindow(QWidget):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        state_config = objreg.get('state-config')
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
-        state_config['geometry']['mainwindow'] = geom
+        configfiles.state['geometry']['mainwindow'] = geom
 
     def _load_geometry(self, geom):
         """Load geometry from a bytes object.

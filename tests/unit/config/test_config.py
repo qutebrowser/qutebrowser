@@ -28,7 +28,7 @@ from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.config import config, configdata, configexc
+from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import objreg, usertypes
 from qutebrowser.misc import objects
 
@@ -870,16 +870,16 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
 def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
                data_tmpdir):
     monkeypatch.setattr(configdata, 'DATA', None)
+    monkeypatch.setattr(configfiles, 'state', None)
     monkeypatch.setattr(config, 'instance', None)
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, '_change_filters', [])
     monkeypatch.setattr(config, '_init_errors', [])
     yield
-    for obj in ['config-commands', 'state-config']:
-        try:
-            objreg.delete(obj)
-        except KeyError:
-            pass
+    try:
+        objreg.delete('config-commands')
+    except KeyError:
+        pass
 
 
 @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
