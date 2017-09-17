@@ -70,15 +70,15 @@ def run(args):
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
 
+    log.init.debug("Initializing directories...")
+    standarddir.init(args)
+
     global qApp
     qApp = Application(args)
     qApp.setOrganizationName("qutebrowser")
     qApp.setApplicationName("qutebrowser")
     qApp.setApplicationVersion(qutebrowser.__version__)
     qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
-
-    log.init.debug("Initializing directories...")
-    standarddir.init(args)
 
     if args.version:
         print(version.version())

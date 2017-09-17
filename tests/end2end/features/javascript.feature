@@ -54,6 +54,7 @@ Feature: Javascript stuff
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
+    @flaky
     Scenario: Opening window without user interaction with content.javascript.can_open_tabs_automatically set to true
         When I open data/hello.txt
         And I set content.javascript.can_open_tabs_automatically to true

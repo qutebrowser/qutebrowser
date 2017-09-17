@@ -150,7 +150,7 @@ def debug_flag_error(flag):
         debug-exit: Turn on debugging of late exit.
         pdb-postmortem: Drop into pdb on exceptions.
     """
-    valid_flags = ['debug-exit', 'pdb-postmortem']
+    valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history']
 
     if flag in valid_flags:
         return flag

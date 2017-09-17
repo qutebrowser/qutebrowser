@@ -212,14 +212,14 @@ class TestSocketName:
     def test_mac(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         parts = socketname.split(os.sep)
-        assert parts[-2] == 'qute_test'
+        assert parts[-2] == 'qutebrowser'
         assert parts[-1] == expected
 
     @pytest.mark.linux
     @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
-        expected_path = str(fake_runtime_dir / 'qute_test' / expected)
+        expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)
         assert socketname == expected_path
 
     def test_other_unix(self):

@@ -132,7 +132,7 @@ class WebHistory(sql.SqlTable):
             self._do_clear()
         else:
             message.confirm_async(self._do_clear, title="Clear all browsing "
-                                "history?")
+                                  "history?")
 
     def _do_clear(self):
         self.delete_all()
@@ -175,6 +175,9 @@ class WebHistory(sql.SqlTable):
         """
         if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
+            return
+
+        if 'no-sql-history' in objreg.get('args').debug_flags:
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())
