@@ -225,10 +225,10 @@ def read_config_py(filename=None):
 
     # Add config directory to python path, so config.py can import other files
     # in logical places
-    old_path = sys.path.copy()
+    old_state = _pre_config_save()
     config_dir = os.path.dirname(filename)
     if config_dir not in sys.path:
-        sys.path.insert(0, config_dir)
+        sys.path = [config_dir] + sys.path
 
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
@@ -238,6 +238,20 @@ def read_config_py(filename=None):
     module.c = container
     module.__file__ = filename
 
+    try:
+        _run_python_config_helper(filename, basename, api, module)
+    except:
+        _post_config_load(old_state)
+        raise
+
+    # Restore previous path, to protect qutebrowser's imports
+    _post_config_load(old_state)
+
+    api.finalize()
+    return api
+
+
+def _run_python_config_helper(filename, basename, api, module):
     try:
         with open(filename, mode='rb') as f:
             source = f.read()
@@ -264,11 +278,18 @@ def read_config_py(filename=None):
             "Unhandled exception",
             exception=e, traceback=traceback.format_exc()))
 
-    # Restore previous path, to protect qutebrowser's imports
-    sys.path = old_path
 
-    api.finalize()
-    return api
+def _pre_config_save():
+    old_path = sys.path
+    old_modules = sys.modules.copy()
+    return (old_path, old_modules)
+
+
+def _post_config_load(save_tuple):
+    sys.path = save_tuple[0]
+    for module in set(sys.modules).difference(save_tuple[1]):
+        del sys.modules[module]
+    pass
 
 
 def init():
