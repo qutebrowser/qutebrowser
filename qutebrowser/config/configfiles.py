@@ -31,7 +31,7 @@ from PyQt5.QtCore import QSettings
 
 import qutebrowser
 from qutebrowser.config import configexc
-from qutebrowser.utils import objreg, standarddir, utils, qtutils
+from qutebrowser.utils import standarddir, utils, qtutils
 
 
 # The StateConfig instance

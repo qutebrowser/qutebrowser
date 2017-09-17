@@ -152,23 +152,7 @@ class _CrashDialog(QDialog):
         self._pypi_client = autoupdate.PyPIVersionClient(self)
         self._init_text()
 
-        contact = QLabel("I'd like to be able to follow up with you, to keep "
-                         "you posted on the status of this crash and get more "
-                         "information if I need it - how can I contact you?",
-                         wordWrap=True)
-        self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        try:
-            try:
-                info = configfiles.state['general']['contact-info']
-            except KeyError:
-                self._contact.setPlaceholderText("Mail or IRC nickname")
-            else:
-                self._contact.setPlainText(info)
-        except Exception:
-            log.misc.exception("Failed to get contact information!")
-            self._contact.setPlaceholderText("Mail or IRC nickname")
-        self._vbox.addWidget(self._contact, 2)
+        self._init_contact_input()
 
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
@@ -201,6 +185,26 @@ class _CrashDialog(QDialog):
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    def _init_contact_input(self):
+        """Initialize the widget asking for contact info."""
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?",
+                         wordWrap=True)
+        self._vbox.addWidget(contact)
+        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        try:
+            try:
+                info = configfiles.state['general']['contact-info']
+            except KeyError:
+                self._contact.setPlaceholderText("Mail or IRC nickname")
+            else:
+                self._contact.setPlainText(info)
+        except Exception:
+            log.misc.exception("Failed to get contact information!")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
+        self._vbox.addWidget(self._contact, 2)
 
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.

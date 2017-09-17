@@ -24,7 +24,6 @@ import sys
 import pytest
 
 from qutebrowser.config import config, configfiles, configexc
-from qutebrowser.utils import objreg
 
 from PyQt5.QtCore import QSettings
 
