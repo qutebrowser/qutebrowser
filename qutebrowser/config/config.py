@@ -379,7 +379,7 @@ class Config(QObject):
         super().__init__(parent)
         self.changed.connect(_render_stylesheet.cache_clear)
         self._values = {}
-        self._mutables = []
+        self._mutables = {}
         self._yaml = yaml_config
 
     def _set_value(self, opt, value):
@@ -426,7 +426,10 @@ class Config(QObject):
         # Then we watch the returned object for changes.
         if isinstance(obj, (dict, list)):
             if mutable:
-                self._mutables.append((name, copy.deepcopy(obj), obj))
+                if name not in self._mutables:
+                    self._mutables[name] = (copy.deepcopy(obj), obj)
+                else:
+                    obj = self._mutables[name][1]
         else:
             # Shouldn't be mutable (and thus hashable)
             assert obj.__hash__ is not None, obj
@@ -470,11 +473,13 @@ class Config(QObject):
         Here, we check all those saved copies for mutations, and if something
         mutated, we call set_obj again so we save the new value.
         """
-        for name, old_value, new_value in self._mutables:
+        for name, vals in self._mutables:
+            old_value = vals[0]
+            new_value = vals[1]
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
                 self.set_obj(name, new_value, save_yaml=save_yaml)
-        self._mutables = []
+        self._mutables = {}
 
     def dump_userconfig(self):
         """Get the part of the config which was changed by the user.
