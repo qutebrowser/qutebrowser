@@ -178,8 +178,9 @@ class TestConfigPyModules:
     config.bind(",a", "message-info foo", mode="normal")""")
         confpy.write("""import qbmodule
 qbmodule.run(config)""")
-        configfiles.read_config_py(confpy.filename)
+        api = configfiles.read_config_py(confpy.filename)
         expected = {'normal': {',a': 'message-info foo'}}
+        assert len(api.errors) == 0
         assert config.instance._values['bindings.commands'] == expected
 
     def test_clear_path(self, confpy, qbmodulepy, tmpdir):
@@ -187,7 +188,8 @@ qbmodule.run(config)""")
     config.bind(",a", "message-info foo", mode="normal")""")
         confpy.write("""import qbmodule
 qbmodule.run(config)""")
-        configfiles.read_config_py(confpy.filename)
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 0
         assert tmpdir not in sys.path
 
     def test_clear_modules(self, confpy, qbmodulepy):
@@ -195,7 +197,8 @@ qbmodule.run(config)""")
     config.bind(",a", "message-info foo", mode="normal")""")
         confpy.write("""import qbmodule
 qbmodule.run(config)""")
-        configfiles.read_config_py(confpy.filename)
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 0
         assert "qbmodule" not in sys.modules.keys()
 
     def test_clear_modules_on_err(self, confpy, qbmodulepy):
@@ -250,6 +253,15 @@ foobar.run(config)""")
         assert tblines[0] == "Traceback (most recent call last):"
         assert (tblines[-1] == "ImportError: No module named 'foobar'" or
                 tblines[-1] == "ModuleNotFoundError: No module named 'foobar'")
+
+    def test_no_double_if_path_exists(self, confpy, qbmodulepy, tmpdir):
+        sys.path.insert(0, tmpdir)
+        confpy.write("""import sys
+if sys.path[1:].count(sys.path[0]) != 0:
+    raise Exception('Path not expected')""")
+        api = configfiles.read_config_py(confpy.filename)
+        assert len(api.errors) == 0
+        assert sys.path.count(tmpdir) == 1
 
 
 class TestConfigPy:
