@@ -120,7 +120,12 @@ def _init_cache(args):
     typ = QStandardPaths.CacheLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
-        path = _writable_location(typ)
+        if os.name == 'nt':
+            # Local, not Roaming!
+            data_path = _writable_location(QStandardPaths.DataLocation)
+            path = os.path.join(data_path, 'cache')
+        else:
+            path = _writable_location(typ)
     _create(path)
     _locations[Location.cache] = path
 

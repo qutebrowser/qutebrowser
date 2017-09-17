@@ -67,15 +67,18 @@ def test_fake_mac_config(tmpdir, monkeypatch):
 
 # FIXME:conf needs AppDataLocation
 @pytest.mark.qt55
-@pytest.mark.parametrize('what', ['data', 'config'])
+@pytest.mark.parametrize('what', ['data', 'config', 'cache'])
 @pytest.mark.not_mac
-def test_fake_windows_data_config(tmpdir, monkeypatch, what):
-    """Make sure the config is correct on a fake Windows."""
+def test_fake_windows(tmpdir, monkeypatch, what):
+    """Make sure the config/data/cache dirs are correct on a fake Windows."""
     monkeypatch.setattr(os, 'name', 'nt')
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         lambda typ: str(tmpdir / APPNAME))
+
     standarddir._init_config(args=None)
     standarddir._init_data(args=None)
+    standarddir._init_cache(args=None)
+
     func = getattr(standarddir, what)
     assert func() == str(tmpdir / APPNAME / what)
 
