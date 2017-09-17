@@ -30,8 +30,9 @@ from qutebrowser.commands import cmdexc
 
 
 @pytest.fixture(autouse=True)
-def prerequisites(config_stub, fake_save_manager, init_sql):
+def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
     """Make sure everything is ready to initialize a WebHistory."""
+    fake_args.debug_flags = []
     config_stub.data = {'general': {'private-browsing': False}}
 
 

@@ -314,6 +314,12 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     assert before.difference(after) == {removed}
 
 
+@pytest.fixture(autouse=True)
+def url_args(fake_args):
+    """Prepare arguments needed to test the URL completion."""
+    fake_args.debug_flags = []
+
+
 def test_url_completion(qtmodeltester, web_history_populated,
                         quickmarks, bookmarks, info):
     """Test the results of url completion.
