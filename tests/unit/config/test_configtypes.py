@@ -214,7 +214,7 @@ class TestAll:
     def klass(self, request):
         return request.param
 
-    @pytest.mark.usefixtures('qapp', 'config_tmpdir')
+    @pytest.mark.usefixtures('config_tmpdir')
     @hypothesis.given(strategies.text())
     @hypothesis.example('\x00')
     def test_from_str_hypothesis(self, klass, s):
@@ -1561,7 +1561,6 @@ def unrequired_class(**kwargs):
     return configtypes.File(required=False, **kwargs)
 
 
-@pytest.mark.usefixtures('qapp')
 @pytest.mark.usefixtures('config_tmpdir')
 class TestFile:
 
