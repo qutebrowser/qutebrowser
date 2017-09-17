@@ -1,1 +1,1 @@
-../doc/contributing.asciidoc
+include::../doc/contributing.asciidoc[]
