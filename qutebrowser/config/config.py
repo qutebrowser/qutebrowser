@@ -22,12 +22,14 @@
 import copy
 import contextlib
 import functools
+import os
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes
+from qutebrowser.utils import (utils, objreg, message, log, usertypes,
+                               standarddir)
 from qutebrowser.misc import objects, msgbox
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
@@ -642,7 +644,11 @@ def init(parent=None):
     """
     configdata.init()
 
-    yaml_config = configfiles.YamlConfig()
+    no_autoconfig = os.path.exists(
+        os.path.join(standarddir.config(), 'no-autoconfig'))
+    # Not creating a YamlConfig instance prevents changes from being written
+    # back to the autoconfig
+    yaml_config = None if no_autoconfig else configfiles.YamlConfig()
 
     global val, instance, key_instance
     instance = Config(yaml_config=yaml_config, parent=parent)
@@ -657,13 +663,15 @@ def init(parent=None):
     config_commands = ConfigCommands(instance, key_instance)
     objreg.register('config-commands', config_commands)
 
-    config_api = None
-
     try:
-        config_api = configfiles.read_config_py()
-        # Raised here so we get the config_api back.
-        if config_api.errors:
-            raise configexc.ConfigFileErrors('config.py', config_api.errors)
+        if not no_autoconfig:
+            try:
+                instance.read_yaml()
+            except configexc.ConfigFileErrors as e:
+                raise  # caught in outer block
+            except configexc.Error as e:
+                desc = configexc.ConfigErrorDesc("Error", e)
+                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
     except configexc.ConfigFileErrors as e:
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
@@ -673,14 +681,10 @@ def init(parent=None):
         errbox.exec_()
 
     try:
-        if getattr(config_api, 'load_autoconfig', True):
-            try:
-                instance.read_yaml()
-            except configexc.ConfigFileErrors as e:
-                raise  # caught in outer block
-            except configexc.Error as e:
-                desc = configexc.ConfigErrorDesc("Error", e)
-                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+        config_api = configfiles.read_config_py()
+        # Raised here so we get the config_api back.
+        if config_api.errors:
+            raise configexc.ConfigFileErrors('config.py', config_api.errors)
     except configexc.ConfigFileErrors as e:
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
