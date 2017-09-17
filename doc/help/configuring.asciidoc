@@ -169,8 +169,8 @@ config.unbind(',v', mode='normal')
 Key chains starting with a comma are ideal for custom bindings, as the comma key
 will never be used in a default keybinding.
 
-To suppress loading of any default keybindings, you can set `c.bindings.defaults
-= {}`.
+To suppress loading of any default keybindings, you can set
+`c.bindings.default = {}`.
 
 Prevent loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
