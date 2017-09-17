@@ -858,16 +858,10 @@ def expand_windows_drive(path):
         return path
 
 def is_mac():
-    if sys.platform.startswith('darwin'):
-        return True
-    return False
+    return sys.platform.startswith('darwin')
 
 def is_linux():
-    if sys.platform.startswith('linux'):
-        return True
-    return False
+    return sys.platform.startswith('linux')
 
 def is_windows():
-    if sys.platform.startswith('win'):
-        return True
-    return False
+    return sys.platform.startswith('win')
