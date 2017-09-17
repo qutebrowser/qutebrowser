@@ -177,7 +177,7 @@ class TestStandardDir:
         (standarddir.data, 2, ['Application Support', APPNAME]),
         (lambda: standarddir.config(auto=True), 1, [APPNAME]),
         (standarddir.config, 0,
-         os.path.expanduser('~').split(os.sep) + ['.qutebrowser']),
+         os.path.expanduser('~').split(os.sep) + ['.qute_test']),
         (standarddir.cache, 2, ['Caches', APPNAME]),
         (standarddir.download, 1, ['Downloads']),
     ])
