@@ -39,7 +39,6 @@ class StateConfig(configparser.ConfigParser):
 
     def __init__(self):
         super().__init__()
-        save_manager = objreg.get('save-manager')
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
         for sect in ['general', 'geometry']:
@@ -49,6 +48,13 @@ class StateConfig(configparser.ConfigParser):
                 pass
         # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
         self['general'].pop('fooled', None)
+
+    def init_save_manager(self, save_manager):
+        """Make sure the config gets saved properly.
+
+        We do this outside of __init__ because the config gets created before
+        the save_manager exists.
+        """
         save_manager.add_saveable('state-config', self._save)
 
     def _save(self):
@@ -68,11 +74,17 @@ class YamlConfig:
     VERSION = 1
 
     def __init__(self):
-        save_manager = objreg.get('save-manager')
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
-        save_manager.add_saveable('yaml-config', self._save)
         self.values = {}
+
+    def init_save_manager(self, save_manager):
+        """Make sure the config gets saved properly.
+
+        We do this outside of __init__ because the config gets created before
+        the save_manager exists.
+        """
+        save_manager.add_saveable('yaml-config', self._save)
 
     def _save(self):
         """Save the changed settings to the YAML file."""

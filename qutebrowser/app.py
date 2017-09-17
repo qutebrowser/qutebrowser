@@ -73,6 +73,9 @@ def run(args):
     log.init.debug("Initializing directories...")
     standarddir.init(args)
 
+    log.init.debug("Initializing config...")
+    config.early_init()
+
     global qApp
     qApp = Application(args)
     qApp.setOrganizationName("qutebrowser")
@@ -408,6 +411,7 @@ def _init_modules(args, crash_handler):
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
     save_manager.add_saveable('version', _save_version)
+    config.late_init(save_manager)
 
     log.init.debug("Initializing network...")
     networkmanager.init()
@@ -418,10 +422,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
-
-    log.init.debug("Initializing config...")
-    config.init(qApp)
-    save_manager.init_autosave()
 
     log.init.debug("Initializing sql...")
     try:
