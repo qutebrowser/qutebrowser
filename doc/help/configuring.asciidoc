@@ -57,8 +57,8 @@ To get more help about a setting, use e.g. `:help tabs.position`.
 To bind and unbind keys, you can use the link:commands.html#bind[`:bind`] and
 link:commands.html#unbind[`:unbind`] commands:
 
-- Binding the key chain "`,`, `v`" to the `:spawn mpv {url}` command: `:bind ,v
-  spawn mpv {url}`
+- Binding the key chain "`,`, `v`" to the `:spawn mpv {url}` command:
+  `:bind ,v spawn mpv {url}`
 - Unbinding the same key chain: `:unbind ,v`
 - Changing an existing binding: `bind --force ,v message-info foo`. Without
   `--force`, qutebrowser will show an error because `,v` is already bound.
@@ -93,6 +93,10 @@ Changing settings
 c.tabs.position = "left"
 c.completion.shrink = True
 ----
+
+Note that qutebrowser does some Python magic so it's able to warn you about
+mistyped config settings. As an example, if you do `c.tabs.possition = "left"`,
+you'll get an error when starting.
 
 See the link:settings.html[settings help page] for all available settings. The
 accepted values depend on the type of the option. Commonly used are:
