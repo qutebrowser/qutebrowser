@@ -20,6 +20,7 @@
 
 import copy
 import types
+import logging
 import unittest.mock
 
 import pytest
@@ -884,7 +885,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 @pytest.mark.parametrize('config_py', [True, 'error', False])
 @pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', False])
 # pylint: disable=too-many-branches
-def test_init(init_patch, fake_save_manager, config_tmpdir, mocker,
+def test_init(init_patch, fake_save_manager, config_tmpdir, mocker, caplog,
               load_autoconfig, config_py, invalid_yaml):
     # Prepare files
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
@@ -912,7 +913,8 @@ def test_init(init_patch, fake_save_manager, config_tmpdir, mocker,
     msgbox_mock = mocker.patch('qutebrowser.config.config.msgbox.msgbox',
                                autospec=True)
 
-    config.init()
+    with caplog.at_level(logging.ERROR):
+        config.init()
 
     # Check error messages
     expected_errors = []

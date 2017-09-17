@@ -20,6 +20,8 @@
 
 import textwrap
 
+import pytest
+
 from qutebrowser.config import configexc
 from qutebrowser.utils import usertypes
 
@@ -47,11 +49,24 @@ def test_duplicate_key_error():
     assert str(e) == "Duplicate key asdf"
 
 
-def test_config_file_errors():
+@pytest.fixture
+def errors():
+    """Get a ConfigFileErrors object."""
     err1 = configexc.ConfigErrorDesc("Error text 1", Exception("Exception 1"))
     err2 = configexc.ConfigErrorDesc("Error text 2", Exception("Exception 2"),
                                      "Fake traceback")
-    errors = configexc.ConfigFileErrors("config.py", [err1, err2])
+    return configexc.ConfigFileErrors("config.py", [err1, err2])
+
+
+def test_config_file_errors_str(errors):
+    assert str(errors).splitlines() == [
+        'Errors occurred while reading config.py:',
+        '  Error text 1: Exception 1',
+        '  Error text 2: Exception 2',
+    ]
+
+
+def test_config_file_errors_html(errors):
     html = errors.to_html()
     assert textwrap.dedent(html) == textwrap.dedent("""
         Errors occurred while reading config.py:

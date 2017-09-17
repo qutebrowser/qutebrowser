@@ -665,6 +665,7 @@ def init(parent=None):
         if config_api.errors:
             raise configexc.ConfigFileErrors('config.py', config_api.errors)
     except configexc.ConfigFileErrors as e:
+        log.config.exception("Error while loading config.py")
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
                                text=e.to_html(),
@@ -682,6 +683,7 @@ def init(parent=None):
                 desc = configexc.ConfigErrorDesc("Error", e)
                 raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
     except configexc.ConfigFileErrors as e:
+        log.config.exception("Error while loading autoconfig.yml")
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
                                text=e.to_html(),

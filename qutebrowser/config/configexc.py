@@ -19,6 +19,8 @@
 
 """Exceptions related to config parsing."""
 
+from qutebrowser.utils import utils
+
 
 class Error(Exception):
 
@@ -87,13 +89,20 @@ class ConfigErrorDesc:
         self.exception = exception
         self.traceback = traceback
 
+    def __repr__(self):
+        return utils.get_repr(self, text=self.text, exception=self.exception)
+
+    def __str__(self):
+        return '{}: {}'.format(self.text, self.exception)
+
 
 class ConfigFileErrors(Error):
 
     """Raised when multiple errors occurred inside the config."""
 
     def __init__(self, basename, errors):
-        super().__init__("Errors occurred while reading {}".format(basename))
+        super().__init__("Errors occurred while reading {}:\n{}".format(
+            basename, '\n'.join('  {}'.format(e) for e in errors)))
         self.basename = basename
         self.errors = errors
 
