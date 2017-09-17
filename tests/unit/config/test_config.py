@@ -18,6 +18,7 @@
 
 """Tests for qutebrowser.config.config."""
 
+import sys
 import copy
 import types
 import logging
@@ -27,6 +28,7 @@ import pytest
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
+from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import objreg, usertypes
@@ -982,3 +984,51 @@ def test_late_init(init_patch, monkeypatch, fake_save_manager, mocker, errors):
         assert '<b>Error text</b>: Exception' in text
     else:
         assert not msgbox_mock.called
+
+
+class TestQtArgs:
+
+    @pytest.fixture
+    def parser(self, mocker):
+        """Fixture to provide an argparser.
+
+        Monkey-patches .exit() of the argparser so it doesn't exit on errors.
+        """
+        parser = qutebrowser.get_argparser()
+        mocker.patch.object(parser, 'exit', side_effect=Exception)
+        return parser
+
+    @pytest.mark.parametrize('args, expected', [
+        # No Qt arguments
+        (['--debug'], [sys.argv[0]]),
+        # Qt flag
+        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '--reverse']),
+        # Qt argument with value
+        (['--qt-arg', 'stylesheet', 'foo'],
+         [sys.argv[0], '--stylesheet', 'foo']),
+        # --qt-arg given twice
+        (['--qt-arg', 'stylesheet', 'foo', '--qt-arg', 'geometry', 'bar'],
+         [sys.argv[0], '--stylesheet', 'foo', '--geometry', 'bar']),
+        # --qt-flag given twice
+        (['--qt-flag', 'foo', '--qt-flag', 'bar'],
+         [sys.argv[0], '--foo', '--bar']),
+    ])
+    def test_qt_args(self, config_stub, args, expected, parser):
+        """Test commandline with no Qt arguments given."""
+        parsed = parser.parse_args(args)
+        assert config.qt_args(parsed) == expected
+
+    def test_qt_both(self, config_stub, parser):
+        """Test commandline with a Qt argument and flag."""
+        args = parser.parse_args(['--qt-arg', 'stylesheet', 'foobar',
+                                  '--qt-flag', 'reverse'])
+        qt_args = config.qt_args(args)
+        assert qt_args[0] == sys.argv[0]
+        assert '--reverse' in qt_args
+        assert '--stylesheet' in qt_args
+        assert 'foobar' in qt_args
+
+    def test_with_settings(self, config_stub, parser):
+        parsed = parser.parse_args(['--qt-flag', 'foo'])
+        config_stub.val.qt_args = ['bar']
+        assert config.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']

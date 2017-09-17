@@ -36,7 +36,6 @@ import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
 
-from qutebrowser import qutebrowser
 from qutebrowser.utils import qtutils
 import overflow_test_cases
 
@@ -117,51 +116,6 @@ class TestCheckOverflow:
         """Test values which are outside bounds with fatal=False."""
         newval = qtutils.check_overflow(val, ctype, fatal=False)
         assert newval == repl
-
-
-class TestGetQtArgs:
-
-    """Tests for get_args."""
-
-    @pytest.fixture
-    def parser(self, mocker):
-        """Fixture to provide an argparser.
-
-        Monkey-patches .exit() of the argparser so it doesn't exit on errors.
-        """
-        parser = qutebrowser.get_argparser()
-        mocker.patch.object(parser, 'exit', side_effect=Exception)
-        return parser
-
-    @pytest.mark.parametrize('args, expected', [
-        # No Qt arguments
-        (['--debug'], [sys.argv[0]]),
-        # Qt flag
-        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '--reverse']),
-        # Qt argument with value
-        (['--qt-arg', 'stylesheet', 'foo'],
-         [sys.argv[0], '--stylesheet', 'foo']),
-        # --qt-arg given twice
-        (['--qt-arg', 'stylesheet', 'foo', '--qt-arg', 'geometry', 'bar'],
-         [sys.argv[0], '--stylesheet', 'foo', '--geometry', 'bar']),
-        # --qt-flag given twice
-        (['--qt-flag', 'foo', '--qt-flag', 'bar'],
-         [sys.argv[0], '--foo', '--bar']),
-    ])
-    def test_qt_args(self, args, expected, parser):
-        """Test commandline with no Qt arguments given."""
-        parsed = parser.parse_args(args)
-        assert qtutils.get_args(parsed) == expected
-
-    def test_qt_both(self, parser):
-        """Test commandline with a Qt argument and flag."""
-        args = parser.parse_args(['--qt-arg', 'stylesheet', 'foobar',
-                                  '--qt-flag', 'reverse'])
-        qt_args = qtutils.get_args(args)
-        assert qt_args[0] == sys.argv[0]
-        assert '--reverse' in qt_args
-        assert '--stylesheet' in qt_args
-        assert 'foobar' in qt_args
 
 
 @pytest.mark.parametrize('os_name, qversion, expected', [

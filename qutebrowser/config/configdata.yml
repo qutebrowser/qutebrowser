@@ -85,6 +85,19 @@ session_default_name:
 
     If this is set to null, the session which was last loaded is saved.
 
+qt_args:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default: []
+  desc: >-
+    Additional arguments to pass to Qt, without leading `--`.
+
+    With QtWebEngine, some Chromium arguments (see
+    https://peter.sh/experiments/chromium-command-line-switches/ for a list)
+    will work.
+
 ## auto_save
 
 auto_save.interval:

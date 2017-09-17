@@ -770,7 +770,7 @@ class Application(QApplication):
         """
         self._last_focus_object = None
 
-        qt_args = qtutils.get_args(args)
+        qt_args = config.qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(qt_args)
 
