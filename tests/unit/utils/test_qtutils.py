@@ -530,21 +530,6 @@ class TestSavefileOpen:
             assert data == b'foo\nbar\nbaz'
 
 
-@pytest.mark.parametrize('orgname, expected', [(None, ''), ('test', 'test')])
-def test_unset_organization(qapp, orgname, expected):
-    """Test unset_organization.
-
-    Args:
-        orgname: The organizationName to set initially.
-        expected: The organizationName which is expected when reading back.
-    """
-    qapp.setOrganizationName(orgname)
-    assert qapp.organizationName() == expected  # sanity check
-    with qtutils.unset_organization():
-        assert qapp.organizationName() == ''
-    assert qapp.organizationName() == expected
-
-
 if test_file is not None and sys.platform != 'darwin':
     # If we were able to import Python's test_file module, we run some code
     # here which defines unittest TestCases to run the python tests over

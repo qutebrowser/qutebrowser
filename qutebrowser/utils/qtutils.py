@@ -35,7 +35,6 @@ import contextlib
 
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR)
-from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
@@ -240,23 +239,6 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
             raise QtOSError(f, msg="Commit failed!")
-
-
-@contextlib.contextmanager
-def unset_organization():
-    """Temporarily unset QApplication.organizationName().
-
-    This is primarily needed in config.py.
-    """
-    qapp = QApplication.instance()
-    if qapp is not None:
-        orgname = qapp.organizationName()
-        qapp.setOrganizationName(None)
-    try:
-        yield
-    finally:
-        if qapp is not None:
-            qapp.setOrganizationName(orgname)
 
 
 class PyQIODevice(io.BufferedIOBase):

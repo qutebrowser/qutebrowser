@@ -23,10 +23,12 @@ import os
 import sys
 import shutil
 import os.path
+import contextlib
 
 from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, qtutils, debug, usertypes, message
+from qutebrowser.utils import log, debug, usertypes, message
 
 # The cached locations
 _locations = {}
@@ -43,6 +45,23 @@ APPNAME = 'qutebrowser'
 class EmptyValueError(Exception):
 
     """Error raised when QStandardPaths returns an empty value."""
+
+
+@contextlib.contextmanager
+def _unset_organization():
+    """Temporarily unset QApplication.organizationName().
+
+    This is primarily needed in config.py.
+    """
+    qapp = QApplication.instance()
+    if qapp is not None:
+        orgname = qapp.organizationName()
+        qapp.setOrganizationName(None)
+    try:
+        yield
+    finally:
+        if qapp is not None:
+            qapp.setOrganizationName(orgname)
 
 
 def _init_config(args):
@@ -204,7 +223,7 @@ def _writable_location(typ):
         # FIXME old Qt
         getattr(QStandardPaths, 'AppDataLocation', object())], typ_str
 
-    with qtutils.unset_organization():
+    with _unset_organization():
         path = QStandardPaths.writableLocation(typ)
 
     log.misc.debug("writable location for {}: {}".format(typ_str, path))
