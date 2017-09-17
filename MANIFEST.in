@@ -11,7 +11,7 @@ graft misc/userscripts
 recursive-include scripts *.py *.sh
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
-include doc/*
+include LICENSE doc/* README.asciidoc
 include misc/qutebrowser.desktop
 include requirements.txt
 include tox.ini

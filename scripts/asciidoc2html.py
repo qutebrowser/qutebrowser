@@ -75,7 +75,7 @@ class AsciiDoc:
     def _build_docs(self):
         """Render .asciidoc files to .html sites."""
         files = [('doc/{}.asciidoc'.format(f),
-                  'qutebrowser/html/{}.html'.format(f))
+                  'qutebrowser/html/doc/{}.html'.format(f))
                  for f in self.FILES]
         for src in glob.glob('doc/help/*.asciidoc'):
             name, _ext = os.path.splitext(os.path.basename(src))
