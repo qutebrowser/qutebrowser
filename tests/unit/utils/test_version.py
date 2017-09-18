@@ -515,12 +515,10 @@ class ImportFake:
             ('pygments', True),
             ('yaml', True),
             ('cssutils', True),
-            ('typing', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
-        self.no_version_attribute = ['sip', 'typing',
-                                     'PyQt5.QtWebEngineWidgets',
+        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
                                      'PyQt5.QtWebKitWidgets']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
@@ -588,7 +586,6 @@ class TestModuleVersions:
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
         ('cssutils', 6, 'cssutils: no'),
-        ('typing', 7, 'typing: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.

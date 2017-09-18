@@ -190,7 +190,6 @@ def _module_versions():
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
-        ('typing', []),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])
