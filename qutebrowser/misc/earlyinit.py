@@ -65,7 +65,7 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     if not webengine:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
-    blocks.append('<br />'.join(lines))
+        blocks.append('<br />'.join(lines))
     if windows is not None:
         lines = ["<b>On Windows:</b>"]
         lines += windows.splitlines()
