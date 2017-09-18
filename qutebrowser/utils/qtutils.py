@@ -91,8 +91,8 @@ def version_check(version, exact=False, strict=False):
     return result
 
 
-def is_qtwebkit_ng():
-    """Check if the given version is QtWebKit-NG."""
+def is_new_qtwebkit():
+    """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
     return (pkg_resources.parse_version(qWebKitVersion()) >
             pkg_resources.parse_version('538.1'))

@@ -304,9 +304,7 @@ def _chromium_version():
 def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return '{} (WebKit {})'.format(
-            'QtWebKit-NG' if qtutils.is_qtwebkit_ng() else 'legacy QtWebKit',
-            qWebKitVersion())
+        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend

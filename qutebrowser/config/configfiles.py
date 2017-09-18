@@ -51,8 +51,10 @@ class StateConfig(configparser.ConfigParser):
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
-        # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
-        self['general'].pop('fooled', None)
+
+        deleted_keys = ['fooled', 'backend-warning-shown']
+        for key in deleted_keys:
+            self['general'].pop(key, None)
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.

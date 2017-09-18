@@ -839,7 +839,6 @@ class VersionParams:
     VersionParams('frozen', frozen=True),
     VersionParams('no-style', style=False),
     VersionParams('no-webkit', with_webkit=False),
-    VersionParams('webkit-ng', with_webkit='ng'),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
 ], ids=lambda param: param.name)
@@ -884,13 +883,7 @@ def test_version_output(params, stubs, monkeypatch):
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
         patches['QWebEngineProfile'] = None
-        if params.with_webkit == 'ng':
-            backend = 'QtWebKit-NG'
-            patches['qtutils.is_qtwebkit_ng'] = lambda: True
-        else:
-            backend = 'legacy QtWebKit'
-            patches['qtutils.is_qtwebkit_ng'] = lambda: False
-        substitutions['backend'] = backend + ' (WebKit WEBKIT VERSION)'
+        substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine

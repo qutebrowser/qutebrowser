@@ -288,6 +288,14 @@ def check_backend_libraries(backend):
     _check_modules(modules)
 
 
+def check_new_webkit(backend):
+    """Make sure we use QtWebEngine or a new QtWebKit."""
+    from qutebrowser.utils import usertypes, qtutils
+    if backend == usertypes.Backend.QtWebKit and not qtutils.is_new_qtwebkit():
+        _die("qutebrowser does not support legacy QtWebKit versions anymore, "
+             "see the installation docs for details.")
+
+
 def remove_inputhook():
     """Remove the PyQt input hook.
 
@@ -352,3 +360,4 @@ def init_with_backend(backend):
     assert backend is not None
     check_backend_libraries(backend)
     check_backend_ssl_support(backend)
+    check_new_webkit(backend)

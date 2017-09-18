@@ -82,14 +82,14 @@ def test_version_check(monkeypatch, qversion, compiled, version, exact,
     assert qtutils.version_check(version, exact, strict=strict) == expected
 
 
-@pytest.mark.parametrize('version, ng', [
+@pytest.mark.parametrize('version, is_new', [
     ('537.21', False),  # QtWebKit 5.1
     ('538.1', False),   # Qt 5.8
-    ('602.1', True)     # QtWebKit-NG TP5
+    ('602.1', True)     # new QtWebKit TP5, 5.212 Alpha
 ])
-def test_is_qtwebkit_ng(monkeypatch, version, ng):
+def test_is_new_qtwebkit(monkeypatch, version, is_new):
     monkeypatch.setattr(qtutils, 'qWebKitVersion', lambda: version)
-    assert qtutils.is_qtwebkit_ng() == ng
+    assert qtutils.is_new_qtwebkit() == is_new
 
 
 class TestCheckOverflow:

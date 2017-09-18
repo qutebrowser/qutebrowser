@@ -332,17 +332,6 @@ def _open_special_pages(args):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
-    # Legacy QtWebKit warning
-
-    needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
-                     not qtutils.is_qtwebkit_ng())
-    warning_shown = general_sect.get('backend-warning-shown') == '1'
-
-    if not warning_shown and needs_warning:
-        tabbed_browser.tabopen(QUrl('qute://backend-warning'),
-                               background=False)
-        general_sect['backend-warning-shown'] = '1'
-
     # Quickstart page
 
     quickstart_done = general_sect.get('quickstart-done') == '1'

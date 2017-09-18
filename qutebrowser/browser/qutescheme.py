@@ -224,50 +224,13 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
-        if (
-            config.val.content.javascript.enabled and
-            (objects.backend == usertypes.Backend.QtWebEngine or
-             qtutils.is_qtwebkit_ng())
-        ):
-            return 'text/html', jinja.render(
-                'history.html',
-                title='History',
-                gap_interval=config.val.history_gap_interval
-            )
-        else:
-            # Get current date from query parameter, if not given choose today.
-            curr_date = datetime.date.today()
-            try:
-                query_date = QUrlQuery(url).queryItemValue("date")
-                if query_date:
-                    curr_date = datetime.datetime.strptime(query_date,
-                        "%Y-%m-%d").date()
-            except ValueError:
-                log.misc.debug("Invalid date passed to qute:history: " +
-                    query_date)
-
-            one_day = datetime.timedelta(days=1)
-            next_date = curr_date + one_day
-            prev_date = curr_date - one_day
-
-            # start_time is the last second of curr_date
-            start_time = time.mktime(next_date.timetuple()) - 1
-            history = [
-                (i["url"], i["title"],
-                 datetime.datetime.fromtimestamp(i["time"]),
-                 QUrl(i["url"]).host())
-                for i in history_data(start_time)
-            ]
-
-            return 'text/html', jinja.render(
-                'history_nojs.html',
-                title='History',
-                history=history,
-                curr_date=curr_date,
-                next_date=next_date,
-                prev_date=prev_date,
-                today=datetime.date.today(),
-            )
+        if not config.val.content.javascript.enabled:
+            return 'text/plain', b'JavaScript is required for qute://history'
+        return 'text/html', jinja.render(
+            'history.html',
+            title='History',
+            gap_interval=config.val.history_gap_interval
+        )
 
 
 @add_handler('javascript')

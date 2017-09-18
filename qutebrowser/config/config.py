@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes, jinja
+from qutebrowser.utils import utils, objreg, message, log, usertypes, jinja, qtutils
 from qutebrowser.misc import objects, msgbox, earlyinit
 from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.completion.models import configmodel
@@ -692,12 +692,12 @@ def early_init(args):
 
 def get_backend(args):
     """Find out what backend to use based on available libraries."""
-    from qutebrowser.utils import usertypes
     try:
         import PyQt5.QtWebKit  # pylint: disable=unused-variable
-        webkit_available = True
     except ImportError:
         webkit_available = False
+    else:
+        webkit_available = qtutils.is_new_webkit()
 
     if args.backend is not None:
         backends = {
