@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
 from qutebrowser.utils import utils, objreg, message, log, usertypes, jinja
-from qutebrowser.misc import objects, msgbox
+from qutebrowser.misc import objects, msgbox, earlyinit
 from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.completion.models import configmodel
 
@@ -641,7 +641,7 @@ class StyleSheetObserver(QObject):
             instance.changed.connect(self._update_stylesheet)
 
 
-def early_init():
+def early_init(args):
     """Initialize the part of the config which works without a QApplication."""
     configdata.init()
 
@@ -685,6 +685,30 @@ def early_init():
         _init_errors.append(e)
 
     configfiles.init()
+
+    objects.backend = get_backend(args)
+    earlyinit.init_with_backend(objects.backend)
+
+
+def get_backend(args):
+    """Find out what backend to use based on available libraries."""
+    from qutebrowser.utils import usertypes
+    try:
+        import PyQt5.QtWebKit  # pylint: disable=unused-variable
+        webkit_available = True
+    except ImportError:
+        webkit_available = False
+
+    if args.backend is not None:
+        backends = {
+            'webkit': usertypes.Backend.QtWebKit,
+            'webengine': usertypes.Backend.QtWebEngine,
+        }
+        return backends[args.backend]
+    elif webkit_available:
+        return usertypes.Backend.QtWebKit
+    else:
+        return usertypes.Backend.QtWebEngine
 
 
 def late_init(save_manager):

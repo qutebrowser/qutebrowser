@@ -77,7 +77,7 @@ def run(args):
     standarddir.init(args)
 
     log.init.debug("Initializing config...")
-    config.early_init()
+    config.early_init(args)
 
     global qApp
     qApp = Application(args)

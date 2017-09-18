@@ -167,7 +167,7 @@ def main():
         # from json.
         data = json.loads(args.json_args)
         args = argparse.Namespace(**data)
-    earlyinit.earlyinit(args)
+    earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
     # version checking and other early initialization)
     from qutebrowser import app

@@ -877,6 +877,9 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, '_change_filters', [])
     monkeypatch.setattr(config, '_init_errors', [])
+    # Make sure we get no SSL warning
+    monkeypatch.setattr(config.earlyinit, 'check_backend_ssl_support',
+                        lambda _backend: None)
     yield
     try:
         objreg.delete('config-commands')
@@ -888,7 +891,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 @pytest.mark.parametrize('config_py', [True, 'error', False])
 @pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', False])
 # pylint: disable=too-many-branches
-def test_early_init(init_patch, config_tmpdir, caplog,
+def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
                     load_autoconfig, config_py, invalid_yaml):
     # Prepare files
     autoconfig_file = config_tmpdir / 'autoconfig.yml'
@@ -914,7 +917,7 @@ def test_early_init(init_patch, config_tmpdir, caplog,
                                   'utf-8', ensure=True)
 
     with caplog.at_level(logging.ERROR):
-        config.early_init()
+        config.early_init(fake_args)
 
     # Check error messages
     expected_errors = []
@@ -954,15 +957,16 @@ def test_early_init(init_patch, config_tmpdir, caplog,
         assert config.instance._values == {'colors.hints.fg': 'magenta'}
 
 
-def test_early_init_invalid_change_filter(init_patch):
+def test_early_init_invalid_change_filter(init_patch, fake_args):
     config.change_filter('foobar')
     with pytest.raises(configexc.NoOptionError):
-        config.early_init()
+        config.early_init(fake_args)
 
 
 @pytest.mark.parametrize('errors', [True, False])
-def test_late_init(init_patch, monkeypatch, fake_save_manager, mocker, errors):
-    config.early_init()
+def test_late_init(init_patch, monkeypatch, fake_save_manager, fake_args,
+                   mocker, errors):
+    config.early_init(fake_args)
     if errors:
         err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
         errs = configexc.ConfigFileErrors("config.py", [err])

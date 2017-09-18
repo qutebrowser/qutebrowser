@@ -163,26 +163,6 @@ def check_pyqt_core():
         sys.exit(1)
 
 
-def get_backend(args):
-    """Find out what backend to use based on available libraries.
-
-    Note this function returns the backend as a string so we don't have to
-    import qutebrowser.utils.usertypes yet.
-    """
-    try:
-        import PyQt5.QtWebKit  # pylint: disable=unused-variable
-        webkit_available = True
-    except ImportError:
-        webkit_available = False
-
-    if args.backend is not None:
-        return args.backend
-    elif webkit_available:
-        return 'webkit'
-    else:
-        return 'webengine'
-
-
 def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
     if qversion is None:
@@ -210,31 +190,52 @@ def check_qt_version():
         _die(text)
 
 
-def check_ssl_support(backend):
+def check_ssl_support():
     """Check if SSL support is available."""
-    from qutebrowser.utils import log
-
     try:
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
+
+def check_backend_ssl_support(backend):
+    """Check for full SSL availability when we know the backend."""
+    from PyQt5.QtNetwork import QSslSocket
+    from qutebrowser.utils import log, usertypes
     text = ("Could not initialize QtNetwork SSL support. If you use "
             "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
             "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
-            "of OpenSSL 1.0.")
-    if backend == 'webengine':
-        text += " This only affects downloads."
+            "of OpenSSL 1.0. This only affects downloads.")
 
     if not QSslSocket.supportsSsl():
-        if backend == 'webkit':
+        if backend == usertypes.Backend.QtWebKit:
             _die("Could not initialize SSL support.")
         else:
-            assert backend == 'webengine'
+            assert backend == usertypes.Backend.QtWebEngine
             log.init.warning(text)
 
 
-def check_libraries(backend):
+def _check_modules(modules):
+    """Make sure the given modules are available."""
+    from qutebrowser.utils import log
+
+    for name, text in modules.items():
+        try:
+            # https://github.com/pallets/jinja/pull/628
+            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
+            # https://github.com/pallets/jinja/issues/646
+            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
+            messages = ['invalid escape sequence',
+                        'Flags not at the start of the expression']
+            with log.ignore_py_warnings(
+                    category=DeprecationWarning,
+                    message=r'({})'.format('|'.join(messages))):
+                importlib.import_module(name)
+        except ImportError as e:
+            _die(text, e)
+
+
+def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
         'pkg_resources':
@@ -262,32 +263,29 @@ def check_libraries(backend):
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
     }
-    if backend == 'webengine':
-        modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
-                                                           webengine=True)
-        modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
+    _check_modules(modules)
+
+
+def check_backend_libraries(backend):
+    """Make sure the libraries needed by the given backend are available.
+
+    Args:
+        backend: The backend as usertypes.Backend member.
+    """
+    from qutebrowser.utils import usertypes
+    if backend == usertypes.Backend.QtWebEngine:
+        modules = {
+            'PyQt5.QtWebEngineWidgets':
+                _missing_str("QtWebEngine", webengine=True),
+            'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
+        }
     else:
-        assert backend == 'webkit'
-        modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
-        modules['PyQt5.QtWebKitWidgets'] = _missing_str(
-            "PyQt5.QtWebKitWidgets")
-
-    from qutebrowser.utils import log
-
-    for name, text in modules.items():
-        try:
-            # https://github.com/pallets/jinja/pull/628
-            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
-            # https://github.com/pallets/jinja/issues/646
-            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
-            messages = ['invalid escape sequence',
-                        'Flags not at the start of the expression']
-            with log.ignore_py_warnings(
-                    category=DeprecationWarning,
-                    message=r'({})'.format('|'.join(messages))):
-                importlib.import_module(name)
-        except ImportError as e:
-            _die(text, e)
+        assert backend == usertypes.Backend.QtWebKit, backend
+        modules = {
+            'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
+            'PyQt5.QtWebKitWidgets': _missing_str("PyQt5.QtWebKitWidgets"),
+        }
+    _check_modules(modules)
 
 
 def remove_inputhook():
@@ -318,18 +316,7 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
-def set_backend(backend):
-    """Set the objects.backend global to the given backend (as string)."""
-    from qutebrowser.misc import objects
-    from qutebrowser.utils import usertypes
-    backends = {
-        'webkit': usertypes.Backend.QtWebKit,
-        'webengine': usertypes.Backend.QtWebEngine,
-    }
-    objects.backend = backends[backend]
-
-
-def earlyinit(args):
+def early_init(args):
     """Do all needed early initialization.
 
     Note that it's vital the other earlyinit functions get called in the right
@@ -348,10 +335,20 @@ def earlyinit(args):
     init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
-    backend = get_backend(args)
-    check_libraries(backend)
+    check_libraries()
     check_qt_version()
     remove_inputhook()
-    check_ssl_support(backend)
+    check_ssl_support()
     check_optimize_flag()
-    set_backend(backend)
+
+
+def init_with_backend(backend):
+    """Do later stages of init when we know the backend.
+
+    Args:
+        backend: The backend as usertypes.Backend member.
+    """
+    assert not isinstance(backend, str), backend
+    assert backend is not None
+    check_backend_libraries(backend)
+    check_backend_ssl_support(backend)

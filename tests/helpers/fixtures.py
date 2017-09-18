@@ -415,8 +415,9 @@ def fake_save_manager():
 
 
 @pytest.fixture
-def fake_args():
+def fake_args(request):
     ns = types.SimpleNamespace()
+    ns.backend = 'webengine' if request.config.webengine else 'webkit'
     objreg.register('args', ns)
     yield ns
     objreg.delete('args')
