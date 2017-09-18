@@ -558,7 +558,7 @@ class TabBar(QTabBar):
             # pylint: enable=bad-config-option
             if idx == selected:
                 setting = setting.selected
-            setting = setting.odd if idx % 2 else setting.even
+            setting = setting.odd if (idx + 1) % 2 else setting.even
 
             tab.palette.setColor(QPalette.Window, setting.bg)
             tab.palette.setColor(QPalette.WindowText, setting.fg)
