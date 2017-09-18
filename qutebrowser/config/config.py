@@ -28,7 +28,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes, jinja, qtutils
+from qutebrowser.utils import (utils, objreg, message, log, usertypes, jinja,
+                               qtutils)
 from qutebrowser.misc import objects, msgbox, earlyinit
 from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.completion.models import configmodel
@@ -697,7 +698,7 @@ def get_backend(args):
     except ImportError:
         webkit_available = False
     else:
-        webkit_available = qtutils.is_new_webkit()
+        webkit_available = qtutils.is_new_qtwebkit()
 
     if args.backend is not None:
         backends = {

@@ -44,7 +44,7 @@ except ImportError:  # pragma: no cover
     QWebEngineProfile = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
+from qutebrowser.utils import log, utils, standarddir, usertypes
 from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 

@@ -404,8 +404,8 @@ class NetworkManager(QNetworkAccessManager):
                 current_url = tab.url()
             except (KeyError, RuntimeError):
                 # https://github.com/qutebrowser/qutebrowser/issues/889
-                # Catching RuntimeError because we could be in the middle of the
-                # webpage shutdown here.
+                # Catching RuntimeError because we could be in the middle of
+                # the webpage shutdown here.
                 current_url = QUrl()
 
         self.set_referer(req, current_url)

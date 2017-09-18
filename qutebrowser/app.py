@@ -52,9 +52,9 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects, sql, cmdhistory)
-from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error)
+                              crashsignal, earlyinit, sql, cmdhistory)
+from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
+                               usertypes, standarddir, error)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command

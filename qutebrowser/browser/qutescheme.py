@@ -28,7 +28,6 @@ import json
 import os
 import time
 import urllib.parse
-import datetime
 import textwrap
 import pkg_resources
 
@@ -37,7 +36,7 @@ from PyQt5.QtCore import QUrlQuery, QUrl
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, usertypes, qtutils)
+                               objreg)
 from qutebrowser.misc import objects
 
 

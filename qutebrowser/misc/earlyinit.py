@@ -192,6 +192,7 @@ def check_qt_version():
 
 def check_ssl_support():
     """Check if SSL support is available."""
+    # pylint: disable=unused-variable
     try:
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
