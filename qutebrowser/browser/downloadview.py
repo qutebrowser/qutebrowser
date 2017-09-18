@@ -19,12 +19,38 @@
 
 """The ListView to display downloads in."""
 
+import functools
+
+import sip
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
 from qutebrowser.utils import qtutils, utils, objreg
+
+
+def update_geometry(obj):
+    """Weird WORKAROUND for some weird PyQt bug (probably).
+
+    This actually should be a method of DownloadView, but for some reason the
+    rowsInserted/rowsRemoved signals don't get disconnected from this method
+    when the DownloadView is deleted from Qt (e.g. by closing a window).
+
+    Here we check if obj ("self") was deleted and just ignore the event if so.
+
+    Original bug:   https://github.com/qutebrowser/qutebrowser/issues/167
+    Workaround bug: https://github.com/qutebrowser/qutebrowser/issues/171
+    """
+    def _update_geometry():
+        """Actually update the geometry if the object still exists."""
+        if sip.isdeleted(obj):
+            return
+        obj.updateGeometry()
+
+    # If we don't use a singleShot QTimer, the geometry isn't updated correctly
+    # and won't include the new item.
+    QTimer.singleShot(0, _update_geometry)
 
 
 class DownloadView(QListView):
@@ -59,12 +85,9 @@ class DownloadView(QListView):
         self.setSpacing(1)
         self._menu = None
         model = objreg.get('download-model', scope='window', window=win_id)
-        model.rowsInserted.connect(lambda:
-                                   QTimer.singleShot(0, self.updateGeometry))
-        model.rowsRemoved.connect(lambda:
-                                  QTimer.singleShot(0, self.updateGeometry))
-        model.dataChanged.connect(lambda:
-                                  QTimer.singleShot(0, self.updateGeometry))
+        model.rowsInserted.connect(functools.partial(update_geometry, self))
+        model.rowsRemoved.connect(functools.partial(update_geometry, self))
+        model.dataChanged.connect(functools.partial(update_geometry, self))
         self.setModel(model)
         self.setWrapping(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
