@@ -393,7 +393,7 @@ class Config(QObject):
 
     def _set_value(self, opt, value):
         """Set the given option to the given value."""
-        if objects.backend is not None:
+        if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
                 raise configexc.BackendError(objects.backend)
 

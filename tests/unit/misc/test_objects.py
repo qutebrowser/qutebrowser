@@ -17,19 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Various global objects."""
+import pytest
 
-# NOTE: We need to be careful with imports here, as this is imported from
-# earlyinit.
-
-
-class NoBackend:
-
-    """Special object when there's no backend set so we notice that."""
-
-    def __eq__(self, other):
-        raise AssertionError("No backend set!")
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
-# A usertypes.Backend member
-backend = NoBackend()
+@pytest.mark.parametrize('func', [
+    lambda: objects.NoBackend() == usertypes.Backend.QtWebEngine,
+    lambda: objects.NoBackend() != usertypes.Backend.QtWebEngine,
+    lambda: objects.NoBackend() in [usertypes.Backend.QtWebEngine],
+])
+def test_no_backend(func):
+    with pytest.raises(AssertionError, match='No backend set!'):
+        func()
