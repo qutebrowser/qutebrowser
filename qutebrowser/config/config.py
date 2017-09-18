@@ -700,12 +700,15 @@ def get_backend(args):
     else:
         webkit_available = qtutils.is_new_qtwebkit()
 
+    str_to_backend = {
+        'webkit': usertypes.Backend.QtWebKit,
+        'webengine': usertypes.Backend.QtWebEngine,
+    }
+
     if args.backend is not None:
-        backends = {
-            'webkit': usertypes.Backend.QtWebKit,
-            'webengine': usertypes.Backend.QtWebEngine,
-        }
-        return backends[args.backend]
+        return str_to_backend[args.backend]
+    elif val.backend != 'auto':
+        return str_to_backend[val.backend]
     elif webkit_available:
         return usertypes.Backend.QtWebKit
     else:

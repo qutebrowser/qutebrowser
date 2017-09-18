@@ -51,6 +51,9 @@ Added
 - New back/forward indicator in the statusbar
 - New `bindings.key_mappings` setting to map keys to other keys
 - New `qt_args` setting to pass additional arguments to Qt/Chromium
+- New `backend` setting to select the backend to use (auto/webengine/webkit).
+  Together with the previous setting, this should make wrapper scripts
+  unnecessary.
 
 Changed
 ~~~~~~~
