@@ -37,6 +37,9 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
             self, error=debug.qenum_key(QSslError, self._error.error()),
             string=str(self))
 
+    def __hash__(self):
+        return hash(self._error)
+
     def __eq__(self, other):
         return self._error == other._error  # pylint: disable=protected-access
 
