@@ -349,9 +349,9 @@ def earlyinit(args):
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     backend = get_backend(args)
+    check_libraries(backend)
     check_qt_version()
     remove_inputhook()
-    check_libraries(backend)
     check_ssl_support(backend)
     check_optimize_flag()
     set_backend(backend)
