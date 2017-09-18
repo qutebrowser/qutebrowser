@@ -139,6 +139,8 @@ class IPCServer(QObject):
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
         _socketname: The socketname to use.
+        _socketopts_ok: Set if using setSocketOptions is working with this
+                        OS/Qt version.
         _atime_timer: Timer to update the atime of the socket regularly.
 
     Signals:
@@ -180,6 +182,14 @@ class IPCServer(QObject):
 
         self._socket = None
         self._old_socket = None
+        self._socketopts_ok = os.name == 'nt'
+        if self._socketopts_ok:  # pragma: no cover
+            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
+            # NameError while listening...
+            log.ipc.debug("Calling setSocketOptions")
+            self._server.setSocketOptions(QLocalServer.UserAccessOption)
+        else:  # pragma: no cover
+            log.ipc.debug("Not calling setSocketOptions")
 
     def _remove_server(self):
         """Remove an existing server."""
@@ -200,21 +210,22 @@ class IPCServer(QObject):
                 raise AddressInUseError(self._server)
             else:
                 raise ListenError(self._server)
-
-        # If we use setSocketOptions on Unix with Qt < 5.4, we get a NameError
-        # while listening. (see b135569d5c6e68c735ea83f42e4baf51f7972281)
-        #
-        # Also, we don't get an AddressInUseError with Qt 5.5:
-        # https://bugreports.qt.io/browse/QTBUG-48635
-        #
-        # This means we don't use it at all.
-        try:
-            os.chmod(self._server.fullServerName(), 0o700)
-        except FileNotFoundError:
-            # https://github.com/qutebrowser/qutebrowser/issues/1530
-            # The server doesn't actually exist even if ok was reported as
-            # True, so report this as an error.
-            raise ListenError(self._server)
+        if not self._socketopts_ok:  # pragma: no cover
+            # If we use setSocketOptions on Unix with Qt < 5.4, we get a
+            # NameError while listening.
+            # (see b135569d5c6e68c735ea83f42e4baf51f7972281)
+            #
+            # Also, we don't get an AddressInUseError with Qt 5.5:
+            # https://bugreports.qt.io/browse/QTBUG-48635
+            #
+            # This means we only use setSocketOption on Windows...
+            try:
+                os.chmod(self._server.fullServerName(), 0o700)
+            except FileNotFoundError:
+                # https://github.com/qutebrowser/qutebrowser/issues/1530
+                # The server doesn't actually exist even if ok was reported as
+                # True, so report this as an error.
+                raise ListenError(self._server)
 
     @pyqtSlot('QLocalSocket::LocalSocketError')
     def on_error(self, err):
