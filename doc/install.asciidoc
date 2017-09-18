@@ -166,10 +166,6 @@ To update to the last Live version, remember to do
 
 To include qutebrowser among the updates.
 
-Make sure you have `python3_4` in your `PYTHON_TARGETS`
-(`/etc/portage/make.conf`) and rebuild your system (`emerge -uDNav @world`) if
-necessary.
-
 You'll also need to install `dev-qt/qtwebengine` or a newer QtWebKit using
 https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild].
 
