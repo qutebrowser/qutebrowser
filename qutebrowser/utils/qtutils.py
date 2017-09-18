@@ -28,27 +28,16 @@ Module attributes:
 
 
 import io
-import os
 import operator
 import contextlib
 
+import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR)
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None
-
-from qutebrowser.utils import log
-
-with log.ignore_py_warnings(category=PendingDeprecationWarning, module='imp'):
-    with log.ignore_py_warnings(category=ImportWarning):
-        # This imports 'imp' and gives us a PendingDeprecationWarning on
-        # Debian Jessie.
-        #
-        # On Archlinux, we get ImportWarning from
-        # importlib/_bootstrap_external.py for modules with missing __init__.
-        import pkg_resources
 
 
 MAXVALS = {
@@ -102,8 +91,8 @@ def version_check(version, exact=False, strict=False):
     return result
 
 
-def is_qtwebkit_ng():
-    """Check if the given version is QtWebKit-NG."""
+def is_new_qtwebkit():
+    """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
     return (pkg_resources.parse_version(qWebKitVersion()) >
             pkg_resources.parse_version('538.1'))
@@ -135,15 +124,6 @@ def check_overflow(arg, ctype, fatal=True):
             return minval
     else:
         return arg
-
-
-def check_print_compat():
-    """Check if printing should work in the given Qt version."""
-    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    if os.name == 'nt':
-        return version_check('5.3')
-    else:
-        return True
 
 
 def ensure_valid(obj):

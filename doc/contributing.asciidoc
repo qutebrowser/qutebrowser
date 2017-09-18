@@ -180,7 +180,7 @@ In the _scripts/_ subfolder there's a `run_profile.py` which profiles the code
 and shows a graphical representation of what takes how much time.
 
 It uses the built-in Python
-https://docs.python.org/3.4/library/profile.html[cProfile] module and can show
+https://docs.python.org/3.6/library/profile.html[cProfile] module and can show
 the output in four different ways:
 
 * Raw profile file (`--profile-tool=none`)
@@ -535,11 +535,11 @@ ____
 Setting up a Windows Development Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Install https://www.python.org/downloads/release/python-344/[Python 3.4]
-* Install https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/[PyQt 5.5]
-* Create a file at `C:\Windows\system32\python3.bat` with the following content:
-  `@C:\Python34\python %*`
-  This will make the Python 3.4 interpreter available as `python3`, which is used by various development scripts.
+* Install https://www.python.org/downloads/release/python-362/[Python 3.6].
+* Install PyQt via `pip install PyQt5`
+* Create a file at `C:\Windows\system32\python3.bat` with the following content (adjust the path as necessary):
+  `@C:\Python36\python %*`
+  This will make the Python 3.6 interpreter available as `python3`, which is used by various development scripts.
 * Install git from the https://git-scm.com/download/win[git-scm downloads page]
   Try not to enable `core.autocrlf`, since that will cause `flake8` to complain a lot. Use an editor that can deal with plain line feeds instead.
 * Clone your favourite qutebrowser repository.

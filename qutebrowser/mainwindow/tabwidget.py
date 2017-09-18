@@ -70,9 +70,6 @@ class TabWidget(QTabWidget):
     @config.change_filter('tabs')
     def _init_config(self):
         """Initialize attributes based on the config."""
-        if self is None:  # pragma: no cover
-            # WORKAROUND for PyQt 5.2
-            return
         tabbar = self.tabBar()
         self.setMovable(True)
         self.setTabsClosable(False)
@@ -744,24 +741,17 @@ class TabBarStyle(QCommonStyle):
                 log.misc.warning("Could not get layouts for tab!")
                 return QRect()
             return layouts.text
-        elif sr == QStyle.SE_TabWidgetTabBar:
+        elif sr in [QStyle.SE_TabWidgetTabBar,
+                    QStyle.SE_TabBarScrollLeftButton]:
+            # Handling SE_TabBarScrollLeftButton so the left scroll button is
+            # aligned properly. Otherwise, empty space will be shown after the
+            # last tab even though the button width is set to 0
+            #
             # Need to use super() because we also use super() to render
             # element in drawControl(); otherwise, we may get bit by
             # style differences...
-            rct = super().subElementRect(sr, opt, widget)
-            return rct
+            return super().subElementRect(sr, opt, widget)
         else:
-            try:
-                # We need this so the left scroll button is aligned properly.
-                # Otherwise, empty space will be shown after the last tab even
-                # though the button width is set to 0
-                #
-                # QStyle.SE_TabBarScrollLeftButton was added in Qt 5.7
-                if sr == QStyle.SE_TabBarScrollLeftButton:
-                    return super().subElementRect(sr, opt, widget)
-            except AttributeError:
-                pass
-
             return self._style.subElementRect(sr, opt, widget)
 
     def _tab_layout(self, opt):

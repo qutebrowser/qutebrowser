@@ -12,6 +12,7 @@
 |<<aliases,aliases>>|Aliases for commands.
 |<<auto_save.interval,auto_save.interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
 |<<auto_save.session,auto_save.session>>|Always restore open sites when qutebrowser is reopened.
+|<<backend,backend>>|The backend to use to display websites.
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 |<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
@@ -284,6 +285,23 @@ Valid values:
  * +false+
 
 Default: empty
+
+[[backend]]
+=== backend
+The backend to use to display websites.
+qutebrowser supports two different web rendering engines / backends, QtWebKit and QtWebEngine.
+QtWebKit is based on WebKit (similar to Safari). It was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
+QtWebEngine is Qt's official successor to QtWebKit and based on the Chromium project. It's slightly more resource hungry that QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +auto+: Automatically select either QtWebEngine or QtWebKit
+ * +webkit+: Force QtWebKit
+ * +webengine+: Force QtWebEngine
+
+Default: +pass:[auto]+
 
 [[bindings.commands]]
 === bindings.commands

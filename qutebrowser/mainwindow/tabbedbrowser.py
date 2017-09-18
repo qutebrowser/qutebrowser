@@ -28,7 +28,7 @@ from PyQt5.QtGui import QIcon
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.mainwindow import tabwidget
+from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
@@ -432,7 +432,6 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         if (config.val.tabs.tabs_are_windows and self.count() > 0 and
                 not ignore_tabs_are_windows):
-            from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=self.private)
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',

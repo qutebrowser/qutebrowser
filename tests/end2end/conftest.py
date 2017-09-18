@@ -109,8 +109,6 @@ def _get_backend_tag(tag):
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
-        'qtwebkit_ng_xfail': pytest.mark.qtwebkit_ng_xfail,
-        'qtwebkit_ng_skip': pytest.mark.qtwebkit_ng_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
         return None
@@ -143,10 +141,6 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
-        ('qtwebkit_ng_xfail', 'Failing with QtWebKit-NG', pytest.mark.xfail,
-         not config.webengine and qtutils.is_qtwebkit_ng()),
-        ('qtwebkit_ng_skip', 'Skipped with QtWebKit-NG', pytest.mark.skipif,
-         not config.webengine and qtutils.is_qtwebkit_ng()),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',

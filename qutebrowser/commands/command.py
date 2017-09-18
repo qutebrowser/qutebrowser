@@ -22,10 +22,11 @@
 import inspect
 import collections
 import traceback
+import typing
 
 from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import (log, utils, message, docutils, objreg,
-                               usertypes, typing)
+                               usertypes)
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
 
@@ -415,10 +416,7 @@ class Command:
             # We also can't use isinstance here because typing.Union doesn't
             # support that.
             # pylint: disable=no-member,useless-suppression
-            try:
-                types = list(typ.__union_params__)
-            except AttributeError:
-                types = list(typ.__args__)
+            types = list(typ.__args__)
             # pylint: enable=no-member,useless-suppression
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))

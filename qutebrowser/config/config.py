@@ -28,9 +28,10 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes
-from qutebrowser.misc import objects, msgbox
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.utils import (utils, objreg, message, log, usertypes, jinja,
+                               qtutils)
+from qutebrowser.misc import objects, msgbox, earlyinit
+from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.completion.models import configmodel
 
 # An easy way to access the config from other code via config.val.foo
@@ -176,8 +177,6 @@ class KeyConfig:
 
     def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
-        # Doing this here to work around a Python 3.4 circular import
-        from qutebrowser.commands import runners
         key = self._prepare(key, mode)
 
         parser = runners.CommandParser()
@@ -395,7 +394,7 @@ class Config(QObject):
 
     def _set_value(self, opt, value):
         """Set the given option to the given value."""
-        if objects.backend is not None:
+        if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
                 raise configexc.BackendError(objects.backend)
 
@@ -594,8 +593,6 @@ def set_register_stylesheet(obj, *, stylesheet=None, update=True):
 @functools.lru_cache()
 def _render_stylesheet(stylesheet):
     """Render the given stylesheet jinja template."""
-    # Imported here to avoid a Python 3.4 circular import
-    from qutebrowser.utils import jinja
     with jinja.environment.no_autoescape():
         template = jinja.environment.from_string(stylesheet)
     return template.render(conf=val)
@@ -645,7 +642,7 @@ class StyleSheetObserver(QObject):
             instance.changed.connect(self._update_stylesheet)
 
 
-def early_init():
+def early_init(args):
     """Initialize the part of the config which works without a QApplication."""
     configdata.init()
 
@@ -689,6 +686,33 @@ def early_init():
         _init_errors.append(e)
 
     configfiles.init()
+
+    objects.backend = get_backend(args)
+    earlyinit.init_with_backend(objects.backend)
+
+
+def get_backend(args):
+    """Find out what backend to use based on available libraries."""
+    try:
+        import PyQt5.QtWebKit  # pylint: disable=unused-variable
+    except ImportError:
+        webkit_available = False
+    else:
+        webkit_available = qtutils.is_new_qtwebkit()
+
+    str_to_backend = {
+        'webkit': usertypes.Backend.QtWebKit,
+        'webengine': usertypes.Backend.QtWebEngine,
+    }
+
+    if args.backend is not None:
+        return str_to_backend[args.backend]
+    elif val.backend != 'auto':
+        return str_to_backend[val.backend]
+    elif webkit_available:
+        return usertypes.Backend.QtWebKit
+    else:
+        return usertypes.Backend.QtWebEngine
 
 
 def late_init(save_manager):

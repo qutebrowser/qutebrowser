@@ -30,7 +30,7 @@ import yaml
 from PyQt5.QtCore import QSettings
 
 import qutebrowser
-from qutebrowser.config import configexc
+from qutebrowser.config import configexc, config
 from qutebrowser.utils import standarddir, utils, qtutils
 
 
@@ -51,8 +51,10 @@ class StateConfig(configparser.ConfigParser):
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
-        # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
-        self['general'].pop('fooled', None)
+
+        deleted_keys = ['fooled', 'backend-warning-shown']
+        for key in deleted_keys:
+            self['general'].pop(key, None)
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -152,8 +154,8 @@ class ConfigAPI:
         errors: Errors which occurred while setting options.
     """
 
-    def __init__(self, config, keyconfig):
-        self._config = config
+    def __init__(self, conf, keyconfig):
+        self._config = conf
         self._keyconfig = keyconfig
         self.load_autoconfig = True
         self.errors = []
@@ -189,7 +191,6 @@ class ConfigAPI:
 
 def read_config_py(filename=None):
     """Read a config.py file."""
-    from qutebrowser.config import config
     api = ConfigAPI(config.instance, config.key_instance)
 
     if filename is None:

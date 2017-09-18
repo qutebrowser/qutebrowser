@@ -149,8 +149,6 @@ PERFECT_FILES = [
         'utils/jinja.py'),
     ('tests/unit/utils/test_error.py',
         'utils/error.py'),
-    ('tests/unit/utils/test_typing.py',
-        'utils/typing.py'),
     ('tests/unit/utils/test_javascript.py',
         'utils/javascript.py'),
 
@@ -291,7 +289,7 @@ def main_check_all():
     tests.
 
     This runs pytest with the used executable, so check_coverage.py should be
-    called with something like ./.tox/py34/bin/python.
+    called with something like ./.tox/py36/bin/python.
     """
     for test_file, src_file in PERFECT_FILES:
         if test_file is None:

@@ -29,8 +29,6 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from qutebrowser.utils import qtutils
-
 
 def _base_args(config):
     """Get the arguments to pass with every invocation."""
@@ -188,8 +186,6 @@ def test_version(request):
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
 
 
-@pytest.mark.skipif(not qtutils.version_check('5.3'),
-                    reason="Does not work on Qt 5.2")
 def test_qt_arg(request, quteproc_new, tmpdir):
     """Test --qt-arg."""
     args = (['--temp-basedir', '--qt-arg', 'stylesheet',
@@ -269,7 +265,7 @@ def test_launching_with_python2():
         pytest.skip("python2 not found")
     _stdout, stderr = proc.communicate()
     assert proc.returncode == 1
-    error = "At least Python 3.4 is required to run qutebrowser"
+    error = "At least Python 3.5 is required to run qutebrowser"
     assert stderr.decode('ascii').startswith(error)
 
 

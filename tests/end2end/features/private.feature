@@ -42,7 +42,6 @@ Feature: Using private browsing
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
-    @qtwebkit_ng_skip: private browsing is not implemented yet
     Scenario: Sharing cookies with private browsing
         When I open cookies/set?qute-test=42 without waiting in a private window
         And I wait until cookies is loaded

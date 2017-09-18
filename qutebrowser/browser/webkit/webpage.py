@@ -22,7 +22,7 @@
 import html
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
@@ -33,8 +33,8 @@ from qutebrowser.config import config
 from qutebrowser.browser import pdfjs, shared
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
-                               objreg, debug, urlutils)
+from qutebrowser.utils import (message, usertypes, log, jinja, objreg, debug,
+                               urlutils)
 
 
 class BrowserPage(QWebPage):
@@ -87,22 +87,16 @@ class BrowserPage(QWebPage):
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
 
-    if PYQT_VERSION > 0x050300:
-        # WORKAROUND (remove this when we bump the requirements to 5.3.1)
-        # We can't override javaScriptPrompt with older PyQt-versions because
-        # of a bug in PyQt.
-        # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
-
-        def javaScriptPrompt(self, frame, js_msg, default):
-            """Override javaScriptPrompt to use qutebrowser prompts."""
-            if self._is_shutting_down:
-                return (False, "")
-            try:
-                return shared.javascript_prompt(frame.url(), js_msg, default,
-                                                abort_on=[self.loadStarted,
-                                                          self.shutting_down])
-            except shared.CallSuper:
-                return super().javaScriptPrompt(frame, js_msg, default)
+    def javaScriptPrompt(self, frame, js_msg, default):
+        """Override javaScriptPrompt to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return (False, "")
+        try:
+            return shared.javascript_prompt(frame.url(), js_msg, default,
+                                            abort_on=[self.loadStarted,
+                                                      self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptPrompt(frame, js_msg, default)
 
     def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
@@ -225,10 +219,6 @@ class BrowserPage(QWebPage):
 
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
-        if not qtutils.check_print_compat():
-            message.error("Printing on Qt < 5.3.0 on Windows is broken, "
-                          "please upgrade!")
-            return
         printdiag = QPrintDialog()
         printdiag.setAttribute(Qt.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
@@ -350,15 +340,7 @@ class BrowserPage(QWebPage):
             frame: The QWebFrame which gets saved.
             item: The QWebHistoryItem to be saved.
         """
-        try:
-            if frame != self.mainFrame():
-                return
-        except RuntimeError:
-            # With Qt 5.2.1 (Ubuntu Trusty) we get this when closing a tab:
-            #     RuntimeError: wrapped C/C++ object of type BrowserPage has
-            #     been deleted
-            # Since the information here isn't that important for closing web
-            # views anyways, we ignore this error.
+        if frame != self.mainFrame():
             return
         data = {
             'zoom': frame.zoomFactor(),
@@ -401,9 +383,6 @@ class BrowserPage(QWebPage):
         """
         return ext in self._extension_handlers
 
-    # WORKAROUND for:
-    # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
-    @utils.prevent_exceptions(False, PYQT_VERSION < 0x50302)
     def extension(self, ext, opt, out):
         """Override QWebPage::extension to provide error pages.
 

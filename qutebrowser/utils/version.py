@@ -44,7 +44,7 @@ except ImportError:  # pragma: no cover
     QWebEngineProfile = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
+from qutebrowser.utils import log, utils, standarddir, usertypes
 from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 
@@ -190,7 +190,6 @@ def _module_versions():
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
-        ('typing', []),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])
@@ -304,9 +303,7 @@ def _chromium_version():
 def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return '{} (WebKit {})'.format(
-            'QtWebKit-NG' if qtutils.is_qtwebkit_ng() else 'legacy QtWebKit',
-            qWebKitVersion())
+        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend

@@ -22,8 +22,8 @@ Breaking changes
 
 - (TODO) Support for legacy QtWebKit (before 5.212 which is distributed
   independently from Qt) is dropped.
-- (TODO) Support for Python 3.4 is dropped.
-- (TODO) Support for Qt before 5.7 is dropped.
+- Support for Python 3.4 is dropped.
+- Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
 - (TODO) New dependency on ruamel.yaml; dropped PyYAML dependency.
 - (TODO) The QtWebEngine backend is now used by default if available.
 - New dependency on the QtSql module and Qt sqlite support.
@@ -36,6 +36,7 @@ Breaking changes
   work properly anymore.
 - Various documentation files got moved to the doc/ subfolder,
  `qutebrowser.desktop` got moved to misc/.
+- The `--harfbuzz` commandline argument got dropped
 
 Major changes
 ~~~~~~~~~~~~~
@@ -50,6 +51,9 @@ Added
 - New back/forward indicator in the statusbar
 - New `bindings.key_mappings` setting to map keys to other keys
 - New `qt_args` setting to pass additional arguments to Qt/Chromium
+- New `backend` setting to select the backend to use (auto/webengine/webkit).
+  Together with the previous setting, this should make wrapper scripts
+  unnecessary.
 
 Changed
 ~~~~~~~

@@ -52,11 +52,14 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects, sql, cmdhistory)
-from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
-from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error)
-# We import utilcmds to run the cmdutils.register decorators.
+                              crashsignal, earlyinit, sql, cmdhistory)
+from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
+                               usertypes, standarddir, error)
+# pylint: disable=unused-import
+# We import those to run the cmdutils.register decorators.
+from qutebrowser.mainwindow.statusbar import command
+from qutebrowser.misc import utilcmds
+# pylint: enable=unused-import
 
 
 qApp = None
@@ -74,7 +77,7 @@ def run(args):
     standarddir.init(args)
 
     log.init.debug("Initializing config...")
-    config.early_init()
+    config.early_init(args)
 
     global qApp
     qApp = Application(args)
@@ -328,17 +331,6 @@ def _open_special_pages(args):
     general_sect = configfiles.state['general']
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-
-    # Legacy QtWebKit warning
-
-    needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
-                     not qtutils.is_qtwebkit_ng())
-    warning_shown = general_sect.get('backend-warning-shown') == '1'
-
-    if not warning_shown and needs_warning:
-        tabbed_browser.tabopen(QUrl('qute://backend-warning'),
-                               background=False)
-        general_sect['backend-warning-shown'] = '1'
 
     # Quickstart page
 

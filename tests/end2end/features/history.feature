@@ -104,12 +104,3 @@ Feature: Page history
         And I wait until qute://history is loaded
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
-
-    ## Bugs
-
-    @qtwebengine_skip @qtwebkit_ng_skip
-    Scenario: Opening a valid URL which turns out invalid
-        When I set url.auto_search to naive
-        And I run :open http://foo%40bar@baz
-        Then "QFSFileEngine::open: No file name specified" should be logged
-        And "Error while loading : Host  not found" should be logged

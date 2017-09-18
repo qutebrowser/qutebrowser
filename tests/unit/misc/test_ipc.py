@@ -35,7 +35,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import objreg, qtutils, standarddir
+from qutebrowser.utils import objreg, standarddir
 from helpers import stubs
 
 
@@ -778,26 +778,7 @@ def test_connect_inexistent(qlocalsocket):
     assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError
 
 
-def test_socket_options_listen_problem(qlocalserver, short_tmpdir):
-    """In earlier versions of Qt, listening fails when using socketOptions.
-
-    With this test, we verify that this bug exists in the Qt version/OS
-    combinations we expect it to, and doesn't exist in other versions.
-    """
-    servername = str(short_tmpdir / 'x')
-    qlocalserver.setSocketOptions(QLocalServer.UserAccessOption)
-    ok = qlocalserver.listen(servername)
-    if os.name == 'nt' or qtutils.version_check('5.4'):
-        assert ok
-    else:
-        assert not ok
-        assert qlocalserver.serverError() == QAbstractSocket.HostNotFoundError
-        assert qlocalserver.errorString() == 'QLocalServer::listen: Name error'
-
-
 @pytest.mark.posix
-@pytest.mark.skipif(not qtutils.version_check('5.4'),
-                    reason="setSocketOptions is even more broken on Qt < 5.4.")
 def test_socket_options_address_in_use_problem(qlocalserver, short_tmpdir):
     """Qt seems to ignore AddressInUseError when using socketOptions.
 

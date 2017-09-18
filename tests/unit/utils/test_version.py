@@ -35,7 +35,7 @@ import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes, qtutils
+from qutebrowser.utils import version, usertypes
 from qutebrowser.browser import pdfjs
 
 
@@ -515,12 +515,10 @@ class ImportFake:
             ('pygments', True),
             ('yaml', True),
             ('cssutils', True),
-            ('typing', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
-        self.no_version_attribute = ['sip', 'typing',
-                                     'PyQt5.QtWebEngineWidgets',
+        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
                                      'PyQt5.QtWebKitWidgets']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
@@ -588,7 +586,6 @@ class TestModuleVersions:
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
         ('cssutils', 6, 'cssutils: no'),
-        ('typing', 7, 'typing: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -839,7 +836,6 @@ class VersionParams:
     VersionParams('frozen', frozen=True),
     VersionParams('no-style', style=False),
     VersionParams('no-webkit', with_webkit=False),
-    VersionParams('webkit-ng', with_webkit='ng'),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
 ], ids=lambda param: param.name)
@@ -884,13 +880,7 @@ def test_version_output(params, stubs, monkeypatch):
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
         patches['QWebEngineProfile'] = None
-        if params.with_webkit == 'ng':
-            backend = 'QtWebKit-NG'
-            patches['qtutils.is_qtwebkit_ng'] = lambda: True
-        else:
-            backend = 'legacy QtWebKit'
-            patches['qtutils.is_qtwebkit_ng'] = lambda: False
-        substitutions['backend'] = backend + ' (WebKit WEBKIT VERSION)'
+        substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
@@ -946,8 +936,6 @@ def test_version_output(params, stubs, monkeypatch):
     assert version.version() == expected
 
 
-@pytest.mark.skipif(not qtutils.version_check('5.4'),
-                    reason="Needs Qt >= 5.4.")
 def test_opengl_vendor():
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")
