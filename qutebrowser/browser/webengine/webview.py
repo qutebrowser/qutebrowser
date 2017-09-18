@@ -20,6 +20,7 @@
 """The main browser widget for QtWebEngine."""
 
 import functools
+import html
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
@@ -147,16 +148,18 @@ class WebEnginePage(QWebEnginePage):
         self.setBackgroundColor(col)
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
-    def _on_proxy_authentication_required(self, url, authenticator, proxyHost):
-        answer = shared.authentication_required(url, authenticator, [self.shutting_down, self.loadStarted])
-        if answer is None:
-            authenticator.setUser(None)
-            authenticator.setPassword(None)
-            url_string = url.toDisplayString()
-            error_page = jinja.render(
-                'error.html', title="Error loading page: {}".format(url_string),
-                url=url_string, error="Proxy authentication required.", icon='')
-            self.setHtml(error_page)
+    def _on_proxy_authentication_required(self, url, authenticator,
+                                          proxy_host):
+        """Called when a proxy needs authentication."""
+        msg = "<b>{}</b> requires a username and password.".format(
+            html.escape(proxy_host))
+        answer = message.ask(
+            title="Proxy authentication required", text=msg,
+            mode=usertypes.PromptMode.user_pwd,
+            abort_on=[self.loadStarted, self.shutting_down])
+        if answer is not None:
+            authenticator.setUser(answer.user)
+            authenticator.setPassword(answer.password)
 
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
