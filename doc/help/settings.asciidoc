@@ -254,6 +254,7 @@
 [[aliases]]
 === aliases
 Aliases for commands.
+The keys of the given dictionary are the aliases, while the values are the commands they map to.
 
 Type: <<types,Dict>>
 
@@ -1694,6 +1695,7 @@ Default: +pass:[true]+
 [[content.javascript.log]]
 === content.javascript.log
 Log levels to use for JavaScript console logging messages.
+When a JavaScript message with the level given in the dictionary key is logged, the corresponding dictionary value selects the qutebrowser logger to use.
 On QtWebKit, the "unknown" setting is always used.
 
 Type: <<types,Dict>>
@@ -3012,7 +3014,8 @@ Default:
 [[url.searchengines]]
 === url.searchengines
 Definitions of search engines which can be used via the address bar.
-The searchengine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`. The string `{}` will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+Maps a searchengine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}` placeholder. The placeholder will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+The searchengine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`.
 
 Type: <<types,Dict>>
 
