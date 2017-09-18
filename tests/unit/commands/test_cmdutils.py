@@ -24,11 +24,12 @@
 import sys
 import logging
 import types
+import typing
 
 import pytest
 
 from qutebrowser.commands import cmdutils, cmdexc, argparser, command
-from qutebrowser.utils import usertypes, typing
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)

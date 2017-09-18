@@ -59,9 +59,9 @@ from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils, qtutils
+from qutebrowser.utils import standarddir, utils, qtutils, urlutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -791,7 +791,6 @@ class Command(BaseType):
         if not Command.unvalidated:
             Command.unvalidated = True
             try:
-                from qutebrowser.commands import runners, cmdexc
                 parser = runners.CommandParser()
                 try:
                     parser.parse_all(value)
@@ -1287,7 +1286,6 @@ class Proxy(BaseType):
             ('none', "Don't use any proxy"))
 
     def to_py(self, value):
-        from qutebrowser.utils import urlutils
         self._basic_py_validation(value, str)
         if not value:
             return None
@@ -1352,7 +1350,6 @@ class FuzzyUrl(BaseType):
     """A URL which gets interpreted as search if needed."""
 
     def to_py(self, value):
-        from qutebrowser.utils import urlutils
         self._basic_py_validation(value, str)
         if not value:
             return None

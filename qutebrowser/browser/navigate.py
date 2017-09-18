@@ -24,6 +24,7 @@ import posixpath
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, urlutils, log, message, qtutils
+from qutebrowser.mainwindow import mainwindow
 
 
 class Error(Exception):
@@ -134,7 +135,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
                                         window=win_id)
 
         if window:
-            from qutebrowser.mainwindow import mainwindow
             new_window = mainwindow.MainWindow(
                 private=cur_tabbed_browser.private)
             new_window.show()

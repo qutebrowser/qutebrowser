@@ -28,9 +28,9 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes
+from qutebrowser.utils import utils, objreg, message, log, usertypes, jinja
 from qutebrowser.misc import objects, msgbox
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.completion.models import configmodel
 
 # An easy way to access the config from other code via config.val.foo
@@ -176,8 +176,6 @@ class KeyConfig:
 
     def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
-        # Doing this here to work around a Python 3.4 circular import
-        from qutebrowser.commands import runners
         key = self._prepare(key, mode)
 
         parser = runners.CommandParser()
@@ -594,8 +592,6 @@ def set_register_stylesheet(obj, *, stylesheet=None, update=True):
 @functools.lru_cache()
 def _render_stylesheet(stylesheet):
     """Render the given stylesheet jinja template."""
-    # Imported here to avoid a Python 3.4 circular import
-    from qutebrowser.utils import jinja
     with jinja.environment.no_autoescape():
         template = jinja.environment.from_string(stylesheet)
     return template.render(conf=val)

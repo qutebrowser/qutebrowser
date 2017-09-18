@@ -17,8 +17,8 @@ running.
 Debian Jessie / Ubuntu 14.04 LTS / Linux Mint < 18
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Those distributions only have Python 3.4 and a too old Qt version available. A
-newer Qt isn't easily installable on Python 3.4, unfortunately.
+Those distributions only have Python 3.4 and a too old Qt version available,
+while qutebrowser requires Python 3.5 and Qt 5.7.1 or newer.
 
 It should be possible to install Python 3.5 e.g. from the
 https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or via_ipca

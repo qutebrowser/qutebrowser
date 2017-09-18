@@ -28,7 +28,7 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.4 is required to run qutebrowser, but "
+TEXT = (r"At least Python 3.5 is required to run qutebrowser, but "
         r"\d+\.\d+\.\d+ is installed!\n")
 
 
@@ -60,7 +60,7 @@ def test_patched_no_errwindow(capfd, monkeypatch):
     """Test with a patched sys.hexversion and --no-err-windows."""
     monkeypatch.setattr(checkpyver.sys, 'argv',
                         [sys.argv[0], '--no-err-windows'])
-    monkeypatch.setattr(checkpyver.sys, 'hexversion', 0x03000000)
+    monkeypatch.setattr(checkpyver.sys, 'hexversion', 0x03040000)
     monkeypatch.setattr(checkpyver.sys, 'exit', lambda status: None)
     checkpyver.check_python_version()
     stdout, stderr = capfd.readouterr()
@@ -70,7 +70,7 @@ def test_patched_no_errwindow(capfd, monkeypatch):
 
 def test_patched_errwindow(capfd, mocker, monkeypatch):
     """Test with a patched sys.hexversion and a fake Tk."""
-    monkeypatch.setattr(checkpyver.sys, 'hexversion', 0x03000000)
+    monkeypatch.setattr(checkpyver.sys, 'hexversion', 0x03040000)
     monkeypatch.setattr(checkpyver.sys, 'exit', lambda status: None)
 
     try:

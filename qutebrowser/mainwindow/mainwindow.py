@@ -31,8 +31,7 @@ from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
-from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
-from qutebrowser.mainwindow.statusbar import bar
+from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import (commands, downloadview, hints,
@@ -140,6 +139,11 @@ class MainWindow(QWidget):
             parent: The parent the window should get.
         """
         super().__init__(parent)
+        # Late import to avoid a circular dependency
+        # - browsertab -> hints -> webelem -> mainwindow -> bar -> browsertab
+        from qutebrowser.mainwindow import tabbedbrowser
+        from qutebrowser.mainwindow.statusbar import bar
+
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
         self._overlays = []

@@ -42,7 +42,7 @@ except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import qtutils, log, debug
 
 
 fake_clipboard = None
@@ -425,14 +425,13 @@ class KeyInfo:
         self.text = text
 
     def __repr__(self):
-        # Meh, dependency cycle...
-        from qutebrowser.utils.debug import qenum_key
         if self.modifiers is None:
             modifiers = None
         else:
             #modifiers = qflags_key(Qt, self.modifiers)
             modifiers = hex(int(self.modifiers))
-        return get_repr(self, constructor=True, key=qenum_key(Qt, self.key),
+        return get_repr(self, constructor=True,
+                        key=debug.qenum_key(Qt, self.key),
                         modifiers=modifiers, text=self.text)
 
     def __eq__(self, other):
@@ -814,10 +813,12 @@ def open_file(filename, cmdline=None):
                  the filename is appended to the cmdline.
     """
     # Import late to avoid circular imports:
-    # utils -> config -> configdata -> configtypes -> cmdutils -> command ->
-    # utils
-    from qutebrowser.misc import guiprocess
+    # - usertypes -> utils -> guiprocess -> message -> usertypes
+    # - usertypes -> utils -> config -> configdata -> configtypes ->
+    #   cmdutils -> command -> message -> usertypes
     from qutebrowser.config import config
+    from qutebrowser.misc import guiprocess
+
     # the default program to open downloads with - will be empty string
     # if we want to use the default
     override = config.val.downloads.open_dispatcher

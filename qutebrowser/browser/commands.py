@@ -24,6 +24,7 @@ import sys
 import os.path
 import shlex
 import functools
+import typing
 
 from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
@@ -39,10 +40,11 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, typing, debug)
+                               objreg, utils, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import urlmodel, miscmodels
+from qutebrowser.mainwindow import mainwindow
 
 
 class CommandDispatcher:
@@ -70,7 +72,6 @@ class CommandDispatcher:
 
     def _new_tabbed_browser(self, private):
         """Get a tabbed-browser from a new window."""
-        from qutebrowser.mainwindow import mainwindow
         new_window = mainwindow.MainWindow(private=private)
         new_window.show()
         return new_window.tabbed_browser
