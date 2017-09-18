@@ -28,7 +28,6 @@ Module attributes:
 
 
 import io
-import os
 import operator
 import contextlib
 
@@ -135,15 +134,6 @@ def check_overflow(arg, ctype, fatal=True):
             return minval
     else:
         return arg
-
-
-def check_print_compat():
-    """Check if printing should work in the given Qt version."""
-    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    if os.name == 'nt':
-        return version_check('5.3')
-    else:
-        return True
 
 
 def ensure_valid(obj):

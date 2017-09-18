@@ -118,26 +118,6 @@ class TestCheckOverflow:
         assert newval == repl
 
 
-@pytest.mark.parametrize('os_name, qversion, expected', [
-    ('linux', '5.2.1', True),  # unaffected OS
-    ('linux', '5.4.1', True),  # unaffected OS
-    ('nt', '5.2.1', False),
-    ('nt', '5.3.0', True),  # unaffected Qt version
-    ('nt', '5.4.1', True),  # unaffected Qt version
-])
-def test_check_print_compat(os_name, qversion, expected, monkeypatch):
-    """Test check_print_compat.
-
-    Args:
-        os_name: The fake os.name to set.
-        qversion: The fake qVersion() to set.
-        expected: The expected return value.
-    """
-    monkeypatch.setattr(qtutils.os, 'name', os_name)
-    monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
-    assert qtutils.check_print_compat() == expected
-
-
 class QtObject:
 
     """Fake Qt object for test_ensure."""

@@ -29,7 +29,6 @@ try:
 except ImportError:
     hunter = None
 
-import os
 import sys
 import faulthandler
 import traceback
@@ -40,8 +39,6 @@ try:
     import tkinter
 except ImportError:
     tkinter = None
-
-import pkg_resources
 
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
@@ -140,73 +137,6 @@ def init_faulthandler(fileobj=sys.__stderr__):
         faulthandler.register(signal.SIGUSR1)
 
 
-def _qt_version():
-    """Get the running Qt version.
-
-    Needs to be in a function so we can do a local import easily (to not import
-    from QtCore too early) but can patch this out easily for tests.
-    """
-    from PyQt5.QtCore import qVersion
-    return pkg_resources.parse_version(qVersion())
-
-
-def fix_harfbuzz(args):
-    """Fix harfbuzz issues.
-
-    This switches to the most stable harfbuzz font rendering engine available
-    on the platform instead of using the system wide one.
-
-    This fixes crashes on various sites.
-
-    - On Qt 5.2 (and probably earlier) the new engine probably has more
-      crashes and is also experimental.
-
-      e.g. https://bugreports.qt.io/browse/QTBUG-36099
-
-    - On Qt 5.3.0 there's a bug that affects a lot of websites:
-      https://bugreports.qt.io/browse/QTBUG-39278
-      So the new engine will be more stable.
-
-    - On Qt 5.3.1 this bug is fixed and the old engine will be the more stable
-      one again.
-
-    - On Qt 5.4 the new engine is the default and most bugs are taken care of.
-
-    IMPORTANT: This needs to be done before QWidgets is imported in any way!
-
-    WORKAROUND (remove this when we bump the requirements to 5.3.1)
-
-    Args:
-        args: The argparse namespace.
-    """
-    from qutebrowser.utils import log
-    if 'PyQt5.QtWidgets' in sys.modules:
-        msg = "Harfbuzz fix attempted but QtWidgets is already imported!"
-        if getattr(sys, 'frozen', False):
-            log.init.debug(msg)
-        else:
-            log.init.warning(msg)
-    if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
-        if _qt_version() == pkg_resources.parse_version('5.3.0'):
-            log.init.debug("Using new harfbuzz engine (auto)")
-            os.environ['QT_HARFBUZZ'] = 'new'
-        elif _qt_version() < pkg_resources.parse_version('5.4.0'):
-            log.init.debug("Using old harfbuzz engine (auto)")
-            os.environ['QT_HARFBUZZ'] = 'old'
-        else:
-            log.init.debug("Using system harfbuzz engine (auto)")
-    elif args.harfbuzz in ['old', 'new']:
-        # forced harfbuzz variant
-        # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
-        # it empty and using new yields different behavior...
-        # (probably irrelevant when workaround gets removed)
-        log.init.debug("Using {} harfbuzz engine (forced)".format(
-            args.harfbuzz))
-        os.environ['QT_HARFBUZZ'] = args.harfbuzz
-    else:
-        log.init.debug("Using system harfbuzz engine")
-
-
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
@@ -268,22 +198,15 @@ def qt_version(qversion=None, qt_version_str=None):
         return qversion
 
 
-def check_qt_version(backend):
+def check_qt_version():
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
     from qutebrowser.utils import qtutils
-    if (not qtutils.version_check('5.2.0', strict=True) or
+    if (not qtutils.version_check('5.7.1', strict=True) or
             PYQT_VERSION < 0x050200):
-        text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
-                "PyQt {} is installed.".format(qt_version(),
-                                               PYQT_VERSION_STR))
-        _die(text)
-    elif (backend == 'webengine' and (
-            not qtutils.version_check('5.7.1', strict=True) or
-            PYQT_VERSION < 0x050700)):
-        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
-                "QtWebEngine support, but Qt {} / PyQt {} is installed."
-                .format(qt_version(), PYQT_VERSION_STR))
+        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
+                "but Qt {} / PyQt {} is installed.".format(qt_version(),
+                                                           PYQT_VERSION_STR))
         _die(text)
 
 
@@ -423,13 +346,10 @@ def earlyinit(args):
     check_pyqt_core()
     # Init logging as early as possible
     init_log(args)
-    # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
-    # importing QtWidgets.
-    fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     backend = get_backend(args)
-    check_qt_version(backend)
+    check_qt_version()
     remove_inputhook()
     check_libraries(backend)
     check_ssl_support(backend)

@@ -19,13 +19,9 @@
 
 """Tests for qutebrowser.utils.javascript."""
 
-import binascii
-import os.path
-
 import pytest
 import hypothesis
 import hypothesis.strategies
-from PyQt5.QtCore import PYQT_VERSION
 
 from qutebrowser.utils import javascript
 
@@ -61,65 +57,22 @@ class TestStringEscape:
         """Test javascript escaping with some expected outcomes."""
         assert javascript.string_escape(before) == after
 
-    def _test_escape(self, text, qtbot, webframe):
-        """Helper function for test_real_escape*."""
-        try:
-            self._test_escape_simple(text, webframe)
-        except AssertionError:
-            # Try another method if the simple method failed.
-            #
-            # See _test_escape_hexlified documentation on why this is
-            # necessary.
-            self._test_escape_hexlified(text, qtbot, webframe)
-
-    def _test_escape_hexlified(self, text, qtbot, webframe):
-        """Test conversion by hexlifying in javascript.
-
-        Since the conversion of QStrings to Python strings is broken in some
-        older PyQt versions in some corner cases, we load an HTML file which
-        generates an MD5 of the escaped text and use that for comparisons.
-        """
-        escaped = javascript.string_escape(text)
-        path = os.path.join(os.path.dirname(__file__),
-                            'test_javascript_string_escape.html')
-        with open(path, encoding='utf-8') as f:
-            html_source = f.read().replace('%INPUT%', escaped)
-
-        with qtbot.waitSignal(webframe.loadFinished) as blocker:
-            webframe.setHtml(html_source)
-        assert blocker.args == [True]
-
-        result = webframe.evaluateJavaScript('window.qute_test_result')
-        assert result is not None
-        assert '|' in result
-        result_md5, result_text = result.split('|', maxsplit=1)
-        text_md5 = binascii.hexlify(text.encode('utf-8')).decode('ascii')
-        assert result_md5 == text_md5, result_text
-
-    def _test_escape_simple(self, text, webframe):
+    def _test_escape(self, text, webframe):
         """Test conversion by using evaluateJavaScript."""
         escaped = javascript.string_escape(text)
         result = webframe.evaluateJavaScript('"{}";'.format(escaped))
         assert result == text
 
     @pytest.mark.parametrize('text', sorted(TESTS), ids=repr)
-    def test_real_escape(self, webframe, qtbot, text):
+    def test_real_escape(self, webframe, text):
         """Test javascript escaping with a real QWebPage."""
-        self._test_escape(text, qtbot, webframe)
+        self._test_escape(text, webframe)
 
     @pytest.mark.qt_log_ignore('^OpenType support missing for script')
     @hypothesis.given(hypothesis.strategies.text())
-    def test_real_escape_hypothesis(self, webframe, qtbot, text):
+    def test_real_escape_hypothesis(self, webframe, text):
         """Test javascript escaping with a real QWebPage and hypothesis."""
-        # We can't simply use self._test_escape because of this:
-        # https://github.com/pytest-dev/pytest-qt/issues/69
-
-        # self._test_escape(text, qtbot, webframe)
-        try:
-            self._test_escape_simple(text, webframe)
-        except AssertionError:
-            if PYQT_VERSION >= 0x050300:
-                self._test_escape_hexlified(text, qtbot, webframe)
+        self._test_escape(text, webframe)
 
 
 @pytest.mark.parametrize('arg, expected', [

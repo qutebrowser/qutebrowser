@@ -62,7 +62,6 @@ def _apply_platform_markers(config, item):
         ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', os.name == 'nt' and config.webengine,
          "Broken with QtWebEngine on Windows"),
-        ('qt55', not qtutils.version_check('5.5'), "Requires Qt 5.5 or newer"),
     ]
 
     for searched_marker, condition, default_reason in markers:
@@ -128,12 +127,9 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.xfail(run=False))
         if item.get_marker('js_prompt'):
             if config.webengine:
-                js_prompt_pyqt_version = 0x050700
-            else:
-                js_prompt_pyqt_version = 0x050300
-            item.add_marker(pytest.mark.skipif(
-                PYQT_VERSION <= js_prompt_pyqt_version,
-                reason='JS prompts are not supported with this PyQt version'))
+                item.add_marker(pytest.mark.skipif(
+                    PYQT_VERSION <= 0x050700,
+                    reason='JS prompts are not supported with PyQt 5.7'))
 
         if deselected:
             deselected_items.append(item)

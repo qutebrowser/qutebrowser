@@ -37,14 +37,6 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
             self, error=debug.qenum_key(QSslError, self._error.error()),
             string=str(self))
 
-    def __hash__(self):
-        try:
-            # Qt >= 5.4
-            return hash(self._error)
-        except TypeError:
-            return hash((self._error.certificate().toDer(),
-                         self._error.error()))
-
     def __eq__(self, other):
         return self._error == other._error  # pylint: disable=protected-access
 

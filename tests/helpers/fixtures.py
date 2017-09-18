@@ -43,7 +43,7 @@ from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
 
-from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QEvent, QSize, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, QEvent, QSize, Qt, QObject
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
@@ -156,8 +156,6 @@ def tab_registry(win_registry):
 @pytest.fixture
 def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
     """Fixture providing the FakeWebTab *class*."""
-    if PYQT_VERSION < 0x050600:
-        pytest.skip('Causes segfaults, see #1638')
     return stubs.FakeWebTab
 
 

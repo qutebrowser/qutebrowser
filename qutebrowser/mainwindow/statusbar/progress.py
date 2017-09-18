@@ -61,10 +61,6 @@ class Progress(QProgressBar):
 
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
-        if self is None:  # pragma: no branch
-            # This should never happen, but for some weird reason it does
-            # sometimes.
-            return  # pragma: no cover
         self.setValue(tab.progress())
         if tab.load_status() == usertypes.LoadStatus.loading:
             self.show()

@@ -33,7 +33,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, urlutils, qtutils
+from qutebrowser.utils import standarddir, urlutils
 from qutebrowser.browser import shared
 
 
@@ -130,13 +130,6 @@ def init(_args):
         os.path.join(data_path, 'local-storage'))
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
-
-    if (config.val.content.private_browsing and
-            not qtutils.version_check('5.4.2')):
-        # WORKAROUND for https://codereview.qt-project.org/#/c/108936/
-        # Won't work when private browsing is not enabled globally, but that's
-        # the best we can do...
-        QWebSettings.setIconDatabasePath('')
 
     websettings.init_mappings(MAPPINGS)
     _set_user_stylesheet()

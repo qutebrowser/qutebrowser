@@ -328,9 +328,8 @@ def test_get_search_url_invalid(url):
     (False, True, True, 'deadbeef'),
     (False, True, True, 'hello.'),
     (False, True, False, 'site:cookies.com oatmeal raisin'),
-    # no DNS because bogus-IP
-    (False, True, False, '31c3'),
-    (False, True, False, 'foo::bar'),  # no DNS because of no host
+    # no DNS because there is no host
+    (False, True, False, 'foo::bar'),
     # Valid search term with autosearch
     (False, False, False, 'test foo'),
     # autosearch = False
@@ -350,11 +349,6 @@ def test_is_url(config_stub, fake_dns,
         url: The URL to test, as a string.
         auto_search: With which auto_search setting to test
     """
-    if (url == '31c3' and
-            auto_search == 'dns' and
-            qtutils.version_check('5.6.1')):
-        pytest.xfail("Qt behavior changed")
-
     config_stub.val.url.auto_search = auto_search
     if auto_search == 'dns':
         if uses_dns:

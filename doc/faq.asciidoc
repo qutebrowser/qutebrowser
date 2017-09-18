@@ -205,26 +205,6 @@ Experiencing freezing on sites like duckduckgo and youtube.::
     See https://github.com/qutebrowser/qutebrowser/issues/357[Issue #357]
     for more details.
 
-Experiencing segfaults (crashes) on Debian systems.::
-    For Debian it's highly recommended to install the `gstreamer0.10-plugins-base` package.
-    This is a workaround for a bug in Qt, it has been fixed upstream in Qt 5.4
-    More details can be found
-    https://bugs.webkit.org/show_bug.cgi?id=119951[here].
-
-Segfaults on Facebook, Medium, Amazon, ...::
-    If you are on a Debian or Ubuntu based system, you might experience some crashes
-    visiting these sites. This is caused by various bugs in Qt which have been
-    fixed in Qt 5.4. However Debian and Ubuntu are slow to adopt or upgrade
-    some packages. On Debian Jessie, it's recommended to use the experimental
-    repos as described in https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc#on-debian--ubuntu[the documentation].
-+
-Since Ubuntu Trusty (using Qt 5.2.1),
-https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%20resolution%20%3D%20Done%20and%20fixVersion%20in%20(5.3.0%2C%20%225.3.0%20Alpha%22%2C%20%225.3.0%20Beta1%22%2C%20%225.3.0%20RC1%22%2C%205.3.1%2C%205.3.2%2C%205.4.0%2C%20%225.4.0%20Alpha%22%2C%20%225.4.0%20Beta%22%2C%20%225.4.0%20RC%22)%20and%20priority%20in%20(%22P2%3A%20Important%22%2C%20%22P1%3A%20Critical%22%2C%20%22P0%3A%20Blocker%22)[over
-70 important bugs] have been fixed in QtWebKit. For Debian Jessie (using Qt 5.3.2)
-it's still
-https://bugreports.qt.io/browse/QTBUG-42417?jql=component%20%3D%20WebKit%20and%20resolution%20%3D%20Done%20and%20fixVersion%20in%20(5.4.0%2C%20%225.4.0%20Alpha%22%2C%20%225.4.0%20Beta%22%2C%20%225.4.0%20RC%22)%20and%20priority%20in%20(%22P2%3A%20Important%22%2C%20%22P1%3A%20Critical%22%2C%20%22P0%3A%20Blocker%22)[nearly
-20 important bugs].
-
 When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the console prints a traceback on Gentoo Linux or another Source-Based Distro::
     As stated in https://gcc.gnu.org/gcc-6/changes.html[GCC's Website] GCC 6 has introduced some optimizations that could break non-conforming codebases, like QtWebEngine. +
     As a workaround, you can disable the nullpointer check optimization by adding the -fno-delete-null-pointer-checks flag while compiling. +

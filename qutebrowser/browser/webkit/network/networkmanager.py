@@ -24,13 +24,12 @@ import collections
 import netrc
 import html
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
-                          QUrl, QByteArray)
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
+                          QByteArray)
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
-from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
-                               urlutils)
+from qutebrowser.utils import message, log, usertypes, utils, objreg, urlutils
 from qutebrowser.browser import shared
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
@@ -88,15 +87,9 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    if qtutils.version_check('5.3.0'):
-        default_ciphers = QSslSocket.defaultCiphers()
-        log.init.debug("Default Qt ciphers: {}".format(
-            ', '.join(c.name() for c in default_ciphers)))
-    else:
-        # https://codereview.qt-project.org/#/c/75943/
-        default_ciphers = QSslSocket.supportedCiphers()
-        log.init.debug("Supported Qt ciphers: {}".format(
-            ', '.join(c.name() for c in default_ciphers)))
+    default_ciphers = QSslSocket.defaultCiphers()
+    log.init.debug("Default Qt ciphers: {}".format(
+        ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
     bad_ciphers = []
@@ -409,24 +402,11 @@ class NetworkManager(QNetworkAccessManager):
                 tab = objreg.get('tab', scope='tab', window=self._win_id,
                                  tab=self._tab_id)
                 current_url = tab.url()
-            except (KeyError, RuntimeError, TypeError):
+            except (KeyError, RuntimeError):
                 # https://github.com/qutebrowser/qutebrowser/issues/889
-                # Catching RuntimeError and TypeError because we could be in
-                # the middle of the webpage shutdown here.
+                # Catching RuntimeError because we could be in the middle of the
+                # webpage shutdown here.
                 current_url = QUrl()
 
         self.set_referer(req, current_url)
-
-        if PYQT_VERSION < 0x050301:
-            # WORKAROUND (remove this when we bump the requirements to 5.3.1)
-            #
-            # If we don't disable our message handler, we get a freeze if a
-            # warning is printed due to a PyQt bug, e.g. when clicking a
-            # currency on http://ch.mouser.com/localsites/
-            #
-            # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034420.html
-            with log.disable_qt_msghandler():
-                reply = super().createRequest(op, req, outgoing_data)
-        else:
-            reply = super().createRequest(op, req, outgoing_data)
-        return reply
+        return super().createRequest(op, req, outgoing_data)

@@ -35,7 +35,7 @@ import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes, qtutils
+from qutebrowser.utils import version, usertypes
 from qutebrowser.browser import pdfjs
 
 
@@ -946,8 +946,6 @@ def test_version_output(params, stubs, monkeypatch):
     assert version.version() == expected
 
 
-@pytest.mark.skipif(not qtutils.version_check('5.4'),
-                    reason="Needs Qt >= 5.4.")
 def test_opengl_vendor():
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")

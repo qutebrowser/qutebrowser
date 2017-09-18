@@ -29,7 +29,7 @@ from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, debug
+from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
 
 
@@ -57,7 +57,7 @@ class WebView(QWebView):
 
     def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
-        if sys.platform == 'darwin' and qtutils.version_check('5.4'):
+        if sys.platform == 'darwin':
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
             # See https://github.com/qutebrowser/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
@@ -74,13 +74,9 @@ class WebView(QWebView):
         page = webpage.BrowserPage(win_id=self.win_id, tab_id=self._tab_id,
                                    tabdata=tab.data, private=private,
                                    parent=self)
-
-        try:
-            page.setVisibilityState(
-                QWebPage.VisibilityStateVisible if self.isVisible()
-                else QWebPage.VisibilityStateHidden)
-        except AttributeError:
-            pass
+        page.setVisibilityState(
+            QWebPage.VisibilityStateVisible if self.isVisible()
+            else QWebPage.VisibilityStateHidden)
 
         self.setPage(page)
 
@@ -240,12 +236,8 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        try:
-            self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
-        except AttributeError:
-            pass
-
         super().showEvent(e)
+        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
 
     def hideEvent(self, e):
         """Extend hideEvent to set the page visibility state to hidden.
@@ -256,12 +248,8 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        try:
-            self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
-        except AttributeError:
-            pass
-
         super().hideEvent(e)
+        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
 
     def mousePressEvent(self, e):
         """Set the tabdata ClickTarget on a mousepress.

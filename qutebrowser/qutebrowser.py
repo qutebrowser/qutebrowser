@@ -95,9 +95,6 @@ def get_argparser():
                        action='store_false', dest='color')
     debug.add_argument('--force-color', help="Force colored logging",
                        action='store_true')
-    debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
-                       default='auto', help="HarfBuzz engine version to use. "
-                       "Default: auto.")
     debug.add_argument('--relaxed-config', action='store_true',
                        help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
@@ -172,6 +169,6 @@ def main():
         args = argparse.Namespace(**data)
     earlyinit.earlyinit(args)
     # We do this imports late as earlyinit needs to be run first (because of
-    # the harfbuzz fix and version checking).
+    # version checking and other early initialization)
     from qutebrowser import app
     return app.run(args)
