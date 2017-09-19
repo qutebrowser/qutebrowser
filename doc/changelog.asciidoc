@@ -20,18 +20,24 @@ v1.0.0 (unreleased)
 Breaking changes
 ~~~~~~~~~~~~~~~~
 
-- Support for legacy QtWebKit (before 5.212 which is distributed
+- (TODO) Support for legacy QtWebKit (before 5.212 which is distributed
   independently from Qt) is dropped.
 - Support for Python 3.4 is dropped.
-- Support for Qt before 5.7 is dropped.
+- Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
+- (TODO) New dependency on ruamel.yaml; dropped PyYAML dependency.
+- (TODO) The QtWebEngine backend is now used by default if available.
 - New dependency on the QtSql module and Qt sqlite support.
-- New dependency on ruamel.yaml; dropped PyYAML dependency.
-- The QtWebEngine backend is now used by default if available.
 - New config system which ignores the old config file.
 - The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
   that PyQt5.QtOpenGL is still a dependency.
+- PyQt5.QtOpenGL is now always required, even with QtWebKit.
 - Migrating QtWebEngine data written by versions before 2016-11-15 (before
   v0.9.0) is now not supported anymore.
+- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
+  work properly anymore.
+- Various documentation files got moved to the doc/ subfolder,
+ `qutebrowser.desktop` got moved to misc/.
+- The `--harfbuzz` commandline argument got dropped
 
 Major changes
 ~~~~~~~~~~~~~
@@ -44,12 +50,15 @@ Added
 ~~~~~
 
 - New back/forward indicator in the statusbar
+- New `bindings.key_mappings` setting to map keys to other keys
+- New `qt_args` setting to pass additional arguments to Qt/Chromium
+- New `backend` setting to select the backend to use (auto/webengine/webkit).
+  Together with the previous setting, this should make wrapper scripts
+  unnecessary.
 
 Changed
 ~~~~~~~
 
-- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
-  work properly anymore.
 - Using `:download` now uses the page's title as filename.
 - Using `:back` or `:forward` with a count now skips intermediate pages.
 - When there are multiple messages shown, the timeout is increased.

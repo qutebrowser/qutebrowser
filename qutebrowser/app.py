@@ -43,7 +43,7 @@ import qutebrowser
 import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import config, websettings, configexc
+from qutebrowser.config import config, websettings, configexc, configfiles
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -52,11 +52,14 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects, sql, cmdhistory)
-from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
-from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
-                               objreg, usertypes, standarddir, error)
-# We import utilcmds to run the cmdutils.register decorators.
+                              crashsignal, earlyinit, sql, cmdhistory)
+from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
+                               usertypes, standarddir, error)
+# pylint: disable=unused-import
+# We import those to run the cmdutils.register decorators.
+from qutebrowser.mainwindow.statusbar import command
+from qutebrowser.misc import utilcmds
+# pylint: enable=unused-import
 
 
 qApp = None
@@ -72,6 +75,9 @@ def run(args):
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
+
+    log.init.debug("Initializing config...")
+    config.early_init(args)
 
     global qApp
     qApp = Application(args)
@@ -210,13 +216,12 @@ def _load_session(name):
     Args:
         name: The name of the session to load, or None to read state file.
     """
-    state_config = objreg.get('state-config')
     session_manager = objreg.get('session-manager')
     if name is None and session_manager.exists('_autosave'):
         name = '_autosave'
     elif name is None:
         try:
-            name = state_config['general']['session']
+            name = configfiles.state['general']['session']
         except KeyError:
             # No session given as argument and none in the session file ->
             # start without loading a session
@@ -229,7 +234,7 @@ def _load_session(name):
     except sessions.SessionError as e:
         message.error("Failed to load session {}: {}".format(name, e))
     try:
-        del state_config['general']['session']
+        del configfiles.state['general']['session']
     except KeyError:
         pass
     # If this was a _restart session, delete it.
@@ -323,21 +328,9 @@ def _open_special_pages(args):
         # With --basedir given, don't open anything.
         return
 
-    state_config = objreg.get('state-config')
-    general_sect = state_config['general']
+    general_sect = configfiles.state['general']
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-
-    # Legacy QtWebKit warning
-
-    needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
-                     not qtutils.is_qtwebkit_ng())
-    warning_shown = general_sect.get('backend-warning-shown') == '1'
-
-    if not warning_shown and needs_warning:
-        tabbed_browser.tabopen(QUrl('qute://backend-warning'),
-                               background=False)
-        general_sect['backend-warning-shown'] = '1'
 
     # Quickstart page
 
@@ -358,13 +351,6 @@ def _open_special_pages(args):
         tabbed_browser.tabopen(QUrl('qute://help/configuring.html'),
                                background=False)
         general_sect['config-migration-shown'] = '1'
-
-
-def _save_version():
-    """Save the current version to the state config."""
-    state_config = objreg.get('state-config', None)
-    if state_config is not None:
-        state_config['general']['version'] = qutebrowser.__version__
 
 
 def on_focus_changed(_old, new):
@@ -407,7 +393,7 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
-    save_manager.add_saveable('version', _save_version)
+    config.late_init(save_manager)
 
     log.init.debug("Initializing network...")
     networkmanager.init()
@@ -418,10 +404,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
-
-    log.init.debug("Initializing config...")
-    config.init(qApp)
-    save_manager.init_autosave()
 
     log.init.debug("Initializing sql...")
     try:
@@ -780,7 +762,7 @@ class Application(QApplication):
         """
         self._last_focus_object = None
 
-        qt_args = qtutils.get_args(args)
+        qt_args = config.qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(qt_args)
 

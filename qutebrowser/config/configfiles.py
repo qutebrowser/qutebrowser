@@ -29,8 +29,13 @@ import contextlib
 import yaml
 from PyQt5.QtCore import QSettings
 
-from qutebrowser.config import configexc
-from qutebrowser.utils import objreg, standarddir, utils, qtutils
+import qutebrowser
+from qutebrowser.config import configexc, config
+from qutebrowser.utils import standarddir, utils, qtutils
+
+
+# The StateConfig instance
+state = None
 
 
 class StateConfig(configparser.ConfigParser):
@@ -39,7 +44,6 @@ class StateConfig(configparser.ConfigParser):
 
     def __init__(self):
         super().__init__()
-        save_manager = objreg.get('save-manager')
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
         for sect in ['general', 'geometry']:
@@ -47,8 +51,17 @@ class StateConfig(configparser.ConfigParser):
                 self.add_section(sect)
             except configparser.DuplicateSectionError:
                 pass
-        # See commit a98060e020a4ba83b663813a4b9404edb47f28ad.
-        self['general'].pop('fooled', None)
+
+        deleted_keys = ['fooled', 'backend-warning-shown']
+        for key in deleted_keys:
+            self['general'].pop(key, None)
+
+    def init_save_manager(self, save_manager):
+        """Make sure the config gets saved properly.
+
+        We do this outside of __init__ because the config gets created before
+        the save_manager exists.
+        """
         save_manager.add_saveable('state-config', self._save)
 
     def _save(self):
@@ -68,11 +81,17 @@ class YamlConfig:
     VERSION = 1
 
     def __init__(self):
-        save_manager = objreg.get('save-manager')
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
-        save_manager.add_saveable('yaml-config', self._save)
         self.values = {}
+
+    def init_save_manager(self, save_manager):
+        """Make sure the config gets saved properly.
+
+        We do this outside of __init__ because the config gets created before
+        the save_manager exists.
+        """
+        save_manager.add_saveable('yaml-config', self._save)
 
     def _save(self):
         """Save the changed settings to the YAML file."""
@@ -135,8 +154,8 @@ class ConfigAPI:
         errors: Errors which occurred while setting options.
     """
 
-    def __init__(self, config, keyconfig):
-        self._config = config
+    def __init__(self, conf, keyconfig):
+        self._config = conf
         self._keyconfig = keyconfig
         self.load_autoconfig = True
         self.errors = []
@@ -161,18 +180,17 @@ class ConfigAPI:
         with self._handle_error('setting', name):
             self._config.set_obj(name, value)
 
-    def bind(self, key, command, *, mode, force=False):
+    def bind(self, key, command, mode='normal', *, force=False):
         with self._handle_error('binding', key):
             self._keyconfig.bind(key, command, mode=mode, force=force)
 
-    def unbind(self, key, *, mode):
+    def unbind(self, key, mode='normal'):
         with self._handle_error('unbinding', key):
             self._keyconfig.unbind(key, mode=mode)
 
 
 def read_config_py(filename=None):
     """Read a config.py file."""
-    from qutebrowser.config import config
     api = ConfigAPI(config.instance, config.key_instance)
 
     if filename is None:
@@ -220,8 +238,9 @@ def read_config_py(filename=None):
 
 def init():
     """Initialize config storage not related to the main config."""
+    global state
     state = StateConfig()
-    objreg.register('state-config', state)
+    state['general']['version'] = qutebrowser.__version__
 
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it

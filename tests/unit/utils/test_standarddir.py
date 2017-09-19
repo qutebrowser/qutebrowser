@@ -56,6 +56,28 @@ def clear_standarddir_cache_and_patch(qapp, monkeypatch):
     monkeypatch.setattr(standarddir, '_locations', {})
 
 
+@pytest.mark.parametrize('orgname, expected', [(None, ''), ('test', 'test')])
+def test_unset_organization(qapp, orgname, expected):
+    """Test unset_organization.
+
+    Args:
+        orgname: The organizationName to set initially.
+        expected: The organizationName which is expected when reading back.
+    """
+    qapp.setOrganizationName(orgname)
+    assert qapp.organizationName() == expected  # sanity check
+    with standarddir._unset_organization():
+        assert qapp.organizationName() == ''
+    assert qapp.organizationName() == expected
+
+
+def test_unset_organization_no_qapp(monkeypatch):
+    """Without a QApplication, _unset_organization should do nothing."""
+    monkeypatch.setattr(standarddir.QApplication, 'instance', lambda: None)
+    with standarddir._unset_organization():
+        pass
+
+
 def test_fake_mac_config(tmpdir, monkeypatch):
     """Test standardir.config on a fake Mac."""
     monkeypatch.setattr(sys, 'platform', 'darwin')
@@ -65,8 +87,6 @@ def test_fake_mac_config(tmpdir, monkeypatch):
     assert standarddir.config() == expected
 
 
-# FIXME:conf needs AppDataLocation
-@pytest.mark.qt55
 @pytest.mark.parametrize('what', ['data', 'config', 'cache'])
 @pytest.mark.not_mac
 def test_fake_windows(tmpdir, monkeypatch, what):
@@ -332,8 +352,6 @@ class TestSystemData:
         assert standarddir.data(system=True) == standarddir.data()
 
 
-# FIXME:conf needs AppDataLocation
-@pytest.mark.qt55
 class TestMoveWindowsAndMacOS:
 
     """Test other invocations of _move_data."""

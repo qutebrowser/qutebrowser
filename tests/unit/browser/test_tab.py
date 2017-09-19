@@ -19,8 +19,6 @@
 
 import pytest
 
-from PyQt5.QtCore import PYQT_VERSION
-
 from qutebrowser.browser import browsertab
 
 pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
@@ -48,9 +46,6 @@ def view(qtbot, config_stub, request):
 
 @pytest.fixture(params=['webkit', 'webengine'])
 def tab(request, qtbot, tab_registry, cookiejar_and_cache, mode_manager):
-    if PYQT_VERSION < 0x050600:
-        pytest.skip('Causes segfaults, see #1638')
-
     if request.param == 'webkit':
         webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
         tab_class = webkittab.WebKitTab

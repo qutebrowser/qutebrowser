@@ -38,7 +38,7 @@ import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, usertypes
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin, objects)
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 
 
 def parse_fatal_stacktrace(text):
@@ -152,22 +152,7 @@ class _CrashDialog(QDialog):
         self._pypi_client = autoupdate.PyPIVersionClient(self)
         self._init_text()
 
-        contact = QLabel("I'd like to be able to follow up with you, to keep "
-                         "you posted on the status of this crash and get more "
-                         "information if I need it - how can I contact you?",
-                         wordWrap=True)
-        self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        try:
-            state = objreg.get('state-config')
-            try:
-                self._contact.setPlainText(state['general']['contact-info'])
-            except KeyError:
-                self._contact.setPlaceholderText("Mail or IRC nickname")
-        except Exception:
-            log.misc.exception("Failed to get contact information!")
-            self._contact.setPlaceholderText("Mail or IRC nickname")
-        self._vbox.addWidget(self._contact, 2)
+        self._init_contact_input()
 
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
@@ -200,6 +185,26 @@ class _CrashDialog(QDialog):
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    def _init_contact_input(self):
+        """Initialize the widget asking for contact info."""
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?",
+                         wordWrap=True)
+        self._vbox.addWidget(contact)
+        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        try:
+            try:
+                info = configfiles.state['general']['contact-info']
+            except KeyError:
+                self._contact.setPlaceholderText("Mail or IRC nickname")
+            else:
+                self._contact.setPlainText(info)
+        except Exception:
+            log.misc.exception("Failed to get contact information!")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
+        self._vbox.addWidget(self._contact, 2)
 
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
@@ -296,8 +301,8 @@ class _CrashDialog(QDialog):
     def _save_contact_info(self):
         """Save the contact info to disk."""
         try:
-            state = objreg.get('state-config')
-            state['general']['contact-info'] = self._contact.toPlainText()
+            info = self._contact.toPlainText()
+            configfiles.state['general']['contact-info'] = info
         except Exception:
             log.misc.exception("Failed to save contact information!")
 

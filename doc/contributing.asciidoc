@@ -5,12 +5,6 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
-IMPORTANT: I'm currently (July 2017) more busy than usual until September,
-because of exams coming up. In addition to that, a new config system is coming
-which will conflict with many non-trivial contributions. Because of that, please
-refrain from contributing new features until then. If you're reading this note
-after mid-September, please open an issue.
-
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
@@ -104,10 +98,9 @@ unittests and several linters/checkers.
 Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
-  - `py34`: Run pytest for python-3.4.
-  - `py35`: Run pytest for python-3.5.
-  - `py34-cov`: Run pytest for python-3.4 with code coverage report.
-  - `py35-cov`: Run pytest for python-3.5 with code coverage report.
+  - `py35`, `py36`: Run pytest for python 3.5/3.6 with the system-wide PyQt.
+  - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works)
+  - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too)
 * `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
                 https://pypi.python.org/pypi/pyflakes[pyflakes],
                 https://pypi.python.org/pypi/pep8[pep8],
@@ -187,7 +180,7 @@ In the _scripts/_ subfolder there's a `run_profile.py` which profiles the code
 and shows a graphical representation of what takes how much time.
 
 It uses the built-in Python
-https://docs.python.org/3.4/library/profile.html[cProfile] module and can show
+https://docs.python.org/3.6/library/profile.html[cProfile] module and can show
 the output in four different ways:
 
 * Raw profile file (`--profile-tool=none`)
@@ -542,11 +535,11 @@ ____
 Setting up a Windows Development Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Install https://www.python.org/downloads/release/python-344/[Python 3.4]
-* Install https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.5.1/[PyQt 5.5]
-* Create a file at `C:\Windows\system32\python3.bat` with the following content:
-  `@C:\Python34\python %*`
-  This will make the Python 3.4 interpreter available as `python3`, which is used by various development scripts.
+* Install https://www.python.org/downloads/release/python-362/[Python 3.6].
+* Install PyQt via `pip install PyQt5`
+* Create a file at `C:\Windows\system32\python3.bat` with the following content (adjust the path as necessary):
+  `@C:\Python36\python %*`
+  This will make the Python 3.6 interpreter available as `python3`, which is used by various development scripts.
 * Install git from the https://git-scm.com/download/win[git-scm downloads page]
   Try not to enable `core.autocrlf`, since that will cause `flake8` to complain a lot. Use an editor that can deal with plain line feeds instead.
 * Clone your favourite qutebrowser repository.

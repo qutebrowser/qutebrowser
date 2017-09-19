@@ -20,4 +20,4 @@ pycodestyle==2.3.1
 pydocstyle==1.1.1  # rq.filter: < 2.0.0
 pyflakes==1.6.0
 pyparsing==2.2.0
-six==1.10.0
+six==1.11.0

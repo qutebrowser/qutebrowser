@@ -292,7 +292,7 @@ Feature: Downloading things from a website.
 
     Scenario: Opening a mhtml download directly
         When I set downloads.location.prompt to true
-        And I open html
+        And I open /
         And I run :download --mhtml
         And I wait for the download prompt for "*"
         And I directly open the download
@@ -572,27 +572,27 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading with redirect to itself
         When I set downloads.location.prompt to false
-        And I run :download http://localhost:(port)/custom/redirect-self
+        And I run :download http://localhost:(port)/redirect-self
         And I wait until the download is finished
         Then the downloaded file redirect-self should exist
 
     Scenario: Downloading with absolute redirect
         When I set downloads.location.prompt to false
-        And I run :download http://localhost:(port)/absolute-redirect/1
+        And I run :download http://localhost:(port)/absolute-redirect
         And I wait until the download is finished
-        Then the downloaded file 1 should exist
+        Then the downloaded file absolute-redirect should exist
 
     Scenario: Downloading with relative redirect
         When I set downloads.location.prompt to false
-        And I run :download http://localhost:(port)/relative-redirect/1
+        And I run :download http://localhost:(port)/relative-redirect
         And I wait until the download is finished
-        Then the downloaded file 1 should exist
+        Then the downloaded file relative-redirect should exist
 
     ## Other
 
     Scenario: Download without a content-size
         When I set downloads.location.prompt to false
-        When I run :download http://localhost:(port)/custom/content-size
+        When I run :download http://localhost:(port)/content-size
         And I wait until the download is finished
         Then the downloaded file content-size should exist
 
@@ -604,13 +604,13 @@ Feature: Downloading things from a website.
 
     Scenario: Downloading 20MB file
         When I set downloads.location.prompt to false
-        And I run :download http://localhost:(port)/custom/twenty-mb
+        And I run :download http://localhost:(port)/twenty-mb
         And I wait until the download is finished
         Then the downloaded file twenty-mb should be 20971520 bytes big
 
     Scenario: Downloading 20MB file with late prompt confirmation
         When I set downloads.location.prompt to true
-        And I run :download http://localhost:(port)/custom/twenty-mb
+        And I run :download http://localhost:(port)/twenty-mb
         And I wait 1s
         And I run :prompt-accept
         And I wait until the download is finished
@@ -645,12 +645,6 @@ Feature: Downloading things from a website.
         Then the downloaded file download.bin should exist
         And the downloaded file download2.bin should not exist
 
-    Scenario: Downloading a file with unknown size
-       When I set downloads.location.prompt to false
-       And I open stream-bytes/1024 without waiting
-       And I wait until the download is finished
-       Then the downloaded file 1024 should exist
-
     @qtwebengine_skip: We can't get the UA from the page there
     Scenario: user-agent when using :download
         When I open user-agent
@@ -660,16 +654,14 @@ Feature: Downloading things from a website.
 
     @qtwebengine_skip: We can't get the UA from the page there
     Scenario: user-agent when using hints
-        When I set hints.mode to number
-        And I open /
+        When I open /
         And I run :hint links download
-        And I press the keys "us"  # user-agent
-        And I run :follow-hint 0
+        And I run :follow-hint a
         And I wait until the download is finished
         Then the downloaded file user-agent should contain Safari/
 
     @qtwebengine_skip: Handled by QtWebEngine, not by us
     Scenario: Downloading a "Internal server error" with disposition: inline (#2304)
         When I set downloads.location.prompt to false
-        And I open custom/500-inline
+        And I open 500-inline
         Then the error "Download error: *INTERNAL SERVER ERROR" should be shown

@@ -186,11 +186,10 @@ def test_get_session_name(config_stub, sess_man, arg, config, current,
 class TestSave:
 
     @pytest.fixture
-    def state_config(self):
+    def state_config(self, monkeypatch):
         state = {'general': {}}
-        objreg.register('state-config', state)
-        yield state
-        objreg.delete('state-config')
+        monkeypatch.setattr(sessions.configfiles, 'state', state)
+        return state
 
     @pytest.fixture
     def fake_history(self, win_registry, stubs, monkeypatch, webview):

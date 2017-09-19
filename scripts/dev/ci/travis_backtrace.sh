@@ -5,10 +5,6 @@
 #
 
 case $TESTENV in
-    py34-cov)
-        exe=/usr/bin/python3.4
-        full=full
-        ;;
     py3*-pyqt*)
         exe=$(readlink -f .tox/$TESTENV/bin/python)
         full=

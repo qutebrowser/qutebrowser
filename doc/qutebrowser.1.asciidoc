@@ -84,9 +84,6 @@ show it.
 *--force-color*::
     Force colored logging
 
-*--harfbuzz* '{old,new,system,auto}'::
-    HarfBuzz engine version to use. Default: auto.
-
 *--relaxed-config*::
     Silently remove unknown config options.
 

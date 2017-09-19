@@ -17,7 +17,7 @@ Feature: Javascript stuff
         And I run :click-element id close-normal
         Then "Focus object changed: *" should be logged
 
-    @qtwebkit_ng_skip
+    @qtwebkit_skip
     Scenario: Opening/closing a modal window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
@@ -26,7 +26,6 @@ Feature: Javascript stuff
         And I run :tab-focus 1
         And I run :click-element id close-normal
         Then "Focus object changed: *" should be logged
-        # WebModalDialog with QtWebKit, WebDialog with QtWebEngine
         And "Web*Dialog requested, but we don't support that!" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/906

@@ -30,8 +30,9 @@ import yaml
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils)
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.mainwindow import mainwindow
 
 
 default = object()  # Sentinel value
@@ -294,8 +295,7 @@ class SessionManager(QObject):
             raise SessionError(e)
 
         if load_next_time:
-            state_config = objreg.get('state-config')
-            state_config['general']['session'] = name
+            configfiles.state['general']['session'] = name
         return name
 
     def save_autosave(self):
@@ -372,7 +372,6 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
-        from qutebrowser.mainwindow import mainwindow
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:

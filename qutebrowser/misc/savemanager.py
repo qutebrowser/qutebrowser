@@ -113,18 +113,11 @@ class SaveManager(QObject):
         self.saveables = collections.OrderedDict()
         self._save_timer = usertypes.Timer(self, name='save-timer')
         self._save_timer.timeout.connect(self.autosave)
+        self._set_autosave_interval()
+        config.instance.changed.connect(self._set_autosave_interval)
 
     def __repr__(self):
         return utils.get_repr(self, saveables=self.saveables)
-
-    def init_autosave(self):
-        """Initialize auto-saving.
-
-        We don't do this in __init__ because the config needs to be initialized
-        first, but the config needs the save manager.
-        """
-        self._set_autosave_interval()
-        config.instance.changed.connect(self._set_autosave_interval)
 
     @config.change_filter('auto_save.interval')
     def _set_autosave_interval(self):

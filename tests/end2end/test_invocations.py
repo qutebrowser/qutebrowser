@@ -29,8 +29,6 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from qutebrowser.utils import qtutils
-
 
 def _base_args(config):
     """Get the arguments to pass with every invocation."""
@@ -72,7 +70,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
-def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
+def test_ascii_locale(request, server, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/908
@@ -85,7 +83,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     # Test a normal download
     quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
-        port=httpbin.port)
+        port=server.port)
     quteproc_new.send_cmd(':download {}'.format(url))
     quteproc_new.wait_for(category='downloads',
                           message='Download ?-issue908.bin finished')
@@ -105,7 +103,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
 
 
 @pytest.mark.linux
-def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
+def test_misconfigured_user_dirs(request, server, temp_basedir_env,
                                  tmpdir, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
@@ -124,7 +122,7 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
     quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/download.bin'.format(
-        port=httpbin.port)
+        port=server.port)
     quteproc_new.send_cmd(':download {}'.format(url))
     line = quteproc_new.wait_for(
         loglevel=logging.ERROR, category='message',
@@ -188,8 +186,6 @@ def test_version(request):
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
 
 
-@pytest.mark.skipif(not qtutils.version_check('5.3'),
-                    reason="Does not work on Qt 5.2")
 def test_qt_arg(request, quteproc_new, tmpdir):
     """Test --qt-arg."""
     args = (['--temp-basedir', '--qt-arg', 'stylesheet',
@@ -269,7 +265,7 @@ def test_launching_with_python2():
         pytest.skip("python2 not found")
     _stdout, stderr = proc.communicate()
     assert proc.returncode == 1
-    error = "At least Python 3.4 is required to run qutebrowser"
+    error = "At least Python 3.5 is required to run qutebrowser"
     assert stderr.decode('ascii').startswith(error)
 
 
