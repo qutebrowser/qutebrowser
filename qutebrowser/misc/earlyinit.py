@@ -263,6 +263,7 @@ def check_libraries():
                          pip="PyYAML"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
+        'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
     }
     _check_modules(modules)
 
@@ -278,7 +279,6 @@ def check_backend_libraries(backend):
         modules = {
             'PyQt5.QtWebEngineWidgets':
                 _missing_str("QtWebEngine", webengine=True),
-            'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
         }
     else:
         assert backend == usertypes.Backend.QtWebKit, backend
