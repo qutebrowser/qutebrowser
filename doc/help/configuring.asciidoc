@@ -66,6 +66,9 @@ link:commands.html#unbind[`:unbind`] commands:
 Key chains starting with a comma are ideal for custom bindings, as the comma key
 will never be used in a default keybinding.
 
+See the help pages linked above (or `:help :bind`, `:help :unbind`) for more
+information.
+
 Configuring qutebrowser via config.py
 -------------------------------------
 
@@ -159,27 +162,38 @@ To bind a key:
 .config.py:
 [source,python]
 ----
-config.bind(',v', 'spawn mpv {url}', mode='normal')
+config.bind('<Ctrl-v>', 'spawn mpv {url}')
 ----
 
-For bindings in normal mode, you can also leave out the `, mode='normal'` part.
+To bind a key in a mode other than `'normal'`, add a `mode` argument:
+
+[source,python]
+----
+config.bind('<Ctrl-y>', 'prompt-yes', mode='prompt')
+----
 
 If the key is already bound, `force=True` needs to be given to rebind it:
 
 [source,python]
 ----
-config.bind(',v', 'message-info foo', mode='normal', force=True)
+config.bind('<Ctrl-v>', 'message-info foo', force=True)
 ----
 
 To unbind a key (either a key which has been bound before, or a default binding):
 
 [source,python]
 ----
-config.unbind(',v', mode='normal')
+config.unbind('<Ctrl-v>', mode='normal')
 ----
 
-Key chains starting with a comma are ideal for custom bindings, as the comma key
+To bind keys without modifiers, specify a key chain to bind as a string. Key
+chains starting with a comma are ideal for custom bindings, as the comma key
 will never be used in a default keybinding.
+
+[source,python]
+----
+config.bind(',v', 'spawn mpv {url}')
+----
 
 To suppress loading of any default keybindings, you can set
 `c.bindings.default = {}`.
