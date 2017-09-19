@@ -22,7 +22,8 @@ from PyQt5.QtCore import QUrl
 import pytest
 
 from qutebrowser.browser.webkit import cookies
-from qutebrowser.misc import lineparser
+from qutebrowser.utils import usertypes
+from qutebrowser.misc import lineparser, objects
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 
@@ -62,6 +63,7 @@ class LineparserSaveStub(lineparser.BaseLineParser):
 
 def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
     """Test setCookiesFromUrl with cookies enabled."""
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
     config_stub.val.content.cookies.accept = 'all'
 
     ram_jar = cookies.RAMCookieJar()
@@ -78,8 +80,9 @@ def test_set_cookies_accept(config_stub, qtbot, monkeypatch):
     assert saved_cookie.name(), saved_cookie.value() == expected
 
 
-def test_set_cookies_never_accept(qtbot, config_stub):
+def test_set_cookies_never_accept(qtbot, config_stub, monkeypatch):
     """Test setCookiesFromUrl when cookies are not accepted."""
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
     config_stub.val.content.cookies.accept = 'never'
 
     ram_jar = cookies.RAMCookieJar()
