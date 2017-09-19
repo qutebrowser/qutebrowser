@@ -25,6 +25,7 @@ import textwrap
 import traceback
 import configparser
 import contextlib
+import copy
 
 import yaml
 from PyQt5.QtCore import QSettings
@@ -94,7 +95,10 @@ class YamlConfig:
         save_manager.add_saveable('yaml-config', self._save)
 
     def _save(self):
-        """Save the changed settings to the YAML file."""
+        """Save the settings to the YAML file if they've changed."""
+        if self.values == self._initial_values:
+            return
+
         data = {'config_version': self.VERSION, 'global': self.values}
         with qtutils.savefile_open(self._filename) as f:
             f.write(textwrap.dedent("""
@@ -106,6 +110,11 @@ class YamlConfig:
 
     def load(self):
         """Load self.values from the configured YAML file."""
+        self._initial_values = self._load()
+        self.values = copy.deepcopy(self._initial_values)
+
+    def _load(self):
+        """Load configuration from the configured YAML file."""
         try:
             with open(self._filename, 'r', encoding='utf-8') as f:
                 yaml_data = utils.yaml_load(f)
@@ -136,7 +145,7 @@ class YamlConfig:
                 "'global' object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        self.values = global_obj
+        return global_obj
 
 
 class ConfigAPI:
