@@ -85,6 +85,7 @@ class YamlConfig:
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
         self.values = {}
+        self._initial_values = {}
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -119,7 +120,7 @@ class YamlConfig:
             with open(self._filename, 'r', encoding='utf-8') as f:
                 yaml_data = utils.yaml_load(f)
         except FileNotFoundError:
-            return
+            return {}
         except OSError as e:
             desc = configexc.ConfigErrorDesc("While reading", e)
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
