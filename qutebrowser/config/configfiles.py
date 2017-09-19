@@ -25,7 +25,6 @@ import textwrap
 import traceback
 import configparser
 import contextlib
-import copy
 
 import yaml
 from PyQt5.QtCore import QSettings
