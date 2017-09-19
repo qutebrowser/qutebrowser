@@ -35,7 +35,8 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *
-from qutebrowser.utils import qtutils, standarddir
+from qutebrowser.utils import qtutils, standarddir, usertypes
+from qutebrowser.misc import objects
 
 import qutebrowser.app  # To register commands
 
@@ -182,6 +183,14 @@ def check_display(request):
 
     if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
         raise Exception("No display and no Xvfb available!")
+
+
+@pytest.fixture(autouse=True)
+def set_backend(monkeypatch, request):
+    """Make sure the backend global is set."""
+    backend = (usertypes.Backend.QtWebEngine if request.config.webengine
+               else usertypes.Backend.QtWebKit)
+    monkeypatch.setattr(objects, 'backend', backend)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
