@@ -191,16 +191,24 @@ class TestConfigPy:
         configfiles.read_config_py(confpy.filename)
         assert config.instance._values['colors.hints.bg'] == expected
 
-    def test_bind(self, confpy):
-        confpy.write('config.bind(",a", "message-info foo", mode="normal")')
+    @pytest.mark.parametrize('line, mode', [
+        ('config.bind(",a", "message-info foo")', 'normal'),
+        ('config.bind(",a", "message-info foo", "prompt")', 'prompt'),
+    ])
+    def test_bind(self, confpy, line, mode):
+        confpy.write(line)
         configfiles.read_config_py(confpy.filename)
-        expected = {'normal': {',a': 'message-info foo'}}
+        expected = {mode: {',a': 'message-info foo'}}
         assert config.instance._values['bindings.commands'] == expected
 
-    def test_unbind(self, confpy):
-        confpy.write('config.unbind("o", mode="normal")')
+    @pytest.mark.parametrize('line, key, mode', [
+        ('config.unbind("o")', 'o', 'normal'),
+        ('config.unbind("y", mode="prompt")', 'y', 'prompt'),
+    ])
+    def test_unbind(self, confpy, line, key, mode):
+        confpy.write(line)
         configfiles.read_config_py(confpy.filename)
-        expected = {'normal': {'o': None}}
+        expected = {mode: {key: None}}
         assert config.instance._values['bindings.commands'] == expected
 
     def test_mutating(self, confpy):

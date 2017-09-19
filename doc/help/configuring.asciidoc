@@ -162,6 +162,8 @@ To bind a key:
 config.bind(',v', 'spawn mpv {url}', mode='normal')
 ----
 
+For bindings in normal mode, you can also leave out the `, mode='normal'` part.
+
 If the key is already bound, `force=True` needs to be given to rebind it:
 
 [source,python]
