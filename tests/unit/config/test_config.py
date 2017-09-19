@@ -1036,3 +1036,35 @@ class TestQtArgs:
         parsed = parser.parse_args(['--qt-flag', 'foo'])
         config_stub.val.qt_args = ['bar']
         assert config.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
+
+
+@pytest.mark.parametrize('arg, confval, can_import, is_new_webkit, used', [
+    # overridden by commandline arg
+    ('webkit', 'auto', False, False, usertypes.Backend.QtWebKit),
+    # overridden by config
+    (None, 'webkit', False, False, usertypes.Backend.QtWebKit),
+    # WebKit available but too old
+    (None, 'auto', True, False, usertypes.Backend.QtWebEngine),
+    # WebKit available and new
+    (None, 'auto', True, True, usertypes.Backend.QtWebKit),
+    # WebKit unavailable
+    (None, 'auto', False, False, usertypes.Backend.QtWebEngine),
+])
+def test_get_backend(monkeypatch, fake_args, config_stub,
+                     arg, confval, can_import, is_new_webkit, used):
+    real_import = __import__
+
+    def fake_import(name, *args, **kwargs):
+        if name != 'PyQt5.QtWebKit':
+            return real_import(name, *args, **kwargs)
+        if can_import:
+            return None
+        raise ImportError
+
+    fake_args.backend = arg
+    config_stub.val.backend = confval
+    monkeypatch.setattr(config.qtutils, 'is_new_qtwebkit',
+                        lambda: is_new_webkit)
+    monkeypatch.setattr('builtins.__import__', fake_import)
+
+    assert config.get_backend(fake_args) == used
