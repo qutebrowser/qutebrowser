@@ -415,10 +415,10 @@ class QuteProc(testprocess.Process):
         if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:
-            httpbin = self.request.getfixturevalue('httpbin')
+            server = self.request.getfixturevalue('server')
             return '{}://localhost:{}/{}'.format(
                 'https' if https else 'http',
-                httpbin.port if port is None else port,
+                server.port if port is None else port,
                 path if path != '/' else '')
 
     def wait_for_js(self, message):
@@ -778,7 +778,7 @@ def _xpath_escape(text):
 
 
 @pytest.fixture(scope='module')
-def quteproc_process(qapp, httpbin, request):
+def quteproc_process(qapp, server, request):
     """Fixture for qutebrowser process which is started once per file."""
     # Passing request so it has an initial config
     proc = QuteProc(request)
@@ -788,7 +788,7 @@ def quteproc_process(qapp, httpbin, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, httpbin, request):
+def quteproc(quteproc_process, server, request):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
@@ -798,7 +798,7 @@ def quteproc(quteproc_process, httpbin, request):
 
 
 @pytest.fixture
-def quteproc_new(qapp, httpbin, request):
+def quteproc_new(qapp, server, request):
     """Per-test qutebrowser process to test invocations."""
     proc = QuteProc(request)
     request.node._quteproc_log = proc.captured_log

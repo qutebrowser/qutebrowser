@@ -66,23 +66,23 @@ class FakeRequest:
 
     """Fake for request."""
 
-    def __init__(self, node, config, httpbin):
+    def __init__(self, node, config, server):
         self.node = node
         self.config = config
-        self._httpbin = httpbin
+        self._server = server
 
     def getfixturevalue(self, name):
-        assert name == 'httpbin'
-        return self._httpbin
+        assert name == 'server'
+        return self._server
 
 
 @pytest.fixture
-def request_mock(quteproc, monkeypatch, httpbin):
+def request_mock(quteproc, monkeypatch, server):
     """Patch out a pytest request."""
     fake_call = FakeRepCall()
     fake_config = FakeConfig()
     fake_node = FakeNode(fake_call)
-    fake_request = FakeRequest(fake_node, fake_config, httpbin)
+    fake_request = FakeRequest(fake_node, fake_config, server)
     assert not hasattr(fake_request.node.rep_call, 'wasxfail')
     monkeypatch.setattr(quteproc, 'request', fake_request)
     return fake_request

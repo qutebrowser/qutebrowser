@@ -116,14 +116,14 @@ def pytest_runtest_makereport(item, call):
 
 
 @bdd.given(bdd.parsers.parse("I set {opt} to {value}"))
-def set_setting_given(quteproc, httpbin, opt, value):
+def set_setting_given(quteproc, server, opt, value):
     """Set a qutebrowser setting.
 
     This is available as "Given:" step so it can be used as "Background:".
     """
     if value == '<empty>':
         value = ''
-    value = value.replace('(port)', str(httpbin.port))
+    value = value.replace('(port)', str(server.port))
     quteproc.set_setting(opt, value)
 
 
@@ -174,7 +174,7 @@ def pdfjs_available():
 
 
 @bdd.when(bdd.parsers.parse("I open {path}"))
-def open_path(quteproc, httpbin, path):
+def open_path(quteproc, server, path):
     """Open a URL.
 
     - If used like "When I open ... in a new tab", the URL is opened in a new
@@ -183,7 +183,7 @@ def open_path(quteproc, httpbin, path):
     - With "... in a private window" it's opened in a new private window.
     - With "... as a URL", it's opened according to new_instance_open_target.
     """
-    path = path.replace('(port)', str(httpbin.port))
+    path = path.replace('(port)', str(server.port))
 
     new_tab = False
     new_bg_tab = False
@@ -227,16 +227,16 @@ def open_path(quteproc, httpbin, path):
 
 
 @bdd.when(bdd.parsers.parse("I set {opt} to {value}"))
-def set_setting(quteproc, httpbin, opt, value):
+def set_setting(quteproc, server, opt, value):
     """Set a qutebrowser setting."""
     if value == '<empty>':
         value = ''
-    value = value.replace('(port)', str(httpbin.port))
+    value = value.replace('(port)', str(server.port))
     quteproc.set_setting(opt, value)
 
 
 @bdd.when(bdd.parsers.parse("I run {command}"))
-def run_command(quteproc, httpbin, tmpdir, command):
+def run_command(quteproc, server, tmpdir, command):
     """Run a qutebrowser command.
 
     The suffix "with count ..." can be used to pass a count to the command.
@@ -254,7 +254,7 @@ def run_command(quteproc, httpbin, tmpdir, command):
     else:
         invalid = False
 
-    command = command.replace('(port)', str(httpbin.port))
+    command = command.replace('(port)', str(server.port))
     command = command.replace('(testdata)', utils.abs_datapath())
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
@@ -264,9 +264,9 @@ def run_command(quteproc, httpbin, tmpdir, command):
 
 
 @bdd.when(bdd.parsers.parse("I reload"))
-def reload(qtbot, httpbin, quteproc, command):
+def reload(qtbot, server, quteproc, command):
     """Reload and wait until a new request is received."""
-    with qtbot.waitSignal(httpbin.new_request):
+    with qtbot.waitSignal(server.new_request):
         quteproc.send_cmd(':reload')
 
 
@@ -294,10 +294,10 @@ def wait_in_log(quteproc, is_regex, pattern, do_skip):
 
 @bdd.when(bdd.parsers.re(r'I wait for the (?P<category>error|message|warning) '
                          r'"(?P<message>.*)"'))
-def wait_for_message(quteproc, httpbin, category, message):
+def wait_for_message(quteproc, server, category, message):
     """Wait for a given statusbar message/error/warning."""
     quteproc.log_summary('Waiting for {} "{}"'.format(category, message))
-    expect_message(quteproc, httpbin, category, message)
+    expect_message(quteproc, server, category, message)
 
 
 @bdd.when(bdd.parsers.parse("I wait {delay}s"))
@@ -328,8 +328,8 @@ def selection_not_supported(qapp):
 
 @bdd.when(bdd.parsers.re(r'I put "(?P<content>.*)" into the '
                          r'(?P<what>primary selection|clipboard)'))
-def fill_clipboard(quteproc, httpbin, what, content):
-    content = content.replace('(port)', str(httpbin.port))
+def fill_clipboard(quteproc, server, what, content):
+    content = content.replace('(port)', str(server.port))
     content = content.replace(r'\n', '\n')
     quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(content))
 
@@ -337,8 +337,8 @@ def fill_clipboard(quteproc, httpbin, what, content):
 @bdd.when(bdd.parsers.re(r'I put the following lines into the '
                          r'(?P<what>primary selection|clipboard):\n'
                          r'(?P<content>.+)$', flags=re.DOTALL))
-def fill_clipboard_multiline(quteproc, httpbin, what, content):
-    fill_clipboard(quteproc, httpbin, what, textwrap.dedent(content))
+def fill_clipboard_multiline(quteproc, server, what, content):
+    fill_clipboard(quteproc, server, what, textwrap.dedent(content))
 
 
 @bdd.when(bdd.parsers.parse('I hint with args "{args}"'))
@@ -395,28 +395,28 @@ def path_should_be_loaded(quteproc, path):
 
 
 @bdd.then(bdd.parsers.parse("{path} should be requested"))
-def path_should_be_requested(httpbin, path):
+def path_should_be_requested(server, path):
     """Make sure the given path was loaded from the webserver."""
-    httpbin.wait_for(verb='GET', path='/' + path)
+    server.wait_for(verb='GET', path='/' + path)
 
 
 @bdd.then(bdd.parsers.parse("The requests should be:\n{pages}"))
-def list_of_requests(httpbin, pages):
+def list_of_requests(server, pages):
     """Make sure the given requests were done from the webserver."""
-    expected_requests = [httpbin.ExpectedRequest('GET', '/' + path.strip())
+    expected_requests = [server.ExpectedRequest('GET', '/' + path.strip())
                          for path in pages.split('\n')]
-    actual_requests = httpbin.get_requests()
+    actual_requests = server.get_requests()
     assert actual_requests == expected_requests
 
 
 @bdd.then(bdd.parsers.parse("The unordered requests should be:\n{pages}"))
-def list_of_requests_unordered(httpbin, pages):
+def list_of_requests_unordered(server, pages):
     """Make sure the given requests were done (in no particular order)."""
-    expected_requests = [httpbin.ExpectedRequest('GET', '/' + path.strip())
+    expected_requests = [server.ExpectedRequest('GET', '/' + path.strip())
                          for path in pages.split('\n')]
-    actual_requests = httpbin.get_requests()
+    actual_requests = server.get_requests()
     # Requests are not hashable, we need to convert to ExpectedRequests
-    actual_requests = [httpbin.ExpectedRequest.from_request(req)
+    actual_requests = [server.ExpectedRequest.from_request(req)
                        for req in actual_requests]
     assert (collections.Counter(actual_requests) ==
             collections.Counter(expected_requests))
@@ -424,14 +424,14 @@ def list_of_requests_unordered(httpbin, pages):
 
 @bdd.then(bdd.parsers.re(r'the (?P<category>error|message|warning) '
                          r'"(?P<message>.*)" should be shown'))
-def expect_message(quteproc, httpbin, category, message):
+def expect_message(quteproc, server, category, message):
     """Expect the given message in the qutebrowser log."""
     category_to_loglevel = {
         'message': logging.INFO,
         'error': logging.ERROR,
         'warning': logging.WARNING,
     }
-    message = message.replace('(port)', str(httpbin.port))
+    message = message.replace('(port)', str(server.port))
     quteproc.mark_expected(category='message',
                            loglevel=category_to_loglevel[category],
                            message=message)
@@ -439,12 +439,12 @@ def expect_message(quteproc, httpbin, category, message):
 
 @bdd.then(bdd.parsers.re(r'(?P<is_regex>regex )?"(?P<pattern>[^"]+)" should '
                          r'be logged'))
-def should_be_logged(quteproc, httpbin, is_regex, pattern):
+def should_be_logged(quteproc, server, is_regex, pattern):
     """Expect the given pattern on regex in the log."""
     if is_regex:
         pattern = re.compile(pattern)
     else:
-        pattern = pattern.replace('(port)', str(httpbin.port))
+        pattern = pattern.replace('(port)', str(server.port))
     line = quteproc.wait_for(message=pattern)
     line.expected = True
 
@@ -493,7 +493,7 @@ def no_crash():
 def check_header(quteproc, header, value):
     """Check if a given header is set correctly.
 
-    This assumes we're on the httpbin header page.
+    This assumes we're on the server header page.
     """
     content = quteproc.get_content()
     data = json.loads(content)
@@ -589,16 +589,16 @@ def check_open_tabs(quteproc, request, tabs):
 
 @bdd.then(bdd.parsers.re(r'the (?P<what>primary selection|clipboard) should '
                          r'contain "(?P<content>.*)"'))
-def clipboard_contains(quteproc, httpbin, what, content):
-    expected = content.replace('(port)', str(httpbin.port))
+def clipboard_contains(quteproc, server, what, content):
+    expected = content.replace('(port)', str(server.port))
     expected = expected.replace('\\n', '\n')
     quteproc.wait_for(message='Setting fake {}: {}'.format(
         what, json.dumps(expected)))
 
 
 @bdd.then(bdd.parsers.parse('the clipboard should contain:\n{content}'))
-def clipboard_contains_multiline(quteproc, httpbin, content):
-    expected = textwrap.dedent(content).replace('(port)', str(httpbin.port))
+def clipboard_contains_multiline(quteproc, server, content):
+    expected = textwrap.dedent(content).replace('(port)', str(server.port))
     quteproc.wait_for(message='Setting fake clipboard: {}'.format(
         json.dumps(expected)))
 

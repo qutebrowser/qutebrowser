@@ -70,7 +70,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
-def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
+def test_ascii_locale(request, server, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/908
@@ -83,7 +83,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     # Test a normal download
     quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
-        port=httpbin.port)
+        port=server.port)
     quteproc_new.send_cmd(':download {}'.format(url))
     quteproc_new.wait_for(category='downloads',
                           message='Download ?-issue908.bin finished')
@@ -103,7 +103,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
 
 
 @pytest.mark.linux
-def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
+def test_misconfigured_user_dirs(request, server, temp_basedir_env,
                                  tmpdir, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
@@ -122,7 +122,7 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
     quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/download.bin'.format(
-        port=httpbin.port)
+        port=server.port)
     quteproc_new.send_cmd(':download {}'.format(url))
     line = quteproc_new.wait_for(
         loglevel=logging.ERROR, category='message',

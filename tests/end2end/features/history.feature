@@ -46,10 +46,10 @@ Feature: Page history
 
     @qtwebengine_todo: Error page message is not implemented
     Scenario: History with a 404
-        When I open status/404 without waiting
-        And I wait for "Error while loading http://localhost:*/status/404: NOT FOUND" in the log
+        When I open 404 without waiting
+        And I wait for "Error while loading http://localhost:*/404: NOT FOUND" in the log
         Then the history should contain:
-            http://localhost:(port)/status/404 Error loading page: http://localhost:(port)/status/404
+            http://localhost:(port)/404 Error loading page: http://localhost:(port)/404
 
     Scenario: History with invalid URL
         When I run :tab-only

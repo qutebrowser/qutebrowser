@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Test the httpbin webserver used for tests."""
+"""Test the server webserver used for tests."""
 
 import json
 import urllib.request
@@ -27,14 +27,14 @@ import pytest
 
 
 @pytest.mark.parametrize('path, content, expected', [
-    ('/', '<title>httpbin(1): HTTP Client Testing Service</title>', True),
-    # https://github.com/Runscope/httpbin/issues/245
+    ('/', 'qutebrowser test webserver', True),
+    # https://github.com/Runscope/server/issues/245
     ('/', 'www.google-analytics.com', False),
     ('/data/hello.txt', 'Hello World!', True),
 ])
-def test_httpbin(httpbin, qtbot, path, content, expected):
-    with qtbot.waitSignal(httpbin.new_request, timeout=100):
-        url = 'http://localhost:{}{}'.format(httpbin.port, path)
+def test_server(server, qtbot, path, content, expected):
+    with qtbot.waitSignal(server.new_request, timeout=100):
+        url = 'http://localhost:{}{}'.format(server.port, path)
         try:
             response = urllib.request.urlopen(url)
         except urllib.error.HTTPError as e:
@@ -47,7 +47,7 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
 
     data = response.read().decode('utf-8')
 
-    assert httpbin.get_requests() == [httpbin.ExpectedRequest('GET', path)]
+    assert server.get_requests() == [server.ExpectedRequest('GET', path)]
     assert (content in data) == expected
 
 
@@ -58,7 +58,7 @@ def test_httpbin(httpbin, qtbot, path, content, expected):
     ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
     ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
 ])
-def test_expected_request(httpbin, line, verb, path, equal):
-    expected = httpbin.ExpectedRequest(verb, path)
-    request = httpbin.Request(json.dumps(line))
+def test_expected_request(server, line, verb, path, equal):
+    expected = server.ExpectedRequest(verb, path)
+    request = server.Request(json.dumps(line))
     assert (expected == request) == equal

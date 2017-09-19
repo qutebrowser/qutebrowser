@@ -90,7 +90,7 @@ def _render_log(data, threshold=100):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Add qutebrowser/httpbin sections to captured output if a test failed."""
+    """Add qutebrowser/server sections to captured output if a test failed."""
     outcome = yield
     if call.when not in ['call', 'teardown']:
         return
@@ -100,7 +100,7 @@ def pytest_runtest_makereport(item, call):
         return
 
     quteproc_log = getattr(item, '_quteproc_log', None)
-    httpbin_log = getattr(item, '_httpbin_log', None)
+    server_log = getattr(item, '_server_log', None)
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on macOS and Windows it seems), report.longrepr
@@ -114,8 +114,8 @@ def pytest_runtest_makereport(item, call):
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
                                    _render_log(quteproc_log))
-    if httpbin_log is not None:
-        report.longrepr.addsection("httpbin output", _render_log(httpbin_log))
+    if server_log is not None:
+        report.longrepr.addsection("server output", _render_log(server_log))
 
 
 class Process(QObject):
