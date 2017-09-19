@@ -68,7 +68,7 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
     yaml.load()
 
     if insert:
-        yaml.values['tabs.show'] = 'never'
+        yaml['tabs.show'] = 'never'
 
     yaml._save()
 

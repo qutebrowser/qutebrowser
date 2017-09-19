@@ -414,11 +414,23 @@ class FakeYamlConfig:
     """Fake configfiles.YamlConfig object."""
 
     def __init__(self):
-        self.values = {}
         self.loaded = False
+        self._values = {}
 
     def load(self):
         self.loaded = True
+
+    def __contains__(self, item):
+        return item in self._values
+
+    def __iter__(self):
+        return iter(self._values.items())
+
+    def __setitem__(self, key, value):
+        self._values[key] = value
+
+    def __getitem__(self, key):
+        return self._values[key]
 
 
 class StatusBarCommandStub(QLineEdit):

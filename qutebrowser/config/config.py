@@ -408,7 +408,7 @@ class Config(QObject):
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
-        for name, value in self._yaml.values.items():
+        for name, value in self._yaml:
             self._set_value(self.get_opt(name), value)
 
     def get_opt(self, name):
@@ -455,7 +455,7 @@ class Config(QObject):
         """
         self._set_value(self.get_opt(name), value)
         if save_yaml:
-            self._yaml.values[name] = value
+            self._yaml[name] = value
 
     def set_str(self, name, value, *, save_yaml=False):
         """Set the given setting from a string.
@@ -469,7 +469,7 @@ class Config(QObject):
                                  value))
         self._set_value(opt, converted)
         if save_yaml:
-            self._yaml.values[name] = converted
+            self._yaml[name] = converted
 
     def update_mutables(self, *, save_yaml=False):
         """Update mutable settings if they changed.

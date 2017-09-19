@@ -317,9 +317,9 @@ class TestSetConfigCommand:
         assert config_stub.get(option) == new_value
 
         if temp:
-            assert option not in config_stub._yaml.values
+            assert option not in config_stub._yaml
         else:
-            assert config_stub._yaml.values[option] == new_value
+            assert config_stub._yaml[option] == new_value
 
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_temp_override(self, commands, config_stub, temp):
@@ -335,7 +335,7 @@ class TestSetConfigCommand:
         commands.set(0, 'url.auto_search', 'never', temp=True)
 
         assert config_stub.val.url.auto_search == 'never'
-        assert config_stub._yaml.values['url.auto_search'] == 'dns'
+        assert config_stub._yaml['url.auto_search'] == 'dns'
 
     def test_set_print(self, config_stub, commands, message_mock):
         """Run ':set -p url.auto_search never'.
@@ -357,7 +357,7 @@ class TestSetConfigCommand:
         assert not config_stub.val.auto_save.session
         commands.set(0, 'auto_save.session!')
         assert config_stub.val.auto_save.session
-        assert config_stub._yaml.values['auto_save.session']
+        assert config_stub._yaml['auto_save.session']
 
     def test_set_toggle_nonbool(self, commands, config_stub):
         """Run ':set url.auto_search!'.
@@ -439,7 +439,7 @@ class TestSetConfigCommand:
         config_stub.set_obj(opt, initial)
         commands.set(0, opt, 'green', 'magenta', 'blue', 'yellow')
         assert config_stub.get(opt) == expected
-        assert config_stub._yaml.values[opt] == expected
+        assert config_stub._yaml[opt] == expected
 
 
 class TestBindConfigCommand:
@@ -464,7 +464,7 @@ class TestBindConfigCommand:
 
         commands.bind('a', command)
         assert keyconf.get_command('a', 'normal') == command
-        yaml_bindings = config_stub._yaml.values['bindings.commands']['normal']
+        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         assert yaml_bindings['a'] == command
 
     @pytest.mark.parametrize('key, mode, expected', [
@@ -565,7 +565,7 @@ class TestBindConfigCommand:
         commands.unbind(key)
         assert keyconf.get_command(key, 'normal') is None
 
-        yaml_bindings = config_stub._yaml.values['bindings.commands']['normal']
+        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         if key in 'bc':
             # Custom binding
             assert normalized not in yaml_bindings
@@ -612,7 +612,7 @@ class TestConfig:
 
     def test_read_yaml(self, conf):
         assert not conf._yaml.loaded
-        conf._yaml.values['content.plugins'] = True
+        conf._yaml['content.plugins'] = True
 
         conf.read_yaml()
 
@@ -620,7 +620,7 @@ class TestConfig:
         assert conf._values['content.plugins'] is True
 
     def test_read_yaml_invalid(self, conf):
-        conf._yaml.values['foo.bar'] = True
+        conf._yaml['foo.bar'] = True
         with pytest.raises(configexc.NoOptionError):
             conf.read_yaml()
 
@@ -743,9 +743,9 @@ class TestConfig:
             meth(option, value, save_yaml=save_yaml)
         assert conf._values[option] is True
         if save_yaml:
-            assert conf._yaml.values[option] is True
+            assert conf._yaml[option] is True
         else:
-            assert option not in conf._yaml.values
+            assert option not in conf._yaml
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_invalid(self, conf, qtbot, method):
