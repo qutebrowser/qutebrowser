@@ -55,6 +55,7 @@ def test_content_disposition_directly(s):
 
 
 @hypothesis.given(strategies.text())
+@hypothesis.settings(deadline=400)
 def test_parse_content_type(stubs, s):
     reply = stubs.FakeNetworkReply(headers={'Content-Type': s})
     http.parse_content_type(reply)
