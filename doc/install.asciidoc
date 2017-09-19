@@ -331,6 +331,9 @@ it as part of the packaging process.
 Installing qutebrowser with tox
 -------------------------------
 
+Getting the repository
+~~~~~~~~~~~~~~~~~~~~~~
+
 First of all, clone the repository using http://git-scm.org/[git] and switch
 into the repository folder:
 
@@ -339,6 +342,8 @@ $ git clone https://github.com/qutebrowser/qutebrowser.git
 $ cd qutebrowser
 ----
 
+Installing depdendencies (including Qt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Then run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
@@ -347,20 +352,39 @@ https://docs.python.org/3/library/venv.html[virtual environment]:
 $ tox -e mkvenv-pypi
 ----
 
-If your distribution uses OpenSSL 1.1 (like Debian Stretch or Archlinux), you'll
-need to set `LD_LIBRARY_PATH` to the OpenSSL 1.0 directory
-(`export LD_LIBRARY_PATH=/usr/lib/openssl-1.0` on Archlinux) before starting
-qutebrowser.
+This installs all needed Python dependencies in a `.venv` subfolder.
+
+This comes with an up-to-date Qt/PyQt including QtWebEngine, but has a few
+caveats:
+
+- Make sure your `python3` is Python 3.5 or newer, otherwise you'll get a "No
+  matching distribution found" error. Note that qutebrowser itself also requires
+  this.
+- It only works on 64-bit x86 systems, with other architectures you'll get the
+  same error.
+- If your distribution uses OpenSSL 1.1 (like Debian Stretch or Archlinux),
+  you'll need to set `LD_LIBRARY_PATH` to the OpenSSL 1.0 directory
+  (`export LD_LIBRARY_PATH=/usr/lib/openssl-1.0` on Archlinux) before starting
+  qutebrowser if you want SSL to work in certain downloads (e.g. for
+  `:adblock-update` or `:download`).
+- It comes with a QtWebEngine compiled without proprietary codec support (such
+  as h.264).
+
+See the next section for an alternative.
+
+Installing dependencies (system-wide Qt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Alternatively, you can use `tox -e mkvenv` (without `-pypi`) to symlink your
 local Qt install instead of installing PyQt in the virtualenv. However, unless
-you have QtWebKit-NG or QtWebEngine available, qutebrowser will use the legacy
-QtWebKit backend.
+you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
+also typically means you'll be using an older release of QtWebEngine.
 
 On Windows, run `tox -e 'mkvenv-win' instead, however make sure that ONLY
 Python3 is in your PATH before running tox.
 
-This installs all needed Python dependencies in a `.venv` subfolder.
+Creating a wrapper script
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can then create a simple wrapper script to start qutebrowser somewhere in
 your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
