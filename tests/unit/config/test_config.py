@@ -603,6 +603,13 @@ class TestConfig:
         expected_message = 'Config option changed: tabs.show = never'
         assert caplog.records[0].message == expected_message
 
+    def test_set_value_no_backend(self, monkeypatch, conf):
+        """Make sure setting values when the backend is still unknown works."""
+        monkeypatch.setattr(config.objects, 'backend', objects.NoBackend())
+        opt = conf.get_opt('tabs.show')
+        conf._set_value(opt, 'never')
+        assert conf._values['tabs.show'] == 'never'
+
     def test_read_yaml(self, conf):
         assert not conf._yaml.loaded
         conf._yaml.values['content.plugins'] = True
