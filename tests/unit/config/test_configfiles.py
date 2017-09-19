@@ -152,6 +152,11 @@ class TestConfigPy:
             text = '\n'.join(lines)
             self._confpy.write_text(text, 'utf-8', ensure=True)
 
+        def read(self):
+            """Read the config.py via configfiles and check for errors."""
+            api = configfiles.read_config_py(self.filename)
+            assert not api.errors
+
     @pytest.fixture
     def confpy(self, tmpdir):
         return self.ConfPy(tmpdir)
@@ -162,7 +167,7 @@ class TestConfigPy:
     ])
     def test_set(self, confpy, line):
         confpy.write(line)
-        configfiles.read_config_py(confpy.filename)
+        confpy.read()
         assert config.instance._values['colors.hints.bg'] == 'red'
 
     @pytest.mark.parametrize('set_first', [True, False])
@@ -188,7 +193,7 @@ class TestConfigPy:
         else:
             confpy.write('c.colors.hints.bg = {}'.format(get_line))
             expected = 'green'
-        configfiles.read_config_py(confpy.filename)
+        confpy.read()
         assert config.instance._values['colors.hints.bg'] == expected
 
     @pytest.mark.parametrize('line, mode', [
@@ -198,6 +203,7 @@ class TestConfigPy:
     def test_bind(self, confpy, line, mode):
         confpy.write(line)
         configfiles.read_config_py(confpy.filename)
+        confpy.read()
         expected = {mode: {',a': 'message-info foo'}}
         assert config.instance._values['bindings.commands'] == expected
 
@@ -207,13 +213,13 @@ class TestConfigPy:
     ])
     def test_unbind(self, confpy, line, key, mode):
         confpy.write(line)
-        configfiles.read_config_py(confpy.filename)
+        confpy.read()
         expected = {mode: {key: None}}
         assert config.instance._values['bindings.commands'] == expected
 
     def test_mutating(self, confpy):
         confpy.write('c.aliases["foo"] = "message-info foo"')
-        configfiles.read_config_py(confpy.filename)
+        confpy.read()
         assert config.instance._values['aliases']['foo'] == 'message-info foo'
 
     def test_reading_default_location(self, config_tmpdir):
