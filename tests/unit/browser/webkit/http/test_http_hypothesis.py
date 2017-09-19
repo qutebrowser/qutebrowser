@@ -35,6 +35,7 @@ from qutebrowser.browser.webkit import http, rfc6266
     'attachment; filename*={}',
 ])
 @hypothesis.given(strategies.text(alphabet=[chr(x) for x in range(255)]))
+@hypothesis.settings(deadline=400)
 def test_parse_content_disposition(caplog, template, stubs, s):
     """Test parsing headers based on templates which hypothesis completes."""
     header = template.format(s)
