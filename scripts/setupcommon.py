@@ -105,7 +105,7 @@ setupdata = {
     'description': _get_constant('description'),
     'long_description': read_file('README.asciidoc'),
     'url': 'https://www.qutebrowser.org/',
-    'requires': ['pypeg2', 'jinja2', 'pygments', 'PyYAML'],
+    'requires': ['pypeg2', 'jinja2', 'pygments', 'PyYAML', 'attrs'],
     'author': _get_constant('author'),
     'author_email': _get_constant('email'),
     'license': _get_constant('license'),
