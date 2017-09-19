@@ -202,7 +202,6 @@ class TestConfigPy:
     ])
     def test_bind(self, confpy, line, mode):
         confpy.write(line)
-        configfiles.read_config_py(confpy.filename)
         confpy.read()
         expected = {mode: {',a': 'message-info foo'}}
         assert config.instance._values['bindings.commands'] == expected

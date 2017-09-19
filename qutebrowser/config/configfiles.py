@@ -180,11 +180,11 @@ class ConfigAPI:
         with self._handle_error('setting', name):
             self._config.set_obj(name, value)
 
-    def bind(self, key, command, *, mode='normal', force=False):
+    def bind(self, key, command, mode='normal', *, force=False):
         with self._handle_error('binding', key):
             self._keyconfig.bind(key, command, mode=mode, force=force)
 
-    def unbind(self, key, *, mode='normal'):
+    def unbind(self, key, mode='normal'):
         with self._handle_error('unbinding', key):
             self._keyconfig.unbind(key, mode=mode)
 
