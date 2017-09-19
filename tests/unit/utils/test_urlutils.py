@@ -20,9 +20,9 @@
 """Tests for qutebrowser.utils.urlutils."""
 
 import os.path
-import collections
 import logging
 
+import attr
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy
 import pytest
@@ -38,7 +38,7 @@ class FakeDNS:
     """Helper class for the fake_dns fixture.
 
     Class attributes:
-        FakeDNSAnswer: Helper class/namedtuple imitating a QHostInfo object
+        FakeDNSAnswer: Helper class imitating a QHostInfo object
                        (used by fromname_mock).
 
     Attributes:
@@ -48,7 +48,10 @@ class FakeDNS:
                 when fromname_mock is called.
     """
 
-    FakeDNSAnswer = collections.namedtuple('FakeDNSAnswer', ['error'])
+    @attr.s
+    class FakeDNSAnswer:
+
+        error = attr.ib()
 
     def __init__(self):
         self.used = False

@@ -25,10 +25,10 @@ import json
 import os.path
 import types
 import textwrap
-import collections
 import logging
 import subprocess
 
+import attr
 from PyQt5.QtCore import QStandardPaths
 import pytest
 
@@ -207,9 +207,6 @@ class TestStandardDir:
         assert func().split(os.sep)[-elems:] == expected
 
 
-DirArgTest = collections.namedtuple('DirArgTest', 'arg, expected')
-
-
 class TestArguments:
 
     """Tests the --basedir argument."""
@@ -370,10 +367,16 @@ class TestMoveWindowsAndMacOS:
 
     @pytest.fixture
     def files(self, tmpdir):
-        files = collections.namedtuple('Files', [
-            'auto_config_dir', 'config_dir',
-            'local_data_dir', 'roaming_data_dir'])
-        return files(
+
+        @attr.s
+        class Files:
+
+            auto_config_dir = attr.ib()
+            config_dir = attr.ib()
+            local_data_dir = attr.ib()
+            roaming_data_dir = attr.ib()
+
+        return Files(
             auto_config_dir=tmpdir / 'auto_config' / APPNAME,
             config_dir=tmpdir / 'config' / APPNAME,
             local_data_dir=tmpdir / 'data' / APPNAME,
@@ -412,11 +415,17 @@ class TestMove:
 
     @pytest.fixture
     def dirs(self, tmpdir):
-        dirs = collections.namedtuple('Dirs', ['old', 'new',
-                                               'old_file', 'new_file'])
+        @attr.s
+        class Dirs:
+
+            old = attr.ib()
+            new = attr.ib()
+            old_file = attr.ib()
+            new_file = attr.ib()
+
         old_dir = tmpdir / 'old'
         new_dir = tmpdir / 'new'
-        return dirs(old=old_dir, new=new_dir,
+        return Dirs(old=old_dir, new=new_dir,
                     old_file=old_dir / 'file', new_file=new_dir / 'file')
 
     def test_no_old_dir(self, dirs, caplog):

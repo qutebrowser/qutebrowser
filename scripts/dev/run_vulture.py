@@ -115,6 +115,12 @@ def whitelist_generator():
                  '_get_default_metavar_for_positional', '_metavar_formatter']:
         yield 'scripts.dev.src2asciidoc.UsageFormatter.' + attr
 
+    # attrs
+    yield 'qutebrowser.browser.webkit.network.networkmanager.ProxyId.hostname'
+    yield 'qutebrowser.command.command.ArgInfo._validate_exclusive'
+    yield 'scripts.get_coredumpctl_traces.Line.uid'
+    yield 'scripts.get_coredumpctl_traces.Line.gid'
+
 
 def filter_func(item):
     """Check if a missing function should be filtered or not.

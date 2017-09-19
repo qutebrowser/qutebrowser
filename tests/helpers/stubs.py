@@ -23,6 +23,7 @@
 
 from unittest import mock
 
+import attr
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
@@ -202,9 +203,9 @@ class FakeNetworkReply:
 def fake_qprocess():
     """Factory for a QProcess mock which has the QProcess enum values."""
     m = mock.Mock(spec=QProcess)
-    for attr in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
+    for name in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
                  'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
-        setattr(m, attr, getattr(QProcess, attr))
+        setattr(m, name, getattr(QProcess, name))
     return m
 
 
@@ -315,27 +316,26 @@ class FakeSignal:
         pass
 
 
+@attr.s
 class FakeCmdUtils:
 
     """Stub for cmdutils which provides a cmd_dict."""
 
-    def __init__(self, commands):
-        self.cmd_dict = commands
+    cmd_dict = attr.ib()
 
 
+@attr.s(frozen=True)
 class FakeCommand:
 
     """A simple command stub which has a description."""
 
-    def __init__(self, name='', desc='', hide=False, debug=False,
-                 deprecated=False, completion=None, maxsplit=None):
-        self.desc = desc
-        self.name = name
-        self.hide = hide
-        self.debug = debug
-        self.deprecated = deprecated
-        self.completion = completion
-        self.maxsplit = maxsplit
+    name = attr.ib('')
+    desc = attr.ib('')
+    hide = attr.ib(False)
+    debug = attr.ib(False)
+    deprecated = attr.ib(False)
+    completion = attr.ib(None)
+    maxsplit = attr.ib(None)
 
 
 class FakeTimer(QObject):

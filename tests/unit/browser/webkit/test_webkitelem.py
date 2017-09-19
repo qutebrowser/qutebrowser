@@ -24,6 +24,7 @@ import collections.abc
 import operator
 import itertools
 
+import attr
 import pytest
 from PyQt5.QtCore import QRect, QPoint, QUrl
 QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
@@ -525,7 +526,12 @@ class TestIsVisibleIframe:
         elem1-elem4: FakeWebElements to test.
     """
 
-    Objects = collections.namedtuple('Objects', ['frame', 'iframe', 'elems'])
+    @attr.s
+    class Objects:
+
+        frame = attr.ib()
+        iframe = attr.ib()
+        elems = attr.ib()
 
     @pytest.fixture
     def objects(self, stubs):
@@ -550,7 +556,7 @@ class TestIsVisibleIframe:
               ##############################
             300, 0                         300, 300
 
-        Returns an Objects namedtuple with frame/iframe/elems attributes.
+        Returns an Objects object with frame/iframe/elems attributes.
         """
         frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
         iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
@@ -621,7 +627,7 @@ class TestIsVisibleIframe:
               ##############################
             300, 0                         300, 300
 
-        Returns an Objects namedtuple with frame/iframe/elems attributes.
+        Returns an Objects object with frame/iframe/elems attributes.
         """
         frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
         iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)

@@ -24,9 +24,10 @@ import os
 import sys
 import argparse
 import subprocess
-import collections
 import os.path
 import tempfile
+
+import attr
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -34,7 +35,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 
-Line = collections.namedtuple('Line', 'time, pid, uid, gid, sig, present, exe')
+@attr.s
+class Line:
+
+    """A line in "coredumpctl list"."""
+
+    time = attr.ib()
+    pid = attr.ib()
+    uid = attr.ib()
+    gid = attr.ib()
+    sig = attr.ib()
+    present = attr.ib()
+    exe = attr.ib()
 
 
 def _convert_present(data):

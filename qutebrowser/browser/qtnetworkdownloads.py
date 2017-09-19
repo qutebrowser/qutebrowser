@@ -22,8 +22,8 @@
 import io
 import shutil
 import functools
-import collections
 
+import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
@@ -34,7 +34,11 @@ from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 
 
-_RetryInfo = collections.namedtuple('_RetryInfo', ['request', 'manager'])
+@attr.s
+class _RetryInfo:
+
+    request = attr.ib()
+    manager = attr.ib()
 
 
 class DownloadItem(downloads.AbstractDownloadItem):

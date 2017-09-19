@@ -19,10 +19,10 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-import collections
 import traceback
 import re
 
+import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config
@@ -31,8 +31,17 @@ from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split
 
 
-ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline'])
 last_command = {}
+
+
+@attr.s
+class ParseResult:
+
+    """The result of parsing a commandline."""
+
+    cmd = attr.ib()
+    args = attr.ib()
+    cmdline = attr.ib()
 
 
 def _current_url(tabbed_browser):

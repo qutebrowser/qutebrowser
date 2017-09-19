@@ -22,12 +22,12 @@
 import sys
 import os
 import getpass
-import collections
 import logging
 import json
 import hashlib
 from unittest import mock
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
@@ -597,8 +597,13 @@ def test_ipcserver_socket_none_error(ipc_server, caplog):
 
 class TestSendOrListen:
 
-    Args = collections.namedtuple('Args', 'no_err_windows, basedir, command, '
-                                          'target')
+    @attr.s
+    class Args:
+
+        no_err_windows = attr.ib()
+        basedir = attr.ib()
+        command = attr.ib()
+        target = attr.ib()
 
     @pytest.fixture
     def args(self):
@@ -623,10 +628,10 @@ class TestSendOrListen:
     def qlocalsocket_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
-        for attr in ['UnknownSocketError', 'UnconnectedState',
+        for name in ['UnknownSocketError', 'UnconnectedState',
                      'ConnectionRefusedError', 'ServerNotFoundError',
                      'PeerClosedError']:
-            setattr(m, attr, getattr(QLocalSocket, attr))
+            setattr(m, name, getattr(QLocalSocket, name))
         return m
 
     @pytest.mark.linux(reason="Flaky on Windows and macOS")

@@ -19,8 +19,7 @@
 
 """Completer attached to a CompletionView."""
 
-import collections
-
+import attr
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
@@ -29,9 +28,13 @@ from qutebrowser.utils import log, utils, debug
 from qutebrowser.completion.models import miscmodels
 
 
-# Context passed into all completion functions
-CompletionInfo = collections.namedtuple('CompletionInfo',
-    ['config', 'keyconf'])
+@attr.s
+class CompletionInfo:
+
+    """Context passed into all completion functions."""
+
+    config = attr.ib()
+    keyconf = attr.ib()
 
 
 class Completer(QObject):
@@ -130,7 +133,9 @@ class Completer(QObject):
             return [], '', []
         parser = runners.CommandParser()
         result = parser.parse(text, fallback=True, keep=True)
+        # pylint: disable=not-an-iterable
         parts = [x for x in result.cmdline if x]
+        # pylint: enable=not-an-iterable
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
         log.completion.debug('partitioning {} around position {}'.format(parts,

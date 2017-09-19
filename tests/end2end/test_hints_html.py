@@ -22,8 +22,8 @@
 import os
 import os.path
 import textwrap
-import collections
 
+import attr
 import yaml
 import pytest
 import bs4
@@ -36,8 +36,11 @@ def collect_tests():
     return files
 
 
-ParsedFile = collections.namedtuple('ParsedFile', ['target',
-                                                   'qtwebengine_todo'])
+@attr.s
+class ParsedFile:
+
+    target = attr.ib()
+    qtwebengine_todo = attr.ib()
 
 
 class InvalidFile(Exception):

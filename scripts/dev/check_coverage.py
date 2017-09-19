@@ -25,16 +25,26 @@ import sys
 import enum
 import os.path
 import subprocess
-import collections
-
 from xml.etree import ElementTree
+
+import attr
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 from scripts import utils
 
-Message = collections.namedtuple('Message', 'typ, filename, text')
+
+@attr.s
+class Message:
+
+    """A message shown by coverage.py."""
+
+    typ = attr.ib()
+    filename = attr.ib()
+    text = attr.ib()
+
+
 MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 
 

@@ -32,6 +32,7 @@ import logging
 import textwrap
 import pkg_resources
 
+import attr
 import pytest
 
 import qutebrowser
@@ -474,8 +475,8 @@ def test_path_info(monkeypatch, equal):
         'runtime': lambda: 'RUNTIME PATH',
     }
 
-    for attr, val in patches.items():
-        monkeypatch.setattr(version.standarddir, attr, val)
+    for name, val in patches.items():
+        monkeypatch.setattr(version.standarddir, name, val)
 
     pathinfo = version._path_info()
 
@@ -515,6 +516,7 @@ class ImportFake:
             ('pygments', True),
             ('yaml', True),
             ('cssutils', True),
+            ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
@@ -630,6 +632,7 @@ class TestModuleVersions:
         ('pygments', True),
         ('yaml', True),
         ('cssutils', True),
+        ('attr', True),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
@@ -817,17 +820,16 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
+@attr.s
 class VersionParams:
 
-    def __init__(self, name, git_commit=True, frozen=False, style=True,
-                 with_webkit=True, known_distribution=True, ssl_support=True):
-        self.name = name
-        self.git_commit = git_commit
-        self.frozen = frozen
-        self.style = style
-        self.with_webkit = with_webkit
-        self.known_distribution = known_distribution
-        self.ssl_support = ssl_support
+    name = attr.ib()
+    git_commit = attr.ib(True)
+    frozen = attr.ib(False)
+    style = attr.ib(True)
+    with_webkit = attr.ib(True)
+    known_distribution = attr.ib(True)
+    ssl_support = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -901,8 +903,8 @@ def test_version_output(params, stubs, monkeypatch):
 
     substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
 
-    for attr, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
+    for name, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
 
     if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)

@@ -21,6 +21,7 @@
 
 import functools
 
+import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
@@ -31,6 +32,7 @@ from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.misc import objects
 
 
+@attr.s(frozen=True)
 class KeyEvent:
 
     """A small wrapper over a QKeyEvent storing its data.
@@ -44,18 +46,13 @@ class KeyEvent:
         text: A string (QKeyEvent::text).
     """
 
-    def __init__(self, keyevent):
-        self.key = keyevent.key()
-        self.text = keyevent.text()
+    key = attr.ib()
+    text = attr.ib()
 
-    def __repr__(self):
-        return utils.get_repr(self, key=self.key, text=self.text)
-
-    def __eq__(self, other):
-        return self.key == other.key and self.text == other.text
-
-    def __hash__(self):
-        return hash((self.key, self.text))
+    @classmethod
+    def from_event(cls, event):
+        """Initialize a KeyEvent from a QKeyEvent."""
+        return cls(event.key(), event.text())
 
 
 class NotInModeError(Exception):
@@ -179,7 +176,7 @@ class ModeManager(QObject):
             filter_this = True
 
         if not filter_this:
-            self._releaseevents_to_pass.add(KeyEvent(event))
+            self._releaseevents_to_pass.add(KeyEvent.from_event(event))
 
         if curmode != usertypes.KeyMode.insert:
             focus_widget = QApplication.instance().focusWidget()
@@ -201,7 +198,7 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         # handle like matching KeyPress
-        keyevent = KeyEvent(event)
+        keyevent = KeyEvent.from_event(event)
         if keyevent in self._releaseevents_to_pass:
             self._releaseevents_to_pass.remove(keyevent)
             filter_this = False

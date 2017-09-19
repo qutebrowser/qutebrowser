@@ -47,13 +47,13 @@ import html
 import codecs
 import os.path
 import itertools
-import collections
 import warnings
 import datetime
 import functools
 import operator
 import json
 
+import attr
 import yaml
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
@@ -1360,8 +1360,15 @@ class FuzzyUrl(BaseType):
             raise configexc.ValidationError(value, str(e))
 
 
-PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
-                                                         'left', 'right'])
+@attr.s
+class PaddingValues:
+
+    """Four padding values."""
+
+    top = attr.ib()
+    bottom = attr.ib()
+    left = attr.ib()
+    right = attr.ib()
 
 
 class Padding(Dict):

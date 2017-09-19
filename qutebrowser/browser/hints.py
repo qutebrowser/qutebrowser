@@ -26,6 +26,7 @@ import re
 import html
 from string import ascii_lowercase
 
+import attr
 from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
@@ -131,6 +132,7 @@ class HintLabel(QLabel):
         self.deleteLater()
 
 
+@attr.s
 class HintContext:
 
     """Context namespace used for hinting.
@@ -158,19 +160,18 @@ class HintContext:
         group: The group of web elements to hint.
     """
 
-    def __init__(self):
-        self.all_labels = []
-        self.labels = {}
-        self.target = None
-        self.baseurl = None
-        self.to_follow = None
-        self.rapid = False
-        self.add_history = False
-        self.filterstr = None
-        self.args = []
-        self.tab = None
-        self.group = None
-        self.hint_mode = None
+    all_labels = attr.ib(attr.Factory(list))
+    labels = attr.ib(attr.Factory(dict))
+    target = attr.ib(None)
+    baseurl = attr.ib(None)
+    to_follow = attr.ib(None)
+    rapid = attr.ib(False)
+    add_history = attr.ib(False)
+    filterstr = attr.ib(None)
+    args = attr.ib(attr.Factory(list))
+    tab = attr.ib(None)
+    group = attr.ib(None)
+    hint_mode = attr.ib(None)
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -389,6 +390,7 @@ class HintManager(QObject):
 
     def _cleanup(self):
         """Clean up after hinting."""
+        # pylint: disable=not-an-iterable
         for label in self._context.all_labels:
             label.cleanup()
 
@@ -795,6 +797,7 @@ class HintManager(QObject):
         log.hints.debug("Filtering hints on {!r}".format(filterstr))
 
         visible = []
+        # pylint: disable=not-an-iterable
         for label in self._context.all_labels:
             try:
                 if self._filter_matches(filterstr, str(label.elem)):

@@ -19,6 +19,7 @@
 
 """The main statusbar widget."""
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
@@ -31,6 +32,7 @@ from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
 from qutebrowser.mainwindow.statusbar import text as textwidget
 
 
+@attr.s
 class ColorFlags:
 
     """Flags which change the appearance of the statusbar.
@@ -44,13 +46,11 @@ class ColorFlags:
     """
 
     CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
-
-    def __init__(self):
-        self.prompt = False
-        self.insert = False
-        self.command = False
-        self.caret = self.CaretMode.off
-        self.private = False
+    prompt = attr.ib(False)
+    insert = attr.ib(False)
+    command = attr.ib(False)
+    caret = attr.ib(CaretMode.off)
+    private = attr.ib(False)
 
     def to_stringlist(self):
         """Get a string list of set flags used in the stylesheet.

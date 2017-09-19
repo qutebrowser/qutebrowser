@@ -26,13 +26,13 @@ See https://pytest.org/latest/fixture.html
 
 
 import sys
-import collections
 import tempfile
 import itertools
 import textwrap
 import unittest.mock
 import types
 
+import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
 
@@ -53,7 +53,12 @@ class WinRegistryHelper:
 
     """Helper class for win_registry."""
 
-    FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+    @attr.s
+    class FakeWindow:
+
+        """A fake window object for the registry."""
+
+        registry = attr.ib()
 
     def __init__(self):
         self._ids = []
@@ -161,8 +166,12 @@ def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
 
 def _generate_cmdline_tests():
     """Generate testcases for test_split_binding."""
-    # pylint: disable=invalid-name
-    TestCase = collections.namedtuple('TestCase', 'cmd, valid')
+    @attr.s
+    class TestCase:
+
+        cmd = attr.ib()
+        valid = attr.ib()
+
     separators = [';;', ' ;; ', ';; ', ' ;;']
     invalid = ['foo', '']
     valid = ['leave-mode', 'hint all']

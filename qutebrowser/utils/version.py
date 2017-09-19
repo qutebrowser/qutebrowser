@@ -29,6 +29,7 @@ import importlib
 import collections
 import pkg_resources
 
+import attr
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
@@ -49,8 +50,15 @@ from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 
 
-DistributionInfo = collections.namedtuple(
-    'DistributionInfo', ['id', 'parsed', 'version', 'pretty'])
+@attr.s
+class DistributionInfo:
+
+    """Information about the running distribution."""
+
+    id = attr.ib()
+    parsed = attr.ib()
+    version = attr.ib()
+    pretty = attr.ib()
 
 
 Distribution = usertypes.enum(
@@ -190,24 +198,25 @@ def _module_versions():
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
+        ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])
-    for name, attributes in modules.items():
+    for modname, attributes in modules.items():
         try:
-            module = importlib.import_module(name)
+            module = importlib.import_module(modname)
         except ImportError:
-            text = '{}: no'.format(name)
+            text = '{}: no'.format(modname)
         else:
-            for attr in attributes:
+            for name in attributes:
                 try:
-                    text = '{}: {}'.format(name, getattr(module, attr))
+                    text = '{}: {}'.format(modname, getattr(module, name))
                 except AttributeError:
                     pass
                 else:
                     break
             else:
-                text = '{}: yes'.format(name)
+                text = '{}: yes'.format(modname)
         lines.append(text)
     return lines
 

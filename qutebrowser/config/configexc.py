@@ -19,7 +19,9 @@
 
 """Exceptions related to config parsing."""
 
-from qutebrowser.utils import utils, jinja
+import attr
+
+from qutebrowser.utils import jinja
 
 
 class Error(Exception):
@@ -74,6 +76,7 @@ class NoOptionError(Error):
         self.option = option
 
 
+@attr.s
 class ConfigErrorDesc:
 
     """A description of an error happening while reading the config.
@@ -84,13 +87,9 @@ class ConfigErrorDesc:
         traceback: The formatted traceback of the exception.
     """
 
-    def __init__(self, text, exception, traceback=None):
-        self.text = text
-        self.exception = exception
-        self.traceback = traceback
-
-    def __repr__(self):
-        return utils.get_repr(self, text=self.text, exception=self.exception)
+    text = attr.ib()
+    exception = attr.ib()
+    traceback = attr.ib(None)
 
     def __str__(self):
         return '{}: {}'.format(self.text, self.exception)

@@ -31,6 +31,7 @@ import contextlib
 import socket
 import shlex
 
+import attr
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
@@ -409,6 +410,7 @@ def keyevent_to_string(e):
     return normalize_keystr('+'.join(parts))
 
 
+@attr.s(repr=False)
 class KeyInfo:
 
     """Stores information about a key, like used in a QKeyEvent.
@@ -419,10 +421,9 @@ class KeyInfo:
         text: str
     """
 
-    def __init__(self, key, modifiers, text):
-        self.key = key
-        self.modifiers = modifiers
-        self.text = text
+    key = attr.ib()
+    modifiers = attr.ib()
+    text = attr.ib()
 
     def __repr__(self):
         if self.modifiers is None:
@@ -433,10 +434,6 @@ class KeyInfo:
         return get_repr(self, constructor=True,
                         key=debug.qenum_key(Qt, self.key),
                         modifiers=modifiers, text=self.text)
-
-    def __eq__(self, other):
-        return (self.key == other.key and self.modifiers == other.modifiers and
-                self.text == other.text)
 
 
 class KeyParseError(Exception):

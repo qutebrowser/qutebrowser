@@ -20,14 +20,20 @@
 """pytest helper to monkeypatch the message module."""
 
 import logging
-import collections
 
+import attr
 import pytest
 
 from qutebrowser.utils import usertypes, message
 
 
-Message = collections.namedtuple('Message', ['level', 'text'])
+@attr.s
+class Message:
+
+    """Information about a shown message."""
+
+    level = attr.ib()
+    text = attr.ib()
 
 
 class MessageMock:
@@ -35,8 +41,8 @@ class MessageMock:
     """Helper object for message_mock.
 
     Attributes:
-        Message: A namedtuple representing a message.
-        messages: A list of Message tuples.
+        Message: A object representing a message.
+        messages: A list of Message objects.
     """
 
     def __init__(self):

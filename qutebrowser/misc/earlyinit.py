@@ -261,6 +261,9 @@ def check_libraries():
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
                          pip="PyYAML"),
+        'attr':
+            _missing_str("attrs",
+                         pip="attrs"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),

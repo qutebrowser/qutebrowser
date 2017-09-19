@@ -21,6 +21,7 @@
 
 import itertools
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
@@ -82,6 +83,7 @@ TerminationStatus = usertypes.enum('TerminationStatus', [
 ])
 
 
+@attr.s
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -97,13 +99,12 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
     """
 
-    def __init__(self):
-        self.keep_icon = False
-        self.viewing_source = False
-        self.inspector = None
-        self.override_target = None
-        self.pinned = False
-        self.fullscreen = False
+    keep_icon = attr.ib(False)
+    viewing_source = attr.ib(False)
+    inspector = attr.ib(None)
+    override_target = attr.ib(None)
+    pinned = attr.ib(False)
+    fullscreen = attr.ib(False)
 
 
 class AbstractAction:

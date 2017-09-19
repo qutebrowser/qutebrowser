@@ -24,6 +24,7 @@ import collections
 import netrc
 import html
 
+import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
                           QByteArray)
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
@@ -37,8 +38,17 @@ from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-ProxyId = collections.namedtuple('ProxyId', 'type, hostname, port')
 _proxy_auth_cache = {}
+
+
+@attr.s
+class ProxyId:
+
+    """Information identifying a proxy server."""
+
+    type = attr.ib()
+    hostname = attr.ib()
+    port = attr.ib()
 
 
 def _is_secure_cipher(cipher):

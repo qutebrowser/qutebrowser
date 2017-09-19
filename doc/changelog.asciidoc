@@ -27,6 +27,7 @@ Breaking changes
 - (TODO) New dependency on ruamel.yaml; dropped PyYAML dependency.
 - (TODO) The QtWebEngine backend is now used by default if available.
 - New dependency on the QtSql module and Qt sqlite support.
+- New dependency on the `attrs` Python module.
 - New config system which ignores the old config file.
 - The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
   that PyQt5.QtOpenGL is still a dependency.

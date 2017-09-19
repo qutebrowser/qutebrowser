@@ -19,9 +19,9 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-import collections
 import functools
 
+import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
@@ -592,8 +592,17 @@ class TabBar(QTabBar):
             tabbed_browser.wheelEvent(e)
 
 
-# Used by TabBarStyle._tab_layout().
-Layouts = collections.namedtuple('Layouts', ['text', 'icon', 'indicator'])
+@attr.s
+class Layouts:
+
+    """Layout information for tab.
+
+    Used by TabBarStyle._tab_layout().
+    """
+
+    text = attr.ib()
+    icon = attr.ib()
+    indicator = attr.ib()
 
 
 class TabBarStyle(QCommonStyle):
@@ -765,7 +774,7 @@ class TabBarStyle(QCommonStyle):
             opt: QStyleOptionTab
 
         Return:
-            A Layout namedtuple with two QRects.
+            A Layout object with two QRects.
         """
         padding = config.val.tabs.padding
         indicator_padding = config.val.tabs.indicator_padding

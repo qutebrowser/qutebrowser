@@ -25,11 +25,11 @@ import os.path
 import io
 import logging
 import functools
-import collections
 import socket
 import re
 import shlex
 
+import attr
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
@@ -157,7 +157,11 @@ class TestInterpolateColor:
         white: The Color black as a valid Color for tests.
     """
 
-    Colors = collections.namedtuple('Colors', ['white', 'black'])
+    @attr.s
+    class Colors:
+
+        white = attr.ib()
+        black = attr.ib()
 
     @pytest.fixture
     def colors(self):

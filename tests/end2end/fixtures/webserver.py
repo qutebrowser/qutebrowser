@@ -25,6 +25,7 @@ import json
 import os.path
 import http.client
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
@@ -99,13 +100,13 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
+@attr.s(frozen=True, cmp=False, hash=True)
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""
 
-    def __init__(self, verb, path):
-        self.verb = verb
-        self.path = path
+    verb = attr.ib()
+    path = attr.ib()
 
     @classmethod
     def from_request(cls, request):
@@ -117,13 +118,6 @@ class ExpectedRequest:
             return self.verb == other.verb and self.path == other.path
         else:
             return NotImplemented
-
-    def __hash__(self):
-        return hash(('ExpectedRequest', self.verb, self.path))
-
-    def __repr__(self):
-        return ('ExpectedRequest(verb={!r}, path={!r})'
-                .format(self.verb, self.path))
 
 
 class WebserverProcess(testprocess.Process):

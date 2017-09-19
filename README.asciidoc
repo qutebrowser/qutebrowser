@@ -116,6 +116,7 @@ The following software and libraries are required to run qutebrowser:
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
 * http://pyyaml.org/wiki/PyYAML[PyYAML]
+* http://www.attrs.org/[attrs]
 
 The following libraries are optional:
 

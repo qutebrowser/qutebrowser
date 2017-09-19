@@ -24,43 +24,32 @@ import collections
 import traceback
 import typing
 
+import attr
+
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import (log, utils, message, docutils, objreg,
-                               usertypes)
+from qutebrowser.utils import log, message, docutils, objreg, usertypes
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
 
 
+@attr.s
 class ArgInfo:
 
     """Information about an argument."""
 
-    def __init__(self, win_id=False, count=False, hide=False, metavar=None,
-                 flag=None, completion=None, choices=None):
-        if win_id and count:
+    win_id = attr.ib(False)
+    count = attr.ib(False)
+    hide = attr.ib(False)
+    metavar = attr.ib(None)
+    flag = attr.ib(None)
+    completion = attr.ib(None)
+    choices = attr.ib(None)
+
+    @win_id.validator
+    @count.validator
+    def _validate_exclusive(self, _attr, _value):
+        if self.win_id and self.count:
             raise TypeError("Argument marked as both count/win_id!")
-        self.win_id = win_id
-        self.count = count
-        self.flag = flag
-        self.hide = hide
-        self.metavar = metavar
-        self.completion = completion
-        self.choices = choices
-
-    def __eq__(self, other):
-        return (self.win_id == other.win_id and
-                self.count == other.count and
-                self.flag == other.flag and
-                self.hide == other.hide and
-                self.metavar == other.metavar and
-                self.completion == other.completion and
-                self.choices == other.choices)
-
-    def __repr__(self):
-        return utils.get_repr(self, win_id=self.win_id, count=self.count,
-                              flag=self.flag, hide=self.hide,
-                              metavar=self.metavar, completion=self.completion,
-                              choices=self.choices, constructor=True)
 
 
 class Command:

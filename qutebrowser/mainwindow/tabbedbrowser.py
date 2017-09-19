@@ -20,8 +20,8 @@
 """The main tabbed browser widget."""
 
 import functools
-import collections
 
+import attr
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
@@ -34,8 +34,15 @@ from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
 
 
-UndoEntry = collections.namedtuple('UndoEntry',
-                                   ['url', 'history', 'index', 'pinned'])
+@attr.s
+class UndoEntry:
+
+    """Information needed for :undo."""
+
+    url = attr.ib()
+    history = attr.ib()
+    index = attr.ib()
+    pinned = attr.ib()
 
 
 class TabDeletedError(Exception):
@@ -64,7 +71,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         _tab_insert_idx_left: Where to insert a new tab with
                               tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
-        _undo_stack: List of UndoEntry namedtuples of closed tabs.
+        _undo_stack: List of UndoEntry objects of closed tabs.
         shutting_down: Whether we're currently shutting down.
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
@@ -352,16 +359,16 @@ class TabbedBrowser(tabwidget.TabWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
-        url, history_data, idx, pinned = self._undo_stack.pop()
+        entry = self._undo_stack.pop()
 
         if use_current_tab:
-            self.openurl(url, newtab=False)
+            self.openurl(entry.url, newtab=False)
             newtab = self.widget(0)
         else:
-            newtab = self.tabopen(url, background=False, idx=idx)
+            newtab = self.tabopen(entry.url, background=False, idx=entry.index)
 
-        newtab.history.deserialize(history_data)
-        self.set_tab_pinned(newtab, pinned)
+        newtab.history.deserialize(entry.history)
+        self.set_tab_pinned(newtab, entry.pinned)
 
     @pyqtSlot('QUrl', bool)
     def openurl(self, url, newtab):

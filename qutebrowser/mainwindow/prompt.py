@@ -23,6 +23,7 @@ import os.path
 import html
 import collections
 
+import attr
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
@@ -39,7 +40,13 @@ from qutebrowser.commands import cmdutils, cmdexc
 prompt_queue = None
 
 
-AuthTuple = collections.namedtuple('AuthTuple', ['user', 'password'])
+@attr.s
+class AuthInfo:
+
+    """Authentication info returned by a prompt."""
+
+    user = attr.ib()
+    password = attr.ib()
 
 
 class Error(Exception):
@@ -750,7 +757,7 @@ class AuthenticationPrompt(_BasePrompt):
                             "username:password, but {} was given".format(
                                 value))
             username, password = value.split(':', maxsplit=1)
-            self.question.answer = AuthTuple(username, password)
+            self.question.answer = AuthInfo(username, password)
             return True
         elif self._user_lineedit.hasFocus():
             # Earlier, tab was bound to :prompt-accept, so to still support
@@ -758,8 +765,8 @@ class AuthenticationPrompt(_BasePrompt):
             self._password_lineedit.setFocus()
             return False
         else:
-            self.question.answer = AuthTuple(self._user_lineedit.text(),
-                                             self._password_lineedit.text())
+            self.question.answer = AuthInfo(self._user_lineedit.text(),
+                                            self._password_lineedit.text())
             return True
 
     def item_focus(self, which):

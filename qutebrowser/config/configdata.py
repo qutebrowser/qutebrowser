@@ -24,16 +24,29 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
-import collections
 import functools
 
+import attr
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 
 DATA = None
-Option = collections.namedtuple('Option', ['name', 'typ', 'default',
-                                           'backends', 'raw_backends',
-                                           'description'])
+
+
+@attr.s
+class Option:
+
+    """Description of an Option in the config.
+
+    Note that this is just an option which exists, with no value associated.
+    """
+
+    name = attr.ib()
+    typ = attr.ib()
+    default = attr.ib()
+    backends = attr.ib()
+    raw_backends = attr.ib()
+    description = attr.ib()
 
 
 def _raise_invalid_node(name, what, node):

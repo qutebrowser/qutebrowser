@@ -21,12 +21,12 @@
 import re
 import json
 import math
-import collections
 import itertools
 import warnings
 import inspect
 import functools
 
+import attr
 import pytest
 import hypothesis
 from hypothesis import strategies
@@ -54,15 +54,14 @@ class Font(QFont):
     @classmethod
     def fromdesc(cls, desc):
         """Get a Font based on a font description."""
-        style, weight, ptsize, pxsize, family = desc
         f = cls()
-        f.setStyle(style)
-        f.setWeight(weight)
-        if ptsize is not None and ptsize != -1:
-            f.setPointSize(ptsize)
-        if pxsize is not None and ptsize != -1:
-            f.setPixelSize(pxsize)
-        f.setFamily(family)
+        f.setStyle(desc.style)
+        f.setWeight(desc.weight)
+        if desc.pt is not None and desc.pt != -1:
+            f.setPointSize(desc.pt)
+        if desc.px is not None and desc.pt != -1:
+            f.setPixelSize(desc.px)
+        f.setFamily(desc.family)
         return f
 
 
@@ -1195,8 +1194,14 @@ class TestColors:
             klass().to_py(val)
 
 
-FontDesc = collections.namedtuple('FontDesc',
-                                  ['style', 'weight', 'pt', 'px', 'family'])
+@attr.s
+class FontDesc:
+
+    style = attr.ib()
+    weight = attr.ib()
+    pt = attr.ib()
+    px = attr.ib()
+    family = attr.ib()
 
 
 class TestFont:
