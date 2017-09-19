@@ -483,9 +483,9 @@ class Config(QObject):
         Here, we check all those saved copies for mutations, and if something
         mutated, we call set_obj again so we save the new value.
         """
-        for name, vals in self._mutables:
-            old_value = vals[0]
-            new_value = vals[1]
+        for name in self._mutables:
+            old_value = self._mutables[name][0]
+            new_value = self._mutables[name][1]
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
                 self.set_obj(name, new_value, save_yaml=save_yaml)
