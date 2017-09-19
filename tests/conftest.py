@@ -42,8 +42,8 @@ import qutebrowser.app  # To register commands
 
 
 # Set hypothesis settings
-hypothesis.settings.register_profile('default',
-                                     hypothesis.settings(strict=True))
+hypothesis.settings.register_profile(
+    'default', hypothesis.settings(strict=True, deadline=400))
 hypothesis.settings.load_profile('default')
 
 
