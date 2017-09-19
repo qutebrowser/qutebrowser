@@ -19,6 +19,7 @@
 
 """Configuration storage and config-related utilities."""
 
+import sys
 import copy
 import contextlib
 import functools
@@ -27,9 +28,10 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, usertypes
-from qutebrowser.misc import objects, msgbox
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.utils import (utils, objreg, message, log, usertypes, jinja,
+                               qtutils)
+from qutebrowser.misc import objects, msgbox, earlyinit
+from qutebrowser.commands import cmdexc, cmdutils, runners
 from qutebrowser.completion.models import configmodel
 
 # An easy way to access the config from other code via config.val.foo
@@ -39,6 +41,8 @@ key_instance = None
 
 # Keeping track of all change filters to validate them later.
 _change_filters = []
+# Errors which happened during init, so we can show a message box.
+_init_errors = []
 
 
 class change_filter:  # pylint: disable=invalid-name
@@ -173,8 +177,6 @@ class KeyConfig:
 
     def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
-        # Doing this here to work around a Python 3.4 circular import
-        from qutebrowser.commands import runners
         key = self._prepare(key, mode)
 
         parser = runners.CommandParser()
@@ -382,9 +384,17 @@ class Config(QObject):
         self._mutables = []
         self._yaml = yaml_config
 
+    def init_save_manager(self, save_manager):
+        """Make sure the config gets saved properly.
+
+        We do this outside of __init__ because the config gets created before
+        the save_manager exists.
+        """
+        self._yaml.init_save_manager(save_manager)
+
     def _set_value(self, opt, value):
         """Set the given option to the given value."""
-        if objects.backend is not None:
+        if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
                 raise configexc.BackendError(objects.backend)
 
@@ -590,8 +600,6 @@ def set_register_stylesheet(obj, *, stylesheet=None, update=True):
 @functools.lru_cache()
 def _render_stylesheet(stylesheet):
     """Render the given stylesheet jinja template."""
-    # Imported here to avoid a Python 3.4 circular import
-    from qutebrowser.utils import jinja
     with jinja.environment.no_autoescape():
         template = jinja.environment.from_string(stylesheet)
     return template.render(conf=val)
@@ -641,18 +649,14 @@ class StyleSheetObserver(QObject):
             instance.changed.connect(self._update_stylesheet)
 
 
-def init(parent=None):
-    """Initialize the config.
-
-    Args:
-        parent: The parent to pass to QObjects which get initialized.
-    """
+def early_init(args):
+    """Initialize the part of the config which works without a QApplication."""
     configdata.init()
 
     yaml_config = configfiles.YamlConfig()
 
     global val, instance, key_instance
-    instance = Config(yaml_config=yaml_config, parent=parent)
+    instance = Config(yaml_config=yaml_config)
     val = ConfigContainer(instance)
     key_instance = KeyConfig(instance)
 
@@ -673,12 +677,7 @@ def init(parent=None):
             raise configexc.ConfigFileErrors('config.py', config_api.errors)
     except configexc.ConfigFileErrors as e:
         log.config.exception("Error while loading config.py")
-        errbox = msgbox.msgbox(parent=None,
-                               title="Error while reading config",
-                               text=e.to_html(),
-                               icon=QMessageBox.Warning,
-                               plain_text=False)
-        errbox.exec_()
+        _init_errors.append(e)
 
     try:
         if getattr(config_api, 'load_autoconfig', True):
@@ -690,12 +689,72 @@ def init(parent=None):
                 desc = configexc.ConfigErrorDesc("Error", e)
                 raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
     except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading autoconfig.yml")
+        log.config.exception("Error while loading config.py")
+        _init_errors.append(e)
+
+    configfiles.init()
+
+    objects.backend = get_backend(args)
+    earlyinit.init_with_backend(objects.backend)
+
+
+def get_backend(args):
+    """Find out what backend to use based on available libraries."""
+    try:
+        import PyQt5.QtWebKit  # pylint: disable=unused-variable
+    except ImportError:
+        webkit_available = False
+    else:
+        webkit_available = qtutils.is_new_qtwebkit()
+
+    str_to_backend = {
+        'webkit': usertypes.Backend.QtWebKit,
+        'webengine': usertypes.Backend.QtWebEngine,
+    }
+
+    if args.backend is not None:
+        return str_to_backend[args.backend]
+    elif val.backend != 'auto':
+        return str_to_backend[val.backend]
+    elif webkit_available:
+        return usertypes.Backend.QtWebKit
+    else:
+        return usertypes.Backend.QtWebEngine
+
+
+def late_init(save_manager):
+    """Initialize the rest of the config after the QApplication is created."""
+    global _init_errors
+    for err in _init_errors:
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
-                               text=e.to_html(),
+                               text=err.to_html(),
                                icon=QMessageBox.Warning,
                                plain_text=False)
         errbox.exec_()
+    _init_errors = []
 
-    configfiles.init()
+    instance.init_save_manager(save_manager)
+    configfiles.state.init_save_manager(save_manager)
+
+
+def qt_args(namespace):
+    """Get the Qt QApplication arguments based on an argparse namespace.
+
+    Args:
+        namespace: The argparse namespace.
+
+    Return:
+        The argv list to be passed to Qt.
+    """
+    argv = [sys.argv[0]]
+
+    if namespace.qt_flag is not None:
+        argv += ['--' + flag[0] for flag in namespace.qt_flag]
+
+    if namespace.qt_arg is not None:
+        for name, value in namespace.qt_arg:
+            argv += ['--' + name, value]
+
+    argv += ['--' + arg for arg in val.qt_args]
+    return argv

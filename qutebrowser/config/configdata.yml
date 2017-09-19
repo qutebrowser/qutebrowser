@@ -15,6 +15,9 @@ aliases:
   desc: >-
     Aliases for commands.
 
+    The keys of the given dictionary are the aliases, while the values are the
+    commands they map to.
+
 confirm_quit:
   type: ConfirmQuit
   default: [never]
@@ -84,6 +87,41 @@ session_default_name:
     The name of the session to save by default.
 
     If this is set to null, the session which was last loaded is saved.
+
+qt_args:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default: []
+  desc: >-
+    Additional arguments to pass to Qt, without leading `--`.
+
+    With QtWebEngine, some Chromium arguments (see
+    https://peter.sh/experiments/chromium-command-line-switches/ for a list)
+    will work.
+
+backend:
+  type:
+    name: String
+    valid_values:
+      - auto: Automatically select either QtWebEngine or QtWebKit
+      - webkit: Force QtWebKit
+      - webengine: Force QtWebEngine
+  default: auto
+  desc: >-
+    The backend to use to display websites.
+
+    qutebrowser supports two different web rendering engines / backends,
+    QtWebKit and QtWebEngine.
+
+    QtWebKit is based on WebKit (similar to Safari). It was discontinued by the
+    Qt project with Qt 5.6, but picked up as a well maintained fork:
+    https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
+
+    QtWebEngine is Qt's official successor to QtWebKit and based on the Chromium
+    project. It's slightly more resource hungry that QtWebKit and has a couple
+    of missing features in qutebrowser, but is generally the preferred choice.
 
 ## auto_save
 
@@ -401,6 +439,10 @@ content.javascript.log:
     error: debug
   desc: >-
     Log levels to use for JavaScript console logging messages.
+
+    When a JavaScript message with the level given in the dictionary key is
+    logged, the corresponding dictionary value selects the qutebrowser logger to
+    use.
 
     On QtWebKit, the "unknown" setting is always used.
 
@@ -1183,11 +1225,14 @@ url.searchengines:
   desc: >-
     Definitions of search engines which can be used via the address bar.
 
+    Maps a searchengine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}`
+    placeholder. The placeholder will be replaced by the search term, use `{{`
+    and `}}` for literal `{`/`}` signs.
+
     The searchengine named `DEFAULT` is used when `url.auto_search` is turned on
     and something else than a URL was entered to be opened. Other search engines
     can be used by prepending the search engine name to the search term, e.g.
-    `:open google qutebrowser`. The string `{}` will be replaced by the search
-    term, use `{{` and `}}` for literal `{`/`}` signs.
+    `:open google qutebrowser`.
 
 url.start_pages:
   type:
@@ -1713,7 +1758,7 @@ fonts.downloads:
   desc: Font used for the downloadbar.
 
 fonts.hints:
-  default: bold 13px monospace
+  default: bold 10pt monospace
   type: Font
   desc: Font used for the hints.
 
@@ -2122,7 +2167,7 @@ bindings.default:
     want to load no default keybindings at all.
 
     If you want to preserve default bindings (and get new bindings when there is
-    an update), add new bindings to `bindings.commands` (or use `:bind`) and
+    an update), use `config.bind()` in `config.py` or the `:bind` command, and
     leave this setting alone.
 
 bindings.commands:
@@ -2148,64 +2193,4 @@ bindings.commands:
 
     `{mode: {key: command}}`
 
-    If you want to map a key to another key, check the `bindings.key_mappings`
-    setting instead.
-
-    For special keys (can't be part of a keychain), enclose them in `<`...`>`.
-    For modifiers, you can use either `-` or `+` as delimiters, and these names:
-
-      * Control: `Control`, `Ctrl`
-
-      * Meta:    `Meta`, `Windows`, `Mod4`
-
-      * Alt:     `Alt`, `Mod1`
-
-      * Shift:   `Shift`
-
-    For simple keys (no `<>`-signs), a capital letter means the key is pressed
-    with Shift. For special keys (with `<>`-signs), you need to explicitly add
-    `Shift-` to match a key pressed with shift.
-
-    If you want a binding to do nothing, bind it to the `nop` command.
-    If you want a default binding to be passed through to the website, bind it
-    to null.
-
-    Note that some commands which are only useful for bindings (but not used
-    interactively) are hidden from the command completion. See `:help` for a
-    full list of available commands.
-
-    The following modes are available:
-
-
-    * normal: The default mode, where most commands are invoked.
-
-
-    * insert: Entered when an input field is focused on a website, or by
-      pressing `i` in normal mode. Passes through almost all keypresses to the
-      website, but has some bindings like `<Ctrl-e>` to open an external editor.
-      Note that single keys can't be bound in this mode.
-
-    * hint: Entered when `f` is pressed to select links with the keyboard. Note
-      that single keys can't be bound in this mode.
-
-    * passthrough: Similar to insert mode, but passes through all keypresses
-      except `<Escape>` to leave the mode. It might be useful to bind `<Escape>`
-      to some other key in this mode if you want to be able to send an Escape
-      key to the website as well. Note that single keys can't be bound in this
-      mode.
-
-    * command: Entered when pressing the `:` key in order to enter a command.
-      Note that single keys can't be bound in this mode.
-
-    * prompt: Entered when there's a prompt to display, like for download
-      locations or when invoked from JavaScript.
-      +
-      You can bind normal keys in this mode, but they will be only active when a
-      yes/no-prompt is asked. For other prompt modes, you can only bind special
-      keys.
-
-    * caret: Entered when pressing the `v` mode, used to select text using the
-      keyboard.
-
-    * register: Entered when qutebrowser is waiting for a register name/key for
-      commands like `:set-mark`.
+    While it's possible to bind keys by modifying this setting, it's recommended

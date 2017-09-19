@@ -27,9 +27,9 @@ bdd.scenarios('editor.feature')
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor replacing "{text}" by '
                             '"{replacement}"'))
-def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
+def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
     """Set up editor.command to a small python script doing a replacement."""
-    text = text.replace('(port)', str(httpbin.port))
+    text = text.replace('(port)', str(server.port))
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
         import sys
@@ -47,7 +47,7 @@ def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}"'))
-def set_up_editor(quteproc, httpbin, tmpdir, text):
+def set_up_editor(quteproc, server, tmpdir, text):
     """Set up editor.command to a small python script inserting a text."""
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""

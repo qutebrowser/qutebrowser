@@ -28,11 +28,10 @@ from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
-from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
-from qutebrowser.mainwindow.statusbar import bar
+from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import (commands, downloadview, hints,
@@ -140,6 +139,11 @@ class MainWindow(QWidget):
             parent: The parent the window should get.
         """
         super().__init__(parent)
+        # Late import to avoid a circular dependency
+        # - browsertab -> hints -> webelem -> mainwindow -> bar -> browsertab
+        from qutebrowser.mainwindow import tabbedbrowser
+        from qutebrowser.mainwindow.statusbar import bar
+
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
         self._overlays = []
@@ -365,9 +369,8 @@ class MainWindow(QWidget):
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
-        state_config = objreg.get('state-config')
         try:
-            data = state_config['geometry']['mainwindow']
+            data = configfiles.state['geometry']['mainwindow']
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
@@ -380,10 +383,9 @@ class MainWindow(QWidget):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        state_config = objreg.get('state-config')
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
-        state_config['geometry']['mainwindow'] = geom
+        configfiles.state['geometry']['mainwindow'] = geom
 
     def _load_geometry(self, geom):
         """Load geometry from a bytes object.

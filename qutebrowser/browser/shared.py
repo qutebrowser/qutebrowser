@@ -23,6 +23,7 @@ import html
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, message, log, objreg, jinja
+from qutebrowser.mainwindow import mainwindow
 
 
 class CallSuper(Exception):
@@ -234,7 +235,6 @@ def get_tab(win_id, target):
     elif target == usertypes.ClickTarget.window:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        from qutebrowser.mainwindow import mainwindow
         window = mainwindow.MainWindow(private=tabbed_browser.private)
         window.show()
         win_id = window.win_id

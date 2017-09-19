@@ -55,20 +55,14 @@ class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""
 
-    def _do_check(self):
-        if not qtutils.check_print_compat():
-            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-            raise browsertab.WebTabError(
-                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
-
     def check_pdf_support(self):
-        self._do_check()
+        pass
 
     def check_printer_support(self):
-        self._do_check()
+        pass
 
     def check_preview_support(self):
-        self._do_check()
+        pass
 
     def to_pdf(self, filename):
         printer = QPrinter()

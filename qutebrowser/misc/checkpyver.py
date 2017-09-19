@@ -43,12 +43,12 @@ except ImportError:  # pragma: no cover
 # to stderr.
 def check_python_version():
     """Check if correct python version is run."""
-    if sys.hexversion < 0x03040000:
+    if sys.hexversion < 0x03050000:
         # We don't use .format() and print_function here just in case someone
         # still has < 2.6 installed.
         # pylint: disable=bad-builtin
         version_str = '.'.join(map(str, sys.version_info[:3]))
-        text = ("At least Python 3.4 is required to run qutebrowser, but " +
+        text = ("At least Python 3.5 is required to run qutebrowser, but " +
                 version_str + " is installed!\n")
         if Tk and '--no-err-windows' not in sys.argv:  # pragma: no cover
             root = Tk()

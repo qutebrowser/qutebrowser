@@ -25,7 +25,7 @@ bdd.scenarios('adblock.feature')
 
 
 @bdd.when(bdd.parsers.parse('I set up "{lists}" as block lists'))
-def set_up_blocking(quteproc, lists, httpbin):
-    url = 'http://localhost:{}/data/adblock/'.format(httpbin.port)
+def set_up_blocking(quteproc, lists, server):
+    url = 'http://localhost:{}/data/adblock/'.format(server.port)
     urls = [url + item.strip() for item in lists.split(',')]
     quteproc.set_setting('content.host_blocking.lists', json.dumps(urls))
