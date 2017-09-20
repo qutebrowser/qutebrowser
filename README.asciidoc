@@ -50,7 +50,7 @@ image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding 
 * link:doc/quickstart.asciidoc[Quick start guide]
 * A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
 * link:doc/faq.asciidoc[Frequently asked questions]
-* link:doc/help/configuring.html[Configuring qutebrowser]
+* link:doc/help/configuring.asciidoc[Configuring qutebrowser]
 * link:doc/contributing.asciidoc[Contributing to qutebrowser]
 * link:doc/install.asciidoc[Installing qutebrowser]
 * link:doc/changelog.asciidoc[Change Log]
