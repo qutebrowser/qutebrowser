@@ -324,7 +324,7 @@ class TestSystemData:
 
     """Test system data path."""
 
-    @pytest.mark.fake_os('linux')
+    @pytest.mark.linux
     def test_system_datadir_exist_linux(self, monkeypatch):
         """Test that /usr/share/qute_test is used if path exists."""
         monkeypatch.setattr(os.path, 'exists', lambda path: True)
