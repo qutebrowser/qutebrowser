@@ -141,10 +141,7 @@ def report(items):
     output = []
     for item in sorted(items,
                        key=lambda e: (e.filename.lower(), e.first_lineno)):
-        relpath = os.path.relpath(item.filename)
-        path = relpath if not relpath.startswith('..') else item.filename
-        output.append("{}:{}: Unused {} '{}'".format(path, item.first_lineno,
-                                                     item.typ, item.name))
+        output.append(item.get_report())
     return output
 
 
