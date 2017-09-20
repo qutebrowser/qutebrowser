@@ -50,6 +50,11 @@ from qutebrowser.utils import qtutils, log, debug
 fake_clipboard = None
 log_clipboard = False
 
+is_mac = sys.platform.startswith('darwin')
+is_linux = sys.platform.startswith('linux')
+is_windows = sys.platform.startswith('win')
+is_posix = os.name == 'posix'
+
 
 class ClipboardError(Exception):
 
@@ -882,19 +887,3 @@ def yaml_dump(data, f=None):
         return None
     else:
         return yaml_data.decode('utf-8')
-
-
-def is_mac():
-    return sys.platform.startswith('darwin')
-
-
-def is_linux():
-    return sys.platform.startswith('linux')
-
-
-def is_windows():
-    return sys.platform.startswith('win')
-
-
-def is_posix():
-    return os.name == 'posix'
