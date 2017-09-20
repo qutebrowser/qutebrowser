@@ -41,7 +41,7 @@ HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
 _proxy_auth_cache = {}
 
 
-@attr.s
+@attr.s(frozen=True)
 class ProxyId:
 
     """Information identifying a proxy server."""
