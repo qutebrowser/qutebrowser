@@ -19,6 +19,7 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import os
 import io
 import re
 import sys
@@ -886,8 +887,14 @@ def yaml_dump(data, f=None):
 def is_mac():
     return sys.platform.startswith('darwin')
 
+
 def is_linux():
     return sys.platform.startswith('linux')
 
+
 def is_windows():
     return sys.platform.startswith('win')
+
+
+def is_posix():
+    return os.name == 'posix'
