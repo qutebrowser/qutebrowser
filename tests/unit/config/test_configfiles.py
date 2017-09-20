@@ -217,9 +217,11 @@ class TestConfigPy:
         assert config.instance._values['bindings.commands'] == expected
 
     def test_mutating(self, confpy):
-        confpy.write('c.aliases["foo"] = "message-info foo"')
+        confpy.write('c.aliases["foo"] = "message-info foo"',
+                     'c.aliases["bar"] = "message-info bar"')
         confpy.read()
         assert config.instance._values['aliases']['foo'] == 'message-info foo'
+        assert config.instance._values['aliases']['bar'] == 'message-info bar'
 
     def test_reading_default_location(self, config_tmpdir):
         (config_tmpdir / 'config.py').write_text(

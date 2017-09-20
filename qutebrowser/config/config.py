@@ -368,7 +368,7 @@ class Config(QObject):
 
     Attributes:
         _values: A dict mapping setting names to their values.
-        _mutables: A list of mutable objects to be checked for changes.
+        _mutables: A dictionary of mutable objects to be checked for changes.
         _yaml: A YamlConfig object or None.
 
     Signals:
@@ -381,7 +381,7 @@ class Config(QObject):
         super().__init__(parent)
         self.changed.connect(_render_stylesheet.cache_clear)
         self._values = {}
-        self._mutables = []
+        self._mutables = {}
         self._yaml = yaml_config
 
     def init_save_manager(self, save_manager):
@@ -430,16 +430,23 @@ class Config(QObject):
         If mutable=True is set, watch the returned object for mutations.
         """
         opt = self.get_opt(name)
-        # We always return a copy of the value stored internally, so the
+        obj = None
+        # If we allow mutation, there is a chance that prior mutations already
+        # entered the mutable dictionary and thus further copies are unneeded
+        # until update_mutables() is called
+        if name in self._mutables and mutable:
+            obj = self._mutables[name][1]
+        # Otherwise, we return a copy of the value stored internally, so the
         # internal value can never be changed by mutating the object returned.
-        obj = copy.deepcopy(self._values.get(name, opt.default))
-        # Then we watch the returned object for changes.
-        if isinstance(obj, (dict, list)):
-            if mutable:
-                self._mutables.append((name, copy.deepcopy(obj), obj))
         else:
-            # Shouldn't be mutable (and thus hashable)
-            assert obj.__hash__ is not None, obj
+            obj = copy.deepcopy(self._values.get(name, opt.default))
+            # Then we watch the returned object for changes.
+            if isinstance(obj, (dict, list)):
+                if mutable:
+                    self._mutables[name] = (copy.deepcopy(obj), obj)
+            else:
+                # Shouldn't be mutable (and thus hashable)
+                assert obj.__hash__ is not None, obj
         return obj
 
     def get_str(self, name):
@@ -480,11 +487,13 @@ class Config(QObject):
         Here, we check all those saved copies for mutations, and if something
         mutated, we call set_obj again so we save the new value.
         """
-        for name, old_value, new_value in self._mutables:
+        for name in self._mutables:
+            old_value = self._mutables[name][0]
+            new_value = self._mutables[name][1]
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
                 self.set_obj(name, new_value, save_yaml=save_yaml)
-        self._mutables = []
+        self._mutables = {}
 
     def dump_userconfig(self):
         """Get the part of the config which was changed by the user.

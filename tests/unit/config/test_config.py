@@ -706,7 +706,7 @@ class TestConfig:
                         assert obj == new
 
         if mutable:
-            assert conf._mutables == [(option, old, new)]
+            assert conf._mutables[option] == (old, new)
 
         if mutable and mutated:
             # Now let's update
