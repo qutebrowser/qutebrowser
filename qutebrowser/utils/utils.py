@@ -881,3 +881,13 @@ def yaml_dump(data, f=None):
         return None
     else:
         return yaml_data.decode('utf-8')
+
+
+def is_mac():
+    return sys.platform.startswith('darwin')
+
+def is_linux():
+    return sys.platform.startswith('linux')
+
+def is_windows():
+    return sys.platform.startswith('win')
