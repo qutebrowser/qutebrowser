@@ -97,6 +97,37 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
     None,
     'global:\n  colors.hints.fg: magenta',
 ])
+@pytest.mark.parametrize('key, value', [
+    ('colors.hints.fg', 'green'),
+    ('colors.hints.bg', None),
+    ('confirm_quit', True),
+    ('confirm_quit', False),
+])
+def test_yaml_config_changed(fake_save_manager, config_tmpdir, old_config, key, value):
+    autoconfig = config_tmpdir / 'autoconfig.yml'
+    if old_config is not None:
+        autoconfig.write_text(old_config, 'utf-8')
+
+    yaml = configfiles.YamlConfig()
+    yaml.load()
+
+    yaml[key] = value
+    assert key in yaml
+    assert yaml[key] == value
+
+    yaml._save()
+
+    yaml = configfiles.YamlConfig()
+    yaml.load()
+
+    assert key in yaml
+    assert yaml[key] == value
+
+
+@pytest.mark.parametrize('old_config', [
+    None,
+    'global:\n  colors.hints.fg: magenta',
+])
 def test_yaml_config_unchanged(fake_save_manager, config_tmpdir, old_config):
     autoconfig = config_tmpdir / 'autoconfig.yml'
     mtime = None
