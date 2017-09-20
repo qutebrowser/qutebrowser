@@ -365,9 +365,9 @@ class TestKeyEventToString:
                                      Qt.MetaModifier | Qt.ShiftModifier))
         assert utils.keyevent_to_string(evt) == 'ctrl+alt+meta+shift+a'
 
-    def test_mac(self, monkeypatch, fake_keyevent_factory):
+    @pytest.mark.fake_os('mac')
+    def test_mac(self, fake_keyevent_factory):
         """Test with a simulated mac."""
-        monkeypatch.setattr(utils, 'is_mac', True)
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
         assert utils.keyevent_to_string(evt) == 'meta+a'
 

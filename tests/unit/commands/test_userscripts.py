@@ -246,9 +246,8 @@ def test_unicode_error(caplog, qtbot, py_proc, runner):
     assert caplog.records[0].message == expected
 
 
-def test_unsupported(monkeypatch, tabbed_browser_stubs):
-    monkeypatch.setattr(userscripts.utils, 'is_posix', False)
-    monkeypatch.setattr(userscripts.utils, 'is_windows', False)
+@pytest.mark.fake_os('unknown')
+def test_unsupported(tabbed_browser_stubs):
     with pytest.raises(userscripts.UnsupportedError, match="Userscripts are "
                        "not supported on this platform!"):
         userscripts.run_async(tab=None, cmd=None, win_id=0, env=None)

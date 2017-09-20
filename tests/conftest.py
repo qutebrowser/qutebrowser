@@ -193,6 +193,37 @@ def set_backend(monkeypatch, request):
     monkeypatch.setattr(objects, 'backend', backend)
 
 
+@pytest.fixture(autouse=True)
+def apply_fake_os(monkeypatch, request):
+    fake_os = request.node.get_marker('fake_os')
+    if not fake_os:
+        return
+
+    name = fake_os.args[0]
+    mac = False
+    windows = False
+    linux = False
+    posix = False
+
+    if name == 'unknown':
+        pass
+    elif name == 'mac':
+        mac = True
+        posix = True
+    elif name == 'windows':
+        windows = True
+    elif name == 'linux':
+        linux = True
+        posix = True
+    else:
+        raise ValueError("Invalid fake_os {}".format(name))
+
+    monkeypatch.setattr('qutebrowser.utils.utils.is_mac', mac)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_linux', linux)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_windows', windows)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
+
+
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Make test information available in fixtures.

@@ -78,9 +78,9 @@ def test_unset_organization_no_qapp(monkeypatch):
         pass
 
 
+@pytest.mark.fake_os('mac')
 def test_fake_mac_config(tmpdir, monkeypatch):
     """Test standardir.config on a fake Mac."""
-    monkeypatch.setattr(utils, 'is_mac', True)
     monkeypatch.setenv('HOME', str(tmpdir))
     expected = str(tmpdir) + '/.qute_test'  # always with /
     standarddir._init_config(args=None)
@@ -89,9 +89,9 @@ def test_fake_mac_config(tmpdir, monkeypatch):
 
 @pytest.mark.parametrize('what', ['data', 'config', 'cache'])
 @pytest.mark.not_mac
+@pytest.mark.fake_os('windows')
 def test_fake_windows(tmpdir, monkeypatch, what):
     """Make sure the config/data/cache dirs are correct on a fake Windows."""
-    monkeypatch.setattr(standarddir.utils, 'is_windows', True)
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         lambda typ: str(tmpdir / APPNAME))
 
@@ -173,9 +173,9 @@ class TestStandardDir:
         standarddir._init_dirs()
         assert standarddir.runtime() == str(tmpdir / 'temp' / APPNAME)
 
+    @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
         """With an empty tempdir on non-Linux, we should raise."""
-        monkeypatch.setattr(standarddir.utils, 'is_linux', False)
         monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
@@ -324,9 +324,9 @@ class TestSystemData:
 
     """Test system data path."""
 
+    @pytest.mark.fake_os('linux')
     def test_system_datadir_exist_linux(self, monkeypatch):
         """Test that /usr/share/qute_test is used if path exists."""
-        monkeypatch.setattr(standarddir.utils, 'is_linux', True)
         monkeypatch.setattr(os.path, 'exists', lambda path: True)
         standarddir._init_dirs()
         assert standarddir.data(system=True) == "/usr/share/qute_test"
