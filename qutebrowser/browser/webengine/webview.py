@@ -148,7 +148,7 @@ class WebEnginePage(QWebEnginePage):
         self.setBackgroundColor(col)
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
-    def _on_proxy_authentication_required(self, url, authenticator,
+    def _on_proxy_authentication_required(self, _url, authenticator,
                                           proxy_host):
         """Called when a proxy needs authentication."""
         msg = "<b>{}</b> requires a username and password.".format(
