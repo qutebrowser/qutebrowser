@@ -435,7 +435,7 @@ class Config(QObject):
         # entered the mutable dictionary and thus further copies are unneeded
         # until update_mutables() is called
         if name in self._mutables and mutable:
-            obj = self._mutables[name][1]
+            _copy, obj = self._mutables[name]
         # Otherwise, we return a copy of the value stored internally, so the
         # internal value can never be changed by mutating the object returned.
         else:
@@ -487,9 +487,7 @@ class Config(QObject):
         Here, we check all those saved copies for mutations, and if something
         mutated, we call set_obj again so we save the new value.
         """
-        for name in self._mutables:
-            old_value = self._mutables[name][0]
-            new_value = self._mutables[name][1]
+        for name, (old_value, new_value) in self._mutables.items():
             if old_value != new_value:
                 log.config.debug("{} was mutated, updating".format(name))
                 self.set_obj(name, new_value, save_yaml=save_yaml)
