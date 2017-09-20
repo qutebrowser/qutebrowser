@@ -525,6 +525,7 @@ class ImportFake:
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
+        self._real_importlib_import = importlib.import_module
 
     def _do_import(self, name):
         """Helper for fake_import and fake_importlib_import to do the work.
@@ -558,7 +559,7 @@ class ImportFake:
         if module is not None:
             return module
         else:
-            return importlib.import_module(name)
+            return self._real_importlib_import(name)
 
 
 @pytest.fixture
