@@ -753,7 +753,7 @@ class AbstractTab(QWidget):
         self.load_finished.emit(ok)
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
-        self._handle_auto_insert_mode(ok)
+        # self._handle_auto_insert_mode(ok)
 
     @pyqtSlot()
     def _on_history_trigger(self):
