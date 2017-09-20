@@ -84,7 +84,7 @@ class YamlConfig:
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
         self._values = {}
-        self._changed = None
+        self._dirty = None
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -98,8 +98,7 @@ class YamlConfig:
         return self._values[name]
 
     def __setitem__(self, name, value):
-        if self._values.get(name) != value:
-            self._changed = True
+        self._dirty = True
         self._values[name] = value
 
     def __contains__(self, name):
@@ -110,7 +109,7 @@ class YamlConfig:
 
     def _save(self):
         """Save the settings to the YAML file if they've changed."""
-        if not self._changed:
+        if not self._dirty:
             return
 
         data = {'config_version': self.VERSION, 'global': self._values}
@@ -155,7 +154,7 @@ class YamlConfig:
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         self._values = global_obj
-        self._changed = False
+        self._dirty = False
 
 
 class ConfigAPI:
