@@ -51,7 +51,7 @@ def _apply_platform_markers(config, item):
     """Apply a skip marker to a given item."""
     markers = [
         ('posix', not utils.is_posix, "Requires a POSIX os"),
-        ('windows', not utils.is_mac, "Requires Windows"),
+        ('windows', not utils.is_windows, "Requires Windows"),
         ('linux', not utils.is_linux, "Requires Linux"),
         ('mac', not utils.is_mac, "Requires macOS"),
         ('not_mac', utils.is_mac, "Skipped on macOS"),
