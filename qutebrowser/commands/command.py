@@ -45,9 +45,7 @@ class ArgInfo:
     completion = attr.ib(None)
     choices = attr.ib(None)
 
-    @win_id.validator
-    @count.validator
-    def _validate_exclusive(self, _attr, _value):
+    def __attrs_post_init__(self):
         if self.win_id and self.count:
             raise TypeError("Argument marked as both count/win_id!")
 
