@@ -1890,7 +1890,6 @@ bindings.key_mappings:
     <Enter>: <Return>
     <Shift-Enter>: <Return>
     <Ctrl-Enter>: <Ctrl-Return>
-    <Ctrl-[>: <Escape>
   type:
     name: Dict
     keytype: Key
