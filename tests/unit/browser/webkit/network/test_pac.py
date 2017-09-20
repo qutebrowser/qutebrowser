@@ -20,10 +20,9 @@
 import http.server
 import threading
 import logging
-import sys
 import pytest
 
-from PyQt5.QtCore import QUrl, QT_VERSION_STR
+from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
                              QHostAddress)
 
@@ -206,14 +205,6 @@ def test_secret_url(url, has_secret, from_file):
     res.resolve(QNetworkProxyQuery(QUrl(url)), from_file=from_file)
 
 
-# See https://github.com/qutebrowser/qutebrowser/pull/1891#issuecomment-259222615
-
-try:
-    from PyQt5 import QtWebEngineWidgets
-except ImportError:
-    QtWebEngineWidgets = None
-
-
 def fetcher_test(test_str):
     class PACHandler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
@@ -236,17 +227,14 @@ def fetcher_test(test_str):
     serve_thread.start()
     try:
         ready_event.wait()
-        res = pac.PACFetcher(QUrl("pac+http://127.0.0.1:8081"))
-        assert res.fetch_error() is None
+        fetcher = pac.PACFetcher(QUrl("pac+http://127.0.0.1:8081"))
+        fetcher.fetch()
+        assert fetcher.fetch_error() is None
     finally:
         serve_thread.join()
-    return res
+    return fetcher
 
 
-@pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and
-                    QtWebEngineWidgets is not None and
-                    sys.platform == "linux",
-                    reason="Segfaults when run with QtWebEngine tests on Linux")
 def test_fetch_success():
     test_str = """
         function FindProxyForURL(domain, host) {
@@ -259,10 +247,6 @@ def test_fetch_success():
     assert len(proxies) == 3
 
 
-@pytest.mark.skipif(QT_VERSION_STR.startswith('5.7') and
-                    QtWebEngineWidgets is not None and
-                    sys.platform == "linux",
-                    reason="Segfaults when run with QtWebEngine tests on Linux")
 def test_fetch_evalerror(caplog):
     test_str = """
         function FindProxyForURL(domain, host) {

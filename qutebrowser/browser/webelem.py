@@ -31,6 +31,7 @@ from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
+from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
@@ -182,7 +183,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             # at least a classid attribute. Oh, and let's hope images/...
             # DON'T have a classid attribute. HTML sucks.
             log.webelem.debug("<object type='{}'> clicked.".format(objtype))
-            return config.get('input', 'insert-mode-on-plugins')
+            return config.val.input.insert_mode.plugins
         else:
             # Image/Audio/...
             return False
@@ -247,7 +248,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return self.is_writable()
         elif tag in ['embed', 'applet']:
             # Flash/Java/...
-            return config.get('input', 'insert-mode-on-plugins') and not strict
+            return config.val.input.insert_mode.plugins and not strict
         elif tag == 'object':
             return self._is_editable_object() and not strict
         elif tag in ['div', 'pre']:
@@ -329,7 +330,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             usertypes.ClickTarget.tab: Qt.ControlModifier,
             usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
         }
-        if config.get('tabs', 'background-tabs'):
+        if config.val.tabs.background:
             modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
         else:
             modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
@@ -372,7 +373,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
             background = click_target == usertypes.ClickTarget.tab_bg
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
-            from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=tabbed_browser.private)
             window.show()
             window.tabbed_browser.tabopen(url)

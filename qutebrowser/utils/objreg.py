@@ -105,13 +105,9 @@ class ObjectRegistry(collections.UserDict):
             func = partial_objs[name]
             try:
                 self[name].destroyed.disconnect(func)
-            except (RuntimeError, TypeError):
+            except RuntimeError:
                 # If C++ has deleted the object, the slot is already
                 # disconnected.
-                #
-                # With older PyQt-versions (5.2.1) we'll get a "TypeError:
-                # pyqtSignal must be bound to a QObject" instead:
-                # https://github.com/qutebrowser/qutebrowser/issues/257
                 pass
             del partial_objs[name]
 
@@ -145,7 +141,7 @@ class ObjectRegistry(collections.UserDict):
         for name, obj in self.data.items():
             try:
                 obj_repr = repr(obj)
-            except (RuntimeError, TypeError):
+            except RuntimeError:
                 # Underlying object deleted probably
                 obj_repr = '<deleted>'
             lines.append("{}: {}".format(name, obj_repr))

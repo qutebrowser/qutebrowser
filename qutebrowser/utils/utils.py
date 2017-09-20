@@ -31,13 +31,19 @@ import contextlib
 import socket
 import shlex
 
+import attr
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
+import yaml
+try:
+    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+except ImportError:  # pragma: no cover
+    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import qtutils, log, debug
 
 
 fake_clipboard = None
@@ -401,9 +407,10 @@ def keyevent_to_string(e):
         if mod & mask and s not in parts:
             parts.append(s)
     parts.append(key_to_string(e.key()))
-    return '+'.join(parts)
+    return normalize_keystr('+'.join(parts))
 
 
+@attr.s(repr=False)
 class KeyInfo:
 
     """Stores information about a key, like used in a QKeyEvent.
@@ -414,25 +421,19 @@ class KeyInfo:
         text: str
     """
 
-    def __init__(self, key, modifiers, text):
-        self.key = key
-        self.modifiers = modifiers
-        self.text = text
+    key = attr.ib()
+    modifiers = attr.ib()
+    text = attr.ib()
 
     def __repr__(self):
-        # Meh, dependency cycle...
-        from qutebrowser.utils.debug import qenum_key
         if self.modifiers is None:
             modifiers = None
         else:
             #modifiers = qflags_key(Qt, self.modifiers)
             modifiers = hex(int(self.modifiers))
-        return get_repr(self, constructor=True, key=qenum_key(Qt, self.key),
+        return get_repr(self, constructor=True,
+                        key=debug.qenum_key(Qt, self.key),
                         modifiers=modifiers, text=self.text)
-
-    def __eq__(self, other):
-        return (self.key == other.key and self.modifiers == other.modifiers and
-                self.text == other.text)
 
 
 class KeyParseError(Exception):
@@ -798,27 +799,28 @@ def random_port():
 def open_file(filename, cmdline=None):
     """Open the given file.
 
-    If cmdline is not given, general->default-open-dispatcher is used.
-    If default-open-dispatcher is unset, the system's default application is
-    used.
+    If cmdline is not given, downloads.open_dispatcher is used.
+    If open_dispatcher is unset, the system's default application is used.
 
     Args:
         filename: The filename to open.
         cmdline: The command to use as string. A `{}` is expanded to the
                  filename. None means to use the system's default application
-                 or `default-open-dispatcher` if set. If no `{}` is found, the
-                 filename is appended to the cmdline.
+                 or `downloads.open_dispatcher` if set. If no `{}` is found,
+                 the filename is appended to the cmdline.
     """
     # Import late to avoid circular imports:
-    # utils -> config -> configdata -> configtypes -> cmdutils -> command ->
-    # utils
-    from qutebrowser.misc import guiprocess
+    # - usertypes -> utils -> guiprocess -> message -> usertypes
+    # - usertypes -> utils -> config -> configdata -> configtypes ->
+    #   cmdutils -> command -> message -> usertypes
     from qutebrowser.config import config
+    from qutebrowser.misc import guiprocess
+
     # the default program to open downloads with - will be empty string
     # if we want to use the default
-    override = config.get('general', 'default-open-dispatcher')
+    override = config.val.downloads.open_dispatcher
 
-    # precedence order: cmdline > default-open-dispatcher > openUrl
+    # precedence order: cmdline > downloads.open_dispatcher > openUrl
 
     if cmdline is None and not override:
         log.misc.debug("Opening {} with the system application"
@@ -840,6 +842,11 @@ def open_file(filename, cmdline=None):
     proc.start_detached(cmd, args)
 
 
+def unused(_arg):
+    """Function which does nothing to avoid pylint complaining."""
+    pass
+
+
 def expand_windows_drive(path):
     r"""Expand a drive-path like E: into E:\.
 
@@ -856,3 +863,21 @@ def expand_windows_drive(path):
         return path + "\\"
     else:
         return path
+
+
+def yaml_load(f):
+    """Wrapper over yaml.load using the C loader if possible."""
+    return yaml.load(f, Loader=YamlLoader)
+
+
+def yaml_dump(data, f=None):
+    """Wrapper over yaml.dump using the C dumper if possible.
+
+    Also returns a str instead of bytes.
+    """
+    yaml_data = yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
+                          encoding='utf-8', allow_unicode=True)
+    if yaml_data is None:
+        return None
+    else:
+        return yaml_data.decode('utf-8')

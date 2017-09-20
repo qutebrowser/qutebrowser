@@ -254,6 +254,11 @@ Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
 JsWorld = enum('JsWorld', ['main', 'application', 'user', 'jseval'])
 
 
+# Log level of a JS message. This needs to match up with the keys allowed for
+# the content.javascript.log setting.
+JsLogLevel = enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
+
+
 MessageLevel = enum('MessageLevel', ['error', 'warning', 'info'])
 
 
@@ -350,14 +355,8 @@ class Question(QObject):
             log.misc.debug("Question was already aborted")
             return
         self.is_aborted = True
-        try:
-            self.aborted.emit()
-            self.completed.emit()
-        except TypeError:
-            # WORKAROUND
-            # We seem to get "pyqtSignal must be bound to a QObject, not
-            # 'Question' here, which makes no sense at all..."
-            log.misc.exception("Error while aborting question")
+        self.aborted.emit()
+        self.completed.emit()
 
 
 class Timer(QTimer):

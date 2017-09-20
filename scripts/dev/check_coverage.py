@@ -25,16 +25,26 @@ import sys
 import enum
 import os.path
 import subprocess
-import collections
-
 from xml.etree import ElementTree
+
+import attr
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 from scripts import utils
 
-Message = collections.namedtuple('Message', 'typ, filename, text')
+
+@attr.s
+class Message:
+
+    """A message shown by coverage.py."""
+
+    typ = attr.ib()
+    filename = attr.ib()
+    text = attr.ib()
+
+
 MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 
 
@@ -53,8 +63,6 @@ PERFECT_FILES = [
         'browser/webkit/cookies.py'),
     ('tests/unit/browser/test_history.py',
         'browser/history.py'),
-    ('tests/unit/browser/test_history.py',
-        'browser/webkit/webkithistory.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
         'browser/webkit/http.py'),
     ('tests/unit/browser/webkit/http/test_content_disposition.py',
@@ -73,7 +81,7 @@ PERFECT_FILES = [
     ('tests/unit/browser/test_signalfilter.py',
         'browser/signalfilter.py'),
     (None,
-        'browser/webkit/certificateerror.py'),
+        'browser/webengine/certificateerror.py'),
     # ('tests/unit/browser/test_tab.py',
     #     'browser/tab.py'),
 
@@ -122,16 +130,16 @@ PERFECT_FILES = [
     ('tests/unit/mainwindow/test_messageview.py',
         'mainwindow/messageview.py'),
 
-    ('tests/unit/config/test_configtypes.py',
-        'config/configtypes.py'),
+    ('tests/unit/config/test_config.py',
+        'config/config.py'),
     ('tests/unit/config/test_configdata.py',
         'config/configdata.py'),
     ('tests/unit/config/test_configexc.py',
         'config/configexc.py'),
-    ('tests/unit/config/test_textwrapper.py',
-        'config/textwrapper.py'),
-    ('tests/unit/config/test_style.py',
-        'config/style.py'),
+    ('tests/unit/config/test_configfiles.py',
+        'config/configfiles.py'),
+    ('tests/unit/config/test_configtypes.py',
+        'config/configtypes.py'),
 
     ('tests/unit/utils/test_qtutils.py',
         'utils/qtutils.py'),
@@ -151,11 +159,11 @@ PERFECT_FILES = [
         'utils/jinja.py'),
     ('tests/unit/utils/test_error.py',
         'utils/error.py'),
-    ('tests/unit/utils/test_typing.py',
-        'utils/typing.py'),
     ('tests/unit/utils/test_javascript.py',
         'utils/javascript.py'),
 
+    (None,
+        'completion/models/util.py'),
     ('tests/unit/completion/test_models.py',
         'completion/models/urlmodel.py'),
     ('tests/unit/completion/test_histcategory.py',
@@ -239,7 +247,7 @@ def check(fileobj, perfect_files):
         is_bad = line_cov < 100 or branch_cov < 100
 
         if filename in perfect_src_files and is_bad:
-            text = "{} has {}% line and {}% branch coverage!".format(
+            text = "{} has {:.2f}% line and {:.2f}% branch coverage!".format(
                 filename, line_cov, branch_cov)
             messages.append(Message(MsgType.insufficent_coverage, filename,
                                     text))
@@ -272,8 +280,8 @@ def main_check():
         subprocess.check_call([sys.executable, '-m', 'coverage', 'report',
                                '--show-missing', '--include', filters])
         print()
-        print("To debug this, run 'tox -e py35-cov' (or py34-cov) locally and "
-              "check htmlcov/index.html")
+        print("To debug this, run 'tox -e py36-pyqt59-cov' "
+              "(or py35-pyqt59-cov) locally and check htmlcov/index.html")
         print("or check https://codecov.io/github/qutebrowser/qutebrowser")
         print()
 
@@ -291,7 +299,7 @@ def main_check_all():
     tests.
 
     This runs pytest with the used executable, so check_coverage.py should be
-    called with something like ./.tox/py34/bin/python.
+    called with something like ./.tox/py36/bin/python.
     """
     for test_file, src_file in PERFECT_FILES:
         if test_file is None:

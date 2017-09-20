@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,4 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Parser for different configuration formats."""
+import pytest
+
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
+
+
+@pytest.mark.parametrize('func', [
+    lambda: objects.NoBackend() == usertypes.Backend.QtWebEngine,
+    lambda: objects.NoBackend() != usertypes.Backend.QtWebEngine,
+    lambda: objects.NoBackend() in [usertypes.Backend.QtWebEngine],
+])
+def test_no_backend(func):
+    with pytest.raises(AssertionError, match='No backend set!'):
+        func()

@@ -19,8 +19,6 @@
 
 """Tests for usertypes.Question."""
 
-import logging
-
 import pytest
 
 from qutebrowser.utils import usertypes
@@ -82,10 +80,10 @@ def test_abort(question, qtbot):
     assert question.is_aborted
 
 
-def test_abort_typeerror(question, qtbot, mocker, caplog):
-    """Test Question.abort() with .emit() raising a TypeError."""
-    signal_mock = mocker.patch('qutebrowser.utils.usertypes.Question.aborted')
-    signal_mock.emit.side_effect = TypeError
-    with caplog.at_level(logging.ERROR, 'misc'):
+def test_abort_twice(question, qtbot):
+    """Abort a question twice."""
+    with qtbot.wait_signal(question.aborted):
         question.abort()
-    assert caplog.records[0].message == 'Error while aborting question'
+    assert question.is_aborted
+    with qtbot.assert_not_emitted(question.aborted):
+        question.abort()

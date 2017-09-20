@@ -15,11 +15,8 @@ __pycache__
 /qutebrowser/3rdparty
 /doc/*.html
 /README.html
-/CHANGELOG.html
-/CONTRIBUTING.html
-/FAQ.html
-/INSTALL.html
 /qutebrowser/html/doc/
+/qutebrowser/html/*.html
 /.venv*
 /.coverage
 /htmlcov

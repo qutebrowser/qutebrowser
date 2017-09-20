@@ -32,10 +32,11 @@ import logging
 import textwrap
 import pkg_resources
 
+import attr
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes, qtutils
+from qutebrowser.utils import version, usertypes
 from qutebrowser.browser import pdfjs
 
 
@@ -164,6 +165,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='manjaro', parsed=version.Distribution.manjaro,
          version=None, pretty='Manjaro Linux')),
+    # Funtoo
+    ("""
+        ID="funtoo"
+        NAME="Funtoo GNU/Linux"
+        PRETTY_NAME="Linux"
+     """,
+     version.DistributionInfo(
+         id='funtoo', parsed=version.Distribution.gentoo,
+         version=None, pretty='Funtoo GNU/Linux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -447,28 +457,40 @@ def test_release_info(files, expected, caplog, monkeypatch):
         assert caplog.records[0].message == "Error while reading fake-file."
 
 
-def test_path_info(monkeypatch):
-    """Test _path_info()."""
+@pytest.mark.parametrize('equal', [True, False])
+def test_path_info(monkeypatch, equal):
+    """Test _path_info().
+
+    Args:
+        equal: Whether system data / data and system config / config are equal.
+    """
     patches = {
-        'config': lambda: 'CONFIG PATH',
-        'data': lambda: 'DATA PATH',
-        'system_data': lambda: 'SYSTEM DATA PATH',
+        'config': lambda auto=False:
+            'AUTO CONFIG PATH' if auto and not equal
+            else 'CONFIG PATH',
+        'data': lambda system=False:
+            'SYSTEM DATA PATH' if system and not equal
+            else 'DATA PATH',
         'cache': lambda: 'CACHE PATH',
-        'download': lambda: 'DOWNLOAD PATH',
         'runtime': lambda: 'RUNTIME PATH',
     }
 
-    for attr, val in patches.items():
-        monkeypatch.setattr(version.standarddir, attr, val)
+    for name, val in patches.items():
+        monkeypatch.setattr(version.standarddir, name, val)
 
     pathinfo = version._path_info()
 
     assert pathinfo['config'] == 'CONFIG PATH'
     assert pathinfo['data'] == 'DATA PATH'
-    assert pathinfo['system_data'] == 'SYSTEM DATA PATH'
     assert pathinfo['cache'] == 'CACHE PATH'
-    assert pathinfo['download'] == 'DOWNLOAD PATH'
     assert pathinfo['runtime'] == 'RUNTIME PATH'
+
+    if equal:
+        assert 'auto config' not in pathinfo
+        assert 'system data' not in pathinfo
+    else:
+        assert pathinfo['auto config'] == 'AUTO CONFIG PATH'
+        assert pathinfo['system data'] == 'SYSTEM DATA PATH'
 
 
 class ImportFake:
@@ -494,16 +516,16 @@ class ImportFake:
             ('pygments', True),
             ('yaml', True),
             ('cssutils', True),
-            ('typing', True),
+            ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
-        self.no_version_attribute = ['sip', 'typing',
-                                     'PyQt5.QtWebEngineWidgets',
+        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
                                      'PyQt5.QtWebKitWidgets']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
+        self._real_importlib_import = importlib.import_module
 
     def _do_import(self, name):
         """Helper for fake_import and fake_importlib_import to do the work.
@@ -537,7 +559,7 @@ class ImportFake:
         if module is not None:
             return module
         else:
-            return importlib.import_module(name)
+            return self._real_importlib_import(name)
 
 
 @pytest.fixture
@@ -567,7 +589,6 @@ class TestModuleVersions:
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
         ('cssutils', 6, 'cssutils: no'),
-        ('typing', 7, 'typing: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -612,6 +633,7 @@ class TestModuleVersions:
         ('pygments', True),
         ('yaml', True),
         ('cssutils', True),
+        ('attr', True),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
@@ -799,17 +821,16 @@ def test_chromium_version_unpatched(qapp):
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
+@attr.s
 class VersionParams:
 
-    def __init__(self, name, git_commit=True, frozen=False, style=True,
-                 with_webkit=True, known_distribution=True, ssl_support=True):
-        self.name = name
-        self.git_commit = git_commit
-        self.frozen = frozen
-        self.style = style
-        self.with_webkit = with_webkit
-        self.known_distribution = known_distribution
-        self.ssl_support = ssl_support
+    name = attr.ib()
+    git_commit = attr.ib(True)
+    frozen = attr.ib(False)
+    style = attr.ib(True)
+    with_webkit = attr.ib(True)
+    known_distribution = attr.ib(True)
+    ssl_support = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -818,7 +839,6 @@ class VersionParams:
     VersionParams('frozen', frozen=True),
     VersionParams('no-style', style=False),
     VersionParams('no-webkit', with_webkit=False),
-    VersionParams('webkit-ng', with_webkit='ng'),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
 ], ids=lambda param: param.name)
@@ -863,13 +883,7 @@ def test_version_output(params, stubs, monkeypatch):
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
         patches['QWebEngineProfile'] = None
-        if params.with_webkit == 'ng':
-            backend = 'QtWebKit-NG'
-            patches['qtutils.is_qtwebkit_ng'] = lambda: True
-        else:
-            backend = 'legacy QtWebKit'
-            patches['qtutils.is_qtwebkit_ng'] = lambda: False
-        substitutions['backend'] = backend + ' (WebKit WEBKIT VERSION)'
+        substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
@@ -890,8 +904,8 @@ def test_version_output(params, stubs, monkeypatch):
 
     substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
 
-    for attr, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
+    for name, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
 
     if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
@@ -925,8 +939,6 @@ def test_version_output(params, stubs, monkeypatch):
     assert version.version() == expected
 
 
-@pytest.mark.skipif(not qtutils.version_check('5.4'),
-                    reason="Needs Qt >= 5.4.")
 def test_opengl_vendor():
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")

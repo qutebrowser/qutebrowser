@@ -27,4 +27,5 @@ def invoke_with(quteproc):
     quteproc.log_summary("Create a new window")
     quteproc.send_ipc([], target_arg='window')
     quteproc.wait_for(category='init', module='app',
-                      function='_open_startpage', message='Opening startpage')
+                      function='_open_startpage',
+                      message='Opening start pages')

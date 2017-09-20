@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import style
+from qutebrowser.config import config
 from qutebrowser.utils import qtutils, utils, objreg
 
 
@@ -64,8 +64,8 @@ class DownloadView(QListView):
 
     STYLESHEET = """
         QListView {
-            background-color: {{ color['downloads.bg.bar'] }};
-            font: {{ font['downloads'] }};
+            background-color: {{ conf.colors.downloads.bar.bg }};
+            font: {{ conf.fonts.downloads }};
         }
 
         QListView::item {
@@ -76,7 +76,7 @@ class DownloadView(QListView):
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self.setStyle(QStyleFactory.create('Fusion'))
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)

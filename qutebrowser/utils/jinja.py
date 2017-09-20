@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import contextlib
 import traceback
 import mimetypes
 import html
@@ -76,40 +77,56 @@ class Loader(jinja2.BaseLoader):
         return source, path, lambda: True
 
 
-def _guess_autoescape(template_name):
-    """Turn auto-escape on/off based on the file type.
+class Environment(jinja2.Environment):
 
-    Based on http://jinja.pocoo.org/docs/dev/api/#autoescaping
-    """
-    if template_name is None or '.' not in template_name:
-        return False
-    ext = template_name.rsplit('.', 1)[1]
-    return ext in ['html', 'htm', 'xml']
+    """Our own jinja environment which is more strict."""
 
+    def __init__(self):
+        super().__init__(loader=Loader('html'),
+                         autoescape=lambda _name: self._autoescape,
+                         undefined=jinja2.StrictUndefined)
+        self.globals['resource_url'] = self._resource_url
+        self.globals['file_url'] = urlutils.file_url
+        self.globals['data_url'] = self._data_url
+        self._autoescape = True
 
-def resource_url(path):
-    """Load images from a relative path (to qutebrowser).
+    @contextlib.contextmanager
+    def no_autoescape(self):
+        """Context manager to temporarily turn off autoescaping."""
+        self._autoescape = False
+        yield
+        self._autoescape = True
 
-    Arguments:
-        path: The relative path to the image
-    """
-    image = utils.resource_filename(path)
-    return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
+    def _resource_url(self, path):
+        """Load images from a relative path (to qutebrowser).
 
+        Arguments:
+            path: The relative path to the image
+        """
+        image = utils.resource_filename(path)
+        return QUrl.fromLocalFile(image).toString(QUrl.FullyEncoded)
 
-def data_url(path):
-    """Get a data: url for the broken qutebrowser logo."""
-    data = utils.read_file(path, binary=True)
-    filename = utils.resource_filename(path)
-    mimetype = mimetypes.guess_type(filename)
-    assert mimetype is not None, path
-    return urlutils.data_url(mimetype[0], data).toString()
+    def _data_url(self, path):
+        """Get a data: url for the broken qutebrowser logo."""
+        data = utils.read_file(path, binary=True)
+        filename = utils.resource_filename(path)
+        mimetype = mimetypes.guess_type(filename)
+        assert mimetype is not None, path
+        return urlutils.data_url(mimetype[0], data).toString()
+
+    def getattr(self, obj, attribute):
+        """Override jinja's getattr() to be less clever.
+
+        This means it doesn't fall back to __getitem__, and it doesn't hide
+        AttributeError.
+        """
+        return getattr(obj, attribute)
 
 
 def render(template, **kwargs):
     """Render the given template and pass the given arguments to it."""
     try:
-        return _env.get_template(template).render(**kwargs)
+        return environment.get_template(template).render(**kwargs)
     except jinja2.exceptions.UndefinedError:
         log.misc.exception("UndefinedError while rendering " + template)
         err_path = os.path.join('html', 'undef_error.html')
@@ -118,7 +135,4 @@ def render(template, **kwargs):
         return err_template.format(pagename=template, traceback=tb)
 
 
-_env = jinja2.Environment(loader=Loader('html'), autoescape=_guess_autoescape)
-_env.globals['resource_url'] = resource_url
-_env.globals['file_url'] = urlutils.file_url
-_env.globals['data_url'] = data_url
+environment = Environment()

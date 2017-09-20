@@ -43,4 +43,4 @@ def set_up_word_hints(tmpdir, quteproc):
         twelve
         thirteen
     """))
-    quteproc.set_setting('hints', 'dictionary', str(dict_file))
+    quteproc.set_setting('hints.dictionary', str(dict_file))

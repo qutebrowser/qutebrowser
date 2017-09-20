@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import json
 import textwrap
 
 import pytest_bdd as bdd
@@ -26,9 +27,9 @@ bdd.scenarios('editor.feature')
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor replacing "{text}" by '
                             '"{replacement}"'))
-def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
-    """Set up general->editor to a small python script doing a replacement."""
-    text = text.replace('(port)', str(httpbin.port))
+def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
+    """Set up editor.command to a small python script doing a replacement."""
+    text = text.replace('(port)', str(server.port))
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
         import sys
@@ -41,13 +42,13 @@ def set_up_editor_replacement(quteproc, httpbin, tmpdir, text, replacement):
         with open(sys.argv[1], 'w', encoding='utf-8') as f:
             f.write(data)
     """.format(text=text, replacement=replacement)))
-    editor = '"{}" "{}" {{}}'.format(sys.executable, script)
-    quteproc.set_setting('general', 'editor', editor)
+    editor = json.dumps([sys.executable, str(script), '{}'])
+    quteproc.set_setting('editor.command', editor)
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}"'))
-def set_up_editor(quteproc, httpbin, tmpdir, text):
-    """Set up general->editor to a small python script inserting a text."""
+def set_up_editor(quteproc, server, tmpdir, text):
+    """Set up editor.command to a small python script inserting a text."""
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
         import sys
@@ -55,5 +56,5 @@ def set_up_editor(quteproc, httpbin, tmpdir, text):
         with open(sys.argv[1], 'w', encoding='utf-8') as f:
             f.write({text!r})
     """.format(text=text)))
-    editor = '"{}" "{}" {{}}'.format(sys.executable, script)
-    quteproc.set_setting('general', 'editor', editor)
+    editor = json.dumps([sys.executable, str(script), '{}'])
+    quteproc.set_setting('editor.command', editor)

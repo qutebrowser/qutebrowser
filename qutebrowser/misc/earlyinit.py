@@ -19,7 +19,7 @@
 
 """Things which need to be done really early (e.g. before importing Qt).
 
-At this point we can be sure we have all python 3.4 features available.
+At this point we can be sure we have all python 3.5 features available.
 """
 
 try:
@@ -29,7 +29,6 @@ try:
 except ImportError:
     hunter = None
 
-import os
 import sys
 import faulthandler
 import traceback
@@ -40,8 +39,6 @@ try:
     import tkinter
 except ImportError:
     tkinter = None
-
-import pkg_resources
 
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
@@ -68,7 +65,7 @@ def _missing_str(name, *, windows=None, pip=None, webengine=False):
     if not webengine:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
-    blocks.append('<br />'.join(lines))
+        blocks.append('<br />'.join(lines))
     if windows is not None:
         lines = ["<b>On Windows:</b>"]
         lines += windows.splitlines()
@@ -140,73 +137,6 @@ def init_faulthandler(fileobj=sys.__stderr__):
         faulthandler.register(signal.SIGUSR1)
 
 
-def _qt_version():
-    """Get the running Qt version.
-
-    Needs to be in a function so we can do a local import easily (to not import
-    from QtCore too early) but can patch this out easily for tests.
-    """
-    from PyQt5.QtCore import qVersion
-    return pkg_resources.parse_version(qVersion())
-
-
-def fix_harfbuzz(args):
-    """Fix harfbuzz issues.
-
-    This switches to the most stable harfbuzz font rendering engine available
-    on the platform instead of using the system wide one.
-
-    This fixes crashes on various sites.
-
-    - On Qt 5.2 (and probably earlier) the new engine probably has more
-      crashes and is also experimental.
-
-      e.g. https://bugreports.qt.io/browse/QTBUG-36099
-
-    - On Qt 5.3.0 there's a bug that affects a lot of websites:
-      https://bugreports.qt.io/browse/QTBUG-39278
-      So the new engine will be more stable.
-
-    - On Qt 5.3.1 this bug is fixed and the old engine will be the more stable
-      one again.
-
-    - On Qt 5.4 the new engine is the default and most bugs are taken care of.
-
-    IMPORTANT: This needs to be done before QWidgets is imported in any way!
-
-    WORKAROUND (remove this when we bump the requirements to 5.3.1)
-
-    Args:
-        args: The argparse namespace.
-    """
-    from qutebrowser.utils import log
-    if 'PyQt5.QtWidgets' in sys.modules:
-        msg = "Harfbuzz fix attempted but QtWidgets is already imported!"
-        if getattr(sys, 'frozen', False):
-            log.init.debug(msg)
-        else:
-            log.init.warning(msg)
-    if sys.platform.startswith('linux') and args.harfbuzz == 'auto':
-        if _qt_version() == pkg_resources.parse_version('5.3.0'):
-            log.init.debug("Using new harfbuzz engine (auto)")
-            os.environ['QT_HARFBUZZ'] = 'new'
-        elif _qt_version() < pkg_resources.parse_version('5.4.0'):
-            log.init.debug("Using old harfbuzz engine (auto)")
-            os.environ['QT_HARFBUZZ'] = 'old'
-        else:
-            log.init.debug("Using system harfbuzz engine (auto)")
-    elif args.harfbuzz in ['old', 'new']:
-        # forced harfbuzz variant
-        # FIXME looking at the Qt code, 'new' isn't a valid value, but leaving
-        # it empty and using new yields different behavior...
-        # (probably irrelevant when workaround gets removed)
-        log.init.debug("Using {} harfbuzz engine (forced)".format(
-            args.harfbuzz))
-        os.environ['QT_HARFBUZZ'] = args.harfbuzz
-    else:
-        log.init.debug("Using system harfbuzz engine")
-
-
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
@@ -233,26 +163,6 @@ def check_pyqt_core():
         sys.exit(1)
 
 
-def get_backend(args):
-    """Find out what backend to use based on available libraries.
-
-    Note this function returns the backend as a string so we don't have to
-    import qutebrowser.utils.usertypes yet.
-    """
-    try:
-        import PyQt5.QtWebKit  # pylint: disable=unused-variable
-        webkit_available = True
-    except ImportError:
-        webkit_available = False
-
-    if args.backend is not None:
-        return args.backend
-    elif webkit_available:
-        return 'webkit'
-    else:
-        return 'webengine'
-
-
 def qt_version(qversion=None, qt_version_str=None):
     """Get a Qt version string based on the runtime/compiled versions."""
     if qversion is None:
@@ -268,50 +178,65 @@ def qt_version(qversion=None, qt_version_str=None):
         return qversion
 
 
-def check_qt_version(backend):
+def check_qt_version():
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
     from qutebrowser.utils import qtutils
-    if (not qtutils.version_check('5.2.0', strict=True) or
+    if (not qtutils.version_check('5.7.1', strict=True) or
             PYQT_VERSION < 0x050200):
-        text = ("Fatal error: Qt and PyQt >= 5.2.0 are required, but Qt {} / "
-                "PyQt {} is installed.".format(qt_version(),
-                                               PYQT_VERSION_STR))
-        _die(text)
-    elif (backend == 'webengine' and (
-            not qtutils.version_check('5.7.1', strict=True) or
-            PYQT_VERSION < 0x050700)):
-        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required for "
-                "QtWebEngine support, but Qt {} / PyQt {} is installed."
-                .format(qt_version(), PYQT_VERSION_STR))
+        text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
+                "but Qt {} / PyQt {} is installed.".format(qt_version(),
+                                                           PYQT_VERSION_STR))
         _die(text)
 
 
-def check_ssl_support(backend):
+def check_ssl_support():
     """Check if SSL support is available."""
-    from qutebrowser.utils import log
-
+    # pylint: disable=unused-variable
     try:
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
+
+def check_backend_ssl_support(backend):
+    """Check for full SSL availability when we know the backend."""
+    from PyQt5.QtNetwork import QSslSocket
+    from qutebrowser.utils import log, usertypes
     text = ("Could not initialize QtNetwork SSL support. If you use "
             "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
             "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
-            "of OpenSSL 1.0.")
-    if backend == 'webengine':
-        text += " This only affects downloads."
+            "of OpenSSL 1.0. This only affects downloads.")
 
     if not QSslSocket.supportsSsl():
-        if backend == 'webkit':
+        if backend == usertypes.Backend.QtWebKit:
             _die("Could not initialize SSL support.")
         else:
-            assert backend == 'webengine'
+            assert backend == usertypes.Backend.QtWebEngine
             log.init.warning(text)
 
 
-def check_libraries(backend):
+def _check_modules(modules):
+    """Make sure the given modules are available."""
+    from qutebrowser.utils import log
+
+    for name, text in modules.items():
+        try:
+            # https://github.com/pallets/jinja/pull/628
+            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
+            # https://github.com/pallets/jinja/issues/646
+            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
+            messages = ['invalid escape sequence',
+                        'Flags not at the start of the expression']
+            with log.ignore_py_warnings(
+                    category=DeprecationWarning,
+                    message=r'({})'.format('|'.join(messages))):
+                importlib.import_module(name)
+        except ImportError as e:
+            _die(text, e)
+
+
+def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
         'pkg_resources':
@@ -336,35 +261,43 @@ def check_libraries(backend):
                                  "http://pyyaml.org/download/pyyaml/ (py3.4) "
                                  "or Install via pip.",
                          pip="PyYAML"),
+        'attr':
+            _missing_str("attrs",
+                         pip="attrs"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
+        'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
     }
-    if backend == 'webengine':
-        modules['PyQt5.QtWebEngineWidgets'] = _missing_str("QtWebEngine",
-                                                           webengine=True)
-        modules['PyQt5.QtOpenGL'] = _missing_str("PyQt5.QtOpenGL")
+    _check_modules(modules)
+
+
+def check_backend_libraries(backend):
+    """Make sure the libraries needed by the given backend are available.
+
+    Args:
+        backend: The backend as usertypes.Backend member.
+    """
+    from qutebrowser.utils import usertypes
+    if backend == usertypes.Backend.QtWebEngine:
+        modules = {
+            'PyQt5.QtWebEngineWidgets':
+                _missing_str("QtWebEngine", webengine=True),
+        }
     else:
-        assert backend == 'webkit'
-        modules['PyQt5.QtWebKit'] = _missing_str("PyQt5.QtWebKit")
-        modules['PyQt5.QtWebKitWidgets'] = _missing_str(
-            "PyQt5.QtWebKitWidgets")
+        assert backend == usertypes.Backend.QtWebKit, backend
+        modules = {
+            'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
+            'PyQt5.QtWebKitWidgets': _missing_str("PyQt5.QtWebKitWidgets"),
+        }
+    _check_modules(modules)
 
-    from qutebrowser.utils import log
 
-    for name, text in modules.items():
-        try:
-            # https://github.com/pallets/jinja/pull/628
-            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
-            # https://github.com/pallets/jinja/issues/646
-            # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
-            messages = ['invalid escape sequence',
-                        'Flags not at the start of the expression']
-            with log.ignore_py_warnings(
-                    category=DeprecationWarning,
-                    message=r'({})'.format('|'.join(messages))):
-                importlib.import_module(name)
-        except ImportError as e:
-            _die(text, e)
+def check_new_webkit(backend):
+    """Make sure we use QtWebEngine or a new QtWebKit."""
+    from qutebrowser.utils import usertypes, qtutils
+    if backend == usertypes.Backend.QtWebKit and not qtutils.is_new_qtwebkit():
+        _die("qutebrowser does not support legacy QtWebKit versions anymore, "
+             "see the installation docs for details.")
 
 
 def remove_inputhook():
@@ -395,18 +328,7 @@ def check_optimize_flag():
                          "unexpected behavior may occur.")
 
 
-def set_backend(backend):
-    """Set the objects.backend global to the given backend (as string)."""
-    from qutebrowser.misc import objects
-    from qutebrowser.utils import usertypes
-    backends = {
-        'webkit': usertypes.Backend.QtWebKit,
-        'webengine': usertypes.Backend.QtWebEngine,
-    }
-    objects.backend = backends[backend]
-
-
-def earlyinit(args):
+def early_init(args):
     """Do all needed early initialization.
 
     Note that it's vital the other earlyinit functions get called in the right
@@ -423,15 +345,23 @@ def earlyinit(args):
     check_pyqt_core()
     # Init logging as early as possible
     init_log(args)
-    # Now the faulthandler is enabled we fix the Qt harfbuzzing library, before
-    # importing QtWidgets.
-    fix_harfbuzz(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
-    backend = get_backend(args)
-    check_qt_version(backend)
+    check_libraries()
+    check_qt_version()
     remove_inputhook()
-    check_libraries(backend)
-    check_ssl_support(backend)
+    check_ssl_support()
     check_optimize_flag()
-    set_backend(backend)
+
+
+def init_with_backend(backend):
+    """Do later stages of init when we know the backend.
+
+    Args:
+        backend: The backend as usertypes.Backend member.
+    """
+    assert not isinstance(backend, str), backend
+    assert backend is not None
+    check_backend_libraries(backend)
+    check_backend_ssl_support(backend)
+    check_new_webkit(backend)

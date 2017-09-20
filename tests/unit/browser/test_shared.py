@@ -26,6 +26,7 @@ from qutebrowser.browser import shared
     # DNT
     (True, None, {}, {b'DNT': b'1', b'X-Do-Not-Track': b'1'}),
     (False, None, {}, {b'DNT': b'0', b'X-Do-Not-Track': b'0'}),
+    (None, None, {}, {}),
     # Accept-Language
     (False, 'de, en', {}, {b'DNT': b'0', b'X-Do-Not-Track': b'0',
                            b'Accept-Language': b'de, en'}),
@@ -40,12 +41,10 @@ from qutebrowser.browser import shared
 ])
 def test_custom_headers(config_stub, dnt, accept_language, custom_headers,
                         expected):
-    config_stub.data = {
-        'network': {
-            'do-not-track': dnt,
-            'accept-language': accept_language,
-            'custom-headers': custom_headers,
-        }
-    }
+    headers = config_stub.val.content.headers
+    headers.do_not_track = dnt
+    headers.accept_language = accept_language
+    headers.custom = custom_headers
+
     expected_items = sorted(expected.items())
     assert shared.custom_headers() == expected_items

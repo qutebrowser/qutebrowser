@@ -22,7 +22,6 @@
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
 from qutebrowser.utils import log, objreg
-from qutebrowser.config import config
 
 
 _URLCOL = 0
@@ -50,7 +49,7 @@ def _delete_quickmark(data):
     quickmark_manager.delete(name)
 
 
-def url():
+def url(*, info):
     """A model which combines bookmarks, quickmarks and web history URLs.
 
     Used for the `open` command.
@@ -66,7 +65,7 @@ def url():
     model.add_category(listcategory.ListCategory(
         'Bookmarks', bookmarks, delete_func=_delete_bookmark))
 
-    if config.get('completion', 'web-history-max-items') != 0:
+    if info.config.get('completion.web_history_max_items') != 0:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
         model.add_category(hist_cat)
     return model

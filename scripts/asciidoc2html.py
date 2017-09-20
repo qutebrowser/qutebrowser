@@ -40,13 +40,7 @@ class AsciiDoc:
 
     """Abstraction of an asciidoc subprocess."""
 
-    FILES = [
-        ('FAQ.asciidoc', 'qutebrowser/html/doc/FAQ.html'),
-        ('CHANGELOG.asciidoc', 'qutebrowser/html/doc/CHANGELOG.html'),
-        ('CONTRIBUTING.asciidoc', 'qutebrowser/html/doc/CONTRIBUTING.html'),
-        ('doc/quickstart.asciidoc', 'qutebrowser/html/doc/quickstart.html'),
-        ('doc/userscripts.asciidoc', 'qutebrowser/html/doc/userscripts.html'),
-    ]
+    FILES = ['faq', 'changelog', 'contributing', 'quickstart', 'userscripts']
 
     def __init__(self, args):
         self._cmd = None
@@ -80,7 +74,9 @@ class AsciiDoc:
 
     def _build_docs(self):
         """Render .asciidoc files to .html sites."""
-        files = self.FILES[:]
+        files = [('doc/{}.asciidoc'.format(f),
+                  'qutebrowser/html/doc/{}.html'.format(f))
+                 for f in self.FILES]
         for src in glob.glob('doc/help/*.asciidoc'):
             name, _ext = os.path.splitext(os.path.basename(src))
             dst = 'qutebrowser/html/doc/{}.html'.format(name)

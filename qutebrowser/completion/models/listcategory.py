@@ -60,33 +60,19 @@ class ListCategory(QSortFilterProxyModel):
         sortcol = 0
         self.sort(sortcol)
 
-    def lessThan(self, lindex, rindex):
+    def lessThan(self, _lindex, rindex):
         """Custom sorting implementation.
 
-        Prefers all items which start with self._pattern. Other than that, uses
-        normal Python string sorting.
+        Prefers all items which start with self._pattern. Other than that, keep
+        items in their original order.
 
         Args:
-            lindex: The QModelIndex of the left item (*left* < right)
+            _lindex: The QModelIndex of the left item (*left* < right)
             rindex: The QModelIndex of the right item (left < *right*)
 
         Return:
             True if left < right, else False
         """
-        qtutils.ensure_valid(lindex)
         qtutils.ensure_valid(rindex)
-
-        left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
-
-        leftstart = left.startswith(self._pattern)
-        rightstart = right.startswith(self._pattern)
-
-        if leftstart and rightstart:
-            return left < right
-        elif leftstart:
-            return True
-        elif rightstart:
-            return False
-        else:
-            return left < right
+        return not right.startswith(self._pattern)

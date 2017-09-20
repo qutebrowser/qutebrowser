@@ -27,23 +27,13 @@ import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.browser.webkit.network import webkitqutescheme
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
-
-
-def init():
-    """Initialize QtWebKit-specific modules."""
-    qapp = QApplication.instance()
-    log.init.debug("Initializing js-bridge...")
-    js_bridge = webkitqutescheme.JSBridge(qapp)
-    objreg.register('js-bridge', js_bridge)
 
 
 class WebKitAction(browsertab.AbstractAction):
@@ -65,20 +55,14 @@ class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""
 
-    def _do_check(self):
-        if not qtutils.check_print_compat():
-            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-            raise browsertab.WebTabError(
-                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
-
     def check_pdf_support(self):
-        self._do_check()
+        pass
 
     def check_printer_support(self):
-        self._do_check()
+        pass
 
     def check_preview_support(self):
-        self._do_check()
+        pass
 
     def to_pdf(self, filename):
         printer = QPrinter()
@@ -133,24 +117,21 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
-    def search(self, text, *, ignore_case=False, reverse=False,
+    def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
         self.search_displayed = True
-        flags = QWebPage.FindWrapsAroundDocument
-        if ignore_case == 'smart':
-            if not text.islower():
-                flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            flags |= QWebPage.FindCaseSensitively
+        self.text = text
+        self._flags = QWebPage.FindWrapsAroundDocument
+        if self._is_case_sensitive(ignore_case):
+            self._flags |= QWebPage.FindCaseSensitively
         if reverse:
-            flags |= QWebPage.FindBackward
+            self._flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
-        found = self._widget.findText(text, flags)
-        self._widget.findText(text, flags | QWebPage.HighlightAllOccurrences)
-        self.text = text
-        self._flags = flags
-        self._call_cb(result_cb, found, text, flags, 'search')
+        found = self._widget.findText(text, self._flags)
+        self._widget.findText(text,
+                              self._flags | QWebPage.HighlightAllOccurrences)
+        self._call_cb(result_cb, found, text, self._flags, 'search')
 
     def next_result(self, *, result_cb=None):
         self.search_displayed = True

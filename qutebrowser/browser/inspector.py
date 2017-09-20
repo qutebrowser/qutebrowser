@@ -24,7 +24,8 @@ import binascii
 
 from PyQt5.QtWidgets import QWidget
 
-from qutebrowser.utils import log, objreg, usertypes
+from qutebrowser.config import configfiles
+from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import miscwidgets, objects
 
 
@@ -67,9 +68,8 @@ class AbstractWebInspector(QWidget):
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
-        state_config = objreg.get('state-config')
         try:
-            data = state_config['geometry']['inspector']
+            data = configfiles.state['geometry']['inspector']
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
@@ -84,10 +84,9 @@ class AbstractWebInspector(QWidget):
 
     def closeEvent(self, e):
         """Save the geometry when closed."""
-        state_config = objreg.get('state-config')
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
-        state_config['geometry']['inspector'] = geom
+        configfiles.state['geometry']['inspector'] = geom
         super().closeEvent(e)
 
     def inspect(self, page):

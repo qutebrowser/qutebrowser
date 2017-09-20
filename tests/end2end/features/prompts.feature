@@ -3,9 +3,6 @@
 Feature: Prompts
     Various prompts (javascript, SSL errors, authentification, etc.)
 
-    Background:
-        Given I set general -> log-javascript-console to debug
-
     # Javascript
 
     Scenario: Javascript alert
@@ -15,8 +12,8 @@ Feature: Prompts
         And I run :prompt-accept
         Then the javascript message "Alert done" should be logged
 
-    Scenario: Using content -> ignore-javascript-alert
-        When I set content -> ignore-javascript-alert to true
+    Scenario: Using content.javascript.alert
+        When I set content.javascript.alert to false
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         Then the javascript message "Alert done" should be logged
@@ -72,7 +69,7 @@ Feature: Prompts
 
     @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by blocking one
-        When I set content -> ignore-javascript-alert to false
+        When I set content.javascript.alert to true
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
@@ -88,8 +85,8 @@ Feature: Prompts
 
     @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by async one
-        When I set content -> ignore-javascript-alert to false
-        And I set content -> notifications to ask
+        When I set content.javascript.alert to true
+        And I set content.notifications to ask
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
@@ -105,7 +102,7 @@ Feature: Prompts
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Async question interrupted by async one
-        When I set content -> notifications to ask
+        When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -120,8 +117,8 @@ Feature: Prompts
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Async question interrupted by blocking one
-        When I set content -> notifications to ask
-        And I set content -> ignore-javascript-alert to false
+        When I set content.notifications to ask
+        And I set content.javascript.alert to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -161,32 +158,32 @@ Feature: Prompts
         Then the javascript message "Prompt reply: clipboard test" should be logged
 
     @js_prompt
-    Scenario: Using content -> ignore-javascript-prompt
-        When I set content -> ignore-javascript-prompt to true
+    Scenario: Using content.javascript.prompt
+        When I set content.javascript.prompt to false
         And I open data/prompt/jsprompt.html
         And I run :click-element id button
         Then the javascript message "Prompt reply: null" should be logged
 
     # SSL
 
-    Scenario: SSL error with ssl-strict = false
+    Scenario: SSL error with content.ssl_strict = false
         When I clear SSL errors
-        And I set network -> ssl-strict to false
+        And I set content.ssl_strict to false
         And I load an SSL page
         And I wait until the SSL page finished loading
         Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
     @issue2478
-    Scenario: SSL error with ssl-strict = true
+    Scenario: SSL error with content.ssl_strict = true
         When I clear SSL errors
-        And I set network -> ssl-strict to true
+        And I set content.ssl_strict to true
         And I load an SSL page
         Then a SSL error page should be shown
 
-    Scenario: SSL error with ssl-strict = ask -> yes
+    Scenario: SSL error with content.ssl_strict = ask -> yes
         When I clear SSL errors
-        And I set network -> ssl-strict to ask
+        And I set content.ssl_strict to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept yes
@@ -194,18 +191,18 @@ Feature: Prompts
         Then the page should contain the plaintext "Hello World via SSL!"
 
     @issue2478
-    Scenario: SSL error with ssl-strict = ask -> no
+    Scenario: SSL error with content.ssl_strict = ask -> no
         When I clear SSL errors
-        And I set network -> ssl-strict to ask
+        And I set content.ssl_strict to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
     @issue2478
-    Scenario: SSL error with ssl-strict = ask -> abort
+    Scenario: SSL error with content.ssl_strict = ask -> abort
         When I clear SSL errors
-        And I set network -> ssl-strict to ask
+        And I set content.ssl_strict to ask
         And I load an SSL page
         And I wait for a prompt
         And I run :leave-mode
@@ -214,29 +211,13 @@ Feature: Prompts
     # Geolocation
 
     Scenario: Always rejecting geolocation
-        When I set content -> geolocation to false
+        When I set content.geolocation to false
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         Then the javascript message "geolocation permission denied" should be logged
 
-    @ci @not_mac @qt!=5.8
-    Scenario: Always accepting geolocation
-        When I set content -> geolocation to true
-        And I open data/prompt/geolocation.html in a new tab
-        And I run :click-element id button
-        Then the javascript message "geolocation permission denied" should not be logged
-
-    @ci @not_mac @qt!=5.8
-    Scenario: geolocation with ask -> true
-        When I set content -> geolocation to ask
-        And I open data/prompt/geolocation.html in a new tab
-        And I run :click-element id button
-        And I wait for a prompt
-        And I run :prompt-accept yes
-        Then the javascript message "geolocation permission denied" should not be logged
-
     Scenario: geolocation with ask -> false
-        When I set content -> geolocation to ask
+        When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -244,7 +225,7 @@ Feature: Prompts
         Then the javascript message "geolocation permission denied" should be logged
 
     Scenario: geolocation with ask -> abort
-        When I set content -> geolocation to ask
+        When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -255,21 +236,21 @@ Feature: Prompts
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Always rejecting notifications
-        When I set content -> notifications to false
+        When I set content.notifications to false
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Always accepting notifications
-        When I set content -> notifications to true
+        When I set content.notifications to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: notifications with ask -> false
-        When I set content -> notifications to ask
+        When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -278,7 +259,7 @@ Feature: Prompts
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: notifications with ask -> true
-        When I set content -> notifications to ask
+        When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -288,7 +269,7 @@ Feature: Prompts
     # This actually gives us a denied rather than an aborted
     @xfail_norun
     Scenario: notifications with ask -> abort
-        When I set content -> notifications to ask
+        When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -297,7 +278,7 @@ Feature: Prompts
 
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: answering notification after closing tab
-        When I set content -> notifications to ask
+        When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt
@@ -369,7 +350,7 @@ Feature: Prompts
     # :prompt-accept with value argument
 
     Scenario: Javascript alert with value
-        When I set content -> ignore-javascript-alert to false
+        When I set content.javascript.alert to true
         And I open data/prompt/jsalert.html
         And I run :click-element id button
         And I wait for a prompt
@@ -380,7 +361,7 @@ Feature: Prompts
 
     @js_prompt
     Scenario: Javascript prompt with value
-        When I set content -> ignore-javascript-prompt to false
+        When I set content.javascript.prompt to true
         And I open data/prompt/jsprompt.html
         And I run :click-element id button
         And I wait for a prompt
@@ -487,8 +468,8 @@ Feature: Prompts
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Interrupting SSL prompt during a notification prompt
-        When I set content -> notifications to ask
-        And I set network -> ssl-strict to ask
+        When I set content.notifications to ask
+        And I set content.ssl_strict to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         And I wait for a prompt

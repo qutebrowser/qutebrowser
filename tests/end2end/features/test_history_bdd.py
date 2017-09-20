@@ -20,13 +20,22 @@
 import logging
 import re
 
+import pytest
 import pytest_bdd as bdd
 
 bdd.scenarios('history.feature')
 
 
+@pytest.fixture(autouse=True)
+def turn_on_sql_history(quteproc):
+    """Make sure SQL writing is enabled for tests in this module."""
+    quteproc.send_cmd(":debug-pyeval objreg.get('args')."
+                      "debug_flags.remove('no-sql-history')")
+    quteproc.wait_for_load_finished_url('qute://pyeval')
+
+
 @bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
-def check_history(quteproc, httpbin, tmpdir, expected):
+def check_history(quteproc, server, tmpdir, expected):
     path = tmpdir / 'history'
     quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
     quteproc.wait_for(category='message', loglevel=logging.INFO,
@@ -36,10 +45,10 @@ def check_history(quteproc, httpbin, tmpdir, expected):
         # ignore access times, they will differ in each run
         actual = '\n'.join(re.sub('^\\d+-?', '', line).strip() for line in f)
 
-    expected = expected.replace('(port)', str(httpbin.port))
+    expected = expected.replace('(port)', str(server.port))
     assert actual == expected
 
 
 @bdd.then("the history should be empty")
-def check_history_empty(quteproc, httpbin, tmpdir):
-    check_history(quteproc, httpbin, tmpdir, '')
+def check_history_empty(quteproc, server, tmpdir):
+    check_history(quteproc, server, tmpdir, '')

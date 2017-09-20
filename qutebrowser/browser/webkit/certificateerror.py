@@ -38,12 +38,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
             string=str(self))
 
     def __hash__(self):
-        try:
-            # Qt >= 5.4
-            return hash(self._error)
-        except TypeError:  # pragma: no cover
-            return hash((self._error.certificate().toDer(),
-                         self._error.error()))
+        return hash(self._error)
 
     def __eq__(self, other):
         return self._error == other._error  # pylint: disable=protected-access

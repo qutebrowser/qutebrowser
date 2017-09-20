@@ -1,0 +1,9 @@
+- Before you start to work on something, please leave a comment on the relevant
+  issue (or open one). This makes sure there is no duplicate work done.
+
+- Either run the testsuite locally, or keep an eye on Travis CI / AppVeyor
+  after pushing changes.
+
+See the full contribution docs for details:
+
+include::../doc/contributing.asciidoc[]

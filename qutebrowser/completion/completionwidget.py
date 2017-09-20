@@ -26,9 +26,9 @@ subclasses to provide completions.
 from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
-from qutebrowser.config import config, style
+from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, objreg, debug, log
+from qutebrowser.utils import utils, usertypes, debug, log
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -57,27 +57,27 @@ class CompletionView(QTreeView):
     # don't define that in this stylesheet.
     STYLESHEET = """
         QTreeView {
-            font: {{ font['completion'] }};
-            background-color: {{ color['completion.bg'] }};
-            alternate-background-color: {{ color['completion.alternate-bg'] }};
+            font: {{ conf.fonts.completion.entry }};
+            background-color: {{ conf.colors.completion.even.bg }};
+            alternate-background-color: {{ conf.colors.completion.odd.bg }};
             outline: 0;
             border: 0px;
         }
 
         QTreeView::item:disabled {
-            background-color: {{ color['completion.category.bg'] }};
+            background-color: {{ conf.colors.completion.category.bg }};
             border-top: 1px solid
-                {{ color['completion.category.border.top'] }};
+                {{ conf.colors.completion.category.border.top }};
             border-bottom: 1px solid
-                {{ color['completion.category.border.bottom'] }};
+                {{ conf.colors.completion.category.border.bottom }};
         }
 
         QTreeView::item:selected, QTreeView::item:selected:hover {
             border-top: 1px solid
-                {{ color['completion.item.selected.border.top'] }};
+                {{ conf.colors.completion.item.selected.border.top }};
             border-bottom: 1px solid
-                {{ color['completion.item.selected.border.bottom'] }};
-            background-color: {{ color['completion.item.selected.bg'] }};
+                {{ conf.colors.completion.item.selected.border.bottom }};
+            background-color: {{ conf.colors.completion.item.selected.bg }};
         }
 
         QTreeView:item::hover {
@@ -85,14 +85,14 @@ class CompletionView(QTreeView):
         }
 
         QTreeView QScrollBar {
-            width: {{ config.get('completion', 'scrollbar-width') }}px;
-            background: {{ color['completion.scrollbar.bg'] }};
+            width: {{ conf.completion.scrollbar.width }}px;
+            background: {{ conf.colors.completion.scrollbar.bg }};
         }
 
         QTreeView QScrollBar::handle {
-            background: {{ color['completion.scrollbar.fg'] }};
-            border: {{ config.get('completion', 'scrollbar-padding') }}px solid
-                    {{ color['completion.scrollbar.bg'] }};
+            background: {{ conf.colors.completion.scrollbar.fg }};
+            border: {{ conf.completion.scrollbar.padding }}px solid
+                    {{ conf.colors.completion.scrollbar.bg }};
             min-height: 10px;
         }
 
@@ -109,14 +109,14 @@ class CompletionView(QTreeView):
         super().__init__(parent)
         self.pattern = ''
         self._win_id = win_id
-        objreg.get('config').changed.connect(self._on_config_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
         self._active = False
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
@@ -139,11 +139,9 @@ class CompletionView(QTreeView):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str, str)
-    def _on_config_changed(self, section, option):
-        if section != 'completion':
-            return
-        if option in ['height', 'shrink']:
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option in ['completion.height', 'completion.shrink']:
             self.update_geometry.emit()
 
     def _resize_columns(self):
@@ -262,9 +260,9 @@ class CompletionView(QTreeView):
         count = self.model().count()
         if count == 0:
             self.hide()
-        elif count == 1 and config.get('completion', 'quick-complete'):
+        elif count == 1 and config.val.completion.quick:
             self.hide()
-        elif config.get('completion', 'show') == 'auto':
+        elif config.val.completion.show == 'auto':
             self.show()
 
     def set_model(self, model):
@@ -306,7 +304,7 @@ class CompletionView(QTreeView):
             self._maybe_show()
 
     def _maybe_show(self):
-        if (config.get('completion', 'show') == 'always' and
+        if (config.val.completion.show == 'always' and
                 self.model().count() > 0):
             self.show()
         else:
@@ -314,7 +312,7 @@ class CompletionView(QTreeView):
 
     def _maybe_update_geometry(self):
         """Emit the update_geometry signal if the config says so."""
-        if config.get('completion', 'shrink'):
+        if config.val.completion.shrink:
             self.update_geometry.emit()
 
     @pyqtSlot()
@@ -329,14 +327,14 @@ class CompletionView(QTreeView):
     def sizeHint(self):
         """Get the completion size according to the config."""
         # Get the configured height/percentage.
-        confheight = str(config.get('completion', 'height'))
+        confheight = str(config.val.completion.height)
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
             height = self.window().height() * perc / 100
         else:
             height = int(confheight)
         # Shrink to content size if needed and shrinking is enabled
-        if config.get('completion', 'shrink'):
+        if config.val.completion.shrink:
             contents_height = (
                 self.viewportSizeHint().height() +
                 self.horizontalScrollBar().sizeHint().height())

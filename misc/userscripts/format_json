@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# Behavior:
+#   Userscript for qutebrowser which will take the raw JSON text of the current
+#   page, format it using `jq`, will add syntax highlighting using `pygments`,
+#   and open the syntax highlighted pretty printed html in a new tab. If the file
+#   is larger than 10MB then this script will only indent the json and will forego
+#   syntax highlighting using pygments.
+#
+#   In order to use this script, just start it using `spawn --userscript` from
+#   qutebrowser. I recommend using an alias, e.g. put this in the
+#   [alias]-section of qutebrowser.conf:
+#
+#     json = spawn --userscript /path/to/json_format
+#
+#   Note that the color style defaults to monokai, but a different pygments style
+#   can be passed as the first parameter to the script. A full list of the pygments
+#   styles can be found at: https://help.farbox.com/pygments.html
+#
+# Bryan Gilbert, 2017
+
+# default style to monokai if none is provided
+STYLE=${1:-monokai}
+# format json using jq
+FORMATTED_JSON="$(cat "$QUTE_TEXT" | jq '.')"
+
+# if jq command failed or formatted json is empty, assume failure and terminate
+if [ $? -ne 0 ] || [ -z "$FORMATTED_JSON" ]; then
+    echo "Invalid json, aborting..."
+    exit 1
+fi
+
+# calculate the filesize of the json document
+FILE_SIZE=$(ls -s --block-size=1048576 "$QUTE_TEXT" | cut -d' ' -f1)
+
+# use pygments to pretty-up the json (syntax highlight) if file is less than 10MB
+if [ "$FILE_SIZE" -lt "10" ]; then
+    FORMATTED_JSON="$(echo "$FORMATTED_JSON" | pygmentize -l json -f html -O full,style=$STYLE)"
+fi
+
+# create a temp file and write the formatted json to that file
+TEMP_FILE="$(mktemp --suffix '.html')"
+echo "$FORMATTED_JSON" > $TEMP_FILE
+
+
+# send the command to qutebrowser to open the new file containing the formatted json
+echo "open -t file://$TEMP_FILE" >> "$QUTE_FIFO"

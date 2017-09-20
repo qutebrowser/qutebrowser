@@ -105,8 +105,9 @@ class TestHistoryHandler:
         objreg.delete('web-history')
 
     @pytest.fixture(autouse=True)
-    def fake_history(self, fake_web_history, entries):
+    def fake_history(self, fake_web_history, fake_args, entries):
         """Create fake history."""
+        fake_args.debug_flags = []
         for item in entries:
             fake_web_history.add_url(**item)
 

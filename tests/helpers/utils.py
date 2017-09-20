@@ -23,6 +23,7 @@
 import re
 import pprint
 import os.path
+import contextlib
 
 import pytest
 
@@ -170,3 +171,8 @@ def abs_datapath():
     """Get the absolute path to the end2end data directory."""
     file_abs = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(file_abs, '..', 'end2end', 'data')
+
+
+@contextlib.contextmanager
+def nop_contextmanager():
+    yield

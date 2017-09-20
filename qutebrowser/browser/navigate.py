@@ -24,6 +24,7 @@ import posixpath
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, urlutils, log, message, qtutils
+from qutebrowser.mainwindow import mainwindow
 
 
 class Error(Exception):
@@ -42,7 +43,7 @@ def incdec(url, count, inc_or_dec):
         background: Open the link in a new background tab.
         window: Open the link in a new window.
     """
-    segments = set(config.get('general', 'url-incdec-segments'))
+    segments = set(config.val.url.incdec_segments)
     try:
         new_url = urlutils.incdec_number(url, inc_or_dec, count,
                                          segments=segments)
@@ -80,10 +81,13 @@ def _find_prevnext(prev, elems):
 
     # Then check for regular links/buttons.
     elems = [e for e in elems if e.tag_name() != 'link']
-    option = 'prev-regexes' if prev else 'next-regexes'
+    option = 'prev_regexes' if prev else 'next_regexes'
     if not elems:
         return None
-    for regex in config.get('hints', option):
+
+    # pylint: disable=bad-config-option
+    for regex in getattr(config.val.hints, option):
+        # pylint: enable=bad-config-option
         log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
         for e in elems:
             text = str(e)
@@ -131,7 +135,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
                                         window=win_id)
 
         if window:
-            from qutebrowser.mainwindow import mainwindow
             new_window = mainwindow.MainWindow(
                 private=cur_tabbed_browser.private)
             new_window.show()

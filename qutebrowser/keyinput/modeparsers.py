@@ -48,7 +48,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
-        self.read_config('normal')
+        self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
         self._inhibited = False
@@ -74,7 +74,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             return self.Match.none
         match = super()._handle_single_key(e)
         if match == self.Match.partial:
-            timeout = config.get('input', 'partial-timeout')
+            timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
                 self._partial_timer.timeout.connect(self._clear_partial_match)
@@ -130,7 +130,7 @@ class PromptKeyParser(keyparser.CommandKeyParser):
                          supports_chains=True)
         # We don't want an extra section for this in the config, so we just
         # abuse the prompt section.
-        self.read_config('prompt')
+        self._read_config('prompt')
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -150,7 +150,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                          supports_chains=True)
         self._filtertext = ''
         self._last_press = LastPress.none
-        self.read_config('hint')
+        self._read_config('hint')
         self.keystring_updated.connect(self.on_keystring_updated)
 
     def _handle_special_key(self, e):
@@ -264,7 +264,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent, supports_count=True,
                          supports_chains=True)
-        self.read_config('caret')
+        self._read_config('caret')
 
 
 class RegisterKeyParser(keyparser.CommandKeyParser):
@@ -280,7 +280,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         super().__init__(win_id, parent, supports_count=False,
                          supports_chains=False)
         self._mode = mode
-        self.read_config('register')
+        self._read_config('register')
 
     def handle(self, e):
         """Override handle to always match the next key and use the register.
@@ -316,14 +316,9 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
             else:
                 raise ValueError(
                     "{} is not a valid register mode".format(self._mode))
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as err:
+        except cmdexc.Error as err:
             message.error(str(err), stack=traceback.format_exc())
 
         self.request_leave.emit(self._mode, "valid register key", True)
 
         return True
-
-    @pyqtSlot(str)
-    def on_keyconfig_changed(self, mode):
-        """RegisterKeyParser has no config section (no bindable keys)."""
-        pass

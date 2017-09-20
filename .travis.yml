@@ -1,15 +1,11 @@
-sudo: required
+sudo: false
 dist: trusty
-language: generic
+language: python
 group: edge
+python: 3.6
 
 matrix:
   include:
-    - os: linux
-      env: TESTENV=py34-cov
-    - os: linux
-      env: DOCKER=debian-jessie
-      services: docker
     - os: linux
       env: DOCKER=archlinux
       services: docker
@@ -17,39 +13,32 @@ matrix:
       env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
     - os: linux
-      env: DOCKER=ubuntu-xenial
-      services: docker
-    - os: linux
-      language: python
-      python: 3.6
       env: TESTENV=py36-pyqt571
     - os: linux
-      language: python
-      python: 3.6
       env: TESTENV=py36-pyqt58
     - os: linux
-      language: python
       python: 3.5
       env: TESTENV=py35-pyqt59
     - os: linux
-      language: python
-      python: 3.6
-      env: TESTENV=py36-pyqt59
+      env: TESTENV=py36-pyqt59-cov
     - os: osx
-      env: TESTENV=py36 OSX=elcapitan
-      osx_image: xcode7.3
+      env: TESTENV=py36 OSX=sierra
+      osx_image: xcode8.3
+      language: generic
     # https://github.com/qutebrowser/qutebrowser/issues/2013
     # - os: osx
     #   env: TESTENV=py35 OSX=yosemite
     #   osx_image: xcode6.4
     - os: linux
       env: TESTENV=pylint PYTHON=python3.6
-      language: python
-      python: 3.6
     - os: linux
       env: TESTENV=flake8
     - os: linux
       env: TESTENV=docs
+      addons:
+         apt:
+           packages:
+           - asciidoc
     - os: linux
       env: TESTENV=vulture
     - os: linux
@@ -60,20 +49,15 @@ matrix:
       env: TESTENV=check-manifest
     - os: linux
       env: TESTENV=eslint
-  allow_failures:
-    - os: osx
-      env: TESTENV=py36 OSX=elcapitan
-      osx_image: xcode7.3
+      language: node_js
+      python: null
+      node_js: node
   fast_finish: true
 
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/build/qutebrowser/qutebrowser/.cache
-
-before_install:
-  # We need to do this so we pick up the system-wide python properly
-  - 'export PATH="/usr/bin:$PATH"'
 
 install:
   - bash scripts/dev/ci/travis_install.sh
