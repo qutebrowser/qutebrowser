@@ -131,9 +131,10 @@ class PersistentCookiePolicy(DefaultProfileSetter):
 def _init_stylesheet(profile):
     """Initialize custom stylesheets.
 
-    Mostly inspired by QupZilla:
+    Mostly inspired by QupZilla and Stylus:
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/tools/scripts.cpp#L119-L132
+    https://github.com/openstyles/stylus/blob/1.1.4/content/apply.js#L240-L249
     """
     old_script = profile.scripts().findScript('_qute_stylesheet')
     if not old_script.isNull():
@@ -142,14 +143,27 @@ def _init_stylesheet(profile):
     css = shared.get_user_stylesheet()
     source = """
         (function setStylesheet() {{
-            if (document.head === null) {{
+            var parent = document instanceof XMLDocument
+                ? document.documentElement
+                : document.head;
+            if (parent === null) {{
                 setTimeout(setStylesheet);
                 return;
             }}
-            var css = document.createElement('style');
+            var css;
+            if (document instanceof XMLDocument) {{
+                css = document.createElementNS(
+                    parent instanceof SVGSVGElement
+                        ? 'http://www.w3.org/2000/svg'
+                        : 'http://www.w3.org/1999/xhtml',
+                    'style'
+                );
+            }} else {{
+                css = document.createElement('style');
+            }}
             css.setAttribute('type', 'text/css');
             css.appendChild(document.createTextNode('{}'));
-            document.head.insertBefore(css, document.head.firstChild);
+            parent.insertBefore(css, parent.firstChild);
         }})()
     """.format(javascript.string_escape(css))
 
