@@ -12,7 +12,7 @@
 #  - rofi (in a recent version)
 #  - xdg-open and xdg-mime
 #  - You should configure qutebrowser to download files to a single directory
-#  - It comes in handy if you enable remove-finished-downloads. If you want to
+#  - It comes in handy if you enable downloads.remove_finished. If you want to
 #    see the recent downloads, just press "sd".
 #
 # Thorsten Wißmann, 2015 (thorsten` on freenode)

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Fixtures for the httpbin webserver."""
+"""Fixtures for the server webserver."""
 
 import re
 import sys
@@ -25,6 +25,7 @@ import json
 import os.path
 import http.client
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
@@ -35,7 +36,7 @@ from qutebrowser.utils import utils
 
 class Request(testprocess.Line):
 
-    """A parsed line from the httpbin/flask log output.
+    """A parsed line from the flask log output.
 
     Attributes:
         verb/path/status: Parsed from the log output.
@@ -67,22 +68,20 @@ class Request(testprocess.Line):
             '/favicon.ico': [http.client.NOT_FOUND],
             '/does-not-exist': [http.client.NOT_FOUND],
             '/does-not-exist-2': [http.client.NOT_FOUND],
-            '/status/404': [http.client.NOT_FOUND],
+            '/404': [http.client.NOT_FOUND],
 
-            '/custom/redirect-later': [http.client.FOUND],
-            '/custom/redirect-self': [http.client.FOUND],
+            '/redirect-later': [http.client.FOUND],
+            '/redirect-self': [http.client.FOUND],
             '/redirect-to': [http.client.FOUND],
+            '/relative-redirect': [http.client.FOUND],
+            '/absolute-redirect': [http.client.FOUND],
 
             '/cookies/set': [http.client.FOUND],
 
-            '/custom/500-inline': [http.client.INTERNAL_SERVER_ERROR],
+            '/500-inline': [http.client.INTERNAL_SERVER_ERROR],
         }
         for i in range(15):
             path_to_statuses['/redirect/{}'.format(i)] = [http.client.FOUND]
-            path_to_statuses['/relative-redirect/{}'.format(i)] = [
-                http.client.FOUND]
-            path_to_statuses['/absolute-redirect/{}'.format(i)] = [
-                http.client.FOUND]
         for suffix in ['', '1', '2', '3', '4', '5', '6']:
             key = '/basic-auth/user{}/password{}'.format(suffix, suffix)
             path_to_statuses[key] = [http.client.UNAUTHORIZED, http.client.OK]
@@ -101,13 +100,13 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
+@attr.s(frozen=True, cmp=False, hash=True)
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""
 
-    def __init__(self, verb, path):
-        self.verb = verb
-        self.path = path
+    verb = attr.ib()
+    path = attr.ib()
 
     @classmethod
     def from_request(cls, request):
@@ -120,17 +119,10 @@ class ExpectedRequest:
         else:
             return NotImplemented
 
-    def __hash__(self):
-        return hash(('ExpectedRequest', self.verb, self.path))
-
-    def __repr__(self):
-        return ('ExpectedRequest(verb={!r}, path={!r})'
-                .format(self.verb, self.path))
-
 
 class WebserverProcess(testprocess.Process):
 
-    """Abstraction over a running HTTPbin server process.
+    """Abstraction over a running Flask server process.
 
     Reads the log from its stdout and parses it.
 
@@ -186,31 +178,31 @@ class WebserverProcess(testprocess.Process):
 
 
 @pytest.fixture(scope='session', autouse=True)
-def httpbin(qapp):
-    """Fixture for an httpbin object which ensures clean setup/teardown."""
-    httpbin = WebserverProcess('webserver_sub')
-    httpbin.start()
-    yield httpbin
-    httpbin.cleanup()
+def server(qapp):
+    """Fixture for an server object which ensures clean setup/teardown."""
+    server = WebserverProcess('webserver_sub')
+    server.start()
+    yield server
+    server.cleanup()
 
 
 @pytest.fixture(autouse=True)
-def httpbin_after_test(httpbin, request):
-    """Fixture to clean httpbin request list after each test."""
-    request.node._httpbin_log = httpbin.captured_log
+def server_after_test(server, request):
+    """Fixture to clean server request list after each test."""
+    request.node._server_log = server.captured_log
     yield
-    httpbin.after_test()
+    server.after_test()
 
 
 @pytest.fixture
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 
-    This needs to be explicitly used in a test, and overwrites the httpbin log
+    This needs to be explicitly used in a test, and overwrites the server log
     used in that test.
     """
     server = WebserverProcess('webserver_sub_ssl')
-    request.node._httpbin_log = server.captured_log
+    request.node._server_log = server.captured_log
     server.start()
     yield server
     server.after_test()

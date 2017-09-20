@@ -23,33 +23,33 @@ Defined here to avoid circular dependency hell.
 """
 
 
-class CommandError(Exception):
+class Error(Exception):
+
+    """Base class for all cmdexc errors."""
+
+
+class CommandError(Error):
 
     """Raised when a command encounters an error while running."""
 
     pass
 
 
-class CommandMetaError(Exception):
-
-    """Common base class for exceptions occurring before a command is run."""
-
-
-class NoSuchCommandError(CommandMetaError):
+class NoSuchCommandError(Error):
 
     """Raised when a command wasn't found."""
 
     pass
 
 
-class ArgumentTypeError(CommandMetaError):
+class ArgumentTypeError(Error):
 
     """Raised when an argument had an invalid type."""
 
     pass
 
 
-class PrerequisitesError(CommandMetaError):
+class PrerequisitesError(Error):
 
     """Raised when a cmd can't be used because some prerequisites aren't met.
 

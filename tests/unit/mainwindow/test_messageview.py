@@ -26,27 +26,7 @@ from qutebrowser.utils import usertypes
 
 @pytest.fixture
 def view(qtbot, config_stub):
-    config_stub.data = {
-        'colors': {
-            'messages.fg.error': 'white',
-            'messages.bg.error': 'red',
-            'messages.border.error': '#bb0000',
-            'messages.fg.warning': 'white',
-            'messages.bg.warning': 'darkorange',
-            'messages.border.warning': '#d47300',
-            'messages.fg.info': 'white',
-            'messages.bg.info': 'black',
-            'messages.border.info': '#333333',
-        },
-        'fonts': {
-            'messages.error': '8pt Monospace',
-            'messages.warning': '8pt Monospace',
-            'messages.info': '8pt Monospace',
-        },
-        'ui': {
-            'message-timeout': 100,
-        }
-    }
+    config_stub.val.messages.timeout = 100
     mv = messageview.MessageView()
     qtbot.add_widget(mv)
     return mv
@@ -97,11 +77,11 @@ def test_show_message_twice_after_first_disappears(qtbot, view):
 
 
 def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
-    """When we change ui -> message-timeout, the timer should be restarted."""
-    config_stub['ui']['message-timeout'] = 900000  # 15s
+    """When we change messages.timeout, the timer should be restarted."""
+    config_stub.val.messages.timeout = 900000  # 15s
     view.show_message(usertypes.MessageLevel.info, 'test')
     with qtbot.waitSignal(view._clear_timer.timeout):
-        config_stub.set('ui', 'message-timeout', 100)
+        config_stub.set_obj('messages.timeout', 100)
 
 
 @pytest.mark.parametrize('count, expected', [(1, 100), (3, 300),

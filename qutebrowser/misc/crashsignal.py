@@ -27,13 +27,13 @@ import signal
 import functools
 import faulthandler
 import os.path
-import collections
 try:
     # WORKAROUND for segfaults when using pdb in pytest for some reason...
     import readline  # pylint: disable=unused-import
 except ImportError:
     pass
 
+import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 from PyQt5.QtWidgets import QApplication, QDialog
@@ -43,8 +43,14 @@ from qutebrowser.misc import earlyinit, crashdialog
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug
 
 
-ExceptionInfo = collections.namedtuple('ExceptionInfo',
-                                       'pages, cmd_history, objects')
+@attr.s
+class ExceptionInfo:
+
+    """Information stored when there was an exception."""
+
+    pages = attr.ib()
+    cmd_history = attr.ib()
+    objects = attr.ib()
 
 
 # Used by mainwindow.py to skip confirm questions on crashes
@@ -172,7 +178,7 @@ class CrashHandler(QObject):
         """Get info needed for the exception hook/dialog.
 
         Return:
-            An ExceptionInfo namedtuple.
+            An ExceptionInfo object.
         """
         try:
             pages = self._recover_pages(forgiving=True)

@@ -66,6 +66,40 @@ def is_ignored_lowlevel_message(message):
         return True
     elif message == 'getrlimit(RLIMIT_NOFILE) failed':
         return True
+    # Travis CI containers don't have a /etc/machine-id
+    elif message.endswith('D-Bus library appears to be incorrectly set up; '
+                          'failed to read machine uuid: Failed to open '
+                          '"/etc/machine-id": No such file or directory'):
+        return True
+    elif message == ('See the manual page for dbus-uuidgen to correct this '
+                     'issue.'):
+        return True
+    # Travis CI macOS:
+    # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
+    # selectedTextBackgroundColor from default ()
+    elif message.endswith("Couldn't set selectedTextBackgroundColor from "
+                          "default ()"):
+        return True
+    # Mac Mini:
+    # <<<< VTVideoEncoderSelection >>>>
+    # VTSelectAndCreateVideoEncoderInstanceInternal: no video encoder found for
+    # 'avc1'
+    #
+    # [22:32:03.636] VTSelectAndCreateVideoEncoderInstanceInternal signalled
+    # err=-12908 (err) (Video encoder not available) at
+    # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
+    # VideoToolbox/VTVideoEncoderSelection.c line 1245
+    #
+    # [22:32:03.636] VTCompressionSessionCreate signalled err=-12908 (err)
+    # (Could not select and open encoder instance) at
+    # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
+    # VideoToolbox/VTCompressionSession.c # line 946
+    elif 'VTSelectAndCreateVideoEncoderInstanceInternal' in message:
+        return True
+    elif 'VTSelectAndCreateVideoEncoderInstanceInternal' in message:
+        return True
+    elif 'VTCompressionSessionCreate' in message:
+        return True
     return False
 
 
@@ -98,6 +132,9 @@ def is_ignored_chromium_message(line):
         # [30981:30992:0605/200633.041364:ERROR:cert_verify_proc_nss.cc(918)]
         # CERT_PKIXVerifyCert for localhost failed err=-8179
         'CERT_PKIXVerifyCert for localhost failed err=*',
+        # [1:1:0914/130428.060976:ERROR:broker_posix.cc(41)] Invalid node
+        # channel message
+        'Invalid node channel message',
 
         # Not reproducible anymore?
 
@@ -127,6 +164,15 @@ def is_ignored_chromium_message(line):
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
+
+        # macOS on Travis
+        # [5140:5379:0911/063441.239771:ERROR:mach_port_broker.mm(175)]
+        # Unknown process 5176 is sending Mach IPC messages!
+        'Unknown process * is sending Mach IPC messages!',
+        # [5205:44547:0913/142945.003625:ERROR:node_controller.cc(1268)] Error
+        # on receiving Mach ports FFA56F125F699ADB.E28E252911A8704B. Dropping
+        # message.
+        'Error on receiving Mach ports *. Dropping message.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -355,7 +401,8 @@ class QuteProc(testprocess.Process):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         return ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, 'about:blank']
+                '--backend', backend, '--debug-flag', 'no-sql-history',
+                'about:blank']
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.
@@ -368,10 +415,10 @@ class QuteProc(testprocess.Process):
         if any(path.startswith(scheme) for scheme in special_schemes):
             return path
         else:
-            httpbin = self.request.getfixturevalue('httpbin')
+            server = self.request.getfixturevalue('server')
             return '{}://localhost:{}/{}'.format(
                 'https' if https else 'http',
-                httpbin.port if port is None else port,
+                server.port if port is None else port,
                 path if path != '/' else '')
 
     def wait_for_js(self, message):
@@ -381,7 +428,6 @@ class QuteProc(testprocess.Process):
             The LogLine.
         """
         line = self.wait_for(category='js',
-                             function='javaScriptConsoleMessage',
                              message='[*] {}'.format(message))
         line.expected = True
         return line
@@ -421,7 +467,6 @@ class QuteProc(testprocess.Process):
     def _is_error_logline(self, msg):
         """Check if the given LogLine is some kind of error message."""
         is_js_error = (msg.category == 'js' and
-                       msg.function == 'javaScriptConsoleMessage' and
                        testutils.pattern_match(pattern='[*] [FAIL] *',
                                                value=msg.message))
         # Try to complain about the most common mistake when accidentally
@@ -431,7 +476,9 @@ class QuteProc(testprocess.Process):
             value=msg.message)
 
         is_log_error = (msg.loglevel > logging.INFO and
-                        not msg.message.startswith("Ignoring world ID"))
+                        not msg.message.startswith("Ignoring world ID") and
+                        not msg.message.startswith(
+                            "Could not initialize QtNetwork SSL support."))
         return is_log_error or is_js_error or is_ddg_load
 
     def _maybe_skip(self):
@@ -440,7 +487,6 @@ class QuteProc(testprocess.Process):
 
         for msg in self._data:
             if (msg.category == 'js' and
-                    msg.function == 'javaScriptConsoleMessage' and
                     testutils.pattern_match(pattern='[*] [SKIP] *',
                                             value=msg.message)):
                 skip_texts.append(msg.message.partition(' [SKIP] ')[2])
@@ -451,15 +497,15 @@ class QuteProc(testprocess.Process):
     def _after_start(self):
         """Adjust some qutebrowser settings after starting."""
         settings = [
-            ('ui', 'message-timeout', '0'),
-            ('general', 'auto-save-interval', '0'),
-            ('general', 'new-instance-open-target.window', 'last-opened')
+            ('messages.timeout', '0'),
+            ('auto_save.interval', '0'),
+            ('new_instance_open_target_window', 'last-opened')
         ]
         if not self.request.config.webengine:
-            settings.append(('network', 'ssl-strict', 'false'))
+            settings.append(('content.ssl_strict', 'false'))
 
-        for sect, opt, value in settings:
-            self.set_setting(sect, opt, value)
+        for opt, value in settings:
+            self.set_setting(opt, value)
 
     def after_test(self):
         """Handle unexpected/skip logging and clean up after each test."""
@@ -524,28 +570,27 @@ class QuteProc(testprocess.Process):
             self.wait_for(category='commands', module='command',
                           function='run', message='command called: *')
 
-    def get_setting(self, sect, opt):
+    def get_setting(self, opt):
         """Get the value of a qutebrowser setting."""
-        self.send_cmd(':set {} {}?'.format(sect, opt))
+        self.send_cmd(':set {}?'.format(opt))
         msg = self.wait_for(loglevel=logging.INFO, category='message',
-                            message='{} {} = *'.format(sect, opt))
+                            message='{} = *'.format(opt))
         return msg.message.split(' = ')[1]
 
-    def set_setting(self, sect, opt, value):
+    def set_setting(self, option, value):
         # \ and " in a value should be treated literally, so escape them
         value = value.replace('\\', r'\\')
         value = value.replace('"', '\\"')
-        self.send_cmd(':set "{}" "{}" "{}"'.format(sect, opt, value),
-                      escape=False)
+        self.send_cmd(':set "{}" "{}"'.format(option, value), escape=False)
         self.wait_for(category='config', message='Config option changed: *')
 
     @contextlib.contextmanager
-    def temp_setting(self, sect, opt, value):
+    def temp_setting(self, opt, value):
         """Context manager to set a setting and reset it on exit."""
-        old_value = self.get_setting(sect, opt)
-        self.set_setting(sect, opt, value)
+        old_value = self.get_setting(opt)
+        self.set_setting(opt, value)
         yield
-        self.set_setting(sect, opt, old_value)
+        self.set_setting(opt, old_value)
 
     def open_path(self, path, *, new_tab=False, new_bg_tab=False,
                   new_window=False, private=False, as_url=False, port=None,
@@ -733,7 +778,7 @@ def _xpath_escape(text):
 
 
 @pytest.fixture(scope='module')
-def quteproc_process(qapp, httpbin, request):
+def quteproc_process(qapp, server, request):
     """Fixture for qutebrowser process which is started once per file."""
     # Passing request so it has an initial config
     proc = QuteProc(request)
@@ -743,7 +788,7 @@ def quteproc_process(qapp, httpbin, request):
 
 
 @pytest.fixture
-def quteproc(quteproc_process, httpbin, request):
+def quteproc(quteproc_process, server, request):
     """Per-test qutebrowser fixture which uses the per-file process."""
     request.node._quteproc_log = quteproc_process.captured_log
     quteproc_process.before_test()
@@ -753,7 +798,7 @@ def quteproc(quteproc_process, httpbin, request):
 
 
 @pytest.fixture
-def quteproc_new(qapp, httpbin, request):
+def quteproc_new(qapp, server, request):
     """Per-test qutebrowser process to test invocations."""
     proc = QuteProc(request)
     request.node._quteproc_log = proc.captured_log

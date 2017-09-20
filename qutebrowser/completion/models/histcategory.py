@@ -38,9 +38,9 @@ class HistoryCategory(QSqlQueryModel):
         self.name = "History"
 
         # replace ' in timestamp-format to avoid breaking the query
+        timestamp_format = config.val.completion.timestamp_format
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
-                   .format(config.get('completion', 'timestamp-format')
-                           .replace("'", "`")))
+                   .format(timestamp_format.replace("'", "`")))
 
         self._query = sql.Query(' '.join([
             "SELECT url, title, {}".format(timefmt),
@@ -58,7 +58,7 @@ class HistoryCategory(QSqlQueryModel):
 
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""
-        max_items = config.get('completion', 'web-history-max-items')
+        max_items = config.val.completion.web_history_max_items
         # HistoryCategory should not be added to the completion in that case.
         assert max_items != 0
 

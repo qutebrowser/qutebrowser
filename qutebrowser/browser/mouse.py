@@ -85,7 +85,7 @@ class MouseEventFilter(QObject):
 
     def _handle_mouse_press(self, e):
         """Handle pressing of a mouse button."""
-        is_rocker_gesture = (config.get('input', 'rocker-gestures') and
+        is_rocker_gesture = (config.val.input.rocker_gestures and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
 
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
@@ -119,7 +119,7 @@ class MouseEventFilter(QObject):
             return True
 
         if e.modifiers() & Qt.ControlModifier:
-            divider = config.get('input', 'mouse-zoom-divider')
+            divider = config.val.zoom.mouse_divider
             if divider == 0:
                 return False
             factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
@@ -139,7 +139,7 @@ class MouseEventFilter(QObject):
 
     def _handle_context_menu(self, _e):
         """Suppress context menus if rocker gestures are turned on."""
-        return config.get('input', 'rocker-gestures')
+        return config.val.input.rocker_gestures
 
     def _mousepress_insertmode_cb(self, elem):
         """Check if the clicked element is editable."""
@@ -157,7 +157,7 @@ class MouseEventFilter(QObject):
                           'click', only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element!")
-            if config.get('input', 'auto-leave-insert-mode'):
+            if config.val.input.insert_mode.auto_leave:
                 modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
                               'click', maybe=True)
 
@@ -179,7 +179,7 @@ class MouseEventFilter(QObject):
                               'click-delayed', only_if_normal=True)
             else:
                 log.mouse.debug("Clicked non-editable element (delayed)!")
-                if config.get('input', 'auto-leave-insert-mode'):
+                if config.val.input.insert_mode.auto_leave:
                     modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
                                   'click-delayed', maybe=True)
 

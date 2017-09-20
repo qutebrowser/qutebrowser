@@ -19,8 +19,7 @@
 
 """Tests for webelement.tabhistory."""
 
-import collections
-
+import attr
 from PyQt5.QtCore import QUrl, QPoint
 import pytest
 
@@ -50,7 +49,11 @@ ITEMS = [
 ]
 
 
-Objects = collections.namedtuple('Objects', 'history, user_data')
+@attr.s
+class Objects:
+
+    history = attr.ib()
+    user_data = attr.ib()
 
 
 @pytest.fixture

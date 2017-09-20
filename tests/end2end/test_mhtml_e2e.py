@@ -85,28 +85,27 @@ def download_dir(tmpdir):
     return DownloadDir(tmpdir)
 
 
-def _test_mhtml_requests(test_dir, test_path, httpbin):
+def _test_mhtml_requests(test_dir, test_path, server):
     with open(os.path.join(test_dir, 'requests'), encoding='utf-8') as f:
         expected_requests = []
         for line in f:
             if line.startswith('#'):
                 continue
             path = '/{}/{}'.format(test_path, line.strip())
-            expected_requests.append(httpbin.ExpectedRequest('GET', path))
+            expected_requests.append(server.ExpectedRequest('GET', path))
 
-    actual_requests = httpbin.get_requests()
+    actual_requests = server.get_requests()
     # Requests are not hashable, we need to convert to ExpectedRequests
-    actual_requests = [httpbin.ExpectedRequest.from_request(req)
+    actual_requests = [server.ExpectedRequest.from_request(req)
                        for req in actual_requests]
     assert (collections.Counter(actual_requests) ==
             collections.Counter(expected_requests))
 
 
 @pytest.mark.parametrize('test_name', collect_tests())
-def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
-    quteproc.set_setting('storage', 'download-directory',
-                         download_dir.location)
-    quteproc.set_setting('storage', 'prompt-download-directory', 'false')
+def test_mhtml(request, test_name, download_dir, quteproc, server):
+    quteproc.set_setting('downloads.location.directory', download_dir.location)
+    quteproc.set_setting('downloads.location.prompt', 'false')
 
     test_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                             'data', 'downloads', 'mhtml', test_name)
@@ -120,10 +119,10 @@ def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
 
     # Wait for favicon.ico to be loaded if there is one
     if os.path.exists(os.path.join(test_dir, 'favicon.png')):
-        httpbin.wait_for(path='/{}/favicon.png'.format(test_path))
+        server.wait_for(path='/{}/favicon.png'.format(test_path))
 
     # Discard all requests that were necessary to display the page
-    httpbin.clear_data()
+    server.clear_data()
     quteproc.send_cmd(':download --mhtml --dest "{}"'.format(download_dest))
     quteproc.wait_for(category='downloads',
                       message='File successfully written.')
@@ -137,4 +136,4 @@ def test_mhtml(request, test_name, download_dir, quteproc, httpbin):
         download_dir.sanity_check_mhtml()
 
     if not request.config.webengine:
-        _test_mhtml_requests(test_dir, test_path, httpbin)
+        _test_mhtml_requests(test_dir, test_path, server)

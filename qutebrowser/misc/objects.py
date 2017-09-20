@@ -22,5 +22,14 @@
 # NOTE: We need to be careful with imports here, as this is imported from
 # earlyinit.
 
+
+class NoBackend:
+
+    """Special object when there's no backend set so we notice that."""
+
+    def __eq__(self, other):
+        raise AssertionError("No backend set!")
+
+
 # A usertypes.Backend member
-backend = None
+backend = NoBackend()

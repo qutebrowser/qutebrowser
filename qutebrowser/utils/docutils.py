@@ -63,7 +63,7 @@ class DocstringParser:
 
     """Generate documentation based on a docstring of a command handler.
 
-    The docstring needs to follow the format described in CONTRIBUTING.
+    The docstring needs to follow the format described in doc/contributing.
 
     Attributes:
         _state: The current state of the parser state machine.
@@ -142,7 +142,7 @@ class DocstringParser:
         """Parse the long description in the docstring."""
         if line.startswith('Args:'):
             self._state = self.State.arg_start
-        elif line.strip() == '//':
+        elif line.strip() == '//' or line.startswith('Attributes:'):
             self._state = self.State.desc_hidden
         elif line.strip():
             self._long_desc_parts.append(line.strip())

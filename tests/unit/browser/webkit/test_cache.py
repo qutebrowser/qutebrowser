@@ -30,6 +30,11 @@ pytestmark = pytest.mark.skipif(
     reason="QNetworkDiskCache is broken on Qt 5.7.1 and 5.8")
 
 
+@pytest.fixture
+def disk_cache(tmpdir, config_stub):
+    return cache.DiskCache(str(tmpdir))
+
+
 def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
     metadata = QNetworkCacheMetaData()
     metadata.setUrl(QUrl(url))
@@ -43,24 +48,20 @@ def preload_cache(cache, url='http://www.example.com/', content=b'foobar'):
 def test_cache_config_change_cache_size(config_stub, tmpdir):
     """Change cache size and emit signal to trigger on_config_changed."""
     max_cache_size = 1024
-    config_stub.data = {
-        'storage': {'cache-size': max_cache_size},
-        'general': {'private-browsing': False}
-    }
+    config_stub.val.content.cache.size = max_cache_size
+
     disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.maximumCacheSize() == max_cache_size
 
-    config_stub.set('storage', 'cache-size', max_cache_size * 2)
+    config_stub.val.content.cache.size = max_cache_size * 2
     assert disk_cache.maximumCacheSize() == max_cache_size * 2
 
 
 def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     """Test cacheSize <= MaximumCacheSize when cache is activated."""
     limit = 100
-    config_stub.data = {
-        'storage': {'cache-size': limit},
-        'general': {'private-browsing': False}
-    }
+    config_stub.val.content.cache.size = limit
+
     disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.maximumCacheSize() == limit
 
@@ -73,12 +74,8 @@ def test_cache_size_leq_max_cache_size(config_stub, tmpdir):
     assert disk_cache.cacheSize() < limit + 100
 
 
-def test_cache_existing_metadata_file(config_stub, tmpdir):
+def test_cache_existing_metadata_file(tmpdir, disk_cache):
     """Test querying existing meta data file from activated cache."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
     url = 'http://qutebrowser.org'
     content = b'foobar'
 
@@ -86,7 +83,6 @@ def test_cache_existing_metadata_file(config_stub, tmpdir):
     metadata.setUrl(QUrl(url))
     assert metadata.isValid()
 
-    disk_cache = cache.DiskCache(str(tmpdir))
     device = disk_cache.prepare(metadata)
     assert device is not None
     device.write(content)
@@ -98,39 +94,23 @@ def test_cache_existing_metadata_file(config_stub, tmpdir):
     assert disk_cache.fileMetaData(str(files[0])) == metadata
 
 
-def test_cache_nonexistent_metadata_file(config_stub, tmpdir):
+def test_cache_nonexistent_metadata_file(disk_cache):
     """Test querying nonexistent meta data file from activated cache."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
-
-    disk_cache = cache.DiskCache(str(tmpdir))
     cache_file = disk_cache.fileMetaData("nosuchfile")
     assert not cache_file.isValid()
 
 
-def test_cache_get_nonexistent_data(config_stub, tmpdir):
+def test_cache_get_nonexistent_data(disk_cache):
     """Test querying some data that was never inserted."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
-    disk_cache = cache.DiskCache(str(tmpdir))
     preload_cache(disk_cache, 'https://qutebrowser.org')
 
     assert disk_cache.data(QUrl('http://qutebrowser.org')) is None
 
 
-def test_cache_insert_data(config_stub, tmpdir):
+def test_cache_insert_data(disk_cache):
     """Test if entries inserted into the cache are actually there."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
     url = 'http://qutebrowser.org'
     content = b'foobar'
-    disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.cacheSize() == 0
 
     preload_cache(disk_cache, url, content)
@@ -139,14 +119,9 @@ def test_cache_insert_data(config_stub, tmpdir):
     assert disk_cache.data(QUrl(url)).readAll() == content
 
 
-def test_cache_remove_data(config_stub, tmpdir):
+def test_cache_remove_data(disk_cache):
     """Test if a previously inserted entry can be removed from the cache."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
     url = 'http://qutebrowser.org'
-    disk_cache = cache.DiskCache(str(tmpdir))
     preload_cache(disk_cache, url)
     assert disk_cache.cacheSize() > 0
 
@@ -154,13 +129,8 @@ def test_cache_remove_data(config_stub, tmpdir):
     assert disk_cache.cacheSize() == 0
 
 
-def test_cache_clear_activated(config_stub, tmpdir):
+def test_cache_clear_activated(disk_cache):
     """Test if cache is empty after clearing it."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
-    disk_cache = cache.DiskCache(str(tmpdir))
     assert disk_cache.cacheSize() == 0
 
     preload_cache(disk_cache)
@@ -170,17 +140,12 @@ def test_cache_clear_activated(config_stub, tmpdir):
     assert disk_cache.cacheSize() == 0
 
 
-def test_cache_metadata(config_stub, tmpdir):
+def test_cache_metadata(disk_cache):
     """Ensure that DiskCache.metaData() returns exactly what was inserted."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
     url = 'http://qutebrowser.org'
     metadata = QNetworkCacheMetaData()
     metadata.setUrl(QUrl(url))
     assert metadata.isValid()
-    disk_cache = cache.DiskCache(str(tmpdir))
     device = disk_cache.prepare(metadata)
     device.write(b'foobar')
     disk_cache.insert(device)
@@ -188,14 +153,9 @@ def test_cache_metadata(config_stub, tmpdir):
     assert disk_cache.metaData(QUrl(url)) == metadata
 
 
-def test_cache_update_metadata(config_stub, tmpdir):
+def test_cache_update_metadata(disk_cache):
     """Test updating the meta data for an existing cache entry."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
     url = 'http://qutebrowser.org'
-    disk_cache = cache.DiskCache(str(tmpdir))
     preload_cache(disk_cache, url, b'foo')
     assert disk_cache.cacheSize() > 0
 
@@ -206,12 +166,8 @@ def test_cache_update_metadata(config_stub, tmpdir):
     assert disk_cache.metaData(QUrl(url)) == metadata
 
 
-def test_cache_full(config_stub, tmpdir):
+def test_cache_full(tmpdir):
     """Do a sanity test involving everything."""
-    config_stub.data = {
-        'storage': {'cache-size': 1024},
-        'general': {'private-browsing': False}
-    }
     disk_cache = QNetworkDiskCache()
     disk_cache.setCacheDirectory(str(tmpdir))
 

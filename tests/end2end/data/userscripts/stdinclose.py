@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>

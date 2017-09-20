@@ -168,7 +168,7 @@ class WebKitElement(webelem.AbstractWebElement):
             if width > 1 and height > 1:
                 # fix coordinates according to zoom level
                 zoom = self._elem.webFrame().zoomFactor()
-                if not config.get('ui', 'zoom-text-only'):
+                if not config.val.zoom.text_only:
                     rect["left"] *= zoom
                     rect["top"] *= zoom
                     width *= zoom
@@ -292,9 +292,6 @@ class WebKitElement(webelem.AbstractWebElement):
             elem = elem._parent()  # pylint: disable=protected-access
 
     def _move_text_cursor(self):
-        if self is None:
-            # old PyQt versions call the slot after the element is deleted.
-            return
         if self.is_text_input() and self.is_editable():
             self._tab.caret.move_to_end_of_document()
 

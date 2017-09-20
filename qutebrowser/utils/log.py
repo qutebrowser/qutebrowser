@@ -345,7 +345,7 @@ def qt_message_handler(msg_type, context, msg):
     try:
         qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
     except AttributeError:
-        # Qt < 5.5
+        # While we don't support Qt < 5.5 anymore, logging still needs to work
         pass
 
     # Change levels of some well-known messages to debug so they don't get

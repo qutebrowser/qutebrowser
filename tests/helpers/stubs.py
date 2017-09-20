@@ -21,17 +21,16 @@
 
 """Fake objects/stubs."""
 
-import collections
 from unittest import mock
 
+import attr
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab
-from qutebrowser.config import configexc
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -204,9 +203,9 @@ class FakeNetworkReply:
 def fake_qprocess():
     """Factory for a QProcess mock which has the QProcess enum values."""
     m = mock.Mock(spec=QProcess)
-    for attr in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
+    for name in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
                  'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
-        setattr(m, attr, getattr(QProcess, attr))
+        setattr(m, name, getattr(QProcess, name))
     return m
 
 
@@ -317,26 +316,26 @@ class FakeSignal:
         pass
 
 
+@attr.s
 class FakeCmdUtils:
 
     """Stub for cmdutils which provides a cmd_dict."""
 
-    def __init__(self, commands):
-        self.cmd_dict = commands
+    cmd_dict = attr.ib()
 
 
+@attr.s(frozen=True)
 class FakeCommand:
 
     """A simple command stub which has a description."""
 
-    def __init__(self, name='', desc='', hide=False, debug=False,
-                 deprecated=False, completion=None):
-        self.desc = desc
-        self.name = name
-        self.hide = hide
-        self.debug = debug
-        self.deprecated = deprecated
-        self.completion = completion
+    name = attr.ib('')
+    desc = attr.ib('')
+    hide = attr.ib(False)
+    debug = attr.ib(False)
+    deprecated = attr.ib(False)
+    completion = attr.ib(None)
+    maxsplit = attr.ib(None)
 
 
 class FakeTimer(QObject):
@@ -410,14 +409,16 @@ class InstaTimer(QObject):
         fun()
 
 
-class FakeConfigType:
+class FakeYamlConfig:
 
-    """A stub to provide valid_values for typ attribute of a SettingValue."""
+    """Fake configfiles.YamlConfig object."""
 
-    def __init__(self, *valid_values):
-        # normally valid_values would be a ValidValues, but for simplicity of
-        # testing this can be a simple list: [(val, desc), (val, desc), ...]
-        self.complete = lambda: [(val, '') for val in valid_values]
+    def __init__(self):
+        self.values = {}
+        self.loaded = False
+
+    def load(self):
+        self.loaded = True
 
 
 class StatusBarCommandStub(QLineEdit):
@@ -433,82 +434,6 @@ class StatusBarCommandStub(QLineEdit):
 
     def prefix(self):
         return self.text()[0]
-
-
-class ConfigStub(QObject):
-
-    """Stub for the config module.
-
-    Attributes:
-        data: The config data to return.
-    """
-
-    changed = pyqtSignal(str, str)
-
-    def __init__(self, parent=None):
-        """Constructor.
-
-        Args:
-            signal: The signal to use for self.changed.
-        """
-        super().__init__(parent)
-        self.data = {}
-
-    def __getitem__(self, name):
-        return self.section(name)
-
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Return:
-            The section as dict.
-        """
-        return self.data[name]
-
-    def get(self, sect, opt, raw=True):
-        """Get a value from the config."""
-        data = self.data[sect]
-        try:
-            return data[opt]
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-    def set(self, sect, opt, value):
-        """Set a value in the config."""
-        data = self.data[sect]
-        try:
-            data[opt] = value
-            self.changed.emit(sect, opt)
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-
-class KeyConfigStub:
-
-    """Stub for the key-config object."""
-
-    def __init__(self):
-        self.bindings = {}
-
-    def get_bindings_for(self, section):
-        return self.bindings.get(section)
-
-    def set_bindings_for(self, section, bindings):
-        self.bindings[section] = bindings
-
-    def get_reverse_bindings_for(self, section):
-        """Get a dict of commands to a list of bindings for the section."""
-        cmd_to_keys = collections.defaultdict(list)
-        for key, cmd in self.bindings[section].items():
-            # put special bindings last
-            if utils.is_special_key(key):
-                cmd_to_keys[cmd].append(key)
-            else:
-                cmd_to_keys[cmd].insert(0, key)
-        return cmd_to_keys
 
 
 class UrlMarkManagerStub(QObject):
@@ -612,6 +537,9 @@ class TabbedBrowserStub(QObject):
         return self.tabs[idx - 1]
 
     def tabopen(self, url):
+        self.opened_url = url
+
+    def openurl(self, url, *, newtab):
         self.opened_url = url
 
 

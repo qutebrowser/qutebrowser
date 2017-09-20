@@ -35,11 +35,6 @@ from qutebrowser.utils import usertypes
 def patch_things(config_stub, monkeypatch, stubs):
     monkeypatch.setattr(editormod.guiprocess, 'QProcess',
                         stubs.fake_qprocess())
-    config_stub.data = {
-        'general': {'editor': [''], 'editor-encoding': 'utf-8'},
-        'input': {},
-    }
-    monkeypatch.setattr(editormod, 'config', config_stub)
 
 
 @pytest.fixture
@@ -59,23 +54,16 @@ class TestArg:
         editor: The ExternalEditor instance to test.
     """
 
-    @pytest.mark.parametrize('args', [[], ['foo'], ['foo', 'bar']])
-    def test_start_no_placeholder(self, config_stub, editor, args):
-        """Test starting editor without arguments."""
-        config_stub.data['general']['editor'] = ['bin'] + args
-        editor.edit("")
-        editor._proc._proc.start.assert_called_with("bin", args)
-
     def test_placeholder(self, config_stub, editor):
         """Test starting editor with placeholder argument."""
-        config_stub.data['general']['editor'] = ['bin', 'foo', '{}', 'bar']
+        config_stub.val.editor.command = ['bin', 'foo', '{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
             "bin", ["foo", editor._file.name, "bar"])
 
     def test_placeholder_inline(self, config_stub, editor):
         """Test starting editor with placeholder arg inside of another arg."""
-        config_stub.data['general']['editor'] = ['bin', 'foo{}', 'bar']
+        config_stub.val.editor.command = ['bin', 'foo{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
             "bin", ["foo" + editor._file.name, "bar"])

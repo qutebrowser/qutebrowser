@@ -50,20 +50,19 @@ Feature: Various utility commands.
     ## :jseval
 
     Scenario: :jseval
-        When I set general -> log-javascript-console to info
-        And I run :jseval console.log("Hello from JS!");
+        When I run :jseval console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then the message "No output or error" should be shown
 
     Scenario: :jseval without logging
-        When I set general -> log-javascript-console to none
+        When I set content.javascript.log to {"unknown": "none", "info": "none", "warning": "debug", "error": "debug"}
         And I run :jseval console.log("Hello from JS!");
-        Then the message "No output or error" should be shown
-        And "[:*] Hello from JS!" should not be logged
+        And I wait for "No output or error" in the log
+        And I set content.javascript.log to {"unknown": "debug", "info": "debug", "warning": "debug", "error": "debug"}
+        Then "[:*] Hello from JS!" should not be logged
 
     Scenario: :jseval with --quiet
-        When I set general -> log-javascript-console to info
-        And I run :jseval --quiet console.log("Hello from JS!");
+        When I run :jseval --quiet console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "No output or error" should not be logged
 
@@ -77,16 +76,14 @@ Feature: Various utility commands.
 
     @qtwebengine_skip
     Scenario: :jseval with --world on QtWebKit
-        When I set general -> log-javascript-console to info
-        And I run :jseval --world=1 console.log("Hello from JS!");
+        When I run :jseval --world=1 console.log("Hello from JS!");
         And I wait for the javascript message "Hello from JS!"
         Then "Ignoring world ID 1" should be logged
         And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval uses separate world without --world
-        When I set general -> log-javascript-console to info
-        And I open data/misc/jseval.html
+        When I open data/misc/jseval.html
         And I run :jseval do_log()
         Then the javascript message "Hello from the page!" should not be logged
         And the javascript message "Uncaught ReferenceError: do_log is not defined" should be logged
@@ -94,23 +91,20 @@ Feature: Various utility commands.
 
     @qtwebkit_skip
     Scenario: :jseval using the main world
-        When I set general -> log-javascript-console to info
-        And I open data/misc/jseval.html
+        When I open data/misc/jseval.html
         And I run :jseval --world 0 do_log()
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
     @qtwebkit_skip
     Scenario: :jseval using the main world as name
-        When I set general -> log-javascript-console to info
-        And I open data/misc/jseval.html
+        When I open data/misc/jseval.html
         And I run :jseval --world main do_log()
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that exists as js-code
-        When I set general -> log-javascript-console to info
-        And I run :jseval --file (testdata)/misc/jseval_file.js
+        When I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
         And the javascript message "Hello again from JS!" should be logged
         And "No output or error" should be logged
@@ -150,9 +144,9 @@ Feature: Various utility commands.
 
     @qtwebengine_skip
     Scenario: Inspector without developer extras
-        When I set general -> developer-extras to false
+        When I set content.developer_extras to false
         And I run :inspector
-        Then the error "Please enable developer-extras before using the webinspector!" should be shown
+        Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
 
     @qtwebkit_skip
     Scenario: Inspector without --enable-webengine-inspector
@@ -161,7 +155,7 @@ Feature: Various utility commands.
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
-        When I set general -> developer-extras to true
+        When I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
@@ -171,14 +165,14 @@ Feature: Various utility commands.
     # Different code path as an inspector got created now
     @qtwebengine_skip
     Scenario: Inspector without developer extras (after smoke)
-        When I set general -> developer-extras to false
+        When I set content.developer_extras to false
         And I run :inspector
-        Then the error "Please enable developer-extras before using the webinspector!" should be shown
+        Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
 
     # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
-        When I set general -> developer-extras to true
+        When I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
@@ -192,15 +186,15 @@ Feature: Various utility commands.
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
         # finished
-        When I run :open http://localhost:(port)/custom/redirect-later?delay=-1
+        When I run :open http://localhost:(port)/redirect-later?delay=-1
         And I wait for "emitting: cur_load_status_changed('loading') (tab *)" in the log
         And I wait 1s
         And I run :stop
-        And I open custom/redirect-later-continue in a new tab
+        And I open redirect-later-continue in a new tab
         And I wait 1s
         Then the unordered requests should be:
-            custom/redirect-later-continue
-            custom/redirect-later?delay=-1
+            redirect-later-continue
+            redirect-later?delay=-1
         # no request on / because we stopped the redirect
 
     Scenario: :stop with wrong count
@@ -255,131 +249,17 @@ Feature: Various utility commands.
         And I run :view-source
         Then the error "Already viewing source!" should be shown
 
-    # :help
-
-    Scenario: :help without topic
-        When I run :tab-only
-        And I run :help
-        And I wait until qute://help/index.html is loaded
-        Then the following tabs should be open:
-            - qute://help/index.html (active)
-
-    Scenario: :help with invalid topic
-        When I run :help foo
-        Then the error "Invalid help topic foo!" should be shown
-
-    Scenario: :help with command
-        When the documentation is up to date
-        And I run :tab-only
-        And I run :help :back
-        And I wait until qute://help/commands.html#back is loaded
-        Then the following tabs should be open:
-            - qute://help/commands.html#back (active)
-
-    Scenario: :help with invalid command
-        When I run :help :foo
-        Then the error "Invalid command foo!" should be shown
-
-    Scenario: :help with setting
-        When the documentation is up to date
-        And I run :tab-only
-        And I run :help general->editor
-        And I wait until qute://help/settings.html#general-editor is loaded
-        Then the following tabs should be open:
-            - qute://help/settings.html#general-editor (active)
-
-    Scenario: :help with invalid setting (2 arrows)
-        When I run :help general->editor->foo
-        Then the error "Invalid help topic general->editor->foo!" should be shown
-
-    Scenario: :help with invalid setting (unknown section)
-        When I run :help foo->bar
-        Then the error "Invalid section foo!" should be shown
-
-    Scenario: :help with invalid setting (unknown option)
-        When I run :help general->bar
-        Then the error "Invalid option bar!" should be shown
-
-    Scenario: :help with -t
-        When I open about:blank
-        And I run :tab-only
-        And I run :help -t
-        And I wait until qute://help/index.html is loaded
-        Then the following tabs should be open:
-            - about:blank
-            - qute://help/index.html (active)
-
-    # https://github.com/qutebrowser/qutebrowser/issues/2513
-    Scenario: Opening link with qute:help
-        When the documentation is up to date
-        And I run :tab-only
-        And I open qute:help without waiting
-        And I wait for "Changing title for idx 0 to 'qutebrowser help'" in the log
-        And I hint with args "links normal" and follow a
-        Then qute://help/quickstart.html should be loaded
-
-    # :history
-
-    Scenario: :history without arguments
-        When I run :tab-only
-        And I run :history
-        And I wait until qute://history/ is loaded
-        Then the following tabs should be open:
-            - qute://history/ (active)
-
-    Scenario: :history with -t
-        When I open about:blank
-        And I run :tab-only
-        And I run :history -t
-        And I wait until qute://history/ is loaded
-        Then the following tabs should be open:
-            - about:blank
-            - qute://history/ (active)
-
     # :home
 
     Scenario: :home with single page
-        When I set general -> startpage to http://localhost:(port)/data/hello2.txt
+        When I set url.start_pages to ["http://localhost:(port)/data/hello2.txt"]
         And I run :home
         Then data/hello2.txt should be loaded
 
     Scenario: :home with multiple pages
-        When I set general -> startpage to http://localhost:(port)/data/numbers/1.txt,http://localhost:(port)/data/numbers/2.txt
+        When I set url.start_pages to ["http://localhost:(port)/data/numbers/1.txt", "http://localhost:(port)/data/numbers/2.txt"]
         And I run :home
         Then data/numbers/1.txt should be loaded
-
-    # pdfjs support
-
-    @qtwebengine_skip: pdfjs is not implemented yet
-    Scenario: pdfjs is used for pdf files
-        Given pdfjs is available
-        When I set content -> enable-pdfjs to true
-        And I open data/misc/test.pdf
-        Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
-
-    @qtwebengine_todo: pdfjs is not implemented yet
-    Scenario: pdfjs is not used when disabled
-        When I set content -> enable-pdfjs to false
-        And I set storage -> prompt-download-directory to false
-        And I open data/misc/test.pdf
-        Then "Download test.pdf finished" should be logged
-
-    @qtwebengine_skip: pdfjs is not implemented yet
-    Scenario: Downloading a pdf via pdf.js button (issue 1214)
-        Given pdfjs is available
-        # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
-        # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
-        # a weird interaction with the previous test.
-        And I have a fresh instance
-        When I set content -> enable-pdfjs to true
-        And I set completion -> download-path-suggestion to filename
-        And I set storage -> prompt-download-directory to true
-        And I open data/misc/test.pdf
-        And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
-        And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
-        And I run :leave-mode
-        Then no crash should happen
 
     # :print
 
@@ -412,21 +292,6 @@ Feature: Various utility commands.
         And I wait for "Print to file: *" in the log or skip the test
         Then the PDF hello.pdf should exist in the tmpdir
 
-    # :pyeval
-    Scenario: Running :pyeval
-        When I run :debug-pyeval 1+1
-        And I wait until qute://pyeval is loaded
-        Then the page should contain the plaintext "2"
-
-    Scenario: Causing exception in :pyeval
-        When I run :debug-pyeval 1/0
-        And I wait until qute://pyeval is loaded
-        Then the page should contain the plaintext "ZeroDivisionError"
-
-    Scenario: Running :pyeval with --quiet
-        When I run :debug-pyeval --quiet 1+1
-        Then "pyeval output: 2" should be logged
-
     ## https://github.com/qutebrowser/qutebrowser/issues/504
 
     Scenario: Focusing download widget via Tab
@@ -448,95 +313,54 @@ Feature: Various utility commands.
     ## Custom headers
 
     Scenario: Setting a custom header
-        When I set network -> custom-headers to {"X-Qute-Test": "testvalue"}
+        When I set content.headers.custom to {"X-Qute-Test": "testvalue"}
         And I open headers
         Then the header X-Qute-Test should be set to testvalue
 
     Scenario: DNT header
-        When I set network -> do-not-track to true
+        When I set content.headers.do_not_track to true
         And I open headers
         Then the header Dnt should be set to 1
         And the header X-Do-Not-Track should be set to 1
 
     Scenario: DNT header (off)
-        When I set network -> do-not-track to false
+        When I set content.headers.do_not_track to false
         And I open headers
         Then the header Dnt should be set to 0
         And the header X-Do-Not-Track should be set to 0
 
+    Scenario: DNT header (unset)
+        When I set content.headers.do_not_track to <empty>
+        And I open headers
+        Then the header Dnt should be set to <unset>
+        And the header X-Do-Not-Track should be set to <unset>
+
     Scenario: Accept-Language header
-        When I set network -> accept-language to en,de
+        When I set content.headers.accept_language to en,de
         And I open headers
         Then the header Accept-Language should be set to en,de
 
+    # This still doesn't set window.navigator.language
+    # See https://bugreports.qt.io/browse/QTBUG-61949
+    @qtwebkit_skip
+    Scenario: Accept-Language header (JS)
+        When I set content.headers.accept_language to it,fr
+        And I run :jseval console.log(window.navigator.languages)
+        Then the javascript message "it,fr" should be logged
+
     Scenario: Setting a custom user-agent header
-        When I set network -> user-agent to toaster
+        When I set content.headers.user_agent to toaster
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to toaster
         And the javascript message "toaster" should be logged
 
     Scenario: Setting the default user-agent header
-        When I set network -> user-agent to <empty>
+        When I set content.headers.user_agent to <empty>
         And I open headers
         And I run :jseval console.log(window.navigator.userAgent)
         Then the header User-Agent should be set to Mozilla/5.0 *
         And the javascript message "Mozilla/5.0 *" should be logged
-
-    ## :messages
-
-    Scenario: :messages without level
-        When I run :message-error the-error-message
-        And I run :message-warning the-warning-message
-        And I run :message-info the-info-message
-        And I run :messages
-        Then qute://log?level=info should be loaded
-        And the error "the-error-message" should be shown
-        And the warning "the-warning-message" should be shown
-        And the page should contain the plaintext "the-error-message"
-        And the page should contain the plaintext "the-warning-message"
-        And the page should contain the plaintext "the-info-message"
-
-    Scenario: Showing messages of type 'warning' or greater
-        When I run :message-error the-error-message
-        And I run :message-warning the-warning-message
-        And I run :message-info the-info-message
-        And I run :messages warning
-        Then qute://log?level=warning should be loaded
-        And the error "the-error-message" should be shown
-        And the warning "the-warning-message" should be shown
-        And the page should contain the plaintext "the-error-message"
-        And the page should contain the plaintext "the-warning-message"
-        And the page should not contain the plaintext "the-info-message"
-
-    Scenario: Showing messages of type 'info' or greater
-        When I run :message-error the-error-message
-        And I run :message-warning the-warning-message
-        And I run :message-info the-info-message
-        And I run :messages info
-        Then qute://log?level=info should be loaded
-        And the error "the-error-message" should be shown
-        And the warning "the-warning-message" should be shown
-        And the page should contain the plaintext "the-error-message"
-        And the page should contain the plaintext "the-warning-message"
-        And the page should contain the plaintext "the-info-message"
-
-    @qtwebengine_flaky
-    Scenario: Showing messages of an invalid level
-        When I run :messages cataclysmic
-        Then the error "Invalid log level cataclysmic!" should be shown
-
-    Scenario: Using qute://log directly
-        When I open qute://log without waiting
-        # With Qt 5.9, we don't get a loaded message?
-        And I wait for "Changing title for idx * to 'log'" in the log
-        Then no crash should happen
-
-    Scenario: Using qute://plainlog directly
-        When I open qute://plainlog without waiting
-        # With Qt 5.9, we don't get a loaded message?
-        And I wait for "Changing title for idx * to 'log'" in the log
-        Then no crash should happen
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1523
 
@@ -702,9 +526,3 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
-
-    ## Other
-
-    Scenario: Open qute://version
-        When I open qute://version
-        Then the page should contain the plaintext "Version info"

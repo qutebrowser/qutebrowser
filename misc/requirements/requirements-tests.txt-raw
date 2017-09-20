@@ -3,7 +3,6 @@ cheroot
 coverage
 Flask
 hunter
-httpbin
 hypothesis
 pytest
 pytest-bdd

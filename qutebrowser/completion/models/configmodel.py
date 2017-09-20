@@ -20,77 +20,63 @@
 """Functions that return config-related completion models."""
 
 from qutebrowser.config import configdata, configexc
-from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.utils import objreg
+from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.commands import cmdutils
 
 
-def section():
-    """A CompletionModel filled with settings sections."""
+def option(*, info):
+    """A CompletionModel filled with settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    sections = ((name, configdata.SECTION_DESC[name].splitlines()[0].strip())
-                for name in configdata.DATA)
-    model.add_category(listcategory.ListCategory("Sections", sections))
+    options = ((opt.name, opt.description, info.config.get_str(opt.name))
+               for opt in configdata.DATA.values())
+    model.add_category(listcategory.ListCategory("Options", sorted(options)))
     return model
 
 
-def option(sectname):
-    """A CompletionModel filled with settings and their descriptions.
-
-    Args:
-        sectname: The name of the config section this model shows.
-    """
-    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    try:
-        sectdata = configdata.DATA[sectname]
-    except KeyError:
-        return None
-    options = []
-    for name in sectdata:
-        try:
-            desc = sectdata.descriptions[name]
-        except (KeyError, AttributeError):
-            # Some stuff (especially ValueList items) don't have a
-            # description.
-            desc = ""
-        else:
-            desc = desc.splitlines()[0]
-        config = objreg.get('config')
-        val = config.get(sectname, name, raw=True)
-        options.append((name, desc, val))
-    model.add_category(listcategory.ListCategory(sectname, options))
-    return model
-
-
-def value(sectname, optname):
+def value(optname, *_values, info):
     """A CompletionModel filled with setting values.
 
     Args:
-        sectname: The name of the config section this model shows.
         optname: The name of the config option this model shows.
+        _values: The values already provided on the command line.
+        info: A CompletionInfo instance.
     """
-    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    config = objreg.get('config')
+    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
 
     try:
-        current = config.get(sectname, optname, raw=True) or '""'
-    except (configexc.NoSectionError, configexc.NoOptionError):
+        current = info.config.get_str(optname) or '""'
+    except configexc.NoOptionError:
         return None
 
-    default = configdata.DATA[sectname][optname].default() or '""'
-
-    if hasattr(configdata.DATA[sectname], 'valtype'):
-        # Same type for all values (ValueList)
-        vals = configdata.DATA[sectname].valtype.complete()
-    else:
-        if optname is None:
-            raise ValueError("optname may only be None for ValueList "
-                             "sections, but {} is not!".format(sectname))
-        # Different type for each value (KeyValue)
-        vals = configdata.DATA[sectname][optname].typ.complete()
-
+    opt = info.config.get_opt(optname)
+    default = opt.typ.to_str(opt.default)
     cur_cat = listcategory.ListCategory("Current/Default",
         [(current, "Current value"), (default, "Default value")])
     model.add_category(cur_cat)
+
+    vals = opt.typ.complete()
     if vals is not None:
-        model.add_category(listcategory.ListCategory("Completions", vals))
+        model.add_category(listcategory.ListCategory("Completions",
+                                                     sorted(vals)))
+    return model
+
+
+def bind(key, *, info):
+    """A CompletionModel filled with all bindable commands and descriptions.
+
+    Args:
+        key: the key being bound.
+    """
+    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
+    cmd_text = info.keyconf.get_command(key, 'normal')
+
+    if cmd_text:
+        cmd_name = cmd_text.split(' ')[0]
+        cmd = cmdutils.cmd_dict.get(cmd_name)
+        data = [(cmd_text, cmd.desc, key)]
+        model.add_category(listcategory.ListCategory("Current", data))
+
+    cmdlist = util.get_cmd_completions(info, include_hidden=True,
+                                       include_aliases=True)
+    model.add_category(listcategory.ListCategory("Commands", cmdlist))
     return model

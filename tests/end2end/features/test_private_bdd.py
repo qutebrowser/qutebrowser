@@ -27,7 +27,7 @@ bdd.scenarios('private.feature')
 def check_cookie(quteproc, name, value):
     """Check if a given cookie is set correctly.
 
-    This assumes we're on the httpbin cookies page.
+    This assumes we're on the server cookies page.
     """
     content = quteproc.get_content()
     data = json.loads(content)

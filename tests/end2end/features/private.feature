@@ -42,12 +42,11 @@ Feature: Using private browsing
 
     ## https://github.com/qutebrowser/qutebrowser/issues/1219
 
-    @qtwebkit_ng_skip: private browsing is not implemented yet
     Scenario: Sharing cookies with private browsing
         When I open cookies/set?qute-test=42 without waiting in a private window
         And I wait until cookies is loaded
         And I open cookies in a new tab
-        And I set general -> private-browsing to false
+        And I set content.private_browsing to false
         Then the cookie qute-test should be set to 42
 
     Scenario: Opening private window with :navigate increment
@@ -124,7 +123,7 @@ Feature: Using private browsing
 
     # https://github.com/qutebrowser/qutebrowser/issues/2638
     Scenario: Turning off javascript with private browsing
-        When I set content -> allow-javascript to false
+        When I set content.javascript.enabled to false
         And I open data/javascript/consolelog.html in a private window
         Then the javascript message "console.log works!" should not be logged
 
@@ -153,3 +152,26 @@ Feature: Using private browsing
               - history:
                 - url: http://localhost:*/data/numbers/1.txt
                 - url: http://localhost:*/data/numbers/2.txt
+
+
+  Scenario: Saving a private session with only-active-window
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a private window
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :session-save --only-active-window window_session_name
+        And I run :window-only
+        And I run :tab-only
+        And I run :session-load -c window_session_name
+        And I wait until data/numbers/5.txt is loaded
+        Then the session should look like:
+            windows:
+                - tabs:
+                    - history:
+                        - url: http://localhost:*/data/numbers/3.txt
+                    - history:
+                        - url: http://localhost:*/data/numbers/4.txt
+                    - history:
+                        - active: true
+                          url: http://localhost:*/data/numbers/5.txt

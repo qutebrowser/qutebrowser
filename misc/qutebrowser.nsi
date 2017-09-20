@@ -23,7 +23,7 @@ SetCompressor /solid lzma
 !define MUI_ICON "../icons/qutebrowser.ico"
 !define MUI_UNICON "../icons/qutebrowser.ico"
 
-!insertmacro MUI_PAGE_LICENSE "..\COPYING"
+!insertmacro MUI_PAGE_LICENSE "..\LICENSE"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_UNPAGE_CONFIRM
