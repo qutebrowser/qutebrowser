@@ -27,6 +27,7 @@ import pytest
 from PyQt5.QtCore import QFileSystemWatcher
 
 from qutebrowser.commands import userscripts
+from qutebrowser.utils import utils
 
 
 @pytest.mark.posix
@@ -60,7 +61,7 @@ class TestQtFIFOReader:
     userscripts._WindowsUserscriptRunner,
 ])
 def runner(request, runtime_tmpdir):
-    if (os.name != 'posix' and
+    if (not utils.is_posix and
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
     else:
@@ -246,7 +247,8 @@ def test_unicode_error(caplog, qtbot, py_proc, runner):
 
 
 def test_unsupported(monkeypatch, tabbed_browser_stubs):
-    monkeypatch.setattr(userscripts.os, 'name', 'toaster')
+    monkeypatch.setattr(userscripts.utils, 'is_posix', False)
+    monkeypatch.setattr(userscripts.utils, 'is_windows', False)
     with pytest.raises(userscripts.UnsupportedError, match="Userscripts are "
                        "not supported on this platform!"):
         userscripts.run_async(tab=None, cmd=None, win_id=0, env=None)

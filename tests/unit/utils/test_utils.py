@@ -355,7 +355,7 @@ class TestKeyEventToString:
     def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        expected = 'meta+a' if sys.platform == 'darwin' else 'ctrl+a'
+        expected = 'meta+a' if utils.is_mac else 'ctrl+a'
         assert utils.keyevent_to_string(evt) == expected
 
     def test_key_and_modifiers(self, fake_keyevent_factory):
@@ -367,7 +367,7 @@ class TestKeyEventToString:
 
     def test_mac(self, monkeypatch, fake_keyevent_factory):
         """Test with a simulated mac."""
-        monkeypatch.setattr(sys, 'platform', 'darwin')
+        monkeypatch.setattr(utils, 'is_mac', True)
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
         assert utils.keyevent_to_string(evt) == 'meta+a'
 

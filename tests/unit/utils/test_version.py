@@ -36,7 +36,7 @@ import attr
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes
+from qutebrowser.utils import version, usertypes, utils
 from qutebrowser.browser import pdfjs
 
 
@@ -333,7 +333,7 @@ class TestGitStrSubprocess:
                 'GIT_COMMITTER_EMAIL': 'mail@qutebrowser.org',
                 'GIT_COMMITTER_DATE': 'Thu  1 Jan 01:00:00 CET 1970',
             })
-            if os.name == 'nt':
+            if utils.is_windows:
                 # If we don't call this with shell=True it might fail under
                 # some environments on Windows...
                 # http://bugs.python.org/issue24493
@@ -696,15 +696,18 @@ class TestOsInfo:
             mac_ver: The tuple to set platform.mac_ver() to.
             mac_ver_str: The expected Mac version string in version._os_info().
         """
-        monkeypatch.setattr(version.sys, 'platform', 'darwin')
+        monkeypatch.setattr(version.utils, 'is_linux', False)
+        monkeypatch.setattr(version.utils, 'is_windows', False)
+        monkeypatch.setattr(version.utils, 'is_mac', True)
         monkeypatch.setattr(version.platform, 'mac_ver', lambda: mac_ver)
         ret = version._os_info()
         expected = ['OS Version: {}'.format(mac_ver_str)]
         assert ret == expected
 
     def test_unknown_fake(self, monkeypatch):
-        """Test with a fake unknown sys.platform."""
-        monkeypatch.setattr(version.sys, 'platform', 'toaster')
+        """Test with a fake unknown platform."""
+        for name in ['is_mac', 'is_windows', 'is_linux']:
+            monkeypatch.setattr(version.utils, name, False)
         ret = version._os_info()
         expected = ['OS Version: ?']
         assert ret == expected

@@ -31,9 +31,9 @@ import textwrap
 import pytest
 import pytest_bdd as bdd
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 from qutebrowser.browser import pdfjs
-from helpers import utils
+from helpers import utils as testutils
 
 
 def _get_echo_exe_path():
@@ -42,8 +42,9 @@ def _get_echo_exe_path():
     Return:
         Path to the "echo"-utility.
     """
-    if sys.platform == "win32":
-        return os.path.join(utils.abs_datapath(), 'userscripts', 'echo.bat')
+    if utils.is_windows:
+        return os.path.join(testutils.abs_datapath(), 'userscripts',
+                            'echo.bat')
     else:
         return 'echo'
 
@@ -255,7 +256,7 @@ def run_command(quteproc, server, tmpdir, command):
         invalid = False
 
     command = command.replace('(port)', str(server.port))
-    command = command.replace('(testdata)', utils.abs_datapath())
+    command = command.replace('(testdata)', testutils.abs_datapath())
     command = command.replace('(tmpdir)', str(tmpdir))
     command = command.replace('(dirsep)', os.sep)
     command = command.replace('(echo-exe)', _get_echo_exe_path())
@@ -349,7 +350,7 @@ def hint(quteproc, args):
 
 @bdd.when(bdd.parsers.parse('I hint with args "{args}" and follow {letter}'))
 def hint_and_follow(quteproc, args, letter):
-    args = args.replace('(testdata)', utils.abs_datapath())
+    args = args.replace('(testdata)', testutils.abs_datapath())
     quteproc.send_cmd(':hint {}'.format(args))
     quteproc.wait_for(message='hints: *')
     quteproc.send_cmd(':follow-hint {}'.format(letter))
@@ -502,7 +503,7 @@ def check_header(quteproc, header, value):
         assert header not in data['headers']
     else:
         actual = data['headers'][header]
-        assert utils.pattern_match(pattern=value, value=actual)
+        assert testutils.pattern_match(pattern=value, value=actual)
 
 
 @bdd.then(bdd.parsers.parse('the page should contain the html "{text}"'))

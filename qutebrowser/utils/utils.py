@@ -383,7 +383,7 @@ def keyevent_to_string(e):
         A name of the key (combination) as a string or
         None if only modifiers are pressed..
     """
-    if sys.platform == 'darwin':
+    if is_mac:
         # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
         # can use it in the config as expected. See:
         # https://github.com/qutebrowser/qutebrowser/issues/110

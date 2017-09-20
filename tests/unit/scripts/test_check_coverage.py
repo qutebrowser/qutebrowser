@@ -207,8 +207,8 @@ def test_skipped_args(covtest, args, reason):
     covtest.check_skipped(args, reason)
 
 
-def test_skipped_windows(covtest, monkeypatch):
-    monkeypatch.setattr(check_coverage.sys, 'platform', 'toaster')
+def test_skipped_non_linux(covtest, monkeypatch):
+    monkeypatch.setattr(check_coverage.utils, 'is_linux', False)
     covtest.check_skipped([], "on non-Linux system.")
 
 

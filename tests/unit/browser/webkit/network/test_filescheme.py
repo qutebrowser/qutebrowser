@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkRequest
 
 from qutebrowser.browser.webkit.network import filescheme
-from qutebrowser.utils import urlutils
+from qutebrowser.utils import urlutils, utils
 
 
 @pytest.mark.parametrize('create_file, create_dir, filterfunc, expected', [
@@ -228,10 +228,7 @@ class TestDirbrowserHtml:
         assert parsed.folders == [bar_item]
 
     def test_root_dir(self, tmpdir, parser):
-        if os.name == 'nt':
-            root_dir = 'C:\\'
-        else:
-            root_dir = '/'
+        root_dir = 'C:\\' if utils.is_windows else '/'
         parsed = parser(root_dir)
         assert not parsed.parent
 

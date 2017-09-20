@@ -58,7 +58,7 @@ def _is_secure_cipher(cipher):
         # https://codereview.qt-project.org/#/c/75943/
         return False
     # OpenSSL should already protect against this in a better way
-    elif cipher.keyExchangeMethod() == 'DH' and os.name == 'nt':
+    elif cipher.keyExchangeMethod() == 'DH' and utils.is_windows:
         # https://weakdh.org/
         return False
     elif cipher.encryptionMethod().upper().startswith('RC4'):

@@ -19,7 +19,6 @@
 
 """Tests for BaseKeyParser."""
 
-import sys
 import logging
 from unittest import mock
 
@@ -166,7 +165,7 @@ class TestSpecialKeys:
         keyparser._read_config('prompt')
 
     def test_valid_key(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             modifier = Qt.MetaModifier
         else:
             modifier = Qt.ControlModifier
@@ -176,7 +175,7 @@ class TestSpecialKeys:
             'message-info ctrla', keyparser.Type.special, None)
 
     def test_valid_key_count(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             modifier = Qt.MetaModifier
         else:
             modifier = Qt.ControlModifier
@@ -210,7 +209,7 @@ class TestKeyChain:
         keyparser._read_config('prompt')
 
     def test_valid_special_key(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             modifier = Qt.MetaModifier
         else:
             modifier = Qt.ControlModifier

@@ -18,12 +18,11 @@
 
 """Tests for qutebrowser.utils.error."""
 
-import sys
 import logging
 
 import pytest
 
-from qutebrowser.utils import error
+from qutebrowser.utils import error, utils
 from qutebrowser.misc import ipc
 
 from PyQt5.QtCore import QTimer
@@ -84,7 +83,7 @@ def test_err_windows(qtbot, qapp, fake_args, pre_text, post_text, expected):
         w = qapp.activeModalWidget()
         try:
             qtbot.add_widget(w)
-            if sys.platform != 'darwin':
+            if not utils.is_mac:
                 assert w.windowTitle() == 'title'
             assert w.icon() == QMessageBox.Critical
             assert w.standardButtons() == QMessageBox.Ok

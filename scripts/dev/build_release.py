@@ -36,7 +36,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 import qutebrowser
-from scripts import utils
+from qutebrowser.utils import utils
+from scripts import utils as scriptutils
 # from scripts.dev import update_3rdparty
 
 
@@ -70,7 +71,7 @@ def call_tox(toxenv, *args, python=sys.executable):
 
 def run_asciidoc2html(args):
     """Common buildsteps used for all OS'."""
-    utils.print_title("Running asciidoc2html.py")
+    scriptutils.print_title("Running asciidoc2html.py")
     if args.asciidoc is not None:
         a2h_args = ['--asciidoc'] + args.asciidoc
     else:
@@ -127,7 +128,7 @@ def patch_mac_app():
 
 def build_mac():
     """Build macOS .dmg/.app."""
-    utils.print_title("Cleaning up...")
+    scriptutils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
         try:
             os.remove(f)
@@ -135,20 +136,20 @@ def build_mac():
             pass
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
-    utils.print_title("Updating 3rdparty content")
+    scriptutils.print_title("Updating 3rdparty content")
     # Currently disabled because QtWebEngine has no pdfjs support
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
-    utils.print_title("Building .app via pyinstaller")
+    scriptutils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r')
-    utils.print_title("Patching .app")
+    scriptutils.print_title("Patching .app")
     patch_mac_app()
-    utils.print_title("Building .dmg")
+    scriptutils.print_title("Building .dmg")
     subprocess.check_call(['make', '-f', 'scripts/dev/Makefile-dmg'])
 
     dmg_name = 'qutebrowser-{}.dmg'.format(qutebrowser.__version__)
     os.rename('qutebrowser.dmg', dmg_name)
 
-    utils.print_title("Running smoke test")
+    scriptutils.print_title("Running smoke test")
 
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -177,11 +178,11 @@ def patch_windows(out_dir):
 
 def build_windows():
     """Build windows executables/setups."""
-    utils.print_title("Updating 3rdparty content")
+    scriptutils.print_title("Updating 3rdparty content")
     # Currently disabled because QtWebEngine has no pdfjs support
     # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
 
-    utils.print_title("Building Windows binaries")
+    scriptutils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
     python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
@@ -194,19 +195,19 @@ def build_windows():
 
     artifacts = []
 
-    utils.print_title("Running pyinstaller 32bit")
+    scriptutils.print_title("Running pyinstaller 32bit")
     _maybe_remove(out_32)
     call_tox('pyinstaller', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
     patch_windows(out_32)
 
-    utils.print_title("Running pyinstaller 64bit")
+    scriptutils.print_title("Running pyinstaller 64bit")
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
     patch_windows(out_64)
 
-    utils.print_title("Building installers")
+    scriptutils.print_title("Building installers")
     subprocess.check_call(['makensis.exe',
                            '/DVERSION={}'.format(qutebrowser.__version__),
                            'misc/qutebrowser.nsi'])
@@ -227,12 +228,12 @@ def build_windows():
          'Windows 64bit installer'),
     ]
 
-    utils.print_title("Running 32bit smoke test")
+    scriptutils.print_title("Running 32bit smoke test")
     smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
-    utils.print_title("Running 64bit smoke test")
+    scriptutils.print_title("Running 64bit smoke test")
     smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
-    utils.print_title("Zipping 32bit standalone...")
+    scriptutils.print_title("Zipping 32bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-win32'.format(
         qutebrowser.__version__)
     shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
@@ -240,7 +241,7 @@ def build_windows():
                       'application/zip',
                       'Windows 32bit standalone'))
 
-    utils.print_title("Zipping 64bit standalone...")
+    scriptutils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
         qutebrowser.__version__)
     shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_64))
@@ -253,7 +254,7 @@ def build_windows():
 
 def build_sdist():
     """Build an sdist and list the contents."""
-    utils.print_title("Building sdist")
+    scriptutils.print_title("Building sdist")
 
     _maybe_remove('dist')
 
@@ -276,10 +277,10 @@ def build_sdist():
 
     assert '.pyc' not in by_ext
 
-    utils.print_title("sdist contents")
+    scriptutils.print_title("sdist contents")
 
     for ext, files in sorted(by_ext.items()):
-        utils.print_subtitle(ext)
+        scriptutils.print_subtitle(ext)
         print('\n'.join(files))
 
     filename = 'qutebrowser-{}.tar.gz'.format(qutebrowser.__version__)
@@ -308,7 +309,7 @@ def github_upload(artifacts, tag):
         tag: The name of the release tag
     """
     import github3
-    utils.print_title("Uploading to github...")
+    scriptutils.print_title("Uploading to github...")
 
     token = read_github_token()
     gh = github3.login(token=token)
@@ -343,7 +344,7 @@ def main():
     parser.add_argument('--upload', help="Tag to upload the release for",
                         nargs=1, required=False, metavar='TAG')
     args = parser.parse_args()
-    utils.change_cwd()
+    scriptutils.change_cwd()
 
     upload_to_pypi = False
 
@@ -353,7 +354,7 @@ def main():
         import github3  # pylint: disable=unused-variable
         read_github_token()
 
-    if os.name == 'nt':
+    if utils.is_windows:
         if sys.maxsize > 2**32:
             # WORKAROUND
             print("Due to a python/Windows bug, this script needs to be run ")
@@ -364,7 +365,7 @@ def main():
             sys.exit(1)
         run_asciidoc2html(args)
         artifacts = build_windows()
-    elif sys.platform == 'darwin':
+    elif utils.is_mac:
         run_asciidoc2html(args)
         artifacts = build_mac()
     else:
@@ -372,7 +373,7 @@ def main():
         upload_to_pypi = True
 
     if args.upload is not None:
-        utils.print_title("Press enter to release...")
+        scriptutils.print_title("Press enter to release...")
         input()
         github_upload(artifacts, args.upload[0])
         if upload_to_pypi:

@@ -248,12 +248,12 @@ def _os_info():
     """
     lines = []
     releaseinfo = None
-    if sys.platform == 'linux':
+    if utils.is_linux:
         osver = ''
         releaseinfo = _release_info()
-    elif sys.platform == 'win32':
+    elif utils.is_windows:
         osver = ', '.join(platform.win32_ver())
-    elif sys.platform == 'darwin':
+    elif utils.is_mac:
         release, versioninfo, machine = platform.mac_ver()
         if all(not e for e in versioninfo):
             versioninfo = ''

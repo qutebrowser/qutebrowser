@@ -409,6 +409,8 @@ def qt_message_handler(msg_type, context, msg):
         # https://codereview.qt-project.org/176831
         "QObject::disconnect: Unexpected null parameter",
     ]
+    # not using utils.is_mac here, because we can't be sure we can successfully
+    # import the utils module here.
     if sys.platform == 'darwin':
         suppressed_msgs += [
             'libpng warning: iCCP: known incorrect sRGB profile',

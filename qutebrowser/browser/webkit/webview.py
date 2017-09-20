@@ -19,8 +19,6 @@
 
 """The main browser widgets."""
 
-import sys
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
@@ -57,7 +55,7 @@ class WebView(QWebView):
 
     def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
             # See https://github.com/qutebrowser/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))

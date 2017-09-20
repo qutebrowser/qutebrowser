@@ -32,7 +32,7 @@ import attr
 from PyQt5.QtCore import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir
+from qutebrowser.utils import standarddir, utils
 
 
 # Use a different application name for tests to make sure we don't change real
@@ -80,7 +80,7 @@ def test_unset_organization_no_qapp(monkeypatch):
 
 def test_fake_mac_config(tmpdir, monkeypatch):
     """Test standardir.config on a fake Mac."""
-    monkeypatch.setattr(sys, 'platform', 'darwin')
+    monkeypatch.setattr(utils, 'is_mac', True)
     monkeypatch.setenv('HOME', str(tmpdir))
     expected = str(tmpdir) + '/.qute_test'  # always with /
     standarddir._init_config(args=None)
@@ -91,7 +91,7 @@ def test_fake_mac_config(tmpdir, monkeypatch):
 @pytest.mark.not_mac
 def test_fake_windows(tmpdir, monkeypatch, what):
     """Make sure the config/data/cache dirs are correct on a fake Windows."""
-    monkeypatch.setattr(os, 'name', 'nt')
+    monkeypatch.setattr(standarddir.utils, 'is_windows', True)
     monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                         lambda typ: str(tmpdir / APPNAME))
 
@@ -175,7 +175,7 @@ class TestStandardDir:
 
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):
         """With an empty tempdir on non-Linux, we should raise."""
-        monkeypatch.setattr(standarddir.sys, 'platform', 'nt')
+        monkeypatch.setattr(standarddir.utils, 'is_linux', False)
         monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
                             lambda typ: '')
         with pytest.raises(standarddir.EmptyValueError):
@@ -294,7 +294,7 @@ class TestCreatingDir:
 
         assert basedir.exists()
 
-        if os.name == 'posix':
+        if utils.is_posix:
             assert basedir.stat().mode & 0o777 == 0o700
 
     @pytest.mark.parametrize('typ', DIR_TYPES)
@@ -326,7 +326,7 @@ class TestSystemData:
 
     def test_system_datadir_exist_linux(self, monkeypatch):
         """Test that /usr/share/qute_test is used if path exists."""
-        monkeypatch.setattr('sys.platform', "linux")
+        monkeypatch.setattr(standarddir.utils, 'is_linux', True)
         monkeypatch.setattr(os.path, 'exists', lambda path: True)
         standarddir._init_dirs()
         assert standarddir.data(system=True) == "/usr/share/qute_test"
@@ -493,10 +493,10 @@ def test_init(mocker, tmpdir, args_kind):
 
     assert standarddir._locations != {}
     if args_kind == 'normal':
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             assert not m_windows.called
             assert m_mac.called
-        elif os.name == 'nt':
+        elif utils.is_windows:
             assert m_windows.called
             assert not m_mac.called
         else:

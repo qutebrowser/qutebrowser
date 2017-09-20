@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, objreg, standarddir
+from qutebrowser.utils import log, usertypes, error, objreg, standarddir, utils
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
@@ -51,7 +51,7 @@ def _get_socketname_windows(basedir):
 
 def _get_socketname(basedir):
     """Get a socketname to use."""
-    if os.name == 'nt':  # pragma: no cover
+    if utils.is_windows:  # pragma: no cover
         return _get_socketname_windows(basedir)
 
     parts_to_hash = [getpass.getuser()]
@@ -139,8 +139,6 @@ class IPCServer(QObject):
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
         _socketname: The socketname to use.
-        _socketopts_ok: Set if using setSocketOptions is working with this
-                        OS/Qt version.
         _atime_timer: Timer to update the atime of the socket regularly.
 
     Signals:
@@ -169,7 +167,7 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
 
-        if os.name == 'nt':  # pragma: no cover
+        if utils.is_windows:  # pragma: no cover
             self._atime_timer = None
         else:
             self._atime_timer = usertypes.Timer(self, 'ipc-atime')
@@ -182,8 +180,7 @@ class IPCServer(QObject):
 
         self._socket = None
         self._old_socket = None
-        self._socketopts_ok = os.name == 'nt'
-        if self._socketopts_ok:  # pragma: no cover
+        if utils.is_windows:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening...
             log.ipc.debug("Calling setSocketOptions")
@@ -210,7 +207,7 @@ class IPCServer(QObject):
                 raise AddressInUseError(self._server)
             else:
                 raise ListenError(self._server)
-        if not self._socketopts_ok:  # pragma: no cover
+        if not utils.is_windows:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening.
             # (see b135569d5c6e68c735ea83f42e4baf51f7972281)

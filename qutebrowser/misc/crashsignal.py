@@ -40,7 +40,7 @@ from PyQt5.QtWidgets import QApplication, QDialog
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug
+from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
 @attr.s
@@ -312,7 +312,7 @@ class SignalHandler(QObject):
         self._orig_handlers[signal.SIGTERM] = signal.signal(
             signal.SIGTERM, self.interrupt)
 
-        if os.name == 'posix' and hasattr(signal, 'set_wakeup_fd'):
+        if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
             import fcntl
             read_fd, write_fd = os.pipe()
