@@ -405,7 +405,11 @@ class Command:
             # We also can't use isinstance here because typing.Union doesn't
             # support that.
             # pylint: disable=no-member,useless-suppression
-            types = list(typ.__args__)
+            try:
+                types = list(typ.__args__)
+            except AttributeError:
+                # Older Python 3.5 patch versions
+                types = list(typ.__union_params__)
             # pylint: enable=no-member,useless-suppression
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
