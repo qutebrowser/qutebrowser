@@ -306,9 +306,9 @@ Default: +pass:[auto]+
 [[bindings.commands]]
 === bindings.commands
 Keybindings mapping keys to commands in different modes.
+While it's possible to add bindings with this setting, it's recommended to use `config.bind()` in `config.py` or the `:bind` command, and leave this setting alone.
 This setting is a dictionary containing mode names and dictionaries mapping keys to commands:
 `{mode: {key: command}}`
-While it's possible to bind keys by modifying this setting, it's recommended to use the `config.bind()` function or `:bind` command, which makes modifying it easier and checks for more possible mistakes.
 If you want to map a key to another key, check the `bindings.key_mappings` setting instead.
 For special keys (can't be part of a keychain), enclose them in `<`...`>`. For modifiers, you can use either `-` or `+` as delimiters, and these names:
 
