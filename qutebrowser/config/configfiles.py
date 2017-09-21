@@ -247,7 +247,7 @@ def read_config_py(filename=None):
         raise configexc.ConfigFileErrors(basename, [desc])
     except SyntaxError as e:
         desc = configexc.ConfigErrorDesc("Syntax Error", e,
-                                        traceback=traceback.format_exc())
+                                         traceback=traceback.format_exc())
         raise configexc.ConfigFileErrors(basename, [desc])
 
     try:
@@ -257,13 +257,14 @@ def read_config_py(filename=None):
             # other files in logical places
             config_dir = os.path.dirname(filename)
             if config_dir not in sys.path:
-                sys.path = [config_dir] + sys.path
+                sys.path.insert(0, config_dir)
 
             exec(code, module.__dict__)
     except Exception as e:
         api.errors.append(configexc.ConfigErrorDesc(
             "Unhandled exception",
             exception=e, traceback=traceback.format_exc()))
+
     api.finalize()
     return api
 
@@ -271,13 +272,11 @@ def read_config_py(filename=None):
 @contextlib.contextmanager
 def saved_sys_properties():
     """Save various sys properties such as sys.path and sys.modules."""
-    old_path = sys.path
+    old_path = sys.path.copy()
     old_modules = sys.modules.copy()
 
     try:
         yield
-    except:
-        raise
     finally:
         sys.path = old_path
         for module in set(sys.modules).difference(old_modules):
