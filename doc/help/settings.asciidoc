@@ -3166,7 +3166,7 @@ This setting is only available with the QtWebKit backend.
 When setting from a string, `1`, `yes`, `on` and `true` count as true, while `0`, `no`, `off` and `false` count as false (case-insensitive).
 |BoolAsk|Like `Bool`, but `ask` is allowed as additional value.
 |ColorSystem|The color system to use for color interpolation.
-|Command|Base class for a command value with arguments.
+|Command|A qutebrowser command with arguments.
 |ConfirmQuit|Whether to display a confirmation when the window is closed.
 |Dict|A dictionary of values.
 

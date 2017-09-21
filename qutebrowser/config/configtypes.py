@@ -773,7 +773,7 @@ class PercOrInt(_Numeric):
 
 class Command(BaseType):
 
-    """Base class for a command value with arguments.
+    """A qutebrowser command with arguments.
 
     //
 
