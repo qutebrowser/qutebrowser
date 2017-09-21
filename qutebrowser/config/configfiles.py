@@ -30,7 +30,7 @@ import yaml
 from PyQt5.QtCore import QSettings
 
 import qutebrowser
-from qutebrowser.config import configexc, config
+from qutebrowser.config import configexc, config, configdata
 from qutebrowser.utils import standarddir, utils, qtutils
 
 
@@ -152,6 +152,12 @@ class YamlConfig:
                 "While loading data",
                 "'global' object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        # Delete unknown values
+        # (e.g. options which were removed from configdata.yml)
+        for name in list(global_obj):
+            if name not in configdata.DATA:
+                del global_obj[name]
 
         self._values = global_obj
         self._dirty = False

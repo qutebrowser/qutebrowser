@@ -932,14 +932,9 @@ def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
         expected_errors.append(
             "Errors occurred while reading config.py:\n"
             "  While setting 'foo': No option 'foo'")
-    if invalid_yaml and (load_autoconfig or not config_py):
+    if invalid_yaml == '42' and (load_autoconfig or not config_py):
         error = "Errors occurred while reading autoconfig.yml:\n"
-        if invalid_yaml == '42':
-            error += "  While loading data: Toplevel object is not a dict"
-        elif invalid_yaml == 'unknown':
-            error += "  Error: No option 'colors.foobar'"
-        else:
-            assert False, invalid_yaml
+        error += "  While loading data: Toplevel object is not a dict"
         expected_errors.append(error)
 
     actual_errors = [str(err) for err in config._init_errors]

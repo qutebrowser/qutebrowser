@@ -57,6 +57,8 @@ def test_state_config(fake_save_manager, data_tmpdir,
 @pytest.mark.parametrize('old_config', [
     None,
     'global:\n  colors.hints.fg: magenta',
+    # Unknown key
+    'global:\n  hello: world',
 ])
 @pytest.mark.parametrize('insert', [True, False])
 def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
@@ -91,6 +93,7 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
         assert '  colors.hints.fg: magenta' in lines
     if insert:
         assert '  tabs.show: never' in lines
+    assert '  hello:' not in lines
 
 
 @pytest.mark.parametrize('old_config', [
