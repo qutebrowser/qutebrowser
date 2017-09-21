@@ -1072,36 +1072,9 @@ class TestCommand:
         monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
         monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
 
-    @pytest.fixture(autouse=True)
-    def patch_aliases(self, config_stub):
-        """Patch the aliases setting."""
-        configtypes.Command.unvalidated = True
-        config_stub.val.aliases = {'alias': 'cmd1'}
-        configtypes.Command.unvalidated = False
-
     @pytest.fixture
     def klass(self):
         return configtypes.Command
-
-    @pytest.mark.parametrize('val', ['cmd1', 'cmd2', 'cmd1  foo bar',
-                                     'cmd2  baz fish', 'alias foo'])
-    def test_to_py_valid(self, patch_cmdutils, klass, val):
-        expected = None if not val else val
-        assert klass().to_py(val) == expected
-
-    @pytest.mark.parametrize('val', ['cmd3', 'cmd3  foo bar', ' '])
-    def test_to_py_invalid(self, patch_cmdutils, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass().to_py(val)
-
-    def test_cmdline(self, klass, cmdline_test):
-        """Test some commandlines from the cmdline_test fixture."""
-        typ = klass()
-        if cmdline_test.valid:
-            typ.to_py(cmdline_test.cmd)
-        else:
-            with pytest.raises(configexc.ValidationError):
-                typ.to_py(cmdline_test.cmd)
 
     def test_complete(self, patch_cmdutils, klass):
         """Test completion."""

@@ -59,7 +59,7 @@ from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
-from qutebrowser.commands import cmdutils, runners, cmdexc
+from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils
 
@@ -773,39 +773,23 @@ class PercOrInt(_Numeric):
 
 class Command(BaseType):
 
-    """Base class for a command value with arguments."""
+    """Base class for a command value with arguments.
 
-    # See to_py for details
-    unvalidated = False
+    //
 
-    def to_py(self, value):
-        self._basic_py_validation(value, str)
-        if not value:
-            return None
-
-        # This requires some trickery, as runners.CommandParser uses
-        # conf.val.aliases, which in turn map to a command again,
-        # leading to an endless recursion.
-        # To fix that, we turn off validating other commands (alias values)
-        # while validating a command.
-        if not Command.unvalidated:
-            Command.unvalidated = True
-            try:
-                parser = runners.CommandParser()
-                try:
-                    parser.parse_all(value)
-                except cmdexc.Error as e:
-                    raise configexc.ValidationError(value, str(e))
-            finally:
-                Command.unvalidated = False
-
-        return value
+    Since validation is quite tricky here, we don't do so, and instead let
+    invalid commands (in bindings/aliases) fail when used.
+    """
 
     def complete(self):
         out = []
         for cmdname, obj in cmdutils.cmd_dict.items():
             out.append((cmdname, obj.desc))
         return out
+
+    def to_py(self, value):
+        self._basic_py_validation(value, str)
+        return value
 
 
 class ColorSystem(MappingType):

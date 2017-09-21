@@ -279,6 +279,15 @@ class TestConfigPy:
         expected = {mode: {',a': 'message-info foo'}}
         assert config.instance._values['bindings.commands'] == expected
 
+    def test_bind_freshly_defined_alias(self, confpy):
+        """Make sure we can bind to a new alias.
+
+        https://github.com/qutebrowser/qutebrowser/issues/3001
+        """
+        confpy.write("c.aliases['foo'] = 'message-info foo'",
+                     "config.bind(',f', 'foo')")
+        confpy.read()
+
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
         ('config.unbind("y", mode="prompt")', 'y', 'prompt'),

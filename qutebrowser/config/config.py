@@ -31,7 +31,7 @@ from qutebrowser.config import configdata, configexc, configtypes, configfiles
 from qutebrowser.utils import (utils, objreg, message, log, usertypes, jinja,
                                qtutils)
 from qutebrowser.misc import objects, msgbox, earlyinit
-from qutebrowser.commands import cmdexc, cmdutils, runners
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
 
 # An easy way to access the config from other code via config.val.foo
@@ -178,19 +178,6 @@ class KeyConfig:
     def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
         key = self._prepare(key, mode)
-
-        parser = runners.CommandParser()
-        try:
-            results = parser.parse_all(command)
-        except cmdexc.Error as e:
-            raise configexc.KeybindingError("Invalid command: {}".format(e))
-
-        for result in results:  # pragma: no branch
-            try:
-                result.cmd.validate_mode(usertypes.KeyMode[mode])
-            except cmdexc.PrerequisitesError as e:
-                raise configexc.KeybindingError(str(e))
-
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
         if key in self.get_bindings_for(mode) and not force:

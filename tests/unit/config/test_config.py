@@ -182,17 +182,6 @@ class TestKeyConfig:
         config_stub.val.bindings.commands = {'normal': bindings}
         assert keyconf.get_reverse_bindings_for('normal') == expected
 
-    def test_bind_invalid_command(self, keyconf):
-        with pytest.raises(configexc.KeybindingError,
-                           match='Invalid command: foobar'):
-            keyconf.bind('a', 'foobar', mode='normal')
-
-    def test_bind_invalid_mode(self, keyconf):
-        with pytest.raises(configexc.KeybindingError,
-                           match='completion-item-del: This command is only '
-                           'allowed in command mode, not normal.'):
-            keyconf.bind('a', 'completion-item-del', mode='normal')
-
     @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', '<Ctrl-X>', 'b'])
     def test_bind_duplicate(self, keyconf, config_stub, force, key):
@@ -208,11 +197,14 @@ class TestKeyConfig:
             assert keyconf.get_command(key, 'normal') == 'nop'
 
     @pytest.mark.parametrize('mode', ['normal', 'caret'])
-    def test_bind(self, keyconf, config_stub, qtbot, no_bindings, mode):
+    @pytest.mark.parametrize('command', [
+        'message-info foo',
+        'nop ;; wq',  # https://github.com/qutebrowser/qutebrowser/issues/3002
+    ])
+    def test_bind(self, keyconf, config_stub, qtbot, no_bindings,
+                  mode, command):
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
-
-        command = 'message-info foo'
 
         with qtbot.wait_signal(config_stub.changed):
             keyconf.bind('a', command, mode=mode)
@@ -220,6 +212,16 @@ class TestKeyConfig:
         assert config_stub.val.bindings.commands[mode]['a'] == command
         assert keyconf.get_bindings_for(mode)['a'] == command
         assert keyconf.get_command('a', mode) == command
+
+    def test_bind_mode_changing(self, keyconf, config_stub, no_bindings):
+        """Make sure we can bind to a command which changes the mode.
+
+        https://github.com/qutebrowser/qutebrowser/issues/2989
+        """
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        keyconf.bind('a', 'set-cmd-text :nop ;; rl-beginning-of-line',
+                     mode='normal')
 
     @pytest.mark.parametrize('key, normalized', [
         ('a', 'a'),  # default bindings
@@ -504,20 +506,14 @@ class TestBindConfigCommand:
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == expected
 
-    @pytest.mark.parametrize('command, mode, expected', [
-        ('foobar', 'normal', "bind: Invalid command: foobar"),
-        ('completion-item-del', 'normal',
-            "bind: completion-item-del: This command is only allowed in "
-            "command mode, not normal."),
-        ('nop', 'wrongmode', "bind: Invalid mode wrongmode!"),
-    ])
-    def test_bind_invalid(self, commands, command, mode, expected):
-        """Run ':bind a foobar' / ':bind a completion-item-del'.
+    def test_bind_invalid_mode(self, commands):
+        """Run ':bind --mode=wrongmode nop'.
 
         Should show an error.
         """
-        with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.bind('a', command, mode=mode)
+        with pytest.raises(cmdexc.CommandError,
+                           match='bind: Invalid mode wrongmode!'):
+            commands.bind('a', 'nop', mode='wrongmode')
 
     @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
