@@ -27,9 +27,9 @@ Module attributes:
                 constants.
 """
 
-import os
 import ctypes
 import ctypes.util
+import os
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -38,8 +38,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine.spell import get_installed_languages
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import utils, standarddir, javascript, qtutils
-
+from qutebrowser.utils import utils, standarddir, javascript, qtutils, message
 
 # The default QWebEngineProfile
 default_profile = None
@@ -133,8 +132,7 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
     """Sets paths to dictionary files based on language codes."""
 
     def __init__(self):
-        super().__init__('setSpellCheckLanguages', default=[],
-                         min_version='5.8')
+        super().__init__('setSpellCheckLanguages', default=[])
 
     def _set(self, value, settings=None):
         if settings is not None:
@@ -326,7 +324,7 @@ MAPPINGS = {
         Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
 
     'spell': DefaultProfileSetter('setSpellCheckEnabled'),
-    'spell-languages': DictionaryLanguageSetter()
+    'spell_languages': DictionaryLanguageSetter()
 }
 
 try:

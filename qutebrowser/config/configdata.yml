@@ -975,6 +975,21 @@ scrolling.smooth:
 
     Note smooth scrolling does not work with the `:scroll-px` command.
 
+## spell
+
+spell:
+  type: Bool
+  default: true
+  desc: Enable spell checking.
+
+spell_languages:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default:
+  desc: Spell checking languages.
+
 ## statusbar
 
 statusbar.hide:
