@@ -393,8 +393,7 @@ class SessionManager(QObject):
                 if tab.get('active', False):
                     tab_to_focus = i
                 if new_tab.data.pinned:
-                    tabbed_browser.set_tab_pinned(
-                        new_tab, new_tab.data.pinned, loading=True)
+                    tabbed_browser.set_tab_pinned(new_tab, new_tab.data.pinned)
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):

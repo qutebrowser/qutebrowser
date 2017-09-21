@@ -92,14 +92,12 @@ class TabWidget(QTabWidget):
         bar.update(bar.tabRect(idx))
 
     def set_tab_pinned(self, tab: QWidget,
-                       pinned: bool, *, loading: bool = False) -> None:
+                       pinned: bool) -> None:
         """Set the tab status as pinned.
 
         Args:
             tab: The tab to pin
             pinned: Pinned tab state to set.
-            loading: Whether to ignore current data state when
-                     counting pinned_count.
         """
         bar = self.tabBar()
         idx = self.indexOf(tab)
@@ -426,17 +424,17 @@ class TabBar(QTabBar):
             return
         super().mousePressEvent(e)
 
-    def minimumTabSizeHint(self, index, elipsis=True):
+    def minimumTabSizeHint(self, index, ellipsis: bool = True):
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
             index: The index of the tab to get a size hint for.
-            elipsis: Whether to use elipsis to calculate width
+            ellipsis: Whether to use ellipsis to calculate width
                      instead of the tab's text.
         Return:
             A QSize of the smallest tab size we can make.
         """
-        text = '\u2026' if elipsis else self.tabText(index)
+        text = '\u2026' if ellipsis else self.tabText(index)
         icon = self.tabIcon(index)
         padding = config.val.tabs.padding
         padding_h = padding.left + padding.right
@@ -454,23 +452,19 @@ class TabBar(QTabBar):
                  padding_h + config.val.tabs.width.indicator)
         return QSize(width, height)
 
-    def _tabTotalWidthPinned(self):
+    def _tab_total_width_pinned(self):
         """Get the current total width of pinned tabs.
 
-        This width is calculated assuming no shortening due to elipsis."""
-        return sum(
-            # Get the width (int) from minimum size
-            map(lambda tab: tab.width(),
-                # Get the minimum size of tabs, no elipsis
-                map(functools.partial(self.minimumTabSizeHint, elipsis=False),
-                    # Get only pinned tabs (from indexes)
-                    filter(self._tabPinned, range(self.count())))))
+        This width is calculated assuming no shortening due to ellipsis."""
+        return sum(self.minimumTabSizeHint(idx, ellipsis=False).width()
+            for idx in range(self.count())
+            if self._tab_pinned(idx))
 
     def _pinnedCount(self) -> int:
         """Get the number of pinned tabs."""
-        return len(list(filter(self._tabPinned, range(self.count()))))
+        return sum(self._tab_pinned(idx) for idx in range(self.count()))
 
-    def _tabPinned(self, index: int) -> bool:
+    def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
         try:
             return self.tab_data(index, 'pinned')
@@ -506,15 +500,15 @@ class TabBar(QTabBar):
             # want to ensure it's valid in this special case.
             return QSize()
         else:
-            pinned = self._tabPinned(index)
+            pinned = self._tab_pinned(index)
             no_pinned_count = self.count() - self._pinnedCount()
-            pinned_width = self._tabTotalWidthPinned()
+            pinned_width = self._tab_total_width_pinned()
             no_pinned_width = self.width() - pinned_width
 
             if pinned:
                 # Give pinned tabs the minimum size they need to display their
-                # titles, let QT handle scaling it down if we get too small.
-                width = self.minimumTabSizeHint(index, elipsis=False).width()
+                # titles, let Qt handle scaling it down if we get too small.
+                width = self.minimumTabSizeHint(index, ellipsis=False).width()
             else:
                 width = no_pinned_width / no_pinned_count
 
