@@ -47,7 +47,6 @@ class TestCommandParser:
         if not cmdline_test.cmd:
             pytest.skip("Empty command")
 
-        monkeypatch.setattr(configtypes.Command, 'unvalidated', True)
         config_stub.val.aliases = {'alias_name': cmdline_test.cmd}
 
         parser = runners.CommandParser()
