@@ -87,7 +87,7 @@ def test_install(tmpdir, mocker):
     assert sorted(installed_files) == sorted(expected_files)
 
 
-# TODO: move to update_3rdparty.py
+# TODO: move somewhere to be checked before a release
 #def test_available_langs():
 #    for lang in spell.get_available_languages():
 #        lang_url = urljoin(spell.repository_url, lang.file)
