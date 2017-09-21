@@ -47,32 +47,24 @@ except ImportError:
 START_TIME = datetime.datetime.now()
 
 
-def _missing_str(name, *, windows=None, pip=None, webengine=False):
+def _missing_str(name, *, webengine=False):
     """Get an error string for missing packages.
 
     Args:
         name: The name of the package.
-        windows: String to be displayed for Windows.
-        pip: pypi package name.
         webengine: Whether this is checking the QtWebEngine package
     """
     blocks = ["Fatal error: <b>{}</b> is required to run qutebrowser but "
               "could not be imported! Maybe it's not installed?".format(name),
               "<b>The error encountered was:</b><br />%ERROR%"]
     lines = ['Please search for the python3 version of {} in your '
-             'distributions packages, or install it via pip.'.format(name)]
+             'distributions packages, or see '
+             'https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc'
+             .format(name)]
     blocks.append('<br />'.join(lines))
     if not webengine:
         lines = ['<b>If you installed a qutebrowser package for your '
                  'distribution, please report this as a bug.</b>']
-        blocks.append('<br />'.join(lines))
-    if windows is not None:
-        lines = ["<b>On Windows:</b>"]
-        lines += windows.splitlines()
-        blocks.append('<br />'.join(lines))
-    if pip is not None:
-        lines = ["<b>Using pip:</b>"]
-        lines.append("pip3 install {}".format(pip))
         blocks.append('<br />'.join(lines))
     return '<br /><br />'.join(blocks)
 
@@ -142,11 +134,7 @@ def check_pyqt_core():
     try:
         import PyQt5.QtCore  # pylint: disable=unused-variable
     except ImportError as e:
-        text = _missing_str('PyQt5',
-                            windows="Use the installer by Riverbank computing "
-                                    "or the standalone qutebrowser exe.<br />"
-                                    "http://www.riverbankcomputing.co.uk/"
-                                    "software/pyqt/download5")
+        text = _missing_str('PyQt5')
         text = text.replace('<b>', '')
         text = text.replace('</b>', '')
         text = text.replace('<br />', '\n')
@@ -239,31 +227,12 @@ def _check_modules(modules):
 def check_libraries():
     """Check if all needed Python libraries are installed."""
     modules = {
-        'pkg_resources':
-            _missing_str("pkg_resources/setuptools",
-                         windows="Run   python -m ensurepip."),
-        'pypeg2':
-            _missing_str("pypeg2",
-                         pip="pypeg2"),
-        'jinja2':
-            _missing_str("jinja2",
-                         windows="Install from http://www.lfd.uci.edu/"
-                                 "~gohlke/pythonlibs/#jinja2 or via pip.",
-                         pip="jinja2"),
-        'pygments':
-            _missing_str("pygments",
-                         windows="Install from http://www.lfd.uci.edu/"
-                                 "~gohlke/pythonlibs/#pygments or via pip.",
-                         pip="pygments"),
-        'yaml':
-            _missing_str("PyYAML",
-                         windows="Use the installers at "
-                                 "http://pyyaml.org/download/pyyaml/ (py3.4) "
-                                 "or Install via pip.",
-                         pip="PyYAML"),
-        'attr':
-            _missing_str("attrs",
-                         pip="attrs"),
+        'pkg_resources': _missing_str("pkg_resources/setuptools"),
+        'pypeg2': _missing_str("pypeg2"),
+        'jinja2': _missing_str("jinja2"),
+        'pygments': _missing_str("pygments"),
+        'yaml': _missing_str("PyYAML"),
+        'attr': _missing_str("attrs"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
