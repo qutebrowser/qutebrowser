@@ -18,11 +18,10 @@
 
 """Tests for qutebrowser.misc.msgbox."""
 
-import sys
-
 import pytest
 
 from qutebrowser.misc import msgbox
+from qutebrowser.utils import utils
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QWidget
@@ -40,7 +39,7 @@ def test_attributes(qtbot):
     box = msgbox.msgbox(parent=parent, title=title, text=text, icon=icon,
                         buttons=buttons)
     qtbot.add_widget(box)
-    if sys.platform != 'darwin':
+    if not utils.is_mac:
         assert box.windowTitle() == title
     assert box.icon() == icon
     assert box.standardButtons() == buttons
@@ -82,7 +81,7 @@ def test_finished_signal(qtbot):
 def test_information(qtbot):
     box = msgbox.information(parent=None, title='foo', text='bar')
     qtbot.add_widget(box)
-    if sys.platform != 'darwin':
+    if not utils.is_mac:
         assert box.windowTitle() == 'foo'
     assert box.text() == 'bar'
     assert box.icon() == QMessageBox.Information

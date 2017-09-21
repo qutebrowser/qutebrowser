@@ -20,7 +20,6 @@
 """Command dispatcher for TabbedBrowser."""
 
 import os
-import sys
 import os.path
 import shlex
 import functools
@@ -430,7 +429,7 @@ class CommandDispatcher:
             tab.printing.to_printer(diag.printer(), print_callback)
 
         diag = QPrintDialog(tab)
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             # For some reason we get a segfault when using open() on macOS
             ret = diag.exec_()
             if ret == QDialog.Accepted:

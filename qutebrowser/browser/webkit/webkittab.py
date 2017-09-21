@@ -19,7 +19,6 @@
 
 """Wrapper over our (QtWebKit) WebView."""
 
-import sys
 import functools
 import xml.etree.ElementTree
 
@@ -223,11 +222,11 @@ class WebKitCaret(browsertab.AbstractCaret):
     def move_to_end_of_word(self, count=1):
         if not self.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
+            if utils.is_windows:  # pragma: no cover
                 act.append(QWebPage.MoveToPreviousChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
+            if utils.is_windows:  # pragma: no cover
                 act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
             for a in act:
@@ -236,11 +235,11 @@ class WebKitCaret(browsertab.AbstractCaret):
     def move_to_next_word(self, count=1):
         if not self.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
+            if not utils.is_windows:  # pragma: no branch
                 act.append(QWebPage.MoveToNextChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
+            if not utils.is_windows:  # pragma: no branch
                 act.append(QWebPage.SelectNextChar)
         for _ in range(count):
             for a in act:

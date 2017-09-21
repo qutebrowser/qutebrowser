@@ -279,7 +279,7 @@ def session_manager_stub(stubs):
 
 
 @pytest.fixture
-def tabbed_browser_stubs(stubs, win_registry):
+def tabbed_browser_stubs(qapp, stubs, win_registry):
     """Fixture providing a fake tabbed-browser object on win_id 0 and 1."""
     win_registry.add_window(1)
     stubs = [stubs.TabbedBrowserStub(), stubs.TabbedBrowserStub()]

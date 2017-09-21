@@ -19,6 +19,7 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import os
 import io
 import re
 import sys
@@ -48,6 +49,11 @@ from qutebrowser.utils import qtutils, log, debug
 
 fake_clipboard = None
 log_clipboard = False
+
+is_mac = sys.platform.startswith('darwin')
+is_linux = sys.platform.startswith('linux')
+is_windows = sys.platform.startswith('win')
+is_posix = os.name == 'posix'
 
 
 class ClipboardError(Exception):
@@ -377,7 +383,7 @@ def keyevent_to_string(e):
         A name of the key (combination) as a string or
         None if only modifiers are pressed..
     """
-    if sys.platform == 'darwin':
+    if is_mac:
         # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
         # can use it in the config as expected. See:
         # https://github.com/qutebrowser/qutebrowser/issues/110

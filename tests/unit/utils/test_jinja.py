@@ -89,7 +89,7 @@ def test_resource_url():
 
     path = url.path()
 
-    if os.name == "nt":
+    if utils.is_windows:
         path = path.lstrip('/')
         path = path.replace('/', os.sep)
 
