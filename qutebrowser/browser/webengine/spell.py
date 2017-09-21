@@ -128,6 +128,10 @@ def filter_languages(languages, selected, by=lambda lang: lang.code,
     return filtered_languages
 
 
+def download_dictionary(url, dest):
+    urlretrieve(url, dest)
+
+
 def install(languages):
     """Install languages."""
     for lang in languages:
@@ -139,8 +143,8 @@ def install(languages):
                     get_dictionary_dir()))
                 os.makedirs(get_dictionary_dir())
             print('Downloading {}'.format(lang_url))
-            urlretrieve(lang_url,
-                        os.path.join(get_dictionary_dir(), lang.file))
+            download_dictionary(lang_url, os.path.join(get_dictionary_dir(),
+                                                       lang.file))
             print('Done.')
         except PermissionError as e:
             print(e)

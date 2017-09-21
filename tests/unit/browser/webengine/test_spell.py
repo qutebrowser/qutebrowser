@@ -18,11 +18,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from os.path import basename
-from urllib.parse import urljoin
+from os.path import basename, join
 
 import pytest
-from requests import head
 
 from qutebrowser.browser.webengine import spell
 
@@ -39,11 +37,20 @@ POLISH = spell.Language('pl-PL',
 LANGUAGE_LIST = [AFRIKAANS, ENGLISH, POLISH]
 
 
-def test_get_installed_languages(mocker):
-    # return an empty list if the dir doesn't exist
+def test_get_installed_languages_empty(tmpdir, mocker):
     mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
                  lambda: '/some-non-existing-dir')
     assert spell.get_installed_languages() == []
+
+
+def test_get_installed_languages_non_empty(tmpdir, mocker):
+    mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
+                 lambda: str(tmpdir))
+    for lang in LANGUAGE_LIST:
+        open(join(tmpdir, lang.file), 'w').close()
+    for actual, expected in zip(spell.get_installed_languages(), LANGUAGE_LIST):
+        assert (actual.code, actual.name, actual.file) ==\
+               (expected.code, expected.name, expected.file)
 
 
 def test_get_available_languages():
@@ -71,14 +78,17 @@ def test_filter_languages():
 def test_install(tmpdir, mocker):
     mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
                  lambda: str(tmpdir))
+    mocker.patch('qutebrowser.browser.webengine.spell.download_dictionary',
+                 lambda url, dest: open(dest, 'w').close())
     spell.install(LANGUAGE_LIST)
     installed_files = [basename(str(file)) for file in tmpdir.listdir()]
     expected_files = [lang.file for lang in LANGUAGE_LIST]
     assert sorted(installed_files) == sorted(expected_files)
 
 
-def test_available_langs():
-    for lang in spell.get_available_languages():
-        lang_url = urljoin(spell.repository_url, lang.file)
-        response = head(lang_url)
-        assert response.status_code == 302
+# TODO: move to update_3rdparty.py
+#def test_available_langs():
+#    for lang in spell.get_available_languages():
+#        lang_url = urljoin(spell.repository_url, lang.file)
+#        response = head(lang_url)
+#        assert response.status_code == 302

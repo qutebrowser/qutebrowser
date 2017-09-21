@@ -17,7 +17,6 @@ pytest-repeat
 pytest-rerunfailures
 pytest-travis-fold
 pytest-xvfb
-requests
 vulture
 
 #@ ignore: Jinja2, MarkupSafe, colorama
