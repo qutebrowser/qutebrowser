@@ -22,7 +22,7 @@ Feature: Searching on a page
         Then "Bar" should be found
 
     Scenario: Searching with --reverse
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search -r foo
         And I wait for "search found foo with flags FindBackward" in the log
         Then "Foo" should be found
@@ -52,28 +52,28 @@ Feature: Searching on a page
         And I wait for "search didn't find blub" in the log
         Then the warning "Text 'blub' not found on page!" should be shown
 
-    ## ignore-case
+    ## ignore_case
 
-    Scenario: Searching text with ignore-case = true
-        When I set general -> ignore-case to true
+    Scenario: Searching text with ignore_case = always
+        When I set ignore_case to always
         And I run :search bar
         And I wait for "search found bar" in the log
         Then "Bar" should be found
 
-    Scenario: Searching text with ignore-case = false
-        When I set general -> ignore-case to false
+    Scenario: Searching text with ignore_case = never
+        When I set ignore_case to never
         And I run :search bar
         And I wait for "search found bar with flags FindCaseSensitively" in the log
         Then "bar" should be found
 
-    Scenario: Searching text with ignore-case = smart (lower-case)
-        When I set general -> ignore-case to smart
+    Scenario: Searching text with ignore_case = smart (lower-case)
+        When I set ignore_case to smart
         And I run :search bar
         And I wait for "search found bar" in the log
         Then "Bar" should be found
 
-    Scenario: Searching text with ignore-case = smart (upper-case)
-        When I set general -> ignore-case to smart
+    Scenario: Searching text with ignore_case = smart (upper-case)
+        When I set ignore_case to smart
         And I run :search Foo
         And I wait for "search found Foo with flags FindCaseSensitively" in the log
         Then "Foo" should be found  # even though foo was first
@@ -81,7 +81,7 @@ Feature: Searching on a page
     ## :search-next
 
     Scenario: Jumping to next match
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search foo
         And I wait for "search found foo" in the log
         And I run :search-next
@@ -89,7 +89,7 @@ Feature: Searching on a page
         Then "Foo" should be found
 
     Scenario: Jumping to next match with count
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search baz
         And I wait for "search found baz" in the log
         And I run :search-next with count 2
@@ -97,7 +97,7 @@ Feature: Searching on a page
         Then "BAZ" should be found
 
     Scenario: Jumping to next match with --reverse
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search --reverse foo
         And I wait for "search found foo with flags FindBackward" in the log
         And I run :search-next
@@ -121,7 +121,7 @@ Feature: Searching on a page
 
     # https://github.com/qutebrowser/qutebrowser/issues/2438
     Scenario: Jumping to next match after clearing
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search foo
         And I wait for "search found foo" in the log
         And I run :search
@@ -132,7 +132,7 @@ Feature: Searching on a page
     ## :search-prev
 
     Scenario: Jumping to previous match
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search foo
         And I wait for "search found foo" in the log
         And I run :search-next
@@ -142,7 +142,7 @@ Feature: Searching on a page
         Then "foo" should be found
 
     Scenario: Jumping to previous match with count
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search baz
         And I wait for "search found baz" in the log
         And I run :search-next
@@ -154,7 +154,7 @@ Feature: Searching on a page
         Then "baz" should be found
 
     Scenario: Jumping to previous match with --reverse
-        When I set general -> ignore-case to true
+        When I set ignore_case to always
         And I run :search --reverse foo
         And I wait for "search found foo with flags FindBackward" in the log
         And I run :search-next

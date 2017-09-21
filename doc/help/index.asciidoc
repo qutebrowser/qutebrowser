@@ -10,6 +10,7 @@ The following help pages are currently available:
 * link:../../FAQ.html[Frequently asked questions]
 * link:../../CHANGELOG.html[Change Log]
 * link:commands.html[Documentation of commands]
+* link:configuring.html[Configuring qutebrowser]
 * link:settings.html[Documentation of settings]
 * link:../userscripts.html[How to write userscripts]
 * link:../../CONTRIBUTING.html[Contributing to qutebrowser]

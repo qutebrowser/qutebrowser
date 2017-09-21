@@ -43,6 +43,8 @@ putty-ignore =
     tests/helpers/fixtures.py : +N806
     tests/unit/browser/webkit/http/test_content_disposition.py : +D400
     scripts/dev/ci/appveyor_install.py : +FI53
+    # FIXME:conf
+    tests/unit/completion/test_models.py : +F821
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*
 copyright-min-file-size = 110

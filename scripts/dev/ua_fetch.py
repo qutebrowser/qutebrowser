@@ -24,7 +24,7 @@
 """Fetch list of popular user-agents.
 
 The script is based on a gist posted by github.com/averrin, the output of this
-script is formatted to be pasted into configtypes.py.
+script is formatted to be pasted into configdata.yml
 """
 
 import requests
@@ -90,7 +90,10 @@ def add_diversity(table):
          "curl 7.40.0"),
         ('Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 '
          '(KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
-         "Mobile Generic Android")
+         "Mobile Generic Android"),
+        ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
+         'Gecko',
+         "IE 11.0 for Desktop  Win7 64-bit"),
     ]
     return table
 
@@ -106,23 +109,13 @@ def main():
     filtered = filter_list(fetched, lut)
     filtered = add_diversity(filtered)
 
-    tab = "    "
-    print(tab + "def complete(self):")
-    print((2 * tab) + "\"\"\"Complete a list of common user agents.\"\"\"")
-    print((2 * tab) + "out = [")
-
+    tab = "  "
     for browser in ["Firefox", "Safari", "Chrome", "Obscure"]:
         for it in filtered[browser]:
-            print("{}(\'{}\',\n{} \"{}\"),".format(3 * tab, it[0],
-                                                   3 * tab, it[1]))
+            print('{}- - "{}"'.format(3 * tab, it[0]))
+            desc = it[1].replace('\xa0', ' ').replace('  ', ' ')
+            print("{}- {}".format(4 * tab, desc))
         print("")
-
-    print("""\
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
-             'Gecko',
-             "IE 11.0 for Desktop  Win7 64-bit")""")
-
-    print("{}]\n{}return out\n".format(2 * tab, 2 * tab))
 
 
 if __name__ == '__main__':

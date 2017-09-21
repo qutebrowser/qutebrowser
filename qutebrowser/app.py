@@ -22,7 +22,6 @@
 import os
 import sys
 import subprocess
-import configparser
 import functools
 import json
 import shutil
@@ -44,8 +43,7 @@ import qutebrowser
 import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import style, config, websettings, configexc
-from qutebrowser.config.parsers import keyconf
+from qutebrowser.config import config, websettings, configexc
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -54,7 +52,7 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, objects, sql)
+                              crashsignal, earlyinit, objects, sql, cmdhistory)
 from qutebrowser.misc import utilcmds  # pylint: disable=unused-import
 from qutebrowser.utils import (log, version, message, utils, qtutils, urlutils,
                                objreg, usertypes, standarddir, error)
@@ -148,8 +146,6 @@ def init(args, crash_handler):
     objreg.register('event-filter', event_filter)
 
     log.init.debug("Connecting signals...")
-    config_obj = objreg.get('config')
-    config_obj.style_changed.connect(style.get_stylesheet.cache_clear)
     qApp.focusChanged.connect(on_focus_changed)
 
     _process_args(args)
@@ -184,11 +180,10 @@ def _init_icon():
 
 def _process_args(args):
     """Open startpage etc. and process commandline args."""
-    config_obj = objreg.get('config')
-    for sect, opt, val in args.temp_settings:
+    for opt, val in args.temp_settings:
         try:
-            config_obj.set('temp', sect, opt, val)
-        except (configexc.Error, configparser.Error) as e:
+            config.instance.set_str(opt, val)
+        except configexc.Error as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     if not args.override_restore:
@@ -274,7 +269,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
             else:
-                open_target = config.get('general', 'new-instance-open-target')
+                open_target = config.val.new_instance_open_target
             win_id = mainwindow.get_window(via_ipc, force_target=open_target)
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
@@ -289,7 +284,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             else:
                 background = open_target in ['tab-bg', 'tab-bg-silent']
                 tabbed_browser.tabopen(url, background=background,
-                                       explicit=True)
+                                       related=False)
 
 
 def _open_startpage(win_id=None):
@@ -309,15 +304,9 @@ def _open_startpage(win_id=None):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=cur_win_id)
         if tabbed_browser.count() == 0:
-            log.init.debug("Opening startpage")
-            for urlstr in config.get('general', 'startpage'):
-                try:
-                    url = urlutils.fuzzy_url(urlstr, do_search=False)
-                except urlutils.InvalidUrlError as e:
-                    message.error("Error when opening startpage: {}".format(e))
-                    tabbed_browser.tabopen(QUrl('about:blank'))
-                else:
-                    tabbed_browser.tabopen(url)
+            log.init.debug("Opening start pages")
+            for url in config.val.url.start_pages:
+                tabbed_browser.tabopen(url)
 
 
 def _open_special_pages(args):
@@ -335,6 +324,7 @@ def _open_special_pages(args):
         return
 
     state_config = objreg.get('state-config')
+    general_sect = state_config['general']
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
@@ -342,21 +332,32 @@ def _open_special_pages(args):
 
     needs_warning = (objects.backend == usertypes.Backend.QtWebKit and
                      not qtutils.is_qtwebkit_ng())
-    warning_shown = state_config['general'].get('backend-warning-shown') == '1'
+    warning_shown = general_sect.get('backend-warning-shown') == '1'
 
     if not warning_shown and needs_warning:
         tabbed_browser.tabopen(QUrl('qute://backend-warning'),
                                background=False)
-        state_config['general']['backend-warning-shown'] = '1'
+        general_sect['backend-warning-shown'] = '1'
 
     # Quickstart page
 
-    quickstart_done = state_config['general'].get('quickstart-done') == '1'
+    quickstart_done = general_sect.get('quickstart-done') == '1'
 
     if not quickstart_done:
         tabbed_browser.tabopen(
             QUrl('https://www.qutebrowser.org/quickstart.html'))
-        state_config['general']['quickstart-done'] = '1'
+        general_sect['quickstart-done'] = '1'
+
+    # Setting migration page
+
+    needs_migration = os.path.exists(
+        os.path.join(standarddir.config(), 'qutebrowser.conf'))
+    migration_shown = general_sect.get('config-migration-shown') == '1'
+
+    if needs_migration and not migration_shown:
+        tabbed_browser.tabopen(QUrl('qute://help/configuring.html'),
+                               background=False)
+        general_sect['config-migration-shown'] = '1'
 
 
 def _save_version():
@@ -422,9 +423,6 @@ def _init_modules(args, crash_handler):
     config.init(qApp)
     save_manager.init_autosave()
 
-    log.init.debug("Initializing keys...")
-    keyconf.init(qApp)
-
     log.init.debug("Initializing sql...")
     try:
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
@@ -432,6 +430,9 @@ def _init_modules(args, crash_handler):
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
+
+    log.init.debug("Initializing command history...")
+    cmdhistory.init()
 
     log.init.debug("Initializing web history...")
     history.init(qApp)
@@ -470,7 +471,7 @@ def _init_modules(args, crash_handler):
     objreg.register('cache', diskcache)
 
     log.init.debug("Misc initialization...")
-    if config.get('ui', 'hide-wayland-decoration'):
+    if config.val.window.hide_wayland_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
@@ -640,8 +641,25 @@ class Quitter:
         else:
             return True
 
-    @cmdutils.register(instance='quitter', name=['quit', 'q'],
-                       ignore_args=True)
+    @cmdutils.register(instance='quitter', name='quit')
+    @cmdutils.argument('session', completion=miscmodels.session)
+    def quit(self, save=False, session=None):
+        """Quit qutebrowser.
+
+        Args:
+            save: When given, save the open windows even if auto_save.session
+                  is turned off.
+            session: The name of the session to save.
+        """
+        if session is not None and not save:
+            raise cmdexc.CommandError("Session name given without --save!")
+        if save:
+            if session is None:
+                session = sessions.default
+            self.shutdown(session=session)
+        else:
+            self.shutdown()
+
     def shutdown(self, status=0, session=None, last_window=False,
                  restart=False):
         """Quit qutebrowser.
@@ -663,7 +681,7 @@ class Quitter:
             if session is not None:
                 session_manager.save(session, last_window=last_window,
                                      load_next_time=True)
-            elif config.get('general', 'save-session'):
+            elif config.val.auto_save.session:
                 session_manager.save(sessions.default, last_window=last_window,
                                      load_next_time=True)
 
@@ -741,16 +759,6 @@ class Quitter:
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(qApp.exit, status))
-
-    @cmdutils.register(instance='quitter', name='wq')
-    @cmdutils.argument('name', completion=miscmodels.session)
-    def save_and_quit(self, name=sessions.default):
-        """Save open pages and quit.
-
-        Args:
-            name: The name of the session.
-        """
-        self.shutdown(session=name)
 
 
 class Application(QApplication):

@@ -51,9 +51,9 @@ def get_argparser():
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
-                        "this session.", nargs=3, action='append',
+                        "this session.", nargs=2, action='append',
                         dest='temp_settings', default=[],
-                        metavar=('SECTION', 'OPTION', 'VALUE'))
+                        metavar=('OPTION', 'VALUE'))
     parser.add_argument('-r', '--restore', help="Restore a named session.",
                         dest='session')
     parser.add_argument('-R', '--override-restore', help="Don't restore a "

@@ -22,8 +22,6 @@ import pytest
 from PyQt5.QtCore import PYQT_VERSION
 
 from qutebrowser.browser import browsertab
-from qutebrowser.keyinput import modeman
-from qutebrowser.utils import objreg
 
 pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 
@@ -40,16 +38,6 @@ except ImportError:
 
 @pytest.fixture(params=[QWebView, QWebEngineView])
 def view(qtbot, config_stub, request):
-    config_stub.data = {
-        'input': {
-            'forward-unbound-keys': 'auto'
-        },
-        'ui': {
-            'zoom-levels': [100],
-            'default-zoom': 100,
-        }
-    }
-
     if request.param is None:
         pytest.skip("View not available")
 
@@ -59,7 +47,7 @@ def view(qtbot, config_stub, request):
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
-def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
+def tab(request, qtbot, tab_registry, cookiejar_and_cache, mode_manager):
     if PYQT_VERSION < 0x050600:
         pytest.skip('Causes segfaults, see #1638')
 
@@ -73,16 +61,9 @@ def tab(request, default_config, qtbot, tab_registry, cookiejar_and_cache):
     else:
         assert False
 
-    # Can't use the mode_manager fixture as that uses config_stub, which
-    # conflicts with default_config
-    mm = modeman.ModeManager(0)
-    objreg.register('mode-manager', mm, scope='window', window=0)
-
-    t = tab_class(win_id=0, mode_manager=mm)
+    t = tab_class(win_id=0, mode_manager=mode_manager)
     qtbot.add_widget(t)
     yield t
-
-    objreg.delete('mode-manager', scope='window', window=0)
 
 
 class Zoom(browsertab.AbstractZoom):

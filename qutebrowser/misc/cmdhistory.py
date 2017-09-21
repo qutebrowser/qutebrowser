@@ -21,7 +21,8 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, standarddir, objreg
+from qutebrowser.misc import lineparser
 
 
 class HistoryEmptyError(Exception):
@@ -129,3 +130,14 @@ class History(QObject):
         if not self.history or text != self.history[-1]:
             self.history.append(text)
             self.changed.emit()
+
+
+def init():
+    """Initialize the LimitLineParser storing the history."""
+    save_manager = objreg.get('save-manager')
+    command_history = lineparser.LimitLineParser(
+        standarddir.data(), 'cmd-history',
+        limit='completion.cmd_history_max_items')
+    objreg.register('command-history', command_history)
+    save_manager.add_saveable('command-history', command_history.save,
+                              command_history.changed)

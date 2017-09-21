@@ -1,10 +1,14 @@
 #!/bin/bash
 
 if [[ $DOCKER ]]; then
-    docker run --privileged -v $PWD:/outside -e QUTE_BDD_WEBENGINE=$QUTE_BDD_WEBENGINE -e DOCKER=$DOCKER qutebrowser/travis:$DOCKER
+    docker run --privileged -v "$PWD:/outside" -e "QUTE_BDD_WEBENGINE=$QUTE_BDD_WEBENGINE" -e "DOCKER=$DOCKER" -e "CI=$CI" "qutebrowser/travis:$DOCKER"
+elif [[ $TESTENV == eslint ]]; then
+    # Can't run this via tox as we can't easily install tox in the javascript travis env
+    cd qutebrowser/javascript || exit 1
+    eslint --color .
 else
     args=()
     [[ $TRAVIS_OS_NAME == osx ]] && args=('--qute-bdd-webengine' '--no-xvfb')
 
-    tox -e $TESTENV -- "${args[@]}"
+    tox -e "$TESTENV" -- "${args[@]}"
 fi

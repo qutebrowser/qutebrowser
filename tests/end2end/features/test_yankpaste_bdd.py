@@ -33,7 +33,7 @@ def init_fake_clipboard(quteproc):
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
 
-@bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
+@bdd.when(bdd.parsers.parse('I insert "{value}" into the text field'))
 def set_text_field(request, quteproc, value):
     if request.config.webengine and PYQT_VERSION >= 0x50700:
         cmd = ":jseval --world=0 set_text('{}')".format(value)

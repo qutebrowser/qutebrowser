@@ -41,46 +41,79 @@ class ValidationError(Error):
     """Raised when a value for a config type was invalid.
 
     Attributes:
-        section: Section in which the error occurred (added when catching and
-                 re-raising the exception).
-        option: Option in which the error occurred.
+        value: Config value that triggered the error.
+        msg: Additional error message.
     """
 
     def __init__(self, value, msg):
         super().__init__("Invalid value '{}' - {}".format(value, msg))
-        self.section = None
         self.option = None
 
 
-class NoSectionError(Error):
+class KeybindingError(Error):
 
-    """Raised when no section matches a requested option."""
+    """Raised for issues with keybindings."""
 
-    def __init__(self, section):
-        super().__init__("Section {!r} does not exist!".format(section))
-        self.section = section
+
+class DuplicateKeyError(KeybindingError):
+
+    """Raised when there was a duplicate key."""
+
+    def __init__(self, key):
+        super().__init__("Duplicate key {}".format(key))
 
 
 class NoOptionError(Error):
 
     """Raised when an option was not found."""
 
-    def __init__(self, option, section):
-        super().__init__("No option {!r} in section {!r}".format(
-            option, section))
+    def __init__(self, option):
+        super().__init__("No option {!r}".format(option))
         self.option = option
-        self.section = section
 
 
-class InterpolationSyntaxError(Error):
+class ConfigErrorDesc:
 
-    """Raised when the source text contains invalid syntax.
+    """A description of an error happening while reading the config.
 
-    Current implementation raises this exception when the source text into
-    which substitutions are made does not conform to the required syntax.
+    Attributes:
+        text: The text to show.
+        exception: The exception which happened.
+        traceback: The formatted traceback of the exception.
     """
 
-    def __init__(self, option, section, msg):
-        super().__init__(msg)
-        self.option = option
-        self.section = section
+    def __init__(self, text, exception, traceback=None):
+        self.text = text
+        self.exception = exception
+        self.traceback = traceback
+
+
+class ConfigFileErrors(Error):
+
+    """Raised when multiple errors occurred inside the config."""
+
+    def __init__(self, basename, errors):
+        super().__init__("Errors occurred while reading {}".format(basename))
+        self.basename = basename
+        self.errors = errors
+
+    def to_html(self):
+        """Get the error texts as a HTML snippet."""
+        from qutebrowser.utils import jinja
+        template = jinja.environment.from_string("""
+        Errors occurred while reading {{ basename }}:
+
+        <ul>
+          {% for error in errors %}
+            <li>
+              <b>{{ error.text }}</b>: {{ error.exception }}
+              {% if error.traceback != none %}
+                <pre>
+        """.rstrip() + "\n{{ error.traceback }}" + """
+                </pre>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+        """)
+        return template.render(basename=self.basename, errors=self.errors)

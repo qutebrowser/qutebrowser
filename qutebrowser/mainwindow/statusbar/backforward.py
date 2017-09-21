@@ -30,7 +30,6 @@ class Backforward(textbase.TextBase):
         """Called on URL changes."""
         tab = tabs.currentWidget()
         if tab is None:  # pragma: no cover
-            # WORKAROUND: Doesn't get tested on older PyQt
             self.setText('')
             self.hide()
             return

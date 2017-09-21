@@ -456,14 +456,21 @@ def test_release_info(files, expected, caplog, monkeypatch):
         assert caplog.records[0].message == "Error while reading fake-file."
 
 
-def test_path_info(monkeypatch):
-    """Test _path_info()."""
+@pytest.mark.parametrize('equal', [True, False])
+def test_path_info(monkeypatch, equal):
+    """Test _path_info().
+
+    Args:
+        equal: Whether system data / data and system config / config are equal.
+    """
     patches = {
-        'config': lambda: 'CONFIG PATH',
-        'data': lambda: 'DATA PATH',
-        'system_data': lambda: 'SYSTEM DATA PATH',
+        'config': lambda auto=False:
+            'AUTO CONFIG PATH' if auto and not equal
+            else 'CONFIG PATH',
+        'data': lambda system=False:
+            'SYSTEM DATA PATH' if system and not equal
+            else 'DATA PATH',
         'cache': lambda: 'CACHE PATH',
-        'download': lambda: 'DOWNLOAD PATH',
         'runtime': lambda: 'RUNTIME PATH',
     }
 
@@ -474,10 +481,15 @@ def test_path_info(monkeypatch):
 
     assert pathinfo['config'] == 'CONFIG PATH'
     assert pathinfo['data'] == 'DATA PATH'
-    assert pathinfo['system_data'] == 'SYSTEM DATA PATH'
     assert pathinfo['cache'] == 'CACHE PATH'
-    assert pathinfo['download'] == 'DOWNLOAD PATH'
     assert pathinfo['runtime'] == 'RUNTIME PATH'
+
+    if equal:
+        assert 'auto config' not in pathinfo
+        assert 'system data' not in pathinfo
+    else:
+        assert pathinfo['auto config'] == 'AUTO CONFIG PATH'
+        assert pathinfo['system data'] == 'SYSTEM DATA PATH'
 
 
 class ImportFake:

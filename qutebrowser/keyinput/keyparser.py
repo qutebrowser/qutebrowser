@@ -42,7 +42,7 @@ class CommandKeyParser(BaseKeyParser):
     def execute(self, cmdstr, _keytype, count=None):
         try:
             self._commandrunner.run(cmdstr, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
+        except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())
 
 
@@ -69,7 +69,7 @@ class PassthroughKeyParser(CommandKeyParser):
         """
         super().__init__(win_id, parent, supports_chains=False)
         self._warn_on_keychains = warn
-        self.read_config(mode)
+        self._read_config(mode)
         self._mode = mode
 
     def __repr__(self):

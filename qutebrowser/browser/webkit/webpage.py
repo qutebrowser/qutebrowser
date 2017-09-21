@@ -170,7 +170,7 @@ class BrowserPage(QWebPage):
             title = "Error loading page: {}".format(urlstr)
             error_html = jinja.render(
                 'error.html',
-                title=title, url=urlstr, error=error_str, icon='')
+                title=title, url=urlstr, error=error_str)
             errpage.content = error_html.encode('utf-8')
             errpage.encoding = 'utf-8'
             return True
@@ -277,7 +277,7 @@ class BrowserPage(QWebPage):
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
         elif (mimetype in ['application/pdf', 'application/x-pdf'] and
-              config.get('content', 'enable-pdfjs')):
+              config.val.content.pdfjs):
             # Use pdf.js to display the page
             self._show_pdfjs(reply)
         else:
@@ -304,8 +304,8 @@ class BrowserPage(QWebPage):
             return
 
         options = {
-            QWebPage.Notifications: ('content', 'notifications'),
-            QWebPage.Geolocation: ('content', 'geolocation'),
+            QWebPage.Notifications: 'content.notifications',
+            QWebPage.Geolocation: 'content.geolocation',
         }
         messages = {
             QWebPage.Notifications: 'show notifications',
@@ -384,7 +384,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.get('network', 'user-agent')
+        ua = config.val.content.headers.user_agent
         if ua is None:
             return super().userAgentForUrl(url)
         else:
@@ -446,15 +446,8 @@ class BrowserPage(QWebPage):
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
-        log_javascript_console = config.get('general',
-                                            'log-javascript-console')
-        logstring = "[{}:{}] {}".format(source, line, msg)
-        logmap = {
-            'debug': log.js.debug,
-            'info': log.js.info,
-            'none': lambda arg: None
-        }
-        logmap[log_javascript_console](logstring)
+        shared.javascript_log_message(usertypes.JsLogLevel.unknown,
+                                      source, line, msg)
 
     def acceptNavigationRequest(self,
                                 _frame: QWebFrame,

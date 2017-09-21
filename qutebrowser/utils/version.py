@@ -219,14 +219,17 @@ def _path_info():
     Return:
         A dictionary of descriptive to actual path names.
     """
-    return {
+    info = {
         'config': standarddir.config(),
         'data': standarddir.data(),
-        'system_data': standarddir.system_data(),
         'cache': standarddir.cache(),
-        'download': standarddir.download(),
         'runtime': standarddir.runtime(),
     }
+    if standarddir.config() != standarddir.config(auto=True):
+        info['auto config'] = standarddir.config(auto=True)
+    if standarddir.data() != standarddir.data(system=True):
+        info['system data'] = standarddir.data(system=True)
+    return info
 
 
 def _os_info():
@@ -370,7 +373,7 @@ def version():
         '',
         'Paths:',
     ]
-    for name, path in _path_info().items():
+    for name, path in sorted(_path_info().items()):
         lines += ['{}: {}'.format(name, path)]
 
     return '\n'.join(lines)

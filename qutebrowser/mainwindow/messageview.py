@@ -23,8 +23,8 @@
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
-from qutebrowser.config import config, style
-from qutebrowser.utils import usertypes, objreg
+from qutebrowser.config import config
+from qutebrowser.utils import usertypes
 
 
 class Message(QLabel):
@@ -41,31 +41,32 @@ class Message(QLabel):
         """
         if level == usertypes.MessageLevel.error:
             stylesheet += """
-                background-color: {{ color['messages.bg.error'] }};
-                color: {{ color['messages.fg.error'] }};
-                font: {{ font['messages.error'] }};
-                border-bottom: 1px solid {{ color['messages.border.error'] }};
+                background-color: {{ conf.colors.messages.error.bg }};
+                color: {{ conf.colors.messages.error.fg }};
+                font: {{ conf.fonts.messages.error }};
+                border-bottom: 1px solid {{ conf.colors.messages.error.border }};
             """
         elif level == usertypes.MessageLevel.warning:
             stylesheet += """
-                background-color: {{ color['messages.bg.warning'] }};
-                color: {{ color['messages.fg.warning'] }};
-                font: {{ font['messages.warning'] }};
+                background-color: {{ conf.colors.messages.warning.bg }};
+                color: {{ conf.colors.messages.warning.fg }};
+                font: {{ conf.fonts.messages.warning }};
                 border-bottom:
-                    1px solid {{ color['messages.border.warning'] }};
+                    1px solid {{ conf.colors.messages.warning.border }};
             """
         elif level == usertypes.MessageLevel.info:
             stylesheet += """
-                background-color: {{ color['messages.bg.info'] }};
-                color: {{ color['messages.fg.info'] }};
-                font: {{ font['messages.info'] }};
-                border-bottom: 1px solid {{ color['messages.border.info'] }}
+                background-color: {{ conf.colors.messages.info.bg }};
+                color: {{ conf.colors.messages.info.fg }};
+                font: {{ conf.fonts.messages.info }};
+                border-bottom: 1px solid {{ conf.colors.messages.info.border }}
             """
         else:  # pragma: no cover
             raise ValueError("Invalid level {!r}".format(level))
         # We don't bother with set_register_stylesheet here as it's short-lived
         # anyways.
-        self.setStyleSheet(style.get_stylesheet(stylesheet))
+        config.set_register_stylesheet(self, stylesheet=stylesheet,
+                                       update=False)
 
 
 class MessageView(QWidget):
@@ -76,6 +77,7 @@ class MessageView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._messages = []
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
         self._vbox.setSpacing(0)
@@ -83,10 +85,9 @@ class MessageView(QWidget):
 
         self._clear_timer = QTimer()
         self._clear_timer.timeout.connect(self.clear_messages)
-        objreg.get('config').changed.connect(self._set_clear_timer_interval)
+        config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
-        self._messages = []
 
     def sizeHint(self):
         """Get the proposed height for the view."""
@@ -94,10 +95,10 @@ class MessageView(QWidget):
         # The width isn't really relevant as we're expanding anyways.
         return QSize(-1, height)
 
-    @config.change_filter('ui', 'message-timeout')
+    @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
         """Configure self._clear_timer according to the config."""
-        interval = config.get('ui', 'message-timeout')
+        interval = config.val.messages.timeout
         if interval > 0:
             interval *= min(5, len(self._messages))
             self._clear_timer.setInterval(interval)
@@ -131,7 +132,7 @@ class MessageView(QWidget):
         self._last_text = text
         self.show()
         self.update_geometry.emit()
-        if config.get('ui', 'message-timeout') != 0:
+        if config.val.messages.timeout != 0:
             self._set_clear_timer_interval()
             self._clear_timer.start()
 

@@ -145,7 +145,7 @@ Feature: Yanking and pasting.
                   url: http://localhost:*/data/hello.txt
 
     Scenario: Pasting an invalid URL
-        When I set general -> auto-search to false
+        When I set url.auto_search to never
         And I put "foo bar" into the clipboard
         And I run :open {clipboard}
         Then the error "Invalid URL" should be shown
@@ -168,8 +168,8 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiline text
-        When I set general -> auto-search to true
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set url.auto_search to naive
+        And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/hello.txt?q={}"}
         And I put the following lines into the clipboard:
             this url:
             http://qutebrowser.org
@@ -181,8 +181,8 @@ Feature: Yanking and pasting.
             - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
 
     Scenario: Pasting multiline whose first line looks like a URI
-        When I set general -> auto-search to true
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set url.auto_search to naive
+        And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/hello.txt?q={}"}
         And I put the following lines into the clipboard:
             text:
             should open
@@ -255,8 +255,7 @@ Feature: Yanking and pasting.
     #### :insert-text
 
     Scenario: Inserting text into an empty text field
-        When I set general -> log-javascript-console to info
-        And I open data/paste_primary.html
+        When I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :insert-text Hello world
@@ -264,8 +263,7 @@ Feature: Yanking and pasting.
         Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into an empty text field with javascript disabled
-        When I set general -> log-javascript-console to info
-        And I set content -> allow-javascript to false
+        When I set content.javascript.enabled to false
         And I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -273,14 +271,13 @@ Feature: Yanking and pasting.
         And I wait for "Inserting text into element *" in the log
         And I run :jseval console.log("textarea contents: " + document.getElementById('qute-textarea').value);
         # Enable javascript again for the other tests
-        And I set content -> allow-javascript to true
+        And I set content.javascript.enabled to true
         # Compare
         Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into a text field at specific position
-        When I set general -> log-javascript-console to info
-        And I open data/paste_primary.html
-        And I set the text field to "one two three four"
+        When I open data/paste_primary.html
+        And I insert "one two three four" into the text field
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Move to the beginning and two characters to the right
@@ -291,10 +288,8 @@ Feature: Yanking and pasting.
         # Compare
         Then the javascript message "textarea contents: onHello worlde two three four" should be logged
 
-    @qtwebengine_mac_xfail
     Scenario: Inserting text into a text field with undo
-        When I set general -> log-javascript-console to info
-        And I open data/paste_primary.html
+        When I open data/paste_primary.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Paste and undo

@@ -142,7 +142,7 @@ class DocstringParser:
         """Parse the long description in the docstring."""
         if line.startswith('Args:'):
             self._state = self.State.arg_start
-        elif line.strip() == '//':
+        elif line.strip() == '//' or line.startswith('Attributes:'):
             self._state = self.State.desc_hidden
         elif line.strip():
             self._long_desc_parts.append(line.strip())

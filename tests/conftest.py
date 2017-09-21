@@ -35,7 +35,9 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, standarddir
+
+import qutebrowser.app  # To register commands
 
 
 # Set hypothesis settings
@@ -57,8 +59,10 @@ def _apply_platform_markers(config, item):
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
+        ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', os.name == 'nt' and config.webengine,
          "Broken with QtWebEngine on Windows"),
+        ('qt55', not qtutils.version_check('5.5'), "Requires Qt 5.5 or newer"),
     ]
 
     for searched_marker, condition, default_reason in markers:

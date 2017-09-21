@@ -334,8 +334,8 @@ def test_xpath_escape(string, expected):
     'foo"bar',  # Make sure a " is preserved
 ])
 def test_set(quteproc, value):
-    quteproc.set_setting('general', 'default-encoding', value)
-    read_back = quteproc.get_setting('general', 'default-encoding')
+    quteproc.set_setting('content.default_encoding', value)
+    read_back = quteproc.get_setting('content.default_encoding')
     assert read_back == value
 
 

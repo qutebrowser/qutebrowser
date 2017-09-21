@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 
 {% block script %}
-var cset = function(section, option, el) {
-  value = el.value;
-  window.qute.set(section, option, value);
+var cset = function(option, value) {
+  // FIXME:conf we might want some error handling here?
+  var url = "qute://settings/set?option=" + encodeURIComponent(option);
+  url += "&value=" + encodeURIComponent(value);
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", url);
+  xhr.send();
 }
 {% endblock %}
 
@@ -22,24 +26,23 @@ th pre { color: grey; text-align: left; }
 <noscript><h1 class="noscript">View Only</h1><p class="noscript-text">Changing settings requires javascript to be enabled!</p></noscript>
 <header><h1>{{ title }}</h1></header>
 <table>
-{% for section in config.DATA %}
-  <tr><th colspan="2"><h3>{{ section }}</h3><pre>{{ config.SECTION_DESC.get(section)|wordwrap(width=120) }}</pre></th></tr>
-  {% for d, e in config.DATA.get(section).items() %}
+  {% for option in configdata.DATA.values() %}
     <tr>
-      <td>{{ d }} (Current: {{ confget(section, d)|truncate(100) }})
-        {% if config.DATA.get(section).descriptions[d] %}
-          <p class="option_description">{{ config.DATA.get(section).descriptions[d]|e }}</p>
+      <!-- FIXME: convert to string properly -->
+      <td>{{ option.name }} (Current: {{ confget(option.name) | string |truncate(100) }})
+        {% if option.description %}
+          <p class="option_description">{{ option.description|e }}</p>
         {% endif %}
       </td>
       <td>
         <input type="text"
-          onblur="cset('{{ section }}', '{{ d }}', this)"
-          value="{{ confget(section, d) }}">
+          id="input-{{ option.name }}"
+          onblur="cset('{{ option.name }}', this.value)"
+          value="{{ confget(option.name) }}">
         </input>
       </td>
     </tr>
   {% endfor %}
-{% endfor %}
 </table>
 
 {% endblock %}
