@@ -61,6 +61,7 @@ Feature: Javascript stuff
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "window opened" should be logged
 
+    @flaky
     Scenario: Opening window without user interaction with javascript.can_open_tabs_automatically set to false
         When I open data/hello.txt
         And I set content.javascript.can_open_tabs_automatically to false
