@@ -619,11 +619,6 @@ class TestConfig:
         assert conf._yaml.loaded
         assert conf._values['content.plugins'] is True
 
-    def test_read_yaml_invalid(self, conf):
-        conf._yaml['foo.bar'] = True
-        with pytest.raises(configexc.NoOptionError):
-            conf.read_yaml()
-
     def test_get_opt_valid(self, conf):
         assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
 
