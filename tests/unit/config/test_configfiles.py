@@ -22,10 +22,17 @@ import os
 
 import pytest
 
-from qutebrowser.config import config, configfiles, configexc
+from qutebrowser.config import config, configfiles, configexc, configdata
 from qutebrowser.utils import utils
 
 from PyQt5.QtCore import QSettings
+
+
+@pytest.fixture(autouse=True)
+def configdata_init():
+    """Initialize configdata if needed."""
+    if configdata.DATA is None:
+        configdata.init()
 
 
 @pytest.mark.parametrize('old_data, insert, new_data', [
