@@ -63,15 +63,14 @@ def test_state_config(fake_save_manager, data_tmpdir,
 
 class TestYaml:
 
+    pytestmark = pytest.mark.usefixtures('fake_save_manager')
+
     @pytest.mark.parametrize('old_config', [
         None,
         'global:\n  colors.hints.fg: magenta',
-        # Unknown key
-        'global:\n  hello: world',
     ])
     @pytest.mark.parametrize('insert', [True, False])
-    def test_yaml_config(self, fake_save_manager, config_tmpdir,
-                         old_config, insert):
+    def test_yaml_config(self, config_tmpdir, old_config, insert):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         if old_config is not None:
             autoconfig.write_text(old_config, 'utf-8')
@@ -104,6 +103,17 @@ class TestYaml:
             assert '  colors.hints.fg: magenta' in lines
         if insert:
             assert '  tabs.show: never' in lines
+
+    def test_unknown_key(self, config_tmpdir):
+        """An unknown setting should be deleted."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  hello: world', encoding='utf-8')
+
+        yaml = configfiles.YamlConfig()
+        yaml.load()
+        yaml._save()
+
+        lines = autoconfig.read_text('utf-8').splitlines()
         assert '  hello:' not in lines
 
     @pytest.mark.parametrize('old_config', [
@@ -116,8 +126,7 @@ class TestYaml:
         ('confirm_quit', True),
         ('confirm_quit', False),
     ])
-    def test_changed(self, fake_save_manager, config_tmpdir, old_config,
-                     key, value):
+    def test_changed(self, config_tmpdir, old_config, key, value):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         if old_config is not None:
             autoconfig.write_text(old_config, 'utf-8')
@@ -141,7 +150,7 @@ class TestYaml:
         None,
         'global:\n  colors.hints.fg: magenta',
     ])
-    def test_unchanged(self, fake_save_manager, config_tmpdir, old_config):
+    def test_unchanged(self, config_tmpdir, old_config):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         mtime = None
         if old_config is not None:
@@ -164,8 +173,7 @@ class TestYaml:
         "Toplevel object does not contain 'global' key"),
         ('42', 'While loading data', "Toplevel object is not a dict"),
     ])
-    def test_invalid(self, fake_save_manager, config_tmpdir,
-                     line, text, exception):
+    def test_invalid(self, config_tmpdir, line, text, exception):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text(line, 'utf-8', ensure=True)
 
@@ -180,7 +188,7 @@ class TestYaml:
         assert str(error.exception).splitlines()[0] == exception
         assert error.traceback is None
 
-    def test_oserror(self, fake_save_manager, config_tmpdir):
+    def test_oserror(self, config_tmpdir):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.ensure()
         autoconfig.chmod(0)
