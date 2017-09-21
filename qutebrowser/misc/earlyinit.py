@@ -218,7 +218,14 @@ def _check_modules(modules):
                         'Flags not at the start of the expression']
             with log.ignore_py_warnings(
                     category=DeprecationWarning,
-                    message=r'({})'.format('|'.join(messages))):
+                    message=r'({})'.format('|'.join(messages))
+            ), log.ignore_py_warnings(
+                    category=PendingDeprecationWarning,
+                    module='imp'
+            ), log.ignore_py_warnings(
+                    category=ImportWarning,
+                    message=r'Not importing directory .*: missing __init__'
+            ):
                 importlib.import_module(name)
         except ImportError as e:
             _die(text, e)
