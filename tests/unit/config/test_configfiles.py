@@ -103,7 +103,8 @@ def test_yaml_config(fake_save_manager, config_tmpdir, old_config, insert):
     ('confirm_quit', True),
     ('confirm_quit', False),
 ])
-def test_yaml_config_changed(fake_save_manager, config_tmpdir, old_config, key, value):
+def test_yaml_config_changed(fake_save_manager, config_tmpdir, old_config,
+                             key, value):
     autoconfig = config_tmpdir / 'autoconfig.yml'
     if old_config is not None:
         autoconfig.write_text(old_config, 'utf-8')
