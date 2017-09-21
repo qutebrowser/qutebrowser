@@ -134,17 +134,39 @@ def test_yaml_oserror(fake_save_manager, config_tmpdir):
     assert error.traceback is None
 
 
+class ConfPy:
+
+    """Helper class to get a confpy fixture."""
+
+    def __init__(self, tmpdir, filename: str = "config.py"):
+        self._file = tmpdir / filename
+        self.filename = str(self._file)
+
+    def write(self, *lines):
+        text = '\n'.join(lines)
+        self._file.write_text(text, 'utf-8', ensure=True)
+
+    def read(self):
+        """Read the config.py via configfiles and check for errors."""
+        api = configfiles.read_config_py(self.filename)
+        assert not api.errors
+
+    def write_qbmodule(self):
+        self.write('import qbmodule',
+                   'qbmodule.run(config)')
+
+
 class TestConfigPyModules:
 
     pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     @pytest.fixture
     def confpy(self, tmpdir):
-        return TestConfigPy.ConfPy(tmpdir)
+        return ConfPy(tmpdir)
 
     @pytest.fixture
     def qbmodulepy(self, tmpdir):
-        return TestConfigPy.ConfPy(tmpdir, filename="qbmodule.py")
+        return ConfPy(tmpdir, filename="qbmodule.py")
 
     @pytest.fixture(autouse=True)
     def restore_sys_path(self):
@@ -206,30 +228,9 @@ class TestConfigPy:
 
     pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
-    class ConfPy:
-
-        """Helper class to get a confpy fixture."""
-
-        def __init__(self, tmpdir, filename: str = "config.py"):
-            self._confpy = tmpdir / filename
-            self.filename = str(self._confpy)
-
-        def write(self, *lines):
-            text = '\n'.join(lines)
-            self._confpy.write_text(text, 'utf-8', ensure=True)
-
-        def read(self):
-            """Read the config.py via configfiles and check for errors."""
-            api = configfiles.read_config_py(self.filename)
-            assert not api.errors
-
-        def write_qbmodule(self):
-            self.write('import qbmodule',
-                       'qbmodule.run(config)')
-
     @pytest.fixture
     def confpy(self, tmpdir):
-        return self.ConfPy(tmpdir)
+        return ConfPy(tmpdir)
 
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',
