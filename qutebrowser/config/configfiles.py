@@ -223,13 +223,6 @@ def read_config_py(filename=None):
         if not os.path.exists(filename):
             return api
 
-    # Add config directory to python path, so config.py can import other files
-    # in logical places
-    old_state = _pre_config_save()
-    config_dir = os.path.dirname(filename)
-    if config_dir not in sys.path:
-        sys.path = [config_dir] + sys.path
-
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
 
@@ -238,20 +231,6 @@ def read_config_py(filename=None):
     module.c = container
     module.__file__ = filename
 
-    try:
-        _run_python_config_helper(filename, basename, api, module)
-    except:
-        _post_config_load(old_state)
-        raise
-
-    # Restore previous path, to protect qutebrowser's imports
-    _post_config_load(old_state)
-
-    api.finalize()
-    return api
-
-
-def _run_python_config_helper(filename, basename, api, module):
     try:
         with open(filename, mode='rb') as f:
             source = f.read()
@@ -268,27 +247,41 @@ def _run_python_config_helper(filename, basename, api, module):
         raise configexc.ConfigFileErrors(basename, [desc])
     except SyntaxError as e:
         desc = configexc.ConfigErrorDesc("Syntax Error", e,
-                                         traceback=traceback.format_exc())
+                                        traceback=traceback.format_exc())
         raise configexc.ConfigFileErrors(basename, [desc])
 
     try:
-        exec(code, module.__dict__)
+        # Save and restore sys variables
+        with saved_sys_properties():
+            # Add config directory to python path, so config.py can import
+            # other files in logical places
+            config_dir = os.path.dirname(filename)
+            if config_dir not in sys.path:
+                sys.path = [config_dir] + sys.path
+
+            exec(code, module.__dict__)
     except Exception as e:
         api.errors.append(configexc.ConfigErrorDesc(
             "Unhandled exception",
             exception=e, traceback=traceback.format_exc()))
+    api.finalize()
+    return api
 
 
-def _pre_config_save():
+@contextlib.contextmanager
+def saved_sys_properties():
+    """Save various sys properties such as sys.path and sys.modules."""
     old_path = sys.path
     old_modules = sys.modules.copy()
-    return (old_path, old_modules)
 
-
-def _post_config_load(save_tuple):
-    sys.path = save_tuple[0]
-    for module in set(sys.modules).difference(save_tuple[1]):
-        del sys.modules[module]
+    try:
+        yield
+    except:
+        raise
+    finally:
+        sys.path = old_path
+        for module in set(sys.modules).difference(old_modules):
+            del sys.modules[module]
 
 
 def init():
