@@ -21,7 +21,7 @@
 
 from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
-from qutebrowser.commands import cmdutils
+from qutebrowser.commands import runners
 
 
 def option(*, info):
@@ -71,8 +71,8 @@ def bind(key, *, info):
     cmd_text = info.keyconf.get_command(key, 'normal')
 
     if cmd_text:
-        cmd_name = cmd_text.split(' ')[0]
-        cmd = cmdutils.cmd_dict.get(cmd_name)
+        parser = runners.CommandParser()
+        cmd = parser.parse(cmd_text).cmd
         data = [(cmd_text, cmd.desc, key)]
         model.add_category(listcategory.ListCategory("Current", data))
 
