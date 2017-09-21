@@ -70,7 +70,6 @@ try:
         include_package_data=True,
         entry_points={'gui_scripts':
                       ['qutebrowser = qutebrowser.qutebrowser:main']},
-        test_suite='qutebrowser.test',
         zip_safe=True,
         install_requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML', 'attrs'],
         name='qutebrowser',
@@ -78,21 +77,20 @@ try:
         description=_get_constant('description'),
         long_description=read_file('README.asciidoc'),
         url='https://www.qutebrowser.org/',
-        requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML', 'attrs'],
         author=_get_constant('author'),
         author_email=_get_constant('email'),
         license=_get_constant('license'),
         classifiers=[
-            'Development Status :: 3 - Alpha',
+            'Development Status :: 4 - Beta',
             'Environment :: X11 Applications :: Qt',
             'Intended Audience :: End Users/Desktop',
             'License :: OSI Approved :: GNU General Public License v3 or later '
                 '(GPLv3+)',
             'Natural Language :: English',
             'Operating System :: Microsoft :: Windows',
-            'Operating System :: Microsoft :: Windows :: Windows XP',
-            'Operating System :: Microsoft :: Windows :: Windows 7',
             'Operating System :: POSIX :: Linux',
+            'Operating System :: MacOS',
+            'Operating System :: POSIX :: BSD',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
@@ -100,7 +98,7 @@ try:
             'Topic :: Internet :: WWW/HTTP',
             'Topic :: Internet :: WWW/HTTP :: Browsers',
         ],
-        keywords='pyqt browser web qt webkit',
+        keywords='pyqt browser web qt webkit qtwebkit qtwebengine',
     )
 finally:
     if BASEDIR is not None:
