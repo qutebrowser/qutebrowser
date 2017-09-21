@@ -891,7 +891,8 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 
 @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
 @pytest.mark.parametrize('config_py', [True, 'error', False])
-@pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', False])
+@pytest.mark.parametrize('invalid_yaml',
+                         ['42', 'unknown', 'wrong-type', False])
 # pylint: disable=too-many-branches
 def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
                     load_autoconfig, config_py, invalid_yaml):
@@ -900,14 +901,15 @@ def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
     config_py_file = config_tmpdir / 'config.py'
 
     if invalid_yaml == '42':
-        autoconfig_file.write_text('42', 'utf-8', ensure=True)
+        text = '42'
     elif invalid_yaml == 'unknown':
-        autoconfig_file.write_text('global:\n  colors.foobar: magenta\n',
-                                   'utf-8', ensure=True)
+        text = 'global:\n  colors.foobar: magenta\n'
+    elif invalid_yaml == 'wrong-type':
+        text = 'global:\n  tabs.position: true\n'
     else:
         assert not invalid_yaml
-        autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
-                                   'utf-8', ensure=True)
+        text = 'global:\n  colors.hints.fg: magenta\n'
+    autoconfig_file.write_text(text, 'utf-8', ensure=True)
 
     if config_py:
         config_py_lines = ['c.colors.hints.bg = "red"']
@@ -927,10 +929,15 @@ def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
         expected_errors.append(
             "Errors occurred while reading config.py:\n"
             "  While setting 'foo': No option 'foo'")
-    if invalid_yaml == '42' and (load_autoconfig or not config_py):
+    if load_autoconfig or not config_py:
         error = "Errors occurred while reading autoconfig.yml:\n"
-        error += "  While loading data: Toplevel object is not a dict"
-        expected_errors.append(error)
+        if invalid_yaml == '42':
+            error += "  While loading data: Toplevel object is not a dict"
+            expected_errors.append(error)
+        elif invalid_yaml == 'wrong-type':
+            error += ("  Error: Invalid value 'True' - expected a value of "
+                      "type str but got bool.")
+            expected_errors.append(error)
 
     actual_errors = [str(err) for err in config._init_errors]
     assert actual_errors == expected_errors
