@@ -575,7 +575,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
 
 def test_bind_completion_no_current(qtmodeltester, cmdutils_stub, config_stub,
                                     key_config_stub, configdata_stub, info):
-    """Test keybinding completion with no current binding. """
+    """Test keybinding completion with no current binding."""
     model = configmodel.bind('x', info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
