@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.configfiles."""
 
 import os
+import sys
 
 import pytest
 
@@ -207,32 +208,103 @@ class TestYaml:
         assert error.traceback is None
 
 
+class ConfPy:
+
+    """Helper class to get a confpy fixture."""
+
+    def __init__(self, tmpdir, filename: str = "config.py"):
+        self._file = tmpdir / filename
+        self.filename = str(self._file)
+
+    def write(self, *lines):
+        text = '\n'.join(lines)
+        self._file.write_text(text, 'utf-8', ensure=True)
+
+    def read(self):
+        """Read the config.py via configfiles and check for errors."""
+        api = configfiles.read_config_py(self.filename)
+        assert not api.errors
+
+    def write_qbmodule(self):
+        self.write('import qbmodule',
+                   'qbmodule.run(config)')
+
+
+class TestConfigPyModules:
+
+    pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
+
+    @pytest.fixture
+    def confpy(self, tmpdir):
+        return ConfPy(tmpdir)
+
+    @pytest.fixture
+    def qbmodulepy(self, tmpdir):
+        return ConfPy(tmpdir, filename="qbmodule.py")
+
+    @pytest.fixture(autouse=True)
+    def restore_sys_path(self):
+        old_path = sys.path.copy()
+        yield
+        sys.path = old_path
+
+    def test_bind_in_module(self, confpy, qbmodulepy, tmpdir):
+        qbmodulepy.write('def run(config):',
+        '    config.bind(",a", "message-info foo", mode="normal")')
+        confpy.write_qbmodule()
+        confpy.read()
+        expected = {'normal': {',a': 'message-info foo'}}
+        assert config.instance._values['bindings.commands'] == expected
+        assert "qbmodule" not in sys.modules.keys()
+        assert tmpdir not in sys.path
+
+    def test_restore_sys_on_err(self, confpy, qbmodulepy, tmpdir):
+        confpy.write_qbmodule()
+        qbmodulepy.write('def run(config):',
+                         '    1/0')
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ZeroDivisionError)
+        assert "qbmodule" not in sys.modules.keys()
+        assert tmpdir not in sys.path
+
+    def test_fail_on_nonexistent_module(self, confpy, qbmodulepy, tmpdir):
+        qbmodulepy.write('def run(config):',
+                         '    pass')
+        confpy.write('import foobar',
+                     'foobar.run(config)')
+        api = configfiles.read_config_py(confpy.filename)
+
+        assert len(api.errors) == 1
+        error = api.errors[0]
+        assert error.text == "Unhandled exception"
+        assert isinstance(error.exception, ImportError)
+
+        tblines = error.traceback.strip().splitlines()
+        assert tblines[0] == "Traceback (most recent call last):"
+        assert tblines[-1].endswith("Error: No module named 'foobar'")
+
+    def test_no_double_if_path_exists(self, confpy, qbmodulepy, tmpdir):
+        sys.path.insert(0, tmpdir)
+        confpy.write('import sys',
+                     'if sys.path[0] in sys.path[1:]:',
+                     '    raise Exception("Path not expected")')
+        confpy.read()
+        assert sys.path.count(tmpdir) == 1
+
+
 class TestConfigPy:
 
     """Tests for ConfigAPI and read_config_py()."""
 
     pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
-    class ConfPy:
-
-        """Helper class to get a confpy fixture."""
-
-        def __init__(self, tmpdir):
-            self._confpy = tmpdir / 'config.py'
-            self.filename = str(self._confpy)
-
-        def write(self, *lines):
-            text = '\n'.join(lines)
-            self._confpy.write_text(text, 'utf-8', ensure=True)
-
-        def read(self):
-            """Read the config.py via configfiles and check for errors."""
-            api = configfiles.read_config_py(self.filename)
-            assert not api.errors
-
     @pytest.fixture
     def confpy(self, tmpdir):
-        return self.ConfPy(tmpdir)
+        return ConfPy(tmpdir)
 
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',

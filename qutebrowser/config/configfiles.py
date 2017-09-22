@@ -21,6 +21,7 @@
 
 import types
 import os.path
+import sys
 import textwrap
 import traceback
 import configparser
@@ -250,7 +251,15 @@ def read_config_py(filename=None):
         raise configexc.ConfigFileErrors(basename, [desc])
 
     try:
-        exec(code, module.__dict__)
+        # Save and restore sys variables
+        with saved_sys_properties():
+            # Add config directory to python path, so config.py can import
+            # other files in logical places
+            config_dir = os.path.dirname(filename)
+            if config_dir not in sys.path:
+                sys.path.insert(0, config_dir)
+
+            exec(code, module.__dict__)
     except Exception as e:
         api.errors.append(configexc.ConfigErrorDesc(
             "Unhandled exception",
@@ -258,6 +267,20 @@ def read_config_py(filename=None):
 
     api.finalize()
     return api
+
+
+@contextlib.contextmanager
+def saved_sys_properties():
+    """Save various sys properties such as sys.path and sys.modules."""
+    old_path = sys.path.copy()
+    old_modules = sys.modules.copy()
+
+    try:
+        yield
+    finally:
+        sys.path = old_path
+        for module in set(sys.modules).difference(old_modules):
+            del sys.modules[module]
 
 
 def init():
