@@ -220,10 +220,11 @@ class ConfPy:
         text = '\n'.join(lines)
         self._file.write_text(text, 'utf-8', ensure=True)
 
-    def read(self):
+    def read(self, error=False):
         """Read the config.py via configfiles and check for errors."""
         api = configfiles.read_config_py(self.filename)
-        assert not api.errors
+        assert len(api.errors) == (1 if error else 0)
+        return api
 
     def write_qbmodule(self):
         self.write('import qbmodule',
@@ -262,10 +263,9 @@ class TestConfigPyModules:
         confpy.write_qbmodule()
         qbmodulepy.write('def run(config):',
                          '    1/0')
-        api = configfiles.read_config_py(confpy.filename)
-
-        assert len(api.errors) == 1
+        api = confpy.read(error=True)
         error = api.errors[0]
+
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ZeroDivisionError)
         assert "qbmodule" not in sys.modules.keys()
@@ -276,10 +276,10 @@ class TestConfigPyModules:
                          '    pass')
         confpy.write('import foobar',
                      'foobar.run(config)')
-        api = configfiles.read_config_py(confpy.filename)
 
-        assert len(api.errors) == 1
+        api = confpy.read(error=True)
         error = api.errors[0]
+
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ImportError)
 
@@ -306,6 +306,13 @@ class TestConfigPy:
     def confpy(self, tmpdir):
         return ConfPy(tmpdir)
 
+    def test_assertions(self, confpy):
+        """Make sure assertions in config.py work for these tests."""
+        confpy.write('assert False')
+        api = confpy.read(error=True)
+        error = api.errors[0]
+        assert isinstance(error.exception, AssertionError)
+
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',
         'config.set("colors.hints.bg", "red")',
@@ -321,25 +328,15 @@ class TestConfigPy:
         'config.get("colors.hints.fg")',
     ])
     def test_get(self, confpy, set_first, get_line):
-        """Test whether getting options works correctly.
-
-        We test this by doing the following:
-           - Set colors.hints.fg to some value (inside the config.py with
-             set_first, outside of it otherwise).
-           - In the config.py, read .fg and set .bg to the same value.
-           - Verify that .bg has been set correctly.
-        """
+        """Test whether getting options works correctly."""
         # pylint: disable=bad-config-option
         config.val.colors.hints.fg = 'green'
         if set_first:
             confpy.write('c.colors.hints.fg = "red"',
-                         'c.colors.hints.bg = {}'.format(get_line))
-            expected = 'red'
+                         'assert {} == "red"'.format(get_line))
         else:
-            confpy.write('c.colors.hints.bg = {}'.format(get_line))
-            expected = 'green'
+            confpy.write('assert {} == "green"'.format(get_line))
         confpy.read()
-        assert config.instance._values['colors.hints.bg'] == expected
 
     @pytest.mark.parametrize('line, mode', [
         ('config.bind(",a", "message-info foo")', 'normal'),
@@ -430,12 +427,11 @@ class TestConfigPy:
 
     def test_unhandled_exception(self, confpy):
         confpy.write("config.load_autoconfig = False", "1/0")
-        api = configfiles.read_config_py(confpy.filename)
+
+        api = confpy.read(error=True)
+        error = api.errors[0]
 
         assert not api.load_autoconfig
-
-        assert len(api.errors) == 1
-        error = api.errors[0]
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ZeroDivisionError)
 
@@ -447,9 +443,9 @@ class TestConfigPy:
     def test_config_val(self, confpy):
         """Using config.val should not work in config.py files."""
         confpy.write("config.val.colors.hints.bg = 'red'")
-        api = configfiles.read_config_py(confpy.filename)
-        assert len(api.errors) == 1
+        api = confpy.read(error=True)
         error = api.errors[0]
+
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, AttributeError)
         message = "'ConfigAPI' object has no attribute 'val'"
@@ -458,12 +454,10 @@ class TestConfigPy:
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):
         confpy.write(line, "config.load_autoconfig = False")
-        api = configfiles.read_config_py(confpy.filename)
+        api = confpy.read(error=True)
+        error = api.errors[0]
 
         assert not api.load_autoconfig
-
-        assert len(api.errors) == 1
-        error = api.errors[0]
         assert error.text == "While setting 'foo'"
         assert isinstance(error.exception, configexc.NoOptionError)
         assert str(error.exception) == "No option 'foo'"
