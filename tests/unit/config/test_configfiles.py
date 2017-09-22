@@ -409,7 +409,7 @@ class TestConfigPy:
 
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
-        assert isinstance(error.exception, (TypeError, ValueError))
+        assert isinstance(error.exception, ValueError)
         assert error.text == "Error while compiling"
         exception_text = 'source code string cannot contain null bytes'
         assert str(error.exception) == exception_text
