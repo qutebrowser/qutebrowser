@@ -323,8 +323,6 @@ MAPPINGS = {
     'scrolling.smooth':
         Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
 
-    'spell': DefaultProfileSetter('setSpellCheckEnabled'),
-    'spell_languages': DictionaryLanguageSetter()
 }
 
 try:
@@ -333,6 +331,11 @@ try:
 except AttributeError:
     # Added in Qt 5.8
     pass
+
+
+if qtutils.version_check('5.8'):
+    MAPPINGS['spell'] = DefaultProfileSetter('setSpellCheckEnabled')
+    MAPPINGS['spell_languages'] = DictionaryLanguageSetter()
 
 
 if qtutils.version_check('5.9'):

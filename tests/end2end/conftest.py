@@ -130,8 +130,8 @@ def _get_dictionary_tag(tag):
         return None
 
     event = match.group('event')
-    dict = match.group('dict')
-    has_dict = dict in [lang.code for lang in get_installed_languages()]
+    dictionary = match.group('dict')
+    has_dict = dictionary in [lang.code for lang in get_installed_languages()]
     if event == 'must_have_dict':
         return pytest.mark.skipif(not has_dict, reason=tag)
     elif event == 'cannot_have_dict':

@@ -47,7 +47,7 @@ def test_get_installed_languages_non_empty(tmpdir, mocker):
     mocker.patch('qutebrowser.browser.webengine.spell.get_dictionary_dir',
                  lambda: str(tmpdir))
     for lang in LANGUAGE_LIST:
-        open(join(tmpdir, lang.file), 'w', encoding='UTF-8').close()
+        open(join(str(tmpdir), lang.file), 'w', encoding='UTF-8').close()
     for actual, expected in zip(spell.get_installed_languages(),
                                 LANGUAGE_LIST):
         assert (actual.code, actual.name, actual.file) ==\

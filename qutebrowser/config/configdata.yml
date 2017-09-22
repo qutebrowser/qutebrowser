@@ -981,6 +981,9 @@ spell:
   type: Bool
   default: true
   desc: Enable spell checking.
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.8
 
 spell_languages:
   type:
@@ -1033,6 +1036,9 @@ spell_languages:
     none_ok: true
   default:
   desc: Spell checking languages.
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.8
 
 ## statusbar
 
