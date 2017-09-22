@@ -151,7 +151,7 @@ def test_late_init(init_patch, monkeypatch, fake_save_manager, fake_args,
         assert text.startswith('Errors occurred while reading config.py:')
         assert '<b>Error text</b>: Exception' in text
     else:
-        msgbox_mock.assert_not_called()
+        assert not msgbox_mock.called
 
 
 class TestQtArgs:
