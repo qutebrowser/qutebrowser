@@ -217,6 +217,9 @@ doing:
 config.load_autoconfig = False
 ----
 
+Note that the settings are still saved in `autoconfig.yml` that way, but then
+not loaded on start.
+
 Importing other modules
 ~~~~~~~~~~~~~~~~~~~~~~~
 
