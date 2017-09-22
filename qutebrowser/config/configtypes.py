@@ -258,7 +258,7 @@ class BaseType:
         """
         utils.unused(indent)  # only needed for Dict/List
         str_value = self.to_str(value)
-        if str_value == '':
+        if not str_value:
             return 'empty'
         return '+pass:[{}]+'.format(html.escape(str_value))
 
