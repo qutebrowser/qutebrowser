@@ -22,7 +22,6 @@
 import pytest
 
 from qutebrowser.commands import runners, cmdexc
-from qutebrowser.config import configtypes
 
 
 class TestCommandParser:
