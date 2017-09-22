@@ -380,7 +380,7 @@ class TestHandleConnection:
         monkeypatch.setattr(ipc_server._server, 'nextPendingConnection', m)
         ipc_server.ignored = True
         ipc_server.handle_connection()
-        assert not m.called
+        m.assert_not_called()
 
     def test_no_connection(self, ipc_server, caplog):
         ipc_server.handle_connection()
