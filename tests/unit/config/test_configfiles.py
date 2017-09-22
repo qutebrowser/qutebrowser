@@ -236,7 +236,7 @@ class TestConfigPyModules:
     pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     @pytest.fixture
-    def confpy(self, tmpdir):
+    def confpy(self, tmpdir, config_tmpdir, data_tmpdir):
         return ConfPy(tmpdir)
 
     @pytest.fixture
@@ -303,7 +303,7 @@ class TestConfigPy:
     pytestmark = pytest.mark.usefixtures('config_stub', 'key_config_stub')
 
     @pytest.fixture
-    def confpy(self, tmpdir):
+    def confpy(self, tmpdir, config_tmpdir, data_tmpdir):
         return ConfPy(tmpdir)
 
     def test_assertions(self, confpy):
@@ -311,6 +311,14 @@ class TestConfigPy:
         confpy.write('assert False')
         with pytest.raises(AssertionError):
             confpy.read()  # no errors=True so it gets raised
+
+    @pytest.mark.parametrize('what', ['configdir', 'datadir'])
+    def test_getting_dirs(self, confpy, what):
+        confpy.write('import pathlib',
+                     'directory = config.{}'.format(what),
+                     'assert isinstance(directory, pathlib.Path)',
+                     'assert directory.exists()')
+        confpy.read()
 
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',
@@ -373,17 +381,18 @@ class TestConfigPy:
         assert config.instance._values['aliases']['foo'] == 'message-info foo'
         assert config.instance._values['aliases']['bar'] == 'message-info bar'
 
-    def test_reading_default_location(self, config_tmpdir):
+    def test_reading_default_location(self, config_tmpdir, data_tmpdir):
         (config_tmpdir / 'config.py').write_text(
             'c.colors.hints.bg = "red"', 'utf-8')
         configfiles.read_config_py()
         assert config.instance._values['colors.hints.bg'] == 'red'
 
-    def test_reading_missing_default_location(self, config_tmpdir):
+    def test_reading_missing_default_location(self, config_tmpdir,
+                                              data_tmpdir):
         assert not (config_tmpdir / 'config.py').exists()
         configfiles.read_config_py()  # Should not crash
 
-    def test_oserror(self, tmpdir):
+    def test_oserror(self, tmpdir, data_tmpdir, config_tmpdir):
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
             configfiles.read_config_py(str(tmpdir / 'foo'))
 

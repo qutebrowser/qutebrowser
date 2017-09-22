@@ -225,6 +225,23 @@ that via `import utils` as well.
 While it's in some cases possible to import code from the qutebrowser
 installation, doing so is unsupported and discouraged.
 
+Getting the config directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to get the qutebrowser config directory, you can do so by reading
+`config.configdir`. Similarily, you can get the qutebrowser data directory via
+`config.datadir`.
+
+This gives you a https://docs.python.org/3/library/pathlib.html[`pathlib.Path`
+object], on which you can use `/` to add more directory parts, or `str(...)` to
+get a string:
+
+.config.py:
+[source,python]
+----
+print(str(config.configdir / 'config.py')
+----
+
 Handling errors
 ~~~~~~~~~~~~~~~
 

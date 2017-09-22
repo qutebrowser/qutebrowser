@@ -19,6 +19,7 @@
 
 """Configuration files residing on disk."""
 
+import pathlib
 import types
 import os.path
 import sys
@@ -177,6 +178,8 @@ class ConfigAPI:
         _keyconfig: The KeyConfig object.
         load_autoconfig: Whether autoconfig.yml should be loaded.
         errors: Errors which occurred while setting options.
+        configdir: The qutebrowser config directory, as pathlib.Path.
+        datadir: The qutebrowser data directory, as pathlib.Path.
     """
 
     def __init__(self, conf, keyconfig):
@@ -184,6 +187,8 @@ class ConfigAPI:
         self._keyconfig = keyconfig
         self.load_autoconfig = True
         self.errors = []
+        self.configdir = pathlib.Path(standarddir.config())
+        self.datadir = pathlib.Path(standarddir.data())
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
