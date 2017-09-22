@@ -88,7 +88,9 @@ Two global objects are pre-defined when running `config.py`: `c` and `config`.
 Changing settings
 ~~~~~~~~~~~~~~~~~
 
-`c` is a shorthand object to easily set settings like this:
+While you can set settings using the `config.set()` method (which is explained
+in the next section), it's easier to use the `c` shorthand object to easily set
+settings like this:
 
 .config.py:
 [source,python]
@@ -136,6 +138,8 @@ If you want to set settings based on their name as a string, use the
 .config.py:
 [source,python]
 ----
+# Equivalent to:
+# c.content.javascript.enabled = False
 config.set('content.javascript.enabled', False)
 ----
 
@@ -143,6 +147,8 @@ To read a setting, use the `config.get` method:
 
 [source,python]
 ----
+# Equivalent to:
+# color = c.colors.completion.fg
 color = config.get('colors.completion.fg')
 ----
 
