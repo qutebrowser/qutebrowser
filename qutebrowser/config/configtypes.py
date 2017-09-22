@@ -257,9 +257,10 @@ class BaseType:
         This currently uses asciidoc syntax.
         """
         utils.unused(indent)  # only needed for Dict/List
-        if not value:
+        str_value = self.to_str(value)
+        if str_value == '':
             return 'empty'
-        return '+pass:[{}]+'.format(html.escape(self.to_str(value)))
+        return '+pass:[{}]+'.format(html.escape(str_value))
 
     def complete(self):
         """Return a list of possible values for completion.

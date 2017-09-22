@@ -284,7 +284,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[backend]]
 === backend
@@ -1342,7 +1342,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[completion.timestamp_format]]
 === completion.timestamp_format
@@ -1402,7 +1402,7 @@ For more information about the feature, please refer to: http://webkit.org/blog/
 
 Type: <<types,Int>>
 
-Default: empty
+Default: +pass:[0]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1466,7 +1466,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1497,7 +1497,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1628,7 +1628,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.images]]
 === content.images
@@ -1668,7 +1668,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.javascript.can_close_tabs]]
 === content.javascript.can_close_tabs
@@ -1681,7 +1681,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1696,7 +1696,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.javascript.enabled]]
 === content.javascript.enabled
@@ -1737,7 +1737,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.javascript.prompt]]
 === content.javascript.prompt
@@ -1776,7 +1776,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.local_storage]]
 === content.local_storage
@@ -1842,7 +1842,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1857,7 +1857,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.print_element_backgrounds]]
 === content.print_element_backgrounds
@@ -1885,7 +1885,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.proxy]]
 === content.proxy
@@ -1963,7 +1963,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
@@ -2243,7 +2243,7 @@ The hard minimum font size.
 
 Type: <<types,Int>>
 
-Default: empty
+Default: +pass:[0]+
 
 [[fonts.web.size.minimum_logical]]
 === fonts.web.size.minimum_logical
@@ -2274,7 +2274,7 @@ A timeout (in milliseconds) to ignore normal-mode key bindings after a successfu
 
 Type: <<types,Int>>
 
-Default: empty
+Default: +pass:[0]+
 
 [[hints.border]]
 === hints.border
@@ -2404,7 +2404,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[history_gap_interval]]
 === history_gap_interval
@@ -2467,7 +2467,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins
@@ -2480,7 +2480,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[input.links_included_in_focus_chain]]
 === input.links_included_in_focus_chain
@@ -2516,7 +2516,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[input.spatial_navigation]]
 === input.spatial_navigation
@@ -2530,7 +2530,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[keyhint.blacklist]]
 === keyhint.blacklist
@@ -2569,7 +2569,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[new_instance_open_target]]
 === new_instance_open_target
@@ -2646,7 +2646,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[scrolling.smooth]]
 === scrolling.smooth
@@ -2660,7 +2660,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[session_default_name]]
 === session_default_name
@@ -2682,7 +2682,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[statusbar.padding]]
 === statusbar.padding
@@ -2693,8 +2693,8 @@ Type: <<types,Padding>>
 Default: 
 
 - +pass:[bottom]+: +pass:[1]+
-- +pass:[left]+: empty
-- +pass:[right]+: empty
+- +pass:[left]+: +pass:[0]+
+- +pass:[right]+: +pass:[0]+
 - +pass:[top]+: +pass:[1]+
 
 [[statusbar.position]]
@@ -2721,7 +2721,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[tabs.close_mouse_button]]
 === tabs.close_mouse_button
@@ -2768,7 +2768,7 @@ Type: <<types,Padding>>
 Default: 
 
 - +pass:[bottom]+: +pass:[2]+
-- +pass:[left]+: empty
+- +pass:[left]+: +pass:[0]+
 - +pass:[right]+: +pass:[4]+
 - +pass:[top]+: +pass:[2]+
 
@@ -2839,10 +2839,10 @@ Type: <<types,Padding>>
 
 Default: 
 
-- +pass:[bottom]+: empty
+- +pass:[bottom]+: +pass:[0]+
 - +pass:[left]+: +pass:[5]+
 - +pass:[right]+: +pass:[5]+
-- +pass:[top]+: empty
+- +pass:[top]+: +pass:[0]+
 
 [[tabs.position]]
 === tabs.position
@@ -2907,7 +2907,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[tabs.title.alignment]]
 === tabs.title.alignment
@@ -3078,7 +3078,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[window.title_format]]
 === window.title_format
@@ -3152,7 +3152,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 

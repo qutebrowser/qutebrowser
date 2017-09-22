@@ -718,8 +718,10 @@ class TestBool:
     def test_to_str(self, klass, val, expected):
         assert klass().to_str(val) == expected
 
-    def test_to_doc(self, klass):
-        assert klass().to_doc(True) == '+pass:[true]+'
+    @pytest.mark.parametrize('value, expected', [(True, '+pass:[true]+'),
+                                                 (False, '+pass:[false]+')])
+    def test_to_doc(self, klass, value, expected):
+        assert klass().to_doc(value) == expected
 
 
 class TestBoolAsk:
