@@ -222,7 +222,7 @@ class ConfPy:
 
     def read(self, error=False):
         """Read the config.py via configfiles and check for errors."""
-        api = configfiles.read_config_py(self.filename)
+        api = configfiles.read_config_py(self.filename, raising=not error)
         assert len(api.errors) == (1 if error else 0)
         return api
 
@@ -309,9 +309,8 @@ class TestConfigPy:
     def test_assertions(self, confpy):
         """Make sure assertions in config.py work for these tests."""
         confpy.write('assert False')
-        api = confpy.read(error=True)
-        error = api.errors[0]
-        assert isinstance(error.exception, AssertionError)
+        with pytest.raises(AssertionError):
+            confpy.read()  # no errors=True so it gets raised
 
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',

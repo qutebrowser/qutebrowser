@@ -214,8 +214,13 @@ class ConfigAPI:
             self._keyconfig.unbind(key, mode=mode)
 
 
-def read_config_py(filename=None):
-    """Read a config.py file."""
+def read_config_py(filename=None, raising=False):
+    """Read a config.py file.
+
+    Arguments;
+        raising: Raise exceptions happening in config.py.
+                 This is needed during tests to use pytest's inspection.
+    """
     api = ConfigAPI(config.instance, config.key_instance)
 
     if filename is None:
@@ -261,6 +266,8 @@ def read_config_py(filename=None):
 
             exec(code, module.__dict__)
     except Exception as e:
+        if raising:
+            raise
         api.errors.append(configexc.ConfigErrorDesc(
             "Unhandled exception",
             exception=e, traceback=traceback.format_exc()))
