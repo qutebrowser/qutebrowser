@@ -284,6 +284,22 @@ def test_import_txt(hist, data_tmpdir, monkeypatch, stubs):
     assert (data_tmpdir / 'history.bak').exists()
 
 
+def test_import_txt_existing_backup(hist, data_tmpdir, monkeypatch, stubs):
+    monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
+    histfile = data_tmpdir / 'history'
+    bakfile = data_tmpdir / 'history.bak'
+    histfile.write('12345 http://example.com/ title')
+    bakfile.write('12346 http://qutebrowser.org/')
+
+    hist.import_txt()
+
+    assert list(hist) == [('http://example.com/', 'title', 12345, False)]
+
+    assert not histfile.exists()
+    assert bakfile.read().split('\n') == ['12346 http://qutebrowser.org/',
+                                          '12345 http://example.com/ title']
+
+
 @pytest.mark.parametrize('line', [
     '',
     '#12345 http://example.com/commented',

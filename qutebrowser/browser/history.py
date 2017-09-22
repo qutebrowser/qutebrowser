@@ -252,10 +252,7 @@ class WebHistory(sql.SqlTable):
                 except ValueError as ex:
                     message.error('Failed to import history: {}'.format(ex))
                 else:
-                    bakpath = path + '.bak'
-                    message.info('History import complete. Moving {} to {}'
-                                 .format(path, bakpath))
-                    os.rename(path, bakpath)
+                    self._write_backup(path)
 
         # delay to give message time to appear before locking down for import
         message.info('Converting {} to sqlite...'.format(path))
@@ -286,6 +283,16 @@ class WebHistory(sql.SqlTable):
                                      .format(i, path, ex))
         self.insert_batch(data)
         self.completion.insert_batch(completion_data, replace=True)
+
+    def _write_backup(self, path):
+        bak = path + '.bak'
+        message.info('History import complete. Appending {} to {}'
+                     .format(path, bak))
+        with open(path, 'r', encoding='utf-8') as infile:
+            with open(bak, 'a') as outfile:
+                for line in infile:
+                    outfile.write('\n' + line)
+        os.remove(path)
 
     def _format_url(self, url):
         return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
