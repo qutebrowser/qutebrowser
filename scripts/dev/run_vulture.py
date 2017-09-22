@@ -108,6 +108,8 @@ def whitelist_generator():
     yield 'qutebrowser.config.configexc.ConfigErrorDesc.traceback'
     yield 'qutebrowser.config.configfiles.ConfigAPI.load_autoconfig'
     yield 'types.ModuleType.c'  # configfiles:read_config_py
+    for name in ['configdir', 'datadir']:
+        yield 'qutebrowser.config.configfiles.ConfigAPI.' + name
 
     yield 'include_aliases'
 
