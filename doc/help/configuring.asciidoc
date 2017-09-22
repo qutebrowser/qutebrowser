@@ -211,6 +211,20 @@ doing:
 config.load_autoconfig = False
 ----
 
+Importing other modules
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can import any module from the
+https://docs.python.org/3/library/index.html[Python standard library] (e.g.
+`import os.path`), as well as any module installed in the environment
+qutebrowser is run with.
+
+If you have an `utils.py` file in your qutebrowser config folder, you can import
+that via `import utils` as well.
+
+While it's in some cases possible to import code from the qutebrowser
+installation, doing so is unsupported and discouraged.
+
 Handling errors
 ~~~~~~~~~~~~~~~
 
