@@ -41,7 +41,7 @@ from qutebrowser.browser import qutescheme
 from qutebrowser.config import configtypes
 
 
-def whitelist_generator():
+def whitelist_generator():  # noqa
     """Generator which yields lines to add to a vulture whitelist."""
     # qutebrowser commands
     for cmd in cmdutils.cmd_dict.values():
