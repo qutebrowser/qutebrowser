@@ -32,8 +32,8 @@ def main():
     output_format = ''
     if args.search_query or args.search_output:
         bookmark_types = ['search']
-        if args.newconfig:
-            output_format = 'ncsearch'
+        if args.oldconfig:
+            output_format = 'oldsearch'
         else:
             output_format = 'search'
     else:
@@ -88,8 +88,8 @@ def get_args():
         default=False,
         required=False)
     parser.add_argument(
-        '--newconfig',
-        help="Output search engine format for new config.py format",
+        '--oldconfig',
+        help="Output search engine format for old qutebrowser.conf format",
         default=False,
         action='store_true',
         required=False)
@@ -142,12 +142,12 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
             (tag.string)),
     }
     output_template = {
-        'ncsearch': {
+        'search': {
             'search':
             "c.url.searchengines['{tag[shortcuturl]}'] = "
             "'{tag[href]}' #{tag.string}"
         },
-        'search': {
+        'oldsearch': {
             'search': '{tag[shortcuturl]} = {tag[href]} #{tag.string}',
         },
         'bookmark': {
