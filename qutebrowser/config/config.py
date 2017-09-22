@@ -25,8 +25,8 @@ import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
-from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import utils, objreg, message, log, jinja, qtutils
+from qutebrowser.config import configdata, configexc, configtypes
+from qutebrowser.utils import utils, objreg, message, log, jinja
 from qutebrowser.misc import objects
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel

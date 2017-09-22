@@ -227,7 +227,7 @@ def test_get_backend(monkeypatch, fake_args, config_stub,
 
     fake_args.backend = arg
     config_stub.val.backend = confval
-    monkeypatch.setattr(config.qtutils, 'is_new_qtwebkit',
+    monkeypatch.setattr(configinit.qtutils, 'is_new_qtwebkit',
                         lambda: is_new_webkit)
     monkeypatch.setattr('builtins.__import__', fake_import)
 
