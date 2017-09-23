@@ -91,7 +91,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command', name='set-cmd-text',
                        scope='window', maxsplit=0)
-    def set_cmd_text_command(self, text, space=False, append=False):
+    @cmdutils.argument('count', count=True)
+    def set_cmd_text_command(self, text, count=None, space=False, append=False,
+                             run_on_count=False):
         """Preset the statusbar to some text.
 
         //
@@ -101,8 +103,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
         Args:
             text: The commandline to set.
+            count: The count if given.
             space: If given, a space is added to the end.
             append: If given, the text is appended to the current text.
+            run_on_count: If given with a count, the command is run with the
+                          given count rather than setting the command text.
         """
         if space:
             text += ' '
@@ -114,7 +119,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if not text or text[0] not in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(
                 "Invalid command text '{}'.".format(text))
-        self.set_cmd_text(text)
+        if run_on_count and count is not None:
+            self.set_cmd_text(':run-with-count {} {}'.format(count, text))
+            self.command_accept()
+        else:
+            self.set_cmd_text(text)
 
     @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
