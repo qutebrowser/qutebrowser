@@ -1011,29 +1011,38 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', completion=miscmodels.buffer)
-    def buffer(self, index):
+    @cmdutils.argument('count', count=True)
+    def buffer(self, index=None, count=None):
         """Select tab by index or url/title best match.
 
-        Focuses window if necessary.
+        Focuses window if necessary when index is given. If both index and count
+        are given, use count.
 
         Args:
             index: The [win_id/]index of the tab to focus. Or a substring
                    in which case the closest match will be focused.
+            count: The tab index to focus, starting with 1.
         """
-        index_parts = index.split('/', 1)
+        if count is not None:
+            index_parts = [count]
+        elif index is None:
+            raise cmdexc.CommandError("buffer: Either a count or the argument "
+                                      "index must be specified.")
+        else:
+            index_parts = index.split('/', 1)
 
-        try:
-            for part in index_parts:
-                int(part)
-        except ValueError:
-            model = miscmodels.buffer()
-            model.set_pattern(index)
-            if model.count() > 0:
-                index = model.data(model.first_item())
-                index_parts = index.split('/', 1)
-            else:
-                raise cmdexc.CommandError(
-                    "No matching tab for: {}".format(index))
+            try:
+                for part in index_parts:
+                    int(part)
+            except ValueError:
+                model = miscmodels.buffer()
+                model.set_pattern(index)
+                if model.count() > 0:
+                    index = model.data(model.first_item())
+                    index_parts = index.split('/', 1)
+                else:
+                    raise cmdexc.CommandError(
+                        "No matching tab for: {}".format(index))
 
         if len(index_parts) == 2:
             win_id = int(index_parts[0])
