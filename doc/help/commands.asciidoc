@@ -847,7 +847,7 @@ If the option name ends with '?', the value of the option is shown instead.
 
 [[set-cmd-text]]
 === set-cmd-text
-Syntax: +:set-cmd-text [*--space*] [*--append*] 'text'+
+Syntax: +:set-cmd-text [*--space*] [*--append*] [*--run-on-count*] 'text'+
 
 Preset the statusbar to some text.
 
@@ -857,6 +857,11 @@ Preset the statusbar to some text.
 ==== optional arguments
 * +*-s*+, +*--space*+: If given, a space is added to the end.
 * +*-a*+, +*--append*+: If given, the text is appended to the current text.
+* +*-r*+, +*--run-on-count*+: If given with a count, the command is run with the given count rather than setting the command text.
+
+
+==== count
+The count if given.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
