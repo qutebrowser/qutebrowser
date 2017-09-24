@@ -364,6 +364,15 @@ class TestConfigPy:
                      "config.bind(',f', 'foo')")
         confpy.read()
 
+    def test_bind_duplicate_key(self, confpy):
+        """Make sure we get a nice error message on duplicate key bindings."""
+        confpy.write("config.bind('H', 'message-info back')")
+        api = confpy.read(error=True)
+        error = api.errors[0]
+
+        expected = "Duplicate key H - use force=True to override!"
+        assert str(error.exception) == expected
+
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
         ('config.unbind("y", mode="prompt")', 'y', 'prompt'),

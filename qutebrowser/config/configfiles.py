@@ -212,7 +212,11 @@ class ConfigAPI:
 
     def bind(self, key, command, mode='normal', *, force=False):
         with self._handle_error('binding', key):
-            self._keyconfig.bind(key, command, mode=mode, force=force)
+            try:
+                self._keyconfig.bind(key, command, mode=mode, force=force)
+            except configexc.DuplicateKeyError as e:
+                raise configexc.KeybindingError('{} - use force=True to '
+                                                'override!'.format(e))
 
     def unbind(self, key, mode='normal'):
         with self._handle_error('unbinding', key):
