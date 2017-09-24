@@ -25,11 +25,20 @@ Currently only importing bookmarks from Netscape Bookmark files is supported.
 
 import argparse
 
+browser_default_input_format = {
+    'chromium': 'netscape',
+    'ie': 'netscape',
+    'firefox': 'netscape',
+    'seamonkey': 'netscape',
+    'palemoon': 'netscape'
+}
+
 
 def main():
     args = get_args()
     bookmark_types = []
     output_format = ''
+    input_format = args.input_format
     if args.search_query or args.search_output:
         bookmark_types = ['search']
         if args.oldconfig:
@@ -49,10 +58,11 @@ def main():
         bookmark_types = ['bookmark', 'keyword']
     if not output_format:
         output_format = 'quickmark'
+    if not input_format:
+        input_format = browser_default_input_format[args.browser]
 
-    if args.browser in ['chromium', 'firefox', 'ie']:
-        import_netscape_bookmarks(args.bookmarks, bookmark_types,
-                                  output_format)
+    import_function = {'netscape': import_netscape_bookmarks}
+    import_function[input_format](arg.bookmarks, bookmark_types, output_format)
 
 
 def get_args():
@@ -64,8 +74,14 @@ def get_args():
     parser.add_argument(
         'browser',
         help="Which browser? (chromium, firefox)",
-        choices=['chromium', 'firefox', 'ie'],
+        choices=browser_default_input_format.keys(),
         metavar='browser')
+    parser.add_argument(
+        '-i',
+        '--input-format',
+        help='Which input format? (overrides browser default)',
+        choices=set(browser_default_input_format.values()),
+        required=False)
     parser.add_argument(
         '-b',
         help="Output in bookmark format.",
