@@ -70,11 +70,10 @@ def get_args():
     """Get the argparse parser."""
     parser = argparse.ArgumentParser(
         epilog="To import bookmarks from Chromium, Firefox or IE, "
-        "export them to HTML in your browsers bookmark manager. "
-        "By default, this script will output in a quickmarks format.")
+        "export them to HTML in your browsers bookmark manager. ")
     parser.add_argument(
         'browser',
-        help="Which browser? (chromium, firefox)",
+        help="Which browser? {%(choices)s}",
         choices=browser_default_input_format.keys(),
         metavar='browser')
     parser.add_argument(
