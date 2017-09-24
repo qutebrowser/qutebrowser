@@ -62,7 +62,8 @@ def main():
         input_format = browser_default_input_format[args.browser]
 
     import_function = {'netscape': import_netscape_bookmarks}
-    import_function[input_format](arg.bookmarks, bookmark_types, output_format)
+    import_function[input_format](args.bookmarks, bookmark_types,
+                                  output_format)
 
 
 def get_args():
