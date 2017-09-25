@@ -201,7 +201,7 @@
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
 |<<input.rocker_gestures,input.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable Spatial Navigation.
-|<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn\'t be shown in the keyhint dialog.
+|<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time from pressing a key to seeing the keyhint dialog (ms).
 |<<messages.timeout,messages.timeout>>|Time (in ms) to show messages in the statusbar for.
 |<<messages.unfocused,messages.unfocused>>|Show messages in unfocused windows.
@@ -1955,7 +1955,7 @@ Default: +pass:[true]+
 [[content.xss_auditing]]
 === content.xss_auditing
 Whether load requests should be monitored for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector\'s JavaScript console. Enabling this feature might have an impact on performance.
+Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
 
 Type: <<types,Bool>>
 
@@ -2144,7 +2144,7 @@ Default: +pass:[8pt monospace]+
 [[fonts.monospace]]
 === fonts.monospace
 Default monospace fonts.
-Whenever "monospace" is used in a font setting, it\'s replaced with the fonts listed here.
+Whenever "monospace" is used in a font setting, it's replaced with the fonts listed here.
 
 Type: <<types,Font>>
 
@@ -2535,7 +2535,7 @@ Default: +pass:[false]+
 
 [[keyhint.blacklist]]
 === keyhint.blacklist
-Keychains that shouldn\'t be shown in the keyhint dialog.
+Keychains that shouldn't be shown in the keyhint dialog.
 Globs are supported, so `;*` will blacklist all keychains starting with `;`. Use `*` to disable keyhints.
 
 Type: <<types,List>>
