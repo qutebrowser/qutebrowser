@@ -275,14 +275,17 @@ class ConfigCommands:
 
         # Use the next valid value from values, or the first if the current
         # value does not appear in the list
-        old_value = self._config.get_str(option)
+        old_value = self._config.get_obj(option, mutable=False)
+        opt = self._config.get_opt(option)
+        values = [opt.typ.from_str(val) for val in values]
+
         try:
-            idx = values.index(str(old_value))
+            idx = values.index(old_value)
             idx = (idx + 1) % len(values)
             value = values[idx]
         except ValueError:
             value = values[0]
-        self._config.set_str(option, value, save_yaml=not temp)
+        self._config.set_obj(option, value, save_yaml=not temp)
 
     @contextlib.contextmanager
     def _handle_config_error(self):

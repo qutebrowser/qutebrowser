@@ -439,6 +439,18 @@ class TestSetConfigCommand:
         assert config_stub.get(opt) == expected
         assert config_stub._yaml[opt] == expected
 
+    def test_cycling_different_representation(self, commands, config_stub):
+        """When using a different representation, cycling should work.
+
+        For example, we use [foo] which is represented as ["foo"].
+        """
+        opt = 'qt_args'
+        config_stub.set_obj(opt, ['foo'])
+        commands.set(0, opt, '[foo]', '[bar]')
+        assert config_stub.get(opt) == ['bar']
+        commands.set(0, opt, '[foo]', '[bar]')
+        assert config_stub.get(opt) == ['foo']
+
 
 class TestBindConfigCommand:
 
