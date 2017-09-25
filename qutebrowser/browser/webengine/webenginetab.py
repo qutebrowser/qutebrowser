@@ -22,7 +22,7 @@
 import os
 import math
 import functools
-import html
+import html as html_utils
 
 import sip
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
@@ -684,11 +684,11 @@ class WebEngineTab(browsertab.AbstractTab):
         self.add_history_item.emit(url, requested_url, title)
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
-    def _on_proxy_authentication_required(self, _url, authenticator,
+    def _on_proxy_authentication_required(self, url, authenticator,
                                           proxy_host):
         """Called when a proxy needs authentication."""
         msg = "<b>{}</b> requires a username and password.".format(
-            html.escape(proxy_host))
+            html_utils.escape(proxy_host))
         answer = message.ask(
             title="Proxy authentication required", text=msg,
             mode=usertypes.PromptMode.user_pwd,
@@ -696,6 +696,18 @@ class WebEngineTab(browsertab.AbstractTab):
         if answer is not None:
             authenticator.setUser(answer.user)
             authenticator.setPassword(answer.password)
+        else:
+            try:
+                # pylint: disable=no-member, useless-suppression
+                sip.assign(authenticator, QAuthenticator())
+            except AttributeError:
+                url_string = url.toDisplayString()
+                error_page = jinja.render(
+                    'error.html',
+                    title="Error loading page: {}".format(url_string),
+                    url=url_string, error="Proxy authentication required",
+                    icon='')
+                self.set_html(error_page)
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
