@@ -362,6 +362,7 @@ Feature: Using hints
         And I set hints.mode to letter
         And I hint with args "--mode number all"
         And I press the key "s"
+        And I wait for "Filtering hints on 's'" in the log
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
