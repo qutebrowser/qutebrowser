@@ -222,9 +222,15 @@ class ConfPy:
 
     def read(self, error=False):
         """Read the config.py via configfiles and check for errors."""
-        api = configfiles.read_config_py(self.filename, raising=not error)
-        assert len(api.errors) == (1 if error else 0)
-        return api
+        if error:
+            with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+                configfiles.read_config_py(self.filename)
+            errors = excinfo.value.errors
+            assert len(errors) == 1
+            return errors[0]
+        else:
+            configfiles.read_config_py(self.filename, raising=True)
+            return None
 
     def write_qbmodule(self):
         self.write('import qbmodule',
@@ -263,8 +269,7 @@ class TestConfigPyModules:
         confpy.write_qbmodule()
         qbmodulepy.write('def run(config):',
                          '    1/0')
-        api = confpy.read(error=True)
-        error = api.errors[0]
+        error = confpy.read(error=True)
 
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ZeroDivisionError)
@@ -277,8 +282,7 @@ class TestConfigPyModules:
         confpy.write('import foobar',
                      'foobar.run(config)')
 
-        api = confpy.read(error=True)
-        error = api.errors[0]
+        error = confpy.read(error=True)
 
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ImportError)
@@ -367,8 +371,7 @@ class TestConfigPy:
     def test_bind_duplicate_key(self, confpy):
         """Make sure we get a nice error message on duplicate key bindings."""
         confpy.write("config.bind('H', 'message-info back')")
-        api = confpy.read(error=True)
-        error = api.errors[0]
+        error = confpy.read(error=True)
 
         expected = "Duplicate key H - use force=True to override!"
         assert str(error.exception) == expected
@@ -389,17 +392,6 @@ class TestConfigPy:
         confpy.read()
         assert config.instance._values['aliases']['foo'] == 'message-info foo'
         assert config.instance._values['aliases']['bar'] == 'message-info bar'
-
-    def test_reading_default_location(self, config_tmpdir, data_tmpdir):
-        (config_tmpdir / 'config.py').write_text(
-            'c.colors.hints.bg = "red"', 'utf-8')
-        configfiles.read_config_py()
-        assert config.instance._values['colors.hints.bg'] == 'red'
-
-    def test_reading_missing_default_location(self, config_tmpdir,
-                                              data_tmpdir):
-        assert not (config_tmpdir / 'config.py').exists()
-        configfiles.read_config_py()  # Should not crash
 
     def test_oserror(self, tmpdir, data_tmpdir, config_tmpdir):
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
@@ -443,12 +435,9 @@ class TestConfigPy:
         assert "    ^" in tblines
 
     def test_unhandled_exception(self, confpy):
-        confpy.write("config.load_autoconfig = False", "1/0")
+        confpy.write("1/0")
+        error = confpy.read(error=True)
 
-        api = confpy.read(error=True)
-        error = api.errors[0]
-
-        assert not api.load_autoconfig
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ZeroDivisionError)
 
@@ -460,8 +449,7 @@ class TestConfigPy:
     def test_config_val(self, confpy):
         """Using config.val should not work in config.py files."""
         confpy.write("config.val.colors.hints.bg = 'red'")
-        api = confpy.read(error=True)
-        error = api.errors[0]
+        error = confpy.read(error=True)
 
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, AttributeError)
@@ -470,11 +458,9 @@ class TestConfigPy:
 
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):
-        confpy.write(line, "config.load_autoconfig = False")
-        api = confpy.read(error=True)
-        error = api.errors[0]
+        confpy.write(line)
+        error = confpy.read(error=True)
 
-        assert not api.load_autoconfig
         assert error.text == "While setting 'foo'"
         assert isinstance(error.exception, configexc.NoOptionError)
         assert str(error.exception) == "No option 'foo'"
@@ -482,16 +468,20 @@ class TestConfigPy:
 
     def test_multiple_errors(self, confpy):
         confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")
-        api = configfiles.read_config_py(confpy.filename)
-        assert len(api.errors) == 3
 
-        for error in api.errors[:2]:
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(confpy.filename)
+
+        errors = excinfo.value.errors
+        assert len(errors) == 3
+
+        for error in errors[:2]:
             assert error.text == "While setting 'foo'"
             assert isinstance(error.exception, configexc.NoOptionError)
             assert str(error.exception) == "No option 'foo'"
             assert error.traceback is None
 
-        error = api.errors[2]
+        error = errors[2]
         assert error.text == "Unhandled exception"
         assert isinstance(error.exception, ZeroDivisionError)
         assert error.traceback is not None

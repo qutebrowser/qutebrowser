@@ -49,6 +49,13 @@ def test_duplicate_key_error():
     assert str(e) == "Duplicate key asdf"
 
 
+def test_desc_with_text():
+    """Test ConfigErrorDesc.with_text."""
+    old = configexc.ConfigErrorDesc("Error text", Exception("Exception text"))
+    new = old.with_text("additional text")
+    assert str(new) == 'Error text (additional text): Exception text'
+
+
 @pytest.fixture
 def errors():
     """Get a ConfigFileErrors object."""

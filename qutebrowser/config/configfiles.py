@@ -176,7 +176,6 @@ class ConfigAPI:
     Attributes:
         _config: The main Config object to use.
         _keyconfig: The KeyConfig object.
-        load_autoconfig: Whether autoconfig.yml should be loaded.
         errors: Errors which occurred while setting options.
         configdir: The qutebrowser config directory, as pathlib.Path.
         datadir: The qutebrowser data directory, as pathlib.Path.
@@ -185,7 +184,6 @@ class ConfigAPI:
     def __init__(self, conf, keyconfig):
         self._config = conf
         self._keyconfig = keyconfig
-        self.load_autoconfig = True
         self.errors = []
         self.configdir = pathlib.Path(standarddir.config())
         self.datadir = pathlib.Path(standarddir.data())
@@ -194,6 +192,10 @@ class ConfigAPI:
     def _handle_error(self, action, name):
         try:
             yield
+        except configexc.ConfigFileErrors as e:
+            for err in e.errors:
+                new_err = err.with_text(e.basename)
+                self.errors.append(new_err)
         except configexc.Error as e:
             text = "While {} '{}'".format(action, name)
             self.errors.append(configexc.ConfigErrorDesc(text, e))
@@ -201,6 +203,10 @@ class ConfigAPI:
     def finalize(self):
         """Do work which needs to be done after reading config.py."""
         self._config.update_mutables()
+
+    def load_autoconfig(self):
+        with self._handle_error('reading', 'autoconfig.yml'):
+            read_autoconfig()
 
     def get(self, name):
         with self._handle_error('getting', name):
@@ -223,20 +229,15 @@ class ConfigAPI:
             self._keyconfig.unbind(key, mode=mode)
 
 
-def read_config_py(filename=None, raising=False):
+def read_config_py(filename, raising=False):
     """Read a config.py file.
 
     Arguments;
+        filename: The name of the file to read.
         raising: Raise exceptions happening in config.py.
                  This is needed during tests to use pytest's inspection.
     """
     api = ConfigAPI(config.instance, config.key_instance)
-
-    if filename is None:
-        filename = os.path.join(standarddir.config(), 'config.py')
-        if not os.path.exists(filename):
-            return api
-
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
 
@@ -282,7 +283,20 @@ def read_config_py(filename=None, raising=False):
             exception=e, traceback=traceback.format_exc()))
 
     api.finalize()
-    return api
+
+    if api.errors:
+        raise configexc.ConfigFileErrors('config.py', api.errors)
+
+
+def read_autoconfig():
+    """Read the autoconfig.yml file."""
+    try:
+        config.instance.read_yaml()
+    except configexc.ConfigFileErrors as e:
+        raise  # caught in outer block
+    except configexc.Error as e:
+        desc = configexc.ConfigErrorDesc("Error", e)
+        raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
 
 @contextlib.contextmanager

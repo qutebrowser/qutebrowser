@@ -19,18 +19,19 @@
 
 """Initialization of the configuration."""
 
+import os.path
 import sys
 
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc)
-from qutebrowser.utils import objreg, qtutils, usertypes, log
+from qutebrowser.utils import objreg, qtutils, usertypes, log, standarddir
 from qutebrowser.misc import earlyinit, msgbox, objects
 
 
-# Errors which happened during init, so we can show a message box.
-_init_errors = []
+# Error which happened during init, so we can show a message box.
+_init_errors = None
 
 
 def early_init(args):
@@ -52,29 +53,17 @@ def early_init(args):
                                             config.key_instance)
     objreg.register('config-commands', config_commands)
 
-    config_api = None
+    config_file = os.path.join(standarddir.config(), 'config.py')
 
     try:
-        config_api = configfiles.read_config_py()
-        # Raised here so we get the config_api back.
-        if config_api.errors:
-            raise configexc.ConfigFileErrors('config.py', config_api.errors)
+        if os.path.exists(config_file):
+            configfiles.read_config_py(config_file)
+        else:
+            configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading config.py")
-        _init_errors.append(e)
-
-    try:
-        if getattr(config_api, 'load_autoconfig', True):
-            try:
-                config.instance.read_yaml()
-            except configexc.ConfigFileErrors as e:
-                raise  # caught in outer block
-            except configexc.Error as e:
-                desc = configexc.ConfigErrorDesc("Error", e)
-                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-    except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading config.py")
-        _init_errors.append(e)
+        log.config.exception("Error while loading {}".format(e.basename))
+        global _init_errors
+        _init_errors = e
 
     configfiles.init()
 
@@ -109,14 +98,14 @@ def get_backend(args):
 def late_init(save_manager):
     """Initialize the rest of the config after the QApplication is created."""
     global _init_errors
-    for err in _init_errors:
+    if _init_errors is not None:
         errbox = msgbox.msgbox(parent=None,
                                title="Error while reading config",
-                               text=err.to_html(),
+                               text=_init_errors.to_html(),
                                icon=QMessageBox.Warning,
                                plain_text=False)
         errbox.exec_()
-    _init_errors = []
+    _init_errors = None
 
     config.instance.init_save_manager(save_manager)
     configfiles.state.init_save_manager(save_manager)

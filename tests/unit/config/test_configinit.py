@@ -38,7 +38,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'instance', None)
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, 'change_filters', [])
-    monkeypatch.setattr(configinit, '_init_errors', [])
+    monkeypatch.setattr(configinit, '_init_errors', None)
     # Make sure we get no SSL warning
     monkeypatch.setattr(configinit.earlyinit, 'check_backend_ssl_support',
                         lambda _backend: None)
@@ -73,8 +73,8 @@ def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
 
     if config_py:
         config_py_lines = ['c.colors.hints.bg = "red"']
-        if not load_autoconfig:
-            config_py_lines.append('config.load_autoconfig = False')
+        if load_autoconfig:
+            config_py_lines.append('config.load_autoconfig()')
         if config_py == 'error':
             config_py_lines.append('c.foo = 42')
         config_py_file.write_text('\n'.join(config_py_lines),
@@ -85,21 +85,25 @@ def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
 
     # Check error messages
     expected_errors = []
-    if config_py == 'error':
-        expected_errors.append(
-            "Errors occurred while reading config.py:\n"
-            "  While setting 'foo': No option 'foo'")
+
     if load_autoconfig or not config_py:
-        error = "Errors occurred while reading autoconfig.yml:\n"
+        suffix = ' (autoconfig.yml)' if config_py else ''
         if invalid_yaml == '42':
-            error += "  While loading data: Toplevel object is not a dict"
+            error = ("While loading data{}: Toplevel object is not a dict"
+                     .format(suffix))
             expected_errors.append(error)
         elif invalid_yaml == 'wrong-type':
-            error += ("  Error: Invalid value 'True' - expected a value of "
-                      "type str but got bool.")
+            error = ("Error{}: Invalid value 'True' - expected a value of "
+                     "type str but got bool.".format(suffix))
             expected_errors.append(error)
+    if config_py == 'error':
+        expected_errors.append("While setting 'foo': No option 'foo'")
 
-    actual_errors = [str(err) for err in configinit._init_errors]
+    if configinit._init_errors is None:
+        actual_errors = []
+    else:
+        actual_errors = [str(err) for err in configinit._init_errors.errors]
+
     assert actual_errors == expected_errors
 
     # Make sure things have been init'ed
@@ -134,7 +138,7 @@ def test_late_init(init_patch, monkeypatch, fake_save_manager, fake_args,
     if errors:
         err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
         errs = configexc.ConfigFileErrors("config.py", [err])
-        monkeypatch.setattr(configinit, '_init_errors', [errs])
+        monkeypatch.setattr(configinit, '_init_errors', errs)
     msgbox_mock = mocker.patch('qutebrowser.config.configinit.msgbox.msgbox',
                                autospec=True)
 

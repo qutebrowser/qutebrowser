@@ -204,21 +204,22 @@ config.bind(',v', 'spawn mpv {url}')
 To suppress loading of any default keybindings, you can set
 `c.bindings.default = {}`.
 
-Prevent loading `autoconfig.yml`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Loading `autoconfig.yml`
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want all customization done via `:set`, `:bind` and `:unbind` to be
-temporary, you can suppress loading `autoconfig.yml` in your `config.py` by
-doing:
+By default, all customization done via `:set`, `:bind` and `:unbind` is
+temporary as soon as a `config.py` exists. The settings done that way are always
+saved in the `autoconfig.yml` file, but you'll need to explicitly load it in
+your `config.py` by doing:
 
 .config.py:
 [source,python]
 ----
-config.load_autoconfig = False
+config.load_autoconfig()
 ----
 
-Note that the settings are still saved in `autoconfig.yml` that way, but then
-not loaded on start.
+If you do so at the top of your file, your `config.py` settings will take
+precedence as they overwrite the settings done in `autoconfig.yml`.
 
 Importing other modules
 ~~~~~~~~~~~~~~~~~~~~~~~
