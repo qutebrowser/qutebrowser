@@ -49,86 +49,122 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
         pass
 
 
-@pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
-@pytest.mark.parametrize('config_py', [True, 'error', False])
-@pytest.mark.parametrize('invalid_yaml',
-                         ['42', 'unknown', 'wrong-type', False])
-# pylint: disable=too-many-branches
-def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
-                    load_autoconfig, config_py, invalid_yaml):
-    # Prepare files
-    autoconfig_file = config_tmpdir / 'autoconfig.yml'
-    config_py_file = config_tmpdir / 'config.py'
+class TestEarlyInit:
 
-    if invalid_yaml == '42':
-        text = '42'
-    elif invalid_yaml == 'unknown':
-        text = 'global:\n  colors.foobar: magenta\n'
-    elif invalid_yaml == 'wrong-type':
-        text = 'global:\n  tabs.position: true\n'
-    else:
-        assert not invalid_yaml
-        text = 'global:\n  colors.hints.fg: magenta\n'
-    autoconfig_file.write_text(text, 'utf-8', ensure=True)
+    @pytest.mark.parametrize('config_py', [True, 'error', False])
+    def test_config_py(self, init_patch, config_tmpdir, caplog, fake_args,
+                       config_py):
+        """Test loading with only a config.py."""
+        config_py_file = config_tmpdir / 'config.py'
 
-    if config_py:
-        config_py_lines = ['c.colors.hints.bg = "red"']
-        if load_autoconfig:
-            config_py_lines.append('config.load_autoconfig()')
+        if config_py:
+            config_py_lines = ['c.colors.hints.bg = "red"']
+            if config_py == 'error':
+                config_py_lines.append('c.foo = 42')
+            config_py_file.write_text('\n'.join(config_py_lines),
+                                      'utf-8', ensure=True)
+
+        with caplog.at_level(logging.ERROR):
+            configinit.early_init(fake_args)
+
+        # Check error messages
+        expected_errors = []
         if config_py == 'error':
-            config_py_lines.append('c.foo = 42')
-        config_py_file.write_text('\n'.join(config_py_lines),
-                                  'utf-8', ensure=True)
+            expected_errors.append("While setting 'foo': No option 'foo'")
 
-    with caplog.at_level(logging.ERROR):
-        configinit.early_init(fake_args)
+        if configinit._init_errors is None:
+            actual_errors = []
+        else:
+            actual_errors = [str(err)
+                             for err in configinit._init_errors.errors]
 
-    # Check error messages
-    expected_errors = []
+        assert actual_errors == expected_errors
 
-    if load_autoconfig or not config_py:
-        suffix = ' (autoconfig.yml)' if config_py else ''
-        if invalid_yaml == '42':
-            error = ("While loading data{}: Toplevel object is not a dict"
-                     .format(suffix))
-            expected_errors.append(error)
-        elif invalid_yaml == 'wrong-type':
-            error = ("Error{}: Invalid value 'True' - expected a value of "
-                     "type str but got bool.".format(suffix))
-            expected_errors.append(error)
-    if config_py == 'error':
-        expected_errors.append("While setting 'foo': No option 'foo'")
+        # Make sure things have been init'ed
+        objreg.get('config-commands')
+        assert isinstance(config.instance, config.Config)
+        assert isinstance(config.key_instance, config.KeyConfig)
 
-    if configinit._init_errors is None:
-        actual_errors = []
-    else:
-        actual_errors = [str(err) for err in configinit._init_errors.errors]
+        # Check config values
+        if config_py:
+            assert config.instance._values == {'colors.hints.bg': 'red'}
+        else:
+            assert config.instance._values == {}
 
-    assert actual_errors == expected_errors
+    @pytest.mark.parametrize('load_autoconfig', [True, False])
+    @pytest.mark.parametrize('config_py', [True, 'error', False])
+    @pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', 'wrong-type',
+                                              False])
+    def test_autoconfig_yml(self, init_patch, config_tmpdir, caplog, fake_args,
+                            load_autoconfig, config_py, invalid_yaml):
+        """Test interaction between config.py and autoconfig.yml."""
+        # pylint: disable=too-many-locals,too-many-branches
+        # Prepare files
+        autoconfig_file = config_tmpdir / 'autoconfig.yml'
+        config_py_file = config_tmpdir / 'config.py'
 
-    # Make sure things have been init'ed
-    objreg.get('config-commands')
-    assert isinstance(config.instance, config.Config)
-    assert isinstance(config.key_instance, config.KeyConfig)
-
-    # Check config values
-    if config_py and load_autoconfig and not invalid_yaml:
-        assert config.instance._values == {
-            'colors.hints.bg': 'red',
-            'colors.hints.fg': 'magenta',
+        yaml_text = {
+            '42': '42',
+            'unknown': 'global:\n  colors.foobar: magenta\n',
+            'wrong-type': 'global:\n  tabs.position: true\n',
+            False: 'global:\n  colors.hints.fg: magenta\n',
         }
-    elif config_py:
-        assert config.instance._values == {'colors.hints.bg': 'red'}
-    elif invalid_yaml:
-        assert config.instance._values == {}
-    else:
-        assert config.instance._values == {'colors.hints.fg': 'magenta'}
+        autoconfig_file.write_text(yaml_text[invalid_yaml], 'utf-8',
+                                   ensure=True)
 
+        if config_py:
+            config_py_lines = ['c.colors.hints.bg = "red"']
+            if load_autoconfig:
+                config_py_lines.append('config.load_autoconfig()')
+            if config_py == 'error':
+                config_py_lines.append('c.foo = 42')
+            config_py_file.write_text('\n'.join(config_py_lines),
+                                      'utf-8', ensure=True)
 
-def test_early_init_invalid_change_filter(init_patch, fake_args):
-    config.change_filter('foobar')
-    with pytest.raises(configexc.NoOptionError):
-        configinit.early_init(fake_args)
+        with caplog.at_level(logging.ERROR):
+            configinit.early_init(fake_args)
+
+        # Check error messages
+        expected_errors = []
+
+        if load_autoconfig or not config_py:
+            suffix = ' (autoconfig.yml)' if config_py else ''
+            if invalid_yaml == '42':
+                error = ("While loading data{}: Toplevel object is not a dict"
+                        .format(suffix))
+                expected_errors.append(error)
+            elif invalid_yaml == 'wrong-type':
+                error = ("Error{}: Invalid value 'True' - expected a value of "
+                        "type str but got bool.".format(suffix))
+                expected_errors.append(error)
+        if config_py == 'error':
+            expected_errors.append("While setting 'foo': No option 'foo'")
+
+        if configinit._init_errors is None:
+            actual_errors = []
+        else:
+            actual_errors = [str(err)
+                             for err in configinit._init_errors.errors]
+
+        assert actual_errors == expected_errors
+
+        # Check config values
+        if config_py and load_autoconfig and not invalid_yaml:
+            assert config.instance._values == {
+                'colors.hints.bg': 'red',
+                'colors.hints.fg': 'magenta',
+            }
+        elif config_py:
+            assert config.instance._values == {'colors.hints.bg': 'red'}
+        elif invalid_yaml:
+            assert config.instance._values == {}
+        else:
+            assert config.instance._values == {'colors.hints.fg': 'magenta'}
+
+    def test_invalid_change_filter(self, init_patch, fake_args):
+        config.change_filter('foobar')
+        with pytest.raises(configexc.NoOptionError):
+            configinit.early_init(fake_args)
 
 
 @pytest.mark.parametrize('errors', [True, False])
