@@ -75,6 +75,7 @@ def get_args():
         'browser',
         help="Which browser? {%(choices)s}",
         choices=browser_default_input_format.keys(),
+        nargs='?',
         metavar='browser')
     parser.add_argument(
         '-i',
