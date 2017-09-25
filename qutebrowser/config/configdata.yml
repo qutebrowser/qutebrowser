@@ -566,6 +566,8 @@ content.xss_auditing:
     JavaScript console. Enabling this feature might have an impact on
     performance.
 
+# emacs: '
+
 ## completion
 
 completion.cmd_history_max_items:
@@ -921,6 +923,8 @@ keyhint.blacklist:
 
     Globs are supported, so `;*` will blacklist all keychains starting with `;`.
     Use `*` to disable keyhints.
+
+# emacs: '
 
 keyhint.delay:
   type:
@@ -1736,6 +1740,8 @@ fonts.monospace:
 
     Whenever "monospace" is used in a font setting, it's replaced with the
     fonts listed here.
+
+# emacs: '
 
 fonts.completion.entry:
   default: 8pt monospace
