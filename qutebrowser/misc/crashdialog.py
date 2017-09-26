@@ -65,41 +65,6 @@ def parse_fatal_stacktrace(text):
         return (m.group(1), m.group(3))
 
 
-def get_fatal_crash_dialog(debug, data):
-    """Get a fatal crash dialog based on a crash log.
-
-    If the crash is a segfault in qt_mainloop and we're on an old Qt version
-    this is a simple error dialog which lets the user know they should upgrade
-    if possible.
-
-    If it's anything else, it's a normal FatalCrashDialog with the possibility
-    to report the crash.
-
-    Args:
-        debug: Whether the debug flag (--debug) was given.
-        data: The crash log data.
-    """
-    ignored_frames = ['qt_mainloop', 'paintEvent']
-    errtype, frame = parse_fatal_stacktrace(data)
-
-    if (errtype == 'Segmentation fault' and
-            frame in ignored_frames and
-            objects.backend == usertypes.Backend.QtWebKit):
-        title = "qutebrowser was restarted after a fatal crash!"
-        text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
-                "Unfortunately, this crash occurred in Qt (the library "
-                "qutebrowser uses), and QtWebKit (the current backend) is not "
-                "maintained anymore.<br/><br/>Since I can't do much about "
-                "those crashes I disabled the crash reporter for this case, "
-                "but this will likely be resolved in the future with the new "
-                "QtWebEngine backend.")
-        box = QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
-        box.setAttribute(Qt.WA_DeleteOnClose)
-        return box
-    else:
-        return FatalCrashDialog(debug, data)
-
-
 def _get_environment_vars():
     """Gather environment variables for the crash info."""
     masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG',

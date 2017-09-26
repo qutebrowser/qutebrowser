@@ -94,7 +94,7 @@ class CrashHandler(QObject):
                 if data:
                     # Crashlog exists and has data in it, so something crashed
                     # previously.
-                    self._crash_dialog = crashdialog.get_fatal_crash_dialog(
+                    self._crash_dialog = crashdialog.FatalCrashDialog(
                         self._args.debug, data)
                     self._crash_dialog.show()
             else:
