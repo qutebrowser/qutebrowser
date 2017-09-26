@@ -27,6 +27,7 @@ exclude scripts/asciidoc2html.py
 exclude doc/notes
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc
+include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
 prune misc/requirements

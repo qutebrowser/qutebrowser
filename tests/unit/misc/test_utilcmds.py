@@ -21,7 +21,6 @@
 
 import contextlib
 import logging
-import os
 import signal
 import time
 
@@ -29,6 +28,7 @@ import pytest
 
 from qutebrowser.misc import utilcmds
 from qutebrowser.commands import cmdexc
+from qutebrowser.utils import utils
 
 
 @contextlib.contextmanager
@@ -45,7 +45,7 @@ def test_debug_crash_exception():
         utilcmds.debug_crash(typ='exception')
 
 
-@pytest.mark.skipif(os.name == 'nt',
+@pytest.mark.skipif(utils.is_windows,
                     reason="current CPython/win can't recover from SIGSEGV")
 def test_debug_crash_segfault():
     """Verify that debug_crash crashes as intended."""

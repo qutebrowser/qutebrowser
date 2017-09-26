@@ -43,7 +43,8 @@ import qutebrowser
 import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import config, websettings, configexc, configfiles
+from qutebrowser.config import (config, websettings, configexc, configfiles,
+                                configinit)
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -77,7 +78,7 @@ def run(args):
     standarddir.init(args)
 
     log.init.debug("Initializing config...")
-    config.early_init(args)
+    configinit.early_init(args)
 
     global qApp
     qApp = Application(args)
@@ -393,7 +394,7 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
-    config.late_init(save_manager)
+    configinit.late_init(save_manager)
 
     log.init.debug("Initializing network...")
     networkmanager.init()
@@ -762,7 +763,7 @@ class Application(QApplication):
         """
         self._last_focus_object = None
 
-        qt_args = config.qt_args(args)
+        qt_args = configinit.qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(qt_args)
 

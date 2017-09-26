@@ -201,7 +201,7 @@
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
 |<<input.rocker_gestures,input.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable Spatial Navigation.
-|<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn\'t be shown in the keyhint dialog.
+|<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time from pressing a key to seeing the keyhint dialog (ms).
 |<<messages.timeout,messages.timeout>>|Time (in ms) to show messages in the statusbar for.
 |<<messages.unfocused,messages.unfocused>>|Show messages in unfocused windows.
@@ -283,7 +283,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[backend]]
 === backend
@@ -626,6 +626,7 @@ Default:
 This setting can be used to map keys to other keys.
 When the key used as dictionary-key is pressed, the binding for the key used as dictionary-value is invoked instead.
 This is useful for global remappings of keys, for example to map Ctrl-[ to Escape.
+Note that when a key is bound (via `bindings.default` or `bindings.commands`), the mapping is ignored.
 
 Type: <<types,Dict>>
 
@@ -1341,7 +1342,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[completion.timestamp_format]]
 === completion.timestamp_format
@@ -1401,7 +1402,7 @@ For more information about the feature, please refer to: http://webkit.org/blog/
 
 Type: <<types,Int>>
 
-Default: empty
+Default: +pass:[0]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1465,7 +1466,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1496,7 +1497,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1627,7 +1628,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.images]]
 === content.images
@@ -1667,7 +1668,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.javascript.can_close_tabs]]
 === content.javascript.can_close_tabs
@@ -1680,7 +1681,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1695,7 +1696,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.javascript.enabled]]
 === content.javascript.enabled
@@ -1736,7 +1737,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.javascript.prompt]]
 === content.javascript.prompt
@@ -1775,7 +1776,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.local_storage]]
 === content.local_storage
@@ -1841,7 +1842,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -1856,7 +1857,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.print_element_backgrounds]]
 === content.print_element_backgrounds
@@ -1884,7 +1885,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[content.proxy]]
 === content.proxy
@@ -1953,7 +1954,7 @@ Default: +pass:[true]+
 [[content.xss_auditing]]
 === content.xss_auditing
 Whether load requests should be monitored for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector\'s JavaScript console. Enabling this feature might have an impact on performance.
+Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
 
 Type: <<types,Bool>>
 
@@ -1962,7 +1963,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
@@ -2142,7 +2143,7 @@ Default: +pass:[8pt monospace]+
 [[fonts.monospace]]
 === fonts.monospace
 Default monospace fonts.
-Whenever "monospace" is used in a font setting, it\'s replaced with the fonts listed here.
+Whenever "monospace" is used in a font setting, it's replaced with the fonts listed here.
 
 Type: <<types,Font>>
 
@@ -2242,7 +2243,7 @@ The hard minimum font size.
 
 Type: <<types,Int>>
 
-Default: empty
+Default: +pass:[0]+
 
 [[fonts.web.size.minimum_logical]]
 === fonts.web.size.minimum_logical
@@ -2273,7 +2274,7 @@ A timeout (in milliseconds) to ignore normal-mode key bindings after a successfu
 
 Type: <<types,Int>>
 
-Default: empty
+Default: +pass:[0]+
 
 [[hints.border]]
 === hints.border
@@ -2403,7 +2404,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[history_gap_interval]]
 === history_gap_interval
@@ -2466,7 +2467,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins
@@ -2479,7 +2480,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[input.links_included_in_focus_chain]]
 === input.links_included_in_focus_chain
@@ -2515,7 +2516,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[input.spatial_navigation]]
 === input.spatial_navigation
@@ -2529,11 +2530,11 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[keyhint.blacklist]]
 === keyhint.blacklist
-Keychains that shouldn\'t be shown in the keyhint dialog.
+Keychains that shouldn't be shown in the keyhint dialog.
 Globs are supported, so `;*` will blacklist all keychains starting with `;`. Use `*` to disable keyhints.
 
 Type: <<types,List>>
@@ -2568,7 +2569,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[new_instance_open_target]]
 === new_instance_open_target
@@ -2645,7 +2646,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[scrolling.smooth]]
 === scrolling.smooth
@@ -2659,7 +2660,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[session_default_name]]
 === session_default_name
@@ -2681,7 +2682,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[statusbar.padding]]
 === statusbar.padding
@@ -2692,8 +2693,8 @@ Type: <<types,Padding>>
 Default: 
 
 - +pass:[bottom]+: +pass:[1]+
-- +pass:[left]+: empty
-- +pass:[right]+: empty
+- +pass:[left]+: +pass:[0]+
+- +pass:[right]+: +pass:[0]+
 - +pass:[top]+: +pass:[1]+
 
 [[statusbar.position]]
@@ -2720,7 +2721,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[tabs.close_mouse_button]]
 === tabs.close_mouse_button
@@ -2767,7 +2768,7 @@ Type: <<types,Padding>>
 Default: 
 
 - +pass:[bottom]+: +pass:[2]+
-- +pass:[left]+: empty
+- +pass:[left]+: +pass:[0]+
 - +pass:[right]+: +pass:[4]+
 - +pass:[top]+: +pass:[2]+
 
@@ -2838,10 +2839,10 @@ Type: <<types,Padding>>
 
 Default: 
 
-- +pass:[bottom]+: empty
+- +pass:[bottom]+: +pass:[0]+
 - +pass:[left]+: +pass:[5]+
 - +pass:[right]+: +pass:[5]+
-- +pass:[top]+: empty
+- +pass:[top]+: +pass:[0]+
 
 [[tabs.position]]
 === tabs.position
@@ -2906,7 +2907,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[tabs.title.alignment]]
 === tabs.title.alignment
@@ -3069,7 +3070,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 [[window.title_format]]
 === window.title_format
@@ -3143,7 +3144,7 @@ Valid values:
  * +true+
  * +false+
 
-Default: empty
+Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
 
@@ -3157,7 +3158,7 @@ This setting is only available with the QtWebKit backend.
 When setting from a string, `1`, `yes`, `on` and `true` count as true, while `0`, `no`, `off` and `false` count as false (case-insensitive).
 |BoolAsk|Like `Bool`, but `ask` is allowed as additional value.
 |ColorSystem|The color system to use for color interpolation.
-|Command|Base class for a command value with arguments.
+|Command|A qutebrowser command with arguments.
 |ConfirmQuit|Whether to display a confirmation when the window is closed.
 |Dict|A dictionary of values.
 

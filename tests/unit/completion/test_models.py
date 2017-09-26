@@ -573,6 +573,24 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
     })
 
 
+def test_bind_completion_no_current(qtmodeltester, cmdutils_stub, config_stub,
+                                    key_config_stub, configdata_stub, info):
+    """Test keybinding completion with no current binding."""
+    model = configmodel.bind('x', info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Commands": [
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('scroll', 'Scroll the current tab in the given direction.', '')
+        ],
+    })
+
+
 def test_url_completion_benchmark(benchmark, info,
                                   quickmark_manager_stub,
                                   bookmark_manager_stub,

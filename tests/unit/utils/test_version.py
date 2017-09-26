@@ -36,7 +36,7 @@ import attr
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes
+from qutebrowser.utils import version, usertypes, utils
 from qutebrowser.browser import pdfjs
 
 
@@ -333,7 +333,7 @@ class TestGitStrSubprocess:
                 'GIT_COMMITTER_EMAIL': 'mail@qutebrowser.org',
                 'GIT_COMMITTER_DATE': 'Thu  1 Jan 01:00:00 CET 1970',
             })
-            if os.name == 'nt':
+            if utils.is_windows:
                 # If we don't call this with shell=True it might fail under
                 # some environments on Windows...
                 # http://bugs.python.org/issue24493
@@ -662,12 +662,12 @@ class TestOsInfo:
 
     """Tests for _os_info."""
 
+    @pytest.mark.fake_os('linux')
     def test_linux_fake(self, monkeypatch):
         """Test with a fake Linux.
 
         No args because osver is set to '' if the OS is linux.
         """
-        monkeypatch.setattr(version.sys, 'platform', 'linux')
         monkeypatch.setattr(version, '_release_info',
                             lambda: [('releaseinfo', 'Hello World')])
         ret = version._os_info()
@@ -675,15 +675,16 @@ class TestOsInfo:
                     '--- releaseinfo ---', 'Hello World']
         assert ret == expected
 
+    @pytest.mark.fake_os('windows')
     def test_windows_fake(self, monkeypatch):
         """Test with a fake Windows."""
-        monkeypatch.setattr(version.sys, 'platform', 'win32')
         monkeypatch.setattr(version.platform, 'win32_ver',
                             lambda: ('eggs', 'bacon', 'ham', 'spam'))
         ret = version._os_info()
         expected = ['OS Version: eggs, bacon, ham, spam']
         assert ret == expected
 
+    @pytest.mark.fake_os('mac')
     @pytest.mark.parametrize('mac_ver, mac_ver_str', [
         (('x', ('', '', ''), 'y'), 'x, y'),
         (('', ('', '', ''), ''), ''),
@@ -696,15 +697,14 @@ class TestOsInfo:
             mac_ver: The tuple to set platform.mac_ver() to.
             mac_ver_str: The expected Mac version string in version._os_info().
         """
-        monkeypatch.setattr(version.sys, 'platform', 'darwin')
         monkeypatch.setattr(version.platform, 'mac_ver', lambda: mac_ver)
         ret = version._os_info()
         expected = ['OS Version: {}'.format(mac_ver_str)]
         assert ret == expected
 
-    def test_unknown_fake(self, monkeypatch):
-        """Test with a fake unknown sys.platform."""
-        monkeypatch.setattr(version.sys, 'platform', 'toaster')
+    @pytest.mark.fake_os('unknown')
+    def test_unknown_fake(self):
+        """Test with a fake unknown platform."""
         ret = version._os_info()
         expected = ['OS Version: ?']
         assert ret == expected

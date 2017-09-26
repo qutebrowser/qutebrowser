@@ -56,7 +56,7 @@ class TestsNormalKeyParser:
         # Then start the real chain
         keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        keyparser.execute.assert_called_once_with(
+        keyparser.execute.assert_called_with(
             'message-info ba', keyparser.Type.chain, None)
         assert keyparser._keystring == ''
 

@@ -174,7 +174,7 @@ def transform_path(path):
 
     Returns None if the path is invalid on the current platform.
     """
-    if sys.platform != "win32":
+    if not utils.is_windows:
         return path
     path = utils.expand_windows_drive(path)
     # Drive dependent working directories are not supported, e.g.

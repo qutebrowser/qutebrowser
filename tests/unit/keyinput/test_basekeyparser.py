@@ -19,7 +19,6 @@
 
 """Tests for BaseKeyParser."""
 
-import sys
 import logging
 from unittest import mock
 
@@ -92,8 +91,7 @@ class TestDebugLog:
 ])
 def test_split_count(config_stub, input_key, supports_count, expected):
     kp = basekeyparser.BaseKeyParser(0, supports_count=supports_count)
-    kp._keystring = input_key
-    assert kp._split_count() == expected
+    assert kp._split_count(input_key) == expected
 
 
 @pytest.mark.usefixtures('keyinput_bindings')
@@ -166,20 +164,14 @@ class TestSpecialKeys:
         keyparser._read_config('prompt')
 
     def test_valid_key(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
-            modifier = Qt.MetaModifier
-        else:
-            modifier = Qt.ControlModifier
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
             'message-info ctrla', keyparser.Type.special, None)
 
     def test_valid_key_count(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
-            modifier = Qt.MetaModifier
-        else:
-            modifier = Qt.ControlModifier
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
         keyparser.handle(fake_keyevent_factory(5, text='5'))
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier, text='A'))
         keyparser.execute.assert_called_once_with(
@@ -200,6 +192,22 @@ class TestSpecialKeys:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
         assert not keyparser.execute.called
 
+    def test_mapping(self, config_stub, fake_keyevent_factory, keyparser):
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
+
+        keyparser.handle(fake_keyevent_factory(Qt.Key_B, modifier))
+        keyparser.execute.assert_called_once_with(
+            'message-info ctrla', keyparser.Type.special, None)
+
+    def test_binding_and_mapping(self, config_stub, fake_keyevent_factory,
+                                 keyparser):
+        """with a conflicting binding/mapping, the binding should win."""
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
+
+        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
+        keyparser.execute.assert_called_once_with(
+            'message-info ctrla', keyparser.Type.special, None)
+
 
 class TestKeyChain:
 
@@ -210,7 +218,7 @@ class TestKeyChain:
         keyparser._read_config('prompt')
 
     def test_valid_special_key(self, fake_keyevent_factory, keyparser):
-        if sys.platform == 'darwin':
+        if utils.is_mac:
             modifier = Qt.MetaModifier
         else:
             modifier = Qt.ControlModifier
@@ -231,7 +239,7 @@ class TestKeyChain:
         handle_text((Qt.Key_X, 'x'),
                     # Then start the real chain
                     (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
-        keyparser.execute.assert_called_once_with(
+        keyparser.execute.assert_called_with(
             'message-info ba', keyparser.Type.chain, None)
         assert keyparser._keystring == ''
 
@@ -249,6 +257,16 @@ class TestKeyChain:
         handle_text((Qt.Key_B, 'b'))
         handle_text((Qt.Key_C, 'c'))
         assert keyparser._keystring == ''
+
+    def test_mapping(self, config_stub, handle_text, keyparser):
+        handle_text((Qt.Key_X, 'x'))
+        keyparser.execute.assert_called_once_with(
+            'message-info a', keyparser.Type.chain, None)
+
+    def test_binding_and_mapping(self, config_stub, handle_text, keyparser):
+        """with a conflicting binding/mapping, the binding should win."""
+        handle_text((Qt.Key_B, 'b'))
+        assert not keyparser.execute.called
 
 
 class TestCount:

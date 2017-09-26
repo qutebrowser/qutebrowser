@@ -138,9 +138,9 @@ def test_quitting_process(qtbot, quit_pyproc):
 
 
 def test_quitting_process_expected(qtbot, quit_pyproc):
+    quit_pyproc.exit_expected = True
     with qtbot.waitSignal(quit_pyproc.proc.finished):
         quit_pyproc.start()
-    quit_pyproc.exit_expected = True
     quit_pyproc.after_test()
 
 

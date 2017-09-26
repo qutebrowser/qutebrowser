@@ -38,7 +38,7 @@ from end2end.fixtures.webserver import server, server_after_test, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, utils
 
 
 def pytest_configure(config):
@@ -144,7 +144,7 @@ def pytest_collection_modifyitems(config, items):
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
         ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
-         pytest.mark.xfail, config.webengine and sys.platform == 'darwin'),
+         pytest.mark.xfail, config.webengine and utils.is_mac),
     ]
 
     for item in items:

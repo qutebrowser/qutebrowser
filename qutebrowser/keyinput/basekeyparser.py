@@ -122,37 +122,40 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring only-modifier keyeevent.")
             return False
 
-        key_mappings = config.val.bindings.key_mappings
-        try:
-            binding = key_mappings['<{}>'.format(binding)][1:-1]
-        except KeyError:
-            pass
+        if binding not in self.special_bindings:
+            key_mappings = config.val.bindings.key_mappings
+            try:
+                binding = key_mappings['<{}>'.format(binding)][1:-1]
+            except KeyError:
+                pass
 
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:
             self._debug_log("No special binding found for {}.".format(binding))
             return False
-        count, _command = self._split_count()
+        count, _command = self._split_count(self._keystring)
         self.execute(cmdstr, self.Type.special, count)
         self.clear_keystring()
         return True
 
-    def _split_count(self):
+    def _split_count(self, keystring):
         """Get count and command from the current keystring.
+
+        Args:
+            keystring: The key string to split.
 
         Return:
             A (count, command) tuple.
         """
         if self._supports_count:
-            (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
-                                             self._keystring).groups()
+            (countstr, cmd_input) = re.match(r'^(\d*)(.*)', keystring).groups()
             count = int(countstr) if countstr else None
             if count == 0 and not cmd_input:
-                cmd_input = self._keystring
+                cmd_input = keystring
                 count = None
         else:
-            cmd_input = self._keystring
+            cmd_input = keystring
             count = None
         return count, cmd_input
 
@@ -183,18 +186,17 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring, no text char")
             return self.Match.none
 
-        key_mappings = config.val.bindings.key_mappings
-        txt = key_mappings.get(txt, txt)
-        self._keystring += txt
-
-        count, cmd_input = self._split_count()
-
-        if not cmd_input:
-            # Only a count, no command yet, but we handled it
-            return self.Match.other
-
+        count, cmd_input = self._split_count(self._keystring + txt)
         match, binding = self._match_key(cmd_input)
+        if match == self.Match.none:
+            mappings = config.val.bindings.key_mappings
+            mapped = mappings.get(txt, None)
+            if mapped is not None:
+                txt = mapped
+                count, cmd_input = self._split_count(self._keystring + txt)
+                match, binding = self._match_key(cmd_input)
 
+        self._keystring += txt
         if match == self.Match.definitive:
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
@@ -207,6 +209,8 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self.clear_keystring()
+        elif match == self.Match.other:
+            pass
         else:
             raise AssertionError("Invalid match value {!r}".format(match))
         return match
@@ -223,6 +227,9 @@ class BaseKeyParser(QObject):
                 binding: - None with Match.partial/Match.none.
                          - The found binding with Match.definitive.
         """
+        if not cmd_input:
+            # Only a count, no command yet, but we handled it
+            return (self.Match.other, None)
         # A (cmd_input, binding) tuple (k, v of bindings) or None.
         definitive_match = None
         partial_match = False

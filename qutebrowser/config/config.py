@@ -19,19 +19,16 @@
 
 """Configuration storage and config-related utilities."""
 
-import sys
 import copy
 import contextlib
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
-from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.config import configdata, configexc, configtypes, configfiles
-from qutebrowser.utils import (utils, objreg, message, log, usertypes, jinja,
-                               qtutils)
-from qutebrowser.misc import objects, msgbox, earlyinit
-from qutebrowser.commands import cmdexc, cmdutils, runners
+from qutebrowser.config import configdata, configexc, configtypes
+from qutebrowser.utils import utils, objreg, message, log, jinja
+from qutebrowser.misc import objects
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
 
 # An easy way to access the config from other code via config.val.foo
@@ -40,9 +37,7 @@ instance = None
 key_instance = None
 
 # Keeping track of all change filters to validate them later.
-_change_filters = []
-# Errors which happened during init, so we can show a message box.
-_init_errors = []
+change_filters = []
 
 
 class change_filter:  # pylint: disable=invalid-name
@@ -68,7 +63,7 @@ class change_filter:  # pylint: disable=invalid-name
         """
         self._option = option
         self._function = function
-        _change_filters.append(self)
+        change_filters.append(self)
 
     def validate(self):
         """Make sure the configured option or prefix exists.
@@ -178,19 +173,6 @@ class KeyConfig:
     def bind(self, key, command, *, mode, force=False, save_yaml=False):
         """Add a new binding from key to command."""
         key = self._prepare(key, mode)
-
-        parser = runners.CommandParser()
-        try:
-            results = parser.parse_all(command)
-        except cmdexc.Error as e:
-            raise configexc.KeybindingError("Invalid command: {}".format(e))
-
-        for result in results:  # pragma: no branch
-            try:
-                result.cmd.validate_mode(usertypes.KeyMode[mode])
-            except cmdexc.PrerequisitesError as e:
-                raise configexc.KeybindingError(str(e))
-
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
         if key in self.get_bindings_for(mode) and not force:
@@ -293,14 +275,17 @@ class ConfigCommands:
 
         # Use the next valid value from values, or the first if the current
         # value does not appear in the list
-        old_value = self._config.get_str(option)
+        old_value = self._config.get_obj(option, mutable=False)
+        opt = self._config.get_opt(option)
+        values = [opt.typ.from_str(val) for val in values]
+
         try:
-            idx = values.index(str(old_value))
+            idx = values.index(old_value)
             idx = (idx + 1) % len(values)
             value = values[idx]
         except ValueError:
             value = values[0]
-        self._config.set_str(option, value, save_yaml=not temp)
+        self._config.set_obj(option, value, save_yaml=not temp)
 
     @contextlib.contextmanager
     def _handle_config_error(self):
@@ -408,7 +393,7 @@ class Config(QObject):
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
-        for name, value in self._yaml.values.items():
+        for name, value in self._yaml:
             self._set_value(self.get_opt(name), value)
 
     def get_opt(self, name):
@@ -462,7 +447,7 @@ class Config(QObject):
         """
         self._set_value(self.get_opt(name), value)
         if save_yaml:
-            self._yaml.values[name] = value
+            self._yaml[name] = value
 
     def set_str(self, name, value, *, save_yaml=False):
         """Set the given setting from a string.
@@ -476,7 +461,7 @@ class Config(QObject):
                                  value))
         self._set_value(opt, converted)
         if save_yaml:
-            self._yaml.values[name] = converted
+            self._yaml[name] = converted
 
     def update_mutables(self, *, save_yaml=False):
         """Update mutable settings if they changed.
@@ -647,114 +632,3 @@ class StyleSheetObserver(QObject):
         self._obj.setStyleSheet(qss)
         if update:
             instance.changed.connect(self._update_stylesheet)
-
-
-def early_init(args):
-    """Initialize the part of the config which works without a QApplication."""
-    configdata.init()
-
-    yaml_config = configfiles.YamlConfig()
-
-    global val, instance, key_instance
-    instance = Config(yaml_config=yaml_config)
-    val = ConfigContainer(instance)
-    key_instance = KeyConfig(instance)
-
-    for cf in _change_filters:
-        cf.validate()
-
-    configtypes.Font.monospace_fonts = val.fonts.monospace
-
-    config_commands = ConfigCommands(instance, key_instance)
-    objreg.register('config-commands', config_commands)
-
-    config_api = None
-
-    try:
-        config_api = configfiles.read_config_py()
-        # Raised here so we get the config_api back.
-        if config_api.errors:
-            raise configexc.ConfigFileErrors('config.py', config_api.errors)
-    except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading config.py")
-        _init_errors.append(e)
-
-    try:
-        if getattr(config_api, 'load_autoconfig', True):
-            try:
-                instance.read_yaml()
-            except configexc.ConfigFileErrors as e:
-                raise  # caught in outer block
-            except configexc.Error as e:
-                desc = configexc.ConfigErrorDesc("Error", e)
-                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-    except configexc.ConfigFileErrors as e:
-        log.config.exception("Error while loading config.py")
-        _init_errors.append(e)
-
-    configfiles.init()
-
-    objects.backend = get_backend(args)
-    earlyinit.init_with_backend(objects.backend)
-
-
-def get_backend(args):
-    """Find out what backend to use based on available libraries."""
-    try:
-        import PyQt5.QtWebKit  # pylint: disable=unused-variable
-    except ImportError:
-        webkit_available = False
-    else:
-        webkit_available = qtutils.is_new_qtwebkit()
-
-    str_to_backend = {
-        'webkit': usertypes.Backend.QtWebKit,
-        'webengine': usertypes.Backend.QtWebEngine,
-    }
-
-    if args.backend is not None:
-        return str_to_backend[args.backend]
-    elif val.backend != 'auto':
-        return str_to_backend[val.backend]
-    elif webkit_available:
-        return usertypes.Backend.QtWebKit
-    else:
-        return usertypes.Backend.QtWebEngine
-
-
-def late_init(save_manager):
-    """Initialize the rest of the config after the QApplication is created."""
-    global _init_errors
-    for err in _init_errors:
-        errbox = msgbox.msgbox(parent=None,
-                               title="Error while reading config",
-                               text=err.to_html(),
-                               icon=QMessageBox.Warning,
-                               plain_text=False)
-        errbox.exec_()
-    _init_errors = []
-
-    instance.init_save_manager(save_manager)
-    configfiles.state.init_save_manager(save_manager)
-
-
-def qt_args(namespace):
-    """Get the Qt QApplication arguments based on an argparse namespace.
-
-    Args:
-        namespace: The argparse namespace.
-
-    Return:
-        The argv list to be passed to Qt.
-    """
-    argv = [sys.argv[0]]
-
-    if namespace.qt_flag is not None:
-        argv += ['--' + flag[0] for flag in namespace.qt_flag]
-
-    if namespace.qt_arg is not None:
-        for name, value in namespace.qt_arg:
-            argv += ['--' + name, value]
-
-    argv += ['--' + arg for arg in val.qt_args]
-    return argv

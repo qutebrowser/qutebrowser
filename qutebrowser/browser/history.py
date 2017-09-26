@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import (utils, objreg, log, usertypes, message,
-                               debug, standarddir)
+                               debug, standarddir, qtutils)
 from qutebrowser.misc import objects, sql
 
 
@@ -144,8 +144,10 @@ class WebHistory(sql.SqlTable):
         Args:
             url: URL string to delete.
         """
-        self.delete('url', url)
-        self.completion.delete('url', url)
+        qurl = QUrl(url)
+        qtutils.ensure_valid(qurl)
+        self.delete('url', self._format_url(qurl))
+        self.completion.delete('url', self._format_completion_url(qurl))
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
@@ -250,10 +252,7 @@ class WebHistory(sql.SqlTable):
                 except ValueError as ex:
                     message.error('Failed to import history: {}'.format(ex))
                 else:
-                    bakpath = path + '.bak'
-                    message.info('History import complete. Moving {} to {}'
-                                 .format(path, bakpath))
-                    os.rename(path, bakpath)
+                    self._write_backup(path)
 
         # delay to give message time to appear before locking down for import
         message.info('Converting {} to sqlite...'.format(path))
@@ -284,6 +283,16 @@ class WebHistory(sql.SqlTable):
                                      .format(i, path, ex))
         self.insert_batch(data)
         self.completion.insert_batch(completion_data, replace=True)
+
+    def _write_backup(self, path):
+        bak = path + '.bak'
+        message.info('History import complete. Appending {} to {}'
+                     .format(path, bak))
+        with open(path, 'r', encoding='utf-8') as infile:
+            with open(bak, 'a', encoding='utf-8') as outfile:
+                for line in infile:
+                    outfile.write('\n' + line)
+        os.remove(path)
 
     def _format_url(self, url):
         return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)

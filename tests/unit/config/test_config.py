@@ -18,19 +18,15 @@
 
 """Tests for qutebrowser.config.config."""
 
-import sys
 import copy
 import types
-import logging
-import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
-from qutebrowser import qutebrowser
 from qutebrowser.commands import cmdexc
-from qutebrowser.config import config, configdata, configexc, configfiles
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import objreg, usertypes
 from qutebrowser.misc import objects
 
@@ -52,8 +48,8 @@ class TestChangeFilter:
 
     @pytest.fixture(autouse=True)
     def cleanup_globals(self, monkeypatch):
-        """Make sure config._change_filters is cleaned up."""
-        monkeypatch.setattr(config, '_change_filters', [])
+        """Make sure config.change_filters is cleaned up."""
+        monkeypatch.setattr(config, 'change_filters', [])
 
     @pytest.mark.parametrize('option', ['foobar', 'tab', 'tabss', 'tabs.'])
     def test_unknown_option(self, option):
@@ -65,7 +61,7 @@ class TestChangeFilter:
     def test_validate(self, option):
         cf = config.change_filter(option)
         cf.validate()
-        assert cf in config._change_filters
+        assert cf in config.change_filters
 
     @pytest.mark.parametrize('method', [True, False])
     @pytest.mark.parametrize('option, changed, matches', [
@@ -182,17 +178,6 @@ class TestKeyConfig:
         config_stub.val.bindings.commands = {'normal': bindings}
         assert keyconf.get_reverse_bindings_for('normal') == expected
 
-    def test_bind_invalid_command(self, keyconf):
-        with pytest.raises(configexc.KeybindingError,
-                           match='Invalid command: foobar'):
-            keyconf.bind('a', 'foobar', mode='normal')
-
-    def test_bind_invalid_mode(self, keyconf):
-        with pytest.raises(configexc.KeybindingError,
-                           match='completion-item-del: This command is only '
-                           'allowed in command mode, not normal.'):
-            keyconf.bind('a', 'completion-item-del', mode='normal')
-
     @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', '<Ctrl-X>', 'b'])
     def test_bind_duplicate(self, keyconf, config_stub, force, key):
@@ -208,11 +193,14 @@ class TestKeyConfig:
             assert keyconf.get_command(key, 'normal') == 'nop'
 
     @pytest.mark.parametrize('mode', ['normal', 'caret'])
-    def test_bind(self, keyconf, config_stub, qtbot, no_bindings, mode):
+    @pytest.mark.parametrize('command', [
+        'message-info foo',
+        'nop ;; wq',  # https://github.com/qutebrowser/qutebrowser/issues/3002
+    ])
+    def test_bind(self, keyconf, config_stub, qtbot, no_bindings,
+                  mode, command):
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
-
-        command = 'message-info foo'
 
         with qtbot.wait_signal(config_stub.changed):
             keyconf.bind('a', command, mode=mode)
@@ -220,6 +208,16 @@ class TestKeyConfig:
         assert config_stub.val.bindings.commands[mode]['a'] == command
         assert keyconf.get_bindings_for(mode)['a'] == command
         assert keyconf.get_command('a', mode) == command
+
+    def test_bind_mode_changing(self, keyconf, config_stub, no_bindings):
+        """Make sure we can bind to a command which changes the mode.
+
+        https://github.com/qutebrowser/qutebrowser/issues/2989
+        """
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        keyconf.bind('a', 'set-cmd-text :nop ;; rl-beginning-of-line',
+                     mode='normal')
 
     @pytest.mark.parametrize('key, normalized', [
         ('a', 'a'),  # default bindings
@@ -317,9 +315,9 @@ class TestSetConfigCommand:
         assert config_stub.get(option) == new_value
 
         if temp:
-            assert option not in config_stub._yaml.values
+            assert option not in config_stub._yaml
         else:
-            assert config_stub._yaml.values[option] == new_value
+            assert config_stub._yaml[option] == new_value
 
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_temp_override(self, commands, config_stub, temp):
@@ -335,7 +333,7 @@ class TestSetConfigCommand:
         commands.set(0, 'url.auto_search', 'never', temp=True)
 
         assert config_stub.val.url.auto_search == 'never'
-        assert config_stub._yaml.values['url.auto_search'] == 'dns'
+        assert config_stub._yaml['url.auto_search'] == 'dns'
 
     def test_set_print(self, config_stub, commands, message_mock):
         """Run ':set -p url.auto_search never'.
@@ -357,7 +355,7 @@ class TestSetConfigCommand:
         assert not config_stub.val.auto_save.session
         commands.set(0, 'auto_save.session!')
         assert config_stub.val.auto_save.session
-        assert config_stub._yaml.values['auto_save.session']
+        assert config_stub._yaml['auto_save.session']
 
     def test_set_toggle_nonbool(self, commands, config_stub):
         """Run ':set url.auto_search!'.
@@ -439,7 +437,19 @@ class TestSetConfigCommand:
         config_stub.set_obj(opt, initial)
         commands.set(0, opt, 'green', 'magenta', 'blue', 'yellow')
         assert config_stub.get(opt) == expected
-        assert config_stub._yaml.values[opt] == expected
+        assert config_stub._yaml[opt] == expected
+
+    def test_cycling_different_representation(self, commands, config_stub):
+        """When using a different representation, cycling should work.
+
+        For example, we use [foo] which is represented as ["foo"].
+        """
+        opt = 'qt_args'
+        config_stub.set_obj(opt, ['foo'])
+        commands.set(0, opt, '[foo]', '[bar]')
+        assert config_stub.get(opt) == ['bar']
+        commands.set(0, opt, '[foo]', '[bar]')
+        assert config_stub.get(opt) == ['foo']
 
 
 class TestBindConfigCommand:
@@ -464,7 +474,7 @@ class TestBindConfigCommand:
 
         commands.bind('a', command)
         assert keyconf.get_command('a', 'normal') == command
-        yaml_bindings = config_stub._yaml.values['bindings.commands']['normal']
+        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         assert yaml_bindings['a'] == command
 
     @pytest.mark.parametrize('key, mode, expected', [
@@ -504,20 +514,14 @@ class TestBindConfigCommand:
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == expected
 
-    @pytest.mark.parametrize('command, mode, expected', [
-        ('foobar', 'normal', "bind: Invalid command: foobar"),
-        ('completion-item-del', 'normal',
-            "bind: completion-item-del: This command is only allowed in "
-            "command mode, not normal."),
-        ('nop', 'wrongmode', "bind: Invalid mode wrongmode!"),
-    ])
-    def test_bind_invalid(self, commands, command, mode, expected):
-        """Run ':bind a foobar' / ':bind a completion-item-del'.
+    def test_bind_invalid_mode(self, commands):
+        """Run ':bind --mode=wrongmode nop'.
 
         Should show an error.
         """
-        with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.bind('a', command, mode=mode)
+        with pytest.raises(cmdexc.CommandError,
+                           match='bind: Invalid mode wrongmode!'):
+            commands.bind('a', 'nop', mode='wrongmode')
 
     @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
@@ -565,7 +569,7 @@ class TestBindConfigCommand:
         commands.unbind(key)
         assert keyconf.get_command(key, 'normal') is None
 
-        yaml_bindings = config_stub._yaml.values['bindings.commands']['normal']
+        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         if key in 'bc':
             # Custom binding
             assert normalized not in yaml_bindings
@@ -612,17 +616,12 @@ class TestConfig:
 
     def test_read_yaml(self, conf):
         assert not conf._yaml.loaded
-        conf._yaml.values['content.plugins'] = True
+        conf._yaml['content.plugins'] = True
 
         conf.read_yaml()
 
         assert conf._yaml.loaded
         assert conf._values['content.plugins'] is True
-
-    def test_read_yaml_invalid(self, conf):
-        conf._yaml.values['foo.bar'] = True
-        with pytest.raises(configexc.NoOptionError):
-            conf.read_yaml()
 
     def test_get_opt_valid(self, conf):
         assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
@@ -743,9 +742,9 @@ class TestConfig:
             meth(option, value, save_yaml=save_yaml)
         assert conf._values[option] is True
         if save_yaml:
-            assert conf._yaml.values[option] is True
+            assert conf._yaml[option] is True
         else:
-            assert option not in conf._yaml.values
+            assert option not in conf._yaml
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_invalid(self, conf, qtbot, method):
@@ -873,205 +872,3 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
         expected = 'yellow'
 
     assert obj.rendered_stylesheet == expected
-
-
-@pytest.fixture
-def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
-               data_tmpdir):
-    monkeypatch.setattr(configdata, 'DATA', None)
-    monkeypatch.setattr(configfiles, 'state', None)
-    monkeypatch.setattr(config, 'instance', None)
-    monkeypatch.setattr(config, 'key_instance', None)
-    monkeypatch.setattr(config, '_change_filters', [])
-    monkeypatch.setattr(config, '_init_errors', [])
-    # Make sure we get no SSL warning
-    monkeypatch.setattr(config.earlyinit, 'check_backend_ssl_support',
-                        lambda _backend: None)
-    yield
-    try:
-        objreg.delete('config-commands')
-    except KeyError:
-        pass
-
-
-@pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
-@pytest.mark.parametrize('config_py', [True, 'error', False])
-@pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', False])
-# pylint: disable=too-many-branches
-def test_early_init(init_patch, config_tmpdir, caplog, fake_args,
-                    load_autoconfig, config_py, invalid_yaml):
-    # Prepare files
-    autoconfig_file = config_tmpdir / 'autoconfig.yml'
-    config_py_file = config_tmpdir / 'config.py'
-
-    if invalid_yaml == '42':
-        autoconfig_file.write_text('42', 'utf-8', ensure=True)
-    elif invalid_yaml == 'unknown':
-        autoconfig_file.write_text('global:\n  colors.foobar: magenta\n',
-                                   'utf-8', ensure=True)
-    else:
-        assert not invalid_yaml
-        autoconfig_file.write_text('global:\n  colors.hints.fg: magenta\n',
-                                   'utf-8', ensure=True)
-
-    if config_py:
-        config_py_lines = ['c.colors.hints.bg = "red"']
-        if not load_autoconfig:
-            config_py_lines.append('config.load_autoconfig = False')
-        if config_py == 'error':
-            config_py_lines.append('c.foo = 42')
-        config_py_file.write_text('\n'.join(config_py_lines),
-                                  'utf-8', ensure=True)
-
-    with caplog.at_level(logging.ERROR):
-        config.early_init(fake_args)
-
-    # Check error messages
-    expected_errors = []
-    if config_py == 'error':
-        expected_errors.append(
-            "Errors occurred while reading config.py:\n"
-            "  While setting 'foo': No option 'foo'")
-    if invalid_yaml and (load_autoconfig or not config_py):
-        error = "Errors occurred while reading autoconfig.yml:\n"
-        if invalid_yaml == '42':
-            error += "  While loading data: Toplevel object is not a dict"
-        elif invalid_yaml == 'unknown':
-            error += "  Error: No option 'colors.foobar'"
-        else:
-            assert False, invalid_yaml
-        expected_errors.append(error)
-
-    actual_errors = [str(err) for err in config._init_errors]
-    assert actual_errors == expected_errors
-
-    # Make sure things have been init'ed
-    objreg.get('config-commands')
-    assert isinstance(config.instance, config.Config)
-    assert isinstance(config.key_instance, config.KeyConfig)
-
-    # Check config values
-    if config_py and load_autoconfig and not invalid_yaml:
-        assert config.instance._values == {
-            'colors.hints.bg': 'red',
-            'colors.hints.fg': 'magenta',
-        }
-    elif config_py:
-        assert config.instance._values == {'colors.hints.bg': 'red'}
-    elif invalid_yaml:
-        assert config.instance._values == {}
-    else:
-        assert config.instance._values == {'colors.hints.fg': 'magenta'}
-
-
-def test_early_init_invalid_change_filter(init_patch, fake_args):
-    config.change_filter('foobar')
-    with pytest.raises(configexc.NoOptionError):
-        config.early_init(fake_args)
-
-
-@pytest.mark.parametrize('errors', [True, False])
-def test_late_init(init_patch, monkeypatch, fake_save_manager, fake_args,
-                   mocker, errors):
-    config.early_init(fake_args)
-    if errors:
-        err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
-        errs = configexc.ConfigFileErrors("config.py", [err])
-        monkeypatch.setattr(config, '_init_errors', [errs])
-    msgbox_mock = mocker.patch('qutebrowser.config.config.msgbox.msgbox',
-                               autospec=True)
-
-    config.late_init(fake_save_manager)
-
-    fake_save_manager.add_saveable.assert_any_call(
-        'state-config', unittest.mock.ANY)
-    fake_save_manager.add_saveable.assert_any_call(
-        'yaml-config', unittest.mock.ANY)
-    if errors:
-        assert len(msgbox_mock.call_args_list) == 1
-        _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
-        text = call_kwargs['text'].strip()
-        assert text.startswith('Errors occurred while reading config.py:')
-        assert '<b>Error text</b>: Exception' in text
-    else:
-        assert not msgbox_mock.called
-
-
-class TestQtArgs:
-
-    @pytest.fixture
-    def parser(self, mocker):
-        """Fixture to provide an argparser.
-
-        Monkey-patches .exit() of the argparser so it doesn't exit on errors.
-        """
-        parser = qutebrowser.get_argparser()
-        mocker.patch.object(parser, 'exit', side_effect=Exception)
-        return parser
-
-    @pytest.mark.parametrize('args, expected', [
-        # No Qt arguments
-        (['--debug'], [sys.argv[0]]),
-        # Qt flag
-        (['--debug', '--qt-flag', 'reverse'], [sys.argv[0], '--reverse']),
-        # Qt argument with value
-        (['--qt-arg', 'stylesheet', 'foo'],
-         [sys.argv[0], '--stylesheet', 'foo']),
-        # --qt-arg given twice
-        (['--qt-arg', 'stylesheet', 'foo', '--qt-arg', 'geometry', 'bar'],
-         [sys.argv[0], '--stylesheet', 'foo', '--geometry', 'bar']),
-        # --qt-flag given twice
-        (['--qt-flag', 'foo', '--qt-flag', 'bar'],
-         [sys.argv[0], '--foo', '--bar']),
-    ])
-    def test_qt_args(self, config_stub, args, expected, parser):
-        """Test commandline with no Qt arguments given."""
-        parsed = parser.parse_args(args)
-        assert config.qt_args(parsed) == expected
-
-    def test_qt_both(self, config_stub, parser):
-        """Test commandline with a Qt argument and flag."""
-        args = parser.parse_args(['--qt-arg', 'stylesheet', 'foobar',
-                                  '--qt-flag', 'reverse'])
-        qt_args = config.qt_args(args)
-        assert qt_args[0] == sys.argv[0]
-        assert '--reverse' in qt_args
-        assert '--stylesheet' in qt_args
-        assert 'foobar' in qt_args
-
-    def test_with_settings(self, config_stub, parser):
-        parsed = parser.parse_args(['--qt-flag', 'foo'])
-        config_stub.val.qt_args = ['bar']
-        assert config.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
-
-
-@pytest.mark.parametrize('arg, confval, can_import, is_new_webkit, used', [
-    # overridden by commandline arg
-    ('webkit', 'auto', False, False, usertypes.Backend.QtWebKit),
-    # overridden by config
-    (None, 'webkit', False, False, usertypes.Backend.QtWebKit),
-    # WebKit available but too old
-    (None, 'auto', True, False, usertypes.Backend.QtWebEngine),
-    # WebKit available and new
-    (None, 'auto', True, True, usertypes.Backend.QtWebKit),
-    # WebKit unavailable
-    (None, 'auto', False, False, usertypes.Backend.QtWebEngine),
-])
-def test_get_backend(monkeypatch, fake_args, config_stub,
-                     arg, confval, can_import, is_new_webkit, used):
-    real_import = __import__
-
-    def fake_import(name, *args, **kwargs):
-        if name != 'PyQt5.QtWebKit':
-            return real_import(name, *args, **kwargs)
-        if can_import:
-            return None
-        raise ImportError
-
-    fake_args.backend = arg
-    config_stub.val.backend = confval
-    monkeypatch.setattr(config.qtutils, 'is_new_qtwebkit',
-                        lambda: is_new_webkit)
-    monkeypatch.setattr('builtins.__import__', fake_import)
-
-    assert config.get_backend(fake_args) == used

@@ -28,7 +28,6 @@ Module attributes:
 """
 
 import os
-import sys
 import ctypes
 import ctypes.util
 
@@ -207,7 +206,7 @@ def init(args):
 
     # WORKAROUND for
     # https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
-    if sys.platform == 'linux':
+    if utils.is_linux:
         ctypes.CDLL(ctypes.util.find_library("GL"), mode=ctypes.RTLD_GLOBAL)
 
     _init_profiles()

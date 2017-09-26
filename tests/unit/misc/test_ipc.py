@@ -19,7 +19,6 @@
 
 """Tests for qutebrowser.misc.ipc."""
 
-import sys
 import os
 import getpass
 import logging
@@ -35,7 +34,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import objreg, standarddir
+from qutebrowser.utils import objreg, standarddir, utils
 from helpers import stubs
 
 
@@ -228,11 +227,11 @@ class TestSocketName:
         We probably would adjust the code first to make it work on that
         platform.
         """
-        if os.name == 'nt':
+        if utils.is_windows:
             pass
-        elif sys.platform == 'darwin':
+        elif utils.is_mac:
             pass
-        elif sys.platform.startswith('linux'):
+        elif utils.is_linux:
             pass
         else:
             raise Exception("Unexpected platform!")
@@ -381,7 +380,7 @@ class TestHandleConnection:
         monkeypatch.setattr(ipc_server._server, 'nextPendingConnection', m)
         ipc_server.ignored = True
         ipc_server.handle_connection()
-        assert not m.called
+        m.assert_not_called()
 
     def test_no_connection(self, ipc_server, caplog):
         ipc_server.handle_connection()
@@ -431,7 +430,7 @@ class TestHandleConnection:
 
 @pytest.fixture
 def connected_socket(qtbot, qlocalsocket, ipc_server):
-    if sys.platform == 'darwin':
+    if utils.is_mac:
         pytest.skip("Skipping connected_socket test - "
                     "https://github.com/qutebrowser/qutebrowser/issues/1045")
     ipc_server.listen()

@@ -20,7 +20,6 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
-import sys
 import shutil
 import os.path
 import contextlib
@@ -28,7 +27,7 @@ import contextlib
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, usertypes, message
+from qutebrowser.utils import log, debug, usertypes, message, utils
 
 # The cached locations
 _locations = {}
@@ -69,7 +68,7 @@ def _init_config(args):
     typ = QStandardPaths.ConfigLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
-        if os.name == 'nt':
+        if utils.is_windows:
             app_data_path = _writable_location(
                 QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'config')
@@ -80,7 +79,7 @@ def _init_config(args):
     _locations[Location.auto_config] = path
 
     # Override the normal (non-auto) config on macOS
-    if sys.platform == 'darwin':
+    if utils.is_mac:
         overridden, path = _from_args(typ, args)
         if not overridden:  # pragma: no branch
             path = os.path.expanduser('~/.' + APPNAME)
@@ -104,7 +103,7 @@ def _init_data(args):
     typ = QStandardPaths.DataLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
-        if os.name == 'nt':
+        if utils.is_windows:
             app_data_path = _writable_location(QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'data')
         else:
@@ -114,7 +113,7 @@ def _init_data(args):
 
     # system_data
     _locations.pop(Location.system_data, None)  # Remove old state
-    if sys.platform.startswith('linux'):
+    if utils.is_linux:
         path = '/usr/share/' + APPNAME
         if os.path.exists(path):
             _locations[Location.system_data] = path
@@ -139,7 +138,7 @@ def _init_cache(args):
     typ = QStandardPaths.CacheLocation
     overridden, path = _from_args(typ, args)
     if not overridden:
-        if os.name == 'nt':
+        if utils.is_windows:
             # Local, not Roaming!
             data_path = _writable_location(QStandardPaths.DataLocation)
             path = os.path.join(data_path, 'cache')
@@ -172,7 +171,7 @@ def download():
 
 def _init_runtime(args):
     """Initialize location for runtime data."""
-    if sys.platform.startswith('linux'):
+    if utils.is_linux:
         typ = QStandardPaths.RuntimeLocation
     else:
         # RuntimeLocation is a weird path on macOS and Windows.
@@ -312,9 +311,9 @@ def init(args):
     _init_dirs(args)
     _init_cachedir_tag()
     if args is not None and getattr(args, 'basedir', None) is None:
-        if sys.platform == 'darwin':  # pragma: no cover
+        if utils.is_mac:  # pragma: no cover
             _move_macos()
-        elif os.name == 'nt':  # pragma: no cover
+        elif utils.is_windows:  # pragma: no cover
             _move_windows()
 
 

@@ -562,9 +562,11 @@ content.xss_auditing:
   desc: >-
     Whether load requests should be monitored for cross-site scripting attempts.
 
-    Suspicious scripts will be blocked and reported in the inspector\'s
+    Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console. Enabling this feature might have an impact on
     performance.
+
+# emacs: '
 
 ## completion
 
@@ -917,10 +919,12 @@ keyhint.blacklist:
       name: String
   default: []
   desc: >-
-    Keychains that shouldn\'t be shown in the keyhint dialog.
+    Keychains that shouldn't be shown in the keyhint dialog.
 
     Globs are supported, so `;*` will blacklist all keychains starting with `;`.
     Use `*` to disable keyhints.
+
+# emacs: '
 
 keyhint.delay:
   type:
@@ -1727,8 +1731,10 @@ fonts.monospace:
   desc: >-
     Default monospace fonts.
 
-    Whenever "monospace" is used in a font setting, it\'s replaced with the
+    Whenever "monospace" is used in a font setting, it's replaced with the
     fonts listed here.
+
+# emacs: '
 
 fonts.completion.entry:
   default: 8pt monospace
@@ -1895,6 +1901,9 @@ bindings.key_mappings:
 
     This is useful for global remappings of keys, for example to map Ctrl-[ to
     Escape.
+
+    Note that when a key is bound (via `bindings.default` or
+    `bindings.commands`), the mapping is ignored.
 
 bindings.default:
   default:

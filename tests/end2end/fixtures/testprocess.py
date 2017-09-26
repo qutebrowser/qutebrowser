@@ -125,6 +125,7 @@ class Process(QObject):
     Attributes:
         _invalid: A list of lines which could not be parsed.
         _data: A list of parsed lines.
+        _started: Whether the process was ever started.
         proc: The QProcess for the underlying process.
         exit_expected: Whether the process is expected to quit.
 
@@ -140,11 +141,12 @@ class Process(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.captured_log = []
+        self._started = False
         self._invalid = []
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
-        self.exit_expected = True  # Not started at all yet
+        self.exit_expected = None  # Not started at all yet
 
     def _log(self, line):
         """Add the given line to the captured log output."""
@@ -221,8 +223,8 @@ class Process(QObject):
 
     def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
-        self.exit_expected = False
         self._start(args, env=env)
+        self._started = True
         timeout = 60 if 'CI' in os.environ else 20
         for _ in range(timeout):
             with self._wait_signal(self.ready, timeout=1000,
@@ -230,6 +232,8 @@ class Process(QObject):
                 pass
 
             if not self.is_running():
+                if self.exit_expected:
+                    return
                 # _start ensures it actually started, but it might quit shortly
                 # afterwards
                 raise ProcessExited('\n' + _render_log(self.captured_log))
@@ -285,7 +289,7 @@ class Process(QObject):
             raise InvalidLine('\n' + '\n'.join(self._invalid))
 
         self.clear_data()
-        if not self.is_running() and not self.exit_expected:
+        if not self.is_running() and not self.exit_expected and self._started:
             raise ProcessExited
         self.exit_expected = False
 

@@ -88,7 +88,9 @@ Two global objects are pre-defined when running `config.py`: `c` and `config`.
 Changing settings
 ~~~~~~~~~~~~~~~~~
 
-`c` is a shorthand object to easily set settings like this:
+While you can set settings using the `config.set()` method (which is explained
+in the next section), it's easier to use the `c` shorthand object to easily set
+settings like this:
 
 .config.py:
 [source,python]
@@ -136,6 +138,8 @@ If you want to set settings based on their name as a string, use the
 .config.py:
 [source,python]
 ----
+# Equivalent to:
+# c.content.javascript.enabled = False
 config.set('content.javascript.enabled', False)
 ----
 
@@ -143,6 +147,8 @@ To read a setting, use the `config.get` method:
 
 [source,python]
 ----
+# Equivalent to:
+# color = c.colors.completion.fg
 color = config.get('colors.completion.fg')
 ----
 
@@ -198,17 +204,52 @@ config.bind(',v', 'spawn mpv {url}')
 To suppress loading of any default keybindings, you can set
 `c.bindings.default = {}`.
 
-Prevent loading `autoconfig.yml`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Loading `autoconfig.yml`
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want all customization done via `:set`, `:bind` and `:unbind` to be
-temporary, you can suppress loading `autoconfig.yml` in your `config.py` by
-doing:
+By default, all customization done via `:set`, `:bind` and `:unbind` is
+temporary as soon as a `config.py` exists. The settings done that way are always
+saved in the `autoconfig.yml` file, but you'll need to explicitly load it in
+your `config.py` by doing:
 
 .config.py:
 [source,python]
 ----
-config.load_autoconfig = False
+config.load_autoconfig()
+----
+
+If you do so at the top of your file, your `config.py` settings will take
+precedence as they overwrite the settings done in `autoconfig.yml`.
+
+Importing other modules
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can import any module from the
+https://docs.python.org/3/library/index.html[Python standard library] (e.g.
+`import os.path`), as well as any module installed in the environment
+qutebrowser is run with.
+
+If you have an `utils.py` file in your qutebrowser config folder, you can import
+that via `import utils` as well.
+
+While it's in some cases possible to import code from the qutebrowser
+installation, doing so is unsupported and discouraged.
+
+Getting the config directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to get the qutebrowser config directory, you can do so by reading
+`config.configdir`. Similarily, you can get the qutebrowser data directory via
+`config.datadir`.
+
+This gives you a https://docs.python.org/3/library/pathlib.html[`pathlib.Path`
+object], on which you can use `/` to add more directory parts, or `str(...)` to
+get a string:
+
+.config.py:
+[source,python]
+----
+print(str(config.configdir / 'config.py')
 ----
 
 Handling errors
@@ -221,3 +262,106 @@ qutebrowser tries to display errors which are easy to understand even for people
 who are not used to writing Python. If you see a config error which you find
 confusing or you think qutebrowser could handle better, please
 https://github.com/qutebrowser/qutebrowser/issues[open an issue]!
+
+Recipes
+~~~~~~~
+
+Reading a YAML file
+^^^^^^^^^^^^^^^^^^^
+
+To read a YAML config like this:
+
+.config.yml:
+----
+tabs.position: left
+tabs.show: switching
+----
+
+You can use:
+
+.config.py:
+[source,python]
+----
+import yaml
+
+with (config.configdir / 'config.yml').open() as f:
+    yaml_data = yaml.load(f)
+
+for k, v in yaml_data.items():
+    config.set(k, v)
+----
+
+Reading a nested YAML file
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To read a YAML file with nested values like this:
+
+.colors.yml:
+----
+colors:
+  statusbar:
+    normal:
+      bg: lime
+      fg: black
+    url:
+      fg: red
+----
+
+You can use:
+
+.config.py:
+[source,python]
+----
+import yaml
+
+with (config.configdir / 'colors.yml').open() as f:
+    yaml_data = yaml.load(f)
+
+def dict_attrs(obj, path=''):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from dict_attrs(v, '{}.{}'.format(path, k) if path else k)
+    else:
+        yield path, obj
+
+for k, v in dict_attrs(yaml_data):
+    config.set(k, v)
+----
+
+Note that this won't work for values which are dictionaries.
+
+Binding chained commands
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have a lot of chained comamnds you want to bind, you can write a helper
+to do so:
+
+[source,python]
+----
+def bind_chained(key, *commands, force=False):
+    config.bind(key, ' ;; '.join(commands), force=force)
+
+bind_chained('<Escape>', 'clear-keychain', 'search', force=True)
+----
+
+Avoiding flake8 errors
+^^^^^^^^^^^^^^^^^^^^^^
+
+If you use an editor with flake8 integration which complains about `c` and `config` being undefined, you can use:
+
+[source,python]
+----
+c = c  # noqa: F821
+config = config  # noqa: F821
+----
+
+For type annotation support (note that those imports aren't guaranteed to be
+stable across qutebrowser versions):
+
+[source,python]
+----
+from qutebrowser.config.configfiles import ConfigAPI  # noqa: F401
+from qutebrowser.config.config import ConfigContainer  # noqa: F401
+config = config  # type: ConfigAPI # noqa: F821
+c = c  # type: ConfigContainer # noqa: F821
+----

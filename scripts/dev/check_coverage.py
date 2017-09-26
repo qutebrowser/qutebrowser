@@ -32,7 +32,8 @@ import attr
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils
+from scripts import utils as scriptutils
+from qutebrowser.utils import utils
 
 
 @attr.s
@@ -140,6 +141,8 @@ PERFECT_FILES = [
         'config/configfiles.py'),
     ('tests/unit/config/test_configtypes.py',
         'config/configtypes.py'),
+    ('tests/unit/config/test_configinit.py',
+        'config/configinit.py'),
 
     ('tests/unit/utils/test_qtutils.py',
         'utils/qtutils.py'),
@@ -207,7 +210,7 @@ def _get_filename(filename):
 
 def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
-    if sys.platform != 'linux':
+    if not utils.is_linux:
         raise Skipped("on non-Linux system.")
     elif '-k' in sys.argv[1:]:
         raise Skipped("because -k is given.")
@@ -272,7 +275,7 @@ def main_check():
     if messages:
         print()
         print()
-        utils.print_title("Coverage check failed")
+        scriptutils.print_title("Coverage check failed")
         for msg in messages:
             print(msg.text)
         print()
@@ -323,7 +326,7 @@ def main_check_all():
 
 
 def main():
-    utils.change_cwd()
+    scriptutils.change_cwd()
     if '--check-all' in sys.argv:
         return main_check_all()
     else:

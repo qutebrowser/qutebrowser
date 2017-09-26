@@ -21,7 +21,6 @@
 
 import io
 import os
-import sys
 import os.path
 import unittest
 import unittest.mock
@@ -36,7 +35,7 @@ import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, utils
 import overflow_test_cases
 
 
@@ -458,13 +457,13 @@ class TestSavefileOpen:
         with qtutils.savefile_open(str(filename)) as f:
             f.write('foo\nbar\nbaz')
         data = filename.read_binary()
-        if os.name == 'nt':
+        if utils.is_windows:
             assert data == b'foo\r\nbar\r\nbaz'
         else:
             assert data == b'foo\nbar\nbaz'
 
 
-if test_file is not None and sys.platform != 'darwin':
+if test_file is not None and not utils.is_mac:
     # If we were able to import Python's test_file module, we run some code
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
