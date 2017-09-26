@@ -57,6 +57,7 @@ Added
 - New `backend` setting to select the backend to use (auto/webengine/webkit).
   Together with the previous setting, this should make wrapper scripts
   unnecessary.
+- Proxy authentication is now supported with the QtWebEngine backend.
 
 Changed
 ~~~~~~~
