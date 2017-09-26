@@ -95,8 +95,6 @@ def get_argparser():
                        action='store_false', dest='color')
     debug.add_argument('--force-color', help="Force colored logging",
                        action='store_true')
-    debug.add_argument('--relaxed-config', action='store_true',
-                       help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "
