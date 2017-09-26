@@ -1174,13 +1174,6 @@ tabs.width.indicator:
     minval: 0
   desc: Width of the progress indicator (0 to disable).
 
-tabs.width.pinned:
-  default: 43
-  type:
-    name: Int
-    minval: 10
-  desc: The width for pinned tabs with a horizontal tabbar, in px.
-
 tabs.wrap:
   default: true
   type: Bool
