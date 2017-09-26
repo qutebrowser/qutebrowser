@@ -399,6 +399,7 @@ Feature: Various utility commands.
         When I open data/hello2.txt in a new tab
         And I open data/hello3.txt in a new window
         And I run :window-only
+        And I wait for "Closing window *" in the log
         Then the session should look like:
             windows:
             - tabs:
