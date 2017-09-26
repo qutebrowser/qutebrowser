@@ -32,12 +32,12 @@ import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QMessageBox, QApplication)
+                             QDialogButtonBox, QApplication)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg, usertypes
+from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin, objects)
+                              pastebin)
 from qutebrowser.config import config, configfiles
 
 
