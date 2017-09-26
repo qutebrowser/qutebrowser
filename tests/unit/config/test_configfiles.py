@@ -127,7 +127,7 @@ class TestYaml:
         ('confirm_quit', True),
         ('confirm_quit', False),
     ])
-    def test_changed(self, config_tmpdir, old_config, key, value):
+    def test_changed(self, qtbot, config_tmpdir, old_config, key, value):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         if old_config is not None:
             autoconfig.write_text(old_config, 'utf-8')
@@ -135,7 +135,9 @@ class TestYaml:
         yaml = configfiles.YamlConfig()
         yaml.load()
 
-        yaml[key] = value
+        with qtbot.wait_signal(yaml.changed):
+            yaml[key] = value
+
         assert key in yaml
         assert yaml[key] == value
 

@@ -183,7 +183,7 @@ def test_late_init(init_patch, monkeypatch, fake_save_manager, fake_args,
     fake_save_manager.add_saveable.assert_any_call(
         'state-config', unittest.mock.ANY)
     fake_save_manager.add_saveable.assert_any_call(
-        'yaml-config', unittest.mock.ANY)
+        'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
     if errors:
         assert len(msgbox_mock.call_args_list) == 1
         _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]

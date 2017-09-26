@@ -29,7 +29,7 @@ import configparser
 import contextlib
 
 import yaml
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata
@@ -72,7 +72,7 @@ class StateConfig(configparser.ConfigParser):
             self.write(f)
 
 
-class YamlConfig:
+class YamlConfig(QObject):
 
     """A config stored on disk as YAML file.
 
@@ -81,8 +81,10 @@ class YamlConfig:
     """
 
     VERSION = 1
+    changed = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
         self._values = {}
@@ -94,12 +96,13 @@ class YamlConfig:
         We do this outside of __init__ because the config gets created before
         the save_manager exists.
         """
-        save_manager.add_saveable('yaml-config', self._save)
+        save_manager.add_saveable('yaml-config', self._save, self.changed)
 
     def __getitem__(self, name):
         return self._values[name]
 
     def __setitem__(self, name, value):
+        self.changed.emit()
         self._dirty = True
         self._values[name] = value
 
