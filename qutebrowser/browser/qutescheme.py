@@ -408,11 +408,15 @@ def qute_settings(url):
 
 
 @add_handler('configdiff')
-def qute_configdiff(_url):
+def qute_configdiff(url):
     """Handler for qute://configdiff."""
-    try:
-        return 'text/html', configdiff.get_diff()
-    except OSError as e:
-        error = (b'Failed to read old config: ' +
-                 str(e.strerror).encode('utf-8'))
-        return 'text/plain', error
+    if url.path() == '/old':
+        try:
+            return 'text/html', configdiff.get_diff()
+        except OSError as e:
+            error = (b'Failed to read old config: ' +
+                    str(e.strerror).encode('utf-8'))
+            return 'text/plain', error
+    else:
+        data = config.instance.dump_userconfig().encode('utf-8')
+        return 'text/plain', data
