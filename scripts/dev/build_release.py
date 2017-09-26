@@ -377,6 +377,11 @@ def main():
         github_upload(artifacts, args.upload[0])
         if upload_to_pypi:
             pypi_upload(artifacts)
+    else:
+        print()
+        scriptutils.print_title("Artifacts")
+        for artifact in artifacts:
+            print(artifact)
 
 
 if __name__ == '__main__':
