@@ -55,6 +55,7 @@
 |<<colors.messages.warning.border,colors.messages.warning.border>>|Border color of an error message.
 |<<colors.messages.warning.fg,colors.messages.warning.fg>>|Foreground color a warning message.
 |<<colors.prompts.bg,colors.prompts.bg>>|Background color for prompts.
+|<<colors.prompts.border,colors.prompts.border>>|Border used around UI elements in prompts.
 |<<colors.prompts.fg,colors.prompts.fg>>|Foreground color for prompts.
 |<<colors.prompts.selected.bg,colors.prompts.selected.bg>>|Background color for the selected item in filename prompts.
 |<<colors.statusbar.caret.bg,colors.statusbar.caret.bg>>|Background color of the statusbar in caret mode.
@@ -967,7 +968,15 @@ Background color for prompts.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[darkblue]+
+Default: +pass:[dimgrey]+
+
+[[colors.prompts.border]]
+=== colors.prompts.border
+Border used around UI elements in prompts.
+
+Type: <<types,String>>
+
+Default: +pass:[1px solid gray]+
 
 [[colors.prompts.fg]]
 === colors.prompts.fg
@@ -983,7 +992,7 @@ Background color for the selected item in filename prompts.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[#308cc6]+
+Default: +pass:[grey]+
 
 [[colors.statusbar.caret.bg]]
 === colors.statusbar.caret.bg

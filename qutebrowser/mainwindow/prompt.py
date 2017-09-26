@@ -28,7 +28,8 @@ import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
+                             QSpacerItem)
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
@@ -256,11 +257,21 @@ class PromptContainer(QWidget):
             background-color: {{ conf.colors.prompts.bg }};
         }
 
-        QTreeView {
-            selection-background-color: {{ conf.colors.prompts.selected.bg }};
+        QLineEdit {
+            border: {{ conf.colors.prompts.border }};
         }
 
-        QTreeView::item:selected, QTreeView::item:selected:hover {
+        QTreeView {
+            selection-background-color: {{ conf.colors.prompts.selected.bg }};
+            border: {{ conf.colors.prompts.border }};
+        }
+
+        QTreeView::branch {
+            background-color: {{ conf.colors.prompts.bg }};
+        }
+
+        QTreeView::item:selected, QTreeView::item:selected:hover,
+        QTreeView::branch:selected {
             background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
@@ -433,7 +444,6 @@ class LineEdit(QLineEdit):
         super().__init__(parent)
         self.setStyleSheet("""
             QLineEdit {
-                border: 1px solid grey;
                 background-color: transparent;
             }
         """)
@@ -511,6 +521,9 @@ class _BasePrompt(QWidget):
             self._key_grid.addWidget(key_label, i, 0)
             self._key_grid.addWidget(text_label, i, 1)
 
+        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding)
+        self._key_grid.addItem(spacer, 0, 2)
+
         self._vbox.addLayout(self._key_grid)
 
     def accept(self, value=None):
@@ -559,8 +572,7 @@ class FilenamePrompt(_BasePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._init_texts(question)
-        self._init_fileview()
-        self._set_fileview_root(question.default)
+        self._init_key_label()
 
         self._lineedit = LineEdit(self)
         if question.default:
@@ -569,7 +581,9 @@ class FilenamePrompt(_BasePrompt):
         self._vbox.addWidget(self._lineedit)
 
         self.setFocusProxy(self._lineedit)
-        self._init_key_label()
+
+        self._init_fileview()
+        self._set_fileview_root(question.default)
 
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)

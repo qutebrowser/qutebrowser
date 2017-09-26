@@ -1551,13 +1551,18 @@ colors.prompts.fg:
   type: QssColor
   desc: Foreground color for prompts.
 
+colors.prompts.border:
+  default: 1px solid gray
+  type: String
+  desc: Border used around UI elements in prompts.
+
 colors.prompts.bg:
-  default: darkblue
+  default: dimgrey
   type: QssColor
   desc: Background color for prompts.
 
 colors.prompts.selected.bg:
-  default: '#308cc6'
+  default: grey
   type: QssColor
   desc: Background color for the selected item in filename prompts.
 
