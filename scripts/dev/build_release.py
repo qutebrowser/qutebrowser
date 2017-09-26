@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 import qutebrowser
-from scripts import utils as utils
+from scripts import utils
 # from scripts.dev import update_3rdparty
 
 
