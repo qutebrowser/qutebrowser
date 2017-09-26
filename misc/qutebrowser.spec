@@ -5,7 +5,6 @@ import os
 
 sys.path.insert(0, os.getcwd())
 from scripts import setupcommon
-from qutebrowser import utils
 
 block_cipher = None
 
@@ -31,9 +30,9 @@ def get_data_files():
 setupcommon.write_git_file()
 
 
-if utils.is_windows:
+if os.name == 'nt':
     icon = 'icons/qutebrowser.ico'
-elif utils.is_mac:
+elif sys.platform == 'darwin':
     icon = 'icons/qutebrowser.icns'
 else:
     icon = None
