@@ -22,15 +22,16 @@
 import os
 import sys
 import functools
+import html
 
 import attr
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
-                             QVBoxLayout, QLabel)
+                             QVBoxLayout, QLabel, QMessageBox)
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, objreg, version
-from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes, objreg, version, qtutils
+from qutebrowser.misc import objects, msgbox
 
 
 _Result = usertypes.enum('_Result', ['quit', 'restart'], is_int=True,
@@ -67,8 +68,8 @@ class _Dialog(QDialog):
             "<p>qutebrowser tried to start with the {backend} backend but "
             "failed because {because}.</p>{text}"
             "<p><b>Forcing the {other_backend.name} backend</b></p>"
-            "<p>This forces usage of the {other_backend.name} backend. "
-            "This sets the <i>backend = '{other_setting}'</i> setting "
+            "<p>This forces usage of the {other_backend.name} backend by "
+            "setting the <i>backend = '{other_setting}'</i> option "
             "(if you have a <i>config.py</i> file, you'll need to set "
             "this manually).</p>".format(
                 backend=backend.name, because=because, text=text,
@@ -101,6 +102,8 @@ class _Dialog(QDialog):
     def _change_setting(self, setting, value):
         """Change the given setting and restart."""
         config.instance.set_obj(setting, value, save_yaml=True)
+        save_manager = objreg.get('save-manager')
+        save_manager.save_all(is_exit=True)
         self.done(_Result.restart)
 
 
@@ -110,13 +113,15 @@ def _show_dialog(*args, **kwargs):
 
     status = dialog.exec_()
 
-    if status == _Result.quit:
+    if status in [_Result.quit, QDialog.Rejected]:
         sys.exit(usertypes.Exit.err_init)
     elif status == _Result.restart:
         # FIXME pass --backend webengine
         quitter = objreg.get('quitter')
         quitter.restart()
         sys.exit(usertypes.Exit.err_init)
+    else:
+        assert False, status
 
 
 def _handle_nouveau_graphics():
@@ -143,7 +148,7 @@ def _handle_nouveau_graphics():
              "<p>This allows you to use the newer QtWebEngine backend (based "
              "on Chromium) but could have noticable performance impact "
              "(depending on your hardware). "
-             "This sets the <i>force_software_rendering = True</i> setting "
+             "This sets the <i>force_software_rendering = True</i> option "
              "(if you have a <i>config.py</i> file, you'll need to set this "
              "manually).</p>",
         buttons=[button],
@@ -174,7 +179,101 @@ def _handle_wayland():
     assert False
 
 
+@attr.s
+class BackendImports:
+
+    """Whether backend modules could be imported."""
+
+    webkit_available = attr.ib(default=None)
+    webengine_available = attr.ib(default=None)
+    webkit_error = attr.ib(default=None)
+    webengine_error = attr.ib(default=None)
+
+
+def _try_import_backends():
+    """Check whether backends can be imported and return BackendImports."""
+    results = BackendImports()
+
+    try:
+        from PyQt5 import QtWebKit
+        from PyQt5 import QtWebKitWidgets
+    except ImportError as e:
+        results.webkit_available = False
+        results.webkit_error = str(e)
+    else:
+        if qtutils.is_new_qtwebkit():
+            results.webkit_available = True
+        else:
+            results.webkit_available = False
+            results.webkit_error = "Unsupported legacy QtWebKit found"
+
+    try:
+        from PyQt5 import QtWebEngineWidgets
+    except ImportError as e:
+        results.webengine_available = False
+        results.webengine_error = str(e)
+    else:
+        results.webengine_available = True
+
+    assert results.webkit_available is not None
+    assert results.webengine_available is not None
+    if not results.webkit_available:
+        assert results.webkit_error is not None
+    if not results.webengine_available:
+        assert results.webengine_error is not None
+
+    return results
+
+
+def _check_backend_modules():
+    """Check for the modules needed for QtWebKit/QtWebEngine."""
+    imports = _try_import_backends()
+
+    if imports.webkit_available and imports.webengine_available:
+        return
+    elif not imports.webkit_available and not imports.webengine_available:
+        text = ("<p>qutebrowser needs QtWebKit or QtWebEngine, but neither "
+                "could be imported!</p>"
+                "<p>The errors encountered were:<ul>"
+                "<li><b>QtWebKit:</b> {webkit_error}"
+                "<li><b>QtWebEngine:</b> {webengine_error}"
+                "</ul></p>".format(
+                    webkit_error=html.escape(imports.webkit_error),
+                    webengine_error=html.escape(imports.webengine_error)))
+        errbox = msgbox.msgbox(parent=None,
+                               title="No backend library found!",
+                               text=text,
+                               icon=QMessageBox.Critical,
+                               plain_text=False)
+        errbox.exec_()
+        sys.exit(usertypes.Exit.err_init)
+    elif objects.backend == usertypes.Backend.QtWebKit:
+        if imports.webkit_available:
+            return
+        assert imports.webengine_available
+        _show_dialog(
+            backend=usertypes.Backend.QtWebKit,
+            because="QtWebKit could not be imported",
+            text="<p><b>The error encountered was:</b><br/>{}</p>".format(
+                html.escape(imports.webkit_error))
+        )
+    elif objects.backend == usertypes.Backend.QtWebEngine:
+        if imports.webengine_available:
+            return
+        assert imports.webkit_available
+        _show_dialog(
+            backend=usertypes.Backend.QtWebEngine,
+            because="QtWebEngine could not be imported",
+            text="<p><b>The error encountered was:</b><br/>{}</p>".format(
+                html.escape(imports.webengine_error))
+        )
+
+    # Should never be reached
+    assert False
+
+
 def init():
+    _check_backend_modules()
     if objects.backend == usertypes.Backend.QtWebEngine:
         _handle_wayland()
         _handle_nouveau_graphics()
