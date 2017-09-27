@@ -179,6 +179,7 @@
 |<<fonts.web.size.default_fixed,fonts.web.size.default_fixed>>|The default font size for fixed-pitch text.
 |<<fonts.web.size.minimum,fonts.web.size.minimum>>|The hard minimum font size.
 |<<fonts.web.size.minimum_logical,fonts.web.size.minimum_logical>>|The minimum logical font size that is applied when zooming out.
+|<<force_software_rendering,force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<hints.auto_follow,hints.auto_follow>>|Controls when a hint can be automatically followed without pressing Enter.
 |<<hints.auto_follow_timeout,hints.auto_follow_timeout>>|A timeout (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
 |<<hints.border,hints.border>>|CSS border value for hints.
@@ -2261,6 +2262,22 @@ The minimum logical font size that is applied when zooming out.
 Type: <<types,Int>>
 
 Default: +pass:[6]+
+
+[[force_software_rendering]]
+=== force_software_rendering
+Force software rendering for QtWebEngine.
+This is needed for QtWebEngine to work with Nouveau drivers.
+
+Type: <<types,Bool>>
+
+Valid values:
+
+ * +true+
+ * +false+
+
+Default: +pass:[false]+
+
+This setting is only available with the QtWebEngine backend.
 
 [[hints.auto_follow]]
 === hints.auto_follow

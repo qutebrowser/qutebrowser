@@ -101,6 +101,15 @@ qt_args:
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
 
+force_software_rendering:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  desc: >-
+    Force software rendering for QtWebEngine.
+
+    This is needed for QtWebEngine to work with Nouveau drivers.
+
 backend:
   type:
     name: String

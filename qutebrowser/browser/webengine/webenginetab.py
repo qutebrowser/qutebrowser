@@ -38,7 +38,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug, version)
+                               message, objreg, jinja, debug)
 
 
 _qute_scheme_handler = None
@@ -50,16 +50,8 @@ def init():
     # won't work...
     # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
     global _qute_scheme_handler
+
     app = QApplication.instance()
-
-    software_rendering = (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-                          'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ)
-    if version.opengl_vendor() == 'nouveau' and not software_rendering:
-        # FIXME:qtwebengine display something more sophisticated here
-        raise browsertab.WebTabError(
-            "QtWebEngine is not supported with Nouveau graphics (unless "
-            "QT_XCB_FORCE_SOFTWARE_OPENGL is set as environment variable).")
-
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
     _qute_scheme_handler.install(webenginesettings.default_profile)

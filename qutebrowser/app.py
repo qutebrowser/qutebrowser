@@ -54,7 +54,8 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, sql, cmdhistory)
+                              crashsignal, earlyinit, sql, cmdhistory,
+                              backendproblem)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                usertypes, standarddir, error)
 # pylint: disable=unused-import
@@ -389,13 +390,16 @@ def _init_modules(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     # pylint: disable=too-many-statements
-    log.init.debug("Initializing prompts...")
-    prompt.init()
-
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
     configinit.late_init(save_manager)
+
+    log.init.debug("Checking backend requirements...")
+    backendproblem.init()
+
+    log.init.debug("Initializing prompts...")
+    prompt.init()
 
     log.init.debug("Initializing network...")
     networkmanager.init()
