@@ -720,7 +720,7 @@ class TestListOrValue:
             klass(strtype, length=3).to_py(val)
 
     def test_get_name(self, strtype, klass):
-        assert klass(strtype).get_name() == 'List of String or String'
+        assert klass(strtype).get_name() == 'List of String, or String'
 
     def test_get_valid_values(self, klass):
         valid_values = configtypes.ValidValues('foo', 'bar', 'baz')

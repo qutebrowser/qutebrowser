@@ -495,7 +495,7 @@ class ListOrValue(BaseType):
         self.valtype = valtype
 
     def get_name(self):
-        return self.listtype.get_name() + ' or ' + self.valtype.get_name()
+        return self.listtype.get_name() + ', or ' + self.valtype.get_name()
 
     def get_valid_values(self):
         return self.valtype.get_valid_values()
@@ -1305,6 +1305,8 @@ class ShellCommand(List):
     Attributes:
         placeholder: If there should be a placeholder.
     """
+
+    _show_valtype = False
 
     def __init__(self, placeholder=False, none_ok=False):
         super().__init__(valtype=String(), none_ok=none_ok)

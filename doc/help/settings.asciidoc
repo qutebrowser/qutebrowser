@@ -1605,7 +1605,7 @@ The file can be in one of the following formats:
   `hosts` (with any extension).
 
 
-Type: <<types,List>>
+Type: <<types,List of Url>>
 
 Default: 
 
@@ -1621,7 +1621,7 @@ List of domains that should always be loaded, despite being ad-blocked.
 Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
 Local domains are always exempt from hostblocking.
 
-Type: <<types,List>>
+Type: <<types,List of String>>
 
 Default: 
 
@@ -1944,7 +1944,7 @@ Default: +pass:[ask]+
 === content.user_stylesheets
 A list of user stylesheet filenames to use.
 
-Type: <<types,ListOrValue>>
+Type: <<types,List of File, or File>>
 
 Default: empty
 
@@ -2364,7 +2364,7 @@ Default: +pass:[letter]+
 === hints.next_regexes
 A comma-separated list of regexes to use for 'next' links.
 
-Type: <<types,List>>
+Type: <<types,List of Regex>>
 
 Default: 
 
@@ -2379,7 +2379,7 @@ Default:
 === hints.prev_regexes
 A comma-separated list of regexes to use for 'prev' links.
 
-Type: <<types,List>>
+Type: <<types,List of Regex>>
 
 Default: 
 
@@ -2547,7 +2547,7 @@ Default: +pass:[false]+
 Keychains that shouldn't be shown in the keyhint dialog.
 Globs are supported, so `;*` will blacklist all keychains starting with `;`. Use `*` to disable keyhints.
 
-Type: <<types,List>>
+Type: <<types,List of String>>
 
 Default: empty
 
@@ -2641,7 +2641,7 @@ Default: +pass:[8]+
 Additional arguments to pass to Qt, without leading `--`.
 With QtWebEngine, some Chromium arguments (see https://peter.sh/experiments/chromium-command-line-switches/ for a list) will work.
 
-Type: <<types,List>>
+Type: <<types,List of String>>
 
 Default: empty
 
@@ -3056,7 +3056,7 @@ Default:
 === url.start_pages
 The page(s) to open at the start.
 
-Type: <<types,ListOrValue>>
+Type: <<types,List of FuzzyUrl, or FuzzyUrl>>
 
 Default: +pass:[https://start.duckduckgo.com]+
 
@@ -3064,7 +3064,7 @@ Default: +pass:[https://start.duckduckgo.com]+
 === url.yank_ignored_parameters
 The URL parameters to strip with `:yank url`.
 
-Type: <<types,List>>
+Type: <<types,List of String>>
 
 Default: 
 
@@ -3120,7 +3120,7 @@ Default: +pass:[100%]+
 === zoom.levels
 The available zoom levels.
 
-Type: <<types,List>>
+Type: <<types,List of Perc>>
 
 Default: 
 

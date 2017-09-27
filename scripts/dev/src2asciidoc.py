@@ -416,8 +416,7 @@ def _generate_setting_option(f, opt):
     f.write("=== {}".format(opt.name) + "\n")
     f.write(opt.description + "\n")
     f.write("\n")
-    f.write('Type: <<types,{typ}>>\n'.format(
-        typ=opt.typ.__class__.__name__))
+    f.write('Type: <<types,{typ}>>\n'.format(typ=opt.typ.get_name()))
     f.write("\n")
 
     valid_values = opt.typ.get_valid_values()
