@@ -196,6 +196,8 @@ class Completer(QObject):
 
         For performance reasons we don't want to block here, instead we do this
         in the background.
+
+        We delay the update only if we've already input some text.
         """
         if (self._cmd.cursorPosition() == self._last_cursor_pos and
                 self._cmd.text() == self._last_text):
@@ -203,7 +205,7 @@ class Completer(QObject):
                                  "changes.")
         else:
             log.completion.debug("Scheduling completion update.")
-            self._timer.start()
+            self._timer.start(config.val.completion.delay if self._last_text else 0)
         self._last_cursor_pos = self._cmd.cursorPosition()
         self._last_text = self._cmd.text()
 
