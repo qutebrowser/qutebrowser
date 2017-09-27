@@ -34,6 +34,9 @@ from qutebrowser.config import config
 from qutebrowser.utils import qtutils, jinja
 
 
+_cached_stylesheet = None
+
+
 class CompletionItemDelegate(QStyledItemDelegate):
 
     """Delegate used by CompletionView to draw individual items.
@@ -189,14 +192,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDefaultTextOption(text_option)
         self._doc.setDocumentMargin(2)
 
-        stylesheet = """
-            .highlight {
-                color: {{ conf.colors.completion.match.fg }};
-            }
-        """
-        with jinja.environment.no_autoescape():
-            template = jinja.environment.from_string(stylesheet)
-        self._doc.setDefaultStyleSheet(template.render(conf=config.val))
+        assert _cached_stylesheet is not None
+        self._doc.setDefaultStyleSheet(_cached_stylesheet)
 
         if index.parent().isValid():
             view = self.parent()
@@ -283,3 +280,24 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._draw_focus_rect()
 
         self._painter.restore()
+
+
+@config.change_filter('colors.completion.match.fg', function=True)
+def _update_stylesheet():
+    """Update the cached stylesheet."""
+    stylesheet = """
+        .highlight {
+            color: {{ conf.colors.completion.match.fg }};
+        }
+    """
+    with jinja.environment.no_autoescape():
+        template = jinja.environment.from_string(stylesheet)
+
+    global _cached_stylesheet
+    _cached_stylesheet = template.render(conf=config.val)
+
+
+def init():
+    """Initialize the cached stylesheet."""
+    _update_stylesheet()
+    config.instance.changed.connect(_update_stylesheet)
