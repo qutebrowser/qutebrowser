@@ -74,13 +74,6 @@ def early_init(args):
 
 def get_backend(args):
     """Find out what backend to use based on available libraries."""
-    try:
-        import PyQt5.QtWebKit  # pylint: disable=unused-variable
-    except ImportError:
-        webkit_available = False
-    else:
-        webkit_available = qtutils.is_new_qtwebkit()
-
     str_to_backend = {
         'webkit': usertypes.Backend.QtWebKit,
         'webengine': usertypes.Backend.QtWebEngine,
@@ -88,12 +81,8 @@ def get_backend(args):
 
     if args.backend is not None:
         return str_to_backend[args.backend]
-    elif config.val.backend != 'auto':
-        return str_to_backend[config.val.backend]
-    elif webkit_available:
-        return usertypes.Backend.QtWebKit
     else:
-        return usertypes.Backend.QtWebEngine
+        return str_to_backend[config.val.backend]
 
 
 def late_init(save_manager):

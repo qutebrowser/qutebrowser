@@ -291,18 +291,17 @@ Default: +pass:[false]+
 === backend
 The backend to use to display websites.
 qutebrowser supports two different web rendering engines / backends, QtWebKit and QtWebEngine.
-QtWebKit is based on WebKit (similar to Safari). It was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
-QtWebEngine is Qt's official successor to QtWebKit and based on the Chromium project. It's slightly more resource hungry that QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
+QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
+QtWebEngine is Qt's official successor to QtWebKit. It's slightly more resource hungry that QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
 
 Type: <<types,String>>
 
 Valid values:
 
- * +auto+: Automatically select either QtWebEngine or QtWebKit
- * +webkit+: Force QtWebKit
- * +webengine+: Force QtWebEngine
+ * +webengine+: Use QtWebEngine (based on Chromium)
+ * +webkit+: Use QtWebKit (based on WebKit, similar to Safari)
 
-Default: +pass:[auto]+
+Default: +pass:[webengine]+
 
 [[bindings.commands]]
 === bindings.commands
