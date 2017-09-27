@@ -651,6 +651,16 @@ completion.delay:
     maxval: maxint64
   desc: >-
     Delay in ms before updating completions after typing a character
+
+completion.min_chars:
+  default: 1
+  type:
+    name: Int
+    minval: 1
+    maxval: maxint64
+  desc: >-
+    Minimum amount of characters needed to update completions
+
 ## downloads
 
 downloads.location.directory:
