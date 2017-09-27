@@ -258,7 +258,7 @@ class CrashHandler(QObject):
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
             ret = self._crash_dialog.exec_()
-            if ret == QDialog.Accepted:  # restore
+            if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 
         # We might risk a segfault here, but that's better than continuing to

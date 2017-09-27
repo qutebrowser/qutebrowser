@@ -35,10 +35,14 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QDialogButtonBox, QApplication)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg
+from qutebrowser.utils import version, log, utils, objreg, usertypes
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin)
 from qutebrowser.config import config, configfiles
+
+
+Result = usertypes.enum('Result', ['restore', 'no_restore'], is_int=True,
+                        start=QDialog.Accepted + 1)
 
 
 def parse_fatal_stacktrace(text):
@@ -443,9 +447,9 @@ class ExceptionCrashDialog(_CrashDialog):
     def finish(self):
         self._save_contact_info()
         if self._chk_restore.isChecked():
-            self.accept()
+            self.done(Result.restore)
         else:
-            self.reject()
+            self.done(Result.no_restore)
 
 
 class FatalCrashDialog(_CrashDialog):
