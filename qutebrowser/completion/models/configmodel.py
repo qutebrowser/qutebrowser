@@ -21,7 +21,7 @@
 
 from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
-from qutebrowser.commands import runners
+from qutebrowser.commands import runners, cmdexc
 
 
 def option(*, info):
@@ -72,8 +72,12 @@ def bind(key, *, info):
 
     if cmd_text:
         parser = runners.CommandParser()
-        cmd = parser.parse(cmd_text).cmd
-        data = [(cmd_text, cmd.desc, key)]
+        try:
+            cmd = parser.parse(cmd_text).cmd
+        except cmdexc.NoSuchCommandError:
+            data = [(cmd_text, 'Invalid command!', key)]
+        else:
+            data = [(cmd_text, cmd.desc, key)]
         model.add_category(listcategory.ListCategory("Current", data))
 
     cmdlist = util.get_cmd_completions(info, include_hidden=True,

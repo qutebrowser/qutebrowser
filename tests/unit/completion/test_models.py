@@ -119,6 +119,7 @@ def configdata_stub(monkeypatch, configdata_init):
                 'normal': collections.OrderedDict([
                     ('<ctrl+q>', 'quit'),
                     ('ZQ', 'quit'),
+                    ('I', 'invalid'),
                 ])
             },
             backends=[],
@@ -538,7 +539,8 @@ def test_setting_option_completion(qtmodeltester, config_stub,
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
             ('bindings.commands', 'Default keybindings',
-                '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit"}}'),
+                '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit", '
+                '"I": "invalid"}}'),
             ('bindings.default', 'Default keybindings',
                 '{"normal": {"<ctrl+q>": "quit"}}'),
         ]
@@ -563,6 +565,25 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
     _check_completions(model, {
         "Current": [
             ('quit', 'quit qutebrowser', 'ZQ'),
+        ],
+        "Commands": [
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('scroll', 'Scroll the current tab in the given direction.', '')
+        ],
+    })
+
+
+def test_bind_completion_invalid(cmdutils_stub, config_stub, key_config_stub,
+                                 configdata_stub, info):
+    """Test command completion with an invalid command bound."""
+    model = configmodel.bind('I', info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "Current": [
+            ('invalid', 'Invalid command!', 'I'),
         ],
         "Commands": [
             ('open', 'open a url', ''),
