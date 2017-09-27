@@ -60,8 +60,6 @@ class CompletionModel(QAbstractItemModel):
     def add_category(self, cat):
         """Add a completion category to the model."""
         self._categories.append(cat)
-        cat.layoutAboutToBeChanged.connect(self.layoutAboutToBeChanged)
-        cat.layoutChanged.connect(self.layoutChanged)
 
     def data(self, index, role=Qt.DisplayRole):
         """Return the item data for index.
@@ -179,8 +177,10 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
+        self.layoutAboutToBeChanged.emit()
         for cat in self._categories:
             cat.set_pattern(pattern)
+        self.layoutChanged.emit()
 
     def first_item(self):
         """Return the index of the first child (non-category) in the model."""
