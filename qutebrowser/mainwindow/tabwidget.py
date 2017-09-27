@@ -435,9 +435,14 @@ class TabBar(QTabBar):
             A QSize of the smallest tab size we can make.
         """
         text = '\u2026' if ellipsis else self.tabText(index)
+        # Don't ever shorten if text is shorter than the elipsis
+        text_width = min(self.fontMetrics().width(text),
+                         self.fontMetrics().width(self.tabText(index)))
         icon = self.tabIcon(index)
         padding = config.val.tabs.padding
+        indicator_padding = config.val.tabs.indicator_padding
         padding_h = padding.left + padding.right
+        padding_h += indicator_padding.left + indicator_padding.right
         padding_v = padding.top + padding.bottom
         if icon.isNull():
             icon_size = QSize(0, 0)
@@ -445,10 +450,8 @@ class TabBar(QTabBar):
             extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None,
                                               self)
             icon_size = icon.actualSize(QSize(extent, extent))
-            padding_h += self.style().pixelMetric(
-                PixelMetrics.icon_padding, None, self)
         height = self.fontMetrics().height() + padding_v
-        width = (self.fontMetrics().width(text) + icon_size.width() +
+        width = (text_width + icon_size.width() +
                  padding_h + config.val.tabs.width.indicator)
         return QSize(width, height)
 
