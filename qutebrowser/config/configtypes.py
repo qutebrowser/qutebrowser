@@ -476,6 +476,67 @@ class List(BaseType):
         return '\n'.join(lines)
 
 
+class ListOrValue(BaseType):
+
+    """A list of values, or a single value.
+
+    //
+
+    Internally, the value is stored as either a value (of valtype), or a list.
+    to_py() then ensures that it's always a list.
+    """
+
+    _show_valtype = True
+
+    def __init__(self, valtype, none_ok=False, *args, **kwargs):
+        super().__init__(none_ok)
+        assert not isinstance(valtype, (List, ListOrValue)), valtype
+        self.listtype = List(valtype, none_ok=none_ok, *args, **kwargs)
+        self.valtype = valtype
+
+    def get_name(self):
+        return self.listtype.get_name() + ' or ' + self.valtype.get_name()
+
+    def get_valid_values(self):
+        return self.valtype.get_valid_values()
+
+    def from_str(self, value):
+        try:
+            return self.listtype.from_str(value)
+        except configexc.ValidationError:
+            return self.valtype.from_str(value)
+
+    def to_py(self, value):
+        try:
+            return [self.valtype.to_py(value)]
+        except configexc.ValidationError:
+            return self.listtype.to_py(value)
+
+    def to_str(self, value):
+        if value is None:
+            return ''
+
+        if isinstance(value, list):
+            if len(value) == 1:
+                return self.valtype.to_str(value[0])
+            else:
+                return self.listtype.to_str(value)
+        else:
+            return self.valtype.to_str(value)
+
+    def to_doc(self, value):
+        if value is None:
+            return 'empty'
+
+        if isinstance(value, list):
+            if len(value) == 1:
+                return self.valtype.to_doc(value[0])
+            else:
+                return self.listtype.to_doc(value)
+        else:
+            return self.valtype.to_doc(value)
+
+
 class FlagList(List):
 
     """A list of flags.

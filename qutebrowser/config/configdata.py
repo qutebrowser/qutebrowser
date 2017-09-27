@@ -93,7 +93,7 @@ def _parse_yaml_type(name, node):
         if typ is configtypes.Dict:
             kwargs['keytype'] = _parse_yaml_type(name, kwargs['keytype'])
             kwargs['valtype'] = _parse_yaml_type(name, kwargs['valtype'])
-        elif typ is configtypes.List:
+        elif typ is configtypes.List or typ is configtypes.ListOrValue:
             kwargs['valtype'] = _parse_yaml_type(name, kwargs['valtype'])
     except KeyError as e:
         _raise_invalid_node(name, str(e), node)

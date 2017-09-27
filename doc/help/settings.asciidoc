@@ -1944,7 +1944,7 @@ Default: +pass:[ask]+
 === content.user_stylesheets
 A list of user stylesheet filenames to use.
 
-Type: <<types,List>>
+Type: <<types,ListOrValue>>
 
 Default: empty
 
@@ -3056,11 +3056,9 @@ Default:
 === url.start_pages
 The page(s) to open at the start.
 
-Type: <<types,List>>
+Type: <<types,ListOrValue>>
 
-Default: 
-
-- +pass:[https://start.duckduckgo.com]+
+Default: +pass:[https://start.duckduckgo.com]+
 
 [[url.yank_ignored_parameters]]
 === url.yank_ignored_parameters
@@ -3199,6 +3197,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |List|A list of values.
 
 When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
+|ListOrValue|A list of values, or a single value.
 |NewTabPosition|How new tabs are positioned.
 |Padding|Setting for paddings around elements.
 |Perc|A percentage.

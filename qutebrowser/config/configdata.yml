@@ -545,7 +545,7 @@ content.ssl_strict:
 
 content.user_stylesheets:
   type:
-    name: List
+    name: ListOrValue
     valtype: File
     none_ok: True
   default: null
@@ -1240,9 +1240,9 @@ url.searchengines:
 
 url.start_pages:
   type:
-    name: List
+    name: ListOrValue
     valtype: FuzzyUrl
-  default: ["https://start.duckduckgo.com"]
+  default: "https://start.duckduckgo.com"
   desc: The page(s) to open at the start.
 
 url.yank_ignored_parameters:
