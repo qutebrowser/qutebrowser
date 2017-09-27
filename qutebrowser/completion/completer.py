@@ -197,9 +197,16 @@ class Completer(QObject):
         For performance reasons we don't want to block here, instead we do this
         in the background.
 
-        We delay the update only if we've already input some text.
+        We delay the update only if we've already input some text and ignore
+        updates if the text is shorter than completion.min_chars (unless we're
+        hitting backspace in which case updates won't be ignored).
         """
-        if (self._cmd.cursorPosition() == self._last_cursor_pos and
+        cmd, _sep, rest = self._cmd.text().partition(' ')
+        if (0 < len(rest) < config.val.completion.min_chars and
+                self._cmd.cursorPosition() > self._last_cursor_pos):
+            log.completion.debug("Ignoring update because the length of "
+                                 "the text is less than completion.min_chars.")
+        elif (self._cmd.cursorPosition() == self._last_cursor_pos and
                 self._cmd.text() == self._last_text):
             log.completion.debug("Ignoring update because there were no "
                                  "changes.")
