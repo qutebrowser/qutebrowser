@@ -325,6 +325,9 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 @pytest.mark.no_ci
 def test_force_software_rendering(request, quteproc_new):
     """Make sure we can force software rendering with -s."""
+    if not request.config.webengine:
+        pytest.skip("Only runs with QtWebEngine")
+
     args = (_base_args(request.config) +
             ['--temp-basedir', '-s', 'force_software_rendering', 'true'])
     quteproc_new.start(args)
