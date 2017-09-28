@@ -207,12 +207,6 @@ def _init_icon():
 
 def _process_args(args):
     """Open startpage etc. and process commandline args."""
-    for opt, val in args.temp_settings:
-        try:
-            config.instance.set_str(opt, val)
-        except configexc.Error as e:
-            message.error("set: {} - {}".format(e.__class__.__name__, e))
-
     if not args.override_restore:
         _load_session(args.session)
     session_manager = objreg.get('session-manager')

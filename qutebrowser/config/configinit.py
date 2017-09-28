@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc)
-from qutebrowser.utils import objreg, usertypes, log, standarddir
+from qutebrowser.utils import objreg, usertypes, log, standarddir, message
 from qutebrowser.misc import msgbox, objects
 
 
@@ -69,6 +69,12 @@ def early_init(args):
     configfiles.init()
 
     objects.backend = get_backend(args)
+
+    for opt, val in args.temp_settings:
+        try:
+            config.instance.set_str(opt, val)
+        except configexc.Error as e:
+            message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     if (objects.backend == usertypes.Backend.QtWebEngine and
             config.val.force_software_rendering):
