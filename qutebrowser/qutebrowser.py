@@ -27,8 +27,8 @@ qutebrowser's initialization process roughly looks like this:
   it's too old.
 - The main() function in this file gets invoked
 - Argument parsing takes place
-- earlyinit.early_init() gets invoked to do various low-level initialization and
-  checks whether all dependencies are met.
+- earlyinit.early_init() gets invoked to do various low-level initialization
+  and checks whether all dependencies are met.
 - app.run() gets called, which takes over.
   See the docstring of app.py for details.
 """

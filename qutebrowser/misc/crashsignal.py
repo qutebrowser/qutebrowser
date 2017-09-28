@@ -36,7 +36,7 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc

@@ -148,7 +148,7 @@ def _handle_nouveau_graphics():
             force_sw_var in os.environ):
         return
 
-    if config.force_software_rendering:
+    if config.val.force_software_rendering:
         os.environ[force_sw_var] = '1'
         return
 
@@ -175,7 +175,8 @@ def _handle_nouveau_graphics():
 def _handle_wayland():
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
 
-    if QApplication.instance().platformName() not in ['wayland', 'wayland-egl']:
+    platform = QApplication.instance().platformName()
+    if platform not in ['wayland', 'wayland-egl']:
         return
 
     _show_dialog(
@@ -204,6 +205,7 @@ class BackendImports:
 
 def _try_import_backends():
     """Check whether backends can be imported and return BackendImports."""
+    # pylint: disable=unused-variable
     results = BackendImports()
 
     try:

@@ -644,8 +644,8 @@ class Quitter:
             session_manager = objreg.get('session-manager')
             session_manager.save(session, with_private=True)
 
-        # Make sure we're not accepting a connection from the new process before
-        # we fully exited.
+        # Make sure we're not accepting a connection from the new process
+        # before we fully exited.
         ipc.server.shutdown()
 
         # Open a new process and immediately shutdown the existing one

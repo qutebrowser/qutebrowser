@@ -113,15 +113,15 @@ class ListenError(Error):
         message: The error message.
     """
 
-    def __init__(self, server):
+    def __init__(self, local_server):
         """Constructor.
 
         Args:
-            server: The QLocalServer which has the error set.
+            local_server: The QLocalServer which has the error set.
         """
         super().__init__()
-        self.code = server.serverError()
-        self.message = server.errorString()
+        self.code = local_server.serverError()
+        self.message = local_server.errorString()
 
     def __str__(self):
         return "Error while listening to IPC server: {} (error {})".format(

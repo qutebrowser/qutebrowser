@@ -26,8 +26,8 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc)
-from qutebrowser.utils import objreg, qtutils, usertypes, log, standarddir
-from qutebrowser.misc import earlyinit, msgbox, objects
+from qutebrowser.utils import objreg, usertypes, log, standarddir
+from qutebrowser.misc import msgbox, objects
 
 
 # Error which happened during init, so we can show a message box.

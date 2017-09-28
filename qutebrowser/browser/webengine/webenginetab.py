@@ -19,7 +19,6 @@
 
 """Wrapper over a QWebEngineView."""
 
-import os
 import math
 import functools
 import html as html_utils
