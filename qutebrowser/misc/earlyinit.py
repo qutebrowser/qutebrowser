@@ -187,23 +187,6 @@ def check_ssl_support():
         _die("Fatal error: Your Qt is built without SSL support.")
 
 
-def check_backend_ssl_support(backend):
-    """Check for full SSL availability when we know the backend."""
-    from PyQt5.QtNetwork import QSslSocket
-    from qutebrowser.utils import log, usertypes
-    text = ("Could not initialize QtNetwork SSL support. If you use "
-            "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
-            "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
-            "of OpenSSL 1.0. This only affects downloads.")
-
-    if not QSslSocket.supportsSsl():
-        if backend == usertypes.Backend.QtWebKit:
-            _die("Could not initialize SSL support.")
-        else:
-            assert backend == usertypes.Backend.QtWebEngine
-            log.init.warning(text)
-
-
 def _check_modules(modules):
     """Make sure the given modules are available."""
     from qutebrowser.utils import log
@@ -245,35 +228,6 @@ def check_libraries():
         'PyQt5.QtOpenGL': _missing_str("PyQt5.QtOpenGL"),
     }
     _check_modules(modules)
-
-
-def check_backend_libraries(backend):
-    """Make sure the libraries needed by the given backend are available.
-
-    Args:
-        backend: The backend as usertypes.Backend member.
-    """
-    from qutebrowser.utils import usertypes
-    if backend == usertypes.Backend.QtWebEngine:
-        modules = {
-            'PyQt5.QtWebEngineWidgets':
-                _missing_str("QtWebEngine", webengine=True),
-        }
-    else:
-        assert backend == usertypes.Backend.QtWebKit, backend
-        modules = {
-            'PyQt5.QtWebKit': _missing_str("PyQt5.QtWebKit"),
-            'PyQt5.QtWebKitWidgets': _missing_str("PyQt5.QtWebKitWidgets"),
-        }
-    _check_modules(modules)
-
-
-def check_new_webkit(backend):
-    """Make sure we use QtWebEngine or a new QtWebKit."""
-    from qutebrowser.utils import usertypes, qtutils
-    if backend == usertypes.Backend.QtWebKit and not qtutils.is_new_qtwebkit():
-        _die("qutebrowser does not support legacy QtWebKit versions anymore, "
-             "see the installation docs for details.")
 
 
 def remove_inputhook():
@@ -328,16 +282,3 @@ def early_init(args):
     remove_inputhook()
     check_ssl_support()
     check_optimize_flag()
-
-
-def init_with_backend(backend):
-    """Do later stages of init when we know the backend.
-
-    Args:
-        backend: The backend as usertypes.Backend member.
-    """
-    assert not isinstance(backend, str), backend
-    assert backend is not None
-    check_backend_libraries(backend)
-    check_backend_ssl_support(backend)
-    check_new_webkit(backend)

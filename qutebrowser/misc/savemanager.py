@@ -164,6 +164,11 @@ class SaveManager(QObject):
         self.saveables[name].save(is_exit=is_exit, explicit=explicit,
                                   silent=silent, force=force)
 
+    def save_all(self, *args, **kwargs):
+        """Save all saveables."""
+        for saveable in self.saveables:
+            self.save(saveable, *args, **kwargs)
+
     @pyqtSlot()
     def autosave(self):
         """Slot used when the configs are auto-saved."""

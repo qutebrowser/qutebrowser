@@ -101,27 +101,35 @@ qt_args:
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
 
+force_software_rendering:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  desc: >-
+    Force software rendering for QtWebEngine.
+
+    This is needed for QtWebEngine to work with Nouveau drivers.
+
 backend:
   type:
     name: String
     valid_values:
-      - auto: Automatically select either QtWebEngine or QtWebKit
-      - webkit: Force QtWebKit
-      - webengine: Force QtWebEngine
-  default: auto
+      - webengine: Use QtWebEngine (based on Chromium)
+      - webkit: Use QtWebKit (based on WebKit, similar to Safari)
+  default: webengine
   desc: >-
     The backend to use to display websites.
 
     qutebrowser supports two different web rendering engines / backends,
     QtWebKit and QtWebEngine.
 
-    QtWebKit is based on WebKit (similar to Safari). It was discontinued by the
-    Qt project with Qt 5.6, but picked up as a well maintained fork:
-    https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
+    QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a
+    well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser
+    only supports the fork.
 
-    QtWebEngine is Qt's official successor to QtWebKit and based on the Chromium
-    project. It's slightly more resource hungry that QtWebKit and has a couple
-    of missing features in qutebrowser, but is generally the preferred choice.
+    QtWebEngine is Qt's official successor to QtWebKit. It's slightly more
+    resource hungry that QtWebKit and has a couple of missing features in
+    qutebrowser, but is generally the preferred choice.
 
 ## auto_save
 

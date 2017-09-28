@@ -17,7 +17,25 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Initialization of qutebrowser and application-wide things."""
+"""Initialization of qutebrowser and application-wide things.
+
+The run() function will get called once early initialization (in
+qutebrowser.py/earlyinit.py) is done. See the qutebrowser.py docstring for
+details about early initialization.
+
+As we need to access the config before the QApplication is created, we
+initialize everything the config needs before the QApplication is created, and
+then leave it in a partially initialized state (no saving, no config errors
+shown yet).
+
+We then set up the QApplication object and initialize a few more low-level
+things.
+
+After that, init() and _init_modules() take over and initialize the rest.
+
+After all initialization is done, the qt_mainloop() function is called, which
+blocks and spins the Qt mainloop.
+"""
 
 import os
 import sys
@@ -44,8 +62,7 @@ import qutebrowser.resources
 from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import (config, websettings, configexc, configfiles,
-                                configinit)
+from qutebrowser.config import config, websettings, configfiles, configinit
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  downloads)
 from qutebrowser.browser.network import proxy
@@ -54,7 +71,8 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, sql, cmdhistory)
+                              crashsignal, earlyinit, sql, cmdhistory,
+                              backendproblem)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                usertypes, standarddir, error)
 # pylint: disable=unused-import
@@ -188,12 +206,6 @@ def _init_icon():
 
 def _process_args(args):
     """Open startpage etc. and process commandline args."""
-    for opt, val in args.temp_settings:
-        try:
-            config.instance.set_str(opt, val)
-        except configexc.Error as e:
-            message.error("set: {} - {}".format(e.__class__.__name__, e))
-
     if not args.override_restore:
         _load_session(args.session)
     session_manager = objreg.get('session-manager')
@@ -389,13 +401,16 @@ def _init_modules(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     # pylint: disable=too-many-statements
-    log.init.debug("Initializing prompts...")
-    prompt.init()
-
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
     configinit.late_init(save_manager)
+
+    log.init.debug("Checking backend requirements...")
+    backendproblem.init()
+
+    log.init.debug("Initializing prompts...")
+    prompt.init()
 
     log.init.debug("Initializing network...")
     networkmanager.init()
@@ -509,12 +524,13 @@ class Quitter:
                     with tokenize.open(os.path.join(dirpath, fn)) as f:
                         compile(f.read(), fn, 'exec')
 
-    def _get_restart_args(self, pages=(), session=None):
+    def _get_restart_args(self, pages=(), session=None, override_args=None):
         """Get the current working directory and args to relaunch qutebrowser.
 
         Args:
             pages: The pages to re-open.
             session: The session to load, or None.
+            override_args: Argument overrides as a dict.
 
         Return:
             An (args, cwd) tuple.
@@ -565,6 +581,9 @@ class Quitter:
             argdict['temp_basedir'] = False
             argdict['temp_basedir_restarted'] = True
 
+        if override_args is not None:
+            argdict.update(override_args)
+
         # Dump the data
         data = json.dumps(argdict)
         args += ['--json-args', data]
@@ -589,7 +608,7 @@ class Quitter:
         if ok:
             self.shutdown(restart=True)
 
-    def restart(self, pages=(), session=None):
+    def restart(self, pages=(), session=None, override_args=None):
         """Inner logic to restart qutebrowser.
 
         The "better" way to restart is to pass a session (_restart usually) as
@@ -602,6 +621,7 @@ class Quitter:
         Args:
             pages: A list of URLs to open.
             session: The session to load, or None.
+            override_args: Argument overrides as a dict.
 
         Return:
             True if the restart succeeded, False otherwise.
@@ -611,13 +631,19 @@ class Quitter:
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+
         # Save the session if one is given.
         if session is not None:
             session_manager = objreg.get('session-manager')
             session_manager.save(session, with_private=True)
+
+        # Make sure we're not accepting a connection from the new process
+        # before we fully exited.
+        ipc.server.shutdown()
+
         # Open a new process and immediately shutdown the existing one
         try:
-            args, cwd = self._get_restart_args(pages, session)
+            args, cwd = self._get_restart_args(pages, session, override_args)
             if cwd is None:
                 subprocess.Popen(args)
             else:
@@ -705,7 +731,7 @@ class Quitter:
         QApplication.closeAllWindows()
         # Shut down IPC
         try:
-            objreg.get('ipc-server').shutdown()
+            ipc.server.shutdown()
         except KeyError:
             pass
         # Save everything

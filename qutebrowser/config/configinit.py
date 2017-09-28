@@ -26,8 +26,8 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc)
-from qutebrowser.utils import objreg, qtutils, usertypes, log, standarddir
-from qutebrowser.misc import earlyinit, msgbox, objects
+from qutebrowser.utils import objreg, usertypes, log, standarddir, message
+from qutebrowser.misc import msgbox, objects
 
 
 # Error which happened during init, so we can show a message box.
@@ -69,18 +69,20 @@ def early_init(args):
     configfiles.init()
 
     objects.backend = get_backend(args)
-    earlyinit.init_with_backend(objects.backend)
+
+    for opt, val in args.temp_settings:
+        try:
+            config.instance.set_str(opt, val)
+        except configexc.Error as e:
+            message.error("set: {} - {}".format(e.__class__.__name__, e))
+
+    if (objects.backend == usertypes.Backend.QtWebEngine and
+            config.val.force_software_rendering):
+        os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
 
 
 def get_backend(args):
     """Find out what backend to use based on available libraries."""
-    try:
-        import PyQt5.QtWebKit  # pylint: disable=unused-variable
-    except ImportError:
-        webkit_available = False
-    else:
-        webkit_available = qtutils.is_new_qtwebkit()
-
     str_to_backend = {
         'webkit': usertypes.Backend.QtWebKit,
         'webengine': usertypes.Backend.QtWebEngine,
@@ -88,12 +90,8 @@ def get_backend(args):
 
     if args.backend is not None:
         return str_to_backend[args.backend]
-    elif config.val.backend != 'auto':
-        return str_to_backend[config.val.backend]
-    elif webkit_available:
-        return usertypes.Backend.QtWebKit
     else:
-        return usertypes.Backend.QtWebEngine
+        return str_to_backend[config.val.backend]
 
 
 def late_init(save_manager):

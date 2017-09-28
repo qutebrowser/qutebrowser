@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, objreg, standarddir, utils
+from qutebrowser.utils import log, usertypes, error, standarddir, utils
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
@@ -38,6 +38,10 @@ WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
 ATIME_INTERVAL = 60 * 60 * 3 * 1000  # 3 hours
 PROTOCOL_VERSION = 1
+
+
+# The ipc server instance
+server = None
 
 
 def _get_socketname_windows(basedir):
@@ -109,15 +113,15 @@ class ListenError(Error):
         message: The error message.
     """
 
-    def __init__(self, server):
+    def __init__(self, local_server):
         """Constructor.
 
         Args:
-            server: The QLocalServer which has the error set.
+            local_server: The QLocalServer which has the error set.
         """
         super().__init__()
-        self.code = server.serverError()
-        self.message = server.errorString()
+        self.code = local_server.serverError()
+        self.message = local_server.errorString()
 
     def __str__(self):
         return "Error while listening to IPC server: {} (error {})".format(
@@ -482,6 +486,7 @@ def send_or_listen(args):
         The IPCServer instance if no running instance was detected.
         None if an instance was running and received our request.
     """
+    global server
     socketname = _get_socketname(args.basedir)
     try:
         try:
@@ -492,7 +497,6 @@ def send_or_listen(args):
             log.init.debug("Starting IPC server...")
             server = IPCServer(socketname)
             server.listen()
-            objreg.register('ipc-server', server)
             return server
         except AddressInUseError as e:
             # This could be a race condition...
