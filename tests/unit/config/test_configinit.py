@@ -194,6 +194,7 @@ class TestEarlyInit:
                             usertypes.Backend.QtWebEngine)
         monkeypatch.delenv(envvar, raising=False)
         args.temp_settings = [('force_software_rendering', 'true')]
+        args.backend = 'webengine'
 
         configinit.early_init(args)
 
