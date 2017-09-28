@@ -1565,7 +1565,7 @@ colors.prompts.border:
   desc: Border used around UI elements in prompts.
 
 colors.prompts.bg:
-  default: dimgrey
+  default: #444444
   type: QssColor
   desc: Background color for prompts.
 

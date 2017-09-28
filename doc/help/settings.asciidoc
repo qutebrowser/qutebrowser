@@ -968,7 +968,7 @@ Background color for prompts.
 
 Type: <<types,QssColor>>
 
-Default: +pass:[dimgrey]+
+Default: empty
 
 [[colors.prompts.border]]
 === colors.prompts.border
