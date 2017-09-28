@@ -17,7 +17,25 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Initialization of qutebrowser and application-wide things."""
+"""Initialization of qutebrowser and application-wide things.
+
+The run() function will get called once early initialization (in
+qutebrowser.py/earlyinit.py) is done. See the qutebrowser.py docstring for
+details about early initialization.
+
+As we need to access the config before the QApplication is created, we
+initialize everything the config needs before the QApplication is created, and
+then leave it in a partially initialized state (no saving, no config errors
+shown yet).
+
+We then set up the QApplication object and initialize a few more low-level
+things.
+
+After that, init() and _init_modules() take over and initialize the rest.
+
+After all initialization is done, the qt_mainloop() function is called, which
+blocks and spins the Qt mainloop.
+"""
 
 import os
 import sys
