@@ -39,6 +39,7 @@ except ImportError:
     colorama = None
 
 _log_inited = False
+_args = None
 
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
@@ -189,8 +190,9 @@ def init_log(args):
     logging.captureWarnings(True)
     _init_py_warnings()
     QtCore.qInstallMessageHandler(qt_message_handler)
-    global _log_inited
+    global _log_inited, _args
     _log_inited = True
+    _args = args
 
 
 def _init_py_warnings():
@@ -442,7 +444,11 @@ def qt_message_handler(msg_type, context, msg):
         msg += ("\n\nOn Archlinux, this should fix the problem:\n"
                 "    pacman -S libxkbcommon-x11")
         faulthandler.disable()
-    stack = ''.join(traceback.format_stack())
+
+    if _args.debug:
+        stack = ''.join(traceback.format_stack())
+    else:
+        stack = None
     record = qt.makeRecord(name, level, context.file, context.line, msg, None,
                            None, func, sinfo=stack)
     qt.handle(record)
