@@ -187,23 +187,6 @@ def check_ssl_support():
         _die("Fatal error: Your Qt is built without SSL support.")
 
 
-def check_backend_ssl_support(backend):
-    """Check for full SSL availability when we know the backend."""
-    from PyQt5.QtNetwork import QSslSocket
-    from qutebrowser.utils import log, usertypes
-    text = ("Could not initialize QtNetwork SSL support. If you use "
-            "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
-            "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
-            "of OpenSSL 1.0. This only affects downloads.")
-
-    if not QSslSocket.supportsSsl():
-        if backend == usertypes.Backend.QtWebKit:
-            _die("Could not initialize SSL support.")
-        else:
-            assert backend == usertypes.Backend.QtWebEngine
-            log.init.warning(text)
-
-
 def _check_modules(modules):
     """Make sure the given modules are available."""
     from qutebrowser.utils import log
@@ -299,14 +282,3 @@ def early_init(args):
     remove_inputhook()
     check_ssl_support()
     check_optimize_flag()
-
-
-def init_with_backend(backend):
-    """Do later stages of init when we know the backend.
-
-    Args:
-        backend: The backend as usertypes.Backend member.
-    """
-    assert not isinstance(backend, str), backend
-    assert backend is not None
-    check_backend_ssl_support(backend)

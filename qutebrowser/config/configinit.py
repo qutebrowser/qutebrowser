@@ -69,7 +69,6 @@ def early_init(args):
     configfiles.init()
 
     objects.backend = get_backend(args)
-    earlyinit.init_with_backend(objects.backend)
 
 
 def get_backend(args):

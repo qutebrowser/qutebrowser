@@ -28,9 +28,10 @@ import attr
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
                              QVBoxLayout, QLabel, QMessageBox)
+from PyQt5.QtNetwork import QSslSocket
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, objreg, version, qtutils
+from qutebrowser.utils import usertypes, objreg, version, qtutils, log
 from qutebrowser.misc import objects, msgbox
 
 
@@ -225,6 +226,32 @@ def _try_import_backends():
     return results
 
 
+def _handle_ssl_support(fatal=False):
+    """Check for full SSL availability.
+
+    If "fatal" is given, show an error and exit.
+    """
+    text = ("Could not initialize QtNetwork SSL support. If you use "
+            "OpenSSL 1.1 with a PyQt package from PyPI (e.g. on Archlinux "
+            "or Debian Stretch), you need to set LD_LIBRARY_PATH to the path "
+            "of OpenSSL 1.0. This only affects downloads.")
+
+    if QSslSocket.supportsSsl():
+        return
+
+    if fatal:
+        errbox = msgbox.msgbox(parent=None,
+                               title="SSL error",
+                               text="Could not initialize SSL support.",
+                               icon=QMessageBox.Critical,
+                               plain_text=False)
+        errbox.exec_()
+        sys.exit(usertypes.Exit.err_init)
+
+    assert not fatal
+    log.init.warning(text)
+
+
 def _check_backend_modules():
     """Check for the modules needed for QtWebKit/QtWebEngine."""
     imports = _try_import_backends()
@@ -275,7 +302,9 @@ def _check_backend_modules():
 def init():
     _check_backend_modules()
     if objects.backend == usertypes.Backend.QtWebEngine:
+        _handle_ssl_support()
         _handle_wayland()
         _handle_nouveau_graphics()
     else:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
+        _handle_ssl_support(fatal=True)
