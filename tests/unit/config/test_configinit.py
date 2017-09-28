@@ -26,8 +26,7 @@ import unittest.mock
 import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.config import (config, configdata, configexc, configfiles,
-                                configinit)
+from qutebrowser.config import config, configexc, configfiles, configinit
 from qutebrowser.utils import objreg, usertypes
 
 
