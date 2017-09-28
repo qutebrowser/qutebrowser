@@ -35,8 +35,10 @@ from qutebrowser.utils import usertypes, objreg, version, qtutils, log
 from qutebrowser.misc import objects, msgbox
 
 
-_Result = usertypes.enum('_Result', ['quit', 'restart'], is_int=True,
-                         start=QDialog.Accepted + 1)
+_Result = usertypes.enum(
+    '_Result',
+    ['quit', 'restart', 'restart_webkit', 'restart_webengine'],
+    is_int=True, start=QDialog.Accepted + 1)
 
 
 @attr.s
@@ -105,7 +107,13 @@ class _Dialog(QDialog):
         config.instance.set_obj(setting, value, save_yaml=True)
         save_manager = objreg.get('save-manager')
         save_manager.save_all(is_exit=True)
-        self.done(_Result.restart)
+
+        if setting == 'backend' and value == 'webkit':
+            self.done(_Result.restart_webkit)
+        elif setting == 'backend' and value == 'webengine':
+            self.done(_Result.restart_webengine)
+        else:
+            self.done(_Result.restart)
 
 
 def _show_dialog(*args, **kwargs):
@@ -113,16 +121,20 @@ def _show_dialog(*args, **kwargs):
     dialog = _Dialog(*args, **kwargs)
 
     status = dialog.exec_()
+    quitter = objreg.get('quitter')
 
     if status in [_Result.quit, QDialog.Rejected]:
-        sys.exit(usertypes.Exit.err_init)
+        pass
+    elif status == _Result.restart_webkit:
+        quitter.restart(override_args={'backend': 'webkit'})
+    elif status == _Result.restart_webengine:
+        quitter.restart(override_args={'backend': 'webengine'})
     elif status == _Result.restart:
-        # FIXME pass --backend webengine
-        quitter = objreg.get('quitter')
         quitter.restart()
-        sys.exit(usertypes.Exit.err_init)
     else:
         assert False, status
+
+    sys.exit(usertypes.Exit.err_init)
 
 
 def _handle_nouveau_graphics():

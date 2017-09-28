@@ -513,12 +513,13 @@ class Quitter:
                     with tokenize.open(os.path.join(dirpath, fn)) as f:
                         compile(f.read(), fn, 'exec')
 
-    def _get_restart_args(self, pages=(), session=None):
+    def _get_restart_args(self, pages=(), session=None, override_args=None):
         """Get the current working directory and args to relaunch qutebrowser.
 
         Args:
             pages: The pages to re-open.
             session: The session to load, or None.
+            override_args: Argument overrides as a dict.
 
         Return:
             An (args, cwd) tuple.
@@ -569,6 +570,9 @@ class Quitter:
             argdict['temp_basedir'] = False
             argdict['temp_basedir_restarted'] = True
 
+        if override_args is not None:
+            argdict.update(override_args)
+
         # Dump the data
         data = json.dumps(argdict)
         args += ['--json-args', data]
@@ -593,7 +597,7 @@ class Quitter:
         if ok:
             self.shutdown(restart=True)
 
-    def restart(self, pages=(), session=None):
+    def restart(self, pages=(), session=None, override_args=None):
         """Inner logic to restart qutebrowser.
 
         The "better" way to restart is to pass a session (_restart usually) as
@@ -606,6 +610,7 @@ class Quitter:
         Args:
             pages: A list of URLs to open.
             session: The session to load, or None.
+            override_args: Argument overrides as a dict.
 
         Return:
             True if the restart succeeded, False otherwise.
@@ -621,7 +626,7 @@ class Quitter:
             session_manager.save(session, with_private=True)
         # Open a new process and immediately shutdown the existing one
         try:
-            args, cwd = self._get_restart_args(pages, session)
+            args, cwd = self._get_restart_args(pages, session, override_args)
             if cwd is None:
                 subprocess.Popen(args)
             else:
