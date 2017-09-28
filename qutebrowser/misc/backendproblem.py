@@ -174,10 +174,6 @@ def _handle_nouveau_graphics():
 def _handle_wayland():
     if QApplication.instance().platformName() not in ['wayland', 'wayland-egl']:
         return
-    if os.environ.get('DISPLAY'):
-        # When DISPLAY is set but with the wayland/wayland-egl platform plugin,
-        # QtWebEngine will do the right hting.
-        return
 
     _show_dialog(
         backend=usertypes.Backend.QtWebEngine,
