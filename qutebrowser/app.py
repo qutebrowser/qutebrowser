@@ -638,10 +638,16 @@ class Quitter:
         log.destroy.debug("sys.path: {}".format(sys.path))
         log.destroy.debug("sys.argv: {}".format(sys.argv))
         log.destroy.debug("frozen: {}".format(hasattr(sys, 'frozen')))
+
         # Save the session if one is given.
         if session is not None:
             session_manager = objreg.get('session-manager')
             session_manager.save(session, with_private=True)
+
+        # Make sure we're not accepting a connection from the new process before
+        # we fully exited.
+        ipc.server.shutdown()
+
         # Open a new process and immediately shutdown the existing one
         try:
             args, cwd = self._get_restart_args(pages, session, override_args)
@@ -732,7 +738,7 @@ class Quitter:
         QApplication.closeAllWindows()
         # Shut down IPC
         try:
-            objreg.get('ipc-server').shutdown()
+            ipc.server.shutdown()
         except KeyError:
             pass
         # Save everything

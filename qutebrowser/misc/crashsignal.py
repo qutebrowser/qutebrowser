@@ -39,7 +39,7 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
 from PyQt5.QtWidgets import QApplication, QDialog
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog
+from qutebrowser.misc import earlyinit, crashdialog, ipc
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
@@ -236,7 +236,7 @@ class CrashHandler(QObject):
         info = self._get_exception_info()
 
         try:
-            objreg.get('ipc-server').ignored = True
+            ipc.server.ignored = True
         except Exception:
             log.destroy.exception("Error while ignoring ipc")
 

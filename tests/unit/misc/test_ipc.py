@@ -34,7 +34,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import objreg, standarddir, utils
+from qutebrowser.utils import standarddir, utils
 from helpers import stubs
 
 
@@ -45,12 +45,8 @@ pytestmark = pytest.mark.usefixtures('qapp')
 def shutdown_server():
     """If ipc.send_or_listen was called, make sure to shut server down."""
     yield
-    try:
-        server = objreg.get('ipc-server')
-    except KeyError:
-        pass
-    else:
-        server.shutdown()
+    if ipc.server is not None:
+        ipc.server.shutdown()
 
 
 @pytest.fixture
@@ -609,13 +605,6 @@ class TestSendOrListen:
         return self.Args(no_err_windows=True, basedir='/basedir/for/testing',
                          command=['test'], target=None)
 
-    @pytest.fixture(autouse=True)
-    def cleanup(self):
-        try:
-            objreg.delete('ipc-server')
-        except KeyError:
-            pass
-
     @pytest.fixture
     def qlocalserver_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalServer', autospec=True)
@@ -639,8 +628,7 @@ class TestSendOrListen:
         assert isinstance(ret_server, ipc.IPCServer)
         msgs = [e.message for e in caplog.records]
         assert "Starting IPC server..." in msgs
-        objreg_server = objreg.get('ipc-server')
-        assert objreg_server is ret_server
+        assert ret_server is ipc.server
 
         with qtbot.waitSignal(ret_server.got_args):
             ret_client = ipc.send_or_listen(args)
