@@ -294,6 +294,7 @@ The backend to use to display websites.
 qutebrowser supports two different web rendering engines / backends, QtWebKit and QtWebEngine.
 QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
 QtWebEngine is Qt's official successor to QtWebKit. It's slightly more resource hungry that QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
+This setting requires a restart.
 
 Type: <<types,String>>
 
@@ -2266,7 +2267,7 @@ Default: +pass:[6]+
 [[force_software_rendering]]
 === force_software_rendering
 Force software rendering for QtWebEngine.
-This is needed for QtWebEngine to work with Nouveau drivers.
+This is needed for QtWebEngine to work with Nouveau drivers. This setting requires a restart.
 
 Type: <<types,Bool>>
 
@@ -2656,6 +2657,7 @@ Default: +pass:[8]+
 === qt_args
 Additional arguments to pass to Qt, without leading `--`.
 With QtWebEngine, some Chromium arguments (see https://peter.sh/experiments/chromium-command-line-switches/ for a list) will work.
+This setting requires a restart.
 
 Type: <<types,List of String>>
 

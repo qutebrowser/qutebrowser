@@ -101,6 +101,8 @@ qt_args:
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
 
+    This setting requires a restart.
+
 force_software_rendering:
   type: Bool
   default: false
@@ -109,6 +111,7 @@ force_software_rendering:
     Force software rendering for QtWebEngine.
 
     This is needed for QtWebEngine to work with Nouveau drivers.
+    This setting requires a restart.
 
 backend:
   type:
@@ -130,6 +133,8 @@ backend:
     QtWebEngine is Qt's official successor to QtWebKit. It's slightly more
     resource hungry that QtWebKit and has a couple of missing features in
     qutebrowser, but is generally the preferred choice.
+
+    This setting requires a restart.
 
 ## auto_save
 
