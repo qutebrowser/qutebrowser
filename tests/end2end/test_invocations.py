@@ -322,6 +322,7 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
 
 @pytest.mark.no_xvfb
+@pytest.mark.no_ci
 def test_force_software_rendering(request, quteproc_new):
     """Make sure we can force software rendering with -s."""
     args = (_base_args(request.config) +
