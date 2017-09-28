@@ -70,6 +70,10 @@ def early_init(args):
 
     objects.backend = get_backend(args)
 
+    if (objects.backend == usertypes.Backend.QtWebEngine and
+            config.val.force_software_rendering):
+        os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
+
 
 def get_backend(args):
     """Find out what backend to use based on available libraries."""

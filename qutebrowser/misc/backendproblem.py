@@ -139,17 +139,12 @@ def _show_dialog(*args, **kwargs):
 
 def _handle_nouveau_graphics():
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
-    force_sw_var = 'QT_XCB_FORCE_SOFTWARE_OPENGL'
 
     if version.opengl_vendor() != 'nouveau':
         return
 
     if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-            force_sw_var in os.environ):
-        return
-
-    if config.val.force_software_rendering:
-        os.environ[force_sw_var] = '1'
+            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ):
         return
 
     button = _Button("Force software rendering", 'force_software_rendering',
