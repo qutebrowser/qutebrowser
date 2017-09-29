@@ -18,8 +18,6 @@
 * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* eslint-disable max-len */
-
 /**
  * Snippet to position caret at top of the page when caret mode is enabled.
  * Some code was borrowed from:
@@ -27,8 +25,6 @@
  * https://github.com/1995eaton/chromium-vim/blob/master/content_scripts/dom.js
  * https://github.com/1995eaton/chromium-vim/blob/master/content_scripts/visual.js
  */
-
-/* eslint-enable max-len */
 
 "use strict";
 
