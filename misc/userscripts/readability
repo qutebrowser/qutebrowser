@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 # Executes python-readability on current page and opens the summary as new tab.
 #
