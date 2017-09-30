@@ -58,7 +58,7 @@ To get more help about a setting, use e.g. `:help tabs.position`.
 To bind and unbind keys, you can use the link:commands.html#bind[`:bind`] and
 link:commands.html#unbind[`:unbind`] commands:
 
-- Binding the key chain "`,`, `v`" to the `:spawn mpv {url}` command:
+- Binding the key chain `,v` to the `:spawn mpv {url}` command:
   `:bind ,v spawn mpv {url}`
 - Unbinding the same key chain: `:unbind ,v`
 - Changing an existing binding: `bind --force ,v message-info foo`. Without
