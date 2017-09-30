@@ -806,6 +806,18 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)
 
+    def event(self, e):
+        if e.type() != QEvent.FileOpen:
+            return super(QApplication, self).event(e)
+
+        url = e.url()
+        log.misc.info("Got FileOpen event: %s" % url)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='last-focused')
+        tabbed_browser.tabopen(url, related=False)
+        return True
+
+
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
         """Log when the focus object changed."""
