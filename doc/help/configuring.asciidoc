@@ -113,7 +113,7 @@ accepted values depend on the type of the option. Commonly used are:
 - Dictionaries:
   * `c.headers.custom = {'X-Hello': 'World', 'X-Awesome': 'yes'}` to override
     any other values in the dictionary.
-  * `c.aliases['foo'] = ':message-info foo'` to add a single value.
+  * `c.aliases['foo'] = 'message-info foo'` to add a single value.
 - Lists:
   * `c.url.start_pages = ["https://www.qutebrowser.org/"]` to override any
     previous elements.
