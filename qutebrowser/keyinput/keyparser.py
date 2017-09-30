@@ -21,12 +21,61 @@
 
 import traceback
 
+from PyQt5.QtCore import pyqtSlot
+
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
 from qutebrowser.utils import message, utils
 from qutebrowser.commands import runners, cmdexc
 
+class KeyChainParser(BaseKeyParser):
+    """KeyChainParser which implements chaining of multiple keys."""
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent, supports_count=True,
+                         supports_chains=True)
+        self._partial_timer = usertypes.Timer(self, 'partial-match')
+        self._partial_timer.setSingleShot(True)
 
-class CommandKeyParser(BaseKeyParser):
+    def __repr__(self):
+        return utils.get_repr(self)
+
+    def _handle_single_key(self, e):
+        """Override _handle_single_key to abort if the key is a startchar.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Return:
+            A self.Match member.
+        """
+        match = super()._handle_single_key(e)
+        if match == self.Match.partial:
+            timeout = config.val.input.partial_timeout
+            if timeout != 0:
+                self._partial_timer.setInterval(timeout)
+                self._partial_timer.timeout.connect(self._clear_partial_match)
+                self._partial_timer.start()
+        return match
+
+    @pyqtSlot()
+    def _clear_partial_match(self):
+        """Clear a partial keystring after a timeout."""
+        self._debug_log("Clearing partial keystring {}".format(
+            self._keystring))
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)
+
+    @pyqtSlot()
+    def _stop_timers(self):
+        super()._stop_timers()
+        self._partial_timer.stop()
+        try:
+            self._partial_timer.timeout.disconnect(self._clear_partial_match)
+        except TypeError:
+            # no connections
+            pass
+
+
+class CommandKeyParser(KeyChainParser):
 
     """KeyChainParser for command bindings.
 
@@ -44,7 +93,6 @@ class CommandKeyParser(BaseKeyParser):
             self._commandrunner.run(cmdstr, count)
         except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())
-
 
 class PassthroughKeyParser(CommandKeyParser):
 
