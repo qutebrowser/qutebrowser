@@ -26,6 +26,7 @@ import sys
 import glob
 import os.path
 import shutil
+import plistlib
 import subprocess
 import argparse
 import tarfile
@@ -123,6 +124,19 @@ def patch_mac_app():
         os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
                                 'MacOS', lib),
                    os.path.join(dest, lib))
+    # Patch Info.plist to declare URLs support
+    plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
+    with open(plist_path, "rb") as f:
+        plist_data = plistlib.load(f)
+    plist_data['CFBundleURLTypes'] = [{
+        "CFBundleURLName": "http(s) URL",
+        "CFBundleURLSchemes": ["http", "https"]
+    }, {
+        "CFBundleURLName": "local file URL",
+        "CFBundleURLSchemes": ["file"]
+    }]
+    with open(plist_path, "wb") as f:
+        plistlib.dump(plist_data, f)
 
 
 def build_mac():
