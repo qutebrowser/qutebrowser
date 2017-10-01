@@ -384,7 +384,7 @@ class Config(QObject):
                 raise configexc.BackendError(objects.backend)
 
         opt.typ.to_py(value)  # for validation
-        self._values[opt.name] = value
+        self._values[opt.name] = opt.typ.from_obj(value)
 
         self.changed.emit(opt.name)
         log.config.debug("Config option changed: {} = {}".format(

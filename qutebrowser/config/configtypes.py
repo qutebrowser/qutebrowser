@@ -227,6 +227,10 @@ class BaseType:
             return None
         return value
 
+    def from_obj(self, value):
+        """Get the setting value from a config.py/YAML object."""
+        return value
+
     def to_py(self, value):
         """Get the setting value from a Python value.
 
@@ -441,6 +445,11 @@ class List(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
+    def from_obj(self, value):
+        if value is None:
+            return []
+        return value
+
     def to_py(self, value):
         self._basic_py_validation(value, list)
         if not value:
@@ -505,6 +514,11 @@ class ListOrValue(BaseType):
             return self.listtype.from_str(value)
         except configexc.ValidationError:
             return self.valtype.from_str(value)
+
+    def from_obj(self, value):
+        if value is None:
+            return []
+        return value
 
     def to_py(self, value):
         try:
@@ -1175,6 +1189,11 @@ class Dict(BaseType):
         # from YAML, so they are numbers/booleans/... already.
         self.to_py(yaml_val)
         return yaml_val
+
+    def from_obj(self, value):
+        if value is None:
+            return {}
+        return value
 
     def _fill_fixed_keys(self, value):
         """Fill missing fixed keys with a None-value."""

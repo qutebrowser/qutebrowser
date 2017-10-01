@@ -547,6 +547,14 @@ class TestBindConfigCommand:
                 commands.bind(key, 'message-info foo', mode='normal')
             assert keyconf.get_command(key, 'normal') == 'nop'
 
+    def test_bind_none(self, commands, config_stub):
+        config_stub.val.bindings.commands = None
+        commands.bind(',x', 'nop')
+
+    def test_unbind_none(self, commands, config_stub):
+        config_stub.val.bindings.commands = None
+        commands.unbind('H')
+
     @pytest.mark.parametrize('key, normalized', [
         ('a', 'a'),  # default bindings
         ('b', 'b'),  # custom bindings

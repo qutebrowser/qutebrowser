@@ -370,6 +370,10 @@ class TestBaseType:
     def test_to_doc(self, klass, value, expected):
         assert klass().to_doc(value) == expected
 
+    @pytest.mark.parametrize('obj', [42, '', None, 'foo'])
+    def test_from_obj(self, klass, obj):
+        assert klass(none_ok=True).from_obj(obj) == obj
+
 
 class MappingSubclass(configtypes.MappingType):
 
@@ -550,6 +554,14 @@ class TestList:
         with pytest.raises(configexc.ValidationError):
             klass().from_str(val)
 
+    @pytest.mark.parametrize('obj, expected', [
+        ([1], [1]),
+        ([], []),
+        (None, []),
+    ])
+    def test_from_obj(self, klass, obj, expected):
+        assert klass(none_ok_outer=True).from_obj(obj) == expected
+
     @pytest.mark.parametrize('val', [['foo'], ['foo', 'bar']])
     def test_to_py_valid(self, klass, val):
         assert klass().to_py(val) == val
@@ -712,6 +724,15 @@ class TestListOrValue:
     @pytest.mark.parametrize('val', [None, ['foo', 'bar'], 'abcd'])
     def test_to_py_length(self, strtype, klass, val):
         klass(strtype, none_ok=True, length=2).to_py(val)
+
+    @pytest.mark.parametrize('obj, expected', [
+        (['a'], ['a']),
+        ([], []),
+        (None, []),
+    ])
+    def test_from_obj(self, klass, obj, expected):
+        typ = klass(none_ok=True, valtype=configtypes.String())
+        assert typ.from_obj(obj) == expected
 
     @pytest.mark.parametrize('val', [['a'], ['a', 'b'], ['a', 'b', 'c', 'd']])
     def test_wrong_length(self, strtype, klass, val):
@@ -1532,6 +1553,16 @@ class TestDict:
         typ = configtypes.Dict(keytype=configtypes.String(),
                                valtype=configtypes.Int())
         assert typ.from_str('{"answer": 42}') == {"answer": 42}
+
+    @pytest.mark.parametrize('obj, expected', [
+        ({'a': 'b'}, {'a': 'b'}),
+        ({}, {}),
+        (None, {}),
+    ])
+    def test_from_obj(self, klass, obj, expected):
+        d = klass(keytype=configtypes.String(), valtype=configtypes.String(),
+                  none_ok=True)
+        assert d.from_obj(obj) == expected
 
     @pytest.mark.parametrize('keytype, valtype, val', [
         (configtypes.String(), configtypes.String(), {'hello': 'world'}),

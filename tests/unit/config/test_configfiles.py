@@ -378,6 +378,13 @@ class TestConfigPy:
         expected = "Duplicate key H - use force=True to override!"
         assert str(error.exception) == expected
 
+    def test_bind_none(self, confpy):
+        confpy.write("c.bindings.commands = None",
+                     "config.bind(',x', 'nop')")
+        confpy.read()
+        expected = {'normal': {',x': 'nop'}}
+        assert config.instance._values['bindings.commands'] == expected
+
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
         ('config.unbind("y", mode="prompt")', 'y', 'prompt'),
