@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+        <title>qutebrowser mhtml test</title>
+    
+        <!-- make sure <style> tags are parsed  -->
+        <style>
+        body {
+            background-image: url('Background.png');
+            background-repeat: repeat-x;
+            font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-size: 120%;
+        }
+        img#banner {
+            display: block;
+            margin: 20px auto;
+        }
+        </style>
+        
+        <!-- make sure external css is included -->
+        <link rel="stylesheet" href="base.css">
+        
+        <!-- don't parse non-CSS styles -->
+        <style rel="stylesheet" type="text/qss">
+        @import "not-css.qss";
+        </style>
+        
+        <!-- make sure icons are included -->
+        <link rel="icon" href="favicon.png">
+        
+        <!-- make sure authors are NOT included -->
+        <link rel="author" href="author.html">
+        
+        <!-- make sure scripts are included -->
+        <script type="text/javascript" src="script.js"></script>
+        
+         <!-- ...but don't crash on scripts without src -->
+        <script>
+            var l = 1+1;
+        </script>
+    </head>
+    <body>
+        <!-- make sure images are included -->
+        <img src="Banner.png" id="banner">
+        
+        <h1>Welcome to the qutebrowser mhtml test page</h1>
+        
+        <div class="dyk">
+        ...that the word <em>qutebrowser</em> is a word play on Qt, the
+        framework the browser is built with?
+        </div>
+        
+        <h2>What is this page?</h2>
+        
+        <p>This page is a test-case for the mhtml download feature of
+        qutebrowser. Under normal circumstances, you won't see this page, except
+        if you're a qutebrowser developer <em>or</em> you're attending one of
+        The-Compiler's pytest demos.</p>
+        
+        <div class="dyk">
+        ...that this page was once a monstrosity with <em>"this weird pixelated
+        globe with the geocities-like background"</em>? You can find the old
+        page in the old commits and indeed, it was quite atrocious. But hey,
+        every browser needs a globe...
+        </div>
+        
+        <p>This page references other assets and when the page is downloaded,
+        qutebrowser checks if each asset was downloaded. If some assets are
+        missing, the test fails and the poor developers have to search for the
+        error.</p>
+        
+        <h2>Can I contribute to qutebrowser?</h2>
+        
+        <p>Yes!</p>
+        
+        <div class="dyk">
+        ...that qutebrowser is free software? Free as in <em>free beer</em> and
+        <em>free speech</em>! Isn't that great?</em>
+        </div>
+        
+        <h2>...and how?</h2>
+        
+        <p>See <a href="https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc">
+        here</a> for more information.</p>
+        
+        <h2>More useless trivia!</h2>
+                
+        <div class="dyk">
+        ...that the font in the header is Comic Sans?
+        </div>
+        
+        <div class="dyk">
+        ...the IRC channel for qutebrowser is <code>#qutebrowser</code> on
+        irc.freenode.net
+        </div>
+        
+        <div class="dyk">
+        ...the area of a circle is &pi;*r<sup>2</sup>?
+        </div>
+        
+        <p>To make this page a bit useful, I've included a chessboard, so you
+        can play chess. Just turn your screen 90 degrees, such that it forms a
+        flat, horizontal surface (you can skip this step if you're using a
+        tablet). Next, zoom the page until it fits your needs. Enjoy your round
+        of chess!</p>
+        <!-- make sure inline styles are parsed -->
+        <div style="background-image: url('Inline.png'); background-repeat: no-repeat; width: 160px; height: 160px;"></div>
+    </body>
+</html>

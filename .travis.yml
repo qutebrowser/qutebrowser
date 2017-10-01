@@ -1,0 +1,86 @@
+sudo: false
+dist: trusty
+language: python
+group: edge
+python: 3.6
+
+matrix:
+  include:
+    - os: linux
+      env: DOCKER=archlinux
+      services: docker
+    - os: linux
+      env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
+      services: docker
+    - os: linux
+      env: TESTENV=py36-pyqt571
+    - os: linux
+      env: TESTENV=py36-pyqt58
+    - os: linux
+      python: 3.5
+      env: TESTENV=py35-pyqt59
+    - os: linux
+      env: TESTENV=py36-pyqt59-cov
+    - os: osx
+      env: TESTENV=py36 OSX=sierra
+      osx_image: xcode8.3
+      language: generic
+    # https://github.com/qutebrowser/qutebrowser/issues/2013
+    # - os: osx
+    #   env: TESTENV=py35 OSX=yosemite
+    #   osx_image: xcode6.4
+    - os: linux
+      env: TESTENV=pylint PYTHON=python3.6
+    - os: linux
+      env: TESTENV=flake8
+    - os: linux
+      env: TESTENV=docs
+      addons:
+         apt:
+           packages:
+           - asciidoc
+    - os: linux
+      env: TESTENV=vulture
+    - os: linux
+      env: TESTENV=misc
+    - os: linux
+      env: TESTENV=pyroma
+    - os: linux
+      env: TESTENV=check-manifest
+    - os: linux
+      env: TESTENV=eslint
+      language: node_js
+      python: null
+      node_js: node
+  fast_finish: true
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/build/qutebrowser/qutebrowser/.cache
+
+install:
+  - bash scripts/dev/ci/travis_install.sh
+  - ulimit -c unlimited
+
+script:
+  - bash scripts/dev/ci/travis_run.sh
+
+after_success:
+  - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
+
+after_failure:
+  - bash scripts/dev/ci/travis_backtrace.sh
+
+notifications:
+  webhooks:
+    - https://buildtimetrend.herokuapp.com/travis
+  irc:
+    channels:
+      - "chat.freenode.net#qutebrowser-dev"
+    on_success: always
+    on_failure: always
+    skip_join: true
+    template:
+      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "%{compare_url} - %{build_url}"

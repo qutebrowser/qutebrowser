@@ -1,0 +1,13 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>icons/qutebrowser-16x16.png</file>
+    <file>icons/qutebrowser-24x24.png</file>
+    <file>icons/qutebrowser-32x32.png</file>
+    <file>icons/qutebrowser-48x48.png</file>
+    <file>icons/qutebrowser-64x64.png</file>
+    <file>icons/qutebrowser-96x96.png</file>
+    <file>icons/qutebrowser-128x128.png</file>
+    <file>icons/qutebrowser-256x256.png</file>
+    <file>icons/qutebrowser-512x512.png</file>
+</qresource>
+</RCC>

@@ -1,0 +1,408 @@
+Installing qutebrowser
+======================
+
+toc::[]
+
+NOTE: qutebrowser recently had some bigger dependency changes for v1.0.0, which
+means those instructions might be out of date in some places.
+https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc[Please help]
+updating them if you notice something being broken!
+
+On Debian / Ubuntu
+------------------
+
+How to install qutebrowser depends a lot on the version of Debian/Ubuntu you're
+running.
+
+Debian Jessie / Ubuntu 14.04 LTS / Linux Mint < 18
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Those distributions only have Python 3.4 and a too old Qt version available,
+while qutebrowser requires Python 3.5 and Qt 5.7.1 or newer.
+
+It should be possible to install Python 3.5 e.g. from the
+https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or via_ipca
+https://github.com/pyenv/pyenv[pyenv], but nobody tried that yet.
+
+If you get qutebrowser running on those distributions, please
+https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc[contribute]
+to update this documentation!
+
+Ubuntu 16.04 LTS / Linux Mint 18
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
+QtWebEngine). However, it comes with Python 3.5, so you can
+<<tox,install qutebrowser via tox>>.
+
+Debian Stretch / Ubuntu 17.04 and newer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Those versions come with QtWebEngine in the repositories. This makes it possible
+to install qutebrowser via the Debian package.
+
+Install the dependencies via apt-get:
+
+----
+# apt install python-tox python3-{lxml,pyqt5,sip,jinja2,pygments,yaml} python3-pyqt5.qt{webengine,quick,opengl,sql} libqt5sql5-sqlite
+----
+
+Get the qutebrowser package from the
+https://github.com/qutebrowser/qutebrowser/releases[release page] and download
+the https://qutebrowser.org/python3-pypeg2_2.15.2-1_all.deb[PyPEG2 package].
+
+Install the packages:
+
+----
+# dpkg -i python3-pypeg2_*_all.deb
+# dpkg -i qutebrowser_*_all.deb
+----
+
+Some additional hints:
+
+- Alternatively, you can <<tox,install qutebrowser via tox>> to get a newer
+  QtWebEngine version.
+- If running from git, run the following to generate the documentation for the
+  `:help` command:
++
+----
+# apt-get install --no-install-recommends asciidoc source-highlight
+$ python3 scripts/asciidoc2html.py
+----
+
+- If you prefer using QtWebKit, there's an up-to-date version available in
+  Debian experimental, or from http://repo.paretje.be/unstable/[this repository]
+  for Debian Stretch.
+- If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
++
+----
+# apt-get install gstreamer1.0-plugins-{bad,base,good,ugly}
+----
+
+On Fedora
+---------
+
+qutebrowser is available in the official repositories for Fedora 22 and newer.
+
+----
+# dnf install qutebrowser
+----
+
+It's also recommended to install `python3-qt5-webengine` and start with `--backend
+webengine` to use the new backend.
+
+On Archlinux
+------------
+
+qutebrowser is available in the official [community] repository.
+
+----
+# pacman -S qutebrowser
+----
+
+Archlinux packages an updated `qt5-webkit` package by default. If you want to
+use the QtWebEngine backend instead, install `qt5-webengine` and start with
+`--backend webengine`.
+
+There is also a -git version available in the AUR:
+https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
+
+You can install it using `makepkg` like this:
+
+----
+$ git clone https://aur.archlinux.org/qutebrowser-git.git
+$ cd qutebrowser-git
+$ makepkg -si
+$ cd ..
+$ rm -r qutebrowser-git
+----
+
+or you could use an AUR helper, e.g. `yaourt -S qutebrowser-git`.
+
+If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
+
+----
+# pacman -S gst-plugins-{base,good,bad,ugly} gst-libav
+----
+
+On Gentoo
+---------
+
+WARNING: The Gentoo packages (even the live version) are lagging behind a lot, which means those instructions probably won't work anymore. Until things are looking better, it's recommended to <<tox,install qutebrowser via tox>>.
+
+A version of qutebrowser is available in the main repository and can be installed with:
+
+----
+# emerge -av qutebrowser
+----
+
+However it is suggested to install the Live version (-9999) to take advantage
+of the newest features introduced.
+
+First of all you need to edit your package.accept_keywords file to accept the live
+version:
+
+----
+# nano /etc/portage/package.accept_keywords
+----
+
+And add the following line to it:
+
+ =www-client/qutebrowser-9999 **
+
+Save the file and then install qutebrowser via
+
+----
+# emerge -av qutebrowser
+----
+
+Or rebuild your system if you already installed it.
+
+To update to the last Live version, remember to do
+
+----
+# emerge -uDNav @live-rebuild @world
+----
+
+To include qutebrowser among the updates.
+
+You'll also need to install `dev-qt/qtwebengine` or a newer QtWebKit using
+https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild].
+
+If video or sound don't work with QtWebKit, try installing the gstreamer
+plugins:
+
+----
+# emerge -av gst-plugins-{base,good,bad,ugly,libav}
+----
+
+To be able to play videos with proprietary codecs with QtWebEngine, you will
+need to turn off the `bindist` flag for `dev-qt/qtwebengine`.
+
+See the https://wiki.gentoo.org/wiki/Qutebrowser#USE_flags[Gentoo Wiki] for
+more information.
+
+
+On Void Linux
+-------------
+
+qutebrowser is available in the official repositories and can be installed
+with:
+
+----
+# xbps-install qutebrowser
+----
+
+It's currently recommended to install `python3-PyQt5-webengine` and
+`python3-PyQt5-opengl`, then start with `--backend webengine` to use the new
+backend.
+
+On NixOS
+--------
+
+Nixpkgs collection contains `pkgs.qutebrowser` since June 2015. You can install
+it with:
+
+----
+$ nix-env -i qutebrowser
+----
+
+It's recommended to install `qt5.qtwebengine` and start with
+`--backend webengine` to use the new backend.
+
+On openSUSE
+-----------
+
+There are prebuilt RPMs available at https://software.opensuse.org/download.html?project=network&package=qutebrowser[OBS].
+
+To use the QtWebEngine backend, install `libqt5-qtwebengine`.
+
+On OpenBSD
+----------
+
+qutebrowser is in http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/qutebrowser/[OpenBSD ports].
+
+Install the package:
+
+----
+# pkg_add qutebrowser
+----
+
+Or alternatively, use the ports system :
+
+----
+# cd /usr/ports/www/qutebrowser
+# make install
+----
+
+On Windows
+----------
+
+There are different ways to install qutebrowser on Windows:
+
+Prebuilt binaries
+~~~~~~~~~~~~~~~~~
+
+Prebuilt standalone packages and installers
+https://github.com/qutebrowser/qutebrowser/releases[are built] for every
+release.
+
+https://chocolatey.org/packages/qutebrowser[Chocolatey package]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* PackageManagement PowerShell module
+----
+PS C:\> Install-Package qutebrowser
+----
+* Chocolatey's client
+----
+C:\> choco install qutebrowser
+----
+
+Manual install
+~~~~~~~~~~~~~~
+
+* Use the installer from http://www.python.org/downloads[python.org] to get
+Python 3 (be sure to install pip).
+* Use the installer from
+http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
+to get Qt and PyQt5.
+* Install https://testrun.org/tox/latest/index.html[tox] via
+https://pip.pypa.io/en/latest/[pip]:
+
+----
+$ pip install tox
+----
+
+Then <<tox,install qutebrowser via tox>>.
+
+On macOS
+--------
+
+Prebuilt binary
+~~~~~~~~~~~~~~~
+
+The easiest way to install qutebrowser on macOS is to use the prebuilt `.app`
+files from the
+https://github.com/qutebrowser/qutebrowser/releases[release page].
+
+This binary is also available through the
+https://caskroom.github.io/[Homebrew Cask] package manager:
+
+----
+$ brew cask install qutebrowser
+----
+
+Manual Install
+~~~~~~~~~~~~~~
+
+Alternatively, you can install the dependencies via a package manager (like
+http://brew.sh/[Homebrew] or https://www.macports.org/[MacPorts]) and run
+qutebrowser from source.
+
+==== Homebrew
+
+----
+$ brew install qt5
+$ pip3 install qutebrowser
+----
+
+Homebrew's builds of Qt and PyQt no longer include QtWebKit - if you need
+QtWebKit support, it is necessary to build from source. The build takes several
+hours on an average laptop.
+
+----
+$ brew install qt5 --with-qtwebkit
+$ brew install -s pyqt5
+$ pip3 install qutebrowser
+----
+
+Packagers
+---------
+
+There are example .desktop and icon files provided. They would go in the
+standard location for your distro (`/usr/share/applications` and
+`/usr/share/pixmaps` for example).
+
+The normal `setup.py install` doesn't install these files, so you'll have to do
+it as part of the packaging process.
+
+[[tox]]
+Installing qutebrowser with tox
+-------------------------------
+
+Getting the repository
+~~~~~~~~~~~~~~~~~~~~~~
+
+First of all, clone the repository using http://git-scm.org/[git] and switch
+into the repository folder:
+
+----
+$ git clone https://github.com/qutebrowser/qutebrowser.git
+$ cd qutebrowser
+----
+
+Installing depdendencies (including Qt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Then run tox inside the qutebrowser repository to set up a
+https://docs.python.org/3/library/venv.html[virtual environment]:
+
+----
+$ tox -e mkvenv-pypi
+----
+
+This installs all needed Python dependencies in a `.venv` subfolder.
+
+This comes with an up-to-date Qt/PyQt including QtWebEngine, but has a few
+caveats:
+
+- Make sure your `python3` is Python 3.5 or newer, otherwise you'll get a "No
+  matching distribution found" error. Note that qutebrowser itself also requires
+  this.
+- It only works on 64-bit x86 systems, with other architectures you'll get the
+  same error.
+- If your distribution uses OpenSSL 1.1 (like Debian Stretch or Archlinux),
+  you'll need to set `LD_LIBRARY_PATH` to the OpenSSL 1.0 directory
+  (`export LD_LIBRARY_PATH=/usr/lib/openssl-1.0` on Archlinux) before starting
+  qutebrowser if you want SSL to work in certain downloads (e.g. for
+  `:adblock-update` or `:download`).
+- It comes with a QtWebEngine compiled without proprietary codec support (such
+  as h.264).
+
+See the next section for an alternative.
+
+Installing dependencies (system-wide Qt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, you can use `tox -e mkvenv` (without `-pypi`) to symlink your
+local Qt install instead of installing PyQt in the virtualenv. However, unless
+you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
+also typically means you'll be using an older release of QtWebEngine.
+
+On Windows, run `tox -e 'mkvenv-win' instead, however make sure that ONLY
+Python3 is in your PATH before running tox.
+
+Creating a wrapper script
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can then create a simple wrapper script to start qutebrowser somewhere in
+your `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
+
+----
+#!/bin/bash
+~/path/to/qutebrowser/.venv/bin/python3 -m qutebrowser "$@"
+----
+
+Updating
+~~~~~~~~
+
+When you updated your local copy of the code (e.g. by pulling the git repo, or
+extracting a new version), the virtualenv should automatically use the updated
+code. However, if dependencies got added, this won't be reflected in the
+virtualenv. Thus it's recommended to run the following command to recreate the
+virtualenv:
+
+----
+$ tox -r -e mkvenv-pypi
+----

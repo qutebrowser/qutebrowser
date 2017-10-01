@@ -1,0 +1,41 @@
+# AppArmor profile for qutebrowser
+# Tested on Debian jessie
+
+#include <tunables/global>
+
+profile qutebrowser /usr/{local/,}bin/qutebrowser {
+
+    #include <abstractions/base>
+    #include <abstractions/nameservice>
+    #include <abstractions/openssl>
+    #include <abstractions/ssl_certs>
+    #include <abstractions/audio>
+    #include <abstractions/fonts>
+    #include <abstractions/kde>
+    #include <abstractions/user-download>
+    #include <abstractions/X>
+
+    capability dac_override,
+
+    /usr/{local/,}bin/ r,
+    /usr/{local/,}bin/qutebrowser rix,
+    /usr/bin/python3.? r,
+
+    /usr/lib/python3/ mr,
+    /usr/lib/python3/** mr,
+    /usr/lib/python3.?/ r,
+    /usr/lib/python3.?/** mr,
+    /usr/local/lib/python3.?/** r,
+
+    /proc/*/mounts r,
+    owner /tmp/** rwkl,
+    owner /run/user/*/ rw,
+    owner /run/user/*/** krw,
+
+    @{HOME}/.config/qutebrowser/** krw,
+    @{HOME}/.local/share/qutebrowser/** krw,
+    @{HOME}/.cache/qutebrowser/** krw,
+    @{HOME}/.gstreamer-0.10/* r,
+
+}
+

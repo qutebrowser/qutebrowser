@@ -1,0 +1,11 @@
+-e git+https://github.com/PyCQA/astroid.git#egg=astroid
+-e git+https://github.com/PyCQA/pylint.git#egg=pylint
+./scripts/dev/pylint_checkers
+requests
+github3.py
+
+# remove @commit-id for scm installs
+#@ replace: @.*# #
+
+# fix qute-pylint location
+#@ replace: qute-pylint==.* ./scripts/dev/pylint_checkers

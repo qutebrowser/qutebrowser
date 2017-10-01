@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Copyright 2015 jnphilipp <me@jnphilipp.org>
+# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+# Opens all links to feeds defined in the head of a site
+#
+# Ideal for use with tabs_are_windows. Set a hotkey to launch this script, then:
+#   :bind gF spawn --userscript openfeeds
+#
+# Use the hotkey to open the feeds in new tab/window, press 'gF' to open
+#
+
+import os
+import re
+
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
+
+with open(os.environ['QUTE_HTML'], 'r') as f:
+    soup = BeautifulSoup(f)
+with open(os.environ['QUTE_FIFO'], 'w') as f:
+    for link in soup.find_all('link', rel='alternate', type=re.compile(r'application/((rss|rdf|atom)\+)?xml|text/xml')):
+        f.write('open -t %s\n' % urljoin(os.environ['QUTE_URL'], link.get('href')))

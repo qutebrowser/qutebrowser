@@ -1,0 +1,122 @@
+#!/bin/sh
+
+# Copyright 2016 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+# This script keeps track of URLs in RSS feeds and opens new ones.
+# New feeds can be added with ':spawn -u /path/to/userscripts/rss add' or
+# ':spawn -u /path/to/userscripts/rss <url>'.
+# New items can be opened with ':spawn -u /path/to/userscripts/rss'.
+# The script doesn't really parse XML, and searches for things that look like
+# item links. It might open things that aren't real links, and it might miss
+# real links.
+
+config_dir="$HOME/.qute-rss"
+
+add_feed () {
+    touch "feeds"
+    if grep -Fq "$1" "feeds"; then
+        notice "$1 is saved already."
+    else
+        printf "%s\n" "$1" >> "feeds"
+    fi
+}
+
+# Show an error message and exit
+fail () {
+    echo "message-error '$*'" > "$QUTE_FIFO"
+    exit 1
+}
+
+# Get a sorted list of item URLs from a RSS feed
+get_items () {
+    $curl "$@" | grep "$text_only" -zo -e '<guid[^<>]*>[^<>]*</guid>' \
+                      -e '<link[^<>]*>[^<>]*</link>' \
+                      -e '<link[^<>]*href="[^"]*"' |
+        grep "$text_only" -o 'http[^<>"]*' | sort | uniq
+}
+
+# Show an info message
+notice () {
+    echo "message-info '$*'" > "$QUTE_FIFO"
+}
+
+# Update a database of a feed and open new URLs
+read_items () {
+    cd read_urls
+    feed_file="$(echo "$1" | tr -d /)"
+    feed_temp_file="$(mktemp "$feed_file.tmp.XXXXXXXXXX")"
+    feed_new_items="$(mktemp "$feed_file.new.XXXXXXXXXX")"
+    get_items "$1" > "$feed_temp_file"
+    if [ ! -s "$feed_temp_file" ]; then
+        notice "No items found for $1."
+        rm "$feed_temp_file" "$feed_new_items"
+    elif [ ! -f "$feed_file" ]; then
+        notice "$1 is a new feed. All items will be marked as read."
+        mv "$feed_temp_file" "$feed_file"
+        rm "$feed_new_items"
+    else
+        sort -o "$feed_file" "$feed_file"
+        comm -2 -3 "$feed_temp_file" "$feed_file" | tee "$feed_new_items"
+        cat "$feed_new_items" >> "$feed_file"
+        sort -o "$feed_file" "$feed_file"
+        rm "$feed_temp_file" "$feed_new_items"
+    fi | while read item; do
+        echo "open -t $item" > "$QUTE_FIFO"
+    done
+}
+
+if [ ! -d "$config_dir/read_urls" ]; then
+    notice "Creating configuration directory."
+    mkdir -p "$config_dir/read_urls"
+fi
+
+cd "$config_dir"
+
+if [ $# != 0 ]; then
+    for arg in "$@"; do
+        if [ "$arg" = "add" ]; then
+            add_feed "$QUTE_URL"
+        else
+            add_feed "$arg"
+        fi
+    done
+    exit
+fi
+
+if [ ! -f "feeds" ]; then
+    fail "Add feeds by running ':spawn -u rss add' or ':spawn -u rss <url>'."
+fi
+
+if curl --version >&-; then
+    curl="curl -sL"
+elif wget --version >&-; then
+    curl="wget -qO -"
+else
+    fail "Either curl or wget is needed to run this script."
+fi
+
+# Detect GNU grep so we can force it to treat everything as text
+if < /dev/null grep --help 2>&1 | grep -q -- -a; then
+    text_only="-a"
+fi
+
+while read feed_url; do
+    read_items "$feed_url" &
+done < "$config_dir/feeds"
+
+wait

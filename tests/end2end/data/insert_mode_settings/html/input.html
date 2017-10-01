@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Input</title>
+        <script type="text/javascript">
+          function setup_event_listener() {
+              var elem = document.getElementById('qute-input');
+              console.log(elem);
+              elem.addEventListener('input', function() {
+                  console.log("contents: " + elem.value);
+              });
+          }
+        </script>
+    </head>
+    <body onload="setup_event_listener()">
+        <input id="qute-input" type="text" value=""/>
+    </body>
+</html>

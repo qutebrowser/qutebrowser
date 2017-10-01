@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Paste primary selection</title>
+        <script type="text/javascript">
+          function setup_event_listener() {
+              var textarea = document.getElementById('qute-textarea');
+              textarea.addEventListener('input', function() {
+                  console.log("textarea contents: " + textarea.value);
+              });
+          }
+
+          function set_text(value) {
+              var textarea = document.getElementById('qute-textarea');
+              textarea.value = value;
+              console.log("textarea set to: " + value);
+          }
+        </script>
+    </head>
+    <body onload="setup_event_listener()">
+        <textarea id="qute-textarea"></textarea>
+        <textarea id="qute-textarea-noedit" readonly></textarea>
+    </body>
+</html>

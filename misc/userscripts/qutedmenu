@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Handle open -s && open -t with bemenu
+
+#:bind o spawn --userscript /path/to/userscripts/qutedmenu open
+#:bind O spawn --userscript /path/to/userscripts/qutedmenu tab
+
+# If you would like to set a custom colorscheme/font use these dirs.
+# https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/bemenucolors
+readonly confdir=${XDG_CONFIG_HOME:-$HOME/.config}
+
+readonly optsfile=$confdir/dmenu/bemenucolors
+
+create_menu() {
+    # Check quickmarks
+    while read -r url; do
+        printf -- '%s\n' "$url"
+    done < "$QUTE_CONFIG_DIR"/quickmarks
+
+    # Next bookmarks
+    while read -r url _; do
+        printf -- '%s\n' "$url"
+    done < "$QUTE_CONFIG_DIR"/bookmarks/urls
+
+    # Finally history
+    while read -r _ url; do
+        printf -- '%s\n' "$url"
+    done < "$QUTE_DATA_DIR"/history
+    }
+
+get_selection() {
+    opts+=(-p qutebrowser)
+    #create_menu | dmenu -l 10 "${opts[@]}"
+    create_menu | bemenu -l 10 "${opts[@]}"
+}
+
+# Main
+# https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/font
+if [[ -s $confdir/dmenu/font ]]; then
+    read -r font < "$confdir"/dmenu/font
+fi
+
+if [[ $font ]]; then
+    opts+=(-fn "$font")
+fi
+
+if [[ -s $optsfile ]]; then
+    source "$optsfile"
+fi
+
+url=$(get_selection)
+url=${url/*http/http}
+
+# If no selection is made, exit (escape pressed, e.g.)
+[[ ! $url ]] && exit 0
+
+case $1 in
+    open) printf '%s' "open $url" >> "$QUTE_FIFO" || qutebrowser "$url" ;;
+    tab)    printf '%s' "open -t $url" >> "$QUTE_FIFO" || qutebrowser "$url"  ;;
+esac

@@ -1,0 +1,18 @@
+[run]
+source = qutebrowser
+branch = true
+omit =
+    qutebrowser/__main__.py
+    */__init__.py
+    qutebrowser/resources.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == ["']__main__["']:
+
+[xml]
+output=coverage.xml

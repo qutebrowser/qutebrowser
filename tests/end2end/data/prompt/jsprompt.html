@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script type="text/javascript">
+            function prompter(defaultval) {
+                var reply = prompt("js prompt", defaultval);
+                console.log("Prompt reply: " + reply);
+            }
+        </script>
+    </head>
+    <body>
+        <input type="button" onclick="prompter('')" value="Show prompt" id="button">
+        <input type="button" onclick="prompter('default')" value="Show prompt with default value" id="button-default">
+    </body>
+</html>

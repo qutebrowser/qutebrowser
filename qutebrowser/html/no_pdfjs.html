@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block style %}
+{{ super() }}
+* {
+  margin: 0px 0px;
+  padding: 0px 0px;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-text-size-adjust: none;
+  color: #333333;
+  background-color: #EEEEEE;
+  font-size: 1.2em;
+}
+
+#error-container {
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 20px;
+  border: 1px solid #CCCCCC;
+  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.20);
+  border-radius: 5px;
+  background-color: #FFFFFF;
+  padding: 20px 20px;
+}
+
+#header {
+  border-bottom: 1px solid #CCC;
+}
+
+.qutebrowser-broken {
+  display: block;
+  width: 100%;
+}
+
+span.warning {
+  text-weight: bold;
+  color: red;
+}
+
+td {
+  margin-top: 20px;
+  color: #555;
+}
+
+h1, h2 {
+  font-weight: normal;
+  color: #1e89c6;
+  margin-bottom: 10px;
+}
+
+ul {
+  margin-left: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+li {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div id="error-container">
+  <table>
+    <tr>
+      <td style="width: 10%; vertical-align: top;">
+        <img style="width: 100%; display: block; max-width: 256px;" src="{{ resource_url('img/broken_qutebrowser_logo.png') }}" />
+      </td>
+      <td style="padding-left: 40px;">
+        <h1>No pdf.js installation found</h1>
+        <p>Error while opening {{ url }}<br>
+        <p id="error-message-text" style="color: #a31a1a;">qutebrowser can't find a suitable pdf.js installation</p></p>
+
+        <p>It looks like you set <code>content.pdfjs</code>
+          to <em>true</em> but qutebrowser can't find the required files.</p>
+
+        <br>
+
+        <h2>Possible fixes</h2>
+        <ul>
+          <li>
+            Disable <code>content.pdfjs</code> and reload the page.
+            You will need to download the pdf-file and open it with an external
+            tool instead.
+          </li>
+
+          <li>
+            If you have installed a packaged version of qutebrowser, make sure
+            the required packages for pdf.js are also installed.
+            <br/>
+            The package is named <b>pdfjs</b> on Archlinux (AUR) and
+            <b>libjs-pdf</b> on Debian.
+          </li>
+
+          <li>
+            If you have installed a pdf.js package and qutebrowser still can't
+            find it, please send us a report with your system and the package
+            name, so we can add it to the list of supported packages.
+          </li>
+
+          <li>
+            If you're running a self-built version or the source version, make
+            sure you have pdf.js in <code>qutebrowser/3rdparty/pdfjs</code>.
+            You can use the <code>scripts/dev/update_3rdparty.py</code> script
+            to download the latest version.
+          </li>
+
+          <li>
+            You can manually download the pdf.js archive
+            <a href="https://mozilla.github.io/pdf.js/getting_started/#download">here</a>
+            and extract it to <code>~/.local/share/qutebrowser/pdfjs</code>
+            <br>
+            <span class="warning">Warning:</span> Using this method you are
+            responsible for yourself to keep the installation updated! If a
+            vulnerability is found in pdf.js, neither qutebrowser nor your
+            system's package manager will update your pdf.js installation.
+            Use it at your own risk!
+          </li>
+        </ul>
+
+        <p>
+          If none of these fixes work for you, please send us a bug report so
+          we can fix the issue.
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>
+{% endblock %}

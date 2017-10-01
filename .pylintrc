@@ -1,0 +1,74 @@
+# vim: ft=dosini fileencoding=utf-8:
+
+[MASTER]
+ignore=resources.py
+extension-pkg-whitelist=PyQt5,sip
+load-plugins=qute_pylint.config,
+             qute_pylint.modeline,
+             qute_pylint.openencoding,
+             qute_pylint.settrace,
+             pylint.extensions.bad_builtin,
+             pylint.extensions.docstyle
+persistent=n
+
+[MESSAGES CONTROL]
+enable=all
+disable=no-self-use,
+        fixme,
+        global-statement,
+        locally-disabled,
+        locally-enabled,
+        too-many-ancestors,
+        too-few-public-methods,
+        too-many-public-methods,
+        cyclic-import,
+        bad-continuation,
+        too-many-instance-attributes,
+        blacklisted-name,
+        too-many-lines,
+        logging-format-interpolation,
+        broad-except,
+        bare-except,
+        eval-used,
+        exec-used,
+        ungrouped-imports,
+        suppressed-message,
+        too-many-return-statements,
+        duplicate-code,
+        wrong-import-position,
+        no-else-return
+
+[BASIC]
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
+method-rgx=[a-z_][A-Za-z0-9_]{1,50}$
+attr-rgx=[a-z_][a-z0-9_]{0,30}$
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{1,30}|(__.*__))$
+argument-rgx=[a-z_][a-z0-9_]{0,30}$
+variable-rgx=[a-z_][a-z0-9_]{0,30}$
+docstring-min-length=3
+no-docstring-rgx=(^_|^main$)
+
+[FORMAT]
+max-line-length=79
+ignore-long-lines=(<?https?://|^# Copyright 201\d)
+expected-line-ending-format=LF
+
+[VARIABLES]
+dummy-variables-rgx=_.*
+
+[DESIGN]
+max-args=10
+
+[CLASSES]
+valid-metaclass-classmethod-first-arg=cls
+
+[TYPECHECK]
+ignored-modules=PyQt5,PyQt5.QtWebKit
+ignored-classes=_CountingAttr
+
+[IMPORTS]
+# WORKAROUND
+# For some reason, pylint doesn't know about some Python 3 modules on
+# AppVeyor...
+known-standard-library=faulthandler,http,enum,tokenize,posixpath,importlib,types

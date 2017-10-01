@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block style %}
+{{ super() }}
+#dirbrowserContainer {
+    background: #fff;
+    min-width: 35em;
+    max-width: 35em;
+    position: absolute;
+    top: 2em;
+    left: 1em;
+    padding: 10px;
+    border: 2px solid #eee;
+    -webkit-border-radius: 5px;
+}
+
+#dirbrowserTitleText {
+    font-size: 118%;
+    font-weight: bold;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul > li {
+    background-repeat: no-repeat;
+    background-size: 22px;
+    line-height: 22px;
+    padding-left: 25px;
+}
+
+ul > li {
+    background-image: url('{{ resource_url('img/folder.svg') }}');
+}
+
+ul.files > li {
+    background-image: url('{{ resource_url('img/file.svg') }}');
+}
+{% endblock %}
+
+{% block content %}
+    <div id="dirbrowserContainer">
+        <div id="dirbrowserTitle">
+            <p id="dirbrowserTitleText">Browse directory: {{url}}</p>
+        </div>
+
+        {% if parent is not none %}
+            <ul class="parent">
+                <li><a href="{{ file_url(parent) }}">..</a></li>
+            </ul>
+        {% endif %}
+
+        <ul class="folders">
+            {% for item in directories %}
+                <li><a href="{{ file_url(item['absname']) }}">{{item['name']}}</a></li>
+            {% endfor %}
+        </ul>
+
+        <ul class="files">
+            {% for item in files %}
+                <li><a href="{{ file_url(item['absname']) }}">{{item['name']}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

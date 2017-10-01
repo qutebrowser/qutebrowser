@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+#
+# Behavior:
+#   Userscript for qutebrowser which views the current web page in mpv using
+#   sensible mpv-flags. While viewing the page in MPV, all <video>, <embed>,
+#   and <object> tags in the original page are temporarily removed. Clicking on
+#   such a removed video restores the respective video.
+#
+#   In order to use this script, just start it using `spawn --userscript` from
+#   qutebrowser. I recommend using an alias, e.g. put this in the
+#   [alias]-section of qutebrowser.conf:
+#
+#     mpv = spawn --userscript /path/to/view_in_mpv
+#
+# Background:
+#   Most of my machines are too slow to play youtube videos using html5, but
+#   they work fine in mpv (and mpv has further advantages like video scaling,
+#   etc). Of course, I don't want the video to be played (or even to be
+#   downloaded) twice — in MPV and in qwebkit. So I often close the tab after
+#   opening it in mpv. However, I actually want to keep the rest of the page
+#   (comments and video suggestions), i.e. only the videos should disappear
+#   when mpv is started. And that's precisely what the present script does.
+#
+# Thorsten Wißmann, 2015 (thorsten` on freenode)
+# Any feedback is welcome!
+
+set -e
+
+if [ -z "$QUTE_FIFO" ] ; then
+    cat 1>&2 <<EOF
+Error: $0 can not be run as a standalone script.
+
+It is a qutebrowser userscript. In order to use it, call it using
+'spawn --userscript' as described in qute://help/userscripts.html
+EOF
+    exit 1
+fi
+
+msg() {
+    local cmd="$1"
+    shift
+    local msg="$*"
+    if [ -z "$QUTE_FIFO" ] ; then
+        echo "$cmd: $msg" >&2
+    else
+        echo "message-$cmd '${msg//\'/\\\'}'" >> "$QUTE_FIFO"
+    fi
+}
+
+MPV_COMMAND=${MPV_COMMAND:-mpv}
+# Warning: spaces in single flags are not supported
+MPV_FLAGS=${MPV_FLAGS:- --force-window --no-terminal --keep-open=yes --ytdl }
+video_command=( "$MPV_COMMAND"  $MPV_FLAGS )
+
+js() {
+cat <<EOF
+
+    function descendantOfTagName(child, ancestorTagName) {
+        // tells whether child has some (proper) ancestor
+        // with the tag name ancestorTagName
+        while (child.parentNode != null) {
+            child = child.parentNode;
+            if (typeof child.tagName === 'undefined') break;
+            if (child.tagName.toUpperCase() == ancestorTagName.toUpperCase()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    var App = {};
+
+    var all_videos = [];
+    all_videos.push.apply(all_videos, document.getElementsByTagName("video"));
+    all_videos.push.apply(all_videos, document.getElementsByTagName("object"));
+    all_videos.push.apply(all_videos, document.getElementsByTagName("embed"));
+    App.backup_videos = Array();
+    App.all_replacements = Array();
+    for (i = 0; i < all_videos.length; i++) {
+        var video = all_videos[i];
+        if (descendantOfTagName(video, "object")) {
+            // skip tags that are contained in an object, because we hide
+            // the object anyway.
+            continue;
+        }
+        var replacement = document.createElement("div");
+        replacement.innerHTML = "
+            <p style=\\"margin-bottom: 0.5em\\">
+            Opening page with:
+            <span style=\\"font-family: monospace;\\">${video_command[*]}</span>
+            </p>
+            <p>
+            In order to restore this particular video
+            <a style=\\"font-weight: bold;
+                        color: white;
+                        background: transparent;
+                     \\"
+               onClick=\\"restore_video(this, " + i + ");\\"
+               href=\\"javascript: restore_video(this, " + i + ")\\"
+              >click here</a>.
+            </p>
+        ";
+        replacement.style.position = "relative";
+        replacement.style.zIndex = "100003000000";
+        replacement.style.fontSize = "1rem";
+        replacement.style.textAlign = "center";
+        replacement.style.verticalAlign = "middle";
+        replacement.style.height = "100%";
+        replacement.style.background = "#101010";
+        replacement.style.color = "white";
+        replacement.style.border = "4px dashed #545454";
+        replacement.style.padding = "2em";
+        replacement.style.margin = "auto";
+        App.all_replacements[i] = replacement;
+        App.backup_videos[i] = video;
+        video.parentNode.replaceChild(replacement, video);
+    }
+
+    function restore_video(obj, index) {
+        obj = App.all_replacements[index];
+        video = App.backup_videos[index];
+        console.log(video);
+        obj.parentNode.replaceChild(video, obj);
+    }
+
+    /** force repainting the video, thanks to:
+     * http://martinwolf.org/2014/06/10/force-repaint-of-an-element-with-javascript/
+     */
+    var siteHeader = document.getElementById('header');
+    siteHeader.style.display='none';
+    siteHeader.offsetHeight; // no need to store this anywhere, the reference is enough
+    siteHeader.style.display='block';
+
+EOF
+}
+
+printjs() {
+    js | sed 's,//.*$,,' | tr '\n' ' '
+}
+echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
+
+msg info "Opening $QUTE_URL with mpv"
+"${video_command[@]}" "$QUTE_URL"

@@ -1,0 +1,14 @@
+<html>
+    <head>
+        <title>test case for issue 1535</title>
+    </head>
+    <body>
+        <p>Cancelling a download that belongs to an mhtml download.</p>
+        <p>See also <a href="https://github.com/qutebrowser/qutebrowser/issues/1535">GitHub</a></p>
+        <!--
+            Use drip so we have a chance to cancel the download before
+            it finishes
+        -->
+        <img src="/drip?numbytes=128&duration=2">
+    </body>
+</html>

@@ -1,0 +1,230 @@
+// If you are reading this in plaintext or on PyPi:
+//
+// A rendered version is available at:
+// https://github.com/qutebrowser/qutebrowser/blob/master/README.asciidoc
+
+qutebrowser
+===========
+
+// QUTE_WEB_HIDE
+image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
+
+image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/LICENSE"]
+image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
+image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/qutebrowser/qutebrowser"]
+image:https://ci.appveyor.com/api/projects/status/5pyauww2k68bbow2/branch/master?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/qutebrowser/qutebrowser"]
+image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
+
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | link:https://github.com/qutebrowser/qutebrowser/releases[releases]
+// QUTE_WEB_HIDE_END
+
+qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
+on Python and PyQt5 and free software, licensed under the GPL.
+
+It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
+
+Screenshots
+-----------
+
+image:doc/img/main.png["screenshot 1",width=300,link="doc/img/main.png"]
+image:doc/img/downloads.png["screenshot 2",width=300,link="doc/img/downloads.png"]
+image:doc/img/completion.png["screenshot 3",width=300,link="doc/img/completion.png"]
+image:doc/img/hints.png["screenshot 4",width=300,link="doc/img/hints.png"]
+
+Downloads
+---------
+
+See the https://github.com/qutebrowser/qutebrowser/releases[github releases
+page] for available downloads and the link:doc/install.asciidoc[INSTALL] file for
+detailed instructions on how to get qutebrowser running on various platforms.
+
+Documentation
+-------------
+
+In addition to the topics mentioned in this README, the following documents are
+available:
+
+* A https://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
+image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
+* link:doc/quickstart.asciidoc[Quick start guide]
+* A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
+* link:doc/faq.asciidoc[Frequently asked questions]
+* link:doc/help/configuring.asciidoc[Configuring qutebrowser]
+* link:doc/contributing.asciidoc[Contributing to qutebrowser]
+* link:doc/install.asciidoc[Installing qutebrowser]
+* link:doc/changelog.asciidoc[Change Log]
+* link:doc/stacktrace.asciidoc[Reporting segfaults]
+* link:doc/userscripts.asciidoc[How to write userscripts]
+
+Getting help
+------------
+
+You can get help in the IRC channel
+irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
+http://freenode.net/[Freenode]
+(https://webchat.freenode.net/?channels=#qutebrowser[webchat]), or by writing a
+message to the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+mailto:qutebrowser@lists.qutebrowser.org[].
+
+There's also a https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
+at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
+get sent to the general qutebrowser@ list).
+
+If you're a reddit user, there's a
+https://www.reddit.com/r/qutebrowser/[/r/qutebrowser] subreddit there.
+
+Contributions / Bugs
+--------------------
+
+You want to contribute to qutebrowser? Awesome! Please read
+link:doc/contributing.asciidoc[the contribution guidelines] for details and
+useful hints.
+
+If you found a bug or have a feature request, you can report it in several
+ways:
+
+* Use the built-in `:report` command or the automatic crash dialog.
+* Open an issue in the Github issue tracker.
+* Write a mail to the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
+mailto:qutebrowser@lists.qutebrowser.org[].
+
+For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
+https://www.the-compiler.org/pubkey.asc[0xFD55A072].
+
+Requirements
+------------
+
+The following software and libraries are required to run qutebrowser:
+
+* http://www.python.org/[Python] 3.5 or newer (3.6 recommended)
+* http://qt.io/[Qt] 5.7.1 or newer with the following modules:
+  - QtCore / qtbase
+  - QtQuick (part of qtbase in some distributions)
+  - QtSQL (part of qtbase in some distributions)
+  - QtOpenGL
+  - QtWebEngine, or
+  - QtWebKit - only the
+    link:https://github.com/annulen/webkit/wiki[updated fork] (5.212) is
+    supported.
+* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
+  (5.9 recommended) for Python 3.
+* https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
+* http://fdik.org/pyPEG/[pyPEG2]
+* http://jinja.pocoo.org/[jinja2]
+* http://pygments.org/[pygments]
+* http://pyyaml.org/wiki/PyYAML[PyYAML]
+* http://www.attrs.org/[attrs]
+
+The following libraries are optional:
+
+* http://cthedot.de/cssutils/[cssutils] (for an improved `:download --mhtml`
+  with QtWebKit)
+* On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
+  output.
+* http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
+  command, when using the git repository (rather than a release).
+
+See link:doc/install.asciidoc[the documentation] for directions on how to
+install qutebrowser and its dependencies.
+
+Donating
+--------
+
+Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
+it also costs some money. Namely I have to pay for the server and domain, and
+do occasional hardware upgrades footnote:[It turned out a 160 GB SSD is rather
+small - the VMs and custom Qt builds I use for testing/developing qutebrowser
+need about 100 GB of space].
+
+If you want to give me a beer or a pizza back, I'm trying to make it as easy as
+possible for you to do so. If some other way would be easier for you, please
+get in touch!
+
+* PayPal: me@the-compiler.org
+* Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
+
+Authors
+-------
+
+qutebrowser's primary author is Florian Bruhin (The Compiler), but qutebrowser
+wouldn't be what it is without the help of
+https://github.com/qutebrowser/qutebrowser/graphs/contributors[hundreds of contributors]!
+
+Additionally, the following people have contributed graphics:
+
+* Jad/link:http://yelostudio.com[yelo] (new icon)
+* WOFall (original icon)
+* regines (key binding cheatsheet)
+
+Also, thanks to everyone who contributed to one of qutebrowser's
+link:doc/backers.asciidoc[crowdfunding campaigns]!
+
+Similar projects
+----------------
+
+Many projects with a similar goal as qutebrowser exist.
+Most of them were inspirations for qutebrowser in some way, thanks for that!
+
+Active
+~~~~~~
+
+* https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
+* https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
+* http://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
+* http://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
+* Chrome/Chromium addons:
+  https://github.com/1995eaton/chromium-vim[cVim],
+  http://vimium.github.io/[Vimium],
+  https://github.com/brookhong/Surfingkeys[Surfingkeys],
+  http://saka-key.lusakasa.com/[Saka Key]
+* Firefox addons (based on WebExtensions):
+  https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
+  http://saka-key.lusakasa.com/[Saka Key]
+
+Inactive
+~~~~~~~~
+
+* https://bitbucket.org/portix/dwb[dwb] (C, GTK+ with WebKit1,
+https://bitbucket.org/portix/dwb/pull-requests/22/several-cleanups-to-increase-portability/diff[unmaintained] -
+main inspiration for qutebrowser)
+* http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
+  WebKit1)
+* http://pwmt.org/projects/jumanji/[jumanji] (C, GTK+ with WebKit1)
+* http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
+* Firefox addons (not based on WebExtensions or no recent activity):
+  http://www.vimperator.org/[Vimperator],
+  http://5digits.org/pentadactyl/[Pentadactyl],
+  https://github.com/akhodakivskiy/VimFx[VimFx],
+  https://github.com/shinglyu/QuantumVim[QuantumVim]
+* Chrome/Chromium addons:
+  https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
+  https://github.com/jinzhu/vrome[Vrome]
+
+License
+-------
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+pdf.js
+------
+
+qutebrowser optionally uses https://github.com/mozilla/pdf.js/[pdf.js] to
+display PDF files in the browser. Windows releases come with a bundled pdf.js.
+
+pdf.js is distributed under the terms of the Apache License. You can
+find a copy of the license in `qutebrowser/3rdparty/pdfjs/LICENSE` (in the
+Windows release or after running `scripts/dev/update_3rdparty.py`), or online
+http://www.apache.org/licenses/LICENSE-2.0.html[here].

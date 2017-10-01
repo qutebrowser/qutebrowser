@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block style %}
+{{ super() }}
+* {
+	margin: 0px 0px;
+	padding: 0px 0px;
+}
+
+body {
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	-webkit-text-size-adjust: none;
+	color: #333333;
+	background-color: #EEEEEE;
+	font-size: 1.2em;
+}
+
+#error-container {
+	margin-left: 20px;
+	margin-right: 20px;
+	margin-top: 20px;
+	border: 1px solid #CCCCCC;
+	box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.20);
+	border-radius: 5px;
+	background-color: #FFFFFF;
+	padding: 20px 20px;
+}
+
+#header {
+	border-bottom: 1px solid #CCC;
+}
+
+.qutebrowser-broken {
+	display: block;
+	width: 100%;
+}
+
+td {
+	margin-top: 20px;
+	color: #555;
+}
+
+h1 {
+	font-weight: normal;
+	color: #1e89c6;
+	margin-bottom: 10px;
+}
+
+ul {
+	margin-left: 20px;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+
+li {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+function tryagain()
+{
+    location.href = "{{ url }}";
+}
+{% endblock %}
+
+{% block content %}
+<div id="error-container">
+	<table>
+		<tr>
+			<td style="width: 10%; vertical-align: top;">
+				<img style="width: 100%; display: block; max-width: 256px;" src="{{ data_url('img/broken_qutebrowser_logo.png') }}" />
+			</td>
+			<td style="padding-left: 40px;">
+				<h1>Unable to load page</h1>
+				Error while opening {{ url }}<br>
+				<p id="error-message-text" style="color: #a31a1a;">{{ error }}</p><br><br>
+
+				<form name="bl">
+					<input type="button" value="Try again" onclick="javascript:tryagain()" />
+				</form>
+			</td>
+		</tr>
+	</table>
+</div>
+{% endblock %}

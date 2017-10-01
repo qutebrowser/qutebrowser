@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# Behavior:
+#   Userscript for qutebrowser which adds a task to taskwarrior.
+#   If run as a command (:spawn --userscript taskadd), it creates a new task
+#   with the description equal to the current page title and annotates it with
+#   the current page url. Additional arguments are passed along so you can add
+#   mods to the task (e.g. priority, due date, tags).
+#
+#   Example:
+#       :spawn --userscript taskadd due:eod pri:H
+#
+#   To enable passing along extra args, I suggest using a mapping like:
+#       :bind <somekey> set-cmd-text -s :spawn --userscript taskadd
+#
+#   If run from hint mode, it uses the selected hint text as the description
+#   and the selected hint url as the annotation.
+#
+# Ryan Roden-Corrent (rcorre), 2016
+# Any feedback is welcome!
+#
+# For more info on Taskwarrior, see http://taskwarrior.org/
+
+# use either the current page title or the hint text as the task description
+[[ $QUTE_MODE == 'hints' ]] && title=$QUTE_SELECTED_TEXT || title=$QUTE_TITLE
+
+# try to add the task and grab the output
+msg="$(task add $title $@ 2>&1)"
+
+if [[ $? == 0 ]]; then
+    # annotate the new task with the url, send the output back to the browser
+    task +LATEST annotate "$QUTE_URL"
+    echo "message-info '$msg'" >> $QUTE_FIFO
+else
+    echo "message-error '$msg'" >> $QUTE_FIFO
+fi

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Visited/Unvisited links</title>
+    </head>
+    <body>
+      <ul>
+        <li>Make sure to visit the links from top to bottom.</li>
+        <li>After visiting a link, it should turn purple. When visiting the first, the second should not turn purple.</li>
+        <li>When closing/reopening qutebrowser and refreshing after a few seconds, the links still should be purple.</li>
+        <li>The httpbin.org link (before redirect) should not be in the completion.</li>
+        <ul>
+          <li><a href="http://www.example.com/">normal link</a></li>
+          <li><a href="http://httpbin.org/redirect-to?url=http://www.example.com/">link with redirect</a></li>
+        </ul>
+    </body>
+</html>

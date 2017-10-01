@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Fake keypresses</title>
+        <script type="text/javascript">
+            window.onload = function () {
+                keyPressHandler = function (e) {
+                    console.log("key press: " + e.keyCode);
+                }
+                keyReleaseHandler = function (e) {
+                    console.log("key release: " + e.keyCode);
+                }
+                window.addEventListener('keydown', keyPressHandler, false);
+                window.addEventListener('keyup', keyReleaseHandler, false);
+            }
+        </script>
+    </head>
+    <body>
+        This page logs keypresses via console.log.
+    </body>
+</html>

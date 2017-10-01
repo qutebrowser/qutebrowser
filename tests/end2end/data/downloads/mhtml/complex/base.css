@@ -1,0 +1,17 @@
+@import 'external-in-extern.css';
+/* We want to make sure that assets referenced in external css files are
+ * properly included
+ */
+div.dyk {
+    /* Did you know? */
+    background-image: url('DYK.png');
+    background-repeat: no-repeat;
+    /* Image is 128px wide */
+    min-height: 128px;
+    padding-left: 148px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 2px solid #474747;
+    border-radius: 64px;
+}
+    

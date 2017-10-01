@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block script %}
+window.onload=toBottom;
+
+function toBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+}
+{% endblock %}
+
+{% block style %}
+body {
+    background-color: black;
+    color: white;
+    font-size: 11px;
+}
+
+table {
+    border: 1px solid grey;
+    border-collapse: collapse;
+}
+
+pre {
+    margin: 2px;
+}
+
+th, td {
+    border: 1px solid grey;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+{% if content %}
+<table>
+{{ content | safe() }}
+</table>
+{% elif content is not none %}
+<p>No messages to show.</p>
+{% else %}
+<p>Log output was disabled.</p>
+{% endif %}
+{% endblock %}
