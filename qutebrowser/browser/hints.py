@@ -177,7 +177,7 @@ class HintContext:
         """Get the arguments, with {hint-url} replaced by the given URL."""
         args = []
         for arg in self.args:
-            arg = arg.replace('{hint-url}', urlstr)
+            arg = arg.replace('{hint-url}', urlstr).replace("'", r"\'")
             args.append(arg)
         return args
 
