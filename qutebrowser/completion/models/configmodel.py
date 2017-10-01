@@ -44,7 +44,7 @@ def value(optname, *_values, info):
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
 
     try:
-        current = info.config.get_str(optname) or '""'
+        current = info.config.get_str(optname)
     except configexc.NoOptionError:
         return None
 
