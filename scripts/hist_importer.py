@@ -17,10 +17,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-'''
-Tool to import browser history data from other browsers. Although, safari
-support is still on the way.
-'''
+'''Tool to import browser history data from other browsers. Although, safari
+support is still on the way.'''
 
 
 import argparse
@@ -44,31 +42,31 @@ def parser():
              'docs/user_data_dir.md\n\n'\
              'Example: $this_script.py -b firefox -s /Firefox/Profile/places.'\
              'sqlite -d /qutebrowser/data/history.sqlite'
-    parser = argparse.ArgumentParser(
+    parsed = argparse.ArgumentParser(
         description=description, epilog=epilog,
         formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument('-b', '--browser', dest='browser', required=True,
+    parsed.add_argument('-b', '--browser', dest='browser', required=True,
                         type=str, help='Browsers: {firefox, chrome, safari}')
-    parser.add_argument('-s', '--source', dest='source', required=True,
+    parsed.add_argument('-s', '--source', dest='source', required=True,
                         type=str, help='Source: fullpath to the sqlite data'
                         'base file from the source browser.')
-    parser.add_argument('-d', '--dest', dest='dest', required=True, type=str,
+    parsed.add_argument('-d', '--dest', dest='dest', required=True, type=str,
                         help='Destination: The fullpath to the qutebrowser '
                         'sqlite database')
-    return parser.parse_args()
+    return parsed.parse_args()
 
 
-def open_db(db):
+def open_db(data_base):
     """Open connection with database."""
     try:
-        conn = sqlite3.connect(db)
+        conn = sqlite3.connect(data_base)
         return conn
-    except Exception as e:
-        print('Error: {}'.format(e))
+    except Exception as any_e:
+        print('Error: {}'.format(any_e))
         raise('Error: There was some error trying to to connect with the [{}]'
               'database. Verify if the filepath is correct or is being used.'.
-              format(db))
+              format(data_base))
 
 
 def extract(source, query):
@@ -80,8 +78,8 @@ def extract(source, query):
         history = cursor.fetchall()
         conn.close()
         return history
-    except Exception as e:
-        # print('Error: {}'.format(e))
+    except Exception as any_e:
+        print('Error: {}'.format(any_e))
         print(type(source))
         raise('Error: There was some error trying to to connect with the [{}]'
               'database. Verify if the filepath is correct or is being used.'.
@@ -99,6 +97,8 @@ def clean(history):
 
 
 def insert_qb(history, dest):
+    """Given a list of records in history and a dest db, insert all records in
+    the dest db."""
     conn = open_db(dest)
     cursor = conn.cursor()
     cursor.executemany(
@@ -109,19 +109,20 @@ def insert_qb(history, dest):
 
 
 def main():
+    """Main control flux of the script."""
     args = parser()
     browser = args.browser.lower()
     source, dest = args.source, args.dest
     query = {
         'firefox': 'select url,title,last_visit_date/1000000 as date '
-        'from moz_places',
+                   'from moz_places',
         'chrome': 'select url,title,last_visit_time/10000000 as date '
-        'from urls',
+                  'from urls',
         'safari': None
     }
     if browser not in query:
         sys.exit('Sorry, the selected browser: "{}" is not supported.'.format(
-                 browser))
+            browser))
     else:
         if browser == 'safari':
             print('Sorry, currently we do not support this browser.')
