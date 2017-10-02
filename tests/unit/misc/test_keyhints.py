@@ -92,6 +92,18 @@ def test_suggestions(keyhint, config_stub):
         ('a', 'yellow', 'c', 'message-info cmd-ac'))
 
 
+def test_suggestions_with_count(keyhint, config_stub):
+    """Test that keyhints are shown based on a prefix."""
+    bindings = {'normal': {'aa': 'message-info cmd-aa'}}
+    config_stub.val.bindings.default = bindings
+    config_stub.val.bindings.commands = bindings
+
+    keyhint.update_keyhint('normal', '2a')
+    assert keyhint.text() == expected_text(
+        ('a', 'yellow', 'a', 'message-info cmd-aa'),
+    )
+
+
 def test_special_bindings(keyhint, config_stub):
     """Ensure a prefix of '<' doesn't suggest special keys."""
     bindings = {'normal': {
