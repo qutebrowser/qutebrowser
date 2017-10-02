@@ -67,6 +67,8 @@ Changed
 - When there are multiple messages shown, the timeout is increased.
 - `:search` now only clears the search if one was displayed before, so pressing
   `<Escape>` doesn't un-focus inputs anymore.
+- Pinned tabs now adjust to their text's width, so the `tabs.width.pinned`
+  setting got removed.
 
 Fixes
 ~~~~~
