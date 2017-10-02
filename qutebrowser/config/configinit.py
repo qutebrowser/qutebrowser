@@ -25,7 +25,7 @@ import sys
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
-                                configexc)
+                                configexc, configcommands)
 from qutebrowser.utils import objreg, usertypes, log, standarddir, message
 from qutebrowser.misc import msgbox, objects
 
@@ -50,8 +50,8 @@ def early_init(args):
 
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
 
-    config_commands = config.ConfigCommands(config.instance,
-                                            config.key_instance)
+    config_commands = configcommands.ConfigCommands(
+        config.instance, config.key_instance)
     objreg.register('config-commands', config_commands)
 
     config_file = os.path.join(standarddir.config(), 'config.py')
