@@ -238,7 +238,6 @@
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|The format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.width.bar,tabs.width.bar>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
 |<<tabs.width.indicator,tabs.width.indicator>>|Width of the progress indicator (0 to disable).
-|<<tabs.width.pinned,tabs.width.pinned>>|The width for pinned tabs with a horizontal tabbar, in px.
 |<<tabs.wrap,tabs.wrap>>|Whether to wrap when changing tabs.
 |<<url.auto_search,url.auto_search>>|Whether to start a search when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|The page to open if :open -t/-b/-w is used without URL.
@@ -2995,14 +2994,6 @@ Width of the progress indicator (0 to disable).
 Type: <<types,Int>>
 
 Default: +pass:[3]+
-
-[[tabs.width.pinned]]
-=== tabs.width.pinned
-The width for pinned tabs with a horizontal tabbar, in px.
-
-Type: <<types,Int>>
-
-Default: +pass:[43]+
 
 [[tabs.wrap]]
 === tabs.wrap

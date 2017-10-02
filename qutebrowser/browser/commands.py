@@ -256,7 +256,7 @@ class CommandDispatcher:
     def tab_pin(self, count=None):
         """Pin/Unpin the current/[count]th tab.
 
-        Pinning a tab shrinks it to `tabs.width.pinned` size.
+        Pinning a tab shrinks it to the size of its title text.
         Attempting to close a pinned tab will cause a confirmation,
         unless --force is passed.
 
