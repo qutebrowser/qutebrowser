@@ -716,7 +716,7 @@ class AbstractTab(QWidget):
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
-    def _handle_auto_insert_mode(self, ok):
+    def handle_auto_insert_mode(self, ok):
         """Handle `input.insert_mode.auto_load` after loading finished."""
         if not config.val.input.insert_mode.auto_load or not ok:
             return
@@ -753,7 +753,6 @@ class AbstractTab(QWidget):
         self.load_finished.emit(ok)
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
-        self._handle_auto_insert_mode(ok)
 
     @pyqtSlot()
     def _on_history_trigger(self):
