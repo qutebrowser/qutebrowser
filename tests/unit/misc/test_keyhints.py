@@ -92,15 +92,20 @@ def test_suggestions(keyhint, config_stub):
         ('a', 'yellow', 'c', 'message-info cmd-ac'))
 
 
-def test_suggestions_with_count(keyhint, config_stub):
-    """Test that keyhints are shown based on a prefix."""
-    bindings = {'normal': {'aa': 'message-info cmd-aa'}}
+def test_suggestions_with_count(keyhint, config_stub, monkeypatch, stubs):
+    """Test that a count prefix filters out commands that take no count."""
+    monkeypatch.setattr('qutebrowser.commands.cmdutils.cmd_dict', {
+        'foo': stubs.FakeCommand(name='foo', takes_count=lambda: False),
+        'bar': stubs.FakeCommand(name='bar', takes_count=lambda: True),
+    })
+
+    bindings = {'normal': {'aa': 'foo', 'ab': 'bar'}}
     config_stub.val.bindings.default = bindings
     config_stub.val.bindings.commands = bindings
 
     keyhint.update_keyhint('normal', '2a')
     assert keyhint.text() == expected_text(
-        ('a', 'yellow', 'a', 'message-info cmd-aa'),
+        ('a', 'yellow', 'b', 'bar'),
     )
 
 

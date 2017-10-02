@@ -336,6 +336,7 @@ class FakeCommand:
     deprecated = attr.ib(False)
     completion = attr.ib(None)
     maxsplit = attr.ib(None)
+    takes_count = attr.ib(lambda: False)
 
 
 class FakeTimer(QObject):
