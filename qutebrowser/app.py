@@ -425,7 +425,7 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing sql...")
     try:
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
-    except sql.SqlException as e:
+    except sql.SqlError as e:
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
