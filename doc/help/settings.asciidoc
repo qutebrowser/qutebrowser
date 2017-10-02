@@ -1944,7 +1944,7 @@ Default: +pass:[ask]+
 === content.user_stylesheets
 A list of user stylesheet filenames to use.
 
-Type: <<types,List of File, or File>>
+Type: <<types,List of File&#44; or File>>
 
 Default: empty
 
@@ -3065,7 +3065,7 @@ Default:
 === url.start_pages
 The page(s) to open at the start.
 
-Type: <<types,List of FuzzyUrl, or FuzzyUrl>>
+Type: <<types,List of FuzzyUrl&#44; or FuzzyUrl>>
 
 Default: +pass:[https://start.duckduckgo.com]+
 
