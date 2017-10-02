@@ -32,7 +32,7 @@ def commands(config_stub, keyconf):
     return configcommands.ConfigCommands(config_stub, keyconf)
 
 
-class TestSetConfigCommand:
+class TestSet:
 
     """Tests for :set."""
 
@@ -218,7 +218,7 @@ class TestSetConfigCommand:
         assert config_stub.get(opt) == ['foo']
 
 
-class TestBindConfigCommand:
+class TestBind:
 
     """Tests for :bind and :unbind."""
 
