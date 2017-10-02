@@ -435,7 +435,7 @@ class TabBar(QTabBar):
             A QSize of the smallest tab size we can make.
         """
         text = '\u2026' if ellipsis else self.tabText(index)
-        # Don't ever shorten if text is shorter than the elipsis
+        # Don't ever shorten if text is shorter than the ellipsis
         text_width = min(self.fontMetrics().width(text),
                          self.fontMetrics().width(self.tabText(index)))
         icon = self.tabIcon(index)
