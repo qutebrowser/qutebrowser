@@ -334,7 +334,7 @@ Note that this won't work for values which are dictionaries.
 Binding chained commands
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you have a lot of chained comamnds you want to bind, you can write a helper
+If you have a lot of chained commands you want to bind, you can write a helper
 to do so:
 
 [source,python]
