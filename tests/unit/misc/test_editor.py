@@ -59,14 +59,14 @@ class TestArg:
         config_stub.val.editor.command = ['bin', 'foo', '{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
-            "bin", ["foo", editor._file.name, "bar"])
+            "bin", ["foo", editor._filename, "bar"])
 
     def test_placeholder_inline(self, config_stub, editor):
         """Test starting editor with placeholder arg inside of another arg."""
         config_stub.val.editor.command = ['bin', 'foo{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
-            "bin", ["foo" + editor._file.name, "bar"])
+            "bin", ["foo" + editor._filename, "bar"])
 
 
 class TestFileHandling:
@@ -76,16 +76,26 @@ class TestFileHandling:
     def test_ok(self, editor):
         """Test file handling when closing with an exit status == 0."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
         assert os.path.basename(filename).startswith('qutebrowser-editor-')
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
 
+    def test_existing_file(self, editor, tmpdir):
+        """Test editing an existing file."""
+        path = tmpdir / 'foo.txt'
+        path.ensure()
+
+        editor.edit_file(str(path))
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+        assert path.exists()
+
     def test_error(self, editor):
         """Test file handling when closing with an exit status != 0."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
 
         editor._proc._proc.exitStatus = mock.Mock(
@@ -99,7 +109,7 @@ class TestFileHandling:
     def test_crash(self, editor):
         """Test file handling when closing with a crash."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
 
         editor._proc._proc.exitStatus = mock.Mock(
@@ -114,7 +124,7 @@ class TestFileHandling:
     def test_unreadable(self, message_mock, editor, caplog):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
         os.chmod(filename, 0o077)
         if os.access(filename, os.R_OK):
@@ -160,10 +170,10 @@ def test_modify(editor, initial_text, edited_text):
     """Test if inputs get modified correctly."""
     editor.edit(initial_text)
 
-    with open(editor._file.name, 'r', encoding='utf-8') as f:
+    with open(editor._filename, 'r', encoding='utf-8') as f:
         assert f.read() == initial_text
 
-    with open(editor._file.name, 'w', encoding='utf-8') as f:
+    with open(editor._filename, 'w', encoding='utf-8') as f:
         f.write(edited_text)
 
     editor._proc.finished.emit(0, QProcess.NormalExit)
