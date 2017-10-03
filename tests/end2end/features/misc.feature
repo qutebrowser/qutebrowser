@@ -527,3 +527,8 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
+
+    Scenario: Simple adblock update
+        When I set up "simple" as block lists
+        And I run :adblock-update
+        Then the message "adblock: Read 1 hosts from 1 sources." should be shown
