@@ -30,9 +30,8 @@ from qutebrowser.config import config
 
 class KeyChainParser(BaseKeyParser):
     """KeyChainParser which implements chaining of multiple keys."""
-    def __init__(self, win_id, parent=None, supports_count=True, supports_chains=True):
-        super().__init__(win_id, parent, supports_count=supports_count, supports_chains=supports_chains)
-        self._warn_on_keychains = not supports_chains
+    def __init__(self, win_id, parent=None, supports_count=None):
+        super().__init__(win_id, parent, supports_count, supports_chains=True)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
 
@@ -84,9 +83,8 @@ class CommandKeyParser(KeyChainParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None, supports_count=True,
-                 supports_chains=True):
-        super().__init__(win_id, parent, supports_count, supports_chains)
+    def __init__(self, win_id, parent=None, supports_count=True):
+        super().__init__(win_id, parent, supports_count)
         self._commandrunner = runners.CommandRunner(win_id)
 
     def execute(self, cmdstr, _keytype, count=None):
@@ -108,18 +106,16 @@ class PassthroughKeyParser(CommandKeyParser):
     do_log = False
     passthrough = True
 
-    def __init__(self, win_id, mode, parent=None, warn=True):
+    def __init__(self, win_id, mode, parent=None):
         """Constructor.
 
         Args:
             mode: The mode this keyparser is for.
             parent: Qt parent.
-            warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(win_id, parent)
         self._read_config(mode)
         self._mode = mode
 
     def __repr__(self):
-        return utils.get_repr(self, mode=self._mode,
-                              warn=self._warn_on_keychains)
+        return utils.get_repr(self, mode=self._mode)
