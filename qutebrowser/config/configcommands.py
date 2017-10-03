@@ -37,11 +37,11 @@ class ConfigCommands:
         self._config = config
         self._keyconfig = keyconfig
 
-    @cmdutils.register(instance='config-commands', star_args_optional=True)
+    @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.option)
-    @cmdutils.argument('values', completion=configmodel.value)
+    @cmdutils.argument('value', completion=configmodel.value)
     @cmdutils.argument('win_id', win_id=True)
-    def set(self, win_id, option=None, *values, temp=False, print_=False):
+    def set(self, win_id, option=None, value=None, temp=False, print_=False):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -51,7 +51,7 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            values: The value to set, or the values to cycle through.
+            value: The value to set.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -66,19 +66,51 @@ class ConfigCommands:
             return
 
         with self._handle_config_error():
-            if option.endswith('!') and option != '!' and not values:
-                # Handle inversion as special cases of the cycle code path
+            if option.endswith('!') and option != '!' and value is None:
                 option = option[:-1]
                 opt = self._config.get_opt(option)
-                if isinstance(opt.typ, configtypes.Bool):
-                    values = ['false', 'true']
-                else:
+                if not isinstance(opt.typ, configtypes.Bool):
                     raise cmdexc.CommandError(
                         "set: Can't toggle non-bool setting {}".format(option))
-            elif not values:
+                old_value = self._config.get_obj(option)
+                self._config.set_obj(option, not old_value, save_yaml=not temp)
+            elif value is None:
                 raise cmdexc.CommandError("set: The following arguments "
                                           "are required: value")
-            self._set_next(option, values, temp=temp)
+            else:
+                self._config.set_str(option, value, save_yaml=not temp)
+
+        if print_:
+            self._print_value(option)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.option)
+    @cmdutils.argument('values', completion=configmodel.value)
+    def config_cycle(self, option, *values, temp=False, print_=False):
+        """Cycle an option between multiple values.
+
+        Args:
+            option: The name of the option.
+            values: The values to cycle through.
+            temp: Set value temporarily until qutebrowser is closed.
+            print_: Print the value after setting.
+        """
+        if len(values) < 2:
+            raise configexc.CommandError("Need at least two values")
+        with self._handle_config_error():
+            # Use the next valid value from values, or the first if the current
+            # value does not appear in the list
+            old_value = self._config.get_obj(option, mutable=False)
+            opt = self._config.get_opt(option)
+            values = [opt.typ.from_str(val) for val in values]
+
+            try:
+                idx = values.index(old_value)
+                idx = (idx + 1) % len(values)
+                value = values[idx]
+            except ValueError:
+                value = values[0]
+            self._config.set_obj(option, value, save_yaml=not temp)
 
         if print_:
             self._print_value(option)
@@ -88,28 +120,6 @@ class ConfigCommands:
         with self._handle_config_error():
             value = self._config.get_str(option)
         message.info("{} = {}".format(option, value))
-
-    def _set_next(self, option, values, *, temp):
-        """Set the next value out of a list of values."""
-        if len(values) == 1:
-            # If we have only one value, just set it directly (avoid
-            # breaking stuff like aliases or other pseudo-settings)
-            self._config.set_str(option, values[0], save_yaml=not temp)
-            return
-
-        # Use the next valid value from values, or the first if the current
-        # value does not appear in the list
-        old_value = self._config.get_obj(option, mutable=False)
-        opt = self._config.get_opt(option)
-        values = [opt.typ.from_str(val) for val in values]
-
-        try:
-            idx = values.index(old_value)
-            idx = (idx + 1) % len(values)
-            value = values[idx]
-        except ValueError:
-            value = values[0]
-        self._config.set_obj(option, value, save_yaml=not temp)
 
     @contextlib.contextmanager
     def _handle_config_error(self):

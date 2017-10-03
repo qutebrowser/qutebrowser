@@ -189,6 +189,11 @@ class TestSet:
         with pytest.raises(cmdexc.CommandError, match="set: No option 'foo'"):
             commands.set(win_id=0, option='foo' + suffix)
 
+
+class TestCycle:
+
+    """Test :config-cycle."""
+
     @pytest.mark.parametrize('initial, expected', [
         # Normal cycling
         ('magenta', 'blue'),
@@ -201,20 +206,20 @@ class TestSet:
         """Run ':set' with multiple values."""
         opt = 'colors.statusbar.normal.bg'
         config_stub.set_obj(opt, initial)
-        commands.set(0, opt, 'green', 'magenta', 'blue', 'yellow')
+        commands.config_cycle(opt, 'green', 'magenta', 'blue', 'yellow')
         assert config_stub.get(opt) == expected
         assert config_stub._yaml[opt] == expected
 
-    def test_cycling_different_representation(self, commands, config_stub):
+    def test_different_representation(self, commands, config_stub):
         """When using a different representation, cycling should work.
 
         For example, we use [foo] which is represented as ["foo"].
         """
         opt = 'qt_args'
         config_stub.set_obj(opt, ['foo'])
-        commands.set(0, opt, '[foo]', '[bar]')
+        commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['bar']
-        commands.set(0, opt, '[foo]', '[bar]')
+        commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['foo']
 
 

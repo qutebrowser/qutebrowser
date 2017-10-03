@@ -31,6 +31,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<close,close>>|Close the current window.
+|<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -197,6 +198,20 @@ Focuses window if necessary.
 [[close]]
 === close
 Close the current window.
+
+[[config-cycle]]
+=== config-cycle
+Syntax: +:config-cycle [*--temp*] [*--print*] 'option' 'values' ['values' ...]+
+
+Cycle an option between multiple values.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'values'+: The values to cycle through.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+* +*-p*+, +*--print*+: Print the value after setting.
 
 [[download]]
 === download
@@ -773,7 +788,7 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['option'] ['values' ['values' ...]]+
+Syntax: +:set [*--temp*] [*--print*] ['option'] ['value']+
 
 Set an option.
 
@@ -781,7 +796,7 @@ If the option name ends with '?', the value of the option is shown instead. If t
 
 ==== positional arguments
 * +'option'+: The name of the option.
-* +'values'+: The value to set, or the values to cycle through.
+* +'value'+: The value to set.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
