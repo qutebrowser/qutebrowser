@@ -32,6 +32,7 @@ class KeyChainParser(BaseKeyParser):
     """KeyChainParser which implements chaining of multiple keys."""
     def __init__(self, win_id, parent=None, supports_count=True, supports_chains=True):
         super().__init__(win_id, parent, supports_count=supports_count, supports_chains=supports_chains)
+        self._warn_on_keychains = False
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
 
@@ -116,7 +117,6 @@ class PassthroughKeyParser(CommandKeyParser):
             warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(win_id, parent, supports_chains=False)
-        self._warn_on_keychains = warn
         self._read_config(mode)
         self._mode = mode
 
