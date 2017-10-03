@@ -37,6 +37,20 @@ class ConfigCommands:
         self._config = config
         self._keyconfig = keyconfig
 
+    @contextlib.contextmanager
+    def _handle_config_error(self):
+        """Catch errors in set_command and raise CommandError."""
+        try:
+            yield
+        except configexc.Error as e:
+            raise cmdexc.CommandError("set: {}".format(e))
+
+    def _print_value(self, option):
+        """Print the value of the given option."""
+        with self._handle_config_error():
+            value = self._config.get_str(option)
+        message.info("{} = {}".format(option, value))
+
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('value', completion=configmodel.value)
@@ -72,61 +86,6 @@ class ConfigCommands:
 
         if print_:
             self._print_value(option)
-
-    @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.option)
-    @cmdutils.argument('values', completion=configmodel.value)
-    def config_cycle(self, option, *values, temp=False, print_=False):
-        """Cycle an option between multiple values.
-
-        Args:
-            option: The name of the option.
-            values: The values to cycle through.
-            temp: Set value temporarily until qutebrowser is closed.
-            print_: Print the value after setting.
-        """
-        with self._handle_config_error():
-            opt = self._config.get_opt(option)
-            old_value = self._config.get_obj(option, mutable=False)
-
-        if not values and isinstance(opt.typ, configtypes.Bool):
-            values = ['true', 'false']
-
-        if len(values) < 2:
-            raise cmdexc.CommandError("Need at least two values for "
-                                      "non-boolean settings.")
-
-        # Use the next valid value from values, or the first if the current
-        # value does not appear in the list
-        with self._handle_config_error():
-            values = [opt.typ.from_str(val) for val in values]
-
-        try:
-            idx = values.index(old_value)
-            idx = (idx + 1) % len(values)
-            value = values[idx]
-        except ValueError:
-            value = values[0]
-
-        with self._handle_config_error():
-            self._config.set_obj(option, value, save_yaml=not temp)
-
-        if print_:
-            self._print_value(option)
-
-    def _print_value(self, option):
-        """Print the value of the given option."""
-        with self._handle_config_error():
-            value = self._config.get_str(option)
-        message.info("{} = {}".format(option, value))
-
-    @contextlib.contextmanager
-    def _handle_config_error(self):
-        """Catch errors in set_command and raise CommandError."""
-        try:
-            yield
-        except configexc.Error as e:
-            raise cmdexc.CommandError("set: {}".format(e))
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
@@ -178,3 +137,44 @@ class ConfigCommands:
             self._keyconfig.unbind(key, mode=mode, save_yaml=True)
         except configexc.KeybindingError as e:
             raise cmdexc.CommandError('unbind: {}'.format(e))
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.option)
+    @cmdutils.argument('values', completion=configmodel.value)
+    def config_cycle(self, option, *values, temp=False, print_=False):
+        """Cycle an option between multiple values.
+
+        Args:
+            option: The name of the option.
+            values: The values to cycle through.
+            temp: Set value temporarily until qutebrowser is closed.
+            print_: Print the value after setting.
+        """
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
+            old_value = self._config.get_obj(option, mutable=False)
+
+        if not values and isinstance(opt.typ, configtypes.Bool):
+            values = ['true', 'false']
+
+        if len(values) < 2:
+            raise cmdexc.CommandError("Need at least two values for "
+                                      "non-boolean settings.")
+
+        # Use the next valid value from values, or the first if the current
+        # value does not appear in the list
+        with self._handle_config_error():
+            values = [opt.typ.from_str(val) for val in values]
+
+        try:
+            idx = values.index(old_value)
+            idx = (idx + 1) % len(values)
+            value = values[idx]
+        except ValueError:
+            value = values[0]
+
+        with self._handle_config_error():
+            self._config.set_obj(option, value, save_yaml=not temp)
+
+        if print_:
+            self._print_value(option)
