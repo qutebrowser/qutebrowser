@@ -19,14 +19,15 @@
 
 """Commands related to the configuration."""
 
+import os.path
 import contextlib
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
-from qutebrowser.utils import objreg, utils, message
-from qutebrowser.config import configtypes, configexc
+from qutebrowser.utils import objreg, utils, message, standarddir
+from qutebrowser.config import configtypes, configexc, configfiles
 
 
 class ConfigCommands:
@@ -203,3 +204,25 @@ class ConfigCommands:
                   removed.
         """
         self._config.clear(save_yaml=save)
+
+    @cmdutils.register(instance='config-commands')
+    def config_source(self, filename=None, clear=False):
+        """Read a config.py file.
+
+        Args:
+            filename: The file to load. If not given, loads the default
+                      config.py.
+            clear: Clear current settings first.
+        """
+        if filename is None:
+            filename = os.path.join(standarddir.config(), 'config.py')
+        else:
+            filename = os.path.expanduser(filename)
+
+        if clear:
+            self.config_clear()
+
+        try:
+            configfiles.read_config_py(filename)
+        except configexc.ConfigFileErrors as e:
+            raise cmdexc.CommandError(e)

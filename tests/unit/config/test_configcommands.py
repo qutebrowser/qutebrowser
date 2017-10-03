@@ -263,6 +263,45 @@ class TestUnsetAndClear:
             assert config_stub._yaml[name] == 'never'
 
 
+class TestSource:
+
+    """Test :config-source."""
+
+    pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir')
+
+    @pytest.mark.parametrize('use_default_dir', [True, False])
+    @pytest.mark.parametrize('clear', [True, False])
+    def test_config_source(self, tmpdir, commands, config_stub, config_tmpdir,
+                           use_default_dir, clear):
+        assert config_stub.val.content.javascript.enabled
+        config_stub.val.ignore_case = 'always'
+
+        if use_default_dir:
+            pyfile = config_tmpdir / 'config.py'
+            arg = None
+        else:
+            pyfile = tmpdir / 'sourced.py'
+            arg = str(pyfile)
+        pyfile.write_text('c.content.javascript.enabled = False\n',
+                          encoding='utf-8')
+
+        commands.config_source(arg, clear=clear)
+
+        assert not config_stub.val.content.javascript.enabled
+        assert config_stub.val.ignore_case == ('smart' if clear else 'always')
+
+    def test_errors(self, commands, config_tmpdir):
+        pyfile = config_tmpdir / 'config.py'
+        pyfile.write_text('c.foo = 42', encoding='utf-8')
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            commands.config_source()
+
+        expected = ("Errors occurred while reading config.py:\n"
+                    "  While setting 'foo': No option 'foo'")
+        assert str(excinfo.value) == expected
+
+
 class TestBind:
 
     """Tests for :bind and :unbind."""
