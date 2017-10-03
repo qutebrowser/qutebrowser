@@ -178,7 +178,7 @@ class TestSaveAll:
 ])
 def test_get_session_name(config_stub, sess_man, arg, config, current,
                           expected):
-    config_stub.data = {'general': {'session-default-name': config}}
+    config_stub.val.session_default_name = config
     sess_man._current = current
     assert sess_man._get_session_name(arg) == expected
 
@@ -186,11 +186,10 @@ def test_get_session_name(config_stub, sess_man, arg, config, current,
 class TestSave:
 
     @pytest.fixture
-    def state_config(self):
+    def state_config(self, monkeypatch):
         state = {'general': {}}
-        objreg.register('state-config', state)
-        yield state
-        objreg.delete('state-config')
+        monkeypatch.setattr(sessions.configfiles, 'state', state)
+        return state
 
     @pytest.fixture
     def fake_history(self, win_registry, stubs, monkeypatch, webview):

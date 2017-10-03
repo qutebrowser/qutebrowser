@@ -19,11 +19,11 @@
 
 """pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
 
-import collections
 import urllib.parse
 import string
 import re
 
+import attr
 import pypeg2 as peg
 
 from qutebrowser.utils import utils
@@ -210,7 +210,13 @@ class ContentDispositionValue:
                peg.optional(';'))
 
 
-LangTagged = collections.namedtuple('LangTagged', ['string', 'langtag'])
+@attr.s
+class LangTagged:
+
+    """A string with an associated language."""
+
+    string = attr.ib()
+    langtag = attr.ib()
 
 
 class Error(Exception):

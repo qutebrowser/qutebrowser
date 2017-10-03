@@ -353,6 +353,7 @@ def main():
         import github3  # pylint: disable=unused-variable
         read_github_token()
 
+    run_asciidoc2html(args)
     if os.name == 'nt':
         if sys.maxsize > 2**32:
             # WORKAROUND
@@ -362,10 +363,8 @@ def main():
             print("See http://bugs.python.org/issue24493 and ")
             print("https://github.com/pypa/virtualenv/issues/774")
             sys.exit(1)
-        run_asciidoc2html(args)
         artifacts = build_windows()
     elif sys.platform == 'darwin':
-        run_asciidoc2html(args)
         artifacts = build_mac()
     else:
         artifacts = build_sdist()
@@ -377,6 +376,11 @@ def main():
         github_upload(artifacts, args.upload[0])
         if upload_to_pypi:
             pypi_upload(artifacts)
+    else:
+        print()
+        utils.print_title("Artifacts")
+        for artifact in artifacts:
+            print(artifact)
 
 
 if __name__ == '__main__':

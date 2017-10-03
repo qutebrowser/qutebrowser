@@ -22,7 +22,6 @@
 
 import os
 import sys
-import html
 import shutil
 import os.path
 import inspect
@@ -38,7 +37,7 @@ import qutebrowser.app
 from scripts import asciidoc2html, utils
 from qutebrowser import qutebrowser, commands
 from qutebrowser.commands import cmdutils, argparser
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import docutils, usertypes
 
 FILE_HEADER = """
@@ -143,19 +142,44 @@ def _get_command_quickref(cmds):
 def _get_setting_quickref():
     """Generate the settings quick reference."""
     out = []
-    for sectname, sect in configdata.DATA.items():
-        if not getattr(sect, 'descriptions'):
-            continue
-        out.append("")
-        out.append(".Quick reference for section ``{}''".format(sectname))
-        out.append('[options="header",width="75%",cols="25%,75%"]')
-        out.append('|==============')
-        out.append('|Setting|Description')
-        for optname, _option in sect.items():
-            desc = sect.descriptions[optname].splitlines()[0]
-            out.append('|<<{}-{},{}>>|{}'.format(
-                sectname, optname, optname, desc))
-        out.append('|==============')
+    out.append('')
+    out.append('[options="header",width="75%",cols="25%,75%"]')
+    out.append('|==============')
+    out.append('|Setting|Description')
+    for opt in sorted(configdata.DATA.values()):
+        desc = opt.description.splitlines()[0]
+        out.append('|<<{},{}>>|{}'.format(opt.name, opt.name, desc))
+    out.append('|==============')
+    return '\n'.join(out)
+
+
+def _get_configtypes():
+    """Get configtypes classes to document."""
+    predicate = lambda e: (inspect.isclass(e) and
+                           e not in [configtypes.BaseType,
+                                     configtypes.MappingType,
+                                     # pylint: disable=protected-access
+                                     configtypes._Numeric] and
+                           issubclass(e, configtypes.BaseType))
+    yield from inspect.getmembers(configtypes, predicate)
+
+
+def _get_setting_types_quickref():
+    """Generate the setting types quick reference."""
+    out = []
+    out.append('[[types]]')
+    out.append('[options="header",width="75%",cols="25%,75%"]')
+    out.append('|==============')
+    out.append('|Type|Description')
+
+    for name, typ in _get_configtypes():
+        parser = docutils.DocstringParser(typ)
+        desc = parser.short_desc
+        if parser.long_desc:
+            desc += '\n\n' + parser.long_desc
+        out.append('|{}|{}'.format(name, desc))
+
+    out.append('|==============')
     return '\n'.join(out)
 
 
@@ -325,8 +349,6 @@ def generate_commands(filename):
         hidden_cmds = []
         debug_cmds = []
         for name, cmd in cmdutils.cmd_dict.items():
-            if name in cmdutils.aliases:
-                continue
             if cmd.deprecated:
                 continue
             if cmd.hide:
@@ -362,62 +384,70 @@ def generate_commands(filename):
             f.write(_get_command_doc(name, cmd))
 
 
-def _generate_setting_section(f, sectname, sect):
+def _generate_setting_backend_info(f, opt):
+    """"Generate backend information for the given option."""
+    all_backends = [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
+    if opt.raw_backends is not None:
+        for name, conditional in sorted(opt.raw_backends.items()):
+            if conditional is True:
+                pass
+            elif conditional is False:
+                f.write("\nOn {}, this setting is unavailable.\n".format(name))
+            else:
+                f.write("\nOn {}, this setting requires {} or newer.\n"
+                        .format(name, conditional))
+    elif opt.backends == all_backends:
+        pass
+    elif opt.backends == [usertypes.Backend.QtWebKit]:
+        f.write("\nThis setting is only available with the QtWebKit "
+                "backend.\n")
+    elif opt.backends == [usertypes.Backend.QtWebEngine]:
+        f.write("\nThis setting is only available with the QtWebEngine "
+                "backend.\n")
+    else:
+        raise ValueError("Invalid value {!r} for opt.backends"
+                         .format(opt.backends))
+
+
+def _generate_setting_option(f, opt):
     """Generate documentation for a single section."""
-    version_dependent_options = [('general', 'print-element-backgrounds')]
-    for optname, option in sect.items():
+    f.write("\n")
+    f.write('[[{}]]'.format(opt.name) + "\n")
+    f.write("=== {}".format(opt.name) + "\n")
+    f.write(opt.description + "\n")
+    f.write("\n")
+    typ = opt.typ.get_name().replace(',', '&#44;')
+    f.write('Type: <<types,{typ}>>\n'.format(typ=typ))
+    f.write("\n")
+
+    valid_values = opt.typ.get_valid_values()
+    if valid_values is not None:
+        f.write("Valid values:\n")
         f.write("\n")
-        f.write('[[{}-{}]]'.format(sectname, optname) + "\n")
-        f.write("=== {}".format(optname) + "\n")
-        f.write(sect.descriptions[optname] + "\n")
+        for val in valid_values:
+            try:
+                desc = valid_values.descriptions[val]
+                f.write(" * +{}+: {}".format(val, desc) + "\n")
+            except KeyError:
+                f.write(" * +{}+".format(val) + "\n")
         f.write("\n")
 
-        valid_values = option.typ.get_valid_values()
-        if valid_values is not None:
-            f.write("Valid values:\n")
-            f.write("\n")
-            for val in valid_values:
-                try:
-                    desc = valid_values.descriptions[val]
-                    f.write(" * +{}+: {}".format(val, desc) + "\n")
-                except KeyError:
-                    f.write(" * +{}+".format(val) + "\n")
-            f.write("\n")
-
-        if option.default():
-            f.write("Default: +pass:[{}]+\n".format(html.escape(
-                option.default())))
-        else:
-            f.write("Default: empty\n")
-
-        if (option.backends is None or
-                (sectname, optname) in version_dependent_options):
-            pass
-        elif option.backends == [usertypes.Backend.QtWebKit]:
-            f.write("\nThis setting is only available with the QtWebKit "
-                    "backend.\n")
-        elif option.backends == [usertypes.Backend.QtWebEngine]:
-            f.write("\nThis setting is only available with the QtWebEngine "
-                    "backend.\n")
-        else:
-            raise ValueError("Invalid value {!r} for option.backends".format(
-                option.backends))
+    f.write("Default: {}\n".format(opt.typ.to_doc(opt.default)))
+    _generate_setting_backend_info(f, opt)
 
 
 def generate_settings(filename):
     """Generate the complete settings section."""
+    configdata.init()
     with _open_file(filename) as f:
         f.write(FILE_HEADER)
-        f.write("= Settings\n")
+        f.write("= Setting reference\n\n")
+        f.write("== All settings\n")
         f.write(_get_setting_quickref() + "\n")
-        for sectname, sect in configdata.DATA.items():
-            f.write("\n")
-            f.write("== {}".format(sectname) + "\n")
-            f.write(configdata.SECTION_DESC[sectname] + "\n")
-            if not getattr(sect, 'descriptions'):
-                pass
-            else:
-                _generate_setting_section(f, sectname, sect)
+        for opt in sorted(configdata.DATA.values()):
+            _generate_setting_option(f, opt)
+        f.write("\n== Setting types\n")
+        f.write(_get_setting_types_quickref() + "\n")
 
 
 def _format_block(filename, what, data):

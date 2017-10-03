@@ -19,15 +19,14 @@
 
 """Tests for qutebrowser.misc.ipc."""
 
-import sys
 import os
 import getpass
-import collections
 import logging
 import json
 import hashlib
 from unittest import mock
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
@@ -35,7 +34,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import objreg, qtutils
+from qutebrowser.utils import standarddir, utils
 from helpers import stubs
 
 
@@ -46,12 +45,8 @@ pytestmark = pytest.mark.usefixtures('qapp')
 def shutdown_server():
     """If ipc.send_or_listen was called, make sure to shut server down."""
     yield
-    try:
-        server = objreg.get('ipc-server')
-    except KeyError:
-        pass
-    else:
-        server.shutdown()
+    if ipc.server is not None:
+        ipc.server.shutdown()
 
 
 @pytest.fixture
@@ -88,6 +83,7 @@ def qlocalsocket(qapp):
 @pytest.fixture(autouse=True)
 def fake_runtime_dir(monkeypatch, short_tmpdir):
     monkeypatch.setenv('XDG_RUNTIME_DIR', str(short_tmpdir))
+    standarddir._init_dirs()
     return short_tmpdir
 
 
@@ -211,14 +207,14 @@ class TestSocketName:
     def test_mac(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         parts = socketname.split(os.sep)
-        assert parts[-2] == 'qute_test'
+        assert parts[-2] == 'qutebrowser'
         assert parts[-1] == expected
 
     @pytest.mark.linux
     @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
-        expected_path = str(fake_runtime_dir / 'qute_test' / expected)
+        expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)
         assert socketname == expected_path
 
     def test_other_unix(self):
@@ -227,11 +223,11 @@ class TestSocketName:
         We probably would adjust the code first to make it work on that
         platform.
         """
-        if os.name == 'nt':
+        if utils.is_windows:
             pass
-        elif sys.platform == 'darwin':
+        elif utils.is_mac:
             pass
-        elif sys.platform.startswith('linux'):
+        elif utils.is_linux:
             pass
         else:
             raise Exception("Unexpected platform!")
@@ -380,7 +376,7 @@ class TestHandleConnection:
         monkeypatch.setattr(ipc_server._server, 'nextPendingConnection', m)
         ipc_server.ignored = True
         ipc_server.handle_connection()
-        assert not m.called
+        m.assert_not_called()
 
     def test_no_connection(self, ipc_server, caplog):
         ipc_server.handle_connection()
@@ -430,7 +426,7 @@ class TestHandleConnection:
 
 @pytest.fixture
 def connected_socket(qtbot, qlocalsocket, ipc_server):
-    if sys.platform == 'darwin':
+    if utils.is_mac:
         pytest.skip("Skipping connected_socket test - "
                     "https://github.com/qutebrowser/qutebrowser/issues/1045")
     ipc_server.listen()
@@ -596,20 +592,18 @@ def test_ipcserver_socket_none_error(ipc_server, caplog):
 
 class TestSendOrListen:
 
-    Args = collections.namedtuple('Args', 'no_err_windows, basedir, command, '
-                                          'target')
+    @attr.s
+    class Args:
+
+        no_err_windows = attr.ib()
+        basedir = attr.ib()
+        command = attr.ib()
+        target = attr.ib()
 
     @pytest.fixture
     def args(self):
         return self.Args(no_err_windows=True, basedir='/basedir/for/testing',
                          command=['test'], target=None)
-
-    @pytest.fixture(autouse=True)
-    def cleanup(self):
-        try:
-            objreg.delete('ipc-server')
-        except KeyError:
-            pass
 
     @pytest.fixture
     def qlocalserver_mock(self, mocker):
@@ -622,10 +616,10 @@ class TestSendOrListen:
     def qlocalsocket_mock(self, mocker):
         m = mocker.patch('qutebrowser.misc.ipc.QLocalSocket', autospec=True)
         m().errorString.return_value = "Error string"
-        for attr in ['UnknownSocketError', 'UnconnectedState',
+        for name in ['UnknownSocketError', 'UnconnectedState',
                      'ConnectionRefusedError', 'ServerNotFoundError',
                      'PeerClosedError']:
-            setattr(m, attr, getattr(QLocalSocket, attr))
+            setattr(m, name, getattr(QLocalSocket, name))
         return m
 
     @pytest.mark.linux(reason="Flaky on Windows and macOS")
@@ -634,8 +628,7 @@ class TestSendOrListen:
         assert isinstance(ret_server, ipc.IPCServer)
         msgs = [e.message for e in caplog.records]
         assert "Starting IPC server..." in msgs
-        objreg_server = objreg.get('ipc-server')
-        assert objreg_server is ret_server
+        assert ret_server is ipc.server
 
         with qtbot.waitSignal(ret_server.got_args):
             ret_client = ipc.send_or_listen(args)
@@ -777,26 +770,7 @@ def test_connect_inexistent(qlocalsocket):
     assert qlocalsocket.error() == QLocalSocket.ServerNotFoundError
 
 
-def test_socket_options_listen_problem(qlocalserver, short_tmpdir):
-    """In earlier versions of Qt, listening fails when using socketOptions.
-
-    With this test, we verify that this bug exists in the Qt version/OS
-    combinations we expect it to, and doesn't exist in other versions.
-    """
-    servername = str(short_tmpdir / 'x')
-    qlocalserver.setSocketOptions(QLocalServer.UserAccessOption)
-    ok = qlocalserver.listen(servername)
-    if os.name == 'nt' or qtutils.version_check('5.4'):
-        assert ok
-    else:
-        assert not ok
-        assert qlocalserver.serverError() == QAbstractSocket.HostNotFoundError
-        assert qlocalserver.errorString() == 'QLocalServer::listen: Name error'
-
-
 @pytest.mark.posix
-@pytest.mark.skipif(not qtutils.version_check('5.4'),
-                    reason="setSocketOptions is even more broken on Qt < 5.4.")
 def test_socket_options_address_in_use_problem(qlocalserver, short_tmpdir):
     """Qt seems to ignore AddressInUseError when using socketOptions.
 

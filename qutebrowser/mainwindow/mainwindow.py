@@ -24,16 +24,14 @@ import base64
 import itertools
 import functools
 
-import jinja2
 from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
-                               debug)
-from qutebrowser.mainwindow import tabbedbrowser, messageview, prompt
-from qutebrowser.mainwindow.statusbar import bar
+                               jinja, debug)
+from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import (commands, downloadview, hints,
@@ -52,7 +50,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         via_ipc: Whether the request was made via IPC.
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
-        force_target: Override the new-instance-open-target config
+        force_target: Override the new_instance_open_target config
     """
     if force_window and force_tab:
         raise ValueError("force_window and force_tab are mutually exclusive!")
@@ -61,7 +59,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         # Initial main window
         return 0
 
-    open_target = config.get('general', 'new-instance-open-target')
+    open_target = config.val.new_instance_open_target
 
     # Apply any target overrides, ordered by precedence
     if force_target is not None:
@@ -99,7 +97,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
     try:
-        win_mode = config.get('general', 'new-instance-open-target.window')
+        win_mode = config.val.new_instance_open_target_window
         if win_mode == 'last-focused':
             return objreg.last_focused_window()
         elif win_mode == 'first-opened':
@@ -141,6 +139,11 @@ class MainWindow(QWidget):
             parent: The parent the window should get.
         """
         super().__init__(parent)
+        # Late import to avoid a circular dependency
+        # - browsertab -> hints -> webelem -> mainwindow -> bar -> browsertab
+        from qutebrowser.mainwindow import tabbedbrowser
+        from qutebrowser.mainwindow.statusbar import bar
+
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
         self._overlays = []
@@ -165,7 +168,7 @@ class MainWindow(QWidget):
         self._init_downloadmanager()
         self._downloadview = downloadview.DownloadView(self.win_id)
 
-        if config.get('general', 'private-browsing'):
+        if config.val.content.private_browsing:
             # This setting always trumps what's passed in.
             private = True
         else:
@@ -215,7 +218,7 @@ class MainWindow(QWidget):
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
         # we defer this until everything else is initialized.
         QTimer.singleShot(0, self._connect_overlay_signals)
-        objreg.get('config').changed.connect(self.on_config_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
         objreg.get("app").new_window.emit(self)
 
@@ -254,7 +257,7 @@ class MainWindow(QWidget):
             left = (self.width() - width) / 2 if centered else 0
 
         height_padding = 20
-        status_position = config.get('ui', 'status-position')
+        status_position = config.val.statusbar.position
         if status_position == 'bottom':
             if self.status.isVisible():
                 status_height = self.status.height()
@@ -308,7 +311,7 @@ class MainWindow(QWidget):
     def _init_completion(self):
         self._completion = completionwidget.CompletionView(self.win_id, self)
         cmd = objreg.get('status-command', scope='window', window=self.win_id)
-        completer_obj = completer.Completer(cmd, self.win_id, self._completion)
+        completer_obj = completer.Completer(cmd, self._completion)
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
@@ -327,16 +330,14 @@ class MainWindow(QWidget):
     def __repr__(self):
         return utils.get_repr(self)
 
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
         """Resize the completion if related config options changed."""
-        if section != 'ui':
-            return
-        if option == 'statusbar-padding':
+        if option == 'statusbar.padding':
             self._update_overlay_geometries()
-        elif option == 'downloads-position':
+        elif option == 'downloads.position':
             self._add_widgets()
-        elif option == 'status-position':
+        elif option == 'statusbar.position':
             self._add_widgets()
             self._update_overlay_geometries()
 
@@ -345,10 +346,9 @@ class MainWindow(QWidget):
         self._vbox.removeWidget(self.tabbed_browser)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        downloads_position = config.get('ui', 'downloads-position')
-        status_position = config.get('ui', 'status-position')
         widgets = [self.tabbed_browser]
 
+        downloads_position = config.val.downloads.position
         if downloads_position == 'top':
             widgets.insert(0, self._downloadview)
         elif downloads_position == 'bottom':
@@ -356,6 +356,7 @@ class MainWindow(QWidget):
         else:
             raise ValueError("Invalid position {}!".format(downloads_position))
 
+        status_position = config.val.statusbar.position
         if status_position == 'top':
             widgets.insert(0, self.status)
         elif status_position == 'bottom':
@@ -368,9 +369,8 @@ class MainWindow(QWidget):
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
-        state_config = objreg.get('state-config')
         try:
-            data = state_config['geometry']['mainwindow']
+            data = configfiles.state['geometry']['mainwindow']
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
@@ -383,10 +383,9 @@ class MainWindow(QWidget):
 
     def _save_geometry(self):
         """Save the window geometry to the state config."""
-        state_config = objreg.get('state-config')
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
-        state_config['geometry']['mainwindow'] = geom
+        configfiles.state['geometry']['mainwindow'] = geom
 
     def _load_geometry(self, geom):
         """Load geometry from a bytes object.
@@ -417,8 +416,6 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        key_config = objreg.get('key-config')
-
         status = self._get_object('statusbar')
         keyparsers = self._get_object('keyparsers')
         completion_obj = self._get_object('completion')
@@ -447,10 +444,6 @@ class MainWindow(QWidget):
         for mode, parser in keyparsers.items():
             parser.keystring_updated.connect(functools.partial(
                 self._keyhint.update_keyhint, mode.name))
-
-        # config
-        for obj in keyparsers.values():
-            key_config.changed.connect(obj.on_keyconfig_changed)
 
         # messages
         message.global_bridge.show_message.connect(
@@ -545,24 +538,23 @@ class MainWindow(QWidget):
         if crashsignal.is_crashing:
             e.accept()
             return
-        confirm_quit = config.get('ui', 'confirm-quit')
         tab_count = self.tabbed_browser.count()
         download_model = objreg.get('download-model', scope='window',
                                     window=self.win_id)
         download_count = download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
-        if 'multiple-tabs' in confirm_quit and tab_count > 1:
+        if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
             quit_texts.append("{} {} open.".format(
                 tab_count, "tab is" if tab_count == 1 else "tabs are"))
         # Ask if multiple downloads running
-        if 'downloads' in confirm_quit and download_count > 0:
+        if 'downloads' in config.val.confirm_quit and download_count > 0:
             quit_texts.append("{} {} running.".format(
                 download_count,
                 "download is" if download_count == 1 else "downloads are"))
         # Process all quit messages that user must confirm
-        if quit_texts or 'always' in confirm_quit:
-            msg = jinja2.Template("""
+        if quit_texts or 'always' in config.val.confirm_quit:
+            msg = jinja.environment.from_string("""
                 <ul>
                 {% for text in quit_texts %}
                    <li>{{text}}</li>

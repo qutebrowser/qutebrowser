@@ -25,7 +25,6 @@ import io
 import os
 import re
 import sys
-import collections
 import uuid
 import email.policy
 import email.generator
@@ -34,15 +33,21 @@ import email.mime.multipart
 import email.message
 import quopri
 
+import attr
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 
-_File = collections.namedtuple('_File',
-                               ['content', 'content_type', 'content_location',
-                                'transfer_encoding'])
+
+@attr.s
+class _File:
+
+    content = attr.ib()
+    content_type = attr.ib()
+    content_location = attr.ib()
+    transfer_encoding = attr.ib()
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [
@@ -174,7 +179,7 @@ class MHTMLWriter:
         root_content: The root content as bytes.
         content_location: The url of the page as str.
         content_type: The MIME-type of the root content as str.
-        _files: Mapping of location->_File namedtuple.
+        _files: Mapping of location->_File object.
     """
 
     def __init__(self, root_content, content_location, content_type):

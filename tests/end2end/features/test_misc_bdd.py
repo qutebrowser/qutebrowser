@@ -17,43 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-import os.path
-import subprocess
+import json
 
-import pytest
 import pytest_bdd as bdd
-
-import qutebrowser
-from qutebrowser.utils import docutils
-
 bdd.scenarios('misc.feature')
-
-
-@bdd.when("the documentation is up to date")
-def update_documentation():
-    """Update the docs before testing :help."""
-    base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
-    doc_path = os.path.join(base_path, 'html', 'doc')
-    script_path = os.path.join(base_path, '..', 'scripts')
-
-    try:
-        os.mkdir(doc_path)
-    except FileExistsError:
-        pass
-
-    files = os.listdir(doc_path)
-    if files and all(docutils.docs_up_to_date(p) for p in files):
-        return
-
-    try:
-        subprocess.call(['asciidoc'], stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL)
-    except OSError:
-        pytest.skip("Docs outdated and asciidoc unavailable!")
-
-    update_script = os.path.join(script_path, 'asciidoc2html.py')
-    subprocess.call([sys.executable, update_script])
 
 
 @bdd.then(bdd.parsers.parse('the PDF {filename} should exist in the tmpdir'))
@@ -61,3 +28,10 @@ def pdf_exists(quteproc, tmpdir, filename):
     path = tmpdir / filename
     data = path.read_binary()
     assert data.startswith(b'%PDF')
+
+
+@bdd.when(bdd.parsers.parse('I set up "{lists}" as block lists'))
+def set_up_blocking(quteproc, lists, server):
+    url = 'http://localhost:{}/data/adblock/'.format(server.port)
+    urls = [url + item.strip() for item in lists.split(',')]
+    quteproc.set_setting('content.host_blocking.lists', json.dumps(urls))

@@ -1,7 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-#
 # This file is part of qutebrowser.
 #
 # qutebrowser is free software: you can redistribute it and/or modify
@@ -17,4 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Parser for different configuration formats."""
+"""Fixtures needed in various config test files."""
+
+import pytest
+
+from qutebrowser.config import config
+
+
+@pytest.fixture
+def keyconf(config_stub):
+    config_stub.val.aliases = {}
+    return config.KeyConfig(config_stub)

@@ -35,8 +35,9 @@ class ExternalEditor(QObject):
 
     Attributes:
         _text: The current text before the editor is opened.
-        _file: The file handle as tempfile.NamedTemporaryFile. Note that this
-               handle will be closed after the initial file has been created.
+        _filename: The name of the file to be edited.
+        _remove_file: Whether the file should be removed when the editor is
+                      closed.
         _proc: The GUIProcess of the editor.
     """
 
@@ -44,18 +45,20 @@ class ExternalEditor(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._text = None
-        self._file = None
+        self._filename = None
         self._proc = None
+        self._remove_file = None
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
-        if self._file is None:
+        assert self._remove_file is not None
+        if self._filename is None or not self._remove_file:
             # Could not create initial file.
             return
+
         try:
             if self._proc.exit_status() != QProcess.CrashExit:
-                os.remove(self._file.name)
+                os.remove(self._filename)
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's
             # executed async.
@@ -75,9 +78,9 @@ class ExternalEditor(QObject):
         try:
             if exitcode != 0:
                 return
-            encoding = config.get('general', 'editor-encoding')
+            encoding = config.val.editor.encoding
             try:
-                with open(self._file.name, 'r', encoding=encoding) as f:
+                with open(self._filename, 'r', encoding=encoding) as f:
                     text = f.read()
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
@@ -99,29 +102,40 @@ class ExternalEditor(QObject):
         Args:
             text: The initial text to edit.
         """
-        if self._text is not None:
+        if self._filename is not None:
             raise ValueError("Already editing a file!")
-        self._text = text
-        encoding = config.get('general', 'editor-encoding')
         try:
             # Close while the external process is running, as otherwise systems
             # with exclusive write access (e.g. Windows) may fail to update
             # the file from the external editor, see
             # https://github.com/qutebrowser/qutebrowser/issues/1767
             with tempfile.NamedTemporaryFile(
-                    mode='w', prefix='qutebrowser-editor-', encoding=encoding,
+                    mode='w', prefix='qutebrowser-editor-',
+                    encoding=config.val.editor.encoding,
                     delete=False) as fobj:
                 if text:
                     fobj.write(text)
-                self._file = fobj
+                self._filename = fobj.name
         except OSError as e:
             message.error("Failed to create initial file: {}".format(e))
             return
+
+        self._remove_file = True
+        self._start_editor()
+
+    def edit_file(self, filename):
+        """Edit the file with the given filename."""
+        self._filename = filename
+        self._remove_file = False
+        self._start_editor()
+
+    def _start_editor(self):
+        """Start the editor with the file opened as self._filename."""
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)
-        editor = config.get('general', 'editor')
+        editor = config.val.editor.command
         executable = editor[0]
-        args = [arg.replace('{}', self._file.name) for arg in editor[1:]]
+        args = [arg.replace('{}', self._filename) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
         self._proc.start(executable, args)

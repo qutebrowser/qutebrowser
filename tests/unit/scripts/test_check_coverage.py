@@ -131,7 +131,36 @@ def test_untested(covtest):
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficent_coverage,
         'module.py',
-        'module.py has 75.0% line and 100.0% branch coverage!')
+        'module.py has 75.00% line and 100.00% branch coverage!')
+    assert covtest.check() == [expected]
+
+
+def test_untested_floats(covtest):
+    """Make sure we don't report 58.330000000000005% coverage."""
+    covtest.makefile("""
+        def func():
+            pass
+
+        def untested():
+            pass
+
+        def untested2():
+            pass
+
+        def untested3():
+            pass
+
+        def untested4():
+            pass
+
+        def untested5():
+            pass
+    """)
+    covtest.run()
+    expected = check_coverage.Message(
+        check_coverage.MsgType.insufficent_coverage,
+        'module.py',
+        'module.py has 58.33% line and 100.00% branch coverage!')
     assert covtest.check() == [expected]
 
 
@@ -150,7 +179,7 @@ def test_untested_branches(covtest):
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficent_coverage,
         'module.py',
-        'module.py has 100.0% line and 50.0% branch coverage!')
+        'module.py has 100.00% line and 50.00% branch coverage!')
     assert covtest.check() == [expected]
 
 
@@ -178,8 +207,8 @@ def test_skipped_args(covtest, args, reason):
     covtest.check_skipped(args, reason)
 
 
-def test_skipped_windows(covtest, monkeypatch):
-    monkeypatch.setattr(check_coverage.sys, 'platform', 'toaster')
+@pytest.mark.fake_os('windows')
+def test_skipped_non_linux(covtest):
     covtest.check_skipped([], "on non-Linux system.")
 
 

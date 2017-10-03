@@ -22,7 +22,6 @@
 from unittest import mock
 
 import pytest
-from PyQt5.QtGui import QColor
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
@@ -33,36 +32,6 @@ from qutebrowser.commands import cmdexc
 def completionview(qtbot, status_command_stub, config_stub, win_registry,
                    mocker):
     """Create the CompletionView used for testing."""
-    config_stub.data = {
-        'completion': {
-            'show': 'always',
-            'scrollbar-width': 12,
-            'scrollbar-padding': 2,
-            'shrink': False,
-            'quick-complete': False,
-            'height': '50%',
-        },
-        'colors': {
-            'completion.fg': QColor(),
-            'completion.bg': QColor(),
-            'completion.alternate-bg': QColor(),
-            'completion.category.fg': QColor(),
-            'completion.category.bg': QColor(),
-            'completion.category.border.top': QColor(),
-            'completion.category.border.bottom': QColor(),
-            'completion.item.selected.fg': QColor(),
-            'completion.item.selected.bg': QColor(),
-            'completion.item.selected.border.top': QColor(),
-            'completion.item.selected.border.bottom': QColor(),
-            'completion.match.fg': QColor(),
-            'completion.scrollbar.fg': QColor(),
-            'completion.scrollbar.bg': QColor(),
-        },
-        'fonts': {
-            'completion': 'Comic Sans Monospace',
-            'completion.category': 'Comic Sans Monospace bold',
-        }
-    }
     # mock the Completer that the widget creates in its constructor
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
     mocker.patch(
@@ -102,7 +71,7 @@ def test_maybe_update_geometry(completionview, config_stub, qtbot):
     """Ensure completion is resized only if shrink is True."""
     with qtbot.assertNotEmitted(completionview.update_geometry):
         completionview._maybe_update_geometry()
-    config_stub.data['completion']['shrink'] = True
+    config_stub.val.completion.shrink = True
     with qtbot.waitSignal(completionview.update_geometry):
         completionview._maybe_update_geometry()
 
@@ -230,10 +199,10 @@ def test_completion_show(show, rows, quick_complete, completionview,
     Args:
         show: The completion show config setting.
         rows: Each entry represents a completion category with only one item.
-        quick_complete: The completion quick-complete config setting.
+        quick_complete: The `completion.quick` config setting.
     """
-    config_stub.data['completion']['show'] = show
-    config_stub.data['completion']['quick-complete'] = quick_complete
+    config_stub.val.completion.show = show
+    config_stub.val.completion.quick = quick_complete
 
     model = completionmodel.CompletionModel()
     for name in rows:
@@ -273,7 +242,7 @@ def test_completion_item_del_no_selection(completionview):
     completionview.set_model(model)
     with pytest.raises(cmdexc.CommandError, match='No item selected!'):
         completionview.completion_item_del()
-    assert not func.called
+    func.assert_not_called()
 
 
 def test_resize_no_model(completionview, qtbot):

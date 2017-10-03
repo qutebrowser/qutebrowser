@@ -11,12 +11,13 @@ graft misc/userscripts
 recursive-include scripts *.py *.sh
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
-include COPYING doc/* README.asciidoc CONTRIBUTING.asciidoc FAQ.asciidoc INSTALL.asciidoc CHANGELOG.asciidoc
-include qutebrowser.desktop
+include LICENSE doc/* README.asciidoc
+include misc/qutebrowser.desktop
 include requirements.txt
 include tox.ini
 include qutebrowser.py
 include misc/cheatsheet.svg
+include qutebrowser/config/configdata.yml
 
 prune www
 prune scripts/dev
@@ -26,6 +27,7 @@ exclude scripts/asciidoc2html.py
 exclude doc/notes
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc
+include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
 prune misc/requirements
@@ -36,7 +38,6 @@ exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
 exclude .*
-exclude codecov.yml
 exclude misc/appveyor_install.py
 exclude misc/qutebrowser.spec
 exclude misc/qutebrowser.nsi

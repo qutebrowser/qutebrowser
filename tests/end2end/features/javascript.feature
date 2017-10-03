@@ -5,8 +5,7 @@ Feature: Javascript stuff
     Integration with javascript.
 
     Scenario: Using console.log
-        When I set general -> log-javascript-console to debug
-        And I open data/javascript/consolelog.html
+        When I open data/javascript/consolelog.html
         Then the javascript message "console.log works!" should be logged
 
     Scenario: Opening/Closing a window via JS
@@ -18,7 +17,7 @@ Feature: Javascript stuff
         And I run :click-element id close-normal
         Then "Focus object changed: *" should be logged
 
-    @qtwebkit_ng_skip
+    @qtwebkit_skip
     Scenario: Opening/closing a modal window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
@@ -27,7 +26,6 @@ Feature: Javascript stuff
         And I run :tab-focus 1
         And I run :click-element id close-normal
         Then "Focus object changed: *" should be logged
-        # WebModalDialog with QtWebKit, WebDialog with QtWebEngine
         And "Web*Dialog requested, but we don't support that!" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/906
@@ -55,24 +53,26 @@ Feature: Javascript stuff
         And I wait for "Focus object changed: *" in the log
         Then no crash should happen
 
-    Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to true
+    @flaky
+    Scenario: Opening window without user interaction with content.javascript.can_open_tabs_automatically set to true
         When I open data/hello.txt
-        And I set content -> javascript-can-open-windows-automatically to true
+        And I set content.javascript.can_open_tabs_automatically to true
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "window opened" should be logged
 
-    Scenario: Opening window without user interaction with javascript-can-open-windows-automatically set to false
+    @flaky
+    Scenario: Opening window without user interaction with javascript.can_open_tabs_automatically set to false
         When I open data/hello.txt
-        And I set content -> javascript-can-open-windows-automatically to false
+        And I set content.javascript.can_open_tabs_automatically to false
         And I run :tab-only
         And I run :jseval if (window.open('about:blank')) { console.log('window opened'); } else { console.log('error while opening window'); }
         Then the javascript message "error while opening window" should be logged
 
     Scenario: Executing jseval when javascript is disabled
-        When I set content -> allow-javascript to false
+        When I set content.javascript.enabled to false
         And I run :jseval console.log('jseval executed')
-        And I set content -> allow-javascript to true
+        And I set content.javascript.enabled to true
         Then the javascript message "jseval executed" should be logged
 
     ## webelement issues (mostly with QtWebEngine)
@@ -111,7 +111,6 @@ Feature: Javascript stuff
 
     Scenario: Checking visible/invisible window size
         When I run :tab-only
-        And I set general -> log-javascript-console to info
         And I open data/javascript/windowsize.html in a new background tab
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next
@@ -119,8 +118,7 @@ Feature: Javascript stuff
 
     Scenario: Checking visible/invisible window size with vertical tabbar
         When I run :tab-only
-        And I set general -> log-javascript-console to info
-        And I set tabs -> position to left
+        And I set tabs.position to left
         And I open data/javascript/windowsize.html in a new background tab
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next

@@ -20,13 +20,12 @@
 """Base class for vim-like key sequence parser."""
 
 import re
-import functools
 import unicodedata
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils, objreg
+from qutebrowser.utils import usertypes, log, utils
 
 
 class BaseKeyParser(QObject):
@@ -41,7 +40,6 @@ class BaseKeyParser(QObject):
             partial: No keychain matched yet, but it's still possible in the
                      future.
             definitive: Keychain matches exactly.
-            ambiguous: There are both a partial and a definitive match.
             none: No more matches possible.
 
         Types: type of a key binding.
@@ -59,7 +57,6 @@ class BaseKeyParser(QObject):
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
         _keystring: The currently entered key sequence
-        _ambiguous_timer: Timer for delayed execution with ambiguous bindings.
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -78,16 +75,13 @@ class BaseKeyParser(QObject):
     do_log = True
     passthrough = False
 
-    Match = usertypes.enum('Match', ['partial', 'definitive', 'ambiguous',
-                                     'other', 'none'])
+    Match = usertypes.enum('Match', ['partial', 'definitive', 'other', 'none'])
     Type = usertypes.enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
                  supports_chains=False):
         super().__init__(parent)
         self._win_id = win_id
-        self._ambiguous_timer = usertypes.Timer(self, 'ambiguous-match')
-        self._ambiguous_timer.setSingleShot(True)
         self._modename = None
         self._keystring = ''
         if supports_count is None:
@@ -97,6 +91,7 @@ class BaseKeyParser(QObject):
         self._warn_on_keychains = True
         self.bindings = {}
         self.special_bindings = {}
+        config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self):
         return utils.get_repr(self, supports_count=self._supports_count,
@@ -126,32 +121,41 @@ class BaseKeyParser(QObject):
         if binding is None:
             self._debug_log("Ignoring only-modifier keyeevent.")
             return False
-        binding = binding.lower()
+
+        if binding not in self.special_bindings:
+            key_mappings = config.val.bindings.key_mappings
+            try:
+                binding = key_mappings['<{}>'.format(binding)][1:-1]
+            except KeyError:
+                pass
+
         try:
             cmdstr = self.special_bindings[binding]
         except KeyError:
             self._debug_log("No special binding found for {}.".format(binding))
             return False
-        count, _command = self._split_count()
+        count, _command = self._split_count(self._keystring)
         self.execute(cmdstr, self.Type.special, count)
         self.clear_keystring()
         return True
 
-    def _split_count(self):
+    def _split_count(self, keystring):
         """Get count and command from the current keystring.
+
+        Args:
+            keystring: The key string to split.
 
         Return:
             A (count, command) tuple.
         """
         if self._supports_count:
-            (countstr, cmd_input) = re.match(r'^(\d*)(.*)',
-                                             self._keystring).groups()
+            (countstr, cmd_input) = re.match(r'^(\d*)(.*)', keystring).groups()
             count = int(countstr) if countstr else None
             if count == 0 and not cmd_input:
-                cmd_input = self._keystring
+                cmd_input = keystring
                 count = None
         else:
-            cmd_input = self._keystring
+            cmd_input = keystring
             count = None
         return count, cmd_input
 
@@ -182,26 +186,22 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring, no text char")
             return self.Match.none
 
-        self._stop_timers()
-        self._keystring += txt
-
-        count, cmd_input = self._split_count()
-
-        if not cmd_input:
-            # Only a count, no command yet, but we handled it
-            return self.Match.other
-
+        count, cmd_input = self._split_count(self._keystring + txt)
         match, binding = self._match_key(cmd_input)
+        if match == self.Match.none:
+            mappings = config.val.bindings.key_mappings
+            mapped = mappings.get(txt, None)
+            if mapped is not None:
+                txt = mapped
+                count, cmd_input = self._split_count(self._keystring + txt)
+                match, binding = self._match_key(cmd_input)
 
+        self._keystring += txt
         if match == self.Match.definitive:
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
             self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
-        elif match == self.Match.ambiguous:
-            self._debug_log("Ambiguous match for '{}'.".format(
-                self._keystring))
-            self._handle_ambiguous_match(binding, count)
         elif match == self.Match.partial:
             self._debug_log("No match for '{}' (added {})".format(
                 self._keystring, txt))
@@ -209,6 +209,8 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self.clear_keystring()
+        elif match == self.Match.other:
+            pass
         else:
             raise AssertionError("Invalid match value {!r}".format(match))
         return match
@@ -221,12 +223,13 @@ class BaseKeyParser(QObject):
 
         Return:
             A tuple (matchtype, binding).
-                matchtype: Match.definitive, Match.ambiguous, Match.partial or
-                           Match.none
-                binding: - None with Match.partial/Match.none
-                         - The found binding with Match.definitive/
-                           Match.ambiguous
+                matchtype: Match.definitive, Match.partial or Match.none.
+                binding: - None with Match.partial/Match.none.
+                         - The found binding with Match.definitive.
         """
+        if not cmd_input:
+            # Only a count, no command yet, but we handled it
+            return (self.Match.other, None)
         # A (cmd_input, binding) tuple (k, v of bindings) or None.
         definitive_match = None
         partial_match = False
@@ -243,57 +246,12 @@ class BaseKeyParser(QObject):
             elif binding.startswith(cmd_input):
                 partial_match = True
                 break
-        if definitive_match is not None and partial_match:
-            return (self.Match.ambiguous, definitive_match[1])
-        elif definitive_match is not None:
+        if definitive_match is not None:
             return (self.Match.definitive, definitive_match[1])
         elif partial_match:
             return (self.Match.partial, None)
         else:
             return (self.Match.none, None)
-
-    def _stop_timers(self):
-        """Stop a delayed execution if any is running."""
-        if self._ambiguous_timer.isActive() and self.do_log:
-            log.keyboard.debug("Stopping delayed execution.")
-        self._ambiguous_timer.stop()
-        try:
-            self._ambiguous_timer.timeout.disconnect()
-        except TypeError:
-            # no connections
-            pass
-
-    def _handle_ambiguous_match(self, binding, count):
-        """Handle an ambiguous match.
-
-        Args:
-            binding: The command-string to execute.
-            count: The count to pass.
-        """
-        self._debug_log("Ambiguous match for '{}'".format(self._keystring))
-        time = config.get('input', 'timeout')
-        if time == 0:
-            # execute immediately
-            self.clear_keystring()
-            self.execute(binding, self.Type.chain, count)
-        else:
-            # execute in `time' ms
-            self._debug_log("Scheduling execution of {} in {}ms".format(
-                binding, time))
-            self._ambiguous_timer.setInterval(time)
-            self._ambiguous_timer.timeout.connect(
-                functools.partial(self.delayed_exec, binding, count))
-            self._ambiguous_timer.start()
-
-    def delayed_exec(self, command, count):
-        """Execute a delayed command.
-
-        Args:
-            command/count: As if passed to self.execute()
-        """
-        self._debug_log("Executing delayed command now!")
-        self.clear_keystring()
-        self.execute(command, self.Type.chain, count)
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
@@ -314,7 +272,11 @@ class BaseKeyParser(QObject):
             self.keystring_updated.emit(self._keystring)
         return match != self.Match.none
 
-    def read_config(self, modename=None):
+    @config.change_filter('bindings')
+    def _on_config_changed(self):
+        self._read_config()
+
+    def _read_config(self, modename=None):
         """Read the configuration.
 
         Config format: key = command, e.g.:
@@ -332,16 +294,15 @@ class BaseKeyParser(QObject):
             self._modename = modename
         self.bindings = {}
         self.special_bindings = {}
-        keyconfparser = objreg.get('key-config')
-        for (key, cmd) in keyconfparser.get_bindings_for(modename).items():
+
+        for key, cmd in config.key_instance.get_bindings_for(modename).items():
             assert cmd
             self._parse_key_command(modename, key, cmd)
 
     def _parse_key_command(self, modename, key, cmd):
         """Parse the keys and their command and store them in the object."""
         if utils.is_special_key(key):
-            keystr = utils.normalize_keystr(key[1:-1])
-            self.special_bindings[keystr] = cmd
+            self.special_bindings[key[1:-1]] = cmd
         elif self._supports_chains:
             self.bindings[key] = cmd
         elif self._warn_on_keychains:
@@ -358,15 +319,6 @@ class BaseKeyParser(QObject):
             count: The count if given.
         """
         raise NotImplementedError
-
-    @pyqtSlot(str)
-    def on_keyconfig_changed(self, mode):
-        """Re-read the config if a key binding was changed."""
-        if self._modename is None:
-            raise AssertionError("on_keyconfig_changed called but no section "
-                                 "defined!")
-        if mode == self._modename:
-            self.read_config()
 
     def clear_keystring(self):
         """Clear the currently entered key sequence."""

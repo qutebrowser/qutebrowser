@@ -26,25 +26,24 @@ See https://pytest.org/latest/fixture.html
 
 
 import sys
-import collections
 import tempfile
 import itertools
 import textwrap
 import unittest.mock
 import types
-import os
 
+import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
 
 import helpers.stubs as stubsmod
-from qutebrowser.config import config
+from qutebrowser.config import config, configdata, configtypes, configexc
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
 
-from PyQt5.QtCore import PYQT_VERSION, pyqtSignal, QEvent, QSize, Qt, QObject
+from PyQt5.QtCore import pyqtSignal, QEvent, QSize, Qt, QObject
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
@@ -54,7 +53,12 @@ class WinRegistryHelper:
 
     """Helper class for win_registry."""
 
-    FakeWindow = collections.namedtuple('FakeWindow', ['registry'])
+    @attr.s
+    class FakeWindow:
+
+        """A fake window object for the registry."""
+
+        registry = attr.ib()
 
     def __init__(self):
         self._ids = []
@@ -91,7 +95,7 @@ class CallbackChecker(QObject):
     def check(self, expected):
         """Wait until the JS result arrived and compare it."""
         if self._result is self.UNSET:
-            with self._qtbot.waitSignal(self.got_result):
+            with self._qtbot.waitSignal(self.got_result, timeout=2000):
                 pass
         assert self._result == expected
 
@@ -157,15 +161,17 @@ def tab_registry(win_registry):
 @pytest.fixture
 def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
     """Fixture providing the FakeWebTab *class*."""
-    if PYQT_VERSION < 0x050600:
-        pytest.skip('Causes segfaults, see #1638')
     return stubs.FakeWebTab
 
 
 def _generate_cmdline_tests():
     """Generate testcases for test_split_binding."""
-    # pylint: disable=invalid-name
-    TestCase = collections.namedtuple('TestCase', 'cmd, valid')
+    @attr.s
+    class TestCase:
+
+        cmd = attr.ib()
+        valid = attr.ib()
+
     separators = [';;', ' ;; ', ';; ', ' ;;']
     invalid = ['foo', '']
     valid = ['leave-mode', 'hint all']
@@ -197,37 +203,43 @@ def _generate_cmdline_tests():
 @pytest.fixture(params=_generate_cmdline_tests(), ids=lambda e: e.cmd)
 def cmdline_test(request):
     """Fixture which generates tests for things validating commandlines."""
-    # Import qutebrowser.app so all cmdutils.register decorators get run.
-    import qutebrowser.app  # pylint: disable=unused-variable
     return request.param
 
 
+@pytest.fixture(scope='session')
+def configdata_init():
+    """Initialize configdata if needed."""
+    if configdata.DATA is None:
+        configdata.init()
+
+
 @pytest.fixture
-def config_stub(stubs):
+def config_stub(stubs, monkeypatch, configdata_init):
     """Fixture which provides a fake config object."""
-    stub = stubs.ConfigStub()
-    objreg.register('config', stub)
-    yield stub
-    objreg.delete('config')
+    yaml_config = stubs.FakeYamlConfig()
+
+    conf = config.Config(yaml_config=yaml_config)
+    monkeypatch.setattr(config, 'instance', conf)
+
+    container = config.ConfigContainer(conf)
+    monkeypatch.setattr(config, 'val', container)
+
+    try:
+        configtypes.Font.monospace_fonts = container.fonts.monospace
+    except configexc.NoOptionError:
+        # Completion tests patch configdata so fonts.monospace is unavailable.
+        pass
+
+    conf.val = container  # For easier use in tests
+    return conf
 
 
 @pytest.fixture
-def default_config():
-    """Fixture that provides and registers an empty default config object."""
-    config_obj = config.ConfigManager()
-    config_obj.read(configdir=None, fname=None, relaxed=True)
-    objreg.register('config', config_obj)
-    yield config_obj
-    objreg.delete('config')
-
-
-@pytest.fixture
-def key_config_stub(stubs):
+def key_config_stub(config_stub, monkeypatch):
     """Fixture which provides a fake key config object."""
-    stub = stubs.KeyConfigStub()
-    objreg.register('key-config', stub)
-    yield stub
-    objreg.delete('key-config')
+    keyconf = config.KeyConfig(config_stub)
+    monkeypatch.setattr(config, 'key_instance', keyconf)
+    return keyconf
 
 
 @pytest.fixture
@@ -267,7 +279,7 @@ def session_manager_stub(stubs):
 
 
 @pytest.fixture
-def tabbed_browser_stubs(stubs, win_registry):
+def tabbed_browser_stubs(qapp, stubs, win_registry):
     """Fixture providing a fake tabbed-browser object on win_id 0 and 1."""
     win_registry.add_window(1)
     stubs = [stubs.TabbedBrowserStub(), stubs.TabbedBrowserStub()]
@@ -412,8 +424,9 @@ def fake_save_manager():
 
 
 @pytest.fixture
-def fake_args():
+def fake_args(request):
     ns = types.SimpleNamespace()
+    ns.backend = 'webengine' if request.config.webengine else 'webkit'
     objreg.register('args', ns)
     yield ns
     objreg.delete('args')
@@ -421,7 +434,6 @@ def fake_args():
 
 @pytest.fixture
 def mode_manager(win_registry, config_stub, qapp):
-    config_stub.data.update({'input': {'forward-unbound-keys': 'auto'}})
     mm = modeman.ModeManager(0)
     objreg.register('mode-manager', mm, scope='window', window=0)
     yield mm
@@ -435,9 +447,8 @@ def config_tmpdir(monkeypatch, tmpdir):
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
     confdir = tmpdir / 'config'
-    path = str(confdir)
-    os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'config', lambda: path)
+    confdir.ensure(dir=True)
+    monkeypatch.setattr(standarddir, 'config', lambda auto=False: str(confdir))
     return confdir
 
 
@@ -448,10 +459,21 @@ def data_tmpdir(monkeypatch, tmpdir):
     Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
     """
     datadir = tmpdir / 'data'
-    path = str(datadir)
-    os.mkdir(path)
-    monkeypatch.setattr(standarddir, 'data', lambda: path)
+    datadir.ensure(dir=True)
+    monkeypatch.setattr(standarddir, 'data', lambda system=False: str(datadir))
     return datadir
+
+
+@pytest.fixture
+def runtime_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/runtime as the runtime dir.
+
+    Use this to avoid creating a 'real' runtime dir.
+    """
+    runtimedir = tmpdir / 'runtime'
+    runtimedir.ensure(dir=True)
+    monkeypatch.setattr(standarddir, 'runtime', lambda: str(runtimedir))
+    return runtimedir
 
 
 @pytest.fixture

@@ -17,7 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Early initialization and main entry point."""
+"""Early initialization and main entry point.
+
+qutebrowser's initialization process roughly looks like this:
+
+- This file gets imported, either via the setuptools entry point or
+  __main__.py.
+- At import time, we check for the correct Python version and show an error if
+  it's too old.
+- The main() function in this file gets invoked
+- Argument parsing takes place
+- earlyinit.early_init() gets invoked to do various low-level initialization
+  and checks whether all dependencies are met.
+- app.run() gets called, which takes over.
+  See the docstring of app.py for details.
+"""
 
 import sys
 import json
@@ -51,9 +65,9 @@ def get_argparser():
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
-                        "this session.", nargs=3, action='append',
+                        "this session.", nargs=2, action='append',
                         dest='temp_settings', default=[],
-                        metavar=('SECTION', 'OPTION', 'VALUE'))
+                        metavar=('OPTION', 'VALUE'))
     parser.add_argument('-r', '--restore', help="Restore a named session.",
                         dest='session')
     parser.add_argument('-R', '--override-restore', help="Don't restore a "
@@ -95,11 +109,6 @@ def get_argparser():
                        action='store_false', dest='color')
     debug.add_argument('--force-color', help="Force colored logging",
                        action='store_true')
-    debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
-                       default='auto', help="HarfBuzz engine version to use. "
-                       "Default: auto.")
-    debug.add_argument('--relaxed-config', action='store_true',
-                       help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "
@@ -150,7 +159,7 @@ def debug_flag_error(flag):
         debug-exit: Turn on debugging of late exit.
         pdb-postmortem: Drop into pdb on exceptions.
     """
-    valid_flags = ['debug-exit', 'pdb-postmortem']
+    valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history']
 
     if flag in valid_flags:
         return flag
@@ -170,8 +179,8 @@ def main():
         # from json.
         data = json.loads(args.json_args)
         args = argparse.Namespace(**data)
-    earlyinit.earlyinit(args)
+    earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
-    # the harfbuzz fix and version checking).
+    # version checking and other early initialization)
     from qutebrowser import app
     return app.run(args)

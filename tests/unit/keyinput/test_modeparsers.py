@@ -28,9 +28,6 @@ import pytest
 from qutebrowser.keyinput import modeparsers
 
 
-CONFIG = {'input': {'partial-timeout': 100}}
-
-
 class TestsNormalKeyParser:
 
     """Tests for NormalKeyParser.
@@ -40,13 +37,11 @@ class TestsNormalKeyParser:
     """
 
     @pytest.fixture(autouse=True)
-    def patch_stuff(self, monkeypatch, stubs, config_stub, fake_keyconfig):
+    def patch_stuff(self, monkeypatch, stubs, keyinput_bindings):
         """Set up mocks and read the test config."""
         monkeypatch.setattr(
             'qutebrowser.keyinput.basekeyparser.usertypes.Timer',
             stubs.FakeTimer)
-        config_stub.data = CONFIG
-        monkeypatch.setattr(modeparsers, 'config', config_stub)
 
     @pytest.fixture
     def keyparser(self):
@@ -61,12 +56,14 @@ class TestsNormalKeyParser:
         # Then start the real chain
         keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        keyparser.execute.assert_called_once_with('ba', keyparser.Type.chain,
-                                                  None)
+        keyparser.execute.assert_called_with(
+            'message-info ba', keyparser.Type.chain, None)
         assert keyparser._keystring == ''
 
-    def test_partial_keychain_timeout(self, keyparser, fake_keyevent_factory):
+    def test_partial_keychain_timeout(self, keyparser, config_stub,
+                                      fake_keyevent_factory):
         """Test partial keychain timeout."""
+        config_stub.val.input.partial_timeout = 100
         timer = keyparser._partial_timer
         assert not timer.isActive()
         # Press 'b' for a partial match.

@@ -19,9 +19,9 @@
 
 """Tests for browser.signalfilter."""
 
-import collections
 import logging
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
@@ -47,7 +47,11 @@ class Signaller(QObject):
         self.filtered_signal_arg = s
 
 
-Objects = collections.namedtuple('Objects', 'signal_filter, signaller')
+@attr.s
+class Objects:
+
+    signal_filter = attr.ib()
+    signaller = attr.ib()
 
 
 @pytest.fixture

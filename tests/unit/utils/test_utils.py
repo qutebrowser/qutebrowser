@@ -25,11 +25,11 @@ import os.path
 import io
 import logging
 import functools
-import collections
 import socket
 import re
 import shlex
 
+import attr
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
@@ -157,7 +157,11 @@ class TestInterpolateColor:
         white: The Color black as a valid Color for tests.
     """
 
-    Colors = collections.namedtuple('Colors', ['white', 'black'])
+    @attr.s
+    class Colors:
+
+        white = attr.ib()
+        black = attr.ib()
 
     @pytest.fixture
     def colors(self):
@@ -346,12 +350,12 @@ class TestKeyEventToString:
     def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A)
-        assert utils.keyevent_to_string(evt) == 'A'
+        assert utils.keyevent_to_string(evt) == 'a'
 
     def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        expected = 'Meta+A' if sys.platform == 'darwin' else 'Ctrl+A'
+        expected = 'meta+a' if utils.is_mac else 'ctrl+a'
         assert utils.keyevent_to_string(evt) == expected
 
     def test_key_and_modifiers(self, fake_keyevent_factory):
@@ -359,13 +363,13 @@ class TestKeyEventToString:
         evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
+        assert utils.keyevent_to_string(evt) == 'ctrl+alt+meta+shift+a'
 
-    def test_mac(self, monkeypatch, fake_keyevent_factory):
+    @pytest.mark.fake_os('mac')
+    def test_mac(self, fake_keyevent_factory):
         """Test with a simulated mac."""
-        monkeypatch.setattr(sys, 'platform', 'darwin')
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert utils.keyevent_to_string(evt) == 'Meta+A'
+        assert utils.keyevent_to_string(evt) == 'meta+a'
 
 
 @pytest.mark.parametrize('keystr, expected', [
@@ -855,7 +859,6 @@ class TestOpenFile:
 
     @pytest.mark.not_frozen
     def test_cmdline_without_argument(self, caplog, config_stub):
-        config_stub.data = {'general': {'default-open-dispatcher': ''}}
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
         utils.open_file('/foo/bar', cmdline)
@@ -865,7 +868,6 @@ class TestOpenFile:
 
     @pytest.mark.not_frozen
     def test_cmdline_with_argument(self, caplog, config_stub):
-        config_stub.data = {'general': {'default-open-dispatcher': ''}}
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
         utils.open_file('/foo/bar', cmdline)
@@ -877,14 +879,13 @@ class TestOpenFile:
     def test_setting_override(self, caplog, config_stub):
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
-        config_stub.data = {'general': {'default-open-dispatcher': cmdline}}
+        config_stub.val.downloads.open_dispatcher = cmdline
         utils.open_file('/foo/bar')
-        result = caplog.records[0].message
+        result = caplog.records[1].message
         assert re.match(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
     def test_system_default_application(self, caplog, config_stub, mocker):
-        config_stub.data = {'general': {'default-open-dispatcher': ''}}
         m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
                          new_callable=mocker.Mock)
         utils.open_file('/foo/bar')
@@ -892,6 +893,10 @@ class TestOpenFile:
         assert re.match(
             r"Opening /foo/bar with the system application", result)
         m.assert_called_with(QUrl('file:///foo/bar'))
+
+
+def test_unused():
+    utils.unused(None)
 
 
 @pytest.mark.parametrize('path, expected', [
@@ -905,3 +910,24 @@ class TestOpenFile:
 ])
 def test_expand_windows_drive(path, expected):
     assert utils.expand_windows_drive(path) == expected
+
+
+class TestYaml:
+
+    def test_load(self):
+        assert utils.yaml_load("[1, 2]") == [1, 2]
+
+    def test_load_file(self, tmpdir):
+        tmpfile = tmpdir / 'foo.yml'
+        tmpfile.write('[1, 2]')
+        with tmpfile.open(encoding='utf-8') as f:
+            assert utils.yaml_load(f) == [1, 2]
+
+    def test_dump(self):
+        assert utils.yaml_dump([1, 2]) == '- 1\n- 2\n'
+
+    def test_dump_file(self, tmpdir):
+        tmpfile = tmpdir / 'foo.yml'
+        with tmpfile.open('w', encoding='utf-8') as f:
+            utils.yaml_dump([1, 2], f)
+        assert tmpfile.read() == '- 1\n- 2\n'

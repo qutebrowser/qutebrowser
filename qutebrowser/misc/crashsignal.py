@@ -27,24 +27,30 @@ import signal
 import functools
 import faulthandler
 import os.path
-import collections
 try:
     # WORKAROUND for segfaults when using pdb in pytest for some reason...
     import readline  # pylint: disable=unused-import
 except ImportError:
     pass
 
+import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug
+from qutebrowser.misc import earlyinit, crashdialog, ipc
+from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
-ExceptionInfo = collections.namedtuple('ExceptionInfo',
-                                       'pages, cmd_history, objects')
+@attr.s
+class ExceptionInfo:
+
+    """Information stored when there was an exception."""
+
+    pages = attr.ib()
+    cmd_history = attr.ib()
+    objects = attr.ib()
 
 
 # Used by mainwindow.py to skip confirm questions on crashes
@@ -88,7 +94,7 @@ class CrashHandler(QObject):
                 if data:
                     # Crashlog exists and has data in it, so something crashed
                     # previously.
-                    self._crash_dialog = crashdialog.get_fatal_crash_dialog(
+                    self._crash_dialog = crashdialog.FatalCrashDialog(
                         self._args.debug, data)
                     self._crash_dialog.show()
             else:
@@ -172,7 +178,7 @@ class CrashHandler(QObject):
         """Get info needed for the exception hook/dialog.
 
         Return:
-            An ExceptionInfo namedtuple.
+            An ExceptionInfo object.
         """
         try:
             pages = self._recover_pages(forgiving=True)
@@ -230,7 +236,7 @@ class CrashHandler(QObject):
         info = self._get_exception_info()
 
         try:
-            objreg.get('ipc-server').ignored = True
+            ipc.server.ignored = True
         except Exception:
             log.destroy.exception("Error while ignoring ipc")
 
@@ -252,7 +258,7 @@ class CrashHandler(QObject):
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
             ret = self._crash_dialog.exec_()
-            if ret == QDialog.Accepted:  # restore
+            if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 
         # We might risk a segfault here, but that's better than continuing to
@@ -306,7 +312,7 @@ class SignalHandler(QObject):
         self._orig_handlers[signal.SIGTERM] = signal.signal(
             signal.SIGTERM, self.interrupt)
 
-        if os.name == 'posix' and hasattr(signal, 'set_wakeup_fd'):
+        if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
             import fcntl
             read_fd, write_fd = os.pipe()

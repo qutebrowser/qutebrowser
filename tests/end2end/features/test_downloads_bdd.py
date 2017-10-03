@@ -23,6 +23,7 @@ import shlex
 
 import pytest
 import pytest_bdd as bdd
+from PyQt5.QtNetwork import QSslSocket
 bdd.scenarios('downloads.feature')
 
 
@@ -35,9 +36,9 @@ PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
 def temporary_download_dir(quteproc, tmpdir):
     download_dir = tmpdir / 'downloads'
     download_dir.ensure(dir=True)
-    quteproc.set_setting('storage', 'prompt-download-directory', 'false')
-    quteproc.set_setting('storage', 'remember-download-directory', 'false')
-    quteproc.set_setting('storage', 'download-directory', str(download_dir))
+    quteproc.set_setting('downloads.location.prompt', 'false')
+    quteproc.set_setting('downloads.location.remember', 'false')
+    quteproc.set_setting('downloads.location.directory', str(download_dir))
     (download_dir / 'subdir').ensure(dir=True)
     try:
         os.mkfifo(str(download_dir / 'fifo'))
@@ -52,6 +53,12 @@ def temporary_download_dir(quteproc, tmpdir):
 def clean_old_downloads(quteproc):
     quteproc.send_cmd(':download-cancel --all')
     quteproc.send_cmd(':download-clear')
+
+
+@bdd.when("SSL is supported")
+def check_ssl():
+    if not QSslSocket.supportsSsl():
+        pytest.skip("QtNetwork SSL not supported")
 
 
 @bdd.when("the unwritable dir is unwritable")
@@ -121,11 +128,11 @@ def download_prompt(tmpdir, quteproc, path):
     quteproc.send_cmd(':leave-mode')
 
 
-@bdd.when("I set a test python default-open-dispatcher")
+@bdd.when("I set a test python open_dispatcher")
 def default_open_dispatcher_python(quteproc, tmpdir):
     cmd = '{} -c "import sys; print(sys.argv[1])"'.format(
         shlex.quote(sys.executable))
-    quteproc.set_setting('general', 'default-open-dispatcher', cmd)
+    quteproc.set_setting('downloads.open_dispatcher', cmd)
 
 
 @bdd.when("I open the download")

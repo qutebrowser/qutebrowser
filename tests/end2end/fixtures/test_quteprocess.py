@@ -47,6 +47,9 @@ class FakeConfig:
         '--verbose': False,
     }
 
+    def __init__(self):
+        self.webengine = False
+
     def getoption(self, name):
         return self.ARGS[name]
 
@@ -66,23 +69,23 @@ class FakeRequest:
 
     """Fake for request."""
 
-    def __init__(self, node, config, httpbin):
+    def __init__(self, node, config, server):
         self.node = node
         self.config = config
-        self._httpbin = httpbin
+        self._server = server
 
     def getfixturevalue(self, name):
-        assert name == 'httpbin'
-        return self._httpbin
+        assert name == 'server'
+        return self._server
 
 
 @pytest.fixture
-def request_mock(quteproc, monkeypatch, httpbin):
+def request_mock(quteproc, monkeypatch, server):
     """Patch out a pytest request."""
     fake_call = FakeRepCall()
     fake_config = FakeConfig()
     fake_node = FakeNode(fake_call)
-    fake_request = FakeRequest(fake_node, fake_config, httpbin)
+    fake_request = FakeRequest(fake_node, fake_config, server)
     assert not hasattr(fake_request.node.rep_call, 'wasxfail')
     monkeypatch.setattr(quteproc, 'request', fake_request)
     return fake_request
@@ -334,8 +337,8 @@ def test_xpath_escape(string, expected):
     'foo"bar',  # Make sure a " is preserved
 ])
 def test_set(quteproc, value):
-    quteproc.set_setting('general', 'default-encoding', value)
-    read_back = quteproc.get_setting('general', 'default-encoding')
+    quteproc.set_setting('content.default_encoding', value)
+    read_back = quteproc.get_setting('content.default_encoding')
     assert read_back == value
 
 

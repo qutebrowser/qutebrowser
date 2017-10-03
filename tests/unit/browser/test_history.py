@@ -30,8 +30,9 @@ from qutebrowser.commands import cmdexc
 
 
 @pytest.fixture(autouse=True)
-def prerequisites(config_stub, fake_save_manager, init_sql):
+def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
     """Make sure everything is ready to initialize a WebHistory."""
+    fake_args.debug_flags = []
     config_stub.data = {'general': {'private-browsing': False}}
 
 
@@ -126,21 +127,25 @@ def test_clear_force(qtbot, tmpdir, hist):
     assert not len(hist.completion)
 
 
-def test_delete_url(hist):
+@pytest.mark.parametrize('raw, escaped', [
+    ('http://example.com/1', 'http://example.com/1'),
+    ('http://example.com/1 2', 'http://example.com/1%202'),
+])
+def test_delete_url(hist, raw, escaped):
     hist.add_url(QUrl('http://example.com/'), atime=0)
-    hist.add_url(QUrl('http://example.com/1'), atime=0)
+    hist.add_url(QUrl(escaped), atime=0)
     hist.add_url(QUrl('http://example.com/2'), atime=0)
 
     before = set(hist)
     completion_before = set(hist.completion)
 
-    hist.delete_url(QUrl('http://example.com/1'))
+    hist.delete_url(QUrl(raw))
 
     diff = before.difference(set(hist))
-    assert diff == {('http://example.com/1', '', 0, False)}
+    assert diff == {(escaped, '', 0, False)}
 
     completion_diff = completion_before.difference(set(hist.completion))
-    assert completion_diff == {('http://example.com/1', '', 0)}
+    assert completion_diff == {(raw, '', 0)}
 
 
 @pytest.mark.parametrize(
@@ -277,6 +282,22 @@ def test_import_txt(hist, data_tmpdir, monkeypatch, stubs):
 
     assert not histfile.exists()
     assert (data_tmpdir / 'history.bak').exists()
+
+
+def test_import_txt_existing_backup(hist, data_tmpdir, monkeypatch, stubs):
+    monkeypatch.setattr(history, 'QTimer', stubs.InstaTimer)
+    histfile = data_tmpdir / 'history'
+    bakfile = data_tmpdir / 'history.bak'
+    histfile.write('12345 http://example.com/ title')
+    bakfile.write('12346 http://qutebrowser.org/')
+
+    hist.import_txt()
+
+    assert list(hist) == [('http://example.com/', 'title', 12345, False)]
+
+    assert not histfile.exists()
+    assert bakfile.read().split('\n') == ['12346 http://qutebrowser.org/',
+                                          '12345 http://example.com/ title']
 
 
 @pytest.mark.parametrize('line', [

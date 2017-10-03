@@ -39,4 +39,9 @@ if code != 0:
     print()
     print('(Or you have uncommitted changes, in which case you can ignore '
           'this.)')
+    if 'TRAVIS' in os.environ:
+        print()
+        print("travis_fold:start:gitdiff")
+        subprocess.call(['git', '--no-pager', 'diff'])
+        print("travis_fold:end:gitdiff")
 sys.exit(code)

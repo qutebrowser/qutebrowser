@@ -18,14 +18,18 @@
 
 """Tests for qutebrowser.misc.msgbox."""
 
-import sys
-
 import pytest
 
 from qutebrowser.misc import msgbox
+from qutebrowser.utils import utils
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QWidget
+
+
+@pytest.fixture(autouse=True)
+def patch_args(fake_args):
+    fake_args.no_err_windows = False
 
 
 def test_attributes(qtbot):
@@ -40,7 +44,7 @@ def test_attributes(qtbot):
     box = msgbox.msgbox(parent=parent, title=title, text=text, icon=icon,
                         buttons=buttons)
     qtbot.add_widget(box)
-    if sys.platform != 'darwin':
+    if not utils.is_mac:
         assert box.windowTitle() == title
     assert box.icon() == icon
     assert box.standardButtons() == buttons
@@ -82,7 +86,16 @@ def test_finished_signal(qtbot):
 def test_information(qtbot):
     box = msgbox.information(parent=None, title='foo', text='bar')
     qtbot.add_widget(box)
-    if sys.platform != 'darwin':
+    if not utils.is_mac:
         assert box.windowTitle() == 'foo'
     assert box.text() == 'bar'
     assert box.icon() == QMessageBox.Information
+
+
+def test_no_err_windows(fake_args, capsys):
+    fake_args.no_err_windows = True
+    box = msgbox.information(parent=None, title='foo', text='bar')
+    box.exec_()  # should do nothing
+    out, err = capsys.readouterr()
+    assert not out
+    assert err == 'Message box: foo; bar\n'

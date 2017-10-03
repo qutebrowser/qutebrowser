@@ -20,17 +20,25 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
-import sys
 import shutil
 import os.path
+import contextlib
 
-from PyQt5.QtCore import QCoreApplication, QStandardPaths
+from PyQt5.QtCore import QStandardPaths
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, qtutils, debug
+from qutebrowser.utils import log, debug, usertypes, message, utils
+
+# The cached locations
+_locations = {}
 
 
-# The argparse namespace passed to init()
-_args = None
+Location = usertypes.enum('Location', ['config', 'auto_config',
+                                       'data', 'system_data',
+                                       'cache', 'download', 'runtime'])
+
+
+APPNAME = 'qutebrowser'
 
 
 class EmptyValueError(Exception):
@@ -38,79 +46,138 @@ class EmptyValueError(Exception):
     """Error raised when QStandardPaths returns an empty value."""
 
 
-def config():
-    """Get a location for configs."""
+@contextlib.contextmanager
+def _unset_organization():
+    """Temporarily unset QApplication.organizationName().
+
+    This is primarily needed in config.py.
+    """
+    qapp = QApplication.instance()
+    if qapp is not None:
+        orgname = qapp.organizationName()
+        qapp.setOrganizationName(None)
+    try:
+        yield
+    finally:
+        if qapp is not None:
+            qapp.setOrganizationName(orgname)
+
+
+def _init_config(args):
+    """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
     if not overridden:
-        path = _writable_location(typ)
-        appname = QCoreApplication.instance().applicationName()
-        if path.split(os.sep)[-1] != appname:  # pragma: no branch
-            # WORKAROUND - see
-            # https://bugreports.qt.io/browse/QTBUG-38872
-            path = os.path.join(path, appname)
+        if utils.is_windows:
+            app_data_path = _writable_location(
+                QStandardPaths.AppDataLocation)
+            path = os.path.join(app_data_path, 'config')
+        else:
+            path = _writable_location(typ)
     _create(path)
-    return path
+    _locations[Location.config] = path
+    _locations[Location.auto_config] = path
+
+    # Override the normal (non-auto) config on macOS
+    if utils.is_mac:
+        overridden, path = _from_args(typ, args)
+        if not overridden:  # pragma: no branch
+            path = os.path.expanduser('~/.' + APPNAME)
+            _create(path)
+            _locations[Location.config] = path
 
 
-def data():
-    """Get a location for data."""
+def config(auto=False):
+    """Get the location for the config directory.
+
+    If auto=True is given, get the location for the autoconfig.yml directory,
+    which is different on macOS.
+    """
+    if auto:
+        return _locations[Location.auto_config]
+    return _locations[Location.config]
+
+
+def _init_data(args):
+    """Initialize the location for data."""
     typ = QStandardPaths.DataLocation
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
     if not overridden:
-        path = _writable_location(typ)
-        if os.name == 'nt':
-            # Under windows, config/data might end up in the same directory.
-            data_path = QStandardPaths.writableLocation(
-                QStandardPaths.DataLocation)
-            config_path = QStandardPaths.writableLocation(
-                QStandardPaths.ConfigLocation)
-            if data_path == config_path:
-                path = os.path.join(path, 'data')
+        if utils.is_windows:
+            app_data_path = _writable_location(QStandardPaths.AppDataLocation)
+            path = os.path.join(app_data_path, 'data')
+        else:
+            path = _writable_location(typ)
     _create(path)
-    return path
+    _locations[Location.data] = path
+
+    # system_data
+    _locations.pop(Location.system_data, None)  # Remove old state
+    if utils.is_linux:
+        path = '/usr/share/' + APPNAME
+        if os.path.exists(path):
+            _locations[Location.system_data] = path
 
 
-def system_data():
-    """Get a location for system-wide data. This path may be read-only."""
-    if sys.platform.startswith('linux'):
-        path = "/usr/share/qutebrowser"
-        if not os.path.exists(path):
-            path = data()
-    else:
-        path = data()
-    return path
+def data(system=False):
+    """Get the data directory.
+
+    If system=True is given, gets the system-wide (probably non-writable) data
+    directory.
+    """
+    if system:
+        try:
+            return _locations[Location.system_data]
+        except KeyError:
+            pass
+    return _locations[Location.data]
+
+
+def _init_cache(args):
+    """Initialize the location for the cache."""
+    typ = QStandardPaths.CacheLocation
+    overridden, path = _from_args(typ, args)
+    if not overridden:
+        if utils.is_windows:
+            # Local, not Roaming!
+            data_path = _writable_location(QStandardPaths.DataLocation)
+            path = os.path.join(data_path, 'cache')
+        else:
+            path = _writable_location(typ)
+    _create(path)
+    _locations[Location.cache] = path
 
 
 def cache():
-    """Get a location for the cache."""
-    typ = QStandardPaths.CacheLocation
-    overridden, path = _from_args(typ, _args)
+    return _locations[Location.cache]
+
+
+def _init_download(args):
+    """Initialize the location for downloads.
+
+    Note this is only the default directory as found by Qt.
+    Therefore, we also don't create it.
+    """
+    typ = QStandardPaths.DownloadLocation
+    overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
-    _create(path)
-    return path
+    _locations[Location.download] = path
 
 
 def download():
-    """Get a location for downloads."""
-    typ = QStandardPaths.DownloadLocation
-    overridden, path = _from_args(typ, _args)
-    if not overridden:
-        path = _writable_location(typ)
-    _create(path)
-    return path
+    return _locations[Location.download]
 
 
-def runtime():
-    """Get a location for runtime data."""
-    if sys.platform.startswith('linux'):
+def _init_runtime(args):
+    """Initialize location for runtime data."""
+    if utils.is_linux:
         typ = QStandardPaths.RuntimeLocation
-    else:  # pragma: no cover
+    else:
         # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
 
-    overridden, path = _from_args(typ, _args)
+    overridden, path = _from_args(typ, args)
 
     if not overridden:
         try:
@@ -122,6 +189,7 @@ def runtime():
             path = _writable_location(QStandardPaths.TempLocation)
 
         # This is generic, but per-user.
+        # _writable_location makes sure we have a qutebrowser-specific subdir.
         #
         # For TempLocation:
         # "The returned value might be application-specific, shared among
@@ -129,22 +197,49 @@ def runtime():
         #
         # Unfortunately this path could get too long for sockets (which have a
         # maximum length of 104 chars), so we don't add the username here...
-        appname = QCoreApplication.instance().applicationName()
-        path = os.path.join(path, appname)
+
     _create(path)
-    return path
+    _locations[Location.runtime] = path
+
+
+def runtime():
+    return _locations[Location.runtime]
 
 
 def _writable_location(typ):
-    """Wrapper around QStandardPaths.writableLocation."""
-    with qtutils.unset_organization():
-        path = QStandardPaths.writableLocation(typ)
+    """Wrapper around QStandardPaths.writableLocation.
+
+    Arguments:
+        typ: A QStandardPaths::StandardLocation member.
+    """
     typ_str = debug.qenum_key(QStandardPaths, typ)
+
+    # Types we are sure we handle correctly below.
+    assert typ in [
+        QStandardPaths.ConfigLocation, QStandardPaths.DataLocation,
+        QStandardPaths.CacheLocation, QStandardPaths.DownloadLocation,
+        QStandardPaths.RuntimeLocation, QStandardPaths.TempLocation,
+        # FIXME old Qt
+        getattr(QStandardPaths, 'AppDataLocation', object())], typ_str
+
+    with _unset_organization():
+        path = QStandardPaths.writableLocation(typ)
+
     log.misc.debug("writable location for {}: {}".format(typ_str, path))
     if not path:
         raise EmptyValueError("QStandardPaths returned an empty value!")
+
     # Qt seems to use '/' as path separator even on Windows...
     path = path.replace('/', os.sep)
+
+    # Add the application name to the given path if needed.
+    # This is in order for this to work without a QApplication (and thus
+    # QStandardsPaths not knowing the application name), as well as a
+    # workaround for https://bugreports.qt.io/browse/QTBUG-38872
+    if (typ != QStandardPaths.DownloadLocation and
+            path.split(os.sep)[-1] != APPNAME):
+        path = os.path.join(path, APPNAME)
+
     return path
 
 
@@ -195,16 +290,64 @@ def _create(path):
         pass
 
 
+def _init_dirs(args=None):
+    """Create and cache standard directory locations.
+
+    Mainly in a separate function because we need to call it in tests.
+    """
+    _init_config(args)
+    _init_data(args)
+    _init_cache(args)
+    _init_download(args)
+    _init_runtime(args)
+
+
 def init(args):
     """Initialize all standard dirs."""
-    global _args
     if args is not None:
         # args can be None during tests
         log.init.debug("Base directory: {}".format(args.basedir))
-    _args = args
+
+    _init_dirs(args)
     _init_cachedir_tag()
-    if args is not None:
-        _move_webengine_data()
+    if args is not None and getattr(args, 'basedir', None) is None:
+        if utils.is_mac:  # pragma: no cover
+            _move_macos()
+        elif utils.is_windows:  # pragma: no cover
+            _move_windows()
+
+
+def _move_macos():
+    """Move most config files to new location on macOS."""
+    old_config = config(auto=True)  # ~/Library/Preferences/qutebrowser
+    new_config = config()  # ~/.qutebrowser
+    for f in os.listdir(old_config):
+        if f not in ['qsettings', 'autoconfig.yml']:
+            _move_data(os.path.join(old_config, f),
+                       os.path.join(new_config, f))
+
+
+def _move_windows():
+    """Move the whole qutebrowser directory from Local to Roaming AppData."""
+    # %APPDATA%\Local\qutebrowser
+    old_appdata_dir = _writable_location(QStandardPaths.DataLocation)
+    # %APPDATA%\Roaming\qutebrowser
+    new_appdata_dir = _writable_location(QStandardPaths.AppDataLocation)
+
+    # data subfolder
+    old_data = os.path.join(old_appdata_dir, 'data')
+    new_data = os.path.join(new_appdata_dir, 'data')
+    ok = _move_data(old_data, new_data)
+    if not ok:  # pragma: no cover
+        return
+
+    # config files
+    new_config_dir = os.path.join(new_appdata_dir, 'config')
+    _create(new_config_dir)
+    for f in os.listdir(old_appdata_dir):
+        if f != 'cache':
+            _move_data(os.path.join(old_appdata_dir, f),
+                       os.path.join(new_config_dir, f))
 
 
 def _init_cachedir_tag():
@@ -226,47 +369,31 @@ def _init_cachedir_tag():
             log.init.exception("Failed to create CACHEDIR.TAG")
 
 
-def _move_webengine_data():
-    """Move QtWebEngine data from an older location to the new one."""
-    # Do NOT use _writable_location here as that'd give us a wrong path
-    old_data_dir = QStandardPaths.writableLocation(QStandardPaths.DataLocation)
-    old_cache_dir = QStandardPaths.writableLocation(
-        QStandardPaths.CacheLocation)
-    new_data_dir = os.path.join(data(), 'webengine')
-    new_cache_dir = os.path.join(cache(), 'webengine')
+def _move_data(old, new):
+    """Migrate data from an old to a new directory.
 
-    if (not os.path.exists(os.path.join(old_data_dir, 'QtWebEngine')) and
-            not os.path.exists(os.path.join(old_cache_dir, 'QtWebEngine'))):
-        return
+    If the old directory does not exist, the migration is skipped.
+    If the new directory already exists, an error is shown.
 
-    log.init.debug("Moving QtWebEngine data from {} to {}".format(
-        old_data_dir, new_data_dir))
-    log.init.debug("Moving QtWebEngine cache from {} to {}".format(
-        old_cache_dir, new_cache_dir))
+    Return: True if moving succeeded, False otherwise.
+    """
+    if not os.path.exists(old):
+        return False
 
-    if os.path.exists(new_data_dir):
-        log.init.warning("Failed to move old QtWebEngine data as {} already "
-                         "exists!".format(new_data_dir))
-        return
-    if os.path.exists(new_cache_dir):
-        log.init.warning("Failed to move old QtWebEngine cache as {} already "
-                         "exists!".format(new_cache_dir))
-        return
+    log.init.debug("Migrating data from {} to {}".format(old, new))
+
+    if os.path.exists(new):
+        if not os.path.isdir(new) or os.listdir(new):
+            message.error("Failed to move data from {} as {} is non-empty!"
+                          .format(old, new))
+            return False
+        os.rmdir(new)
 
     try:
-        shutil.move(os.path.join(old_data_dir, 'QtWebEngine', 'Default'),
-                    new_data_dir)
-        shutil.move(os.path.join(old_cache_dir, 'QtWebEngine', 'Default'),
-                    new_cache_dir)
-
-        # Remove e.g.
-        # ~/.local/share/qutebrowser/qutebrowser/QtWebEngine/Default
-        if old_data_dir.split(os.sep)[-2:] == ['qutebrowser', 'qutebrowser']:
-            log.init.debug("Removing {} / {}".format(
-                old_data_dir, old_cache_dir))
-            for old_dir in old_data_dir, old_cache_dir:
-                os.rmdir(os.path.join(old_dir, 'QtWebEngine'))
-                os.rmdir(old_dir)
+        shutil.move(old, new)
     except OSError as e:
-        log.init.exception("Failed to move old QtWebEngine data/cache: "
-                           "{}".format(e))
+        message.error("Failed to move data from {} to {}: {}".format(
+            old, new, e))
+        return False
+
+    return True

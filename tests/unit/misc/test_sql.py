@@ -49,7 +49,7 @@ def test_insert_replace(qtbot):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
 
-    with pytest.raises(sql.SqlException):
+    with pytest.raises(sql.SqlError):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
 
 
@@ -85,7 +85,7 @@ def test_insert_batch_replace(qtbot):
                            ('one', 11, True),
                            ('nine', 19, True)]
 
-    with pytest.raises(sql.SqlException):
+    with pytest.raises(sql.SqlError):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]})

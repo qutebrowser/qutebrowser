@@ -30,8 +30,11 @@ from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout)
 
-from qutebrowser.config import config, configexc, style
-from qutebrowser.utils import qtutils
+from qutebrowser.config import config
+from qutebrowser.utils import qtutils, jinja
+
+
+_cached_stylesheet = None
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
@@ -147,16 +150,15 @@ class CompletionItemDelegate(QStyledItemDelegate):
         # We can't use drawContents because then the color would be ignored.
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
+
         if self._opt.state & QStyle.State_Selected:
-            option = 'completion.item.selected.fg'
+            color = config.val.colors.completion.item.selected.fg
         elif not self._opt.state & QStyle.State_Enabled:
-            option = 'completion.category.fg'
+            color = config.val.colors.completion.category.fg
         else:
-            option = 'completion.fg'
-        try:
-            self._painter.setPen(config.get('colors', option))
-        except configexc.NoOptionError:
-            self._painter.setPen(config.get('colors', 'completion.fg'))
+            color = config.val.colors.completion.fg
+        self._painter.setPen(color)
+
         ctx = QAbstractTextDocumentLayout.PaintContext()
         ctx.palette.setColor(QPalette.Text, self._painter.pen().color())
         if clip.isValid():
@@ -188,12 +190,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc = QTextDocument(self)
         self._doc.setDefaultFont(self._opt.font)
         self._doc.setDefaultTextOption(text_option)
-        self._doc.setDefaultStyleSheet(style.get_stylesheet("""
-            .highlight {
-                color: {{ color['completion.match.fg'] }};
-            }
-        """))
         self._doc.setDocumentMargin(2)
+
+        assert _cached_stylesheet is not None
+        self._doc.setDefaultStyleSheet(_cached_stylesheet)
 
         if index.parent().isValid():
             view = self.parent()
@@ -209,7 +209,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         else:
             self._doc.setHtml(
                 '<span style="font: {};">{}</span>'.format(
-                    html.escape(config.get('fonts', 'completion.category')),
+                    html.escape(config.val.fonts.completion.category),
                     html.escape(self._opt.text)))
 
     def _draw_focus_rect(self):
@@ -280,3 +280,24 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._draw_focus_rect()
 
         self._painter.restore()
+
+
+@config.change_filter('colors.completion.match.fg', function=True)
+def _update_stylesheet():
+    """Update the cached stylesheet."""
+    stylesheet = """
+        .highlight {
+            color: {{ conf.colors.completion.match.fg }};
+        }
+    """
+    with jinja.environment.no_autoescape():
+        template = jinja.environment.from_string(stylesheet)
+
+    global _cached_stylesheet
+    _cached_stylesheet = template.render(conf=config.val)
+
+
+def init():
+    """Initialize the cached stylesheet."""
+    _update_stylesheet()
+    config.instance.changed.connect(_update_stylesheet)

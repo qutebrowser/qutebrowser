@@ -9,9 +9,8 @@ qutebrowser
 // QUTE_WEB_HIDE
 image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
 
-image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/COPYING"]
+image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/LICENSE"]
 image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
-image:https://requires.io/github/qutebrowser/qutebrowser/requirements.svg?branch=master["requirements badge",link="https://requires.io/github/qutebrowser/qutebrowser/requirements/?branch=master"]
 image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/qutebrowser/qutebrowser"]
 image:https://ci.appveyor.com/api/projects/status/5pyauww2k68bbow2/branch/master?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/qutebrowser/qutebrowser"]
 image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
@@ -36,7 +35,7 @@ Downloads
 ---------
 
 See the https://github.com/qutebrowser/qutebrowser/releases[github releases
-page] for available downloads and the link:INSTALL.asciidoc[INSTALL] file for
+page] for available downloads and the link:doc/install.asciidoc[INSTALL] file for
 detailed instructions on how to get qutebrowser running on various platforms.
 
 Documentation
@@ -49,10 +48,11 @@ available:
 image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
-* link:FAQ.asciidoc[Frequently asked questions]
-* link:CONTRIBUTING.asciidoc[Contributing to qutebrowser]
-* link:INSTALL.asciidoc[INSTALL]
-* link:CHANGELOG.asciidoc[Change Log]
+* link:doc/faq.asciidoc[Frequently asked questions]
+* link:doc/help/configuring.asciidoc[Configuring qutebrowser]
+* link:doc/contributing.asciidoc[Contributing to qutebrowser]
+* link:doc/install.asciidoc[Installing qutebrowser]
+* link:doc/changelog.asciidoc[Change Log]
 * link:doc/stacktrace.asciidoc[Reporting segfaults]
 * link:doc/userscripts.asciidoc[How to write userscripts]
 
@@ -78,7 +78,7 @@ Contributions / Bugs
 --------------------
 
 You want to contribute to qutebrowser? Awesome! Please read
-link:CONTRIBUTING.asciidoc[the contribution guidelines] for details and
+link:doc/contributing.asciidoc[the contribution guidelines] for details and
 useful hints.
 
 If you found a bug or have a feature request, you can report it in several
@@ -98,26 +98,24 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* http://www.python.org/[Python] 3.4 or newer (3.6 recommended) - note that
-  support for Python 3.4
-  https://github.com/qutebrowser/qutebrowser/issues/2742[will be dropped soon].
-* http://qt.io/[Qt] 5.2.0 or newer (5.9 recommended - note that support for Qt
-  < 5.7.1 will be dropped soon) with the following modules:
+* http://www.python.org/[Python] 3.5 or newer (3.6 recommended)
+* http://qt.io/[Qt] 5.7.1 or newer with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
+  - QtOpenGL
   - QtWebEngine, or
-  - QtWebKit (old or link:https://github.com/annulen/webkit/wiki[reloaded]/NG).
-    Note that support for legacy QtWebKit (before 5.212) will be
-    dropped soon.
-* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.2.0 or newer
-  (5.9 recommended) for Python 3. Note that support for PyQt < 5.7 will be
-  dropped soon.
+  - QtWebKit - only the
+    link:https://github.com/annulen/webkit/wiki[updated fork] (5.212) is
+    supported.
+* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
+  (5.9 recommended) for Python 3.
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
 * http://pyyaml.org/wiki/PyYAML[PyYAML]
+* http://www.attrs.org/[attrs]
 
 The following libraries are optional:
 
@@ -128,8 +126,8 @@ The following libraries are optional:
 * http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
   command, when using the git repository (rather than a release).
 
-See link:INSTALL.asciidoc[INSTALL] for directions on how to install qutebrowser
-and its dependencies.
+See link:doc/install.asciidoc[the documentation] for directions on how to
+install qutebrowser and its dependencies.
 
 Donating
 --------

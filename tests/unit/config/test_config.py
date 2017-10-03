@@ -18,405 +18,581 @@
 
 """Tests for qutebrowser.config.config."""
 
-import os
-import os.path
-import configparser
-import collections
-import shutil
+import copy
+import types
+import unittest.mock
 
-from PyQt5.QtGui import QColor
 import pytest
+from PyQt5.QtCore import QObject
+from PyQt5.QtGui import QColor
 
-import qutebrowser
-from qutebrowser.config import config, configexc, configdata
-from qutebrowser.config.parsers import keyconf
-from qutebrowser.commands import runners
+from qutebrowser.config import config, configdata, configexc, configfiles
+from qutebrowser.utils import usertypes
+from qutebrowser.misc import objects
 
 
-class TestConfigParser:
+@pytest.fixture(autouse=True)
+def configdata_init():
+    """Initialize configdata if needed."""
+    if configdata.DATA is None:
+        configdata.init()
 
-    """Test reading of ConfigParser."""
 
-    Objects = collections.namedtuple('Objects', ['cp', 'cfg'])
+class TestChangeFilter:
+
+    @pytest.fixture(autouse=True)
+    def cleanup_globals(self, monkeypatch):
+        """Make sure config.change_filters is cleaned up."""
+        monkeypatch.setattr(config, 'change_filters', [])
+
+    @pytest.mark.parametrize('option', ['foobar', 'tab', 'tabss', 'tabs.'])
+    def test_unknown_option(self, option):
+        cf = config.change_filter(option)
+        with pytest.raises(configexc.NoOptionError):
+            cf.validate()
+
+    @pytest.mark.parametrize('option', ['confirm_quit', 'tabs', 'tabs.show'])
+    def test_validate(self, option):
+        cf = config.change_filter(option)
+        cf.validate()
+        assert cf in config.change_filters
+
+    @pytest.mark.parametrize('method', [True, False])
+    @pytest.mark.parametrize('option, changed, matches', [
+        ('confirm_quit', 'confirm_quit', True),
+        ('tabs', 'tabs.show', True),
+        ('tabs.show', 'tabs.show', True),
+        ('tabs', None, True),
+        ('tabs', 'colors.tabs.bar.bg', False),
+    ])
+    def test_call(self, method, option, changed, matches):
+        was_called = False
+        if method:
+
+            class Foo:
+
+                @config.change_filter(option)
+                def meth(self):
+                    nonlocal was_called
+                    was_called = True
+
+            foo = Foo()
+            foo.meth(changed)  # pylint: disable=too-many-function-args
+
+        else:
+
+            @config.change_filter(option, function=True)
+            def func():
+                nonlocal was_called
+                was_called = True
+
+            func(changed)  # pylint: disable=too-many-function-args
+
+        assert was_called == matches
+
+
+class TestKeyConfig:
 
     @pytest.fixture
-    def objects(self, tmpdir):
-        cp = configparser.ConfigParser(interpolation=None,
-                                       comment_prefixes='#')
-        cp.optionxform = lambda opt: opt  # be case-insensitive
-        cfg = config.ConfigManager()
-        cfg.read(str(tmpdir), 'qutebrowser.conf')
-        return self.Objects(cp=cp, cfg=cfg)
+    def keyconf(self, config_stub):
+        config_stub.val.aliases = {}
+        return config.KeyConfig(config_stub)
 
-    @pytest.mark.parametrize('config, section, option, value', [
-        # Simple option without transformation
-        ({'general': {'ignore-case': 'false'}},
-         'general', 'ignore-case', False),
-        # Transformed section with old name
-        ({'permissions': {'allow-plugins': 'true'}},
-         'content', 'allow-plugins', True),
-        # Transformed section with new name
-        ({'content': {'allow-plugins': 'true'}},
-         'content', 'allow-plugins', True),
-        # Transformed option with old name
-        ({'colors': {'tab.fg.odd': 'pink'}},
-         'colors', 'tabs.fg.odd', QColor('pink')),
-        # Transformed option with new name
-        ({'colors': {'tabs.fg.odd': 'pink'}},
-         'colors', 'tabs.fg.odd', QColor('pink')),
+    @pytest.fixture
+    def no_bindings(self):
+        """Get a dict with no bindings."""
+        return {'normal': {}}
+
+    @pytest.mark.parametrize('key, expected', [
+        ('A', 'A'),
+        ('<Ctrl-X>', '<ctrl+x>'),
     ])
-    def test_get(self, objects, config, section, option, value):
-        objects.cp.read_dict(config)
-        objects.cfg._from_cp(objects.cp)
-        assert objects.cfg.get(section, option) == value
+    def test_prepare_valid(self, keyconf, key, expected):
+        """Make sure prepare normalizes the key."""
+        assert keyconf._prepare(key, 'normal') == expected
 
-    @pytest.mark.parametrize('config', [
-        {'general': {'ignore-case': 'invalid'}},
-        {'general': {'ignore-case': 'smart',
-                     'private-browsing': '${ignore-case}'}},
+    def test_prepare_invalid(self, keyconf):
+        """Make sure prepare checks the mode."""
+        with pytest.raises(configexc.KeybindingError):
+            assert keyconf._prepare('x', 'abnormal')
+
+    @pytest.mark.parametrize('commands, expected', [
+        # Unbinding default key
+        ({'a': None}, {'b': 'message-info bar'}),
+        # Additional binding
+        ({'c': 'message-info baz'},
+         {'a': 'message-info foo', 'b': 'message-info bar',
+          'c': 'message-info baz'}),
+        # Unbinding unknown key
+        ({'x': None}, {'a': 'message-info foo', 'b': 'message-info bar'}),
     ])
-    def test_failing_validation(self, objects, config):
-        objects.cp.read_dict(config)
-        objects.cfg._from_cp(objects.cp)
-        with pytest.raises(configexc.ValidationError):
-            objects.cfg._validate_all()
+    def test_get_bindings_for_and_get_command(self, keyconf, config_stub,
+                                              commands, expected):
+        orig_default_bindings = {'normal': {'a': 'message-info foo',
+                                            'b': 'message-info bar'},
+                                 'insert': {},
+                                 'hint': {},
+                                 'passthrough': {},
+                                 'command': {},
+                                 'prompt': {},
+                                 'caret': {},
+                                 'register': {}}
+        config_stub.val.bindings.default = copy.deepcopy(orig_default_bindings)
+        config_stub.val.bindings.commands = {'normal': commands}
+        bindings = keyconf.get_bindings_for('normal')
 
-    @pytest.mark.parametrize('config, sect1, opt1, sect2, opt2', [
-        # Same section
-        ({'general': {'ignore-case': 'false',
-                      'private-browsing': '${ignore-case}'}},
-         'general', 'ignore-case', 'general', 'private-browsing'),
-        # Across sections
-        ({'general': {'ignore-case': '${network:do-not-track}'},
-          'network': {'do-not-track': 'false'}},
-         'general', 'ignore-case', 'network', 'do-not-track'),
+        # Make sure the code creates a copy and doesn't modify the setting
+        assert config_stub.val.bindings.default == orig_default_bindings
+        assert bindings == expected
+        for key, command in expected.items():
+            assert keyconf.get_command(key, 'normal') == command
+
+    def test_get_command_unbound(self, keyconf, config_stub, no_bindings):
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        assert keyconf.get_command('foobar', 'normal') is None
+
+    @pytest.mark.parametrize('bindings, expected', [
+        # Simple
+        ({'a': 'message-info foo', 'b': 'message-info bar'},
+         {'message-info foo': ['a'], 'message-info bar': ['b']}),
+        # Multiple bindings
+        ({'a': 'message-info foo', 'b': 'message-info foo'},
+         {'message-info foo': ['b', 'a']}),
+        # With special keys (should be listed last and normalized)
+        ({'a': 'message-info foo', '<Escape>': 'message-info foo'},
+         {'message-info foo': ['a', '<escape>']}),
+        # Chained command
+        ({'a': 'message-info foo ;; message-info bar'},
+         {'message-info foo': ['a'], 'message-info bar': ['a']}),
     ])
-    def test_interpolation(self, objects, config, sect1, opt1, sect2, opt2):
-        objects.cp.read_dict(config)
-        objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg.get(sect1, opt1)
-        assert not objects.cfg.get(sect2, opt2)
+    def test_get_reverse_bindings_for(self, keyconf, config_stub, no_bindings,
+                                      bindings, expected):
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = {'normal': bindings}
+        assert keyconf.get_reverse_bindings_for('normal') == expected
 
-    def test_invalid_interpolation(self, objects):
-        """Test an invalid interpolation."""
-        objects.cp.read_dict({'general': {'ignore-case': '${foo}'}})
-        objects.cfg._from_cp(objects.cp)
-        with pytest.raises(configparser.InterpolationError):
-            objects.cfg._validate_all()
+    @pytest.mark.parametrize('key', ['a', '<Ctrl-X>', 'b'])
+    def test_bind_duplicate(self, keyconf, config_stub, key):
+        config_stub.val.bindings.default = {'normal': {'a': 'nop',
+                                                       '<Ctrl+x>': 'nop'}}
+        config_stub.val.bindings.commands = {'normal': {'b': 'nop'}}
+        keyconf.bind(key, 'message-info foo', mode='normal')
+        assert keyconf.get_command(key, 'normal') == 'message-info foo'
 
-    @pytest.mark.parametrize('config, exception', [
-        # Invalid interpolation syntax
-        ({'general': {'ignore-case': '${'}},
-         configexc.InterpolationSyntaxError),
-        # Invalid section
-        ({'foo': {'bar': 'baz'}}, configexc.NoSectionError),
-        # Invalid option
-        ({'general': {'bar': 'baz'}}, configexc.NoOptionError),
+    @pytest.mark.parametrize('mode', ['normal', 'caret'])
+    @pytest.mark.parametrize('command', [
+        'message-info foo',
+        'nop ;; wq',  # https://github.com/qutebrowser/qutebrowser/issues/3002
     ])
-    def test_invalid_from_cp(self, objects, config, exception):
-        objects.cp.read_dict(config)
-        with pytest.raises(exception):
-            objects.cfg._from_cp(objects.cp)
+    def test_bind(self, keyconf, config_stub, qtbot, no_bindings,
+                  mode, command):
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
 
-    @pytest.mark.parametrize('config, sect, opt, exception', [
-        # Invalid section
-        ({'foo': {'bar': 'baz'}}, 'foo', 'bar', configexc.NoSectionError),
-        # Invalid option
-        ({'general': {'bar': 'baz'}}, 'general', 'baz',
-         configexc.NoOptionError),
-    ])
-    def test_invalid_relaxed(self, objects, config, sect, opt, exception):
-        objects.cp.read_dict(config)
-        objects.cfg._from_cp(objects.cp, relaxed=True)
-        with pytest.raises(exception):
-            objects.cfg.get(sect, opt)
+        with qtbot.wait_signal(config_stub.changed):
+            keyconf.bind('a', command, mode=mode)
 
-    def test_fallback(self, objects):
-        """Test getting an option with fallback.
+        assert config_stub.val.bindings.commands[mode]['a'] == command
+        assert keyconf.get_bindings_for(mode)['a'] == command
+        assert keyconf.get_command('a', mode) == command
 
-        This is done during interpolation in later Python 3.4 versions.
+    def test_bind_mode_changing(self, keyconf, config_stub, no_bindings):
+        """Make sure we can bind to a command which changes the mode.
 
-        See https://github.com/qutebrowser/qutebrowser/issues/968
+        https://github.com/qutebrowser/qutebrowser/issues/2989
         """
-        assert objects.cfg.get('general', 'blabla', fallback='blub') == 'blub'
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        keyconf.bind('a', 'set-cmd-text :nop ;; rl-beginning-of-line',
+                     mode='normal')
 
-    def test_sectionproxy(self, objects):
-        """Test getting an option via the section proxy."""
-        objects.cp.read_dict({'general': {'ignore-case': 'false'}})
-        objects.cfg._from_cp(objects.cp)
-        assert not objects.cfg['general'].get('ignore-case')
-
-    def test_sectionproxy_keyerror(self, objects):
-        """Test getting an inexistent option via the section proxy."""
-        with pytest.raises(configexc.NoOptionError):
-            objects.cfg['general'].get('blahblahblub')
-
-    @pytest.mark.parametrize('old_sect, new_sect',
-        config.ConfigManager.RENAMED_SECTIONS.items())
-    def test_renamed_sections(self, old_sect, new_sect):
-        """Make sure renamed sections don't exist anymore."""
-        assert old_sect not in configdata.DATA
-        assert new_sect in configdata.DATA
-
-    @pytest.mark.parametrize('old_tuple, new_option',
-        sorted(config.ConfigManager.RENAMED_OPTIONS.items()))
-    def test_renamed_options(self, old_tuple, new_option):
-        """Make sure renamed options exist under the new name."""
-        section, old_option = old_tuple
-        assert old_option not in configdata.DATA[section]
-        assert new_option in configdata.DATA[section]
-
-    @pytest.mark.parametrize('section, option',
-        config.ConfigManager.DELETED_OPTIONS)
-    def test_deleted_options(self, section, option):
-        """Make sure renamed options don't exist anymore."""
-        assert option not in configdata.DATA[section]
-
-    def test_config_reading_with_deleted_options(self, objects):
-        """Test an invalid option with relaxed=True."""
-        objects.cp.read_dict({
-            'general': collections.OrderedDict(
-                [('wrap-search', 'true'), ('save-session', 'true')])
-        })
-        objects.cfg._from_cp(objects.cp)
-        with pytest.raises(configexc.NoOptionError):
-            objects.cfg.get('general', 'wrap-search')
-        assert objects.cfg.get('general', 'save-session')
-
-
-class TestTransformers:
-
-    """Test value transformers in CHANGED_OPTIONS."""
-
-    @pytest.mark.parametrize('val, expected', [('a', 'b'), ('c', 'c')])
-    def test_get_value_transformer(self, val, expected):
-        func = config._get_value_transformer({'a': 'b'})
-        assert func(val) == expected
-
-    @pytest.mark.parametrize('val, expected', [
-        ('top', 'top'),
-        ('north', 'top'),
-        ('south', 'bottom'),
-        ('west', 'left'),
-        ('east', 'right'),
+    @pytest.mark.parametrize('key, normalized', [
+        ('a', 'a'),  # default bindings
+        ('b', 'b'),  # custom bindings
+        ('<Ctrl-X>', '<ctrl+x>')
     ])
-    def test_position(self, val, expected):
-        func = config._transform_position
-        assert func(val) == expected
+    @pytest.mark.parametrize('mode', ['normal', 'caret', 'prompt'])
+    def test_unbind(self, keyconf, config_stub, qtbot, key, normalized, mode):
+        default_bindings = {
+            'normal': {'a': 'nop', '<ctrl+x>': 'nop'},
+            'caret': {'a': 'nop', '<ctrl+x>': 'nop'},
+            # prompt: a mode which isn't in bindings.commands yet
+            'prompt': {'a': 'nop', 'b': 'nop', '<ctrl+x>': 'nop'},
+        }
+        old_default_bindings = copy.deepcopy(default_bindings)
+        config_stub.val.bindings.default = default_bindings
+        config_stub.val.bindings.commands = {
+            'normal': {'b': 'nop'},
+            'caret': {'b': 'nop'},
+        }
 
-    OLD_GRADIENT = ('-webkit-gradient(linear, left top, left bottom, '
-                    'color-stop(0%,{}), color-stop(100%,{}))')
-    NEW_GRADIENT = ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {}, '
-                    'stop:1 {})')
+        with qtbot.wait_signal(config_stub.changed):
+            keyconf.unbind(key, mode=mode)
 
-    @pytest.mark.parametrize('val, expected', [
-        ('-unknown-stuff', None),
-        ('blue', 'blue'),
-        ('rgba(1, 2, 3, 4)', 'rgba(1, 2, 3, 4)'),
-        ('-webkit-gradient(unknown)', None),
-        (OLD_GRADIENT.format('blah', 'blah'), None),
-        (OLD_GRADIENT.format('red', 'green'),
-         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
-        (OLD_GRADIENT.format(' red', ' green'),
-         NEW_GRADIENT.format('rgba(255, 0, 0, 0.8)', 'rgba(0, 128, 0, 0.8)')),
-        (OLD_GRADIENT.format('#101010', ' #202020'),
-         NEW_GRADIENT.format('rgba(16, 16, 16, 0.8)',
-                             'rgba(32, 32, 32, 0.8)')),
-        (OLD_GRADIENT.format('#666', ' #777'),
-         NEW_GRADIENT.format('rgba(102, 102, 102, 0.8)',
-                             'rgba(119, 119, 119, 0.8)')),
-        (OLD_GRADIENT.format('red', 'green') + 'more stuff', None),
-    ])
-    def test_hint_color(self, val, expected):
-        assert config._transform_hint_color(val) == expected
+        assert keyconf.get_command(key, mode) is None
 
-    @pytest.mark.parametrize('val, expected', [
-        ('bold 12pt Monospace', 'bold 12pt ${_monospace}'),
-        ('23pt Monospace', '23pt ${_monospace}'),
-        ('bold 12pt ${_monospace}', 'bold 12pt ${_monospace}'),
-        ('bold 12pt Comic Sans MS', 'bold 12pt Comic Sans MS'),
-    ])
-    def test_hint_font(self, val, expected):
-        assert config._transform_hint_font(val) == expected
-
-
-class TestKeyConfigParser:
-
-    """Test config.parsers.keyconf.KeyConfigParser."""
-
-    def test_cmd_binding(self, cmdline_test, config_stub, tmpdir):
-        """Test various command bindings.
-
-        See https://github.com/qutebrowser/qutebrowser/issues/615
-
-        Args:
-            cmdline_test: A pytest fixture which provides testcases.
-        """
-        config_stub.data = {'aliases': []}
-        kcp = keyconf.KeyConfigParser(str(tmpdir), 'keys.conf')
-        kcp._cur_section = 'normal'
-        if cmdline_test.valid:
-            kcp._read_command(cmdline_test.cmd)
+        mode_bindings = config_stub.val.bindings.commands[mode]
+        if key == 'b' and mode != 'prompt':
+            # Custom binding
+            assert normalized not in mode_bindings
         else:
-            with pytest.raises(keyconf.KeyConfigError):
-                kcp._read_command(cmdline_test.cmd)
+            default_bindings = config_stub.val.bindings.default
+            assert default_bindings[mode] == old_default_bindings[mode]
+            assert mode_bindings[normalized] is None
 
-    @pytest.mark.parametrize('rgx', [rgx for rgx, _repl
-                                     in configdata.CHANGED_KEY_COMMANDS])
-    def test_default_config_no_deprecated(self, rgx):
-        """Make sure the default config contains no deprecated commands."""
-        for sect in configdata.KEY_DATA.values():
-            for command in sect:
-                assert rgx.match(command) is None
-
-    @pytest.mark.parametrize(
-        'old, new_expected',
-        [
-            ('open -t about:blank', 'open -t'),
-            ('open -w about:blank', 'open -w'),
-            ('open -b about:blank', 'open -b'),
-            ('open about:blank', None),
-            ('open -t example.com', None),
-
-            ('download-page', 'download'),
-            ('cancel-download', 'download-cancel'),
-
-            ('search ""', 'clear-keychain ;; search ;; fullscreen --leave'),
-            ("search ''", 'clear-keychain ;; search ;; fullscreen --leave'),
-            ("search", 'clear-keychain ;; search ;; fullscreen --leave'),
-            ("search ;; foobar", None),
-            ('search "foo"', None),
-
-            ('set-cmd-text "foo bar"', 'set-cmd-text foo bar'),
-            ("set-cmd-text 'foo bar'", 'set-cmd-text foo bar'),
-            ('set-cmd-text foo bar', None),
-            ('set-cmd-text "foo bar "', 'set-cmd-text -s foo bar'),
-            ("set-cmd-text 'foo bar '", 'set-cmd-text -s foo bar'),
-
-            ('hint links rapid', 'hint --rapid links tab-bg'),
-            ('hint links rapid-win', 'hint --rapid links window'),
-
-            ('scroll -50 0', 'scroll left'),
-            ('scroll 0 50', 'scroll down'),
-            ('scroll 0 -50', 'scroll up'),
-            ('scroll 50 0', 'scroll right'),
-            ('scroll -50 10', 'scroll-px -50 10'),
-            ('scroll 50 50', 'scroll-px 50 50'),
-            ('scroll 0 0', 'scroll-px 0 0'),
-            ('scroll 23 42', 'scroll-px 23 42'),
-
-            ('search ;; clear-keychain',
-                'clear-keychain ;; search ;; fullscreen --leave'),
-            ('search;;clear-keychain',
-                'clear-keychain ;; search ;; fullscreen --leave'),
-            ('search;;foo', None),
-            ('clear-keychain ;; search',
-                'clear-keychain ;; search ;; fullscreen --leave'),
-            ('leave-mode ;; foo', None),
-            ('search ;; clear-keychain',
-                'clear-keychain ;; search ;; fullscreen --leave'),
-
-            ('download-remove --all', 'download-clear'),
-
-            ('hint links fill ":open {hint-url}"',
-                'hint links fill :open {hint-url}'),
-            ('hint links fill ":open -t {hint-url}"',
-                'hint links fill :open -t {hint-url}'),
-
-            ('yank-selected', 'yank selection'),
-            ('yank-selected --sel', 'yank selection --sel'),
-            ('yank-selected -p', 'yank selection -s'),
-
-            ('yank -t', 'yank title'),
-            ('yank -ts', 'yank title -s'),
-            ('yank -d', 'yank domain'),
-            ('yank -ds', 'yank domain -s'),
-            ('yank -p', 'yank pretty-url'),
-            ('yank -ps', 'yank pretty-url -s'),
-
-            ('paste', 'open -- {clipboard}'),
-            ('paste -s', 'open -- {primary}'),
-            ('paste -t', 'open -t -- {clipboard}'),
-            ('paste -ws', 'open -w -- {primary}'),
-
-            ('open {clipboard}', 'open -- {clipboard}'),
-            ('open -t {clipboard}', 'open -t -- {clipboard}'),
-            ('open -b {primary}', 'open -b -- {primary}'),
-
-            ('set-cmd-text -s :search', 'set-cmd-text /'),
-            ('set-cmd-text -s :search -r', 'set-cmd-text ?'),
-            ('set-cmd-text -s :', 'set-cmd-text :'),
-            ('set-cmd-text -s :set keybind', 'set-cmd-text -s :bind'),
-
-            ('prompt-yes', 'prompt-accept yes'),
-            ('prompt-no', 'prompt-accept no'),
-
-            ('tab-close -l', 'tab-close --prev'),
-            ('tab-close --left', 'tab-close --prev'),
-            ('tab-close -r', 'tab-close --next'),
-            ('tab-close --right', 'tab-close --next'),
-
-            ('tab-only -l', 'tab-only --prev'),
-            ('tab-only --left', 'tab-only --prev'),
-            ('tab-only -r', 'tab-only --next'),
-            ('tab-only --right', 'tab-only --next'),
-        ]
-    )
-    def test_migrations(self, old, new_expected):
-        """Make sure deprecated commands get migrated correctly."""
-        if new_expected is None:
-            new_expected = old
-        new = old
-        for rgx, repl in configdata.CHANGED_KEY_COMMANDS:
-            if rgx.match(new):
-                new = rgx.sub(repl, new)
-                break
-        assert new == new_expected
+    def test_unbind_unbound(self, keyconf, config_stub, no_bindings):
+        """Try unbinding a key which is not bound."""
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        with pytest.raises(configexc.KeybindingError,
+                           match="Can't find binding 'foobar' in normal mode"):
+            keyconf.unbind('foobar', mode='normal')
 
 
-@pytest.mark.usefixtures('config_tmpdir')
-@pytest.mark.integration
-class TestDefaultConfig:
+class TestConfig:
 
-    """Test validating of the default config."""
+    @pytest.fixture
+    def conf(self, config_tmpdir):
+        yaml_config = configfiles.YamlConfig()
+        return config.Config(yaml_config)
 
-    @pytest.mark.usefixtures('qapp')
-    def test_default_config(self, tmpdir):
-        """Test validating of the default config."""
-        conf = config.ConfigManager()
-        conf.read(str(tmpdir), 'qutebrowser.conf')
-        conf._validate_all()
+    def test_init_save_manager(self, conf, fake_save_manager):
+        conf.init_save_manager(fake_save_manager)
+        fake_save_manager.add_saveable.assert_called_once_with(
+            'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
 
-    def test_default_key_config(self, tmpdir):
-        """Test validating of the default key config."""
-        # We import qutebrowser.app so the cmdutils.register decorators run.
-        import qutebrowser.app  # pylint: disable=unused-variable
-        conf = keyconf.KeyConfigParser(str(tmpdir), 'keys.conf')
-        runner = runners.CommandRunner(win_id=0)
-        for sectname in configdata.KEY_DATA:
-            for cmd in conf.get_bindings_for(sectname).values():
-                runner.parse(cmd)
+    def test_set_value(self, qtbot, conf, caplog):
+        opt = conf.get_opt('tabs.show')
+        with qtbot.wait_signal(conf.changed) as blocker:
+            conf._set_value(opt, 'never')
 
-    def test_upgrade_version(self):
-        """Fail when the qutebrowser version changed.
+        assert blocker.args == ['tabs.show']
+        assert len(caplog.records) == 1
+        expected_message = 'Config option changed: tabs.show = never'
+        assert caplog.records[0].message == expected_message
 
-        The aim of this is to remind us to add a new file to old_configs.
+    def test_set_value_no_backend(self, monkeypatch, conf):
+        """Make sure setting values when the backend is still unknown works."""
+        monkeypatch.setattr(config.objects, 'backend', objects.NoBackend())
+        opt = conf.get_opt('tabs.show')
+        conf._set_value(opt, 'never')
+        assert conf._values['tabs.show'] == 'never'
 
-        If the config file of the current release didn't change compared to the
-        last one in old_configs, just increment the version here.
+    @pytest.mark.parametrize('save_yaml', [True, False])
+    def test_unset(self, conf, qtbot, save_yaml):
+        name = 'tabs.show'
+        conf.set_obj(name, 'never', save_yaml=True)
+        assert conf.get(name) == 'never'
 
-        If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
-        and then increment the version.
+        with qtbot.wait_signal(conf.changed):
+            conf.unset(name, save_yaml=save_yaml)
+
+        assert conf.get(name) == 'always'
+        if save_yaml:
+            assert name not in conf._yaml
+        else:
+            assert conf._yaml[name] == 'never'
+
+    def test_unset_never_set(self, conf, qtbot):
+        name = 'tabs.show'
+        assert conf.get(name) == 'always'
+
+        with qtbot.assert_not_emitted(conf.changed):
+            conf.unset(name)
+
+        assert conf.get(name) == 'always'
+
+    def test_unset_unknown(self, conf):
+        with pytest.raises(configexc.NoOptionError):
+            conf.unset('tabs')
+
+    @pytest.mark.parametrize('save_yaml', [True, False])
+    def test_clear(self, conf, qtbot, save_yaml):
+        name1 = 'tabs.show'
+        name2 = 'content.plugins'
+        conf.set_obj(name1, 'never', save_yaml=True)
+        conf.set_obj(name2, True, save_yaml=True)
+        assert conf._values[name1] == 'never'
+        assert conf._values[name2] is True
+
+        with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
+            conf.clear(save_yaml=save_yaml)
+
+        options = [e.args[0] for e in blocker.all_signals_and_args]
+        assert options == [name1, name2]
+
+        if save_yaml:
+            assert name1 not in conf._yaml
+            assert name2 not in conf._yaml
+        else:
+            assert conf._yaml[name1] == 'never'
+            assert conf._yaml[name2] is True
+
+    def test_read_yaml(self, conf):
+        conf._yaml['content.plugins'] = True
+        conf.read_yaml()
+        assert conf._values['content.plugins'] is True
+
+    def test_get_opt_valid(self, conf):
+        assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
+
+    def test_get_opt_invalid(self, conf):
+        with pytest.raises(configexc.NoOptionError):
+            conf.get_opt('tabs')
+
+    def test_get(self, conf):
+        """Test conf.get() with a QColor (where get/get_obj is different)."""
+        assert conf.get('colors.completion.fg') == QColor('white')
+
+    @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
+    def test_get_bindings(self, config_stub, conf, value):
+        """Test conf.get() with bindings which have missing keys."""
+        config_stub.val.aliases = {}
+        conf._values['bindings.commands'] = value
+        assert conf.get('bindings.commands')['prompt'] == {}
+
+    def test_get_mutable(self, conf):
+        """Make sure we don't observe everything for mutations."""
+        conf.get('content.headers.custom')
+        assert not conf._mutables
+
+    def test_get_obj_simple(self, conf):
+        assert conf.get_obj('colors.completion.fg') == 'white'
+
+    @pytest.mark.parametrize('option', ['content.headers.custom',
+                                        'keyhint.blacklist',
+                                        'bindings.commands'])
+    @pytest.mark.parametrize('mutable', [True, False])
+    @pytest.mark.parametrize('mutated', [True, False])
+    def test_get_obj_mutable(self, conf, config_stub, qtbot, caplog,
+                             option, mutable, mutated):
+        """Make sure mutables are handled correctly.
+
+        When we get a mutable object from the config, some invariants should be
+        true:
+          - The object we get from the config is always a copy, i.e. mutating
+            it doesn't change the internal value (or default) stored in the
+            config.
+          - If we mutate the object (mutated=True) and the config watches for
+            mutables (mutable=True), it should notice that the object changed.
+          - With mutable=False, we should always get the old object back.
+
+        We try this with a dict (content.headers.custom) and a list
+        (keyhint.blacklist).
         """
-        assert qutebrowser.__version__ == '0.11.0'
+        # Setting new value
+        obj = conf.get_obj(option, mutable=mutable)
+        with qtbot.assert_not_emitted(conf.changed):
+            if option == 'content.headers.custom':
+                old = {}
+                new = {}
+                assert obj == old
+                if mutated:
+                    obj['X-Answer'] = '42'
+                    if mutable:
+                        new = {'X-Answer': '42'}
+                        assert obj == new
+            elif option == 'keyhint.blacklist':
+                old = []
+                new = []
+                assert obj == old
+                if mutated:
+                    obj.append('foo')
+                    if mutable:
+                        new = ['foo']
+                        assert obj == new
+            else:
+                assert option == 'bindings.commands'
+                config_stub.val.aliases = {}
+                old = {}
+                new = {}
+                assert obj == old
+                if mutated:
+                    obj['prompt'] = {}
+                    obj['prompt']['foobar'] = 'nop'
+                    if mutable:
+                        new = {'prompt': {'foobar': 'nop'}}
+                        assert obj == new
 
-    @pytest.mark.parametrize('filename',
-        os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),
-        ids=os.path.basename)
-    def test_old_config(self, qapp, tmpdir, filename):
-        """Check if upgrading old configs works correctly."""
-        full_path = os.path.join(os.path.dirname(__file__), 'old_configs',
-                                 filename)
-        shutil.copy(full_path, str(tmpdir / 'qutebrowser.conf'))
-        conf = config.ConfigManager()
-        conf.read(str(tmpdir), 'qutebrowser.conf')
+        if mutable:
+            assert conf._mutables[option] == (old, new)
+
+        if mutable and mutated:
+            # Now let's update
+            with qtbot.wait_signal(conf.changed):
+                conf.update_mutables()
+
+            expected_log = '{} was mutated, updating'.format(option)
+            assert caplog.records[-2].message == expected_log
+        else:
+            with qtbot.assert_not_emitted(conf.changed):
+                conf.update_mutables()
+
+        assert not conf._mutables
+        assert conf.get_obj(option) == new
+
+    def test_get_mutable_twice(self, conf):
+        """Get a mutable value twice."""
+        option = 'content.headers.custom'
+        obj = conf.get_obj(option, mutable=True)
+        obj['X-Foo'] = 'fooval'
+        obj2 = conf.get_obj(option, mutable=True)
+        obj2['X-Bar'] = 'barval'
+
+        conf.update_mutables()
+
+        expected = {'X-Foo': 'fooval', 'X-Bar': 'barval'}
+        assert conf.get_obj(option) == expected
+
+    def test_get_obj_unknown_mutable(self, conf):
+        """Make sure we don't have unknown mutable types."""
+        conf._values['aliases'] = set()  # This would never happen
+        with pytest.raises(AssertionError):
+            conf.get_obj('aliases')
+
+    def test_get_str(self, conf):
+        assert conf.get_str('content.plugins') == 'false'
+
+    @pytest.mark.parametrize('save_yaml', [True, False])
+    @pytest.mark.parametrize('method, value', [
+        ('set_obj', True),
+        ('set_str', 'true'),
+    ])
+    def test_set_valid(self, conf, qtbot, save_yaml, method, value):
+        option = 'content.plugins'
+        meth = getattr(conf, method)
+        with qtbot.wait_signal(conf.changed):
+            meth(option, value, save_yaml=save_yaml)
+        assert conf._values[option] is True
+        if save_yaml:
+            assert conf._yaml[option] is True
+        else:
+            assert option not in conf._yaml
+
+    @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
+    def test_set_invalid(self, conf, qtbot, method):
+        meth = getattr(conf, method)
+        with pytest.raises(configexc.ValidationError):
+            with qtbot.assert_not_emitted(conf.changed):
+                meth('content.plugins', '42')
+        assert 'content.plugins' not in conf._values
+
+    @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
+    def test_set_wrong_backend(self, conf, qtbot, monkeypatch, method):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+        meth = getattr(conf, method)
+        with pytest.raises(configexc.BackendError):
+            with qtbot.assert_not_emitted(conf.changed):
+                meth('content.cookies.accept', 'all')
+        assert 'content.cookies.accept' not in conf._values
+
+    def test_dump_userconfig(self, conf):
+        conf.set_obj('content.plugins', True)
+        conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})
+        lines = ['content.headers.custom = {"X-Foo": "bar"}',
+                 'content.plugins = true']
+        assert conf.dump_userconfig().splitlines() == lines
+
+    def test_dump_userconfig_default(self, conf):
+        assert conf.dump_userconfig() == '<Default configuration>'
+
+
+class TestContainer:
+
+    @pytest.fixture
+    def container(self, config_stub):
+        return config.ConfigContainer(config_stub)
+
+    def test_getattr_invalid_private(self, container):
+        """Make sure an invalid _attribute doesn't try getting a container."""
+        with pytest.raises(AttributeError):
+            container._foo  # pylint: disable=pointless-statement
+
+    def test_getattr_prefix(self, container):
+        new_container = container.tabs
+        assert new_container._prefix == 'tabs'
+        new_container = new_container.favicons
+        assert new_container._prefix == 'tabs.favicons'
+
+    @pytest.mark.parametrize('configapi, expected', [
+        (object(), 'rgb'),
+        (None, QColor.Rgb),
+    ])
+    def test_getattr_option(self, container, configapi, expected):
+        container._configapi = configapi
+        # Use an option with a to_py() so we can check the conversion.
+        assert container.colors.downloads.system.fg == expected
+
+    def test_getattr_invalid(self, container):
+        with pytest.raises(configexc.NoOptionError) as excinfo:
+            container.tabs.foobar  # pylint: disable=pointless-statement
+        assert excinfo.value.option == 'tabs.foobar'
+
+    def test_setattr_option(self, config_stub, container):
+        container.content.cookies.store = False
+        assert config_stub._values['content.cookies.store'] is False
+
+    def test_confapi_errors(self, container):
+        configapi = types.SimpleNamespace(errors=[])
+        container._configapi = configapi
+        container.tabs.foobar  # pylint: disable=pointless-statement
+
+        assert len(configapi.errors) == 1
+        error = configapi.errors[0]
+        assert error.text == "While getting 'tabs.foobar'"
+        assert str(error.exception) == "No option 'tabs.foobar'"
+
+
+class StyleObj(QObject):
+
+    def __init__(self, stylesheet=None, parent=None):
+        super().__init__(parent)
+        if stylesheet is not None:
+            self.STYLESHEET = stylesheet  # pylint: disable=invalid-name
+        self.rendered_stylesheet = None
+
+    def setStyleSheet(self, stylesheet):
+        self.rendered_stylesheet = stylesheet
+
+
+def test_get_stylesheet(config_stub):
+    config_stub.val.colors.hints.fg = 'magenta'
+    observer = config.StyleSheetObserver(
+        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}")
+    assert observer._get_stylesheet() == 'magenta'
+
+
+@pytest.mark.parametrize('delete', [True, False])
+@pytest.mark.parametrize('stylesheet_param', [True, False])
+@pytest.mark.parametrize('update', [True, False])
+def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
+                                 config_stub, caplog):
+    config_stub.val.colors.hints.fg = 'magenta'
+    stylesheet = "{{ conf.colors.hints.fg }}"
+
+    with caplog.at_level(9):  # VDEBUG
+        if stylesheet_param:
+            obj = StyleObj()
+            config.set_register_stylesheet(obj, stylesheet=stylesheet,
+                                           update=update)
+        else:
+            obj = StyleObj(stylesheet)
+            config.set_register_stylesheet(obj, update=update)
+
+    assert caplog.records[-1].message == 'stylesheet for StyleObj: magenta'
+
+    assert obj.rendered_stylesheet == 'magenta'
+
+    if delete:
+        with qtbot.waitSignal(obj.destroyed):
+            obj.deleteLater()
+
+    config_stub.val.colors.hints.fg = 'yellow'
+
+    if delete or not update:
+        expected = 'magenta'
+    else:
+        expected = 'yellow'
+
+    assert obj.rendered_stylesheet == expected

@@ -28,15 +28,15 @@ import json
 import os
 import time
 import urllib.parse
-import datetime
+import textwrap
 import pkg_resources
 
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
-from qutebrowser.config import config
+from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, usertypes, qtutils)
+                               objreg)
 from qutebrowser.misc import objects
 
 
@@ -122,8 +122,7 @@ class add_handler:  # pylint: disable=invalid-name
                             title="Error while opening qute://url",
                             url=url.toDisplayString(),
                             error='{} is not available with this '
-                                  'backend'.format(url.toDisplayString()),
-                            icon='')
+                                  'backend'.format(url.toDisplayString()))
         return 'text/html', html
 
 
@@ -224,50 +223,13 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
-        if (
-            config.get('content', 'allow-javascript') and
-            (objects.backend == usertypes.Backend.QtWebEngine or
-             qtutils.is_qtwebkit_ng())
-        ):
-            return 'text/html', jinja.render(
-                'history.html',
-                title='History',
-                session_interval=config.get('ui', 'history-session-interval')
-            )
-        else:
-            # Get current date from query parameter, if not given choose today.
-            curr_date = datetime.date.today()
-            try:
-                query_date = QUrlQuery(url).queryItemValue("date")
-                if query_date:
-                    curr_date = datetime.datetime.strptime(query_date,
-                        "%Y-%m-%d").date()
-            except ValueError:
-                log.misc.debug("Invalid date passed to qute:history: " +
-                    query_date)
-
-            one_day = datetime.timedelta(days=1)
-            next_date = curr_date + one_day
-            prev_date = curr_date - one_day
-
-            # start_time is the last second of curr_date
-            start_time = time.mktime(next_date.timetuple()) - 1
-            history = [
-                (i["url"], i["title"],
-                 datetime.datetime.fromtimestamp(i["time"]),
-                 QUrl(i["url"]).host())
-                for i in history_data(start_time)
-            ]
-
-            return 'text/html', jinja.render(
-                'history_nojs.html',
-                title='History',
-                history=history,
-                curr_date=curr_date,
-                next_date=next_date,
-                prev_date=prev_date,
-                today=datetime.date.today(),
-            )
+        if not config.val.content.javascript.enabled:
+            return 'text/plain', b'JavaScript is required for qute://history'
+        return 'text/html', jinja.render(
+            'history.html',
+            title='History',
+            gap_interval=config.val.history_gap_interval
+        )
 
 
 @add_handler('javascript')
@@ -345,26 +307,12 @@ def qute_log(url):
 @add_handler('gpl')
 def qute_gpl(_url):
     """Handler for qute://gpl. Return HTML content as string."""
-    return 'text/html', utils.read_file('html/COPYING.html')
+    return 'text/html', utils.read_file('html/LICENSE.html')
 
 
 @add_handler('help')
 def qute_help(url):
     """Handler for qute://help."""
-    try:
-        utils.read_file('html/doc/index.html')
-    except OSError:
-        html = jinja.render(
-            'error.html',
-            title="Error while loading documentation",
-            url=url.toDisplayString(),
-            error="This most likely means the documentation was not generated "
-                  "properly. If you are running qutebrowser from the git "
-                  "repository, please run scripts/asciidoc2html.py. "
-                  "If you're running a released version this is a bug, please "
-                  "use :report to report it.",
-            icon='')
-        return 'text/html', html
     urlpath = url.path()
     if not urlpath or urlpath == '/':
         urlpath = 'index.html'
@@ -373,11 +321,45 @@ def qute_help(url):
     if not docutils.docs_up_to_date(urlpath):
         message.error("Your documentation is outdated! Please re-run "
                       "scripts/asciidoc2html.py.")
+
     path = 'html/doc/{}'.format(urlpath)
     if urlpath.endswith('.png'):
         return 'image/png', utils.read_file(path, binary=True)
-    else:
+
+    try:
         data = utils.read_file(path)
+    except OSError:
+        # No .html around, let's see if we find the asciidoc
+        asciidoc_path = path.replace('.html', '.asciidoc')
+        if asciidoc_path.startswith('html/doc/'):
+            asciidoc_path = asciidoc_path.replace('html/doc/', '../doc/help/')
+
+        try:
+            asciidoc = utils.read_file(asciidoc_path)
+        except OSError:
+            asciidoc = None
+
+        if asciidoc is None:
+            raise
+
+        preamble = textwrap.dedent("""
+            There was an error loading the documentation!
+
+            This most likely means the documentation was not generated
+            properly. If you are running qutebrowser from the git repository,
+            please (re)run scripts/asciidoc2html.py and reload this page.
+
+            If you're running a released version this is a bug, please use
+            :report to report it.
+
+            Falling back to the plaintext version.
+
+            ---------------------------------------------------------------
+
+
+        """)
+        return 'text/plain', (preamble + asciidoc).encode('utf-8')
+    else:
         return 'text/html', data
 
 
@@ -390,3 +372,51 @@ def qute_backend_warning(_url):
                         version=pkg_resources.parse_version,
                         title="Legacy backend warning")
     return 'text/html', html
+
+
+def _qute_settings_set(url):
+    """Handler for qute://settings/set."""
+    query = QUrlQuery(url)
+    option = query.queryItemValue('option', QUrl.FullyDecoded)
+    value = query.queryItemValue('value', QUrl.FullyDecoded)
+
+    # https://github.com/qutebrowser/qutebrowser/issues/727
+    if option == 'content.javascript.enabled' and value == 'false':
+        msg = ("Refusing to disable javascript via qute://settings "
+               "as it needs javascript support.")
+        message.error(msg)
+        return 'text/html', b'error: ' + msg.encode('utf-8')
+
+    try:
+        config.instance.set_str(option, value, save_yaml=True)
+        return 'text/html', b'ok'
+    except configexc.Error as e:
+        message.error(str(e))
+        return 'text/html', b'error: ' + str(e).encode('utf-8')
+
+
+@add_handler('settings')
+def qute_settings(url):
+    """Handler for qute://settings. View/change qute configuration."""
+    if url.path() == '/set':
+        return _qute_settings_set(url)
+
+    html = jinja.render('settings.html', title='settings',
+                        configdata=configdata,
+                        confget=config.instance.get_str)
+    return 'text/html', html
+
+
+@add_handler('configdiff')
+def qute_configdiff(url):
+    """Handler for qute://configdiff."""
+    if url.path() == '/old':
+        try:
+            return 'text/html', configdiff.get_diff()
+        except OSError as e:
+            error = (b'Failed to read old config: ' +
+                    str(e.strerror).encode('utf-8'))
+            return 'text/plain', error
+    else:
+        data = config.instance.dump_userconfig().encode('utf-8')
+        return 'text/plain', data

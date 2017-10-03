@@ -69,15 +69,22 @@ class UnsupportedOperationError(Exception):
 
 def download_dir():
     """Get the download directory to use."""
-    directory = config.get('storage', 'download-directory')
-    remember_dir = config.get('storage', 'remember-download-directory')
+    directory = config.val.downloads.location.directory
+    remember_dir = config.val.downloads.location.remember
 
     if remember_dir and last_used_directory is not None:
-        return last_used_directory
+        ddir = last_used_directory
     elif directory is None:
-        return standarddir.download()
+        ddir = standarddir.download()
     else:
-        return directory
+        ddir = directory
+
+    try:
+        os.makedirs(ddir)
+    except FileExistsError:
+        pass
+
+    return ddir
 
 
 def immediate_download_path(prompt_download_directory=None):
@@ -88,11 +95,10 @@ def immediate_download_path(prompt_download_directory=None):
     Args:
         prompt_download_directory: If this is something else than None, it
                                    will overwrite the
-                                   storage->prompt-download-directory setting.
+                                   downloads.location.prompt setting.
     """
     if prompt_download_directory is None:
-        prompt_download_directory = config.get('storage',
-                                               'prompt-download-directory')
+        prompt_download_directory = config.val.downloads.location.prompt
 
     if not prompt_download_directory:
         return download_dir()
@@ -104,7 +110,7 @@ def _path_suggestion(filename):
     Args:
         filename: The filename to use if included in the suggestion.
     """
-    suggestion = config.get('completion', 'download-path-suggestion')
+    suggestion = config.val.downloads.location.suggestion
     if suggestion == 'path':
         # add trailing '/' if not present
         return os.path.join(download_dir(), '')
@@ -168,7 +174,7 @@ def transform_path(path):
 
     Returns None if the path is invalid on the current platform.
     """
-    if sys.platform != "win32":
+    if not utils.is_windows:
         return path
     path = utils.expand_windows_drive(path)
     # Drive dependent working directories are not supported, e.g.
@@ -494,13 +500,13 @@ class AbstractDownloadItem(QObject):
         Args:
             position: The color type requested, can be 'fg' or 'bg'.
         """
-        # pylint: disable=bad-config-call
-        # WORKAROUND for https://bitbucket.org/logilab/astroid/issue/104/
         assert position in ["fg", "bg"]
-        start = config.get('colors', 'downloads.{}.start'.format(position))
-        stop = config.get('colors', 'downloads.{}.stop'.format(position))
-        system = config.get('colors', 'downloads.{}.system'.format(position))
-        error = config.get('colors', 'downloads.{}.error'.format(position))
+        # pylint: disable=bad-config-option
+        start = getattr(config.val.colors.downloads.start, position)
+        stop = getattr(config.val.colors.downloads.stop, position)
+        system = getattr(config.val.colors.downloads.system, position)
+        error = getattr(config.val.colors.downloads.error, position)
+        # pylint: enable=bad-config-option
         if self.error_msg is not None:
             assert not self.successful
             return error
@@ -572,7 +578,7 @@ class AbstractDownloadItem(QObject):
         Args:
             cmdline: The command to use as string. A `{}` is expanded to the
                      filename. None means to use the system's default
-                     application or `default-open-dispatcher` if set. If no
+                     application or `downloads.open_dispatcher` if set. If no
                      `{}` is found, the filename is appended to the cmdline.
         """
         assert self.successful
@@ -757,7 +763,7 @@ class AbstractDownloadManager(QObject):
         download.remove_requested.connect(functools.partial(
             self._remove_item, download))
 
-        delay = config.get('ui', 'remove-finished-downloads')
+        delay = config.val.downloads.remove_finished
         if delay > -1:
             download.finished.connect(
                 lambda: QTimer.singleShot(delay, download.remove))

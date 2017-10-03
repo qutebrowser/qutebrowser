@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,13 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest_bdd as bdd
+import pytest
 
-bdd.scenarios('adblock.feature')
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
-@bdd.when(bdd.parsers.parse('I set up "{lists}" as block lists'))
-def set_up_blocking(quteproc, lists, httpbin):
-    url = 'http://localhost:{}/data/adblock/'.format(httpbin.port)
-    urls = [url + item.strip() for item in lists.split(',')]
-    quteproc.set_setting('content', 'host-block-lists', ','.join(urls))
+@pytest.mark.parametrize('func', [
+    lambda: objects.NoBackend() == usertypes.Backend.QtWebEngine,
+    lambda: objects.NoBackend() != usertypes.Backend.QtWebEngine,
+    lambda: objects.NoBackend() in [usertypes.Backend.QtWebEngine],
+])
+def test_no_backend(func):
+    with pytest.raises(AssertionError, match='No backend set!'):
+        func()

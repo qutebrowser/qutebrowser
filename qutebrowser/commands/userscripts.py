@@ -25,7 +25,7 @@ import tempfile
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
-from qutebrowser.utils import message, log, objreg, standarddir
+from qutebrowser.utils import message, log, objreg, standarddir, utils
 from qutebrowser.commands import runners
 from qutebrowser.config import config
 from qutebrowser.misc import guiprocess
@@ -376,7 +376,7 @@ def _lookup_path(cmd):
     """
     directories = [
         os.path.join(standarddir.data(), "userscripts"),
-        os.path.join(standarddir.system_data(), "userscripts"),
+        os.path.join(standarddir.data(system=True), "userscripts"),
     ]
     for directory in directories:
         cmd_path = os.path.join(directory, cmd)
@@ -406,9 +406,9 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
                                 window=win_id)
     commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
 
-    if os.name == 'posix':
+    if utils.is_posix:
         runner = _POSIXUserscriptRunner(tabbed_browser)
-    elif os.name == 'nt':  # pragma: no cover
+    elif utils.is_windows:  # pragma: no cover
         runner = _WindowsUserscriptRunner(tabbed_browser)
     else:  # pragma: no cover
         raise UnsupportedError
@@ -417,7 +417,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         lambda cmd:
         log.commands.debug("Got userscript command: {}".format(cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
-    user_agent = config.get('network', 'user-agent')
+    user_agent = config.val.content.headers.user_agent
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
 

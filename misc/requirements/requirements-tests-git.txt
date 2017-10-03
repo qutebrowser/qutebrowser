@@ -4,7 +4,6 @@ hg+https://bitbucket.org/ned/coveragepy
 git+https://github.com/micheles/decorator.git
 git+https://github.com/pallets/flask.git
 git+https://github.com/miracle2k/python-glob2.git
-git+https://github.com/Runscope/httpbin.git
 git+https://github.com/HypothesisWorks/hypothesis-python.git
 git+https://github.com/pallets/itsdangerous.git
 git+https://bitbucket.org/zzzeek/mako.git
@@ -41,6 +40,7 @@ git+https://github.com/pallets/jinja.git
 git+https://github.com/pallets/markupsafe.git
 hg+http://bitbucket.org/birkenfeld/pygments-main
 hg+https://bitbucket.org/fdik/pypeg
+git+https://github.com/python-attrs/attrs.git
 
 # Fails to build:
 # gcc: error: ext/_yaml.c: No such file or directory

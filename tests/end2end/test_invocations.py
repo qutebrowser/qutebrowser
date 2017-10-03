@@ -29,8 +29,6 @@ import pytest
 
 from PyQt5.QtCore import QProcess
 
-from qutebrowser.utils import qtutils
-
 
 def _base_args(config):
     """Get the arguments to pass with every invocation."""
@@ -72,7 +70,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
-def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
+def test_ascii_locale(request, server, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/908
@@ -80,18 +78,18 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
     """
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
-    quteproc_new.set_setting('storage', 'download-directory', str(tmpdir))
+    quteproc_new.set_setting('downloads.location.directory', str(tmpdir))
 
     # Test a normal download
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/ä-issue908.bin'.format(
-        port=httpbin.port)
+        port=server.port)
     quteproc_new.send_cmd(':download {}'.format(url))
     quteproc_new.wait_for(category='downloads',
                           message='Download ?-issue908.bin finished')
 
     # Test :prompt-open-download
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'true')
+    quteproc_new.set_setting('downloads.location.prompt', 'true')
     quteproc_new.send_cmd(':download {}'.format(url))
     quteproc_new.send_cmd(':prompt-open-download "{}" -c pass'
                           .format(sys.executable))
@@ -105,7 +103,7 @@ def test_ascii_locale(request, httpbin, tmpdir, quteproc_new):
 
 
 @pytest.mark.linux
-def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
+def test_misconfigured_user_dirs(request, server, temp_basedir_env,
                                  tmpdir, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
 
@@ -122,9 +120,9 @@ def test_misconfigured_user_dirs(request, httpbin, temp_basedir_env,
 
     quteproc_new.start(_base_args(request.config), env=temp_basedir_env)
 
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
+    quteproc_new.set_setting('downloads.location.prompt', 'false')
     url = 'http://localhost:{port}/data/downloads/download.bin'.format(
-        port=httpbin.port)
+        port=server.port)
     quteproc_new.send_cmd(':download {}'.format(url))
     line = quteproc_new.wait_for(
         loglevel=logging.ERROR, category='message',
@@ -175,20 +173,19 @@ def test_version(request):
     proc.start(sys.executable, args)
     ok = proc.waitForStarted(2000)
     assert ok
-    ok = proc.waitForFinished(2000)
-    assert ok
-    assert proc.exitStatus() == QProcess.NormalExit
+    ok = proc.waitForFinished(10000)
 
     stdout = bytes(proc.readAllStandardOutput()).decode('utf-8')
     print(stdout)
     stderr = bytes(proc.readAllStandardError()).decode('utf-8')
     print(stderr)
 
+    assert ok
+    assert proc.exitStatus() == QProcess.NormalExit
+
     assert re.search(r'^qutebrowser\s+v\d+(\.\d+)', stdout) is not None
 
 
-@pytest.mark.skipif(not qtutils.version_check('5.3'),
-                    reason="Does not work on Qt 5.2")
 def test_qt_arg(request, quteproc_new, tmpdir):
     """Test --qt-arg."""
     args = (['--temp-basedir', '--qt-arg', 'stylesheet',
@@ -234,9 +231,8 @@ def test_webengine_download_suffix(request, quteproc_new, tmpdir):
     args = (['--temp-basedir'] + _base_args(request.config))
     quteproc_new.start(args, env=env)
 
-    quteproc_new.set_setting('storage', 'prompt-download-directory', 'false')
-    quteproc_new.set_setting('storage', 'download-directory',
-                             str(download_dir))
+    quteproc_new.set_setting('downloads.location.prompt', 'false')
+    quteproc_new.set_setting('downloads.location.directory', str(download_dir))
     quteproc_new.open_path('data/downloads/download.bin', wait=False)
     quteproc_new.wait_for(category='downloads', message='Download * finished')
     quteproc_new.open_path('data/downloads/download.bin', wait=False)
@@ -269,14 +265,14 @@ def test_launching_with_python2():
         pytest.skip("python2 not found")
     _stdout, stderr = proc.communicate()
     assert proc.returncode == 1
-    error = "At least Python 3.4 is required to run qutebrowser"
+    error = "At least Python 3.5 is required to run qutebrowser"
     assert stderr.decode('ascii').startswith(error)
 
 
 def test_initial_private_browsing(request, quteproc_new):
     """Make sure the initial window is private when the setting is set."""
     args = (_base_args(request.config) +
-            ['--temp-basedir', '-s', 'general', 'private-browsing', 'true'])
+            ['--temp-basedir', '-s', 'content.private_browsing', 'true'])
     quteproc_new.start(args)
 
     quteproc_new.compare_session("""
@@ -308,3 +304,33 @@ def test_loading_empty_session(tmpdir, request, quteproc_new):
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
+
+
+def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
+    """Make sure settings from qute://settings are persistent."""
+    args = _base_args(request.config) + ['--basedir', str(short_tmpdir)]
+    quteproc_new.start(args)
+    quteproc_new.open_path(
+        'qute://settings/set?option=ignore_case&value=always')
+    assert quteproc_new.get_setting('ignore_case') == 'always'
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()
+
+    quteproc_new.start(args)
+    assert quteproc_new.get_setting('ignore_case') == 'always'
+
+
+@pytest.mark.no_xvfb
+@pytest.mark.no_ci
+def test_force_software_rendering(request, quteproc_new):
+    """Make sure we can force software rendering with -s."""
+    if not request.config.webengine:
+        pytest.skip("Only runs with QtWebEngine")
+
+    args = (_base_args(request.config) +
+            ['--temp-basedir', '-s', 'force_software_rendering', 'true'])
+    quteproc_new.start(args)
+    quteproc_new.open_path('chrome://gpu')
+    message = 'Canvas: Software only, hardware acceleration unavailable'
+    assert message in quteproc_new.get_content()

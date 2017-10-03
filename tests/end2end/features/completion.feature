@@ -50,6 +50,8 @@ Feature: Using completion
         When I run :set-cmd-text -s :bind X
         Then the completion model should be bind
 
+    # See #2956
+    @flaky
     Scenario: Using session completion
         Given I open data/hello.txt
         And I run :session-save hello
@@ -61,11 +63,11 @@ Feature: Using completion
         Then the error "Session hello not found!" should be shown
 
     Scenario: Using option completion
-        When I run :set-cmd-text -s :set colors
+        When I run :set-cmd-text -s :set
         Then the completion model should be option
 
     Scenario: Using value completion
-        When I run :set-cmd-text -s :set colors statusbar.bg
+        When I run :set-cmd-text -s :set aliases
         Then the completion model should be value
 
     Scenario: Deleting an open tab via the completion

@@ -23,6 +23,7 @@ import re
 import os
 import time
 
+import attr
 import pytest
 import pytestqt.plugin
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
@@ -58,6 +59,7 @@ class BlacklistedMessageError(Exception):
     """Raised when ensure_not_logged found a message."""
 
 
+@attr.s
 class Line:
 
     """Container for a line of data the process emits.
@@ -67,12 +69,8 @@ class Line:
         waited_for: If Process.wait_for was used on this line already.
     """
 
-    def __init__(self, data):
-        self.data = data
-        self.waited_for = False
-
-    def __repr__(self):
-        return '{}({!r})'.format(self.__class__.__name__, self.data)
+    data = attr.ib()
+    waited_for = attr.ib(False)
 
 
 def _render_log(data, threshold=100):
@@ -90,7 +88,7 @@ def _render_log(data, threshold=100):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Add qutebrowser/httpbin sections to captured output if a test failed."""
+    """Add qutebrowser/server sections to captured output if a test failed."""
     outcome = yield
     if call.when not in ['call', 'teardown']:
         return
@@ -100,7 +98,7 @@ def pytest_runtest_makereport(item, call):
         return
 
     quteproc_log = getattr(item, '_quteproc_log', None)
-    httpbin_log = getattr(item, '_httpbin_log', None)
+    server_log = getattr(item, '_server_log', None)
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on macOS and Windows it seems), report.longrepr
@@ -114,8 +112,8 @@ def pytest_runtest_makereport(item, call):
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
                                    _render_log(quteproc_log))
-    if httpbin_log is not None:
-        report.longrepr.addsection("httpbin output", _render_log(httpbin_log))
+    if server_log is not None:
+        report.longrepr.addsection("server output", _render_log(server_log))
 
 
 class Process(QObject):
@@ -127,6 +125,7 @@ class Process(QObject):
     Attributes:
         _invalid: A list of lines which could not be parsed.
         _data: A list of parsed lines.
+        _started: Whether the process was ever started.
         proc: The QProcess for the underlying process.
         exit_expected: Whether the process is expected to quit.
 
@@ -142,11 +141,12 @@ class Process(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.captured_log = []
+        self._started = False
         self._invalid = []
         self._data = []
         self.proc = QProcess()
         self.proc.setReadChannel(QProcess.StandardError)
-        self.exit_expected = True  # Not started at all yet
+        self.exit_expected = None  # Not started at all yet
 
     def _log(self, line):
         """Add the given line to the captured log output."""
@@ -223,8 +223,8 @@ class Process(QObject):
 
     def start(self, args=None, *, env=None):
         """Start the process and wait until it started."""
-        self.exit_expected = False
         self._start(args, env=env)
+        self._started = True
         timeout = 60 if 'CI' in os.environ else 20
         for _ in range(timeout):
             with self._wait_signal(self.ready, timeout=1000,
@@ -232,6 +232,8 @@ class Process(QObject):
                 pass
 
             if not self.is_running():
+                if self.exit_expected:
+                    return
                 # _start ensures it actually started, but it might quit shortly
                 # afterwards
                 raise ProcessExited('\n' + _render_log(self.captured_log))
@@ -240,7 +242,8 @@ class Process(QObject):
                 self._after_start()
                 return
 
-        raise WaitForTimeout("Timed out while waiting for process start.")
+        raise WaitForTimeout("Timed out while waiting for process start.\n" +
+                             _render_log(self.captured_log))
 
     def _start(self, args, env):
         """Actually start the process."""
@@ -287,7 +290,7 @@ class Process(QObject):
             raise InvalidLine('\n' + '\n'.join(self._invalid))
 
         self.clear_data()
-        if not self.is_running() and not self.exit_expected:
+        if not self.is_running() and not self.exit_expected and self._started:
             raise ProcessExited
         self.exit_expected = False
 

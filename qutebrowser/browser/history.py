@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import (utils, objreg, log, usertypes, message,
-                               debug, standarddir)
+                               debug, standarddir, qtutils)
 from qutebrowser.misc import objects, sql
 
 
@@ -132,7 +132,7 @@ class WebHistory(sql.SqlTable):
             self._do_clear()
         else:
             message.confirm_async(self._do_clear, title="Clear all browsing "
-                                "history?")
+                                  "history?")
 
     def _do_clear(self):
         self.delete_all()
@@ -144,8 +144,10 @@ class WebHistory(sql.SqlTable):
         Args:
             url: URL string to delete.
         """
-        self.delete('url', url)
-        self.completion.delete('url', url)
+        qurl = QUrl(url)
+        qtutils.ensure_valid(qurl)
+        self.delete('url', self._format_url(qurl))
+        self.completion.delete('url', self._format_completion_url(qurl))
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
@@ -173,10 +175,11 @@ class WebHistory(sql.SqlTable):
                       (hidden in completion)
             atime: Override the atime used to add the entry
         """
-        if not url.isValid():  # pragma: no cover
-            # the no cover pragma is a WORKAROUND for this not being covered in
-            # old Qt versions.
+        if not url.isValid():
             log.misc.warning("Ignoring invalid URL being added to history")
+            return
+
+        if 'no-sql-history' in objreg.get('args').debug_flags:
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())
@@ -249,10 +252,7 @@ class WebHistory(sql.SqlTable):
                 except ValueError as ex:
                     message.error('Failed to import history: {}'.format(ex))
                 else:
-                    bakpath = path + '.bak'
-                    message.info('History import complete. Moving {} to {}'
-                                 .format(path, bakpath))
-                    os.rename(path, bakpath)
+                    self._write_backup(path)
 
         # delay to give message time to appear before locking down for import
         message.info('Converting {} to sqlite...'.format(path))
@@ -283,6 +283,16 @@ class WebHistory(sql.SqlTable):
                                      .format(i, path, ex))
         self.insert_batch(data)
         self.completion.insert_batch(completion_data, replace=True)
+
+    def _write_backup(self, path):
+        bak = path + '.bak'
+        message.info('History import complete. Appending {} to {}'
+                     .format(path, bak))
+        with open(path, 'r', encoding='utf-8') as infile:
+            with open(bak, 'a', encoding='utf-8') as outfile:
+                for line in infile:
+                    outfile.write('\n' + line)
+        os.remove(path)
 
     def _format_url(self, url):
         return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -320,6 +330,6 @@ def init(parent=None):
     history = WebHistory(parent=parent)
     objreg.register('web-history', history)
 
-    if objects.backend == usertypes.Backend.QtWebKit:
+    if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory
         webkithistory.init(history)

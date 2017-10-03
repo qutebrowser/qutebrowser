@@ -20,16 +20,28 @@ v1.0.0 (unreleased)
 Breaking changes
 ~~~~~~~~~~~~~~~~
 
-- Support for legacy QtWebKit (before 5.212 which is distributed
-  independently from Qt) is dropped.
-- Support for Python 3.4 is dropped.
-- Support for Qt before 5.7 is dropped.
-- New dependency on the QtSql module and Qt sqlite support.
-- New dependency on ruamel.yaml; dropped PyYAML dependency.
-- The QtWebEngine backend is now used by default if available.
+- Dependency changes
+  - Support for legacy QtWebKit (before 5.212 which is distributed independently
+    from Qt) is dropped.
+  - Support for Python 3.4 is dropped.
+  - Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
+  - (TODO) New dependency on ruamel.yaml; dropped PyYAML dependency.
+  - New dependency on the QtSql module and Qt sqlite support.
+  - New dependency on the `attrs` Python module.
+  - The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
+    that PyQt5.QtOpenGL is still a dependency.
+  - PyQt5.QtOpenGL is now always required, even with QtWebKit.
+- (TODO) The QtWebEngine backend is now used by default if available.
 - New config system which ignores the old config file.
-- The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
-  that PyQt5.QtOpenGL is still a dependency.
+- Various documentation files got moved to the doc/ subfolder,
+ `qutebrowser.desktop` got moved to misc/.
+- Migrating QtWebEngine data written by versions before 2016-11-15 (before
+  v0.9.0) is now not supported anymore.
+- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
+  work properly anymore.
+- The `--harfbuzz` and `--relaxed-config` commandline arguments got dropped.
+- `:set` now doesn't support toggling/cycling values anymore, that functionality
+  got moved to `:config-cycle`.
 
 Major changes
 ~~~~~~~~~~~~~
@@ -42,23 +54,37 @@ Added
 ~~~~~
 
 - New back/forward indicator in the statusbar
+- New `bindings.key_mappings` setting to map keys to other keys
+- New `qt_args` setting to pass additional arguments to Qt/Chromium
+- New `backend` setting to select the backend to use (auto/webengine/webkit).
+  Together with the previous setting, this should make wrapper scripts
+  unnecessary.
+- Proxy authentication is now supported with the QtWebEngine backend.
+- New config commands:
+  - `:config-cycle` to cycle an option between multiple values.
+  - `:config-unset` to remove a configured option
+  - `:config-clear` to remove all configured options
+  - `:config-source` to (re-)read a `config.py` file
+  - `:config-edit` to open the `config.py` file in an editor
 
 Changed
 ~~~~~~~
 
-- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
-  work properly anymore.
 - Using `:download` now uses the page's title as filename.
 - Using `:back` or `:forward` with a count now skips intermediate pages.
 - When there are multiple messages shown, the timeout is increased.
 - `:search` now only clears the search if one was displayed before, so pressing
   `<Escape>` doesn't un-focus inputs anymore.
+- Pinned tabs now adjust to their text's width, so the `tabs.width.pinned`
+  setting got removed.
 
 Fixes
 ~~~~~
 
 - Exiting fullscreen via `:fullscreen` or buttons on a page now
   restores the correct previous window state (maximized/fullscreen).
+- When `input.insert_mode.auto_load` is set, background tabs now don't enter
+  insert mode anymore.
 
 v0.11.1 (unreleased)
 --------------------

@@ -22,23 +22,18 @@
 import pytest
 
 
-@pytest.mark.parametrize(['file_name', 'elem_id', 'source', 'input_text',
-                          'auto_insert'], [
-    ('textarea.html', 'qute-textarea', 'clipboard', 'qutebrowser', 'false'),
-    ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser',
-     'false'),
-    ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser', 'false'),
-    ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser', 'false'),
-    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser',
-     'true'),
+@pytest.mark.parametrize(['file_name', 'elem_id', 'source', 'input_text'], [
+    ('textarea.html', 'qute-textarea', 'clipboard', 'qutebrowser'),
+    ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser'),
+    ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser'),
+    ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser'),
+    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser'),
 ])
 @pytest.mark.parametrize('zoom', [100, 125, 250])
-def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
+def test_insert_mode(file_name, elem_id, source, input_text, zoom,
                      quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
-
-    quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
     quteproc.send_cmd(':zoom {}'.format(zoom))
 
     quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
@@ -57,11 +52,29 @@ def test_insert_mode(file_name, elem_id, source, input_text, auto_insert, zoom,
     quteproc.send_cmd(':leave-mode')
 
 
+@pytest.mark.parametrize('auto_load, background, insert_mode', [
+    (False, False, False),  # auto_load disabled
+    (True, False, True),  # enabled and foreground tab
+    (True, True, False),  # background tab
+])
+def test_auto_load(quteproc, auto_load, background, insert_mode):
+    quteproc.set_setting('input.insert_mode.auto_load', str(auto_load))
+    url_path = 'data/insert_mode_settings/html/autofocus.html'
+    quteproc.open_path(url_path, new_bg_tab=background)
+
+    log_message = 'Entering mode KeyMode.insert (reason: *)'
+    if insert_mode:
+        quteproc.wait_for(message=log_message)
+        quteproc.send_cmd(':leave-mode')
+    else:
+        quteproc.ensure_not_logged(message=log_message)
+
+
 def test_auto_leave_insert_mode(quteproc):
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path)
 
-    quteproc.set_setting('input', 'auto-leave-insert-mode', 'true')
+    quteproc.set_setting('input.insert_mode.auto_leave', 'true')
     quteproc.send_cmd(':zoom 100')
 
     quteproc.press_keys('abcd')

@@ -19,17 +19,15 @@
 
 """The main browser widgets."""
 
-import sys
-
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, debug
+from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
 
 
@@ -57,7 +55,7 @@ class WebView(QWebView):
 
     def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
-        if sys.platform == 'darwin' and qtutils.version_check('5.4'):
+        if utils.is_mac:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
             # See https://github.com/qutebrowser/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
@@ -74,13 +72,9 @@ class WebView(QWebView):
         page = webpage.BrowserPage(win_id=self.win_id, tab_id=self._tab_id,
                                    tabdata=tab.data, private=private,
                                    parent=self)
-
-        try:
-            page.setVisibilityState(
-                QWebPage.VisibilityStateVisible if self.isVisible()
-                else QWebPage.VisibilityStateHidden)
-        except AttributeError:
-            pass
+        page.setVisibilityState(
+            QWebPage.VisibilityStateVisible if self.isVisible()
+            else QWebPage.VisibilityStateHidden)
 
         self.setPage(page)
 
@@ -88,7 +82,7 @@ class WebView(QWebView):
                                   window=win_id)
         mode_manager.entered.connect(self.on_mode_entered)
         mode_manager.left.connect(self.on_mode_left)
-        objreg.get('config').changed.connect(self._set_bg_color)
+        config.instance.changed.connect(self._set_bg_color)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
@@ -107,10 +101,10 @@ class WebView(QWebView):
             # deleted
             pass
 
-    @config.change_filter('colors', 'webpage.bg')
+    @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
         """Set the webpage background color as configured."""
-        col = config.get('colors', 'webpage.bg')
+        col = config.val.colors.webpage.bg
         palette = self.palette()
         if col is None:
             col = self.style().standardPalette().color(QPalette.Base)
@@ -135,22 +129,6 @@ class WebView(QWebView):
             url: The URL to load as QUrl
         """
         self.load(url)
-        if url.scheme() == 'qute':
-            frame = self.page().mainFrame()
-            frame.javaScriptWindowObjectCleared.connect(self.add_js_bridge)
-
-    @pyqtSlot()
-    def add_js_bridge(self):
-        """Add the javascript bridge for qute://... pages."""
-        frame = self.sender()
-        if not isinstance(frame, QWebFrame):
-            log.webview.error("Got non-QWebFrame {!r} in "
-                              "add_js_bridge!".format(frame))
-            return
-
-        if frame.url().scheme() == 'qute':
-            bridge = objreg.get('js-bridge')
-            frame.addToJavaScriptWindowObject('qute', bridge)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
@@ -256,12 +234,8 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        try:
-            self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
-        except AttributeError:
-            pass
-
         super().showEvent(e)
+        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
 
     def hideEvent(self, e):
         """Extend hideEvent to set the page visibility state to hidden.
@@ -272,12 +246,8 @@ class WebView(QWebView):
         Return:
             The superclass event return value.
         """
-        try:
-            self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
-        except AttributeError:
-            pass
-
         super().hideEvent(e)
+        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
 
     def mousePressEvent(self, e):
         """Set the tabdata ClickTarget on a mousepress.
@@ -285,10 +255,10 @@ class WebView(QWebView):
         This is implemented here as we don't need it for QtWebEngine.
         """
         if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
-            background_tabs = config.get('tabs', 'background-tabs')
+            background = config.val.tabs.background
             if e.modifiers() & Qt.ShiftModifier:
-                background_tabs = not background_tabs
-            if background_tabs:
+                background = not background
+            if background:
                 target = usertypes.ClickTarget.tab_bg
             else:
                 target = usertypes.ClickTarget.tab

@@ -21,6 +21,7 @@
 
 import itertools
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
@@ -61,9 +62,6 @@ def init():
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginetab
         webenginetab.init()
-    else:
-        from qutebrowser.browser.webkit import webkittab
-        webkittab.init()
 
 
 class WebTabError(Exception):
@@ -85,6 +83,7 @@ TerminationStatus = usertypes.enum('TerminationStatus', [
 ])
 
 
+@attr.s
 class TabData:
 
     """A simple namespace with a fixed set of attributes.
@@ -100,13 +99,12 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
     """
 
-    def __init__(self):
-        self.keep_icon = False
-        self.viewing_source = False
-        self.inspector = None
-        self.override_target = None
-        self.pinned = False
-        self.fullscreen = False
+    keep_icon = attr.ib(False)
+    viewing_source = attr.ib(False)
+    inspector = attr.ib(None)
+    override_target = attr.ib(None)
+    pinned = attr.ib(False)
+    fullscreen = attr.ib(False)
 
 
 class AbstractAction:
@@ -188,13 +186,28 @@ class AbstractSearch(QObject):
         self.text = None
         self.search_displayed = False
 
-    def search(self, text, *, ignore_case=False, reverse=False,
+    def _is_case_sensitive(self, ignore_case):
+        """Check if case-sensitivity should be used.
+
+        This assumes self.text is already set properly.
+
+        Arguments:
+            ignore_case: The ignore_case value from the config.
+        """
+        mapping = {
+            'smart': not self.text.islower(),
+            'never': True,
+            'always': False,
+        }
+        return mapping[ignore_case]
+
+    def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
         """Find the given text on the page.
 
         Args:
             text: The text to search for.
-            ignore_case: Search case-insensitively. (True/False/'smart')
+            ignore_case: Search case-insensitively. ('always'/'never/'smart')
             reverse: Reverse search direction.
             result_cb: Called with a bool indicating whether a match was found.
         """
@@ -236,7 +249,7 @@ class AbstractZoom(QObject):
         self._win_id = win_id
         self._default_zoom_changed = False
         self._init_neighborlist()
-        objreg.get('config').changed.connect(self._on_config_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
         # # FIXME:qtwebengine is this needed?
         # # For some reason, this signal doesn't get disconnected automatically
@@ -245,21 +258,21 @@ class AbstractZoom(QObject):
         # self.destroyed.connect(functools.partial(
         #     cfg.changed.disconnect, self.init_neighborlist))
 
-    @pyqtSlot(str, str)
-    def _on_config_changed(self, section, option):
-        if section == 'ui' and option in ['zoom-levels', 'default-zoom']:
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option in ['zoom.levels', 'zoom.default']:
             if not self._default_zoom_changed:
-                factor = float(config.get('ui', 'default-zoom')) / 100
+                factor = float(config.val.zoom.default) / 100
                 self._set_factor_internal(factor)
             self._default_zoom_changed = False
             self._init_neighborlist()
 
     def _init_neighborlist(self):
         """Initialize self._neighborlist."""
-        levels = config.get('ui', 'zoom-levels')
+        levels = config.val.zoom.levels
         self._neighborlist = usertypes.NeighborList(
             levels, mode=usertypes.NeighborList.Modes.edge)
-        self._neighborlist.fuzzyval = config.get('ui', 'default-zoom')
+        self._neighborlist.fuzzyval = config.val.zoom.default
 
     def offset(self, offset):
         """Increase/Decrease the zoom level by the given offset.
@@ -295,8 +308,7 @@ class AbstractZoom(QObject):
         raise NotImplementedError
 
     def set_default(self):
-        default_zoom = config.get('ui', 'default-zoom')
-        self._set_factor_internal(float(default_zoom) / 100)
+        self._set_factor_internal(float(config.val.zoom.default) / 100)
 
 
 class AbstractCaret(QObject):
@@ -704,9 +716,9 @@ class AbstractTab(QWidget):
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
-    def _handle_auto_insert_mode(self, ok):
-        """Handle auto-insert-mode after loading finished."""
-        if not config.get('input', 'auto-insert-mode') or not ok:
+    def handle_auto_insert_mode(self, ok):
+        """Handle `input.insert_mode.auto_load` after loading finished."""
+        if not config.val.input.insert_mode.auto_load or not ok:
             return
 
         cur_mode = self._mode_manager.mode
@@ -741,7 +753,6 @@ class AbstractTab(QWidget):
         self.load_finished.emit(ok)
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
-        self._handle_auto_insert_mode(ok)
 
     @pyqtSlot()
     def _on_history_trigger(self):

@@ -25,7 +25,7 @@ import contextlib
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-from qutebrowser.utils import log, utils, objreg, qtutils
+from qutebrowser.utils import log, utils, qtutils
 from qutebrowser.config import config
 
 
@@ -195,8 +195,7 @@ class LimitLineParser(LineParser):
     """A LineParser with a limited count of lines.
 
     Attributes:
-        _limit: The config section/option used to limit the maximum number of
-                lines.
+        _limit: The config option used to limit the maximum number of lines.
     """
 
     def __init__(self, configdir, fname, *, limit, binary=False, parent=None):
@@ -205,33 +204,33 @@ class LimitLineParser(LineParser):
         Args:
             configdir: Directory to read the config from, or None.
             fname: Filename of the config file.
-            limit: Config tuple (section, option) which contains a limit.
+            limit: Config option which contains a limit.
             binary: Whether to open the file in binary mode.
         """
         super().__init__(configdir, fname, binary=binary, parent=parent)
         self._limit = limit
         if limit is not None and configdir is not None:
-            objreg.get('config').changed.connect(self.cleanup_file)
+            config.instance.changed.connect(self._cleanup_file)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
                               configdir=self._configdir, fname=self._fname,
                               limit=self._limit, binary=self._binary)
 
-    @pyqtSlot(str, str)
-    def cleanup_file(self, section, option):
+    @pyqtSlot(str)
+    def _cleanup_file(self, option):
         """Delete the file if the limit was changed to 0."""
         assert self._configfile is not None
-        if (section, option) != self._limit:
+        if option != self._limit:
             return
-        value = config.get(section, option)
+        value = config.instance.get(option)
         if value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)
 
     def save(self):
         """Save the config file."""
-        limit = config.get(*self._limit)
+        limit = config.instance.get(self._limit)
         if limit == 0:
             return
         do_save = self._prepare_save()

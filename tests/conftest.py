@@ -35,29 +35,33 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, standarddir, usertypes, utils
+from qutebrowser.misc import objects
+
+import qutebrowser.app  # To register commands
 
 
 # Set hypothesis settings
 hypothesis.settings.register_profile('default',
-                                     hypothesis.settings(strict=True))
+                                     hypothesis.settings(deadline=600))
 hypothesis.settings.load_profile('default')
 
 
 def _apply_platform_markers(config, item):
     """Apply a skip marker to a given item."""
     markers = [
-        ('posix', os.name != 'posix', "Requires a POSIX os"),
-        ('windows', os.name != 'nt', "Requires Windows"),
-        ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
-        ('mac', sys.platform != 'darwin', "Requires macOS"),
-        ('not_mac', sys.platform == 'darwin', "Skipped on macOS"),
+        ('posix', not utils.is_posix, "Requires a POSIX os"),
+        ('windows', not utils.is_windows, "Requires Windows"),
+        ('linux', not utils.is_linux, "Requires Linux"),
+        ('mac', not utils.is_mac, "Requires macOS"),
+        ('not_mac', utils.is_mac, "Skipped on macOS"),
         ('not_frozen', getattr(sys, 'frozen', False),
             "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
             "Can only run when frozen"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
-        ('issue2478', os.name == 'nt' and config.webengine,
+        ('no_ci', 'CI' in os.environ, "Skipped on CI."),
+        ('issue2478', utils.is_windows and config.webengine,
          "Broken with QtWebEngine on Windows"),
     ]
 
@@ -124,12 +128,9 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.xfail(run=False))
         if item.get_marker('js_prompt'):
             if config.webengine:
-                js_prompt_pyqt_version = 0x050700
-            else:
-                js_prompt_pyqt_version = 0x050300
-            item.add_marker(pytest.mark.skipif(
-                PYQT_VERSION <= js_prompt_pyqt_version,
-                reason='JS prompts are not supported with this PyQt version'))
+                item.add_marker(pytest.mark.skipif(
+                    PYQT_VERSION <= 0x050700,
+                    reason='JS prompts are not supported with PyQt 5.7'))
 
         if deselected:
             deselected_items.append(item)
@@ -180,8 +181,47 @@ def check_display(request):
             request.config.xvfb is not None):
         raise Exception("Xvfb is running on buildbot!")
 
-    if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
+    if utils.is_linux and not os.environ.get('DISPLAY', ''):
         raise Exception("No display and no Xvfb available!")
+
+
+@pytest.fixture(autouse=True)
+def set_backend(monkeypatch, request):
+    """Make sure the backend global is set."""
+    backend = (usertypes.Backend.QtWebEngine if request.config.webengine
+               else usertypes.Backend.QtWebKit)
+    monkeypatch.setattr(objects, 'backend', backend)
+
+
+@pytest.fixture(autouse=True)
+def apply_fake_os(monkeypatch, request):
+    fake_os = request.node.get_marker('fake_os')
+    if not fake_os:
+        return
+
+    name = fake_os.args[0]
+    mac = False
+    windows = False
+    linux = False
+    posix = False
+
+    if name == 'unknown':
+        pass
+    elif name == 'mac':
+        mac = True
+        posix = True
+    elif name == 'windows':
+        windows = True
+    elif name == 'linux':
+        linux = True
+        posix = True
+    else:
+        raise ValueError("Invalid fake_os {}".format(name))
+
+    monkeypatch.setattr('qutebrowser.utils.utils.is_mac', mac)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_linux', linux)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_windows', windows)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

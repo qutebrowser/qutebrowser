@@ -30,6 +30,7 @@ disable=no-self-use,
         broad-except,
         bare-except,
         eval-used,
+        exec-used,
         ungrouped-imports,
         suppressed-message,
         too-many-return-statements,
@@ -42,6 +43,7 @@ function-rgx=[a-z_][a-z0-9_]{2,50}$
 const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
 method-rgx=[a-z_][A-Za-z0-9_]{1,50}$
 attr-rgx=[a-z_][a-z0-9_]{0,30}$
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{1,30}|(__.*__))$
 argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
 docstring-min-length=3
@@ -63,6 +65,7 @@ valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
 ignored-modules=PyQt5,PyQt5.QtWebKit
+ignored-classes=_CountingAttr
 
 [IMPORTS]
 # WORKAROUND

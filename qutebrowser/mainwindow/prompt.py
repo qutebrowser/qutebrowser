@@ -23,14 +23,16 @@ import os.path
 import html
 import collections
 
+import attr
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
                           QItemSelectionModel, QObject, QEventLoop)
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy)
+                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
+                             QSpacerItem)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import style, config
+from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.commands import cmdutils, cmdexc
@@ -39,7 +41,13 @@ from qutebrowser.commands import cmdutils, cmdexc
 prompt_queue = None
 
 
-AuthTuple = collections.namedtuple('AuthTuple', ['user', 'password'])
+@attr.s
+class AuthInfo:
+
+    """Authentication info returned by a prompt."""
+
+    user = attr.ib()
+    password = attr.ib()
 
 
 class Error(Exception):
@@ -233,29 +241,38 @@ class PromptContainer(QWidget):
     """
 
     STYLESHEET = """
-        {% set prompt_radius = config.get('ui', 'prompt-radius') %}
         QWidget#PromptContainer {
-            {% if config.get('ui', 'status-position') == 'top' %}
-                border-bottom-left-radius: {{ prompt_radius }}px;
-                border-bottom-right-radius: {{ prompt_radius }}px;
+            {% if conf.statusbar.position == 'top' %}
+                border-bottom-left-radius: {{ conf.prompt.radius }}px;
+                border-bottom-right-radius: {{ conf.prompt.radius }}px;
             {% else %}
-                border-top-left-radius: {{ prompt_radius }}px;
-                border-top-right-radius: {{ prompt_radius }}px;
+                border-top-left-radius: {{ conf.prompt.radius }}px;
+                border-top-right-radius: {{ conf.prompt.radius }}px;
             {% endif %}
         }
 
         QWidget {
-            font: {{ font['prompts'] }};
-            color: {{ color['prompts.fg'] }};
-            background-color: {{ color['prompts.bg'] }};
+            font: {{ conf.fonts.prompts }};
+            color: {{ conf.colors.prompts.fg }};
+            background-color: {{ conf.colors.prompts.bg }};
+        }
+
+        QLineEdit {
+            border: {{ conf.colors.prompts.border }};
         }
 
         QTreeView {
-            selection-background-color: {{ color['prompts.selected.bg'] }};
+            selection-background-color: {{ conf.colors.prompts.selected.bg }};
+            border: {{ conf.colors.prompts.border }};
         }
 
-        QTreeView::item:selected, QTreeView::item:selected:hover {
-            background-color: {{ color['prompts.selected.bg'] }};
+        QTreeView::branch {
+            background-color: {{ conf.colors.prompts.bg }};
+        }
+
+        QTreeView::item:selected, QTreeView::item:selected:hover,
+        QTreeView::branch:selected {
+            background-color: {{ conf.colors.prompts.selected.bg }};
         }
     """
     update_geometry = pyqtSignal()
@@ -269,7 +286,7 @@ class PromptContainer(QWidget):
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)
@@ -427,7 +444,6 @@ class LineEdit(QLineEdit):
         super().__init__(parent)
         self.setStyleSheet("""
             QLineEdit {
-                border: 1px solid grey;
                 background-color: transparent;
             }
         """)
@@ -483,9 +499,8 @@ class _BasePrompt(QWidget):
         self._key_grid = QGridLayout()
         self._key_grid.setVerticalSpacing(0)
 
-        key_config = objreg.get('key-config')
         # The bindings are all in the 'prompt' mode, even for yesno prompts
-        all_bindings = key_config.get_reverse_bindings_for('prompt')
+        all_bindings = config.key_instance.get_reverse_bindings_for('prompt')
         labels = []
 
         for cmd, text in self._allowed_commands():
@@ -505,6 +520,9 @@ class _BasePrompt(QWidget):
         for i, (key_label, text_label) in enumerate(labels):
             self._key_grid.addWidget(key_label, i, 0)
             self._key_grid.addWidget(text_label, i, 1)
+
+        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding)
+        self._key_grid.addItem(spacer, 0, 2)
 
         self._vbox.addLayout(self._key_grid)
 
@@ -554,8 +572,7 @@ class FilenamePrompt(_BasePrompt):
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
         self._init_texts(question)
-        self._init_fileview()
-        self._set_fileview_root(question.default)
+        self._init_key_label()
 
         self._lineedit = LineEdit(self)
         if question.default:
@@ -564,9 +581,11 @@ class FilenamePrompt(_BasePrompt):
         self._vbox.addWidget(self._lineedit)
 
         self.setFocusProxy(self._lineedit)
-        self._init_key_label()
 
-        if config.get('ui', 'prompt-filebrowser'):
+        self._init_fileview()
+        self._set_fileview_root(question.default)
+
+        if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
     @pyqtSlot(str)
@@ -628,7 +647,7 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setModel(self._file_model)
         self._file_view.clicked.connect(self._insert_path)
 
-        if config.get('ui', 'prompt-filebrowser'):
+        if config.val.prompt.filebrowser:
             self._vbox.addWidget(self._file_view)
         else:
             self._file_view.hide()
@@ -752,7 +771,7 @@ class AuthenticationPrompt(_BasePrompt):
                             "username:password, but {} was given".format(
                                 value))
             username, password = value.split(':', maxsplit=1)
-            self.question.answer = AuthTuple(username, password)
+            self.question.answer = AuthInfo(username, password)
             return True
         elif self._user_lineedit.hasFocus():
             # Earlier, tab was bound to :prompt-accept, so to still support
@@ -760,8 +779,8 @@ class AuthenticationPrompt(_BasePrompt):
             self._password_lineedit.setFocus()
             return False
         else:
-            self.question.answer = AuthTuple(self._user_lineedit.text(),
-                                             self._password_lineedit.text())
+            self.question.answer = AuthInfo(self._user_lineedit.text(),
+                                            self._password_lineedit.text())
             return True
 
     def item_focus(self, which):

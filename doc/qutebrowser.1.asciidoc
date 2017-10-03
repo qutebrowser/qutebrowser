@@ -44,7 +44,7 @@ show it.
 *-V*, *--version*::
     Show version and quit.
 
-*-s* 'SECTION' 'OPTION' 'VALUE', *--set* 'SECTION' 'OPTION' 'VALUE'::
+*-s* 'OPTION' 'VALUE', *--set* 'OPTION' 'VALUE'::
     Set a temporary setting for this session.
 
 *-r* 'SESSION', *--restore* 'SESSION'::
@@ -83,12 +83,6 @@ show it.
 
 *--force-color*::
     Force colored logging
-
-*--harfbuzz* '{old,new,system,auto}'::
-    HarfBuzz engine version to use. Default: auto.
-
-*--relaxed-config*::
-    Silently remove unknown config options.
 
 *--nowindow*::
     Don't show the main window.

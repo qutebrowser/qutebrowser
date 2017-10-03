@@ -55,6 +55,9 @@ def patch_read_file(monkeypatch):
         elif path == os.path.join('html', 'undef_error.html'):
             assert not binary
             return real_read_file(path)
+        elif path == os.path.join('html', 'attributeerror.html'):
+            assert not binary
+            return """{{ obj.foobar }}"""
         else:
             raise IOError("Invalid path {}!".format(path))
 
@@ -86,7 +89,7 @@ def test_resource_url():
 
     path = url.path()
 
-    if os.name == "nt":
+    if utils.is_windows:
         path = path.lstrip('/')
         path = path.replace('/', os.sep)
 
@@ -137,14 +140,18 @@ def test_undefined_function(caplog):
     assert caplog.records[0].msg == "UndefinedError while rendering undef.html"
 
 
-@pytest.mark.parametrize('name, expected', [
-    (None, False),
-    ('foo', False),
-    ('foo.html', True),
-    ('foo.htm', True),
-    ('foo.xml', True),
-    ('blah/bar/foo.html', True),
-    ('foo.bar.html', True),
-])
-def test_autoescape(name, expected):
-    assert jinja._guess_autoescape(name) == expected
+def test_attribute_error():
+    """Make sure accessing an unknown attribute fails."""
+    with pytest.raises(AttributeError):
+        jinja.render('attributeerror.html', obj=object())
+
+
+@pytest.mark.parametrize('escape', [True, False])
+def test_autoescape(escape):
+    if not escape:
+        with jinja.environment.no_autoescape():
+            template = jinja.environment.from_string("{{ v }}")
+        assert template.render(v='<foo') == '<foo'
+
+    template = jinja.environment.from_string("{{ v }}")
+    assert template.render(v='<foo') == '&lt;foo'

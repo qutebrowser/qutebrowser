@@ -22,44 +22,32 @@
 import inspect
 import collections
 import traceback
+import typing
+
+import attr
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import (log, utils, message, docutils, objreg,
-                               usertypes, typing)
+from qutebrowser.utils import log, message, docutils, objreg, usertypes
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
 
 
+@attr.s
 class ArgInfo:
 
     """Information about an argument."""
 
-    def __init__(self, win_id=False, count=False, hide=False, metavar=None,
-                 flag=None, completion=None, choices=None):
-        if win_id and count:
+    win_id = attr.ib(False)
+    count = attr.ib(False)
+    hide = attr.ib(False)
+    metavar = attr.ib(None)
+    flag = attr.ib(None)
+    completion = attr.ib(None)
+    choices = attr.ib(None)
+
+    def __attrs_post_init__(self):
+        if self.win_id and self.count:
             raise TypeError("Argument marked as both count/win_id!")
-        self.win_id = win_id
-        self.count = count
-        self.flag = flag
-        self.hide = hide
-        self.metavar = metavar
-        self.completion = completion
-        self.choices = choices
-
-    def __eq__(self, other):
-        return (self.win_id == other.win_id and
-                self.count == other.count and
-                self.flag == other.flag and
-                self.hide == other.hide and
-                self.metavar == other.metavar and
-                self.completion == other.completion and
-                self.choices == other.choices)
-
-    def __repr__(self):
-        return utils.get_repr(self, win_id=self.win_id, count=self.count,
-                              flag=self.flag, hide=self.hide,
-                              metavar=self.metavar, completion=self.completion,
-                              choices=self.choices, constructor=True)
 
 
 class Command:
@@ -90,7 +78,7 @@ class Command:
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  hide=False, modes=None, not_modes=None, debug=False,
-                 ignore_args=False, deprecated=False, no_cmd_split=False,
+                 deprecated=False, no_cmd_split=False,
                  star_args_optional=False, scope='global', backend=None,
                  no_replace_variables=False):
         # I really don't know how to solve this in a better way, I tried.
@@ -121,7 +109,6 @@ class Command:
         self._scope = scope
         self._star_args_optional = star_args_optional
         self.debug = debug
-        self.ignore_args = ignore_args
         self.handler = handler
         self.no_cmd_split = no_cmd_split
         self.backend = backend
@@ -225,33 +212,31 @@ class Command:
         else:
             self.desc = ""
 
-        if not self.ignore_args:
-            for param in signature.parameters.values():
-                # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
-                # "Python has no explicit syntax for defining positional-only
-                # parameters, but many built-in and extension module functions
-                # (especially those that accept only one or two parameters)
-                # accept them."
-                assert param.kind != inspect.Parameter.POSITIONAL_ONLY
-                if param.name == 'self':
-                    continue
-                if self._inspect_special_param(param):
-                    continue
-                if (param.kind == inspect.Parameter.KEYWORD_ONLY and
-                        param.default is inspect.Parameter.empty):
-                    raise TypeError("{}: handler has keyword only argument "
-                                    "{!r} without default!".format(self.name,
-                                                                   param.name))
-                typ = self._get_type(param)
-                is_bool = typ is bool
-                kwargs = self._param_to_argparse_kwargs(param, is_bool)
-                args = self._param_to_argparse_args(param, is_bool)
-                callsig = debug_utils.format_call(
-                    self.parser.add_argument, args, kwargs,
-                    full=False)
-                log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
-                    param.name, typ, callsig))
-                self.parser.add_argument(*args, **kwargs)
+        for param in signature.parameters.values():
+            # https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
+            # "Python has no explicit syntax for defining positional-only
+            # parameters, but many built-in and extension module functions
+            # (especially those that accept only one or two parameters) accept
+            # them."
+            assert param.kind != inspect.Parameter.POSITIONAL_ONLY
+            if param.name == 'self':
+                continue
+            if self._inspect_special_param(param):
+                continue
+            if (param.kind == inspect.Parameter.KEYWORD_ONLY and
+                    param.default is inspect.Parameter.empty):
+                raise TypeError("{}: handler has keyword only argument {!r} "
+                                "without default!".format(
+                                    self.name, param.name))
+            typ = self._get_type(param)
+            is_bool = typ is bool
+            kwargs = self._param_to_argparse_kwargs(param, is_bool)
+            args = self._param_to_argparse_args(param, is_bool)
+            callsig = debug_utils.format_call(self.parser.add_argument, args,
+                                              kwargs, full=False)
+            log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
+                param.name, typ, callsig))
+            self.parser.add_argument(*args, **kwargs)
         return signature.parameters.values()
 
     def _param_to_argparse_kwargs(self, param, is_bool):
@@ -419,9 +404,10 @@ class Command:
             # support that.
             # pylint: disable=no-member,useless-suppression
             try:
-                types = list(typ.__union_params__)
-            except AttributeError:
                 types = list(typ.__args__)
+            except AttributeError:
+                # Older Python 3.5 patch versions
+                types = list(typ.__union_params__)
             # pylint: enable=no-member,useless-suppression
             if param.default is not inspect.Parameter.empty:
                 types.append(type(param.default))
@@ -452,12 +438,6 @@ class Command:
         args = []
         kwargs = {}
         signature = inspect.signature(self.handler)
-
-        if self.ignore_args:
-            if self._instance is not None:
-                param = list(signature.parameters.values())[0]
-                self._get_self_arg(win_id, param, args)
-            return args, kwargs
 
         for i, param in enumerate(signature.parameters.values()):
             arg_info = self.get_arg_info(param)

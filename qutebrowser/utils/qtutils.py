@@ -28,29 +28,16 @@ Module attributes:
 
 
 import io
-import os
-import sys
 import operator
 import contextlib
 
+import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR)
-from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None
-
-from qutebrowser.utils import log
-
-with log.ignore_py_warnings(category=PendingDeprecationWarning, module='imp'):
-    with log.ignore_py_warnings(category=ImportWarning):
-        # This imports 'imp' and gives us a PendingDeprecationWarning on
-        # Debian Jessie.
-        #
-        # On Archlinux, we get ImportWarning from
-        # importlib/_bootstrap_external.py for modules with missing __init__.
-        import pkg_resources
 
 
 MAXVALS = {
@@ -104,8 +91,8 @@ def version_check(version, exact=False, strict=False):
     return result
 
 
-def is_qtwebkit_ng():
-    """Check if the given version is QtWebKit-NG."""
+def is_new_qtwebkit():
+    """Check if the given version is a new QtWebKit."""
     assert qWebKitVersion is not None
     return (pkg_resources.parse_version(qWebKitVersion()) >
             pkg_resources.parse_version('538.1'))
@@ -137,36 +124,6 @@ def check_overflow(arg, ctype, fatal=True):
             return minval
     else:
         return arg
-
-
-def get_args(namespace):
-    """Get the Qt QApplication arguments based on an argparse namespace.
-
-    Args:
-        namespace: The argparse namespace.
-
-    Return:
-        The argv list to be passed to Qt.
-    """
-    argv = [sys.argv[0]]
-
-    if namespace.qt_flag is not None:
-        argv += ['--' + flag[0] for flag in namespace.qt_flag]
-
-    if namespace.qt_arg is not None:
-        for name, value in namespace.qt_arg:
-            argv += ['--' + name, value]
-
-    return argv
-
-
-def check_print_compat():
-    """Check if printing should work in the given Qt version."""
-    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    if os.name == 'nt':
-        return version_check('5.3')
-    else:
-        return True
 
 
 def ensure_valid(obj):
@@ -240,21 +197,6 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
             raise QtOSError(f, msg="Commit failed!")
-
-
-@contextlib.contextmanager
-def unset_organization():
-    """Temporarily unset QApplication.organizationName().
-
-    This is primarily needed in config.py.
-    """
-    qapp = QApplication.instance()
-    orgname = qapp.organizationName()
-    qapp.setOrganizationName(None)
-    try:
-        yield
-    finally:
-        qapp.setOrganizationName(orgname)
 
 
 class PyQIODevice(io.BufferedIOBase):

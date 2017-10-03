@@ -103,7 +103,7 @@ def test_delete_cur_item_no_func():
     parent = model.index(0, 0)
     with pytest.raises(cmdexc.CommandError):
         model.delete_cur_item(model.index(0, 0, parent))
-    assert not callback.called
+    callback.assert_not_called()
 
 
 def test_delete_cur_item_no_cat():
@@ -114,4 +114,4 @@ def test_delete_cur_item_no_cat():
     model.rowsRemoved.connect(callback)
     with pytest.raises(qtutils.QtValueError):
         model.delete_cur_item(QModelIndex())
-    assert not callback.called
+    callback.assert_not_called()

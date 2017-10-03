@@ -32,13 +32,17 @@ import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QMessageBox, QApplication)
+                             QDialogButtonBox, QApplication)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg, usertypes
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin, objects)
-from qutebrowser.config import config
+                              pastebin)
+from qutebrowser.config import config, configfiles
+
+
+Result = usertypes.enum('Result', ['restore', 'no_restore'], is_int=True,
+                        start=QDialog.Accepted + 1)
 
 
 def parse_fatal_stacktrace(text):
@@ -63,41 +67,6 @@ def parse_fatal_stacktrace(text):
         return ('', '')
     else:
         return (m.group(1), m.group(3))
-
-
-def get_fatal_crash_dialog(debug, data):
-    """Get a fatal crash dialog based on a crash log.
-
-    If the crash is a segfault in qt_mainloop and we're on an old Qt version
-    this is a simple error dialog which lets the user know they should upgrade
-    if possible.
-
-    If it's anything else, it's a normal FatalCrashDialog with the possibility
-    to report the crash.
-
-    Args:
-        debug: Whether the debug flag (--debug) was given.
-        data: The crash log data.
-    """
-    ignored_frames = ['qt_mainloop', 'paintEvent']
-    errtype, frame = parse_fatal_stacktrace(data)
-
-    if (errtype == 'Segmentation fault' and
-            frame in ignored_frames and
-            objects.backend == usertypes.Backend.QtWebKit):
-        title = "qutebrowser was restarted after a fatal crash!"
-        text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
-                "Unfortunately, this crash occurred in Qt (the library "
-                "qutebrowser uses), and QtWebKit (the current backend) is not "
-                "maintained anymore.<br/><br/>Since I can't do much about "
-                "those crashes I disabled the crash reporter for this case, "
-                "but this will likely be resolved in the future with the new "
-                "QtWebEngine backend.")
-        box = QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
-        box.setAttribute(Qt.WA_DeleteOnClose)
-        return box
-    else:
-        return FatalCrashDialog(debug, data)
 
 
 def _get_environment_vars():
@@ -152,22 +121,7 @@ class _CrashDialog(QDialog):
         self._pypi_client = autoupdate.PyPIVersionClient(self)
         self._init_text()
 
-        contact = QLabel("I'd like to be able to follow up with you, to keep "
-                         "you posted on the status of this crash and get more "
-                         "information if I need it - how can I contact you?",
-                         wordWrap=True)
-        self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        try:
-            state = objreg.get('state-config')
-            try:
-                self._contact.setPlainText(state['general']['contact-info'])
-            except KeyError:
-                self._contact.setPlaceholderText("Mail or IRC nickname")
-        except Exception:
-            log.misc.exception("Failed to get contact information!")
-            self._contact.setPlaceholderText("Mail or IRC nickname")
-        self._vbox.addWidget(self._contact, 2)
+        self._init_contact_input()
 
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
@@ -200,6 +154,26 @@ class _CrashDialog(QDialog):
 
     def __repr__(self):
         return utils.get_repr(self)
+
+    def _init_contact_input(self):
+        """Initialize the widget asking for contact info."""
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?",
+                         wordWrap=True)
+        self._vbox.addWidget(contact)
+        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        try:
+            try:
+                info = configfiles.state['general']['contact-info']
+            except KeyError:
+                self._contact.setPlaceholderText("Mail or IRC nickname")
+            else:
+                self._contact.setPlainText(info)
+        except Exception:
+            log.misc.exception("Failed to get contact information!")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
+        self._vbox.addWidget(self._contact, 2)
 
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
@@ -255,8 +229,8 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
-            conf = objreg.get('config')
-            self._crash_info.append(("Config", conf.dump_userconfig()))
+            self._crash_info.append(("Config",
+                                     config.instance.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
         try:
@@ -296,8 +270,8 @@ class _CrashDialog(QDialog):
     def _save_contact_info(self):
         """Save the contact info to disk."""
         try:
-            state = objreg.get('state-config')
-            state['general']['contact-info'] = self._contact.toPlainText()
+            info = self._contact.toPlainText()
+            configfiles.state['general']['contact-info'] = info
         except Exception:
             log.misc.exception("Failed to save contact information!")
 
@@ -432,7 +406,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._chk_log = QCheckBox("Include a debug log in the report",
                                   checked=True)
         try:
-            if config.get('general', 'private-browsing'):
+            if config.val.content.private_browsing:
                 self._chk_log.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -473,9 +447,9 @@ class ExceptionCrashDialog(_CrashDialog):
     def finish(self):
         self._save_contact_info()
         if self._chk_restore.isChecked():
-            self.accept()
+            self.done(Result.restore)
         else:
-            self.reject()
+            self.done(Result.no_restore)
 
 
 class FatalCrashDialog(_CrashDialog):
@@ -524,7 +498,7 @@ class FatalCrashDialog(_CrashDialog):
                                       "accessed pages in the report.",
                                       checked=True)
         try:
-            if config.get('general', 'private-browsing'):
+            if config.val.content.private_browsing:
                 self._chk_history.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -635,8 +609,7 @@ def dump_exception_info(exc, pages, cmdhist, qobjects):
         traceback.print_exc()
     print("\n---- Config ----", file=sys.stderr)
     try:
-        conf = objreg.get('config')
-        print(conf.dump_userconfig(), file=sys.stderr)
+        print(config.instance.dump_userconfig(), file=sys.stderr)
     except Exception:
         traceback.print_exc()
     print("\n---- Commandline args ----", file=sys.stderr)

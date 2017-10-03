@@ -29,6 +29,7 @@ import importlib
 import collections
 import pkg_resources
 
+import attr
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
 from PyQt5.QtWidgets import QApplication
@@ -44,13 +45,20 @@ except ImportError:  # pragma: no cover
     QWebEngineProfile = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, qtutils
+from qutebrowser.utils import log, utils, standarddir, usertypes
 from qutebrowser.misc import objects, earlyinit, sql
 from qutebrowser.browser import pdfjs
 
 
-DistributionInfo = collections.namedtuple(
-    'DistributionInfo', ['id', 'parsed', 'version', 'pretty'])
+@attr.s
+class DistributionInfo:
+
+    """Information about the running distribution."""
+
+    id = attr.ib()
+    parsed = attr.ib()
+    version = attr.ib()
+    pretty = attr.ib()
 
 
 Distribution = usertypes.enum(
@@ -190,25 +198,25 @@ def _module_versions():
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
-        ('typing', []),
+        ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
         ('PyQt5.QtWebKitWidgets', []),
     ])
-    for name, attributes in modules.items():
+    for modname, attributes in modules.items():
         try:
-            module = importlib.import_module(name)
+            module = importlib.import_module(modname)
         except ImportError:
-            text = '{}: no'.format(name)
+            text = '{}: no'.format(modname)
         else:
-            for attr in attributes:
+            for name in attributes:
                 try:
-                    text = '{}: {}'.format(name, getattr(module, attr))
+                    text = '{}: {}'.format(modname, getattr(module, name))
                 except AttributeError:
                     pass
                 else:
                     break
             else:
-                text = '{}: yes'.format(name)
+                text = '{}: yes'.format(modname)
         lines.append(text)
     return lines
 
@@ -219,14 +227,17 @@ def _path_info():
     Return:
         A dictionary of descriptive to actual path names.
     """
-    return {
+    info = {
         'config': standarddir.config(),
         'data': standarddir.data(),
-        'system_data': standarddir.system_data(),
         'cache': standarddir.cache(),
-        'download': standarddir.download(),
         'runtime': standarddir.runtime(),
     }
+    if standarddir.config() != standarddir.config(auto=True):
+        info['auto config'] = standarddir.config(auto=True)
+    if standarddir.data() != standarddir.data(system=True):
+        info['system data'] = standarddir.data(system=True)
+    return info
 
 
 def _os_info():
@@ -237,12 +248,12 @@ def _os_info():
     """
     lines = []
     releaseinfo = None
-    if sys.platform == 'linux':
+    if utils.is_linux:
         osver = ''
         releaseinfo = _release_info()
-    elif sys.platform == 'win32':
+    elif utils.is_windows:
         osver = ', '.join(platform.win32_ver())
-    elif sys.platform == 'darwin':
+    elif utils.is_mac:
         release, versioninfo, machine = platform.mac_ver()
         if all(not e for e in versioninfo):
             versioninfo = ''
@@ -301,9 +312,7 @@ def _chromium_version():
 def _backend():
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
-        return '{} (WebKit {})'.format(
-            'QtWebKit-NG' if qtutils.is_qtwebkit_ng() else 'legacy QtWebKit',
-            qWebKitVersion())
+        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
     else:
         webengine = usertypes.Backend.QtWebEngine
         assert objects.backend == webengine, objects.backend
@@ -370,7 +379,7 @@ def version():
         '',
         'Paths:',
     ]
-    for name, path in _path_info().items():
+    for name, path in sorted(_path_info().items()):
         lines += ['{}: {}'.format(name, path)]
 
     return '\n'.join(lines)

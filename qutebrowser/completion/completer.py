@@ -19,12 +19,22 @@
 
 """Completer attached to a CompletionView."""
 
+import attr
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, runners
 from qutebrowser.utils import log, utils, debug
 from qutebrowser.completion.models import miscmodels
+
+
+@attr.s
+class CompletionInfo:
+
+    """Context passed into all completion functions."""
+
+    config = attr.ib()
+    keyconf = attr.ib()
 
 
 class Completer(QObject):
@@ -34,7 +44,6 @@ class Completer(QObject):
     Attributes:
         _cmd: The statusbar Command object this completer belongs to.
         _ignore_change: Whether to ignore the next completion update.
-        _win_id: The window ID this completer is in.
         _timer: The timer used to trigger the completion update.
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
@@ -42,9 +51,8 @@ class Completer(QObject):
         _last_completion_func: The completion function used for the last text.
     """
 
-    def __init__(self, cmd, win_id, parent=None):
+    def __init__(self, cmd, parent=None):
         super().__init__(parent)
-        self._win_id = win_id
         self._cmd = cmd
         self._ignore_change = False
         self._timer = QTimer()
@@ -106,7 +114,7 @@ class Completer(QObject):
         """
         if not s:
             return "''"
-        elif any(c in s for c in ' \'\t\n\\'):
+        elif any(c in s for c in ' "\'\t\n\\'):
             # use single quotes, and put single quotes into double quotes
             # the string $'b is then quoted as '$'"'"'b'
             return "'" + s.replace("'", "'\"'\"'") + "'"
@@ -123,9 +131,11 @@ class Completer(QObject):
         if not text or not text.strip():
             # Only ":", empty part under the cursor with nothing before/after
             return [], '', []
-        runner = runners.CommandRunner(self._win_id)
-        result = runner.parse(text, fallback=True, keep=True)
+        parser = runners.CommandParser()
+        result = parser.parse(text, fallback=True, keep=True)
+        # pylint: disable=not-an-iterable
         parts = [x for x in result.cmdline if x]
+        # pylint: enable=not-an-iterable
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
         log.completion.debug('partitioning {} around position {}'.format(parts,
@@ -143,6 +153,9 @@ class Completer(QObject):
                 log.completion.debug(
                     "partitioned: {} '{}' {}".format(prefix, center, postfix))
                 return prefix, center, postfix
+
+        # We should always return above
+        assert False, parts
 
     @pyqtSlot(str)
     def on_selection_changed(self, text):
@@ -164,7 +177,7 @@ class Completer(QObject):
         if maxsplit is None:
             text = self._quote(text)
         model = self._model()
-        if model.count() == 1 and config.get('completion', 'quick-complete'):
+        if model.count() == 1 and config.val.completion.quick:
             # If we only have one item, we want to apply it immediately
             # and go on to the next part.
             self._change_completed_part(text, before, after, immediate=True)
@@ -233,7 +246,9 @@ class Completer(QObject):
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
             with debug.log_time(log.completion,
                     'Starting {} completion'.format(func.__name__)):
-                model = func(*args)
+                info = CompletionInfo(config=config.instance,
+                                      keyconf=config.key_instance)
+                model = func(*args, info=info)
             with debug.log_time(log.completion, 'Set completion model'):
                 completion.set_model(model)
 

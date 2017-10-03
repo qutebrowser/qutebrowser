@@ -26,7 +26,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, log, message, objreg, usertypes
+from qutebrowser.utils import utils, log, message, usertypes
 
 
 class Saveable:
@@ -38,9 +38,8 @@ class Saveable:
         _dirty: Whether the saveable was changed since the last save.
         _save_handler: The function to call to save this Saveable.
         _save_on_exit: Whether to always save this saveable on exit.
-        _config_opt: A (section, option) tuple of a config option which decides
-                     whether to auto-save or not. None if no such option
-                     exists.
+        _config_opt: A config option which decides whether to auto-save or not.
+                     None if no such option exists.
         _filename: The filename of the underlying file.
     """
 
@@ -82,7 +81,7 @@ class Saveable:
             force: Force saving, no matter what.
         """
         if (self._config_opt is not None and
-                (not config.get(*self._config_opt)) and
+                (not config.instance.get(self._config_opt)) and
                 (not explicit) and (not force)):
             if not silent:
                 log.save.debug("Not saving {name} because autosaving has been "
@@ -114,23 +113,16 @@ class SaveManager(QObject):
         self.saveables = collections.OrderedDict()
         self._save_timer = usertypes.Timer(self, name='save-timer')
         self._save_timer.timeout.connect(self.autosave)
+        self._set_autosave_interval()
+        config.instance.changed.connect(self._set_autosave_interval)
 
     def __repr__(self):
         return utils.get_repr(self, saveables=self.saveables)
 
-    def init_autosave(self):
-        """Initialize auto-saving.
-
-        We don't do this in __init__ because the config needs to be initialized
-        first, but the config needs the save manager.
-        """
-        self.set_autosave_interval()
-        objreg.get('config').changed.connect(self.set_autosave_interval)
-
-    @config.change_filter('general', 'auto-save-interval')
-    def set_autosave_interval(self):
+    @config.change_filter('auto_save.interval')
+    def _set_autosave_interval(self):
         """Set the auto-save interval."""
-        interval = config.get('general', 'auto-save-interval')
+        interval = config.val.auto_save.interval
         if interval == 0:
             self._save_timer.stop()
         else:
@@ -145,8 +137,7 @@ class SaveManager(QObject):
             name: The name to use.
             save: The function to call to save this saveable.
             changed: The signal emitted when this saveable changed.
-            config_opt: A (section, option) tuple deciding whether to auto-save
-                        or not.
+            config_opt: An option deciding whether to auto-save or not.
             filename: The filename of the underlying file, so we can force
                       saving if it doesn't exist.
             dirty: Whether the saveable is already dirty.
@@ -172,6 +163,11 @@ class SaveManager(QObject):
         """
         self.saveables[name].save(is_exit=is_exit, explicit=explicit,
                                   silent=silent, force=force)
+
+    def save_all(self, *args, **kwargs):
+        """Save all saveables."""
+        for saveable in self.saveables:
+            self.save(saveable, *args, **kwargs)
 
     @pyqtSlot()
     def autosave(self):
