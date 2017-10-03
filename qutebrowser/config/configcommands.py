@@ -92,7 +92,7 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
-    def bind(self, key, command=None, *, mode='normal', force=False):
+    def bind(self, key, command=None, *, mode='normal'):
         """Bind a key to a command.
 
         Args:
@@ -102,7 +102,6 @@ class ConfigCommands:
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`). See `:help bindings.commands` for the
                   available modes.
-            force: Rebind the key if it is already bound.
         """
         if command is None:
             if utils.is_special_key(key):
@@ -118,11 +117,7 @@ class ConfigCommands:
             return
 
         try:
-            self._keyconfig.bind(key, command, mode=mode, force=force,
-                                 save_yaml=True)
-        except configexc.DuplicateKeyError as e:
-            raise cmdexc.CommandError("bind: {} - use --force to override!"
-                                      .format(e))
+            self._keyconfig.bind(key, command, mode=mode, save_yaml=True)
         except configexc.KeybindingError as e:
             raise cmdexc.CommandError("bind: {}".format(e))
 

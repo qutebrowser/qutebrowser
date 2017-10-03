@@ -168,13 +168,11 @@ class KeyConfig:
         bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
 
-    def bind(self, key, command, *, mode, force=False, save_yaml=False):
+    def bind(self, key, command, *, mode, save_yaml=False):
         """Add a new binding from key to command."""
         key = self._prepare(key, mode)
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
-        if key in self.get_bindings_for(mode) and not force:
-            raise configexc.DuplicateKeyError(key)
 
         bindings = self._config.get_obj('bindings.commands')
         if mode not in bindings:

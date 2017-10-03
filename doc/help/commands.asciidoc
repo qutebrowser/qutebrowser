@@ -120,7 +120,7 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'mode'] [*--force*] 'key' ['command']+
+Syntax: +:bind [*--mode* 'mode'] 'key' ['command']+
 
 Bind a key to a command.
 
@@ -133,7 +133,6 @@ Bind a key to a command.
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`). See `:help bindings.commands` for the
  available modes.
 
-* +*-f*+, +*--force*+: Rebind the key if it is already bound.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

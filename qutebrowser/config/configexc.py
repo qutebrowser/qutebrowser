@@ -59,14 +59,6 @@ class KeybindingError(Error):
     """Raised for issues with keybindings."""
 
 
-class DuplicateKeyError(KeybindingError):
-
-    """Raised when there was a duplicate key."""
-
-    def __init__(self, key):
-        super().__init__("Duplicate key {}".format(key))
-
-
 class NoOptionError(Error):
 
     """Raised when an option was not found."""

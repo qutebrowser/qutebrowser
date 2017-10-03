@@ -172,19 +172,13 @@ class TestKeyConfig:
         config_stub.val.bindings.commands = {'normal': bindings}
         assert keyconf.get_reverse_bindings_for('normal') == expected
 
-    @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', '<Ctrl-X>', 'b'])
-    def test_bind_duplicate(self, keyconf, config_stub, force, key):
+    def test_bind_duplicate(self, keyconf, config_stub, key):
         config_stub.val.bindings.default = {'normal': {'a': 'nop',
                                                        '<Ctrl+x>': 'nop'}}
         config_stub.val.bindings.commands = {'normal': {'b': 'nop'}}
-        if force:
-            keyconf.bind(key, 'message-info foo', mode='normal', force=True)
-            assert keyconf.get_command(key, 'normal') == 'message-info foo'
-        else:
-            with pytest.raises(configexc.DuplicateKeyError):
-                keyconf.bind(key, 'message-info foo', mode='normal')
-            assert keyconf.get_command(key, 'normal') == 'nop'
+        keyconf.bind(key, 'message-info foo', mode='normal')
+        assert keyconf.get_command(key, 'normal') == 'message-info foo'
 
     @pytest.mark.parametrize('mode', ['normal', 'caret'])
     @pytest.mark.parametrize('command', [

@@ -418,9 +418,8 @@ class TestBind:
                            match='bind: Invalid mode wrongmode!'):
             commands.bind('a', 'nop', mode='wrongmode')
 
-    @pytest.mark.parametrize('force', [True, False])
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
-    def test_bind_duplicate(self, commands, config_stub, keyconf, force, key):
+    def test_bind_duplicate(self, commands, config_stub, keyconf, key):
         """Run ':bind' with a key which already has been bound.'.
 
         Also tests for https://github.com/qutebrowser/qutebrowser/issues/1544
@@ -432,15 +431,8 @@ class TestBind:
             'normal': {'b': 'nop'},
         }
 
-        if force:
-            commands.bind(key, 'message-info foo', mode='normal', force=True)
-            assert keyconf.get_command(key, 'normal') == 'message-info foo'
-        else:
-            with pytest.raises(cmdexc.CommandError,
-                               match="bind: Duplicate key .* - use --force to "
-                               "override"):
-                commands.bind(key, 'message-info foo', mode='normal')
-            assert keyconf.get_command(key, 'normal') == 'nop'
+        commands.bind(key, 'message-info foo', mode='normal')
+        assert keyconf.get_command(key, 'normal') == 'message-info foo'
 
     def test_bind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None

@@ -61,8 +61,6 @@ link:commands.html#unbind[`:unbind`] commands:
 - Binding the key chain `,v` to the `:spawn mpv {url}` command:
   `:bind ,v spawn mpv {url}`
 - Unbinding the same key chain: `:unbind ,v`
-- Changing an existing binding: `bind --force ,v message-info foo`. Without
-  `--force`, qutebrowser will show an error because `,v` is already bound.
 
 Key chains starting with a comma are ideal for custom bindings, as the comma key
 will never be used in a default keybinding.
@@ -177,13 +175,6 @@ To bind a key in a mode other than `'normal'`, add a `mode` argument:
 [source,python]
 ----
 config.bind('<Ctrl-y>', 'prompt-yes', mode='prompt')
-----
-
-If the key is already bound, `force=True` needs to be given to rebind it:
-
-[source,python]
-----
-config.bind('<Ctrl-v>', 'message-info foo', force=True)
 ----
 
 To unbind a key (either a key which has been bound before, or a default binding):
@@ -339,10 +330,10 @@ to do so:
 
 [source,python]
 ----
-def bind_chained(key, *commands, force=False):
-    config.bind(key, ' ;; '.join(commands), force=force)
+def bind_chained(key, *commands):
+    config.bind(key, ' ;; '.join(commands))
 
-bind_chained('<Escape>', 'clear-keychain', 'search', force=True)
+bind_chained('<Escape>', 'clear-keychain', 'search')
 ----
 
 Avoiding flake8 errors

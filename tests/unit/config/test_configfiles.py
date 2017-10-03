@@ -403,12 +403,11 @@ class TestConfigPy:
         confpy.read()
 
     def test_bind_duplicate_key(self, confpy):
-        """Make sure we get a nice error message on duplicate key bindings."""
+        """Make sure overriding a keybinding works."""
         confpy.write("config.bind('H', 'message-info back')")
-        error = confpy.read(error=True)
-
-        expected = "Duplicate key H - use force=True to override!"
-        assert str(error.exception) == expected
+        confpy.read()
+        expected = {'normal': {'H': 'message-info back'}}
+        assert config.instance._values['bindings.commands'] == expected
 
     def test_bind_none(self, confpy):
         confpy.write("c.bindings.commands = None",
