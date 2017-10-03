@@ -47,8 +47,6 @@ class ConfigCommands:
         If the option name ends with '?', the value of the option is shown
         instead.
 
-        If the option name ends with '!' and it is a boolean value, toggle it.
-
         Args:
             option: The name of the option.
             value: The value to set.
@@ -66,15 +64,7 @@ class ConfigCommands:
             return
 
         with self._handle_config_error():
-            if option.endswith('!') and option != '!' and value is None:
-                option = option[:-1]
-                opt = self._config.get_opt(option)
-                if not isinstance(opt.typ, configtypes.Bool):
-                    raise cmdexc.CommandError(
-                        "set: Can't toggle non-bool setting {}".format(option))
-                old_value = self._config.get_obj(option)
-                self._config.set_obj(option, not old_value, save_yaml=not temp)
-            elif value is None:
+            if value is None:
                 raise cmdexc.CommandError("set: The following arguments "
                                           "are required: value")
             else:
@@ -95,21 +85,30 @@ class ConfigCommands:
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
-        if len(values) < 2:
-            raise configexc.CommandError("Need at least two values")
         with self._handle_config_error():
-            # Use the next valid value from values, or the first if the current
-            # value does not appear in the list
-            old_value = self._config.get_obj(option, mutable=False)
             opt = self._config.get_opt(option)
+            old_value = self._config.get_obj(option, mutable=False)
+
+        if not values and isinstance(opt.typ, configtypes.Bool):
+            values = ['true', 'false']
+
+        if len(values) < 2:
+            raise cmdexc.CommandError("Need at least two values for "
+                                      "non-boolean settings.")
+
+        # Use the next valid value from values, or the first if the current
+        # value does not appear in the list
+        with self._handle_config_error():
             values = [opt.typ.from_str(val) for val in values]
 
-            try:
-                idx = values.index(old_value)
-                idx = (idx + 1) % len(values)
-                value = values[idx]
-            except ValueError:
-                value = values[0]
+        try:
+            idx = values.index(old_value)
+            idx = (idx + 1) % len(values)
+            value = values[idx]
+        except ValueError:
+            value = values[0]
+
+        with self._handle_config_error():
             self._config.set_obj(option, value, save_yaml=not temp)
 
         if print_:

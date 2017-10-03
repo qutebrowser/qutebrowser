@@ -792,7 +792,7 @@ Syntax: +:set [*--temp*] [*--print*] ['option'] ['value']+
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead. If the option name ends with '!' and it is a boolean value, toggle it.
+If the option name ends with '?', the value of the option is shown instead.
 
 ==== positional arguments
 * +'option'+: The name of the option.

@@ -113,36 +113,6 @@ class TestSet:
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == 'url.auto_search = dns'
 
-    def test_set_toggle(self, commands, config_stub):
-        """Run ':set auto_save.session!'.
-
-        Should toggle the value.
-        """
-        assert not config_stub.val.auto_save.session
-        commands.set(0, 'auto_save.session!')
-        assert config_stub.val.auto_save.session
-        assert config_stub._yaml['auto_save.session']
-
-    def test_set_toggle_nonbool(self, commands, config_stub):
-        """Run ':set url.auto_search!'.
-
-        Should show an error
-        """
-        assert config_stub.val.url.auto_search == 'naive'
-        with pytest.raises(cmdexc.CommandError, match="set: Can't toggle "
-                           "non-bool setting url.auto_search"):
-            commands.set(0, 'url.auto_search!')
-        assert config_stub.val.url.auto_search == 'naive'
-
-    def test_set_toggle_print(self, commands, config_stub, message_mock):
-        """Run ':set -p auto_save.session!'.
-
-        Should toggle the value and show the new value.
-        """
-        commands.set(0, 'auto_save.session!', print_=True)
-        msg = message_mock.getmsg(usertypes.MessageLevel.info)
-        assert msg.text == 'auto_save.session = true'
-
     def test_set_invalid_option(self, commands):
         """Run ':set foo bar'.
 
@@ -180,14 +150,13 @@ class TestSet:
                                  "value"):
             commands.set(win_id=0, option=option)
 
-    @pytest.mark.parametrize('suffix', '?!')
-    def test_invalid(self, commands, suffix):
-        """Run ':set foo?' / ':set foo!'.
+    def test_invalid(self, commands):
+        """Run ':set foo?'.
 
         Should show an error.
         """
         with pytest.raises(cmdexc.CommandError, match="set: No option 'foo'"):
-            commands.set(win_id=0, option='foo' + suffix)
+            commands.set(win_id=0, option='foo?')
 
 
 class TestCycle:
@@ -221,6 +190,42 @@ class TestCycle:
         assert config_stub.get(opt) == ['bar']
         commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['foo']
+
+    def test_toggle(self, commands, config_stub):
+        """Run ':config-cycle auto_save.session'.
+
+        Should toggle the value.
+        """
+        assert not config_stub.val.auto_save.session
+        commands.config_cycle('auto_save.session')
+        assert config_stub.val.auto_save.session
+        assert config_stub._yaml['auto_save.session']
+
+    @pytest.mark.parametrize('args', [
+        ['url.auto_search'], ['url.auto_search', 'foo']
+    ])
+    def test_toggle_nonbool(self, commands, config_stub, args):
+        """Run :config-cycle without a bool and 0/1 value.
+
+        :config-cycle url.auto_search
+        :config-cycle url.auto_search foo
+
+        Should show an error.
+        """
+        assert config_stub.val.url.auto_search == 'naive'
+        with pytest.raises(cmdexc.CommandError, match="Need at least "
+                           "two values for non-boolean settings."):
+            commands.config_cycle(*args)
+        assert config_stub.val.url.auto_search == 'naive'
+
+    def test_set_toggle_print(self, commands, config_stub, message_mock):
+        """Run ':config-cycle -p auto_save.session'.
+
+        Should toggle the value and show the new value.
+        """
+        commands.config_cycle('auto_save.session', print_=True)
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        assert msg.text == 'auto_save.session = true'
 
 
 class TestBind:
