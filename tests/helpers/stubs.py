@@ -417,9 +417,6 @@ class FakeYamlConfig:
         self.loaded = False
         self._values = {}
 
-    def load(self):
-        self.loaded = True
-
     def __contains__(self, item):
         return item in self._values
 

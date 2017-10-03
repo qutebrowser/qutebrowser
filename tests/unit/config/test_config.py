@@ -25,7 +25,7 @@ import pytest
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import config, configdata, configexc
+from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
@@ -258,8 +258,8 @@ class TestKeyConfig:
 class TestConfig:
 
     @pytest.fixture
-    def conf(self, stubs):
-        yaml_config = stubs.FakeYamlConfig()
+    def conf(self, config_tmpdir):
+        yaml_config = configfiles.YamlConfig()
         return config.Config(yaml_config)
 
     def test_set_value(self, qtbot, conf, caplog):
@@ -330,12 +330,8 @@ class TestConfig:
             assert conf._yaml[name2] is True
 
     def test_read_yaml(self, conf):
-        assert not conf._yaml.loaded
         conf._yaml['content.plugins'] = True
-
         conf.read_yaml()
-
-        assert conf._yaml.loaded
         assert conf._values['content.plugins'] is True
 
     def test_get_opt_valid(self, conf):
