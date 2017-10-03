@@ -40,6 +40,8 @@ Breaking changes
 - Upgrading qutebrowser with a version older than v0.4.0 still running now won't
   work properly anymore.
 - The `--harfbuzz` and `--relaxed-config` commandline arguments got dropped.
+- `:set` now doesn't support toggling/cycling values anymore, that functionality
+  got moved to `:config-cycle`.
 
 Major changes
 ~~~~~~~~~~~~~
@@ -58,6 +60,7 @@ Added
   Together with the previous setting, this should make wrapper scripts
   unnecessary.
 - Proxy authentication is now supported with the QtWebEngine backend.
+- New `:config-cycle` command to cycle an option between multiple values.
 
 Changed
 ~~~~~~~
