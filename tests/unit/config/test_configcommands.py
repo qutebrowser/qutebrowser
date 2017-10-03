@@ -37,7 +37,7 @@ class TestSet:
     """Tests for :set."""
 
     @pytest.fixture
-    def tabbed_browser(self, stubs, win_registry):
+    def tabbed_browser(self, qapp, stubs, win_registry):
         tb = stubs.TabbedBrowserStub()
         objreg.register('tabbed-browser', tb, scope='window', window=0)
         yield tb
