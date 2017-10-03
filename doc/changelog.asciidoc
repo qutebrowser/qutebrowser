@@ -64,6 +64,8 @@ Added
   - `:config-cycle` to cycle an option between multiple values.
   - `:config-unset` to remove a configured option
   - `:config-clear` to remove all configured options
+  - `:config-source` to (re-)read a `config.py` file
+  - `:config-edit` to open the `config.py` file in an editor
 
 Changed
 ~~~~~~~
