@@ -432,6 +432,12 @@ class FakeYamlConfig:
     def __getitem__(self, key):
         return self._values[key]
 
+    def unset(self, name):
+        self._values.pop(name, None)
+
+    def clear(self):
+        self._values = []
+
 
 class StatusBarCommandStub(QLineEdit):
 

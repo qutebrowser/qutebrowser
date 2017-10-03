@@ -209,6 +209,31 @@ class TestYaml:
         assert isinstance(error.exception, OSError)
         assert error.traceback is None
 
+    def test_unset(self, qtbot, config_tmpdir):
+        name = 'tabs.show'
+        yaml = configfiles.YamlConfig()
+        yaml[name] = 'never'
+
+        with qtbot.wait_signal(yaml.changed):
+            yaml.unset(name)
+
+        assert name not in yaml
+
+    def test_unset_never_set(self, qtbot, config_tmpdir):
+        yaml = configfiles.YamlConfig()
+        with qtbot.assert_not_emitted(yaml.changed):
+            yaml.unset('tabs.show')
+
+    def test_clear(self, qtbot, config_tmpdir):
+        name = 'tabs.show'
+        yaml = configfiles.YamlConfig()
+        yaml[name] = 'never'
+
+        with qtbot.wait_signal(yaml.changed):
+            yaml.clear()
+
+        assert name not in yaml
+
 
 class ConfPy:
 

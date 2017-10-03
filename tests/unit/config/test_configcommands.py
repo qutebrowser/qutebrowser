@@ -228,6 +228,41 @@ class TestCycle:
         assert msg.text == 'auto_save.session = true'
 
 
+class TestUnsetAndClear:
+
+    """Test :config-unset and :config-clear."""
+
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_unset(self, commands, config_stub, temp):
+        name = 'tabs.show'
+        config_stub.set_obj(name, 'never', save_yaml=True)
+
+        commands.config_unset(name, temp=temp)
+
+        assert config_stub.get(name) == 'always'
+        if temp:
+            assert config_stub._yaml[name] == 'never'
+        else:
+            assert name not in config_stub._yaml
+
+    def test_unset_unknown_option(self, commands):
+        with pytest.raises(cmdexc.CommandError, match="No option 'tabs'"):
+            commands.config_unset('tabs')
+
+    @pytest.mark.parametrize('save', [True, False])
+    def test_clear(self, commands, config_stub, save):
+        name = 'tabs.show'
+        config_stub.set_obj(name, 'never', save_yaml=True)
+
+        commands.config_clear(save=save)
+
+        assert config_stub.get(name) == 'always'
+        if save:
+            assert name not in config_stub._yaml
+        else:
+            assert config_stub._yaml[name] == 'never'
+
+
 class TestBind:
 
     """Tests for :bind and :unbind."""

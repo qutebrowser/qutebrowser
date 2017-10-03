@@ -31,7 +31,9 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<close,close>>|Close the current window.
+|<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
+|<<config-unset,config-unset>>|Unset an option.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -202,6 +204,16 @@ The tab index to focus, starting with 1.
 === close
 Close the current window.
 
+[[config-clear]]
+=== config-clear
+Syntax: +:config-clear [*--save*]+
+
+Set all settings back to their default.
+
+==== optional arguments
+* +*-s*+, +*--save*+: If given, all configuration in autoconfig.yml is also removed.
+
+
 [[config-cycle]]
 === config-cycle
 Syntax: +:config-cycle [*--temp*] [*--print*] 'option' 'values' ['values' ...]+
@@ -215,6 +227,20 @@ Cycle an option between multiple values.
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
+
+[[config-unset]]
+=== config-unset
+Syntax: +:config-unset [*--temp*] 'option'+
+
+Unset an option.
+
+This sets an option back to its default and removes it from autoconfig.yml.
+
+==== positional arguments
+* +'option'+: The name of the option.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Don't touch autoconfig.yml.
 
 [[download]]
 === download

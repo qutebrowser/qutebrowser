@@ -60,7 +60,10 @@ Added
   Together with the previous setting, this should make wrapper scripts
   unnecessary.
 - Proxy authentication is now supported with the QtWebEngine backend.
-- New `:config-cycle` command to cycle an option between multiple values.
+- New config commands:
+  - `:config-cycle` to cycle an option between multiple values.
+  - `:config-unset` to remove a configured option
+  - `:config-clear` to remove all configured options
 
 Changed
 ~~~~~~~

@@ -279,6 +279,56 @@ class TestConfig:
         conf._set_value(opt, 'never')
         assert conf._values['tabs.show'] == 'never'
 
+    @pytest.mark.parametrize('save_yaml', [True, False])
+    def test_unset(self, conf, qtbot, save_yaml):
+        name = 'tabs.show'
+        conf.set_obj(name, 'never', save_yaml=True)
+        assert conf.get(name) == 'never'
+
+        with qtbot.wait_signal(conf.changed):
+            conf.unset(name, save_yaml=save_yaml)
+
+        assert conf.get(name) == 'always'
+        if save_yaml:
+            assert name not in conf._yaml
+        else:
+            assert conf._yaml[name] == 'never'
+
+    def test_unset_never_set(self, conf, qtbot):
+        name = 'tabs.show'
+        assert conf.get(name) == 'always'
+
+        with qtbot.assert_not_emitted(conf.changed):
+            conf.unset(name)
+
+        assert conf.get(name) == 'always'
+
+    def test_unset_unknown(self, conf):
+        with pytest.raises(configexc.NoOptionError):
+            conf.unset('tabs')
+
+    @pytest.mark.parametrize('save_yaml', [True, False])
+    def test_clear(self, conf, qtbot, save_yaml):
+        name1 = 'tabs.show'
+        name2 = 'content.plugins'
+        conf.set_obj(name1, 'never', save_yaml=True)
+        conf.set_obj(name2, True, save_yaml=True)
+        assert conf._values[name1] == 'never'
+        assert conf._values[name2] is True
+
+        with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
+            conf.clear(save_yaml=save_yaml)
+
+        options = [e.args[0] for e in blocker.all_signals_and_args]
+        assert options == [name1, name2]
+
+        if save_yaml:
+            assert name1 not in conf._yaml
+            assert name2 not in conf._yaml
+        else:
+            assert conf._yaml[name1] == 'never'
+            assert conf._yaml[name2] is True
+
     def test_read_yaml(self, conf):
         assert not conf._yaml.loaded
         conf._yaml['content.plugins'] = True

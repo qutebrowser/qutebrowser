@@ -178,3 +178,28 @@ class ConfigCommands:
 
         if print_:
             self._print_value(option)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.option)
+    def config_unset(self, option, temp=False):
+        """Unset an option.
+
+        This sets an option back to its default and removes it from
+        autoconfig.yml.
+
+        Args:
+            option: The name of the option.
+            temp: Don't touch autoconfig.yml.
+        """
+        with self._handle_config_error():
+            self._config.unset(option, save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    def config_clear(self, save=False):
+        """Set all settings back to their default.
+
+        Args:
+            save: If given, all configuration in autoconfig.yml is also
+                  removed.
+        """
+        self._config.clear(save_yaml=save)

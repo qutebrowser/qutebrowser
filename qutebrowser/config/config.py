@@ -319,6 +319,32 @@ class Config(QObject):
         if save_yaml:
             self._yaml[name] = converted
 
+    def unset(self, name, *, save_yaml=False):
+        """Set the given setting back to its default."""
+        self.get_opt(name)
+        try:
+            del self._values[name]
+        except KeyError:
+            return
+        self.changed.emit(name)
+
+        if save_yaml:
+            self._yaml.unset(name)
+
+    def clear(self, *, save_yaml=False):
+        """Clear all settings in the config.
+
+        If save_yaml=True is given, also remove all customization from the YAML
+        file.
+        """
+        old_values = self._values
+        self._values = {}
+        for name in old_values:
+            self.changed.emit(name)
+
+        if save_yaml:
+            self._yaml.clear()
+
     def update_mutables(self, *, save_yaml=False):
         """Update mutable settings if they changed.
 
