@@ -42,6 +42,7 @@ Breaking changes
 - The `--harfbuzz` and `--relaxed-config` commandline arguments got dropped.
 - `:set` now doesn't support toggling/cycling values anymore, that functionality
   got moved to `:config-cycle`.
+- `:scroll-perc` got renamed to `:scroll-to-perc`.
 
 Major changes
 ~~~~~~~~~~~~~

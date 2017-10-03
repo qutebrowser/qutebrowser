@@ -1991,8 +1991,8 @@ bindings.default:
       l: scroll right
       u: undo
       <Ctrl-Shift-T>: undo
-      gg: scroll-perc 0
-      G: scroll-perc
+      gg: scroll-to-perc 0
+      G: scroll-to-perc
       n: search-next
       N: search-prev
       i: enter-mode insert

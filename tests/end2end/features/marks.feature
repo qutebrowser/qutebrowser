@@ -21,7 +21,7 @@ Feature: Setting positional marks
     Scenario: Jumping back after jumping to a particular percentage
         When I run :scroll-px 10 20
         And I wait until the scroll position changed to 10/20
-        And I run :scroll-perc 100
+        And I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :jump-mark "'"
         And I wait until the scroll position changed to 10/20
@@ -116,7 +116,7 @@ Feature: Setting positional marks
     Scenario: Hovering a hint does not set the ' mark
         When I run :scroll-px 30 20
         And I wait until the scroll position changed to 30/20
-        And  I run :scroll-perc 0
+        And  I run :scroll-to-perc 0
         And I wait until the scroll position changed
         And I hint with args "links hover" and follow s
         And I run :jump-mark "'"

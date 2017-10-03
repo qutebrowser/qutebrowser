@@ -507,7 +507,7 @@ Default:
 * +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
 * +pass:[D]+: +pass:[tab-close -o]+
 * +pass:[F]+: +pass:[hint all tab]+
-* +pass:[G]+: +pass:[scroll-perc]+
+* +pass:[G]+: +pass:[scroll-to-perc]+
 * +pass:[H]+: +pass:[back]+
 * +pass:[J]+: +pass:[tab-next]+
 * +pass:[K]+: +pass:[tab-prev]+
@@ -542,7 +542,7 @@ Default:
 * +pass:[gb]+: +pass:[set-cmd-text -s :bookmark-load]+
 * +pass:[gd]+: +pass:[download]+
 * +pass:[gf]+: +pass:[view-source]+
-* +pass:[gg]+: +pass:[scroll-perc 0]+
+* +pass:[gg]+: +pass:[scroll-to-perc 0]+
 * +pass:[gl]+: +pass:[tab-move -]+
 * +pass:[gm]+: +pass:[tab-move]+
 * +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+

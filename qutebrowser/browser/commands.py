@@ -688,7 +688,7 @@ class CommandDispatcher:
                        scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
-    def scroll_perc(self, perc: float = None, horizontal=False, count=None):
+    def scroll_to_perc(self, perc: float = None, horizontal=False, count=None):
         """Scroll to a specific percentage of the page.
 
         The percentage can be given either as argument or as count.
