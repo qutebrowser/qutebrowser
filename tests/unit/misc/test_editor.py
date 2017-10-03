@@ -22,7 +22,6 @@
 import os
 import os.path
 import logging
-from unittest import mock
 
 from PyQt5.QtCore import QProcess
 import pytest
@@ -40,7 +39,6 @@ def patch_things(config_stub, monkeypatch, stubs):
 @pytest.fixture
 def editor(caplog):
     ed = editormod.ExternalEditor()
-    ed.editing_finished = mock.Mock()
     yield ed
     with caplog.at_level(logging.ERROR):
         ed._remove_file = True
@@ -99,8 +97,7 @@ class TestFileHandling:
         filename = editor._filename
         assert os.path.exists(filename)
 
-        editor._proc._proc.exitStatus = mock.Mock(
-            return_value=QProcess.CrashExit)
+        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.finished.emit(1, QProcess.NormalExit)
 
         assert os.path.exists(filename)
@@ -113,8 +110,7 @@ class TestFileHandling:
         filename = editor._filename
         assert os.path.exists(filename)
 
-        editor._proc._proc.exitStatus = mock.Mock(
-            return_value=QProcess.CrashExit)
+        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.error.emit(QProcess.Crashed)
 
         editor._proc.finished.emit(0, QProcess.CrashExit)
@@ -167,7 +163,7 @@ class TestFileHandling:
     ('Hällö Wörld', 'Überprüfung'),
     ('\u2603', '\u2601')  # Unicode snowman -> cloud
 ])
-def test_modify(editor, initial_text, edited_text):
+def test_modify(qtbot, editor, initial_text, edited_text):
     """Test if inputs get modified correctly."""
     editor.edit(initial_text)
 
@@ -177,5 +173,7 @@ def test_modify(editor, initial_text, edited_text):
     with open(editor._filename, 'w', encoding='utf-8') as f:
         f.write(edited_text)
 
-    editor._proc.finished.emit(0, QProcess.NormalExit)
-    editor.editing_finished.emit.assert_called_with(edited_text)
+    with qtbot.wait_signal(editor.editing_finished) as blocker:
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+    assert blocker.args == [edited_text]
