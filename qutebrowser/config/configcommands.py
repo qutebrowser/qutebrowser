@@ -135,7 +135,7 @@ class ConfigCommands:
         except configexc.KeybindingError as e:
             raise cmdexc.CommandError('unbind: {}'.format(e))
 
-    @cmdutils.register(instance='config-commands')
+    @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('values', completion=configmodel.value)
     def config_cycle(self, option, *values, temp=False, print_=False):

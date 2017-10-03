@@ -217,7 +217,7 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--temp*] [*--print*] 'option' 'values' ['values' ...]+
+Syntax: +:config-cycle [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
 
 Cycle an option between multiple values.
 
