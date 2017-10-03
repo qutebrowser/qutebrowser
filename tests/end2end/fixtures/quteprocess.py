@@ -458,7 +458,7 @@ class QuteProc(testprocess.Process):
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
         xfail = self.request.node.get_marker('xfail')
-        if xfail and xfail.args[0]:
+        if xfail and (not xfail.args or xfail.args[0]):
             kwargs['divisor'] = 10
         else:
             kwargs['divisor'] = 1
