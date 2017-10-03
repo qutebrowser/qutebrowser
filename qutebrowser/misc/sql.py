@@ -161,7 +161,8 @@ class SqlTable(QObject):
         self._name = name
 
         constraints = constraints or {}
-        column_defs = ['{} {}'.format(field, constraints.get(field, ''))
+        default = 'NOT NULL'
+        column_defs = ['{} {}'.format(field, constraints.get(field, default))
                        for field in fields]
         q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
                   .format(name=name, column_defs=', '.join(column_defs)))
