@@ -20,6 +20,7 @@
 
 import os
 import sys
+import unittest.mock
 
 import pytest
 
@@ -50,6 +51,7 @@ def test_state_config(fake_save_manager, data_tmpdir,
         statefile.write_text(old_data, 'utf-8')
 
     state = configfiles.StateConfig()
+    state.init_save_manager(fake_save_manager)
 
     if insert:
         state['general']['newval'] = '23'
@@ -60,23 +62,27 @@ def test_state_config(fake_save_manager, data_tmpdir,
     state._save()
 
     assert statefile.read_text('utf-8') == new_data
+    fake_save_manager.add_saveable('state-config', unittest.mock.ANY)
 
 
 class TestYaml:
 
-    pytestmark = pytest.mark.usefixtures('fake_save_manager')
+    pytestmark = pytest.mark.usefixtures('config_tmpdir')
+
+    @pytest.fixture
+    def yaml(self):
+        return configfiles.YamlConfig()
 
     @pytest.mark.parametrize('old_config', [
         None,
         'global:\n  colors.hints.fg: magenta',
     ])
     @pytest.mark.parametrize('insert', [True, False])
-    def test_yaml_config(self, config_tmpdir, old_config, insert):
+    def test_yaml_config(self, yaml, config_tmpdir, old_config, insert):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         if old_config is not None:
             autoconfig.write_text(old_config, 'utf-8')
 
-        yaml = configfiles.YamlConfig()
         yaml.load()
 
         if insert:
@@ -105,12 +111,16 @@ class TestYaml:
         if insert:
             assert '  tabs.show: never' in lines
 
-    def test_unknown_key(self, config_tmpdir):
+    def test_init_save_Manager(self, yaml, fake_save_manager):
+        yaml.init_save_manager(fake_save_manager)
+        fake_save_manager.add_saveable.assert_called_with(
+            'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
+
+    def test_unknown_key(self, yaml, config_tmpdir):
         """An unknown setting should be deleted."""
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text('global:\n  hello: world', encoding='utf-8')
 
-        yaml = configfiles.YamlConfig()
         yaml.load()
         yaml._save()
 
@@ -127,12 +137,11 @@ class TestYaml:
         ('confirm_quit', True),
         ('confirm_quit', False),
     ])
-    def test_changed(self, qtbot, config_tmpdir, old_config, key, value):
+    def test_changed(self, yaml, qtbot, config_tmpdir, old_config, key, value):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         if old_config is not None:
             autoconfig.write_text(old_config, 'utf-8')
 
-        yaml = configfiles.YamlConfig()
         yaml.load()
 
         with qtbot.wait_signal(yaml.changed):
@@ -149,18 +158,22 @@ class TestYaml:
         assert key in yaml
         assert yaml[key] == value
 
+    def test_iter(self, yaml):
+        yaml['foo'] = 23
+        yaml['bar'] = 42
+        assert list(iter(yaml)) == [('foo', 23), ('bar', 42)]
+
     @pytest.mark.parametrize('old_config', [
         None,
         'global:\n  colors.hints.fg: magenta',
     ])
-    def test_unchanged(self, config_tmpdir, old_config):
+    def test_unchanged(self, yaml, config_tmpdir, old_config):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         mtime = None
         if old_config is not None:
             autoconfig.write_text(old_config, 'utf-8')
             mtime = autoconfig.stat().mtime
 
-        yaml = configfiles.YamlConfig()
         yaml.load()
         yaml._save()
 
@@ -176,11 +189,9 @@ class TestYaml:
         "Toplevel object does not contain 'global' key"),
         ('42', 'While loading data', "Toplevel object is not a dict"),
     ])
-    def test_invalid(self, config_tmpdir, line, text, exception):
+    def test_invalid(self, yaml, config_tmpdir, line, text, exception):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text(line, 'utf-8', ensure=True)
-
-        yaml = configfiles.YamlConfig()
 
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
             yaml.load()
@@ -191,7 +202,7 @@ class TestYaml:
         assert str(error.exception).splitlines()[0] == exception
         assert error.traceback is None
 
-    def test_oserror(self, config_tmpdir):
+    def test_oserror(self, yaml, config_tmpdir):
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.ensure()
         autoconfig.chmod(0)
@@ -199,7 +210,6 @@ class TestYaml:
             # Docker container or similar
             pytest.skip("File was still readable")
 
-        yaml = configfiles.YamlConfig()
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
             yaml.load()
 
@@ -209,9 +219,8 @@ class TestYaml:
         assert isinstance(error.exception, OSError)
         assert error.traceback is None
 
-    def test_unset(self, qtbot, config_tmpdir):
+    def test_unset(self, yaml, qtbot, config_tmpdir):
         name = 'tabs.show'
-        yaml = configfiles.YamlConfig()
         yaml[name] = 'never'
 
         with qtbot.wait_signal(yaml.changed):
@@ -219,14 +228,12 @@ class TestYaml:
 
         assert name not in yaml
 
-    def test_unset_never_set(self, qtbot, config_tmpdir):
-        yaml = configfiles.YamlConfig()
+    def test_unset_never_set(self, yaml, qtbot, config_tmpdir):
         with qtbot.assert_not_emitted(yaml.changed):
             yaml.unset('tabs.show')
 
-    def test_clear(self, qtbot, config_tmpdir):
+    def test_clear(self, yaml, qtbot, config_tmpdir):
         name = 'tabs.show'
-        yaml = configfiles.YamlConfig()
         yaml[name] = 'never'
 
         with qtbot.wait_signal(yaml.changed):
