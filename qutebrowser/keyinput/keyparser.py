@@ -32,7 +32,7 @@ class KeyChainParser(BaseKeyParser):
     """KeyChainParser which implements chaining of multiple keys."""
     def __init__(self, win_id, parent=None, supports_count=True, supports_chains=True):
         super().__init__(win_id, parent, supports_count=supports_count, supports_chains=supports_chains)
-        self._warn_on_keychains = False
+        self._warn_on_keychains = not supports_chains
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
 
@@ -84,8 +84,8 @@ class CommandKeyParser(KeyChainParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None, supports_count=None,
-                 supports_chains=False):
+    def __init__(self, win_id, parent=None, supports_count=True,
+                 supports_chains=True):
         super().__init__(win_id, parent, supports_count, supports_chains)
         self._commandrunner = runners.CommandRunner(win_id)
 
@@ -116,7 +116,7 @@ class PassthroughKeyParser(CommandKeyParser):
             parent: Qt parent.
             warn: Whether to warn if an ignored key was bound.
         """
-        super().__init__(win_id, parent, supports_chains=False)
+        super().__init__(win_id, parent)
         self._read_config(mode)
         self._mode = mode
 
