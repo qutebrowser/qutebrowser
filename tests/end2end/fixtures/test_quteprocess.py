@@ -47,6 +47,9 @@ class FakeConfig:
         '--verbose': False,
     }
 
+    def __init__(self):
+        self.webengine = False
+
     def getoption(self, name):
         return self.ARGS[name]
 

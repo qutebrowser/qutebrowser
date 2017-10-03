@@ -494,7 +494,13 @@ class QuteProc(testprocess.Process):
         if skip_texts:
             pytest.skip(', '.join(skip_texts))
 
-    def _after_start(self):
+    def before_test(self):
+        """Clear settings before every test."""
+        super().before_test()
+        self.send_cmd(':config-clear')
+        self._init_settings()
+
+    def _init_settings(self):
         """Adjust some qutebrowser settings after starting."""
         settings = [
             ('messages.timeout', '0'),
