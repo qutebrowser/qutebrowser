@@ -24,9 +24,34 @@ Use: python -m scripts.install_dict [--list] [lang [lang [...]]]
 """
 
 import argparse
+import base64
+import json
+import os
 import sys
+import re
+import urllib.parse
+import urllib.request
+import attr
 
 from qutebrowser.browser.webengine import spell
+from qutebrowser.config import configdata
+
+
+API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
+
+
+@attr.s
+class Language:
+    """Dictionary language specs."""
+
+    code = attr.ib(None)
+    name = attr.ib(None)
+    file_basename = attr.ib(None)
+    file_extension = attr.ib('bdic')
+
+    @property
+    def file_path(self):
+        return '.'.join([self.file_basename, self.file_extension])
 
 
 def get_argparser():
@@ -46,18 +71,105 @@ def print_list(languages):
         print('{1}\t{0}'.format(lang.name, lang.code))
 
 
+def valid_languages():
+    """Return a mapping from valid language codes to their names."""
+    option = configdata.DATA['spellcheck.languages']
+    return option.typ.valtype.valid_values.descriptions
+
+
+def language_list_from_api():
+    """Return a JSON with a list of available languages from Google API."""
+    listurl = urllib.parse.urljoin(API_URL, '?format=JSON')
+    response = urllib.request.urlopen(listurl)
+    # TODO: what's up with the first 4 characters?
+    entries = json.loads(response.read().decode('utf-8')[4:])['entries']
+    return entries
+
+
+def available_languages():
+    """Return a list of Language objects of all available languages."""
+    lang_map = valid_languages()
+    api_list = language_list_from_api()
+    dict_re = re.compile(r"""
+        (?P<filename>(?P<dict>[a-z]{2}(-[A-Z]{2})?).*)\.bdic
+    """, re.VERBOSE)
+    code2file = {}
+    for lang in api_list:
+        match = dict_re.match(lang['name'])
+        if match is not None:
+            code2file[match.group('dict')] = match.group('filename')
+    return [
+        Language(code, name, code2file[code])
+        for code, name in lang_map.items()
+    ]
+
+
+def download_dictionary(url, dest):
+    """Download a decoded dictionary file."""
+    response = urllib.request.urlopen(url)
+    decoded = base64.decodebytes(response.read())
+    with open(dest, 'bw') as dict_file:
+        dict_file.write(decoded)
+
+
+def filter_languages(languages, selected):
+    """Filter a list of languages based on an inclusion list.
+
+    Args:
+        languages: a list of languages to filter
+        selected: a list of keys to select
+        by: a function returning the selection key (code by default)
+        fail_on_unknown: whether to raise an error if there is an unknown
+                         key in selected
+    """
+    filtered_languages = []
+    for language in languages:
+        if language.code in selected:
+            filtered_languages.append(language)
+            selected.remove(language.code)
+    if selected:
+        unknown = ', '.join(selected)
+        raise ValueError('unknown languages found: {}'.format(unknown))
+    return filtered_languages
+
+
+def install_lang(lang):
+    """Install a single lang given by the argument."""
+    print('Installing {}: {}'.format(lang.code, lang.name))
+    lang_url = urllib.parse.urljoin(API_URL, lang.file_path, '?format=TEXT')
+    if not os.path.isdir(spell.dictionary_dir()):
+        warn_msg = 'WARN: {} does not exist, creating the directory'
+        print(warn_msg.format(spell.dictionary_dir()))
+        os.makedirs(spell.dictionary_dir())
+    print('Downloading {}'.format(lang_url))
+    dest = os.path.join(spell.dictionary_dir(), lang.file_path)
+    download_dictionary(lang_url, dest)
+    print('Done.')
+
+
+def install(languages):
+    """Install languages."""
+    for lang in languages:
+        try:
+            install_lang(lang)
+        except PermissionError as e:
+            print(e)
+
+
 def main():
+    if configdata.DATA is None:
+        configdata.init()
     parser = get_argparser()
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
-    languages = spell.get_available_languages()
+    languages = available_languages()
     if args.list:
         print_list(languages)
     elif not args.languages:
         parser.print_usage()
     else:
         try:
-            spell.install(spell.filter_languages(languages, args.languages))
+            install(filter_languages(languages, args.languages))
         except ValueError as e:
             print(e)
 

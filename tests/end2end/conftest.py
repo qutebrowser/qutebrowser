@@ -29,7 +29,7 @@ import pstats
 import os.path
 import operator
 
-from qutebrowser.browser.webengine.spell import get_installed_languages
+from qutebrowser.browser.webengine import spell
 
 import pytest
 from PyQt5.QtCore import PYQT_VERSION
@@ -120,18 +120,17 @@ def _get_backend_tag(tag):
 
 def _get_dictionary_tag(tag):
     """Handle tags like must_have_dict=en-US for BDD tests."""
-    version_re = re.compile(r"""
+    dict_re = re.compile(r"""
         (?P<event>must_have_dict|cannot_have_dict)=(?P<dict>[a-z]{2}-[A-Z]{2})
     """, re.VERBOSE)
 
-    match = version_re.match(tag)
+    match = dict_re.match(tag)
     if not match:
-        #return pytest.mark.skip
         return None
 
     event = match.group('event')
     dictionary = match.group('dict')
-    has_dict = dictionary in [lang.code for lang in get_installed_languages()]
+    has_dict = spell.installed_file(dictionary) is not None
     if event == 'must_have_dict':
         return pytest.mark.skipif(not has_dict, reason=tag)
     elif event == 'cannot_have_dict':

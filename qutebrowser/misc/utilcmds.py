@@ -33,7 +33,6 @@ import sip
 from PyQt5.QtCore import QUrl
 # so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile  # pylint: disable=unused-import
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils

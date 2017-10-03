@@ -36,7 +36,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine.spell import get_installed_languages
+from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import utils, standarddir, javascript, qtutils, message
 
@@ -134,20 +134,18 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
     def __init__(self):
         super().__init__('setSpellCheckLanguages', default=[])
 
+    def _find_installed(self, code):
+        installed_file = spell.installed_file(code)
+        if not installed_file:
+            message.warning('Language {} is not installed.'.format(code))
+        return installed_file
+
     def _set(self, value, settings=None):
         if settings is not None:
             raise ValueError("'settings' may not be set with "
                              "DictionaryLanguageSetter!")
-        installed_langs = dict([(lang.code, lang.file)
-                                for lang in get_installed_languages()])
-        lang_files = []
-        for lang_code in value:
-            if lang_code in installed_langs:
-                lang_files.append(installed_langs[lang_code][:-5])
-            else:
-                message.warning('Language {} is not installed.'
-                                .format(lang_code))
-        super()._set(lang_files, settings)
+        filenames = [self._find_installed(code) for code in value]
+        super()._set([f for f in filenames if f], settings)
 
 
 def _init_stylesheet(profile):
@@ -322,7 +320,6 @@ MAPPINGS = {
 
     'scrolling.smooth':
         Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
-
 }
 
 try:
@@ -334,8 +331,9 @@ except AttributeError:
 
 
 if qtutils.version_check('5.8'):
-    MAPPINGS['spell'] = DefaultProfileSetter('setSpellCheckEnabled')
-    MAPPINGS['spell_languages'] = DictionaryLanguageSetter()
+    spellcheck_setter = DefaultProfileSetter('setSpellCheckEnabled')
+    MAPPINGS['spellcheck.enabled'] = spellcheck_setter
+    MAPPINGS['spellcheck.languages'] = DictionaryLanguageSetter()
 
 
 if qtutils.version_check('5.9'):

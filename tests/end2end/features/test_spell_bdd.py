@@ -20,39 +20,3 @@
 import pytest_bdd as bdd
 
 bdd.scenarios('spell.feature')
-
-
-@bdd.given(bdd.parsers.parse("spell check is {val}"))
-def spellcheck_enabled_given(quteproc, val):
-    enabled = val == 'on'
-    quteproc.send_cmd(':debug-pyeval QWebEngineProfile.defaultProfile()' +
-                      '.setSpellCheckEnabled({})'.format(enabled))
-    quteproc.wait_for_load_finished('qute://pyeval')
-
-
-@bdd.given(bdd.parsers.parse("spell check languages are {langs}"))
-def spellcheck_langs_given(quteproc, langs):
-    quteproc.send_cmd(':debug-pyeval QWebEngineProfile.defaultProfile()' +
-                      '.setSpellCheckLanguages({})'.format(langs))
-    quteproc.wait_for_load_finished('qute://pyeval')
-
-
-@bdd.then(bdd.parsers.parse("spell check is {val}"))
-def spellcheck_enabled_then(quteproc, val):
-    quteproc.send_cmd(':debug-pyeval QWebEngineProfile.defaultProfile()' +
-                      '.isSpellCheckEnabled()')
-    quteproc.wait_for_load_finished('qute://pyeval')
-    content = quteproc.get_content().strip()
-    if val == 'on':
-        assert content == 'True'
-    else:
-        assert content == 'False'
-
-
-@bdd.then(bdd.parsers.parse("actual spell check languages are {langs}"))
-def spellcheck_langs_then(quteproc, langs):
-    quteproc.send_cmd(':debug-pyeval QWebEngineProfile.defaultProfile()' +
-                      '.spellCheckLanguages()')
-    quteproc.wait_for_load_finished('qute://pyeval')
-    actual_langs = quteproc.get_content().strip()
-    assert actual_langs == langs

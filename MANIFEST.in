@@ -18,7 +18,6 @@ include tox.ini
 include qutebrowser.py
 include misc/cheatsheet.svg
 include qutebrowser/config/configdata.yml
-include qutebrowser/browser/webengine/langs.tsv
 
 prune www
 prune scripts/dev

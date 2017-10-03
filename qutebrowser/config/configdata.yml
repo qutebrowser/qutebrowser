@@ -977,7 +977,7 @@ scrolling.smooth:
 
 ## spell
 
-spell:
+spellcheck.enabled:
   type: Bool
   default: true
   desc: Enable spell checking.
@@ -985,7 +985,7 @@ spell:
     QtWebKit: false
     QtWebEngine: Qt 5.8
 
-spell_languages:
+spellcheck.languages:
   type:
     name: List
     valtype:
@@ -1035,7 +1035,11 @@ spell_languages:
         - vi-VN: Vietnamese (Viet Nam)
     none_ok: true
   default:
-  desc: Spell checking languages.
+  desc: >-
+    Spell checking languages.
+
+    You can check for available languages and install dictionaries using
+    scripts/install_dict.py. Run the script with -h/--help for instructions.
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.8
