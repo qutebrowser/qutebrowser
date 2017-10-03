@@ -242,7 +242,8 @@ class Process(QObject):
                 self._after_start()
                 return
 
-        raise WaitForTimeout("Timed out while waiting for process start.")
+        raise WaitForTimeout("Timed out while waiting for process start.\n" +
+                             _render_log(self.captured_log))
 
     def _start(self, args, env):
         """Actually start the process."""
