@@ -52,22 +52,20 @@ class _Button:
     default = attr.ib(default=False)
 
 
-class _Dialog(QDialog):
+def _other_backend(backend):
+    """Get the other backend enum/setting for a given backend."""
+    other_backend = {
+        usertypes.Backend.QtWebKit: usertypes.Backend.QtWebEngine,
+        usertypes.Backend.QtWebEngine: usertypes.Backend.QtWebKit,
+    }[backend]
+    other_setting = other_backend.name.lower()[2:]
+    return (other_backend, other_setting)
 
-    """A dialog which gets shown if there are issues with the backend."""
 
-    def __init__(self, because, text, backend, buttons=None, parent=None):
-        super().__init__(parent)
-        vbox = QVBoxLayout(self)
-
-        other_backend = {
-            usertypes.Backend.QtWebKit: usertypes.Backend.QtWebEngine,
-            usertypes.Backend.QtWebEngine: usertypes.Backend.QtWebKit,
-        }[backend]
-        other_setting = other_backend.name.lower()[2:]
-
-        label = QLabel(
-            "<b>Failed to start with the {backend} backend!</b>"
+def _error_text(because, text, backend):
+    """Get an error text for the given information."""
+    other_backend, other_setting = _other_backend(backend)
+    return ("<b>Failed to start with the {backend} backend!</b>"
             "<p>qutebrowser tried to start with the {backend} backend but "
             "failed because {because}.</p>{text}"
             "<p><b>Forcing the {other_backend.name} backend</b></p>"
@@ -76,8 +74,21 @@ class _Dialog(QDialog):
             "(if you have a <i>config.py</i> file, you'll need to set "
             "this manually).</p>".format(
                 backend=backend.name, because=because, text=text,
-                other_backend=other_backend, other_setting=other_setting),
-            wordWrap=True)
+                other_backend=other_backend, other_setting=other_setting))
+
+
+class _Dialog(QDialog):
+
+    """A dialog which gets shown if there are issues with the backend."""
+
+    def __init__(self, because, text, backend, buttons=None, parent=None):
+        super().__init__(parent)
+        vbox = QVBoxLayout(self)
+
+        other_backend, other_setting = _other_backend(backend)
+        text = _error_text(because, text, backend)
+
+        label = QLabel(text, wordWrap=True)
         label.setTextFormat(Qt.RichText)
         vbox.addWidget(label)
 
@@ -118,6 +129,12 @@ class _Dialog(QDialog):
 
 def _show_dialog(*args, **kwargs):
     """Show a dialog for a backend problem."""
+    cmd_args = objreg.get('args')
+    if cmd_args.no_err_windows:
+        text = _error_text(*args, **kwargs)
+        print(text, file=sys.stderr)
+        sys.exit(usertypes.Exit.err_init)
+
     dialog = _Dialog(*args, **kwargs)
 
     status = dialog.exec_()

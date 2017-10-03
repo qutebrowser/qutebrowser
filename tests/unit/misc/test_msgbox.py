@@ -27,6 +27,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QWidget
 
 
+@pytest.fixture(autouse=True)
+def patch_args(fake_args):
+    fake_args.no_err_windows = False
+
+
 def test_attributes(qtbot):
     """Test basic QMessageBox attributes."""
     title = 'title'
@@ -85,3 +90,12 @@ def test_information(qtbot):
         assert box.windowTitle() == 'foo'
     assert box.text() == 'bar'
     assert box.icon() == QMessageBox.Information
+
+
+def test_no_err_windows(fake_args, capsys):
+    fake_args.no_err_windows = True
+    box = msgbox.information(parent=None, title='foo', text='bar')
+    box.exec_()  # should do nothing
+    out, err = capsys.readouterr()
+    assert not out
+    assert err == 'Message box: foo; bar\n'
