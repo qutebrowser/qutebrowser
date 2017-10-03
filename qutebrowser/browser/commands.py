@@ -523,6 +523,39 @@ class CommandDispatcher:
         cur_widget = self._current_widget()
         self._tabbed_browser.close_tab(cur_widget, add_undo=False)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', completion=miscmodels.buffer)
+    def tab_take(self, index):
+        """Take a tab from another window.
+
+        Args:
+            index: The [win_id/]index of the tab to take. Or a substring
+                   in which case the closest match will be taken.
+        """
+        tabbed_browser, tab = self._resolve_buffer_index(index)
+
+        if tabbed_browser is self._tabbed_browser:
+            raise cmdexc.CommandError("Can't take a tab from the same window")
+
+        self._open(tab.url(), tab=True)
+        tabbed_browser.close_tab(tab, add_undo=False)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('win_id', completion=miscmodels.window)
+    def tab_give(self, win_id: int):
+        """Give the current tab to another window.
+
+        Args:
+            win_id: The window ID of the window to give the current tab to.
+        """
+        if win_id == self._win_id:
+            raise cmdexc.CommandError("Can't give a tab to the same window")
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        tabbed_browser.tabopen(self._current_url())
+        self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
+
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
         history = self._current_widget().history
