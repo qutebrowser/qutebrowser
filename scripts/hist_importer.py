@@ -89,10 +89,14 @@ def extract(source, query):
 def clean(history):
     """Receives a list of records:(datetime,url,title). And clean all records
     in place, that has a NULL/None datetime attribute. Otherwise Qutebrowser
-    will throw errors."""
+    will throw errors. Also, will add a 4rth attribute of '0' for the redirect
+    field in history.sqlite in qutebrowser."""
     nulls = [record for record in history if record[0] is None]
     for null_datetime in nulls:
         history.remove(null_datetime)
+    history = [list(record) for record in history]
+    for record in history:
+        record.append('0')
     return history
 
 
@@ -102,12 +106,10 @@ def insert_qb(history, dest):
     conn = open_db(dest)
     cursor = conn.cursor()
     cursor.executemany(
-        'INSERT INTO History (url,title,atime) VALUES (?,?,?)', history
-    )
-    cursor.executemany(
-        'INSERT INTO CompletionHistory (url,title,last_atime) VALUES (?,?,?)',
+        'INSERT INTO History (url,title,atime,redirect) VALUES (?,?,?,?)',
         history
     )
+    cursor.execute('DROP TABLE CompletionHistory')
     conn.commit()
     conn.close()
 
