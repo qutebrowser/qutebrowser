@@ -104,6 +104,10 @@ def insert_qb(history, dest):
     cursor.executemany(
         'INSERT INTO History (url,title,atime) VALUES (?,?,?)', history
     )
+    cursor.executemany(
+        'INSERT INTO CompletionHistory (url,title,last_atime) VALUES (?,?,?)',
+        history
+    )
     conn.commit()
     conn.close()
 
