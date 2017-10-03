@@ -518,7 +518,12 @@ CHANGED_KEY_COMMANDS = [
     """
     parsed = {}
     data = utils.yaml_load(yaml_data)
+<<<<<<< HEAD
 >>>>>>> d70bdb5552f222922f945495145c4c967ade34bb
+||||||| merged common ancestors
+>>>>>>>>> Temporary merge branch 2
+=======
+>>>>>>> 0c07bb7e50ec7d9c1b3651e78f51e1ea30d6e037
 
     keys = {'type', 'default', 'desc', 'backend'}
 
