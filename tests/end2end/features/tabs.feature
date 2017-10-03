@@ -897,9 +897,9 @@ Feature: Tab management
 
     # :buffer
 
-    Scenario: :buffer without args
+    Scenario: :buffer without args or count
         When I run :buffer
-        Then the error "buffer: The following arguments are required: index" should be shown
+        Then the error "buffer: Either a count or the argument index must be specified." should be shown
 
     Scenario: :buffer with a matching title
         When I open data/title.html
