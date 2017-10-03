@@ -30,7 +30,7 @@ from qutebrowser.config import config
 
 class KeyChainParser(BaseKeyParser):
     """KeyChainParser which implements chaining of multiple keys."""
-    def __init__(self, win_id, parent=None, supports_count=None):
+    def __init__(self, win_id, parent=None, supports_count=False):
         super().__init__(win_id, parent, supports_count, supports_chains=True)
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
@@ -83,7 +83,7 @@ class CommandKeyParser(KeyChainParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None, supports_count=True):
+    def __init__(self, win_id, parent=None, supports_count=False):
         super().__init__(win_id, parent, supports_count)
         self._commandrunner = runners.CommandRunner(win_id)
 
@@ -113,7 +113,7 @@ class PassthroughKeyParser(CommandKeyParser):
             mode: The mode this keyparser is for.
             parent: Qt parent.
         """
-        super().__init__(win_id, parent)
+        super().__init__(win_id, parent, supports_count=False)
         self._read_config(mode)
         self._mode = mode
 
