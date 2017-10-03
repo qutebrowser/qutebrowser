@@ -128,15 +128,32 @@ def patch_mac_app():
     plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
     with open(plist_path, "rb") as f:
         plist_data = plistlib.load(f)
-    plist_data['CFBundleURLTypes'] = [{
+    plist_data.update(INFO_PLIST_UPDATES)
+    with open(plist_path, "wb") as f:
+        plistlib.dump(plist_data, f)
+
+
+INFO_PLIST_UPDATES = {
+    'CFBundleURLTypes': [{
         "CFBundleURLName": "http(s) URL",
         "CFBundleURLSchemes": ["http", "https"]
     }, {
         "CFBundleURLName": "local file URL",
         "CFBundleURLSchemes": ["file"]
+    }],
+    'CFBundleDocumentTypes': [{
+        "CFBundleTypeExtensions": ["html", "htm"],
+        "CFBundleTypeMIMETypes": ["text/html"],
+        "CFBundleTypeName": "HTML document",
+        "CFBundleTypeOSTypes": ["HTML"],
+        "CFBundleTypeRole": "Viewer",
+    }, {
+        "CFBundleTypeExtensions": ["xhtml"],
+        "CFBundleTypeMIMETypes": ["text/xhtml"],
+        "CFBundleTypeName": "XHTML document",
+        "CFBundleTypeRole": "Viewer",
     }]
-    with open(plist_path, "wb") as f:
-        plistlib.dump(plist_data, f)
+}
 
 
 def build_mac():
