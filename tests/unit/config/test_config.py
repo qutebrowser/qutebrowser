@@ -20,6 +20,7 @@
 
 import copy
 import types
+import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QObject
@@ -262,6 +263,11 @@ class TestConfig:
         yaml_config = configfiles.YamlConfig()
         return config.Config(yaml_config)
 
+    def test_init_save_manager(self, conf, fake_save_manager):
+        conf.init_save_manager(fake_save_manager)
+        fake_save_manager.add_saveable.assert_called_once_with(
+            'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
+
     def test_set_value(self, qtbot, conf, caplog):
         opt = conf.get_opt('tabs.show')
         with qtbot.wait_signal(conf.changed) as blocker:
@@ -431,6 +437,19 @@ class TestConfig:
 
         assert not conf._mutables
         assert conf.get_obj(option) == new
+
+    def test_get_mutable_twice(self, conf):
+        """Get a mutable value twice."""
+        option = 'content.headers.custom'
+        obj = conf.get_obj(option, mutable=True)
+        obj['X-Foo'] = 'fooval'
+        obj2 = conf.get_obj(option, mutable=True)
+        obj2['X-Bar'] = 'barval'
+
+        conf.update_mutables()
+
+        expected = {'X-Foo': 'fooval', 'X-Bar': 'barval'}
+        assert conf.get_obj(option) == expected
 
     def test_get_obj_unknown_mutable(self, conf):
         """Make sure we don't have unknown mutable types."""
