@@ -33,6 +33,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<close,close>>|Close the current window.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
+|<<config-edit,config-edit>>|Open the config.py file in the editor.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
 |<<download,download>>|Download a given URL, or current page if no URL given.
@@ -228,6 +229,15 @@ Cycle an option between multiple values.
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
+
+[[config-edit]]
+=== config-edit
+Syntax: +:config-edit [*--no-source*]+
+
+Open the config.py file in the editor.
+
+==== optional arguments
+* +*-n*+, +*--no-source*+: Don't re-source the config file after editing.
 
 [[config-source]]
 === config-source

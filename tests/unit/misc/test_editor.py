@@ -43,6 +43,7 @@ def editor(caplog):
     ed.editing_finished = mock.Mock()
     yield ed
     with caplog.at_level(logging.ERROR):
+        ed._remove_file = True
         ed._cleanup()
 
 

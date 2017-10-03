@@ -18,8 +18,10 @@
 
 """Tests for qutebrowser.config.configcommands."""
 
+import logging
+
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QProcess
 
 from qutebrowser.config import configcommands
 from qutebrowser.commands import cmdexc
@@ -300,6 +302,53 @@ class TestSource:
         expected = ("Errors occurred while reading config.py:\n"
                     "  While setting 'foo': No option 'foo'")
         assert str(excinfo.value) == expected
+
+
+class TestEdit:
+
+    """Tests for :config-edit."""
+
+    def test_no_source(self, commands, mocker, config_tmpdir):
+        mock = mocker.patch('qutebrowser.config.configcommands.editor.'
+                            'ExternalEditor._start_editor', autospec=True)
+        commands.config_edit(no_source=True)
+        mock.assert_called_once()
+
+    @pytest.fixture
+    def patch_editor(self, mocker, config_tmpdir, data_tmpdir):
+        """Write a config.py file."""
+        def do_patch(text):
+            def _write_file(editor_self):
+                with open(editor_self._filename, 'w', encoding='utf-8') as f:
+                    f.write(text)
+                editor_self.on_proc_closed(0, QProcess.NormalExit)
+
+            return mocker.patch('qutebrowser.config.configcommands.editor.'
+                                'ExternalEditor._start_editor', autospec=True,
+                                side_effect=_write_file)
+
+        return do_patch
+
+    def test_with_sourcing(self, commands, config_stub, patch_editor):
+        assert config_stub.val.content.javascript.enabled
+        mock = patch_editor('c.content.javascript.enabled = False')
+
+        commands.config_edit()
+
+        mock.assert_called_once()
+        assert not config_stub.val.content.javascript.enabled
+
+    def test_error(self, commands, config_stub, patch_editor, message_mock,
+                   caplog):
+        patch_editor('c.foo = 42')
+
+        with caplog.at_level(logging.ERROR):
+            commands.config_edit()
+
+        msg = message_mock.getmsg()
+        expected = ("Errors occurred while reading config.py:\n"
+                    "  While setting 'foo': No option 'foo'")
+        assert msg.text == expected
 
 
 class TestBind:

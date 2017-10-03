@@ -28,6 +28,7 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
 from qutebrowser.utils import objreg, utils, message, standarddir
 from qutebrowser.config import configtypes, configexc, configfiles
+from qutebrowser.misc import editor
 
 
 class ConfigCommands:
@@ -226,3 +227,27 @@ class ConfigCommands:
             configfiles.read_config_py(filename)
         except configexc.ConfigFileErrors as e:
             raise cmdexc.CommandError(e)
+
+    @cmdutils.register(instance='config-commands')
+    def config_edit(self, no_source=False):
+        """Open the config.py file in the editor.
+
+        Args:
+            no_source: Don't re-source the config file after editing.
+        """
+        def on_editing_finished():
+            """Source the new config when editing finished.
+
+            This can't use cmdexc.CommandError as it's run async.
+            """
+            try:
+                configfiles.read_config_py(filename)
+            except configexc.ConfigFileErrors as e:
+                message.error(str(e))
+
+        ed = editor.ExternalEditor(self._config)
+        if not no_source:
+            ed.editing_finished.connect(on_editing_finished)
+
+        filename = os.path.join(standarddir.config(), 'config.py')
+        ed.edit_file(filename)
