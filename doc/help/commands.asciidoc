@@ -184,7 +184,7 @@ Load a bookmark.
 
 [[buffer]]
 === buffer
-Syntax: +:buffer 'index'+
+Syntax: +:buffer ['index']+
 
 Select tab by index or url/title best match.
 
@@ -193,9 +193,9 @@ Focuses window if necessary when index is given. If both index and count are giv
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
 
+
 ==== count
 The tab index to focus, starting with 1.
-
 
 [[close]]
 === close

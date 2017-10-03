@@ -1015,8 +1015,8 @@ class CommandDispatcher:
     def buffer(self, index=None, count=None):
         """Select tab by index or url/title best match.
 
-        Focuses window if necessary when index is given. If both index and count
-        are given, use count.
+        Focuses window if necessary when index is given. If both index and
+        count are given, use count.
 
         Args:
             index: The [win_id/]index of the tab to focus. Or a substring
