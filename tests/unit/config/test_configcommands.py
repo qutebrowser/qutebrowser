@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl, QProcess
 
 from qutebrowser.config import configcommands
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import objreg, usertypes
+from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
@@ -329,7 +329,7 @@ class TestEdit:
 
         commands.config_edit()
 
-        mock.assert_called_once_with(unittest.mock.any)
+        mock.assert_called_once_with(unittest.mock.ANY)
         assert not config_stub.val.content.javascript.enabled
 
     def test_error(self, commands, config_stub, patch_editor, message_mock,

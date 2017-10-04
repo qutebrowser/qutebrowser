@@ -25,7 +25,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import argparser, cmdexc
-from qutebrowser.utils import usertypes, objreg
+from qutebrowser.utils import usertypes
 
 
 Enum = usertypes.enum('Enum', ['foo', 'foo_bar'])

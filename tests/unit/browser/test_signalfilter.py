@@ -26,7 +26,6 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.browser import signalfilter
-from qutebrowser.utils import objreg
 
 
 class Signaller(QObject):
