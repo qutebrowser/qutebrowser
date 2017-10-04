@@ -98,6 +98,7 @@ class KeyHintView(QLabel):
                        for glob in config.val.keyhint.blacklist)
 
         def takes_count(cmdstr):
+            """Return true iff this command can take a count argument."""
             cmdname = cmdstr.split(' ')[0]
             cmd = cmdutils.cmd_dict.get(cmdname)
             return cmd and cmd.takes_count()
