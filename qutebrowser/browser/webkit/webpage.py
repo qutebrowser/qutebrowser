@@ -301,16 +301,15 @@ class BrowserPage(QWebPage):
         log.webview.debug('JS window object cleared')
         greasemonkey = objreg.get('greasemonkey')
         url = self.currentFrame().url()
-        start_scripts, end_scripts, idle_scripts = \
-            greasemonkey.scripts_for(url.toDisplayString())
+        scripts = greasemonkey.scripts_for(url.toDisplayString())
 
         toload = []
         if load == "start":
-            toload = start_scripts
+            toload = scripts.start
         elif load == "end":
-            toload = end_scripts
+            toload = scripts.end
         elif load == "idle":
-            toload = idle_scripts
+            toload = scripts.idle
         log.greasemonkey.debug('scripts: %s', toload)
 
         for script in toload:
