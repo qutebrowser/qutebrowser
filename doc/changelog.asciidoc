@@ -87,6 +87,8 @@ Fixes
   restores the correct previous window state (maximized/fullscreen).
 - When `input.insert_mode.auto_load` is set, background tabs now don't enter
   insert mode anymore.
+- The keybinding help widget now works correctly when using keybindings with a
+  count.
 
 v0.11.1 (unreleased)
 --------------------
