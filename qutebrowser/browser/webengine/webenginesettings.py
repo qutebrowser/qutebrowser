@@ -37,7 +37,8 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import utils, standarddir, javascript, qtutils
+from qutebrowser.utils import (utils, standarddir, javascript, qtutils, objreg,
+                               log)
 
 
 # The default QWebEngineProfile
@@ -197,6 +198,39 @@ def _init_profiles():
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
     _set_http_headers(private_profile)
+
+
+def inject_userscripts():
+    """Register user javascript files with the global profiles."""
+    # The greasemonkey metadata block support in qtwebengine only starts at 5.8
+    # Otherwise have to handle injecting the scripts into the page at very
+    # early load, probs same place in view as the enableJS check.
+    if not qtutils.version_check('5.8'):
+        return
+
+    # Since we are inserting scripts into profile.scripts they won't
+    # just get replaced by new gm scripts like if we were injecting them
+    # ourselves so we need to remove all gm scripts, while not removing
+    # any other stuff that might have been added. Like the one for
+    # stylsheets.
+    # Could either use a different world for gm scripts, check for gm metadata
+    # values (would mean no non-gm userscripts), or check the code for
+    # _qute_script_id
+    for profile in [default_profile, private_profile]:
+        scripts = profile.scripts()
+        for script in scripts.toList():
+            if script.worldId() == QWebEngineScript.MainWorld:
+                scripts.remove(script)
+
+    for profile in [default_profile, private_profile]:
+        scripts = profile.scripts()
+        greasemonkey = objreg.get('greasemonkey')
+        for script in greasemonkey.all_scripts():
+            new_script = QWebEngineScript()
+            new_script.setWorldId(QWebEngineScript.MainWorld)
+            new_script.setSourceCode(script.code())
+            log.greasemonkey.error('adding script: %s', new_script.name())
+            scripts.insert(new_script)
 
 
 def init(args):
