@@ -514,16 +514,6 @@ class CommandDispatcher:
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_detach(self):
-        """Detach the current tab to its own window."""
-        if self._count() < 2:
-            raise cmdexc.CommandError("Cannot detach one tab.")
-        url = self._current_url()
-        self._open(url, window=True)
-        cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', completion=miscmodels.buffer)
     def tab_take(self, index):
         """Take a tab from another window.
@@ -542,8 +532,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
-    def tab_give(self, win_id: int):
-        """Give the current tab to another window.
+    def tab_give(self, win_id: int = None):
+        """Give the current tab to a new or existing window if win_id given.
+
+        If no win_id is given, the tab will get detached into a new window.
 
         Args:
             win_id: The window ID of the window to give the current tab to.
@@ -551,8 +543,16 @@ class CommandDispatcher:
         if win_id == self._win_id:
             raise cmdexc.CommandError("Can't give a tab to the same window")
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
+        if win_id is not None:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+        else:
+            if self._count() < 2:
+                raise cmdexc.CommandError("Cannot detach from a window with "
+                                          "only one tab")
+
+            tabbed_browser = self._new_tabbed_browser(
+                    private=self._tabbed_browser.private)
         tabbed_browser.tabopen(self._current_url())
         self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
 
