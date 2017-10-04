@@ -150,7 +150,7 @@ class SqlTable(QObject):
     def __init__(self, name, fields, constraints=None, parent=None):
         """Create a new table in the sql database.
 
-        Raises SqlError if the table already exists.
+        Does nothing if the table already exists.
 
         Args:
             name: Name of the table.

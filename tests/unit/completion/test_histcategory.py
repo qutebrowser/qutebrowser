@@ -140,20 +140,24 @@ def test_sorting(max_items, before, after, model_validator, hist, config_stub):
 
 
 def test_remove_rows(hist, model_validator):
-    hist.insert({'url': 'foo', 'title': 'Foo'})
-    hist.insert({'url': 'bar', 'title': 'Bar'})
+    hist.insert({'url': 'foo', 'title': 'Foo', 'last_atime': 0})
+    hist.insert({'url': 'bar', 'title': 'Bar', 'last_atime': 0})
     cat = histcategory.HistoryCategory()
     model_validator.set_model(cat)
     cat.set_pattern('')
     hist.delete('url', 'foo')
     cat.removeRows(0, 1)
-    model_validator.validate([('bar', 'Bar', '')])
+    model_validator.validate([('bar', 'Bar', '1970-01-01')])
 
 
 def test_remove_rows_fetch(hist):
     """removeRows should fetch enough data to make the current index valid."""
     # we cannot use model_validator as it will fetch everything up front
-    hist.insert_batch({'url': [str(i) for i in range(300)]})
+    hist.insert_batch({
+        'url': [str(i) for i in range(300)],
+        'title': [str(i) for i in range(300)],
+        'last_atime': [0] * 300,
+    })
     cat = histcategory.HistoryCategory()
     cat.set_pattern('')
 

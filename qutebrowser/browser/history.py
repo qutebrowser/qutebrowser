@@ -40,7 +40,10 @@ class CompletionHistory(sql.SqlTable):
 
     def __init__(self, parent=None):
         super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
-                         constraints={'url': 'PRIMARY KEY'}, parent=parent)
+                         constraints={'url': 'PRIMARY KEY',
+                                      'title': 'NOT NULL',
+                                      'last_atime': 'NOT NULL'},
+                         parent=parent)
         self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
 
 
@@ -50,6 +53,10 @@ class WebHistory(sql.SqlTable):
 
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
+                         constraints={'url': 'NOT NULL',
+                                      'title': 'NOT NULL',
+                                      'atime': 'NOT NULL',
+                                      'redirect': 'NOT NULL'},
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
