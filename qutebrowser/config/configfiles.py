@@ -245,6 +245,28 @@ class ConfigAPI:
             self._keyconfig.unbind(key, mode=mode)
 
 
+def write_config_py(filename, options, bindings):
+    """Write a config.py file from given values."""
+    with open(filename, 'w', encoding='utf-8') as f:
+        for opt, value in options:
+            if opt.name in ['bindings.commands', 'bindings.default']:
+                continue
+            for line in textwrap.wrap(opt.description):
+                f.write('# {}\n'.format(line))
+            f.write('c.{} = {!r}\n\n'.format(opt.name, value))
+
+        normal_bindings = bindings.pop('normal', {})
+        f.write('# Bindings for normal mode\n')
+        for key, command in sorted(normal_bindings.items()):
+            f.write('config.bind({!r}, {!r})\n'.format(key, command))
+
+        for mode, mode_bindings in sorted(bindings.items()):
+            f.write('\n# Bindings for {} mode\n'.format(mode))
+            for key, command in sorted(mode_bindings.items()):
+                f.write('config.bind({!r}, {!r}, mode={!r})\n'.format(
+                    key, command, mode))
+
+
 def read_config_py(filename, raising=False):
     """Read a config.py file.
 
