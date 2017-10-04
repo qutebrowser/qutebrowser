@@ -300,14 +300,14 @@ class BrowserPage(QWebPage):
         """
         greasemonkey = objreg.get('greasemonkey')
         url = self.currentFrame().url()
-        start_scripts, end_scripts, idle_scripts = \
-            greasemonkey.scripts_for(url.toDisplayString())
+        scripts = greasemonkey.scripts_for(url.toDisplayString())
+
         if load == "start":
-            toload = start_scripts
+            toload = scripts.start
         elif load == "end":
-            toload = end_scripts
+            toload = scripts.end
         elif load == "idle":
-            toload = idle_scripts
+            toload = scripts.idle
 
         for script in toload:
             log.webview.debug('Running GM script: {}'.format(script.name))
