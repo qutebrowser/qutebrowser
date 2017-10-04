@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.configcommands."""
 
 import logging
+import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QUrl, QProcess
@@ -305,7 +306,7 @@ class TestEdit:
         mock = mocker.patch('qutebrowser.config.configcommands.editor.'
                             'ExternalEditor._start_editor', autospec=True)
         commands.config_edit(no_source=True)
-        mock.assert_called_once()
+        mock.assert_called_once_with(unittest.mock.ANY)
 
     @pytest.fixture
     def patch_editor(self, mocker, config_tmpdir, data_tmpdir):
@@ -328,7 +329,7 @@ class TestEdit:
 
         commands.config_edit()
 
-        mock.assert_called_once()
+        mock.assert_called_once_with(unittest.mock.any)
         assert not config_stub.val.content.javascript.enabled
 
     def test_error(self, commands, config_stub, patch_editor, message_mock,
