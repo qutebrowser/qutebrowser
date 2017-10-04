@@ -408,6 +408,7 @@ Feature: Various utility commands.
         And I open data/hello3.txt in a new window
         And I run :window-only
         And I wait for "Closing window *" in the log
+        And I wait for "removed: main-window" in the log
         Then the session should look like:
             windows:
             - tabs:
