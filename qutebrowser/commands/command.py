@@ -515,3 +515,7 @@ class Command:
             raise cmdexc.PrerequisitesError(
                 "{}: This command is only allowed in {} mode, not {}.".format(
                     self.name, mode_names, mode.name))
+
+    def takes_count(self):
+        """Return true iff this command can take a count argument."""
+        return any(arg.count for arg in self._qute_args)
