@@ -89,8 +89,11 @@ def language_list_from_api():
     """Return a JSON with a list of available languages from Google API."""
     listurl = urllib.parse.urljoin(API_URL, '?format=JSON')
     response = urllib.request.urlopen(listurl)
-    # TODO: what's up with the first 4 characters?
-    entries = json.loads(response.read().decode('utf-8')[4:])['entries']
+    # A special 5-byte prefix must be stripped from the response content
+    # See: https://github.com/google/gitiles/issues/22
+    #      https://github.com/google/gitiles/issues/82
+    json_content = response.read()[5:]
+    entries = json.loads(json_content.decode('utf-8'))['entries']
     return entries
 
 
