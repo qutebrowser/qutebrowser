@@ -38,7 +38,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     Signals:
         got_cmd: Emitted when a command is triggered by the user.
-                 arg: The command string.
+                 arg: The command string and also potentially the count.
         clear_completion_selection: Emitted before the completion widget is
                                     hidden.
         hide_completion: Emitted when the completion widget should be hidden.
@@ -47,7 +47,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         hide_cmd: Emitted when command input can be hidden.
     """
 
-    got_cmd = pyqtSignal(str)
+    got_cmd = pyqtSignal([str], [str, int])
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     update_completion = pyqtSignal()
@@ -91,7 +91,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command', name='set-cmd-text',
                        scope='window', maxsplit=0)
-    def set_cmd_text_command(self, text, space=False, append=False):
+    @cmdutils.argument('count', count=True)
+    def set_cmd_text_command(self, text, count=None, space=False, append=False,
+                             run_on_count=False):
         """Preset the statusbar to some text.
 
         //
@@ -101,8 +103,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
         Args:
             text: The commandline to set.
+            count: The count if given.
             space: If given, a space is added to the end.
             append: If given, the text is appended to the current text.
+            run_on_count: If given with a count, the command is run with the
+                          given count rather than setting the command text.
         """
         if space:
             text += ' '
@@ -114,7 +119,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if not text or text[0] not in modeparsers.STARTCHARS:
             raise cmdexc.CommandError(
                 "Invalid command text '{}'.".format(text))
-        self.set_cmd_text(text)
+        if run_on_count and count is not None:
+            self.got_cmd[str, int].emit(text, count)
+        else:
+            self.set_cmd_text(text)
 
     @cmdutils.register(instance='status-command', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
@@ -156,7 +164,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         text = self.text()
         self.history.append(text)
         modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
-        self.got_cmd.emit(prefixes[text[0]] + text[1:])
+        self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):

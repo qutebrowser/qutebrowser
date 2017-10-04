@@ -437,7 +437,8 @@ class MainWindow(QWidget):
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
             status.keystring.setText)
-        cmd.got_cmd.connect(self._commandrunner.run_safely)
+        cmd.got_cmd[str].connect(self._commandrunner.run_safely)
+        cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
         cmd.returnPressed.connect(tabs.on_cmd_return_pressed)
 
         # key hint popup
