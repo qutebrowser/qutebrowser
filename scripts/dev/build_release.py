@@ -100,7 +100,7 @@ def patch_mac_app():
     app_path = os.path.join('dist', 'qutebrowser.app')
     qtwe_core_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'python3.6',
                                  'site-packages', 'PyQt5', 'Qt', 'lib',
-                                 'QtWebengineCore.framework')
+                                 'QtWebEngineCore.framework')
     # Copy QtWebEngineProcess.app
     proc_app = 'QtWebEngineProcess.app'
     shutil.copytree(os.path.join(qtwe_core_dir, 'Helpers', proc_app),
