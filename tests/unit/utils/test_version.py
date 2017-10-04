@@ -564,7 +564,7 @@ class TestModuleVersions:
         """Test with all modules present in version 1.2.3."""
         expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
                     'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
-                    'cssutils: 1.2.3', 'typing: yes', 'OpenGL: 1.2.3',
+                    'cssutils: 1.2.3', 'typing: yes',
                     'PyQt5.QtWebEngineWidgets: yes',
                     'PyQt5.QtWebKitWidgets: yes']
         assert version._module_versions() == expected
@@ -588,17 +588,17 @@ class TestModuleVersions:
     @pytest.mark.parametrize('value, expected', [
         ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
                      'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                     'cssutils: yes', 'typing: yes', 'OpenGL: yes',
+                     'cssutils: yes', 'typing: yes',
                      'PyQt5.QtWebEngineWidgets: yes',
                      'PyQt5.QtWebKitWidgets: yes']),
         ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
                              'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                             'cssutils: yes', 'typing: yes', 'OpenGL: yes',
+                             'cssutils: yes', 'typing: yes',
                              'PyQt5.QtWebEngineWidgets: yes',
                              'PyQt5.QtWebKitWidgets: yes']),
         (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
                 'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes',
-                'OpenGL: yes', 'PyQt5.QtWebEngineWidgets: yes',
+                'PyQt5.QtWebEngineWidgets: yes',
                 'PyQt5.QtWebKitWidgets: yes']),
     ])
     def test_version_attribute(self, value, expected, import_fake):
