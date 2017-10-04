@@ -109,7 +109,7 @@ class YamlConfig(QObject):
         return name in self._values
 
     def __iter__(self):
-        return iter(self._values.items())
+        return iter(sorted(self._values.items()))
 
     def _mark_changed(self):
         """Mark the YAML config as changed."""

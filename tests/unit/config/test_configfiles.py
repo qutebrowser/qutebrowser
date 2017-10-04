@@ -161,7 +161,7 @@ class TestYaml:
     def test_iter(self, yaml):
         yaml['foo'] = 23
         yaml['bar'] = 42
-        assert list(iter(yaml)) == [('foo', 23), ('bar', 42)]
+        assert list(iter(yaml)) == [('bar', 42), ('foo', 23)]
 
     @pytest.mark.parametrize('old_config', [
         None,
