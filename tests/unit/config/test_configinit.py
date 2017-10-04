@@ -26,7 +26,8 @@ import unittest.mock
 import pytest
 
 from qutebrowser import qutebrowser
-from qutebrowser.config import config, configexc, configfiles, configinit
+from qutebrowser.config import (config, configexc, configfiles, configinit,
+                                configdata)
 from qutebrowser.utils import objreg, usertypes
 
 
@@ -50,6 +51,14 @@ def args(fake_args):
     """Arguments needed for the config to init."""
     fake_args.temp_settings = []
     return fake_args
+
+
+@pytest.fixture(autouse=True)
+def configdata_init(monkeypatch):
+    """Make sure configdata is init'ed and no test re-init's it."""
+    if not configdata.DATA:
+        configdata.init()
+    monkeypatch.setattr(configdata, 'init', lambda: None)
 
 
 class TestEarlyInit:
