@@ -56,7 +56,7 @@ def test_filter_languages():
         LANGUAGE_LIST, ['pl-PL', 'en-US'])
     assert filtered_langs == [ENGLISH, POLISH]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(install_dict.InvalidLanguageError):
         install_dict.filter_languages(LANGUAGE_LIST, ['pl-PL', 'en-GB'])
 
 

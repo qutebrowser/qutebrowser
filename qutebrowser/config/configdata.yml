@@ -1034,7 +1034,7 @@ spellcheck.languages:
         - uk-UA: Ukrainian (Ukraine)
         - vi-VN: Vietnamese (Viet Nam)
     none_ok: true
-  default:
+  default: []
   desc: >-
     Spell checking languages.
 

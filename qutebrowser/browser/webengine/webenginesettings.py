@@ -27,9 +27,9 @@ Module attributes:
                 constants.
 """
 
+import os
 import ctypes
 import ctypes.util
-import os
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,

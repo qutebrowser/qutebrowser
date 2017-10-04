@@ -38,7 +38,6 @@ def installed_file(code):
     if the dictionary is not installed.
     """
     pathname = os.path.join(dictionary_dir(), '{}*.bdic'.format(code))
-    print(pathname)
     matching_dicts = glob.glob(pathname)
     if matching_dicts:
         with_extension = os.path.basename(matching_dicts[0])

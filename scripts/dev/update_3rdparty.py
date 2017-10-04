@@ -29,6 +29,11 @@ import json
 import os
 import sys
 
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+from scripts import install_dict
+from qutebrowser.config import configdata
+
 
 def get_latest_pdfjs_url():
     """Get the URL of the latest pdf.js prebuilt package.
@@ -113,12 +118,9 @@ def update_ace():
 
 def test_dicts():
     """Test available dictionaries."""
-    sys.path.insert(0, os.curdir)
-    from scripts import install_dict
-    from qutebrowser.config import configdata
     configdata.init()
     for lang in install_dict.available_languages():
-        sys.stdout.write('Testing dictionary {}... '.format(lang.code))
+        print('Testing dictionary {}... '.format(lang.code), end='')
         lang_url = urllib.parse.urljoin(install_dict.API_URL, lang.file_path)
         request = urllib.request.Request(lang_url, method='HEAD')
         response = urllib.request.urlopen(request)
@@ -129,7 +131,7 @@ def test_dicts():
 
 
 def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
-        dicts=None):
+        dicts=False):
     """Update components based on the given arguments."""
     if pdfjs:
         update_pdfjs(pdfjs_version)

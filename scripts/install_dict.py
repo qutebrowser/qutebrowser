@@ -40,6 +40,14 @@ from qutebrowser.config import configdata
 API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
 
 
+class InvalidLanguageError(Exception):
+    """Raised when requested invalid languages."""
+
+    def __init__(self, invalid_langs):
+        msg = 'invalid languages: {}'.format(', '.join(invalid_langs))
+        super(InvalidLanguageError, self).__init__(msg)
+
+
 @attr.s
 class Language:
     """Dictionary language specs."""
@@ -68,7 +76,7 @@ def get_argparser():
 
 def print_list(languages):
     for lang in languages:
-        print('{1}\t{0}'.format(lang.name, lang.code))
+        print(lang.code, lang.name, sep='\t')
 
 
 def valid_languages():
@@ -118,9 +126,6 @@ def filter_languages(languages, selected):
     Args:
         languages: a list of languages to filter
         selected: a list of keys to select
-        by: a function returning the selection key (code by default)
-        fail_on_unknown: whether to raise an error if there is an unknown
-                         key in selected
     """
     filtered_languages = []
     for language in languages:
@@ -128,8 +133,7 @@ def filter_languages(languages, selected):
             filtered_languages.append(language)
             selected.remove(language.code)
     if selected:
-        unknown = ', '.join(selected)
-        raise ValueError('unknown languages found: {}'.format(unknown))
+        raise InvalidLanguageError(selected)
     return filtered_languages
 
 
@@ -170,7 +174,7 @@ def main():
     else:
         try:
             install(filter_languages(languages, args.languages))
-        except ValueError as e:
+        except InvalidLanguageError as e:
             print(e)
 
 
