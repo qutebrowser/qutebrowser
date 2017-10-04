@@ -264,7 +264,7 @@ def write_config_py(filename, options, bindings):
             f.write('# Type: {}\n'.format(opt.typ.get_name()))
 
             valid_values = opt.typ.get_valid_values()
-            if valid_values is not None:
+            if valid_values is not None and valid_values.generate_docs:
                 f.write("# Valid values:\n")
                 for val in valid_values:
                     try:

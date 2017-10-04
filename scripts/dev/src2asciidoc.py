@@ -421,7 +421,7 @@ def _generate_setting_option(f, opt):
     f.write("\n")
 
     valid_values = opt.typ.get_valid_values()
-    if valid_values is not None:
+    if valid_values is not None and valid_values.generate_docs:
         f.write("Valid values:\n")
         f.write("\n")
         for val in valid_values:
