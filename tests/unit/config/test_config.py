@@ -319,8 +319,8 @@ class TestConfig:
         with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
             conf.clear(save_yaml=save_yaml)
 
-        options = [e.args[0] for e in blocker.all_signals_and_args]
-        assert options == [name1, name2]
+        options = {e.args[0] for e in blocker.all_signals_and_args}
+        assert options == {name1, name2}
 
         if save_yaml:
             assert name1 not in conf._yaml
