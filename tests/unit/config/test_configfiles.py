@@ -111,7 +111,7 @@ class TestYaml:
         if insert:
             assert '  tabs.show: never' in lines
 
-    def test_init_save_Manager(self, yaml, fake_save_manager):
+    def test_init_save_manager(self, yaml, fake_save_manager):
         yaml.init_save_manager(fake_save_manager)
         fake_save_manager.add_saveable.assert_called_with(
             'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
