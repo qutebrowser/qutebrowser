@@ -992,15 +992,7 @@ scrolling.smooth:
 
     Note smooth scrolling does not work with the `:scroll-px` command.
 
-## spell
-
-spellcheck.enabled:
-  type: Bool
-  default: true
-  desc: Enable spell checking.
-  backend:
-    QtWebKit: false
-    QtWebEngine: Qt 5.8
+## spellcheck
 
 spellcheck.languages:
   type:

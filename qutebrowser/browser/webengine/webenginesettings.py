@@ -331,8 +331,6 @@ except AttributeError:
 
 
 if qtutils.version_check('5.8'):
-    spellcheck_setter = DefaultProfileSetter('setSpellCheckEnabled')
-    MAPPINGS['spellcheck.enabled'] = spellcheck_setter
     MAPPINGS['spellcheck.languages'] = DictionaryLanguageSetter()
 
 
