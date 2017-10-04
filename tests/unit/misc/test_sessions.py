@@ -138,20 +138,12 @@ class FakeMainWindow(QObject):
 
 
 @pytest.fixture
-def fake_window(win_registry, stubs, monkeypatch, qtbot):
+def fake_window(tabbed_browser_stubs):
     """Fixture which provides a fake main windows with a tabbedbrowser."""
     win0 = FakeMainWindow(b'fake-geometry-0', win_id=0)
     objreg.register('main-window', win0, scope='window', window=0)
-
-    webview = QWebView()
-    qtbot.add_widget(webview)
-    browser = stubs.TabbedBrowserStub([webview])
-    objreg.register('tabbed-browser', browser, scope='window', window=0)
-
     yield
-
     objreg.delete('main-window', scope='window', window=0)
-    objreg.delete('tabbed-browser', scope='window', window=0)
 
 
 class TestSaveAll:
@@ -192,13 +184,12 @@ class TestSave:
         return state
 
     @pytest.fixture
-    def fake_history(self, win_registry, stubs, monkeypatch, webview):
+    def fake_history(self, stubs, tabbed_browser_stubs, monkeypatch, webview):
         """Fixture which provides a window with a fake history."""
         win = FakeMainWindow(b'fake-geometry-0', win_id=0)
         objreg.register('main-window', win, scope='window', window=0)
-        browser = stubs.TabbedBrowserStub([webview])
 
-        objreg.register('tabbed-browser', browser, scope='window', window=0)
+        browser = tabbed_browser_stubs[0]
         qapp = stubs.FakeQApplication(active_window=win)
         monkeypatch.setattr(sessions, 'QApplication', qapp)
 

@@ -38,19 +38,12 @@ class TestSet:
 
     """Tests for :set."""
 
-    @pytest.fixture
-    def tabbed_browser(self, qapp, stubs, win_registry):
-        tb = stubs.TabbedBrowserStub()
-        objreg.register('tabbed-browser', tb, scope='window', window=0)
-        yield tb
-        objreg.delete('tabbed-browser', scope='window', window=0)
-
-    def test_set_no_args(self, commands, tabbed_browser):
+    def test_set_no_args(self, commands, tabbed_browser_stubs):
         """Run ':set'.
 
         Should open qute://settings."""
         commands.set(win_id=0)
-        assert tabbed_browser.opened_url == QUrl('qute://settings')
+        assert tabbed_browser_stubs[0].opened_url == QUrl('qute://settings')
 
     def test_get(self, config_stub, commands, message_mock):
         """Run ':set url.auto_search?'.

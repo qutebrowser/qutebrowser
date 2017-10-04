@@ -37,12 +37,12 @@ def backforward_widget(qtbot):
     (False, True, '[>]'),
     (True, True, '[<>]'),
 ])
-def test_backforward_widget(backforward_widget, stubs,
+def test_backforward_widget(backforward_widget, tabbed_browser_stubs,
                             fake_web_tab, can_go_back, can_go_forward,
                             expected_text):
     """Ensure the Backforward widget shows the correct text."""
     tab = fake_web_tab(can_go_back=can_go_back, can_go_forward=can_go_forward)
-    tabbed_browser = stubs.TabbedBrowserStub()
+    tabbed_browser = tabbed_browser_stubs[0]
     tabbed_browser.current_index = 1
     tabbed_browser.tabs = [tab]
     backforward_widget.on_tab_cur_url_changed(tabbed_browser)
@@ -58,10 +58,10 @@ def test_backforward_widget(backforward_widget, stubs,
         assert not backforward_widget.isVisible()
 
 
-def test_none_tab(backforward_widget, stubs, fake_web_tab):
+def test_none_tab(backforward_widget, tabbed_browser_stubs, fake_web_tab):
     """Make sure nothing crashes when passing None as tab."""
     tab = fake_web_tab(can_go_back=True, can_go_forward=True)
-    tabbed_browser = stubs.TabbedBrowserStub()
+    tabbed_browser = tabbed_browser_stubs[0]
     tabbed_browser.current_index = 1
     tabbed_browser.tabs = [tab]
     backforward_widget.on_tab_cur_url_changed(tabbed_browser)

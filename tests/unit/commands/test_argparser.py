@@ -37,13 +37,6 @@ class TestArgumentParser:
     def parser(self):
         return argparser.ArgumentParser('foo')
 
-    @pytest.fixture
-    def tabbed_browser(self, stubs, win_registry):
-        tb = stubs.TabbedBrowserStub()
-        objreg.register('tabbed-browser', tb, scope='window', window=0)
-        yield tb
-        objreg.delete('tabbed-browser', scope='window', window=0)
-
     def test_name(self, parser):
         assert parser.name == 'foo'
 
@@ -60,14 +53,14 @@ class TestArgumentParser:
                            match="Unrecognized arguments: --foo"):
             parser.parse_args(['--foo'])
 
-    def test_help(self, parser, tabbed_browser):
+    def test_help(self, parser, tabbed_browser_stubs):
         parser.add_argument('--help', action=argparser.HelpAction, nargs=0)
 
         with pytest.raises(argparser.ArgumentParserExit):
             parser.parse_args(['--help'])
 
         expected_url = QUrl('qute://help/commands.html#foo')
-        assert tabbed_browser.opened_url == expected_url
+        assert tabbed_browser_stubs[1].opened_url == expected_url
 
 
 @pytest.mark.parametrize('types, value, expected', [
