@@ -157,6 +157,9 @@ def _show_dialog(*args, **kwargs):
 def _handle_nouveau_graphics():
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
 
+    if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
+        return
+
     if version.opengl_vendor() != 'nouveau':
         return
 
@@ -186,6 +189,9 @@ def _handle_nouveau_graphics():
 
 def _handle_wayland():
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
+
+    if os.environ.get('QUTE_SKIP_WAYLAND_CHECK'):
+        return
 
     platform = QApplication.instance().platformName()
     if platform not in ['wayland', 'wayland-egl']:
