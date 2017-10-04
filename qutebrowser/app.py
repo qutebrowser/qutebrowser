@@ -808,10 +808,10 @@ class Application(QApplication):
 
     def event(self, e):
         if e.type() != QEvent.FileOpen:
-            return super(QApplication, self).event(e)
+            return super().event(e)
 
         url = e.url()
-        log.misc.info("Got FileOpen event: %s" % url)
+        log.misc.info("Got FileOpen event: {}".format(url.toDisplayString()))
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
         tabbed_browser.tabopen(url, related=False)
