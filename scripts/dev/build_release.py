@@ -134,6 +134,8 @@ def patch_mac_app():
 
 
 INFO_PLIST_UPDATES = {
+    'CFBundleVersion': qutebrowser.__version__,
+    'CFBundleShortVersionString': qutebrowser.__version__,
     'NSSupportsAutomaticGraphicsSwitching': True,
     'NSHighResolutionCapable': True,
     'CFBundleURLTypes': [{
