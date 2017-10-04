@@ -79,6 +79,8 @@ Changed
   `<Escape>` doesn't un-focus inputs anymore.
 - Pinned tabs now adjust to their text's width, so the `tabs.width.pinned`
   setting got removed.
+- `:set-cmd-text` now has a `--run-on-count` argument to run the underlying
+  command directly if a count was given.
 
 Fixes
 ~~~~~
