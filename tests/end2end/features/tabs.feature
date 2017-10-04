@@ -638,28 +638,6 @@ Feature: Tab management
         And I run :tab-clone
         Then no crash should happen
 
-    # :tab-detach
-
-    Scenario: Detaching a tab
-        When I open data/numbers/1.txt
-        And I open data/numbers/2.txt in a new tab
-        And I run :tab-detach
-        And I wait until data/numbers/2.txt is loaded
-        Then the session should look like:
-            windows:
-            - tabs:
-              - history:
-                - url: about:blank
-                - url: http://localhost:*/data/numbers/1.txt
-            - tabs:
-              - history:
-                - url: http://localhost:*/data/numbers/2.txt
-
-    Scenario: Detach tab from window with only one tab
-        When I open data/hello.txt
-        And I run :tab-detach
-        Then the error "Cannot detach one tab." should be shown
-
     # :undo
 
     Scenario: Undo without any closed tabs
@@ -1059,6 +1037,26 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I run :tab-give 0
         Then the error "Can't give a tab to the same window" should be shown
+
+    Scenario: Give a tab to a new window
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-give
+        And I wait until data/numbers/2.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Give a tab from window with only one tab
+        When I open data/hello.txt
+        And I run :tab-give
+        Then the error "Cannot detach from a window with only one tab" should be shown
 
     # Other
 
