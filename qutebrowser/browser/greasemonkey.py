@@ -26,6 +26,7 @@ import fnmatch
 import functools
 import glob
 
+import attr
 from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.utils import log, standarddir
@@ -186,6 +187,8 @@ unsafeWindow = window;
             props = ""
         script = cls(re.findall(cls.PROPS_REGEX, props), source)
         script.script_meta = '"{}"'.format("\\n".join(props.split('\n')[2:]))
+        if not props:
+            script.includes = ['*']
         return script
 
     def code(self):
@@ -213,6 +216,16 @@ unsafeWindow = window;
             'excludes': self.excludes,
             'run-at': self.run_at,
         })
+
+
+@attr.s
+class MatchingScripts(object):
+    """All userscripts registered to run on a particular url."""
+
+    url = attr.ib()
+    start = attr.ib(default=attr.Factory(list))
+    end = attr.ib(default=attr.Factory(list))
+    idle = attr.ib(default=attr.Factory(list))
 
 
 class GreasemonkeyManager(QObject):
@@ -278,12 +291,13 @@ class GreasemonkeyManager(QObject):
         document-end, document-idle)
         """
         if url.split(':', 1)[0] not in self.greaseable_schemes:
-            return [], [], []
+            return MatchingScripts(url, [], [], [])
         match = functools.partial(fnmatch.fnmatch, url)
         tester = (lambda script:
                   any([match(pat) for pat in script.includes]) and
                   not any([match(pat) for pat in script.excludes]))
-        return (
+        return MatchingScripts(
+            url,
             [script for script in self._run_start if tester(script)],
             [script for script in self._run_end if tester(script)],
             [script for script in self._run_idle if tester(script)]
