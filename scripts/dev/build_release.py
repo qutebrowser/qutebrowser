@@ -124,7 +124,7 @@ def patch_mac_app():
         os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
                                 'MacOS', lib),
                    os.path.join(dest, lib))
-    # Patch Info.plist to declare URLs support
+    # Patch Info.plist - pyinstaller's options are too limiting
     plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
     with open(plist_path, "rb") as f:
         plist_data = plistlib.load(f)
@@ -134,6 +134,8 @@ def patch_mac_app():
 
 
 INFO_PLIST_UPDATES = {
+    'NSSupportsAutomaticGraphicsSwitching': True,
+    'NSHighResolutionCapable': True,
     'CFBundleURLTypes': [{
         "CFBundleURLName": "http(s) URL",
         "CFBundleURLSchemes": ["http", "https"]
