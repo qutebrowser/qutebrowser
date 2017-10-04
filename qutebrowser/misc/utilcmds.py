@@ -342,3 +342,12 @@ def window_only(current_win_id):
 def nop():
     """Do nothing."""
     return
+
+
+@cmdutils.register()
+@cmdutils.argument('win_id', win_id=True)
+def version(win_id):
+    """Show version information."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    tabbed_browser.openurl(QUrl('qute://version'), newtab=True)
