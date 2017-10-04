@@ -245,7 +245,9 @@ def inject_userscripts():
     for profile in [default_profile, private_profile]:
         scripts = profile.scripts()
         for script in scripts.toList():
-            if script.worldId() == QWebEngineScript.MainWorld:
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('removing script: {}'
+                                       .format(script.name()))
                 scripts.remove(script)
 
     for profile in [default_profile, private_profile]:
@@ -255,6 +257,7 @@ def inject_userscripts():
             new_script = QWebEngineScript()
             new_script.setWorldId(QWebEngineScript.MainWorld)
             new_script.setSourceCode(script.code())
+            new_script.setName("GM-{}".format(script.name))
             log.greasemonkey.debug('adding script: %s', new_script.name())
             scripts.insert(new_script)
 
