@@ -154,6 +154,9 @@ class Completer(QObject):
                     "partitioned: {} '{}' {}".format(prefix, center, postfix))
                 return prefix, center, postfix
 
+        # We should always return above
+        assert False, parts
+
     @pyqtSlot(str)
     def on_selection_changed(self, text):
         """Change the completed part if a new item was selected.

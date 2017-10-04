@@ -43,10 +43,11 @@ def test_backend_error():
     assert str(e) == "This setting is not available with the QtWebKit backend!"
 
 
-def test_duplicate_key_error():
-    e = configexc.DuplicateKeyError('asdf')
-    assert isinstance(e, configexc.KeybindingError)
-    assert str(e) == "Duplicate key asdf"
+def test_desc_with_text():
+    """Test ConfigErrorDesc.with_text."""
+    old = configexc.ConfigErrorDesc("Error text", Exception("Exception text"))
+    new = old.with_text("additional text")
+    assert str(new) == 'Error text (additional text): Exception text'
 
 
 @pytest.fixture

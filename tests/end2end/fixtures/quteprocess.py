@@ -458,7 +458,7 @@ class QuteProc(testprocess.Process):
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
         xfail = self.request.node.get_marker('xfail')
-        if xfail and xfail.args[0]:
+        if xfail and (not xfail.args or xfail.args[0]):
             kwargs['divisor'] = 10
         else:
             kwargs['divisor'] = 1
@@ -494,7 +494,13 @@ class QuteProc(testprocess.Process):
         if skip_texts:
             pytest.skip(', '.join(skip_texts))
 
-    def _after_start(self):
+    def before_test(self):
+        """Clear settings before every test."""
+        super().before_test()
+        self.send_cmd(':config-clear')
+        self._init_settings()
+
+    def _init_settings(self):
         """Adjust some qutebrowser settings after starting."""
         settings = [
             ('messages.timeout', '0'),

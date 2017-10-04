@@ -897,9 +897,9 @@ Feature: Tab management
 
     # :buffer
 
-    Scenario: :buffer without args
+    Scenario: :buffer without args or count
         When I run :buffer
-        Then the error "buffer: The following arguments are required: index" should be shown
+        Then the error "buffer: Either a count or the argument index must be specified." should be shown
 
     Scenario: :buffer with a matching title
         When I open data/title.html
@@ -953,7 +953,7 @@ Feature: Tab management
         And I run :buffer "99/1"
         Then the error "There's no window with id 99!" should be shown
 
-    @qtwebengine_flaky
+    @skip   # Too flaky
     Scenario: :buffer with matching window index
         Given I have a fresh instance
         When I open data/title.html

@@ -59,14 +59,6 @@ class KeybindingError(Error):
     """Raised for issues with keybindings."""
 
 
-class DuplicateKeyError(KeybindingError):
-
-    """Raised when there was a duplicate key."""
-
-    def __init__(self, key):
-        super().__init__("Duplicate key {}".format(key))
-
-
 class NoOptionError(Error):
 
     """Raised when an option was not found."""
@@ -93,6 +85,12 @@ class ConfigErrorDesc:
 
     def __str__(self):
         return '{}: {}'.format(self.text, self.exception)
+
+    def with_text(self, text):
+        """Get a new ConfigErrorDesc with the given text appended."""
+        return self.__class__(text='{} ({})'.format(self.text, text),
+                              exception=self.exception,
+                              traceback=self.traceback)
 
 
 class ConfigFileErrors(Error):

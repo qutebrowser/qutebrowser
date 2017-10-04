@@ -31,6 +31,12 @@ BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
             'command': {'foo': 'message-info bar',
                         '<Ctrl+X>': 'message-info ctrlx'},
             'normal': {'a': 'message-info a', 'ba': 'message-info ba'}}
+MAPPINGS = {
+    '<Ctrl+a>': 'a',
+    '<Ctrl+b>': '<Ctrl+a>',
+    'x': 'a',
+    'b': 'a',
+}
 
 
 @pytest.fixture
@@ -38,3 +44,4 @@ def keyinput_bindings(config_stub, key_config_stub):
     """Register some test bindings."""
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = dict(BINDINGS)
+    config_stub.val.bindings.key_mappings = dict(MAPPINGS)

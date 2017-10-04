@@ -193,7 +193,8 @@ class TestAll:
             if member in [configtypes.BaseType, configtypes.MappingType,
                           configtypes._Numeric]:
                 pass
-            elif member is configtypes.List:
+            elif (member is configtypes.List or
+                  member is configtypes.ListOrValue):
                 yield functools.partial(member, valtype=configtypes.Int())
                 yield functools.partial(member, valtype=configtypes.Url())
             elif member is configtypes.Dict:
@@ -240,6 +241,9 @@ class TestAll:
                 configtypes.PercOrInt,  # ditto
         ]:
             return
+        if (isinstance(typ, configtypes.ListOrValue) and
+                isinstance(typ.valtype, configtypes.Int)):
+            return
 
         assert converted == s
 
@@ -250,7 +254,7 @@ class TestAll:
             to_py_expected = configtypes.PaddingValues(None, None, None, None)
         elif isinstance(typ, configtypes.Dict):
             to_py_expected = {}
-        elif isinstance(typ, configtypes.List):
+        elif isinstance(typ, (configtypes.List, configtypes.ListOrValue)):
             to_py_expected = []
         else:
             to_py_expected = None
@@ -365,6 +369,10 @@ class TestBaseType:
     ])
     def test_to_doc(self, klass, value, expected):
         assert klass().to_doc(value) == expected
+
+    @pytest.mark.parametrize('obj', [42, '', None, 'foo'])
+    def test_from_obj(self, klass, obj):
+        assert klass(none_ok=True).from_obj(obj) == obj
 
 
 class MappingSubclass(configtypes.MappingType):
@@ -546,6 +554,14 @@ class TestList:
         with pytest.raises(configexc.ValidationError):
             klass().from_str(val)
 
+    @pytest.mark.parametrize('obj, expected', [
+        ([1], [1]),
+        ([], []),
+        (None, []),
+    ])
+    def test_from_obj(self, klass, obj, expected):
+        assert klass(none_ok_outer=True).from_obj(obj) == expected
+
     @pytest.mark.parametrize('val', [['foo'], ['foo', 'bar']])
     def test_to_py_valid(self, klass, val):
         assert klass().to_py(val) == val
@@ -670,6 +686,108 @@ class TestFlagList:
         assert klass().complete() is None
 
 
+class TestListOrValue:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.ListOrValue
+
+    @pytest.fixture
+    def strtype(self):
+        return configtypes.String()
+
+    @pytest.mark.parametrize('val, expected', [
+        ('["foo"]', ['foo']),
+        ('["foo", "bar"]', ['foo', 'bar']),
+        ('foo', 'foo'),
+    ])
+    def test_from_str(self, klass, strtype, val, expected):
+        assert klass(strtype).from_str(val) == expected
+
+    def test_from_str_invalid(self, klass):
+        valtype = configtypes.String(minlen=10)
+        with pytest.raises(configexc.ValidationError):
+            klass(valtype).from_str('123')
+
+    @pytest.mark.parametrize('val, expected', [
+        (['foo'], ['foo']),
+        ('foo', ['foo']),
+    ])
+    def test_to_py_valid(self, klass, strtype, val, expected):
+        assert klass(strtype).to_py(val) == expected
+
+    @pytest.mark.parametrize('val', [[42], ['\U00010000']])
+    def test_to_py_invalid(self, klass, strtype, val):
+        with pytest.raises(configexc.ValidationError):
+            klass(strtype).to_py(val)
+
+    @pytest.mark.parametrize('val', [None, ['foo', 'bar'], 'abcd'])
+    def test_to_py_length(self, strtype, klass, val):
+        klass(strtype, none_ok=True, length=2).to_py(val)
+
+    @pytest.mark.parametrize('obj, expected', [
+        (['a'], ['a']),
+        ([], []),
+        (None, []),
+    ])
+    def test_from_obj(self, klass, obj, expected):
+        typ = klass(none_ok=True, valtype=configtypes.String())
+        assert typ.from_obj(obj) == expected
+
+    @pytest.mark.parametrize('val', [['a'], ['a', 'b'], ['a', 'b', 'c', 'd']])
+    def test_wrong_length(self, strtype, klass, val):
+        with pytest.raises(configexc.ValidationError,
+                           match='Exactly 3 values need to be set!'):
+            klass(strtype, length=3).to_py(val)
+
+    def test_get_name(self, strtype, klass):
+        assert klass(strtype).get_name() == 'List of String, or String'
+
+    def test_get_valid_values(self, klass):
+        valid_values = configtypes.ValidValues('foo', 'bar', 'baz')
+        valtype = configtypes.String(valid_values=valid_values)
+        assert klass(valtype).get_valid_values() == valid_values
+
+    def test_to_str(self, strtype, klass):
+        assert klass(strtype).to_str(["a", True]) == '["a", true]'
+
+    @hypothesis.given(val=strategies.lists(strategies.just('foo')))
+    def test_hypothesis(self, strtype, klass, val):
+        typ = klass(strtype, none_ok=True)
+        try:
+            converted = typ.to_py(val)
+        except configexc.ValidationError:
+            pass
+        else:
+            expected = converted if converted else []
+            assert typ.to_py(typ.from_str(typ.to_str(converted))) == expected
+
+    @hypothesis.given(val=strategies.lists(strategies.just('foo')))
+    def test_hypothesis_text(self, strtype, klass, val):
+        typ = klass(strtype)
+        text = json.dumps(val)
+        try:
+            typ.to_str(typ.from_str(text))
+        except configexc.ValidationError:
+            pass
+
+    @pytest.mark.parametrize('val, expected', [
+        # simple list
+        (['foo', 'bar'], '\n\n- +pass:[foo]+\n- +pass:[bar]+'),
+        # only one value
+        (['foo'], '+pass:[foo]+'),
+        # value without list
+        ('foo', '+pass:[foo]+'),
+        # empty
+        ([], 'empty'),
+        (None, 'empty'),
+    ])
+    def test_to_doc(self, klass, strtype, val, expected):
+        doc = klass(strtype).to_doc(val)
+        print(doc)
+        assert doc == expected
+
+
 class TestBool:
 
     TESTS = {
@@ -718,8 +836,10 @@ class TestBool:
     def test_to_str(self, klass, val, expected):
         assert klass().to_str(val) == expected
 
-    def test_to_doc(self, klass):
-        assert klass().to_doc(True) == '+pass:[true]+'
+    @pytest.mark.parametrize('value, expected', [(True, '+pass:[true]+'),
+                                                 (False, '+pass:[false]+')])
+    def test_to_doc(self, klass, value, expected):
+        assert klass().to_doc(value) == expected
 
 
 class TestBoolAsk:
@@ -1072,36 +1192,9 @@ class TestCommand:
         monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
         monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
 
-    @pytest.fixture(autouse=True)
-    def patch_aliases(self, config_stub):
-        """Patch the aliases setting."""
-        configtypes.Command.unvalidated = True
-        config_stub.val.aliases = {'alias': 'cmd1'}
-        configtypes.Command.unvalidated = False
-
     @pytest.fixture
     def klass(self):
         return configtypes.Command
-
-    @pytest.mark.parametrize('val', ['cmd1', 'cmd2', 'cmd1  foo bar',
-                                     'cmd2  baz fish', 'alias foo'])
-    def test_to_py_valid(self, patch_cmdutils, klass, val):
-        expected = None if not val else val
-        assert klass().to_py(val) == expected
-
-    @pytest.mark.parametrize('val', ['cmd3', 'cmd3  foo bar', ' '])
-    def test_to_py_invalid(self, patch_cmdutils, klass, val):
-        with pytest.raises(configexc.ValidationError):
-            klass().to_py(val)
-
-    def test_cmdline(self, klass, cmdline_test):
-        """Test some commandlines from the cmdline_test fixture."""
-        typ = klass()
-        if cmdline_test.valid:
-            typ.to_py(cmdline_test.cmd)
-        else:
-            with pytest.raises(configexc.ValidationError):
-                typ.to_py(cmdline_test.cmd)
 
     def test_complete(self, patch_cmdutils, klass):
         """Test completion."""
@@ -1460,6 +1553,16 @@ class TestDict:
         typ = configtypes.Dict(keytype=configtypes.String(),
                                valtype=configtypes.Int())
         assert typ.from_str('{"answer": 42}') == {"answer": 42}
+
+    @pytest.mark.parametrize('obj, expected', [
+        ({'a': 'b'}, {'a': 'b'}),
+        ({}, {}),
+        (None, {}),
+    ])
+    def test_from_obj(self, klass, obj, expected):
+        d = klass(keytype=configtypes.String(), valtype=configtypes.String(),
+                  none_ok=True)
+        assert d.from_obj(obj) == expected
 
     @pytest.mark.parametrize('keytype, valtype, val', [
         (configtypes.String(), configtypes.String(), {'hello': 'world'}),

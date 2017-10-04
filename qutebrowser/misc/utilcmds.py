@@ -171,12 +171,15 @@ def debug_cache_stats():
     prefix_info = configdata.is_valid_prefix.cache_info()
     # pylint: disable=protected-access
     render_stylesheet_info = config._render_stylesheet.cache_info()
+
+    history_info = None
     try:
         from PyQt5.QtWebKit import QWebHistoryInterface
         interface = QWebHistoryInterface.defaultInterface()
-        history_info = interface.historyContains.cache_info()
+        if interface is not None:
+            history_info = interface.historyContains.cache_info()
     except ImportError:
-        history_info = None
+        pass
 
     log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
     log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
@@ -339,3 +342,12 @@ def window_only(current_win_id):
 def nop():
     """Do nothing."""
     return
+
+
+@cmdutils.register()
+@cmdutils.argument('win_id', win_id=True)
+def version(win_id):
+    """Show version information."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    tabbed_browser.openurl(QUrl('qute://version'), newtab=True)

@@ -25,10 +25,11 @@ import signal
 import time
 
 import pytest
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.misc import utilcmds
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, objreg
 
 
 @contextlib.contextmanager
@@ -142,3 +143,16 @@ def test_window_only(mocker, monkeypatch):
     assert not test_windows[0].closed
     assert not test_windows[1].closed
     assert test_windows[2].closed
+
+
+@pytest.fixture
+def tabbed_browser(stubs, win_registry):
+    tb = stubs.TabbedBrowserStub()
+    objreg.register('tabbed-browser', tb, scope='window', window=0)
+    yield tb
+    objreg.delete('tabbed-browser', scope='window', window=0)
+
+
+def test_version(tabbed_browser):
+    utilcmds.version(win_id=0)
+    assert tabbed_browser.opened_url == QUrl('qute://version')

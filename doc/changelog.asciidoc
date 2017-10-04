@@ -39,7 +39,10 @@ Breaking changes
   v0.9.0) is now not supported anymore.
 - Upgrading qutebrowser with a version older than v0.4.0 still running now won't
   work properly anymore.
-- The `--harfbuzz` commandline argument got dropped.
+- The `--harfbuzz` and `--relaxed-config` commandline arguments got dropped.
+- `:set` now doesn't support toggling/cycling values anymore, that functionality
+  got moved to `:config-cycle`.
+- `:scroll-perc` got renamed to `:scroll-to-perc`.
 
 Major changes
 ~~~~~~~~~~~~~
@@ -57,6 +60,14 @@ Added
 - New `backend` setting to select the backend to use (auto/webengine/webkit).
   Together with the previous setting, this should make wrapper scripts
   unnecessary.
+- Proxy authentication is now supported with the QtWebEngine backend.
+- New config commands:
+  - `:config-cycle` to cycle an option between multiple values.
+  - `:config-unset` to remove a configured option
+  - `:config-clear` to remove all configured options
+  - `:config-source` to (re-)read a `config.py` file
+  - `:config-edit` to open the `config.py` file in an editor
+- New `:version` command which opens `qute://version`.
 
 Changed
 ~~~~~~~
@@ -66,12 +77,20 @@ Changed
 - When there are multiple messages shown, the timeout is increased.
 - `:search` now only clears the search if one was displayed before, so pressing
   `<Escape>` doesn't un-focus inputs anymore.
+- Pinned tabs now adjust to their text's width, so the `tabs.width.pinned`
+  setting got removed.
+- `:set-cmd-text` now has a `--run-on-count` argument to run the underlying
+  command directly if a count was given.
 
 Fixes
 ~~~~~
 
 - Exiting fullscreen via `:fullscreen` or buttons on a page now
   restores the correct previous window state (maximized/fullscreen).
+- When `input.insert_mode.auto_load` is set, background tabs now don't enter
+  insert mode anymore.
+- The keybinding help widget now works correctly when using keybindings with a
+  count.
 
 v0.11.1 (unreleased)
 --------------------

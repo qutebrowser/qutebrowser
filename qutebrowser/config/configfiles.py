@@ -19,18 +19,20 @@
 
 """Configuration files residing on disk."""
 
+import pathlib
 import types
 import os.path
+import sys
 import textwrap
 import traceback
 import configparser
 import contextlib
 
 import yaml
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
-from qutebrowser.config import configexc, config
+from qutebrowser.config import configexc, config, configdata
 from qutebrowser.utils import standarddir, utils, qtutils
 
 
@@ -70,7 +72,7 @@ class StateConfig(configparser.ConfigParser):
             self.write(f)
 
 
-class YamlConfig:
+class YamlConfig(QObject):
 
     """A config stored on disk as YAML file.
 
@@ -79,8 +81,10 @@ class YamlConfig:
     """
 
     VERSION = 1
+    changed = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
         self._values = {}
@@ -92,20 +96,25 @@ class YamlConfig:
         We do this outside of __init__ because the config gets created before
         the save_manager exists.
         """
-        save_manager.add_saveable('yaml-config', self._save)
+        save_manager.add_saveable('yaml-config', self._save, self.changed)
 
     def __getitem__(self, name):
         return self._values[name]
 
     def __setitem__(self, name, value):
-        self._dirty = True
         self._values[name] = value
+        self._mark_changed()
 
     def __contains__(self, name):
         return name in self._values
 
     def __iter__(self):
-        return iter(self._values.items())
+        return iter(sorted(self._values.items()))
+
+    def _mark_changed(self):
+        """Mark the YAML config as changed."""
+        self._dirty = True
+        self.changed.emit()
 
     def _save(self):
         """Save the settings to the YAML file if they've changed."""
@@ -153,8 +162,27 @@ class YamlConfig:
                 "'global' object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
+        # Delete unknown values
+        # (e.g. options which were removed from configdata.yml)
+        for name in list(global_obj):
+            if name not in configdata.DATA:
+                del global_obj[name]
+
         self._values = global_obj
         self._dirty = False
+
+    def unset(self, name):
+        """Remove the given option name if it's configured."""
+        try:
+            del self._values[name]
+        except KeyError:
+            return
+        self._mark_changed()
+
+    def clear(self):
+        """Clear all values from the YAML file."""
+        self._values = []
+        self._mark_changed()
 
 
 class ConfigAPI:
@@ -168,20 +196,26 @@ class ConfigAPI:
     Attributes:
         _config: The main Config object to use.
         _keyconfig: The KeyConfig object.
-        load_autoconfig: Whether autoconfig.yml should be loaded.
         errors: Errors which occurred while setting options.
+        configdir: The qutebrowser config directory, as pathlib.Path.
+        datadir: The qutebrowser data directory, as pathlib.Path.
     """
 
     def __init__(self, conf, keyconfig):
         self._config = conf
         self._keyconfig = keyconfig
-        self.load_autoconfig = True
         self.errors = []
+        self.configdir = pathlib.Path(standarddir.config())
+        self.datadir = pathlib.Path(standarddir.data())
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
         try:
             yield
+        except configexc.ConfigFileErrors as e:
+            for err in e.errors:
+                new_err = err.with_text(e.basename)
+                self.errors.append(new_err)
         except configexc.Error as e:
             text = "While {} '{}'".format(action, name)
             self.errors.append(configexc.ConfigErrorDesc(text, e))
@@ -189,6 +223,10 @@ class ConfigAPI:
     def finalize(self):
         """Do work which needs to be done after reading config.py."""
         self._config.update_mutables()
+
+    def load_autoconfig(self):
+        with self._handle_error('reading', 'autoconfig.yml'):
+            read_autoconfig()
 
     def get(self, name):
         with self._handle_error('getting', name):
@@ -198,24 +236,24 @@ class ConfigAPI:
         with self._handle_error('setting', name):
             self._config.set_obj(name, value)
 
-    def bind(self, key, command, mode='normal', *, force=False):
+    def bind(self, key, command, mode='normal'):
         with self._handle_error('binding', key):
-            self._keyconfig.bind(key, command, mode=mode, force=force)
+            self._keyconfig.bind(key, command, mode=mode)
 
     def unbind(self, key, mode='normal'):
         with self._handle_error('unbinding', key):
             self._keyconfig.unbind(key, mode=mode)
 
 
-def read_config_py(filename=None):
-    """Read a config.py file."""
+def read_config_py(filename, raising=False):
+    """Read a config.py file.
+
+    Arguments;
+        filename: The name of the file to read.
+        raising: Raise exceptions happening in config.py.
+                 This is needed during tests to use pytest's inspection.
+    """
     api = ConfigAPI(config.instance, config.key_instance)
-
-    if filename is None:
-        filename = os.path.join(standarddir.config(), 'config.py')
-        if not os.path.exists(filename):
-            return api
-
     container = config.ConfigContainer(config.instance, configapi=api)
     basename = os.path.basename(filename)
 
@@ -234,7 +272,7 @@ def read_config_py(filename=None):
 
     try:
         code = compile(source, filename, 'exec')
-    except (ValueError, TypeError) as e:
+    except ValueError as e:
         # source contains NUL bytes
         desc = configexc.ConfigErrorDesc("Error while compiling", e)
         raise configexc.ConfigFileErrors(basename, [desc])
@@ -244,14 +282,51 @@ def read_config_py(filename=None):
         raise configexc.ConfigFileErrors(basename, [desc])
 
     try:
-        exec(code, module.__dict__)
+        # Save and restore sys variables
+        with saved_sys_properties():
+            # Add config directory to python path, so config.py can import
+            # other files in logical places
+            config_dir = os.path.dirname(filename)
+            if config_dir not in sys.path:
+                sys.path.insert(0, config_dir)
+
+            exec(code, module.__dict__)
     except Exception as e:
+        if raising:
+            raise
         api.errors.append(configexc.ConfigErrorDesc(
             "Unhandled exception",
             exception=e, traceback=traceback.format_exc()))
 
     api.finalize()
-    return api
+
+    if api.errors:
+        raise configexc.ConfigFileErrors('config.py', api.errors)
+
+
+def read_autoconfig():
+    """Read the autoconfig.yml file."""
+    try:
+        config.instance.read_yaml()
+    except configexc.ConfigFileErrors as e:
+        raise  # caught in outer block
+    except configexc.Error as e:
+        desc = configexc.ConfigErrorDesc("Error", e)
+        raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+
+@contextlib.contextmanager
+def saved_sys_properties():
+    """Save various sys properties such as sys.path and sys.modules."""
+    old_path = sys.path.copy()
+    old_modules = sys.modules.copy()
+
+    try:
+        yield
+    finally:
+        sys.path = old_path
+        for module in set(sys.modules).difference(old_modules):
+            del sys.modules[module]
 
 
 def init():

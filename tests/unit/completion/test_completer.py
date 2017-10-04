@@ -120,7 +120,7 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
 
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('command', completion=miscmodels_patch.command)
-    def bind(key, win_id, command=None, *, mode='normal', force=False):
+    def bind(key, win_id, command=None, *, mode='normal'):
         """docstring."""
         pass
 

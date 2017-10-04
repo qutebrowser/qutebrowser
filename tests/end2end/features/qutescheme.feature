@@ -77,7 +77,7 @@ Feature: Special qute:// pages
         When I set ignore_case to never
         And I open qute://settings
         # scroll to the right - the table does not fit in the default screen
-        And I run :scroll-perc -x 100
+        And I run :scroll-to-perc -x 100
         And I run :jseval document.getElementById('input-ignore_case').value = ''
         And I run :click-element id input-ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
@@ -91,7 +91,7 @@ Feature: Special qute:// pages
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen
-        And I run :scroll-perc -x 100
+        And I run :scroll-to-perc -x 100
         And I run :jseval document.getElementById('input-ignore_case').value = ''
         And I run :click-element id input-ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log

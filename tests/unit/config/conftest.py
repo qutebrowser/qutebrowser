@@ -1,7 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-#
 # This file is part of qutebrowser.
 #
 # qutebrowser is free software: you can redistribute it and/or modify
@@ -17,15 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
+"""Fixtures needed in various config test files."""
 
-import pytest_bdd as bdd
+import pytest
 
-bdd.scenarios('adblock.feature')
+from qutebrowser.config import config
 
 
-@bdd.when(bdd.parsers.parse('I set up "{lists}" as block lists'))
-def set_up_blocking(quteproc, lists, server):
-    url = 'http://localhost:{}/data/adblock/'.format(server.port)
-    urls = [url + item.strip() for item in lists.split(',')]
-    quteproc.set_setting('content.host_blocking.lists', json.dumps(urls))
+@pytest.fixture
+def keyconf(config_stub):
+    config_stub.val.aliases = {}
+    return config.KeyConfig(config_stub)

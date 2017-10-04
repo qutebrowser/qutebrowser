@@ -336,6 +336,7 @@ class FakeCommand:
     deprecated = attr.ib(False)
     completion = attr.ib(None)
     maxsplit = attr.ib(None)
+    takes_count = attr.ib(lambda: False)
 
 
 class FakeTimer(QObject):
@@ -417,9 +418,6 @@ class FakeYamlConfig:
         self.loaded = False
         self._values = {}
 
-    def load(self):
-        self.loaded = True
-
     def __contains__(self, item):
         return item in self._values
 
@@ -431,6 +429,12 @@ class FakeYamlConfig:
 
     def __getitem__(self, key):
         return self._values[key]
+
+    def unset(self, name):
+        self._values.pop(name, None)
+
+    def clear(self):
+        self._values = []
 
 
 class StatusBarCommandStub(QLineEdit):

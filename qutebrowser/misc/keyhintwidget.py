@@ -26,12 +26,14 @@ It is intended to help discoverability of keybindings.
 
 import html
 import fnmatch
+import re
 
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes
+from qutebrowser.commands import cmdutils
 
 
 class KeyHintView(QLabel):
@@ -85,6 +87,7 @@ class KeyHintView(QLabel):
         Args:
             prefix: The current partial keystring.
         """
+        countstr, prefix = re.match(r'^(\d*)(.*)', prefix).groups()
         if not prefix:
             self._show_timer.stop()
             self.hide()
@@ -94,11 +97,18 @@ class KeyHintView(QLabel):
             return any(fnmatch.fnmatchcase(keychain, glob)
                        for glob in config.val.keyhint.blacklist)
 
+        def takes_count(cmdstr):
+            """Return true iff this command can take a count argument."""
+            cmdname = cmdstr.split(' ')[0]
+            cmd = cmdutils.cmd_dict.get(cmdname)
+            return cmd and cmd.takes_count()
+
         bindings_dict = config.key_instance.get_bindings_for(modename)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
                     if k.startswith(prefix) and
                     not utils.is_special_key(k) and
-                    not blacklisted(k)]
+                    not blacklisted(k) and
+                    (takes_count(v) or not countstr)]
 
         if not bindings:
             self._show_timer.stop()

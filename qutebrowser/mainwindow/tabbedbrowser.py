@@ -272,10 +272,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         if last_close == 'ignore' and count == 1:
             return
 
-        # If we are removing a pinned tab, decrease count
-        if tab.data.pinned:
-            self.tabBar().pinned_count -= 1
-
         self._remove_tab(tab, add_undo=add_undo)
 
         if count == 1:  # We just closed the last tab above.
@@ -689,6 +685,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._update_tab_title(idx)
         if idx == self.currentIndex():
             self._update_window_title()
+            tab.handle_auto_insert_mode(ok)
 
     @pyqtSlot()
     def on_scroll_pos_changed(self):

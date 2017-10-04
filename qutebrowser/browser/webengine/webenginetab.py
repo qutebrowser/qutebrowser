@@ -19,9 +19,9 @@
 
 """Wrapper over a QWebEngineView."""
 
-import os
 import math
 import functools
+import html as html_utils
 
 import sip
 from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
@@ -37,7 +37,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               objreg, jinja, debug, version)
+                               message, objreg, jinja, debug)
 
 
 _qute_scheme_handler = None
@@ -49,16 +49,8 @@ def init():
     # won't work...
     # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
     global _qute_scheme_handler
+
     app = QApplication.instance()
-
-    software_rendering = (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-                          'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ)
-    if version.opengl_vendor() == 'nouveau' and not software_rendering:
-        # FIXME:qtwebengine display something more sophisticated here
-        raise browsertab.WebTabError(
-            "QtWebEngine is not supported with Nouveau graphics (unless "
-            "QT_XCB_FORCE_SOFTWARE_OPENGL is set as environment variable).")
-
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
     _qute_scheme_handler.install(webenginesettings.default_profile)
@@ -678,6 +670,32 @@ class WebEngineTab(browsertab.AbstractTab):
 
         self.add_history_item.emit(url, requested_url, title)
 
+    @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
+    def _on_proxy_authentication_required(self, url, authenticator,
+                                          proxy_host):
+        """Called when a proxy needs authentication."""
+        msg = "<b>{}</b> requires a username and password.".format(
+            html_utils.escape(proxy_host))
+        answer = message.ask(
+            title="Proxy authentication required", text=msg,
+            mode=usertypes.PromptMode.user_pwd,
+            abort_on=[self.shutting_down, self.load_started])
+        if answer is not None:
+            authenticator.setUser(answer.user)
+            authenticator.setPassword(answer.password)
+        else:
+            try:
+                # pylint: disable=no-member, useless-suppression
+                sip.assign(authenticator, QAuthenticator())
+            except AttributeError:
+                url_string = url.toDisplayString()
+                error_page = jinja.render(
+                    'error.html',
+                    title="Error loading page: {}".format(url_string),
+                    url=url_string, error="Proxy authentication required",
+                    icon='')
+                self.set_html(error_page)
+
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
         # FIXME:qtwebengine support .netrc
@@ -755,6 +773,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
+        page.proxyAuthenticationRequired.connect(
+            self._on_proxy_authentication_required)
         page.fullScreenRequested.connect(self._on_fullscreen_requested)
         page.contentsSizeChanged.connect(self.contents_size_changed)
 

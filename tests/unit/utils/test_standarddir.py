@@ -494,17 +494,17 @@ def test_init(mocker, tmpdir, args_kind):
     assert standarddir._locations != {}
     if args_kind == 'normal':
         if utils.is_mac:
-            assert not m_windows.called
+            m_windows.assert_not_called()
             assert m_mac.called
         elif utils.is_windows:
             assert m_windows.called
-            assert not m_mac.called
+            m_mac.assert_not_called()
         else:
-            assert not m_windows.called
-            assert not m_mac.called
+            m_windows.assert_not_called()
+            m_mac.assert_not_called()
     else:
-        assert not m_windows.called
-        assert not m_mac.called
+        m_windows.assert_not_called()
+        m_mac.assert_not_called()
 
 
 @pytest.mark.linux

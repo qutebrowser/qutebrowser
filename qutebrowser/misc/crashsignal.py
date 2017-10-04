@@ -36,10 +36,10 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog
+from qutebrowser.misc import earlyinit, crashdialog, ipc
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
@@ -94,7 +94,7 @@ class CrashHandler(QObject):
                 if data:
                     # Crashlog exists and has data in it, so something crashed
                     # previously.
-                    self._crash_dialog = crashdialog.get_fatal_crash_dialog(
+                    self._crash_dialog = crashdialog.FatalCrashDialog(
                         self._args.debug, data)
                     self._crash_dialog.show()
             else:
@@ -236,7 +236,7 @@ class CrashHandler(QObject):
         info = self._get_exception_info()
 
         try:
-            objreg.get('ipc-server').ignored = True
+            ipc.server.ignored = True
         except Exception:
             log.destroy.exception("Error while ignoring ipc")
 
@@ -258,7 +258,7 @@ class CrashHandler(QObject):
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
             ret = self._crash_dialog.exec_()
-            if ret == QDialog.Accepted:  # restore
+            if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 
         # We might risk a segfault here, but that's better than continuing to

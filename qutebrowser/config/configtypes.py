@@ -59,7 +59,7 @@ from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
-from qutebrowser.commands import cmdutils, runners, cmdexc
+from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils
 
@@ -227,6 +227,10 @@ class BaseType:
             return None
         return value
 
+    def from_obj(self, value):
+        """Get the setting value from a config.py/YAML object."""
+        return value
+
     def to_py(self, value):
         """Get the setting value from a Python value.
 
@@ -257,9 +261,10 @@ class BaseType:
         This currently uses asciidoc syntax.
         """
         utils.unused(indent)  # only needed for Dict/List
-        if not value:
+        str_value = self.to_str(value)
+        if not str_value:
             return 'empty'
-        return '+pass:[{}]+'.format(html.escape(self.to_str(value)))
+        return '+pass:[{}]+'.format(html.escape(str_value))
 
     def complete(self):
         """Return a list of possible values for completion.
@@ -440,6 +445,11 @@ class List(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
+    def from_obj(self, value):
+        if value is None:
+            return []
+        return value
+
     def to_py(self, value):
         self._basic_py_validation(value, list)
         if not value:
@@ -473,6 +483,72 @@ class List(BaseType):
                 prefix,
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
+
+
+class ListOrValue(BaseType):
+
+    """A list of values, or a single value.
+
+    //
+
+    Internally, the value is stored as either a value (of valtype), or a list.
+    to_py() then ensures that it's always a list.
+    """
+
+    _show_valtype = True
+
+    def __init__(self, valtype, none_ok=False, *args, **kwargs):
+        super().__init__(none_ok)
+        assert not isinstance(valtype, (List, ListOrValue)), valtype
+        self.listtype = List(valtype, none_ok=none_ok, *args, **kwargs)
+        self.valtype = valtype
+
+    def get_name(self):
+        return self.listtype.get_name() + ', or ' + self.valtype.get_name()
+
+    def get_valid_values(self):
+        return self.valtype.get_valid_values()
+
+    def from_str(self, value):
+        try:
+            return self.listtype.from_str(value)
+        except configexc.ValidationError:
+            return self.valtype.from_str(value)
+
+    def from_obj(self, value):
+        if value is None:
+            return []
+        return value
+
+    def to_py(self, value):
+        try:
+            return [self.valtype.to_py(value)]
+        except configexc.ValidationError:
+            return self.listtype.to_py(value)
+
+    def to_str(self, value):
+        if value is None:
+            return ''
+
+        if isinstance(value, list):
+            if len(value) == 1:
+                return self.valtype.to_str(value[0])
+            else:
+                return self.listtype.to_str(value)
+        else:
+            return self.valtype.to_str(value)
+
+    def to_doc(self, value, indent=0):
+        if value is None:
+            return 'empty'
+
+        if isinstance(value, list):
+            if len(value) == 1:
+                return self.valtype.to_doc(value[0], indent)
+            else:
+                return self.listtype.to_doc(value, indent)
+        else:
+            return self.valtype.to_doc(value, indent)
 
 
 class FlagList(List):
@@ -773,39 +849,23 @@ class PercOrInt(_Numeric):
 
 class Command(BaseType):
 
-    """Base class for a command value with arguments."""
+    """A qutebrowser command with arguments.
 
-    # See to_py for details
-    unvalidated = False
+    //
 
-    def to_py(self, value):
-        self._basic_py_validation(value, str)
-        if not value:
-            return None
-
-        # This requires some trickery, as runners.CommandParser uses
-        # conf.val.aliases, which in turn map to a command again,
-        # leading to an endless recursion.
-        # To fix that, we turn off validating other commands (alias values)
-        # while validating a command.
-        if not Command.unvalidated:
-            Command.unvalidated = True
-            try:
-                parser = runners.CommandParser()
-                try:
-                    parser.parse_all(value)
-                except cmdexc.Error as e:
-                    raise configexc.ValidationError(value, str(e))
-            finally:
-                Command.unvalidated = False
-
-        return value
+    Since validation is quite tricky here, we don't do so, and instead let
+    invalid commands (in bindings/aliases) fail when used.
+    """
 
     def complete(self):
         out = []
         for cmdname, obj in cmdutils.cmd_dict.items():
             out.append((cmdname, obj.desc))
         return out
+
+    def to_py(self, value):
+        self._basic_py_validation(value, str)
+        return value
 
 
 class ColorSystem(MappingType):
@@ -1130,6 +1190,11 @@ class Dict(BaseType):
         self.to_py(yaml_val)
         return yaml_val
 
+    def from_obj(self, value):
+        if value is None:
+            return {}
+        return value
+
     def _fill_fixed_keys(self, value):
         """Fill missing fixed keys with a None-value."""
         if self.fixed_keys is None:
@@ -1259,6 +1324,8 @@ class ShellCommand(List):
     Attributes:
         placeholder: If there should be a placeholder.
     """
+
+    _show_valtype = False
 
     def __init__(self, placeholder=False, none_ok=False):
         super().__init__(valtype=String(), none_ok=none_ok)

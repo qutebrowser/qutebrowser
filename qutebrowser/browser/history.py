@@ -40,7 +40,10 @@ class CompletionHistory(sql.SqlTable):
 
     def __init__(self, parent=None):
         super().__init__("CompletionHistory", ['url', 'title', 'last_atime'],
-                         constraints={'url': 'PRIMARY KEY'}, parent=parent)
+                         constraints={'url': 'PRIMARY KEY',
+                                      'title': 'NOT NULL',
+                                      'last_atime': 'NOT NULL'},
+                         parent=parent)
         self.create_index('CompletionHistoryAtimeIndex', 'last_atime')
 
 
@@ -50,6 +53,10 @@ class WebHistory(sql.SqlTable):
 
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
+                         constraints={'url': 'NOT NULL',
+                                      'title': 'NOT NULL',
+                                      'atime': 'NOT NULL',
+                                      'redirect': 'NOT NULL'},
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
@@ -252,10 +259,7 @@ class WebHistory(sql.SqlTable):
                 except ValueError as ex:
                     message.error('Failed to import history: {}'.format(ex))
                 else:
-                    bakpath = path + '.bak'
-                    message.info('History import complete. Moving {} to {}'
-                                 .format(path, bakpath))
-                    os.rename(path, bakpath)
+                    self._write_backup(path)
 
         # delay to give message time to appear before locking down for import
         message.info('Converting {} to sqlite...'.format(path))
@@ -286,6 +290,16 @@ class WebHistory(sql.SqlTable):
                                      .format(i, path, ex))
         self.insert_batch(data)
         self.completion.insert_batch(completion_data, replace=True)
+
+    def _write_backup(self, path):
+        bak = path + '.bak'
+        message.info('History import complete. Appending {} to {}'
+                     .format(path, bak))
+        with open(path, 'r', encoding='utf-8') as infile:
+            with open(bak, 'a', encoding='utf-8') as outfile:
+                for line in infile:
+                    outfile.write('\n' + line)
+        os.remove(path)
 
     def _format_url(self, url):
         return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)

@@ -47,6 +47,14 @@ Feature: Various utility commands.
         When I run :set-cmd-text foo
         Then the error "Invalid command text 'foo'." should be shown
 
+    Scenario: :set-cmd-text with run on count flag and no count
+        When I run :set-cmd-text --run-on-count :message-info "Hello World"
+        Then "message:info:86 Hello World" should not be logged
+
+    Scenario: :set-cmd-text with run on count flag and a count
+        When I run :set-cmd-text --run-on-count :message-info "Hello World" with count 1
+        Then the message "Hello World" should be shown
+
     ## :jseval
 
     Scenario: :jseval
@@ -399,6 +407,7 @@ Feature: Various utility commands.
         When I open data/hello2.txt in a new tab
         And I open data/hello3.txt in a new window
         And I run :window-only
+        And I wait for "Closing window *" in the log
         Then the session should look like:
             windows:
             - tabs:
@@ -526,6 +535,11 @@ Feature: Various utility commands.
         And I wait for "Renderer process was killed" in the log
         And I open data/numbers/3.txt
         Then no crash should happen
+
+    Scenario: Simple adblock update
+        When I set up "simple" as block lists
+        And I run :adblock-update
+        Then the message "adblock: Read 1 hosts from 1 sources." should be shown
 
     ## Spellcheck
 

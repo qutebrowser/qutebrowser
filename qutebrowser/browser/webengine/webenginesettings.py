@@ -194,7 +194,7 @@ def _set_http_headers(profile):
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, option)
-    if option in ['scrollbar.hide', 'content.user_stylesheets']:
+    if option in ['scrolling.bar', 'content.user_stylesheets']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
     elif option in ['content.headers.user_agent',

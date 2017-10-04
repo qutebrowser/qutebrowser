@@ -84,9 +84,6 @@ show it.
 *--force-color*::
     Force colored logging
 
-*--relaxed-config*::
-    Silently remove unknown config options.
-
 *--nowindow*::
     Don't show the main window.
 

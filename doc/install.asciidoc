@@ -264,9 +264,6 @@ Manual install
 
 * Use the installer from http://www.python.org/downloads[python.org] to get
 Python 3 (be sure to install pip).
-* Use the installer from
-http://www.riverbankcomputing.com/software/pyqt/download5[Riverbank computing]
-to get Qt and PyQt5.
 * Install https://testrun.org/tox/latest/index.html[tox] via
 https://pip.pypa.io/en/latest/[pip]:
 

@@ -101,27 +101,40 @@ qt_args:
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
 
+    This setting requires a restart.
+
+force_software_rendering:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  desc: >-
+    Force software rendering for QtWebEngine.
+
+    This is needed for QtWebEngine to work with Nouveau drivers.
+    This setting requires a restart.
+
 backend:
   type:
     name: String
     valid_values:
-      - auto: Automatically select either QtWebEngine or QtWebKit
-      - webkit: Force QtWebKit
-      - webengine: Force QtWebEngine
-  default: auto
+      - webengine: Use QtWebEngine (based on Chromium)
+      - webkit: Use QtWebKit (based on WebKit, similar to Safari)
+  default: webengine
   desc: >-
     The backend to use to display websites.
 
     qutebrowser supports two different web rendering engines / backends,
     QtWebKit and QtWebEngine.
 
-    QtWebKit is based on WebKit (similar to Safari). It was discontinued by the
-    Qt project with Qt 5.6, but picked up as a well maintained fork:
-    https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
+    QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a
+    well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser
+    only supports the fork.
 
-    QtWebEngine is Qt's official successor to QtWebKit and based on the Chromium
-    project. It's slightly more resource hungry that QtWebKit and has a couple
-    of missing features in qutebrowser, but is generally the preferred choice.
+    QtWebEngine is Qt's official successor to QtWebKit. It's slightly more
+    resource hungry that QtWebKit and has a couple of missing features in
+    qutebrowser, but is generally the preferred choice.
+
+    This setting requires a restart.
 
 ## auto_save
 
@@ -545,7 +558,7 @@ content.ssl_strict:
 
 content.user_stylesheets:
   type:
-    name: List
+    name: ListOrValue
     valtype: File
     none_ok: True
   default: null
@@ -562,9 +575,11 @@ content.xss_auditing:
   desc: >-
     Whether load requests should be monitored for cross-site scripting attempts.
 
-    Suspicious scripts will be blocked and reported in the inspector\'s
+    Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console. Enabling this feature might have an impact on
     performance.
+
+# emacs: '
 
 ## completion
 
@@ -917,10 +932,12 @@ keyhint.blacklist:
       name: String
   default: []
   desc: >-
-    Keychains that shouldn\'t be shown in the keyhint dialog.
+    Keychains that shouldn't be shown in the keyhint dialog.
 
     Globs are supported, so `;*` will blacklist all keychains starting with `;`.
     Use `*` to disable keyhints.
+
+# emacs: '
 
 keyhint.delay:
   type:
@@ -1243,13 +1260,6 @@ tabs.width.indicator:
     minval: 0
   desc: Width of the progress indicator (0 to disable).
 
-tabs.width.pinned:
-  default: 43
-  type:
-    name: Int
-    minval: 10
-  desc: The width for pinned tabs with a horizontal tabbar, in px.
-
 tabs.wrap:
   default: true
   type: Bool
@@ -1305,9 +1315,9 @@ url.searchengines:
 
 url.start_pages:
   type:
-    name: List
+    name: ListOrValue
     valtype: FuzzyUrl
-  default: ["https://start.duckduckgo.com"]
+  default: "https://start.duckduckgo.com"
   desc: The page(s) to open at the start.
 
 url.yank_ignored_parameters:
@@ -1616,13 +1626,18 @@ colors.prompts.fg:
   type: QssColor
   desc: Foreground color for prompts.
 
+colors.prompts.border:
+  default: 1px solid gray
+  type: String
+  desc: Border used around UI elements in prompts.
+
 colors.prompts.bg:
-  default: darkblue
+  default: '#444444'
   type: QssColor
   desc: Background color for prompts.
 
 colors.prompts.selected.bg:
-  default: '#308cc6'
+  default: grey
   type: QssColor
   desc: Background color for the selected item in filename prompts.
 
@@ -1803,8 +1818,10 @@ fonts.monospace:
   desc: >-
     Default monospace fonts.
 
-    Whenever "monospace" is used in a font setting, it\'s replaced with the
+    Whenever "monospace" is used in a font setting, it's replaced with the
     fonts listed here.
+
+# emacs: '
 
 fonts.completion.entry:
   default: 8pt monospace
@@ -1972,6 +1989,9 @@ bindings.key_mappings:
     This is useful for global remappings of keys, for example to map Ctrl-[ to
     Escape.
 
+    Note that when a key is bound (via `bindings.default` or
+    `bindings.commands`), the mapping is ignored.
+
 bindings.default:
   default:
     normal:
@@ -2040,8 +2060,8 @@ bindings.default:
       l: scroll right
       u: undo
       <Ctrl-Shift-T>: undo
-      gg: scroll-perc 0
-      G: scroll-perc
+      gg: scroll-to-perc 0
+      G: scroll-to-perc
       n: search-next
       N: search-prev
       i: enter-mode insert

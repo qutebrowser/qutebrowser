@@ -22,12 +22,12 @@
 import collections
 
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtSql import QSqlDatabase, QSqlQuery
+from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, debug
 
 
-class SqlException(Exception):
+class SqlError(Exception):
 
     """Raised on an error interacting with the SQL database."""
 
@@ -38,12 +38,14 @@ def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
-        raise SqlException('Failed to add database. '
+        raise SqlError('Failed to add database. '
             'Are sqlite and Qt sqlite support installed?')
     database.setDatabaseName(db_path)
     if not database.open():
-        raise SqlException("Failed to open sqlite database at {}: {}"
-                           .format(db_path, database.lastError().text()))
+        error = database.lastError()
+        _log_error(error)
+        raise SqlError("Failed to open sqlite database at {}: {}"
+                       .format(db_path, error.text()))
 
 
 def close():
@@ -60,8 +62,30 @@ def version():
             close()
             return ver
         return Query("select sqlite_version()").run().value()
-    except SqlException as e:
+    except SqlError as e:
         return 'UNAVAILABLE ({})'.format(e)
+
+
+def _log_error(error):
+    """Log informations about a SQL error to the debug log."""
+    log.sql.debug("SQL error:")
+    log.sql.debug("type: {}".format(debug.qenum_key(QSqlError, error.type())))
+    log.sql.debug("database text: {}".format(error.databaseText()))
+    log.sql.debug("driver text: {}".format(error.driverText()))
+    log.sql.debug("error code: {}".format(error.nativeErrorCode()))
+
+
+def _handle_query_error(what, query, error):
+    """Handle a sqlite error.
+
+    Arguments:
+        what: What we were doing when the error happened.
+        query: The query which was executed.
+        error: The QSqlError object.
+    """
+    _log_error(error)
+    msg = 'Failed to {} query "{}": "{}"'.format(what, query, error.text())
+    raise SqlError(msg)
 
 
 class Query(QSqlQuery):
@@ -79,13 +103,12 @@ class Query(QSqlQuery):
         super().__init__(QSqlDatabase.database())
         log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
         if not self.prepare(querystr):
-            raise SqlException('Failed to prepare query "{}": "{}"'.format(
-                querystr, self.lastError().text()))
+            _handle_query_error('prepare', querystr, self.lastError())
         self.setForwardOnly(forward_only)
 
     def __iter__(self):
         if not self.isActive():
-            raise SqlException("Cannot iterate inactive query")
+            raise SqlError("Cannot iterate inactive query")
         rec = self.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
         rowtype = collections.namedtuple('ResultRow', fields)
@@ -101,14 +124,13 @@ class Query(QSqlQuery):
             self.bindValue(':{}'.format(key), val)
         log.sql.debug('query bindings: {}'.format(self.boundValues()))
         if not self.exec_():
-            raise SqlException('Failed to exec query "{}": "{}"'.format(
-                               self.lastQuery(), self.lastError().text()))
+            _handle_query_error('exec', self.lastQuery(), self.lastError())
         return self
 
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
         if not self.next():
-            raise SqlException("No result for single-result query")
+            raise SqlError("No result for single-result query")
         return self.record().value(0)
 
 
@@ -128,7 +150,7 @@ class SqlTable(QObject):
     def __init__(self, name, fields, constraints=None, parent=None):
         """Create a new table in the sql database.
 
-        Raises SqlException if the table already exists.
+        Does nothing if the table already exists.
 
         Args:
             name: Name of the table.
@@ -228,8 +250,7 @@ class SqlTable(QObject):
         db = QSqlDatabase.database()
         db.transaction()
         if not q.execBatch():
-            raise SqlException('Failed to exec query "{}": "{}"'.format(
-                               q.lastQuery(), q.lastError().text()))
+            _handle_query_error('exec', q.lastQuery(), q.lastError())
         db.commit()
         self.changed.emit()
 

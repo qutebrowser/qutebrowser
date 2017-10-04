@@ -31,6 +31,11 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<buffer,buffer>>|Select tab by index or url/title best match.
 |<<close,close>>|Close the current window.
+|<<config-clear,config-clear>>|Set all settings back to their default.
+|<<config-cycle,config-cycle>>|Cycle an option between multiple values.
+|<<config-edit,config-edit>>|Open the config.py file in the editor.
+|<<config-source,config-source>>|Read a config.py file.
+|<<config-unset,config-unset>>|Unset an option.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -86,6 +91,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab.
+|<<version,version>>|Show version information.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
 |<<yank,yank>>|Yank something to the clipboard or primary selection.
@@ -115,7 +121,7 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'mode'] [*--force*] 'key' ['command']+
+Syntax: +:bind [*--mode* 'mode'] 'key' ['command']+
 
 Bind a key to a command.
 
@@ -128,7 +134,6 @@ Bind a key to a command.
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`). See `:help bindings.commands` for the
  available modes.
 
-* +*-f*+, +*--force*+: Rebind the key if it is already bound.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -184,19 +189,82 @@ Load a bookmark.
 
 [[buffer]]
 === buffer
-Syntax: +:buffer 'index'+
+Syntax: +:buffer ['index']+
 
 Select tab by index or url/title best match.
 
-Focuses window if necessary.
+Focuses window if necessary when index is given. If both index and count are given, use count.
 
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
 
 
+==== count
+The tab index to focus, starting with 1.
+
 [[close]]
 === close
 Close the current window.
+
+[[config-clear]]
+=== config-clear
+Syntax: +:config-clear [*--save*]+
+
+Set all settings back to their default.
+
+==== optional arguments
+* +*-s*+, +*--save*+: If given, all configuration in autoconfig.yml is also removed.
+
+
+[[config-cycle]]
+=== config-cycle
+Syntax: +:config-cycle [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
+
+Cycle an option between multiple values.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'values'+: The values to cycle through.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+* +*-p*+, +*--print*+: Print the value after setting.
+
+[[config-edit]]
+=== config-edit
+Syntax: +:config-edit [*--no-source*]+
+
+Open the config.py file in the editor.
+
+==== optional arguments
+* +*-n*+, +*--no-source*+: Don't re-source the config file after editing.
+
+[[config-source]]
+=== config-source
+Syntax: +:config-source [*--clear*] ['filename']+
+
+Read a config.py file.
+
+==== positional arguments
+* +'filename'+: The file to load. If not given, loads the default config.py.
+
+
+==== optional arguments
+* +*-c*+, +*--clear*+: Clear current settings first.
+
+[[config-unset]]
+=== config-unset
+Syntax: +:config-unset [*--temp*] 'option'+
+
+Unset an option.
+
+This sets an option back to its default and removes it from autoconfig.yml.
+
+==== positional arguments
+* +'option'+: The name of the option.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Don't touch autoconfig.yml.
 
 [[download]]
 === download
@@ -773,15 +841,15 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['option'] ['values' ['values' ...]]+
+Syntax: +:set [*--temp*] [*--print*] ['option'] ['value']+
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead. If the option name ends with '!' and it is a boolean value, toggle it.
+If the option name ends with '?', the value of the option is shown instead.
 
 ==== positional arguments
 * +'option'+: The name of the option.
-* +'values'+: The value to set, or the values to cycle through.
+* +'value'+: The value to set.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
@@ -789,7 +857,7 @@ If the option name ends with '?', the value of the option is shown instead. If t
 
 [[set-cmd-text]]
 === set-cmd-text
-Syntax: +:set-cmd-text [*--space*] [*--append*] 'text'+
+Syntax: +:set-cmd-text [*--space*] [*--append*] [*--run-on-count*] 'text'+
 
 Preset the statusbar to some text.
 
@@ -799,6 +867,11 @@ Preset the statusbar to some text.
 ==== optional arguments
 * +*-s*+, +*--space*+: If given, a space is added to the end.
 * +*-a*+, +*--append*+: If given, the text is appended to the current text.
+* +*-r*+, +*--run-on-count*+: If given with a count, the command is run with the given count rather than setting the command text.
+
+
+==== count
+The count if given.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -919,7 +992,7 @@ Close all tabs except for the current one.
 === tab-pin
 Pin/Unpin the current/[count]th tab.
 
-Pinning a tab shrinks it to `tabs.width.pinned` size. Attempting to close a pinned tab will cause a confirmation, unless --force is passed.
+Pinning a tab shrinks it to the size of its title text. Attempting to close a pinned tab will cause a confirmation, unless --force is passed.
 
 ==== count
 The tab index to pin or unpin
@@ -947,6 +1020,10 @@ Unbind a keychain.
 [[undo]]
 === undo
 Re-open a closed tab.
+
+[[version]]
+=== version
+Show version information.
 
 [[view-source]]
 === view-source
@@ -1068,8 +1145,8 @@ How many steps to zoom out.
 |<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
-|<<scroll-perc,scroll-perc>>|Scroll to a specific percentage of the page.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
+|<<scroll-to-perc,scroll-to-perc>>|Scroll to a specific percentage of the page.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
 |<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
 |<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
@@ -1489,9 +1566,22 @@ Scroll the frame page-wise.
 ==== count
 multiplier
 
-[[scroll-perc]]
-=== scroll-perc
-Syntax: +:scroll-perc [*--horizontal*] ['perc']+
+[[scroll-px]]
+=== scroll-px
+Syntax: +:scroll-px 'dx' 'dy'+
+
+Scroll the current tab by 'count * dx/dy' pixels.
+
+==== positional arguments
+* +'dx'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in y-direction.
+
+==== count
+multiplier
+
+[[scroll-to-perc]]
+=== scroll-to-perc
+Syntax: +:scroll-to-perc [*--horizontal*] ['perc']+
 
 Scroll to a specific percentage of the page.
 
@@ -1505,19 +1595,6 @@ The percentage can be given either as argument or as count. If no percentage is 
 
 ==== count
 Percentage to scroll.
-
-[[scroll-px]]
-=== scroll-px
-Syntax: +:scroll-px 'dx' 'dy'+
-
-Scroll the current tab by 'count * dx/dy' pixels.
-
-==== positional arguments
-* +'dx'+: How much to scroll in x-direction.
-* +'dy'+: How much to scroll in y-direction.
-
-==== count
-multiplier
 
 [[search-next]]
 === search-next

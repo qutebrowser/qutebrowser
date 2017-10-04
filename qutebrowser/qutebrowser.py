@@ -17,7 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Early initialization and main entry point."""
+"""Early initialization and main entry point.
+
+qutebrowser's initialization process roughly looks like this:
+
+- This file gets imported, either via the setuptools entry point or
+  __main__.py.
+- At import time, we check for the correct Python version and show an error if
+  it's too old.
+- The main() function in this file gets invoked
+- Argument parsing takes place
+- earlyinit.early_init() gets invoked to do various low-level initialization
+  and checks whether all dependencies are met.
+- app.run() gets called, which takes over.
+  See the docstring of app.py for details.
+"""
 
 import sys
 import json
@@ -95,8 +109,6 @@ def get_argparser():
                        action='store_false', dest='color')
     debug.add_argument('--force-color', help="Force colored logging",
                        action='store_true')
-    debug.add_argument('--relaxed-config', action='store_true',
-                       help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
     debug.add_argument('--temp-basedir', action='store_true', help="Use a "

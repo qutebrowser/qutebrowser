@@ -19,9 +19,20 @@
 
 """Convenience functions to show message boxes."""
 
+import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox
+
+from qutebrowser.utils import objreg
+
+
+class DummyBox:
+
+    """A dummy QMessageBox returned when --no-err-windows is used."""
+
+    def exec_(self):
+        pass
 
 
 def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
@@ -40,6 +51,11 @@ def msgbox(parent, title, text, *, icon, buttons=QMessageBox.Ok,
     Return:
         A new QMessageBox.
     """
+    args = objreg.get('args')
+    if args.no_err_windows:
+        print('Message box: {}; {}'.format(title, text), file=sys.stderr)
+        return DummyBox()
+
     box = QMessageBox(parent)
     box.setAttribute(Qt.WA_DeleteOnClose)
     box.setIcon(icon)
