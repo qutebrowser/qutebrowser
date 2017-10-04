@@ -22,22 +22,19 @@
 import re
 import os
 import json
-from fnmatch import fnmatch
-from functools import partial
+import fnmatch
+import functools
+import glob
 
-from PyQt5.QtCore import QDir, pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
-from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir
 from qutebrowser.commands import cmdutils
 
 
 def _scripts_dir():
     """Get the directory of the scripts."""
-    directory = config.val.content.javascript.userjs_directory
-    if directory is None:
-        directory = os.path.join(standarddir.data(), 'greasemonkey')
-    return directory
+    return os.path.join(standarddir.data(), 'greasemonkey')
 
 
 class GreasemonkeyScript:
@@ -108,28 +105,25 @@ function GM_xmlhttpRequest(/* object */ details) {{
     // build XMLHttpRequest object
     var oXhr = new XMLHttpRequest;
     // run it
-    if(oXhr) {{
-        if("onreadystatechange" in details)
-            oXhr.onreadystatechange = function() {{
-                details.onreadystatechange(oXhr)
-            }};
-        if("onload" in details)
-            oXhr.onload = function() {{ details.onload(oXhr) }};
-        if("onerror" in details)
-            oXhr.onerror = function() {{ details.onerror(oXhr) }};
+    if("onreadystatechange" in details)
+        oXhr.onreadystatechange = function() {{
+            details.onreadystatechange(oXhr)
+        }};
+    if("onload" in details)
+        oXhr.onload = function() {{ details.onload(oXhr) }};
+    if("onerror" in details)
+        oXhr.onerror = function() {{ details.onerror(oXhr) }};
 
-        oXhr.open(details.method, details.url, true);
+    oXhr.open(details.method, details.url, true);
 
-        if("headers" in details)
-            for(var header in details.headers)
-                oXhr.setRequestHeader(header, details.headers[header]);
+    if("headers" in details)
+        for(var header in details.headers)
+            oXhr.setRequestHeader(header, details.headers[header]);
 
-        if("data" in details)
-            oXhr.send(details.data);
-        else
-            oXhr.send();
-    }} else
-        throw ("This Browser is not supported, please upgrade.")
+    if("data" in details)
+        oXhr.send(details.data);
+    else
+        oXhr.send();
 }}
 
 function GM_addStyle(/* String */ styles) {{
@@ -138,7 +132,7 @@ function GM_addStyle(/* String */ styles) {{
         document.onreadystatechange = function() {{
             if (document.readyState == "interactive") {{
                 var oStyle = document.createElement("style");
-                oStyle.setAttribute("type", "text\/css");
+                oStyle.setAttribute("type", "text/css");
                 oStyle.appendChild(document.createTextNode(styles));
                 document.getElementsByTagName("head")[0].appendChild(oStyle);
             }}
@@ -146,7 +140,7 @@ function GM_addStyle(/* String */ styles) {{
     }}
     else {{
         var oStyle = document.createElement("style");
-        oStyle.setAttribute("type", "text\/css");
+        oStyle.setAttribute("type", "text/css");
         oStyle.appendChild(document.createTextNode(styles));
         head.appendChild(oStyle);
     }}
@@ -157,63 +151,69 @@ unsafeWindow = window;
 
     def __init__(self, properties, code):
         self._code = code
-        self._includes = []
-        self._excludes = []
-        self._description = None
-        self._name = None
-        self._run_at = None
+        self.includes = []
+        self.excludes = []
+        self.description = None
+        self.name = None
+        self.run_at = None
+        self.script_meta = None
         for name, value in properties:
             if name == 'name':
-                self._name = value
+                self.name = value
             if name == 'description':
-                self._description = value
+                self.description = value
             if name in ['include', 'match']:
-                self._includes.append(value)
+                self.includes.append(value)
             if name in ['exclude', 'exclude_match']:
-                self._excludes.append(value)
+                self.excludes.append(value)
             if name == 'run-at':
-                self._run_at = value
+                self.run_at = value
 
-    HEADER_REGEX = r'\/\/ ==UserScript==.|\n+\/\/ ==\/UserScript==\n'
-    PROPS_REGEX = r'\/\/ @(?P<prop>[^\s]+)\s+(?P<val>.+)'
+    HEADER_REGEX = r'// ==UserScript==.|\n+// ==/UserScript==\n'
+    PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s+(?P<val>.+)'
 
     @classmethod
     def parse(cls, source):
-        props, _code = re.split(cls.HEADER_REGEX, source)
-        return cls(re.findall(cls.PROPS_REGEX, props), source)
+        """GreaseMonkeyScript factory.
 
-    def includes(self):
-        return self._includes
-
-    def excludes(self):
-        return self._excludes
-
-    def name(self):
-        return self._name
-
-    def run_at(self):
-        return self._run_at
+        Takes a userscript source and returns a GreaseMonkeyScript.
+        Parses the greasemonkey metadata block, if present, to fill out
+        attributes.
+        """
+        matches = re.split(cls.HEADER_REGEX, source, maxsplit=1)
+        try:
+            props, _code = matches
+        except ValueError:
+            props = ""
+        script = cls(re.findall(cls.PROPS_REGEX, props), source)
+        script.script_meta = '"{}"'.format("\\n".join(props.split('\n')[2:]))
+        return script
 
     def code(self):
+        """Return the processed javascript code of this script.
+
+        Adorns the source code with GM_* methods for greasemonkey
+        compatibility and wraps it in an IFFE to hide it within a
+        lexical scope. Note that this means line numbers in your
+        browsers debugger/inspector will not match up to the line
+        numebrs in the source script directly.
+        """
         gm_bootstrap = self.GM_BOOTSTRAP_TEMPLATE.format(
-            scriptName=self._name,
-            scriptInfo=self.meta_json() or 'null',
-            scriptMeta=self.meta_raw() or 'null')
+            scriptName=self.name,
+            scriptInfo=self._meta_json() or 'null',
+            scriptMeta=self.script_meta or 'null')
         return '\n'.join(
-            ["(function(){", gm_bootstrap, self._code, "}).call();"])
+            ["(function(){", gm_bootstrap, self._code, "})();"])
 
-    def meta_json(self):
+    def _meta_json(self):
         return json.dumps({
-            'name': self._name,
-            'description': self._description,
-            'matches': self._includes,
-            'includes': self._includes,
-            'excludes': self._excludes,
-            'run-at': self._run_at,
+            'name': self.name,
+            'description': self.description,
+            'matches': self.includes,
+            'includes': self.includes,
+            'excludes': self.excludes,
+            'run-at': self.run_at,
         })
-
-    def meta_raw(self):
-        pass
 
 
 class GreasemonkeyManager(QObject):
@@ -227,9 +227,13 @@ class GreasemonkeyManager(QObject):
     """
 
     scripts_reloaded = pyqtSignal()
+    # https://wiki.greasespot.net/Include_and_exclude_rules#Greaseable_schemes
+    # Limit the schemes scripts can run on due to unreasonable levels of
+    # exploitability
+    greaseable_schemes = ['http', 'https', 'ftp']
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.load_scripts()
 
     @cmdutils.register(name='greasemonkey-reload',
@@ -240,25 +244,23 @@ class GreasemonkeyManager(QObject):
         self._run_end = []
         self._run_idle = []
 
-        scripts_dir = QDir(_scripts_dir())
-        log.greasemonkey.debug("Reading scripts from: %s",
-                               scripts_dir.absolutePath())
-        for script_filename in scripts_dir.entryList(['*.js'], QDir.Files):
-            script_path = scripts_dir.absoluteFilePath(script_filename)
+        scripts_dir = os.path.abspath(_scripts_dir())
+        log.greasemonkey.debug("Reading scripts from: %s", scripts_dir)
+        for script_filename in glob.glob(os.path.join(scripts_dir, '*.js')):
+            if not os.path.isfile(script_filename):
+                continue
+            script_path = os.path.join(scripts_dir, script_filename)
             log.greasemonkey.debug("Trying to load script: %s", script_path)
             with open(script_path, encoding='utf-8') as script_file:
-                try:
-                    script = GreasemonkeyScript.parse(script_file.read())
-                except Exception as err:
-                    log.greasemonkey.warning("Unable to load: %s %s",
-                                             script_path, err)
-                    # Catch-all :/
-                    continue
-                if script.run_at() == 'document-start':
+                script = GreasemonkeyScript.parse(script_file.read())
+                if not script.name:
+                    script.name = script_filename
+
+                if script.run_at == 'document-start':
                     self._run_start.append(script)
-                elif script.run_at() == 'document-end':
+                elif script.run_at == 'document-end':
                     self._run_end.append(script)
-                elif script.run_at() == 'document-idle':
+                elif script.run_at == 'document-idle':
                     self._run_idle.append(script)
                 else:
                     log.greasemonkey.warning(("Script %s has invalid run-at "
@@ -267,7 +269,7 @@ class GreasemonkeyManager(QObject):
                     # Default as per
                     # https://wiki.greasespot.net/Metadata_Block#.40run-at
                     self._run_end.append(script)
-                log.greasemonkey.debug("Loaded script: %s", script.name())
+                log.greasemonkey.debug("Loaded script: %s", script.name)
         self.scripts_reloaded.emit()
 
     def scripts_for(self, url):
@@ -276,10 +278,12 @@ class GreasemonkeyManager(QObject):
         returns a tuple of lists of scripts meant to run at (document-start,
         document-end, document-idle)
         """
-        match = partial(fnmatch, url)
-        tester = lambda script: \
-            any([match(pat) for pat in script.includes()]) \
-            and not any([match(pat) for pat in script.excludes()])
+        if url.split(':', 1)[0] not in self.greaseable_schemes:
+            return [], [], []
+        match = functools.partial(fnmatch.fnmatch, url)
+        tester = (lambda script:
+                  any([match(pat) for pat in script.includes]) and not
+                  any([match(pat) for pat in script.excludes]))
         return ([script for script in self._run_start if tester(script)],
                 [script for script in self._run_end if tester(script)],
                 [script for script in self._run_idle if tester(script)])

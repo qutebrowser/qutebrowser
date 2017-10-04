@@ -87,11 +87,11 @@ class BrowserPage(QWebPage):
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
         self.mainFrame().javaScriptWindowObjectCleared.connect(
-            self.inject_userjs_start)
+            functools.partial(self.inject_userjs, load='start'))
         self.mainFrame().initialLayoutCompleted.connect(
-            self.inject_userjs_end)
+            functools.partial(self.inject_userjs, load='end'))
         self.mainFrame().loadFinished.connect(
-            self.inject_userjs_idle)
+            functools.partial(self.inject_userjs, load='idle'))
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
@@ -290,31 +290,31 @@ class BrowserPage(QWebPage):
             self.error_occurred = False
 
     @pyqtSlot()
-    def inject_userjs_start(self):
-        self.inject_userjs(load="start")
+    def inject_userjs(self, load):
+        """Inject user javascripts into the page.
 
-    def inject_userjs_end(self):
-        self.inject_userjs(load="end")
-
-    def inject_userjs_idle(self):
-        self.inject_userjs(load="idle")
-
-    def inject_userjs(self, load="end"):
+        param: The page load stage to inject the corresponding scripts
+               for. Support values are "start", "end" and "idle",
+               corresponding to the allowed values of the `@run-at`
+               directive in the greasemonkey metadata spec.
+        """
         log.webview.debug('JS window object cleared')
         greasemonkey = objreg.get('greasemonkey')
         url = self.currentFrame().url()
         start_scripts, end_scripts, idle_scripts = \
             greasemonkey.scripts_for(url.toDisplayString())
+
+        toload = []
         if load == "start":
             toload = start_scripts
         elif load == "end":
             toload = end_scripts
         elif load == "idle":
             toload = idle_scripts
-        log.greasemonkey.debug('scripts: {}'.format(toload))
+        log.greasemonkey.debug('scripts: %s', toload)
 
         for script in toload:
-            log.webview.debug('Running GM script: {}'.format(script.name()))
+            log.webview.debug('Running GM script: %s', script.name)
             self.currentFrame().evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')

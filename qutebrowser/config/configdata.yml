@@ -469,19 +469,6 @@ content.javascript.prompt:
   type: Bool
   desc: Show javascript prompts.
 
-content.javascript.userjs_directory:
-  default: null
-  type:
-    name: Directory
-    none_ok: true
-  desc: >-
-    The directory to load (greasemonkey) user javascript files from.
-
-    Scripts must have a '.js' extension and may include a greasemonkey
-    metadata block.
-
-    Defaults to <datadir>/greasemonkey/
-
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
