@@ -275,5 +275,6 @@ class ConfigCommands:
             bindings = dict(self._config.get_obj('bindings.commands'))
             commented = False
 
-        configfiles.write_config_py(filename, options, bindings,
-                                    commented=commented)
+        writer = configfiles.ConfigPyWriter(options, bindings,
+                                            commented=commented)
+        writer.write(filename)
