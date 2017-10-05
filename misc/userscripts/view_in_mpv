@@ -140,4 +140,8 @@ printjs() {
 echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
 
 msg info "Opening $QUTE_URL with mpv"
-"${video_command[@]}" "$QUTE_URL"
+if [[ $QUTE_URL == *"list="* ]]; then
+    "${video_command[@]}" "--ytdl-raw-options=yes-playlist=" "$QUTE_URL"
+else
+    "${video_command[@]}" "$QUTE_URL"
+fi
