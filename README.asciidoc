@@ -67,7 +67,7 @@ message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
-There's also a https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
+There's also an https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
 at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
 get sent to the general qutebrowser@ list).
 
