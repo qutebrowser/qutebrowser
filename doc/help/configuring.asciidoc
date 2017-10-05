@@ -68,6 +68,12 @@ will never be used in a default keybinding.
 See the help pages linked above (or `:help :bind`, `:help :unbind`) for more
 information.
 
+Other useful commands for config manipulation are
+link:commands.html#config-unset[`:config-unset`] to reset a value to its default,
+link:commands.html#config-clear[`:config-clear`] to reset the entire configuration,
+and link:commands.html#config-cycle[`:config-cycle`] to cycle a setting between
+different values.
+
 Configuring qutebrowser via config.py
 -------------------------------------
 
@@ -76,6 +82,10 @@ file. Since it's a Python file, you have much more flexibility for
 configuration. Note that qutebrowser will never touch this file - this means
 you'll be responsible for updating it when upgrading to a newer qutebrowser
 version.
+
+You can run `:config-edit` inside qutebrowser to open the file in your editor,
+`:config-source` to reload the file (`:config-edit` does this automatically), or
+`:config-write-py --defaults` to write a template file to work with.
 
 The file should be located in the "config" location listed on
 link:qute://version[], which is typically `~/.config/qutebrowser/config.py` on

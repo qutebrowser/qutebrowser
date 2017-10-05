@@ -94,11 +94,6 @@ class TestChangeFilter:
 class TestKeyConfig:
 
     @pytest.fixture
-    def keyconf(self, config_stub):
-        config_stub.val.aliases = {}
-        return config.KeyConfig(config_stub)
-
-    @pytest.fixture
     def no_bindings(self):
         """Get a dict with no bindings."""
         return {'normal': {}}
@@ -107,14 +102,14 @@ class TestKeyConfig:
         ('A', 'A'),
         ('<Ctrl-X>', '<ctrl+x>'),
     ])
-    def test_prepare_valid(self, keyconf, key, expected):
+    def test_prepare_valid(self, key_config_stub, key, expected):
         """Make sure prepare normalizes the key."""
-        assert keyconf._prepare(key, 'normal') == expected
+        assert key_config_stub._prepare(key, 'normal') == expected
 
-    def test_prepare_invalid(self, keyconf):
+    def test_prepare_invalid(self, key_config_stub):
         """Make sure prepare checks the mode."""
         with pytest.raises(configexc.KeybindingError):
-            assert keyconf._prepare('x', 'abnormal')
+            assert key_config_stub._prepare('x', 'abnormal')
 
     @pytest.mark.parametrize('commands, expected', [
         # Unbinding default key
@@ -126,7 +121,8 @@ class TestKeyConfig:
         # Unbinding unknown key
         ({'x': None}, {'a': 'message-info foo', 'b': 'message-info bar'}),
     ])
-    def test_get_bindings_for_and_get_command(self, keyconf, config_stub,
+    def test_get_bindings_for_and_get_command(self, key_config_stub,
+                                              config_stub,
                                               commands, expected):
         orig_default_bindings = {'normal': {'a': 'message-info foo',
                                             'b': 'message-info bar'},
@@ -139,18 +135,19 @@ class TestKeyConfig:
                                  'register': {}}
         config_stub.val.bindings.default = copy.deepcopy(orig_default_bindings)
         config_stub.val.bindings.commands = {'normal': commands}
-        bindings = keyconf.get_bindings_for('normal')
+        bindings = key_config_stub.get_bindings_for('normal')
 
         # Make sure the code creates a copy and doesn't modify the setting
         assert config_stub.val.bindings.default == orig_default_bindings
         assert bindings == expected
         for key, command in expected.items():
-            assert keyconf.get_command(key, 'normal') == command
+            assert key_config_stub.get_command(key, 'normal') == command
 
-    def test_get_command_unbound(self, keyconf, config_stub, no_bindings):
+    def test_get_command_unbound(self, key_config_stub, config_stub,
+                                 no_bindings):
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
-        assert keyconf.get_command('foobar', 'normal') is None
+        assert key_config_stub.get_command('foobar', 'normal') is None
 
     @pytest.mark.parametrize('bindings, expected', [
         # Simple
@@ -166,46 +163,47 @@ class TestKeyConfig:
         ({'a': 'message-info foo ;; message-info bar'},
          {'message-info foo': ['a'], 'message-info bar': ['a']}),
     ])
-    def test_get_reverse_bindings_for(self, keyconf, config_stub, no_bindings,
-                                      bindings, expected):
+    def test_get_reverse_bindings_for(self, key_config_stub, config_stub,
+                                      no_bindings, bindings, expected):
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = {'normal': bindings}
-        assert keyconf.get_reverse_bindings_for('normal') == expected
+        assert key_config_stub.get_reverse_bindings_for('normal') == expected
 
     @pytest.mark.parametrize('key', ['a', '<Ctrl-X>', 'b'])
-    def test_bind_duplicate(self, keyconf, config_stub, key):
+    def test_bind_duplicate(self, key_config_stub, config_stub, key):
         config_stub.val.bindings.default = {'normal': {'a': 'nop',
                                                        '<Ctrl+x>': 'nop'}}
         config_stub.val.bindings.commands = {'normal': {'b': 'nop'}}
-        keyconf.bind(key, 'message-info foo', mode='normal')
-        assert keyconf.get_command(key, 'normal') == 'message-info foo'
+        key_config_stub.bind(key, 'message-info foo', mode='normal')
+        assert key_config_stub.get_command(key, 'normal') == 'message-info foo'
 
     @pytest.mark.parametrize('mode', ['normal', 'caret'])
     @pytest.mark.parametrize('command', [
         'message-info foo',
         'nop ;; wq',  # https://github.com/qutebrowser/qutebrowser/issues/3002
     ])
-    def test_bind(self, keyconf, config_stub, qtbot, no_bindings,
+    def test_bind(self, key_config_stub, config_stub, qtbot, no_bindings,
                   mode, command):
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
 
         with qtbot.wait_signal(config_stub.changed):
-            keyconf.bind('a', command, mode=mode)
+            key_config_stub.bind('a', command, mode=mode)
 
         assert config_stub.val.bindings.commands[mode]['a'] == command
-        assert keyconf.get_bindings_for(mode)['a'] == command
-        assert keyconf.get_command('a', mode) == command
+        assert key_config_stub.get_bindings_for(mode)['a'] == command
+        assert key_config_stub.get_command('a', mode) == command
 
-    def test_bind_mode_changing(self, keyconf, config_stub, no_bindings):
+    def test_bind_mode_changing(self, key_config_stub, config_stub,
+                                no_bindings):
         """Make sure we can bind to a command which changes the mode.
 
         https://github.com/qutebrowser/qutebrowser/issues/2989
         """
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
-        keyconf.bind('a', 'set-cmd-text :nop ;; rl-beginning-of-line',
-                     mode='normal')
+        key_config_stub.bind('a', 'set-cmd-text :nop ;; rl-beginning-of-line',
+                             mode='normal')
 
     @pytest.mark.parametrize('key, normalized', [
         ('a', 'a'),  # default bindings
@@ -213,7 +211,8 @@ class TestKeyConfig:
         ('<Ctrl-X>', '<ctrl+x>')
     ])
     @pytest.mark.parametrize('mode', ['normal', 'caret', 'prompt'])
-    def test_unbind(self, keyconf, config_stub, qtbot, key, normalized, mode):
+    def test_unbind(self, key_config_stub, config_stub, qtbot,
+                    key, normalized, mode):
         default_bindings = {
             'normal': {'a': 'nop', '<ctrl+x>': 'nop'},
             'caret': {'a': 'nop', '<ctrl+x>': 'nop'},
@@ -228,9 +227,9 @@ class TestKeyConfig:
         }
 
         with qtbot.wait_signal(config_stub.changed):
-            keyconf.unbind(key, mode=mode)
+            key_config_stub.unbind(key, mode=mode)
 
-        assert keyconf.get_command(key, mode) is None
+        assert key_config_stub.get_command(key, mode) is None
 
         mode_bindings = config_stub.val.bindings.commands[mode]
         if key == 'b' and mode != 'prompt':
@@ -241,13 +240,13 @@ class TestKeyConfig:
             assert default_bindings[mode] == old_default_bindings[mode]
             assert mode_bindings[normalized] is None
 
-    def test_unbind_unbound(self, keyconf, config_stub, no_bindings):
+    def test_unbind_unbound(self, key_config_stub, config_stub, no_bindings):
         """Try unbinding a key which is not bound."""
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         with pytest.raises(configexc.KeybindingError,
                            match="Can't find binding 'foobar' in normal mode"):
-            keyconf.unbind('foobar', mode='normal')
+            key_config_stub.unbind('foobar', mode='normal')
 
 
 class TestConfig:

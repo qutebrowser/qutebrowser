@@ -67,6 +67,7 @@ Added
   - `:config-clear` to remove all configured options
   - `:config-source` to (re-)read a `config.py` file
   - `:config-edit` to open the `config.py` file in an editor
+  - `:config-write-py` to write a `config.py` template file
 - New `:version` command which opens `qute://version`.
 
 Changed

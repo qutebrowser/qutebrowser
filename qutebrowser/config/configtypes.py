@@ -78,13 +78,15 @@ class ValidValues:
     Attributes:
         values: A list with the allowed untransformed values.
         descriptions: A dict with value/desc mappings.
+        generate_docs: Whether to show the values in the docs.
     """
 
-    def __init__(self, *values):
+    def __init__(self, *values, generate_docs=True):
         if not values:
             raise ValueError("ValidValues with no values makes no sense!")
         self.descriptions = {}
         self.values = []
+        self.generate_docs = generate_docs
         for value in values:
             if isinstance(value, str):
                 # Value without description
@@ -608,7 +610,7 @@ class Bool(BaseType):
 
     def __init__(self, none_ok=False):
         super().__init__(none_ok)
-        self.valid_values = ValidValues('true', 'false')
+        self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
     def to_py(self, value):
         self._basic_py_validation(value, bool)

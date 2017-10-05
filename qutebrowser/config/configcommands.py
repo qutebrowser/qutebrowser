@@ -27,7 +27,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
 from qutebrowser.utils import objreg, utils, message, standarddir
-from qutebrowser.config import configtypes, configexc, configfiles
+from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 
 
@@ -246,3 +246,35 @@ class ConfigCommands:
 
         filename = os.path.join(standarddir.config(), 'config.py')
         ed.edit_file(filename)
+
+    @cmdutils.register(instance='config-commands')
+    def config_write_py(self, filename=None, force=False, defaults=False):
+        """Write the current configuration to a config.py file.
+
+        Args:
+            filename: The file to write to, or None for the default config.py.
+            force: Force overwriting existing files.
+            defaults: Write the defaults instead of values configured via :set.
+        """
+        if filename is None:
+            filename = os.path.join(standarddir.config(), 'config.py')
+        else:
+            filename = os.path.expanduser(filename)
+
+        if os.path.exists(filename) and not force:
+            raise cmdexc.CommandError("{} already exists - use --force to "
+                                      "overwrite!".format(filename))
+
+        if defaults:
+            options = [(opt, opt.default)
+                       for _name, opt in sorted(configdata.DATA.items())]
+            bindings = dict(configdata.DATA['bindings.default'].default)
+            commented = True
+        else:
+            options = list(self._config)
+            bindings = dict(self._config.get_obj('bindings.commands'))
+            commented = False
+
+        writer = configfiles.ConfigPyWriter(options, bindings,
+                                            commented=commented)
+        writer.write(filename)

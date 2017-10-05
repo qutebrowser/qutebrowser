@@ -223,6 +223,11 @@ class Config(QObject):
         self._mutables = {}
         self._yaml = yaml_config
 
+    def __iter__(self):
+        """Iterate over Option, value tuples."""
+        for name, value in sorted(self._values.items()):
+            yield (self.get_opt(name), value)
+
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
 
@@ -365,10 +370,9 @@ class Config(QObject):
             The changed config part as string.
         """
         lines = []
-        for optname, value in sorted(self._values.items()):
-            opt = self.get_opt(optname)
+        for opt, value in self:
             str_value = opt.typ.to_str(value)
-            lines.append('{} = {}'.format(optname, str_value))
+            lines.append('{} = {}'.format(opt.name, str_value))
         if not lines:
             lines = ['<Default configuration>']
         return '\n'.join(lines)

@@ -280,11 +280,6 @@ Always restore open sites when qutebrowser is reopened.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[backend]]
@@ -1304,11 +1299,6 @@ Move on to the next part when there's only one possible completion left.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[completion.scrollbar.padding]]
@@ -1346,11 +1336,6 @@ Default: +pass:[always]+
 Shrink the completion to be smaller than the configured size if there are no scrollbars.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -1394,11 +1379,6 @@ Whether support for the HTML 5 web application cache feature is enabled.
 An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1448,11 +1428,6 @@ Note this option needs a restart with QtWebEngine on Qt < 5.9.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[content.default_encoding]]
@@ -1471,11 +1446,6 @@ This needs to be enabled for `:inspector` to work and also adds an _Inspect_ ent
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
@@ -1485,11 +1455,6 @@ This setting is only available with the QtWebKit backend.
 Try to pre-fetch DNS entries to speed up browsing.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1501,11 +1466,6 @@ Expand each subframe to its contents.
 This will flatten all the frames to become one scrollable page.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -1548,11 +1508,6 @@ When this is set to true, qutebrowser asks websites to not track your identity. 
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[content.headers.referer]]
@@ -1585,11 +1540,6 @@ Default: empty
 Whether host blocking is enabled.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1633,11 +1583,6 @@ Enable or disable hyperlink auditing (`<a ping>`).
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[content.images]]
@@ -1646,11 +1591,6 @@ Whether images are automatically loaded in web pages.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[content.javascript.alert]]
@@ -1658,11 +1598,6 @@ Default: +pass:[true]+
 Show javascript alerts.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1673,11 +1608,6 @@ With QtWebEngine, writing the clipboard as response to a user interaction is alw
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[content.javascript.can_close_tabs]]
@@ -1685,11 +1615,6 @@ Default: +pass:[false]+
 Whether JavaScript can close tabs.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -1701,11 +1626,6 @@ Whether JavaScript can open new tabs without user interaction.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[content.javascript.enabled]]
@@ -1713,11 +1633,6 @@ Default: +pass:[false]+
 Enables or disables JavaScript.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1742,11 +1657,6 @@ Use the standard JavaScript modal dialog for `alert()` and `confirm()`
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[content.javascript.prompt]]
@@ -1754,11 +1664,6 @@ Default: +pass:[false]+
 Show javascript prompts.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1768,11 +1673,6 @@ Whether locally loaded documents are allowed to access other local urls.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[content.local_content_can_access_remote_urls]]
@@ -1781,11 +1681,6 @@ Whether locally loaded documents are allowed to access remote urls.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[content.local_storage]]
@@ -1793,11 +1688,6 @@ Default: +pass:[false]+
 Whether support for HTML 5 local storage and Web SQL is enabled.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1847,11 +1737,6 @@ Note that the files can still be downloaded by clicking the download button in t
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
@@ -1862,11 +1747,6 @@ Enables or disables plugins in Web pages.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[content.print_element_backgrounds]]
@@ -1874,11 +1754,6 @@ Default: +pass:[false]+
 Whether the background color and images are also drawn when the page is printed.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1889,11 +1764,6 @@ On QtWebEngine, this setting requires Qt 5.8 or newer.
 Open new windows in private browsing mode which does not record visited pages.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -1916,11 +1786,6 @@ Default: +pass:[system]+
 Send DNS requests over the configured proxy.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -1954,11 +1819,6 @@ Enables or disables WebGL.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[content.xss_auditing]]
@@ -1967,11 +1827,6 @@ Whether load requests should be monitored for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -1991,11 +1846,6 @@ If set to false, `downloads.location.directory` will be used.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[downloads.location.remember]]
@@ -2003,11 +1853,6 @@ Default: +pass:[true]+
 Remember the last used download directory.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -2270,11 +2115,6 @@ This is needed for QtWebEngine to work with Nouveau drivers. This setting requir
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 This setting is only available with the QtWebEngine backend.
@@ -2347,11 +2187,6 @@ Hide unmatched hints in rapid mode.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[hints.min_chars]]
@@ -2412,11 +2247,6 @@ Ignored for number hints.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[hints.uppercase]]
@@ -2424,11 +2254,6 @@ Default: +pass:[true]+
 Make chars in hint strings uppercase.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -2475,11 +2300,6 @@ Leave insert mode if a non-editable element is clicked.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[input.insert_mode.auto_load]]
@@ -2487,11 +2307,6 @@ Default: +pass:[true]+
 Automatically enter insert mode if an editable element is focused after loading the page.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -2501,11 +2316,6 @@ Switch to insert mode when clicking flash and other plugins.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[input.links_included_in_focus_chain]]
@@ -2513,11 +2323,6 @@ Default: +pass:[false]+
 Include hyperlinks in the keyboard focus chain when tabbing.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -2537,11 +2342,6 @@ This disables the context menu.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[input.spatial_navigation]]
@@ -2550,11 +2350,6 @@ Enable Spatial Navigation.
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -2589,11 +2384,6 @@ Default: +pass:[2000]+
 Show messages in unfocused windows.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -2637,11 +2427,6 @@ Show a filebrowser in upload/download prompts.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[true]+
 
 [[prompt.radius]]
@@ -2668,11 +2453,6 @@ Show a scrollbar.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[scrolling.smooth]]
@@ -2681,11 +2461,6 @@ Enable smooth scrolling for web pages.
 Note smooth scrolling does not work with the `:scroll-px` command.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -2703,11 +2478,6 @@ Default: empty
 Hide the statusbar unless a message is shown.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 
@@ -2743,11 +2513,6 @@ Open new tabs (middleclick/ctrl+click) in the background.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[tabs.close_mouse_button]]
@@ -2778,11 +2543,6 @@ Default: +pass:[1.0]+
 Show favicons in the tab bar.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -2820,11 +2580,6 @@ Default: +pass:[ignore]+
 Switch between tabs using the mouse wheel.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -2929,11 +2684,6 @@ Open a new window for every tab.
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[tabs.title.alignment]]
@@ -3000,11 +2750,6 @@ Default: +pass:[3]+
 Whether to wrap when changing tabs.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[true]+
 
@@ -3090,11 +2835,6 @@ Hide the window decoration when using wayland (requires restart)
 
 Type: <<types,Bool>>
 
-Valid values:
-
- * +true+
- * +false+
-
 Default: +pass:[false]+
 
 [[window.title_format]]
@@ -3163,11 +2903,6 @@ Default: +pass:[512]+
 Whether the zoom factor on a frame applies only to the text or to all content.
 
 Type: <<types,Bool>>
-
-Valid values:
-
- * +true+
- * +false+
 
 Default: +pass:[false]+
 

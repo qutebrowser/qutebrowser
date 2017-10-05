@@ -36,6 +36,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
+|<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
 |<<download,download>>|Download a given URL, or current page if no URL given.
 |<<download-cancel,download-cancel>>|Cancel the last/[count]th download.
 |<<download-clear,download-clear>>|Remove all finished downloads from the list.
@@ -265,6 +266,19 @@ This sets an option back to its default and removes it from autoconfig.yml.
 
 ==== optional arguments
 * +*-t*+, +*--temp*+: Don't touch autoconfig.yml.
+
+[[config-write-py]]
+=== config-write-py
+Syntax: +:config-write-py [*--force*] [*--defaults*] ['filename']+
+
+Write the current configuration to a config.py file.
+
+==== positional arguments
+* +'filename'+: The file to write to, or not given for the default config.py.
+
+==== optional arguments
+* +*-f*+, +*--force*+: Force overwriting existing files.
+* +*-d*+, +*--defaults*+: Write the defaults instead of values configured via :set.
 
 [[download]]
 === download
