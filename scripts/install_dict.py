@@ -31,8 +31,10 @@ import sys
 import re
 import urllib.parse
 import urllib.request
+
 import attr
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
 
@@ -41,15 +43,17 @@ API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries
 
 
 class InvalidLanguageError(Exception):
-    """Raised when requested invalid languages."""
+
+    """Raised when requesting invalid languages."""
 
     def __init__(self, invalid_langs):
         msg = 'invalid languages: {}'.format(', '.join(invalid_langs))
-        super(InvalidLanguageError, self).__init__(msg)
+        super().__init__(msg)
 
 
 @attr.s
 class Language:
+
     """Dictionary language specs."""
 
     code = attr.ib(None)
@@ -161,6 +165,7 @@ def install(languages):
             install_lang(lang)
         except PermissionError as e:
             print(e)
+            sys.exit(1)
 
 
 def main():
