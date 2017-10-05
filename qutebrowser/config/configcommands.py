@@ -269,8 +269,11 @@ class ConfigCommands:
             options = [(opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
             bindings = dict(configdata.DATA['bindings.default'].default)
+            commented = True
         else:
             options = list(self._config)
             bindings = dict(self._config.get_obj('bindings.commands'))
+            commented = False
 
-        configfiles.write_config_py(filename, options, bindings)
+        configfiles.write_config_py(filename, options, bindings,
+                                    commented=commented)
