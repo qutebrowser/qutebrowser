@@ -177,7 +177,7 @@ class ConfigCommands:
             self._print_value(option)
 
     @cmdutils.register(instance='config-commands')
-    @cmdutils.argument('option', completion=configmodel.option)
+    @cmdutils.argument('option', completion=configmodel.customized_option)
     def config_unset(self, option, temp=False):
         """Unset an option.
 
