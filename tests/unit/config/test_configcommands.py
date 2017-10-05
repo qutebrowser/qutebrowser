@@ -31,8 +31,8 @@ from qutebrowser.misc import objects
 
 
 @pytest.fixture
-def commands(config_stub, keyconf):
-    return configcommands.ConfigCommands(config_stub, keyconf)
+def commands(config_stub, key_config_stub):
+    return configcommands.ConfigCommands(config_stub, key_config_stub)
 
 
 class TestSet:
@@ -353,10 +353,10 @@ class TestWritePy:
 
     """Tests for :config-write-py."""
 
-    def test_custom(self, commands, config_stub, keyconf, tmpdir):
+    def test_custom(self, commands, config_stub, key_config_stub, tmpdir):
         confpy = tmpdir / 'config.py'
         config_stub.val.content.javascript.enabled = True
-        keyconf.bind(',x', 'message-info foo', mode='normal')
+        key_config_stub.bind(',x', 'message-info foo', mode='normal')
 
         commands.config_write_py(str(confpy))
 
@@ -408,14 +408,15 @@ class TestBind:
         return {'normal': {}}
 
     @pytest.mark.parametrize('command', ['nop', 'nope'])
-    def test_bind(self, commands, config_stub, no_bindings, keyconf, command):
+    def test_bind(self, commands, config_stub, no_bindings, key_config_stub,
+                  command):
         """Simple :bind test (and aliases)."""
         config_stub.val.aliases = {'nope': 'nop'}
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
 
         commands.bind('a', command)
-        assert keyconf.get_command('a', 'normal') == command
+        assert key_config_stub.get_command('a', 'normal') == command
         yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         assert yaml_bindings['a'] == command
 
@@ -466,7 +467,7 @@ class TestBind:
             commands.bind('a', 'nop', mode='wrongmode')
 
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
-    def test_bind_duplicate(self, commands, config_stub, keyconf, key):
+    def test_bind_duplicate(self, commands, config_stub, key_config_stub, key):
         """Run ':bind' with a key which already has been bound.'.
 
         Also tests for https://github.com/qutebrowser/qutebrowser/issues/1544
@@ -479,7 +480,7 @@ class TestBind:
         }
 
         commands.bind(key, 'message-info foo', mode='normal')
-        assert keyconf.get_command(key, 'normal') == 'message-info foo'
+        assert key_config_stub.get_command(key, 'normal') == 'message-info foo'
 
     def test_bind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -495,7 +496,8 @@ class TestBind:
         ('c', 'c'),  # :bind then :unbind
         ('<Ctrl-X>', '<ctrl+x>')  # normalized special binding
     ])
-    def test_unbind(self, commands, keyconf, config_stub, key, normalized):
+    def test_unbind(self, commands, key_config_stub, config_stub,
+                    key, normalized):
         config_stub.val.bindings.default = {
             'normal': {'a': 'nop', '<ctrl+x>': 'nop'},
             'caret': {'a': 'nop', '<ctrl+x>': 'nop'},
@@ -509,7 +511,7 @@ class TestBind:
             commands.bind(key, 'nop')
 
         commands.unbind(key)
-        assert keyconf.get_command(key, 'normal') is None
+        assert key_config_stub.get_command(key, 'normal') is None
 
         yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         if key in 'bc':
