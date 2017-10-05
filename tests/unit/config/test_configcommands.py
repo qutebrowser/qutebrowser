@@ -263,7 +263,8 @@ class TestSource:
 
     """Test :config-source."""
 
-    pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir')
+    pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
+                                         'config_stub', 'key_config_stub')
 
     @pytest.mark.parametrize('use_default_dir', [True, False])
     @pytest.mark.parametrize('clear', [True, False])
@@ -302,14 +303,17 @@ class TestEdit:
 
     """Tests for :config-edit."""
 
-    def test_no_source(self, commands, mocker, config_tmpdir):
+    pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
+                                         'config_stub', 'key_config_stub')
+
+    def test_no_source(self, commands, mocker):
         mock = mocker.patch('qutebrowser.config.configcommands.editor.'
                             'ExternalEditor._start_editor', autospec=True)
         commands.config_edit(no_source=True)
         mock.assert_called_once_with(unittest.mock.ANY)
 
     @pytest.fixture
-    def patch_editor(self, mocker, config_tmpdir, data_tmpdir):
+    def patch_editor(self, mocker):
         """Write a config.py file."""
         def do_patch(text):
             def _write_file(editor_self):
