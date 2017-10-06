@@ -106,7 +106,6 @@ Fixes
 - The "try again" button on error pages works correctly again.
 - :spawn -u -d is now disallowed.
 - :spawn -d shows error messages correctly now.
-- Performance improvements for smooth scrolling
 
 v0.11.0
 -------
