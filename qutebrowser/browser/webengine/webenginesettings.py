@@ -137,7 +137,9 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
     def _find_installed(self, code):
         installed_file = spell.installed_file(code)
         if not installed_file:
-            message.warning('Language {} is not installed.'.format(code))
+            message.warning(
+                'Language {} is not installed - see scripts/install_dict.py '
+                'in qutebrowser\'s sources'.format(code))
         return installed_file
 
     def _set(self, value, settings=None):
@@ -218,6 +220,10 @@ def _init_profiles():
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
     _set_http_headers(private_profile)
+
+    if qtutils.version_check('5.8'):
+        default_profile.setSpellCheckEnabled(True)
+        private_profile.setSpellCheckEnabled(True)
 
 
 def init(args):

@@ -149,7 +149,7 @@ def install_lang(lang):
     print('Installing {}: {}'.format(lang.code, lang.name))
     lang_url = urllib.parse.urljoin(API_URL, lang.file_path, '?format=TEXT')
     if not os.path.isdir(spell.dictionary_dir()):
-        warn_msg = 'WARN: {} does not exist, creating the directory'
+        warn_msg = '{} does not exist, creating the directory'
         print(warn_msg.format(spell.dictionary_dir()))
         os.makedirs(spell.dictionary_dir())
     print('Downloading {}'.format(lang_url))
