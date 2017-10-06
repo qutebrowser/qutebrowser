@@ -44,10 +44,10 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
-* A https://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]: +
+* https://qutebrowser.org/img/cheatsheet-big.png[Key binding cheatsheet]: +
 image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
-* A https://www.shortcutfoo.com/app/dojos/qutebrowser[free training course] to remember those key bindings.
+* https://www.shortcutfoo.com/app/dojos/qutebrowser[Free training course] to remember those key bindings
 * link:doc/faq.asciidoc[Frequently asked questions]
 * link:doc/help/configuring.asciidoc[Configuring qutebrowser]
 * link:doc/contributing.asciidoc[Contributing to qutebrowser]
@@ -67,7 +67,7 @@ message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
-There's also a https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
+There's also an https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[announce-only mailinglist]
 at mailto:qutebrowser-announce@lists.qutebrowser.org[] (the announcements also
 get sent to the general qutebrowser@ list).
 
@@ -107,9 +107,9 @@ The following software and libraries are required to run qutebrowser:
   - QtWebEngine, or
   - QtWebKit - only the
     link:https://github.com/annulen/webkit/wiki[updated fork] (5.212) is
-    supported.
+    supported
 * http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.9 recommended) for Python 3.
+  (5.9 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -120,7 +120,7 @@ The following software and libraries are required to run qutebrowser:
 The following libraries are optional:
 
 * http://cthedot.de/cssutils/[cssutils] (for an improved `:download --mhtml`
-  with QtWebKit)
+  with QtWebKit).
 * On Windows, https://pypi.python.org/pypi/colorama/[colorama] for colored log
   output.
 * http://asciidoc.org/[asciidoc] to generate the documentation for the `:help`
@@ -216,7 +216,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
 
 pdf.js
 ------

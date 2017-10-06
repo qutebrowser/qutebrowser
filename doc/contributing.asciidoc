@@ -39,8 +39,7 @@ pointers:
 
 * https://github.com/qutebrowser/qutebrowser/labels/easy[Issues which should
 be easy to solve]
-* https://github.com/qutebrowser/qutebrowser/labels/component%3A%20docs[Documentation
-* issues which require little/no coding]
+* https://github.com/qutebrowser/qutebrowser/labels/component%3A%20docs[Documentation issues which require little/no coding]
 
 If you prefer C++ or Javascript to Python, see the relevant issues which involve
 work in those languages:
@@ -99,23 +98,23 @@ Currently, the following tox environments are available:
 
 * Tests using https://www.pytest.org[pytest]:
   - `py35`, `py36`: Run pytest for python 3.5/3.6 with the system-wide PyQt.
-  - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works)
-  - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too)
+  - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works).
+  - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too).
 * `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
                 https://pypi.python.org/pypi/pyflakes[pyflakes],
                 https://pypi.python.org/pypi/pep8[pep8],
-                https://pypi.python.org/pypi/mccabe[mccabe]
+                https://pypi.python.org/pypi/mccabe[mccabe].
 * `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
   unused code portions.
 * `pylint`: Run http://pylint.org/[pylint] static code analysis.
 * `pydocstyle`: Check
   https://www.python.org/dev/peps/pep-0257/[PEP257] compliance with
-  https://github.com/PyCQA/pydocstyle[pydocstyle]
+  https://github.com/PyCQA/pydocstyle[pydocstyle].
 * `pyroma`: Check packaging practices with
-  https://pypi.python.org/pypi/pyroma/[pyroma]
+  https://pypi.python.org/pypi/pyroma/[pyroma].
 * `eslint`: Run http://eslint.org/[ESLint] javascript checker.
 * `check-manifest`: Check MANIFEST.in completeness with
-  https://github.com/mgedmin/check-manifest[check-manifest]
+  https://github.com/mgedmin/check-manifest[check-manifest].
 * `mkvenv`: Bootstrap a virtualenv for testing.
 * `misc`: Run `scripts/misc_checks.py` to check for:
     - untracked git files
@@ -132,7 +131,7 @@ techniques are useful to handle these:
 
 * Use `_foo` for unused parameters, with `foo` being a descriptive name. Using
 `_` is discouraged.
-* If you think you have a good reason to suppress a message, then add the 
+* If you think you have a good reason to suppress a message, then add the
 following comment:
 +
 ----
@@ -291,7 +290,7 @@ There are some exceptions to that:
 
 * `QThread` is used instead of Python threads because it provides signals and
 slots.
-* `QProcess` is used instead of Python's `subprocess`
+* `QProcess` is used instead of Python's `subprocess`.
 * `QUrl` is used instead of storing URLs as string, see the
 <<handling-urls,handling URLs>> section for details.
 
@@ -312,7 +311,7 @@ carefully be checked.
 * Methods of Qt objects have certain maximum values based on their
 underlying C++ types.
 +
-To avoid passing too large of a numeric parameter to a Qt function, all 
+To avoid passing too large of a numeric parameter to a Qt function, all
 numbers should be range-checked using `qutebrowser.qtutils.check_overflow`,
 or by other means (e.g. by setting a maximum value for a config object).
 
@@ -326,7 +325,7 @@ dictionaries which map object names to the actual long-living objects.
 There are currently these object registries, also called 'scopes':
 
 * The `global` scope, with objects which are used globally (`config`,
-`cookie-jar`, etc.)
+`cookie-jar`, etc.).
 * The `tab` scope with objects which are per-tab (`hintmanager`, `webview`,
 etc.). Passing this scope to `objreg.get()` selects the object in the currently
 focused tab by default. A tab can be explicitly selected by passing
@@ -435,14 +434,14 @@ def foo(bar: int, baz=True):
 ----
 
 Possible values:
-    - A callable (`int`, `float`, etc.): Gets called to validate/convert the
-      value.
-    - A python enum type: All members of the enum are possible values.
-    - A `typing.Union` of multiple types above: Any of these types are valid
-      values, e.g., `typing.Union[str, int]`
+
+- A callable (`int`, `float`, etc.): Gets called to validate/convert the value.
+- A python enum type: All members of the enum are possible values.
+- A `typing.Union` of multiple types above: Any of these types are valid
+  values, e.g., `typing.Union[str, int]`.
 
 You can customize how an argument is handled using the `@cmdutils.argument`
-decorator *after* `@cmdutils.register`. This can, for example, be used to 
+decorator *after* `@cmdutils.register`. This can, for example, be used to
 customize the flag an argument should get:
 
 [source,python]
@@ -469,9 +468,9 @@ For `typing.Union` types, the given `choices` are only checked if other types
 The following arguments are supported for `@cmdutils.argument`:
 
 - `flag`: Customize the short flag (`-x`) the argument will get.
-- `win_id=True`: Mark the argument as special window ID argument
-- `count=True`: Mark the argument as special count argument
-- `hide=True`: Hide the argument from the documentation
+- `win_id=True`: Mark the argument as special window ID argument.
+- `count=True`: Mark the argument as special count argument.
+- `hide=True`: Hide the argument from the documentation.
 - `completion`: A completion function (see `qutebrowser.completions.models.*`)
   to use when completing arguments for the given command.
 - `choices`: The allowed string choices for the argument.
@@ -536,11 +535,11 @@ Setting up a Windows Development Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Install https://www.python.org/downloads/release/python-362/[Python 3.6].
-* Install PyQt via `pip install PyQt5`
+* Install PyQt via `pip install PyQt5`.
 * Create a file at `C:\Windows\system32\python3.bat` with the following content (adjust the path as necessary):
-  `@C:\Python36\python %*`
+  `@C:\Python36\python %*`.
   This will make the Python 3.6 interpreter available as `python3`, which is used by various development scripts.
-* Install git from the https://git-scm.com/download/win[git-scm downloads page]
+* Install git from the https://git-scm.com/download/win[git-scm downloads page].
   Try not to enable `core.autocrlf`, since that will cause `flake8` to complain a lot. Use an editor that can deal with plain line feeds instead.
 * Clone your favourite qutebrowser repository.
 * To install tox, open an elevated cmd, enter your working directory and run `pip install -rmisc/requirements/requirements-tox.txt`.
@@ -659,7 +658,7 @@ New Qt release
 https://bugreports.qt.io/issues/?jql=reporter%20%3D%20%22The%20Compiler%22%20ORDER%20BY%20fixVersion%20ASC[Qt bugtracker]
 and make sure all bugs marked as resolved are actually fixed.
 * Update own PKGBUILDs based on upstream Archlinux updates and rebuild.
-* Update recommended Qt version in `README`
+* Update recommended Qt version in `README`.
 * Grep for `WORKAROUND` in the code and test if fixed stuff works without the
 workaround.
 * Check relevant
@@ -669,38 +668,38 @@ bugs] and check if they're fixed.
 New PyQt release
 ~~~~~~~~~~~~~~~~
 
-* See above
-* Install new PyQt in Windows VM (32- and 64-bit)
+* See above.
+* Install new PyQt in Windows VM (32- and 64-bit).
 * Download new installer and update PyQt installer path in `ci_install.py`.
-* Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions
+* Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions.
 
 qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
 
 * Make sure there are no unstaged changes and the tests are green.
-* Run `x=... y=...` to set the respective shell variables
+* Run `x=... y=...` to set the respective shell variables.
 
-* Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`
+* Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`:
     - `python -m qutebrowser --basedir conf :quit`
     - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.$x.$y.conf`
     - `rm -r conf`
     - git add
     - commit
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
-* Update changelog (remove *(unreleased)*)
-* Run tests again
-* Commit
+* Update changelog (remove *(unreleased)*).
+* Run tests again.
+* Commit.
 
-* Create annotated git tag (`git tag -s "v0.$x.$y" -m "Release v0.$x.$y"`)
-* `git push origin`; `git push origin v0.$x.$y`
+* Create annotated git tag (`git tag -s "v0.$x.$y" -m "Release v0.$x.$y"`).
+* `git push origin`; `git push origin v0.$x.$y`.
 * If committing on minor branch, cherry-pick release commit to master.
-* Create release on github
+* Create release on github.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones
 as closed.
 
-* Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`
-* Windows: Run `C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand)
-* macOS: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand)
-* On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand)
-* Update `qutebrowser-git` PKGBUILD if dependencies/install changed
-* Announce to qutebrowser and qutebrowser-announce mailinglist
+* Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`.
+* Windows: Run `C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand).
+* macOS: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand).
+* On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand).
+* Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
+* Announce to qutebrowser and qutebrowser-announce mailinglist.
