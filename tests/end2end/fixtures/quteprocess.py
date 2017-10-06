@@ -100,6 +100,11 @@ def is_ignored_lowlevel_message(message):
         return True
     elif 'VTCompressionSessionCreate' in message:
         return True
+    # During shutdown on AppVeyor:
+    # https://ci.appveyor.com/project/qutebrowser/qutebrowser/build/master-2089/job/or4tbct1oeqsfhfm
+    elif (message.startswith('QNetworkProxyFactory: factory 0x') and
+          message.endswith(' has returned an empty result set')):
+        return True
     return False
 
 
