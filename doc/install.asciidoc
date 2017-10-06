@@ -247,6 +247,11 @@ Prebuilt standalone packages and installers
 https://github.com/qutebrowser/qutebrowser/releases[are built] for every
 release.
 
+Note that you'll need to upgrade to new versions manually (subscribe to the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce
+mailinglist] to get notified on new releases). You can install a newer version
+without uninstalling the older one.
+
 https://chocolatey.org/packages/qutebrowser[Chocolatey package]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -282,6 +287,10 @@ Prebuilt binary
 The easiest way to install qutebrowser on macOS is to use the prebuilt `.app`
 files from the
 https://github.com/qutebrowser/qutebrowser/releases[release page].
+
+Note that you'll need to upgrade to new versions manually (subscribe to the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce
+mailinglist] to get notified on new releases).
 
 This binary is also available through the
 https://caskroom.github.io/[Homebrew Cask] package manager:
