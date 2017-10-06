@@ -242,7 +242,7 @@ Feature: Using hints
 
     ### hints.auto_follow.timeout
 
-    @not_mac
+    @not_mac @flaky
     Scenario: Ignoring key presses after auto-following hints
         When I set hints.auto_follow_timeout to 1000
         And I set hints.mode to number
