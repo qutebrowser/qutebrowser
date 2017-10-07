@@ -218,7 +218,9 @@ class CommandParser:
         for valid_command in cmdutils.cmd_dict:
             if valid_command.find(cmdstr) == 0:
                 matches.append(valid_command)
-        if len(matches) >= 1:
+        if len(matches) == 1:
+            cmdstr = matches[0]
+        elif len(matches) > 1 and config.val.completion.use_best_match:
             cmdstr = matches[0]
         return cmdstr
 

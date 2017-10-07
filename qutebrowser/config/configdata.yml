@@ -656,6 +656,11 @@ completion.web_history_max_items:
 
     0: no history / -1: unlimited
 
+completion.use_best_match:
+  type: Bool
+  default: true
+  desc: Whether to execute the best-matching command on a partial match.
+
 ## downloads
 
 downloads.location.directory:
