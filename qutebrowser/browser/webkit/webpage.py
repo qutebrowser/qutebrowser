@@ -300,7 +300,7 @@ class BrowserPage(QWebPage):
         """
         greasemonkey = objreg.get('greasemonkey')
         url = self.currentFrame().url()
-        scripts = greasemonkey.scripts_for(url.toDisplayString())
+        scripts = greasemonkey.scripts_for(url)
 
         if load == "start":
             toload = scripts.start
