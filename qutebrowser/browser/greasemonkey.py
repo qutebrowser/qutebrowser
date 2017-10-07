@@ -27,7 +27,7 @@ import functools
 import glob
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from PyQt5.QtCore import pyqtSignal, QObject
 
 from qutebrowser.utils import log, standarddir, jinja
 from qutebrowser.commands import cmdutils
@@ -184,7 +184,8 @@ class GreasemonkeyManager(QObject):
         """
         if url.scheme() not in self.greaseable_schemes:
             return MatchingScripts(url, [], [], [])
-        match = functools.partial(fnmatch.fnmatch, str(url.toEncoded(), 'utf-8'))
+        match = functools.partial(fnmatch.fnmatch,
+                                  str(url.toEncoded(), 'utf-8'))
         tester = (lambda script:
                   any([match(pat) for pat in script.includes]) and
                   not any([match(pat) for pat in script.excludes]))
