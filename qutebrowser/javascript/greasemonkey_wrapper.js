@@ -16,25 +16,29 @@
     }());
 
     function GM_setValue(key, value) {
-        if (localStorage !== null &&
-                typeof key === "string" &&
-                (typeof value === "string" ||
-                 typeof value === "number" ||
-                 typeof value === "boolean")) {
-            localStorage.setItem(_qute_script_id + key, value);
+        if (typeof key !== "string") {
+          throw new Error("GM_setValue requires the first parameter to be of type string, not '"+typeof key+"'");
         }
+        if (typeof value !== "string" ||
+            typeof value !== "number" ||
+            typeof value !== "boolean") {
+          throw new Error("GM_setValue requires the second parameter to be of type string, number or boolean, not '"+typeof value+"'");
+        }
+        localStorage.setItem(_qute_script_id + key, value);
     }
 
     function GM_getValue(key, default_) {
-        if (localStorage !== null && typeof key === "string") {
-            return localStorage.getItem(_qute_script_id + key) || default_;
+        if (typeof key !== "string") {
+          throw new Error("GM_getValue requires the first parameter to be of type string, not '"+typeof key+"'");
         }
+        return localStorage.getItem(_qute_script_id + key) || default_;
     }
 
     function GM_deleteValue(key) {
-        if (localStorage !== null && typeof key === "string") {
-            localStorage.removeItem(_qute_script_id + key);
+        if (typeof key !== "string") {
+          throw new Error("GM_deleteValue requires the first parameter to be of type string, not '"+typeof key+"'");
         }
+        localStorage.removeItem(_qute_script_id + key);
     }
 
     function GM_listValues() {
