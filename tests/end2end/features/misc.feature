@@ -546,7 +546,7 @@ Feature: Various utility commands.
     @qtwebkit_skip @qt>=5.8 @cannot_have_dict=af-ZA
     Scenario: Set valid but not installed language
         When I run :set spellcheck.languages ['af-ZA']
-        Then the warning "Language af-ZA is not installed." should be shown
+        Then the warning "Language af-ZA is not installed *" should be shown
 
     @qtwebkit_skip @qt>=5.8 @must_have_dict=en-US
     Scenario: Set valid and installed language

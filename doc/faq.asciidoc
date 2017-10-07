@@ -125,9 +125,9 @@ When using quickmark, you can give them all names, like
 without having to remember the exact website title or address.
 
 How do I use spell checking?::
-    Qutebrowser's support for spell checking is somewhat limited at the moment
-    (see https://github.com/qutebrowser/qutebrowser/issues/700[#700]), but it
-    can be done.
+	Configuring spell checking in Qutebrowser depends on the backend in use
+    (see https://github.com/qutebrowser/qutebrowser/issues/700[#700] for
+	a more detailed discussion).
 +
 For QtWebKit:
 
@@ -145,12 +145,11 @@ For QtWebKit:
 +
 For QtWebEngine:
 
-. Not yet supported unfortunately :-( +
-  Adding it shouldn't be too hard though, since QtWebEngine 5.8 added an API for
-  this (see
-  https://github.com/qutebrowser/qutebrowser/issues/700#issuecomment-290780706[this
-  comment for a basic example]), so what are you waiting for and why aren't you
-  hacking qutebrowser yet?
+. Make sure your version of PyQt is 5.8 or higher.
+. Use `install_dict.py` script to install dictionaries.
+  Run the script with `-h` for the parameter description.
+. Set `spellcheck.languages` to the desired list of languages, e.g.:
+  `:set spellcheck.languages "['en-US', 'pl-PL']"`
 
 How do I use Tor with qutebrowser?::
     Start tor on your machine, and do `:set network proxy socks://localhost:9050/`
