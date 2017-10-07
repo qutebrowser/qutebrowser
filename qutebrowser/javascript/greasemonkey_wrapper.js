@@ -11,7 +11,7 @@
             'scriptMetaStr': {{ scriptMeta }},
             'scriptWillUpdate': false,
             'version': '0.0.1',
-            'scriptHandler': 'Tampermonkey' //so scripts don't expect exportFunction
+            'scriptHandler': 'Tampermonkey' // so scripts don't expect exportFunction
         };
     }());
 

@@ -52,13 +52,13 @@ class GreasemonkeyScript:
         for name, value in properties:
             if name == 'name':
                 self.name = value
-            if name == 'description':
+            elif name == 'description':
                 self.description = value
-            if name in ['include', 'match']:
+            elif name in ['include', 'match']:
                 self.includes.append(value)
-            if name in ['exclude', 'exclude_match']:
+            elif name in ['exclude', 'exclude_match']:
                 self.excludes.append(value)
-            if name == 'run-at':
+            elif name == 'run-at':
                 self.run_at = value
 
     HEADER_REGEX = r'// ==UserScript==.|\n+// ==/UserScript==\n'
@@ -90,13 +90,13 @@ class GreasemonkeyScript:
         compatibility and wraps it in an IFFE to hide it within a
         lexical scope. Note that this means line numbers in your
         browsers debugger/inspector will not match up to the line
-        numebrs in the source script directly.
+        numbers in the source script directly.
         """
         return jinja.js_environment.get_template(
             'greasemonkey_wrapper.js').render(
                 scriptName=self.name,
-                scriptInfo=self._meta_json() or 'null',
-                scriptMeta=self.script_meta or 'null',
+                scriptInfo=self._meta_json(),
+                scriptMeta=self.script_meta,
                 scriptSource=self._code)
 
     def _meta_json(self):
@@ -134,7 +134,7 @@ class GreasemonkeyManager(QObject):
     # https://wiki.greasespot.net/Include_and_exclude_rules#Greaseable_schemes
     # Limit the schemes scripts can run on due to unreasonable levels of
     # exploitability
-    greaseable_schemes = ['http', 'https', 'ftp']
+    greaseable_schemes = ['http', 'https', 'ftp', 'file']
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -149,12 +149,11 @@ class GreasemonkeyManager(QObject):
         self._run_idle = []
 
         scripts_dir = os.path.abspath(_scripts_dir())
-        log.greasemonkey.debug("Reading scripts from: %s", scripts_dir)
+        log.greasemonkey.debug("Reading scripts from: {}".format(scripts_dir))
         for script_filename in glob.glob(os.path.join(scripts_dir, '*.js')):
             if not os.path.isfile(script_filename):
                 continue
             script_path = os.path.join(scripts_dir, script_filename)
-            log.greasemonkey.debug("Trying to load script: %s", script_path)
             with open(script_path, encoding='utf-8') as script_file:
                 script = GreasemonkeyScript.parse(script_file.read())
                 if not script.name:
@@ -167,13 +166,14 @@ class GreasemonkeyManager(QObject):
                 elif script.run_at == 'document-idle':
                     self._run_idle.append(script)
                 else:
-                    log.greasemonkey.warning(("Script %s has invalid run-at "
-                                              "defined, defaulting to "
-                                              "document-end"), script_path)
+                    log.greasemonkey.warning("Script {} has invalid run-at "
+                                             "defined, defaulting to "
+                                             "document-end"
+                                             .format(script_path))
                     # Default as per
                     # https://wiki.greasespot.net/Metadata_Block#.40run-at
                     self._run_end.append(script)
-                log.greasemonkey.debug("Loaded script: %s", script.name)
+                log.greasemonkey.debug("Loaded script: {}".format(script.name))
         self.scripts_reloaded.emit()
 
     def scripts_for(self, url):

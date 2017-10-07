@@ -298,22 +298,19 @@ class BrowserPage(QWebPage):
                corresponding to the allowed values of the `@run-at`
                directive in the greasemonkey metadata spec.
         """
-        log.webview.debug('JS window object cleared')
         greasemonkey = objreg.get('greasemonkey')
         url = self.currentFrame().url()
         scripts = greasemonkey.scripts_for(url.toDisplayString())
 
-        toload = []
         if load == "start":
             toload = scripts.start
         elif load == "end":
             toload = scripts.end
         elif load == "idle":
             toload = scripts.idle
-        log.greasemonkey.debug('scripts: %s', toload)
 
         for script in toload:
-            log.webview.debug('Running GM script: %s', script.name)
+            log.webview.debug('Running GM script: {}'.format(script.name))
             self.currentFrame().evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
