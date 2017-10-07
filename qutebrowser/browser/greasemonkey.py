@@ -181,9 +181,10 @@ class GreasemonkeyManager(QObject):
         returns a tuple of lists of scripts meant to run at (document-start,
         document-end, document-idle)
         """
-        if url.split(':', 1)[0] not in self.greaseable_schemes:
+        if url.scheme() not in self.greaseable_schemes:
             return MatchingScripts(url, [], [], [])
-        match = functools.partial(fnmatch.fnmatch, url)
+        match = functools.partial(fnmatch.fnmatch,
+                                  str(url.toEncoded(), 'utf-8'))
         tester = (lambda script:
                   any([match(pat) for pat in script.includes]) and
                   not any([match(pat) for pat in script.excludes]))
