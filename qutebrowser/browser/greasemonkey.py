@@ -60,7 +60,7 @@ class GreasemonkeyScript:
             elif name == 'run-at':
                 self.run_at = value
 
-    HEADER_REGEX = r'// ==UserScript==.|\n+// ==/UserScript==\n'
+    HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s+(?P<val>.+)'
 
     @classmethod
@@ -71,13 +71,13 @@ class GreasemonkeyScript:
         Parses the greasemonkey metadata block, if present, to fill out
         attributes.
         """
-        matches = re.split(cls.HEADER_REGEX, source, maxsplit=1)
+        matches = re.split(cls.HEADER_REGEX, source, maxsplit=2)
         try:
-            props, _code = matches
+            _, props, _code = matches
         except ValueError:
             props = ""
         script = cls(re.findall(cls.PROPS_REGEX, props), source)
-        script.script_meta = '"{}"'.format("\\n".join(props.split('\n')[2:]))
+        script.script_meta = props
         if not props:
             script.includes = ['*']
         return script
