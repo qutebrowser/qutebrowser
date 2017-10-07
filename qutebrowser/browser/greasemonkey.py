@@ -183,7 +183,7 @@ class GreasemonkeyManager(QObject):
         document-end, document-idle)
         """
         if url.scheme() not in self.greaseable_schemes:
-            return [], [], []
+            return MatchingScripts(url, [], [], [])
         match = functools.partial(fnmatch.fnmatch, str(url.toEncoded(), 'utf-8'))
         tester = (lambda script:
                   any([match(pat) for pat in script.includes]) and
