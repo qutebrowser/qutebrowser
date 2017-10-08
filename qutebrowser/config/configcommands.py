@@ -45,7 +45,7 @@ class ConfigCommands:
         try:
             yield
         except configexc.Error as e:
-            raise cmdexc.CommandError("set: {}".format(e))
+            raise cmdexc.CommandError(str(e))
 
     def _print_value(self, option):
         """Print the value of the given option."""
@@ -108,7 +108,8 @@ class ConfigCommands:
                 # self._keyconfig.get_command does this, but we also need it
                 # normalized for the output below
                 key = utils.normalize_keystr(key)
-            cmd = self._keyconfig.get_command(key, mode)
+            with self._handle_config_error():
+                cmd = self._keyconfig.get_command(key, mode)
             if cmd is None:
                 message.info("{} is unbound in {} mode".format(key, mode))
             else:
@@ -116,10 +117,8 @@ class ConfigCommands:
                     key, cmd, mode))
             return
 
-        try:
+        with self._handle_config_error():
             self._keyconfig.bind(key, command, mode=mode, save_yaml=True)
-        except configexc.KeybindingError as e:
-            raise cmdexc.CommandError("bind: {}".format(e))
 
     @cmdutils.register(instance='config-commands')
     def unbind(self, key, *, mode='normal'):
@@ -130,10 +129,8 @@ class ConfigCommands:
             mode: A mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
         """
-        try:
+        with self._handle_config_error():
             self._keyconfig.unbind(key, mode=mode, save_yaml=True)
-        except configexc.KeybindingError as e:
-            raise cmdexc.CommandError('unbind: {}'.format(e))
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)

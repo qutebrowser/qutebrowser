@@ -114,7 +114,7 @@ class TestSet:
 
         Should show an error.
         """
-        with pytest.raises(cmdexc.CommandError, match="set: No option 'foo'"):
+        with pytest.raises(cmdexc.CommandError, match="No option 'foo'"):
             commands.set(0, 'foo', 'bar')
 
     def test_set_invalid_value(self, commands):
@@ -123,14 +123,13 @@ class TestSet:
         Should show an error.
         """
         with pytest.raises(cmdexc.CommandError,
-                           match="set: Invalid value 'blah' - must be a "
-                           "boolean!"):
+                           match="Invalid value 'blah' - must be a boolean!"):
             commands.set(0, 'auto_save.session', 'blah')
 
     def test_set_wrong_backend(self, commands, monkeypatch):
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
         with pytest.raises(cmdexc.CommandError,
-                           match="set: This setting is not available with the "
+                           match="This setting is not available with the "
                            "QtWebEngine backend!"):
             commands.set(0, 'content.cookies.accept', 'all')
 
@@ -142,7 +141,7 @@ class TestSet:
         See https://github.com/qutebrowser/qutebrowser/issues/1109
         """
         with pytest.raises(cmdexc.CommandError,
-                           match="set: The following arguments are required: "
+                           match="The following arguments are required: "
                                  "value"):
             commands.set(win_id=0, option=option)
 
@@ -151,7 +150,7 @@ class TestSet:
 
         Should show an error.
         """
-        with pytest.raises(cmdexc.CommandError, match="set: No option 'foo'"):
+        with pytest.raises(cmdexc.CommandError, match="No option 'foo'"):
             commands.set(win_id=0, option='foo?')
 
 
@@ -458,13 +457,22 @@ class TestBind:
         assert msg.text == expected
 
     def test_bind_invalid_mode(self, commands):
-        """Run ':bind --mode=wrongmode nop'.
+        """Run ':bind --mode=wrongmode a nop'.
 
         Should show an error.
         """
         with pytest.raises(cmdexc.CommandError,
-                           match='bind: Invalid mode wrongmode!'):
+                           match='Invalid mode wrongmode!'):
             commands.bind('a', 'nop', mode='wrongmode')
+
+    def test_bind_print_invalid_mode(self, commands):
+        """Run ':bind --mode=wrongmode a'.
+
+        Should show an error.
+        """
+        with pytest.raises(cmdexc.CommandError,
+                           match='Invalid mode wrongmode!'):
+            commands.bind('a', mode='wrongmode')
 
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
     def test_bind_duplicate(self, commands, config_stub, key_config_stub, key):
@@ -521,9 +529,8 @@ class TestBind:
             assert yaml_bindings[normalized] is None
 
     @pytest.mark.parametrize('key, mode, expected', [
-        ('foobar', 'normal',
-         "unbind: Can't find binding 'foobar' in normal mode"),
-        ('x', 'wrongmode', "unbind: Invalid mode wrongmode!"),
+        ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
+        ('x', 'wrongmode', "Invalid mode wrongmode!"),
     ])
     def test_unbind_invalid(self, commands, key, mode, expected):
         """Run ':unbind foobar' / ':unbind x wrongmode'.
