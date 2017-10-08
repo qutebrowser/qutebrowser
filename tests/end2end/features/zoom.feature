@@ -81,6 +81,17 @@ Feature: Zooming in and out
         Then the message "Zoom level: 60%" should be shown
         And the zoom should be 60%
 
+    # https://github.com/qutebrowser/qutebrowser/issues/2507
+    # Using 127.0.0.1 because separate domain is required to reproduce
+    Scenario: Qutebrowser enforces correct zoom level
+        When I run :zoom 150%
+        And I open data/search.html
+        And I run :open http://127.0.0.1:(port)/data/long_load.html
+        And I wait until http://127.0.0.1:(port)/data/long_load.html is loaded
+        And I run :back
+        And I wait until data/search.html is loaded
+        Then the zoom should be 150%
+
     # Fixed in QtWebEngine branch
     @xfail
     Scenario: Zooming in with cloned tab

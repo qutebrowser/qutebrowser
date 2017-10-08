@@ -416,14 +416,17 @@ class QuteProc(testprocess.Process):
         verbatim.
         """
         special_schemes = ['about:', 'qute:', 'chrome:', 'view-source:',
-                           'data:']
+                           'data:', 'http:', 'https:']
+        server = self.request.getfixturevalue('server')
+        server_port = server.port if port is None else port
+
         if any(path.startswith(scheme) for scheme in special_schemes):
+            path = path.replace('(port)', str(server_port))
             return path
         else:
-            server = self.request.getfixturevalue('server')
             return '{}://localhost:{}/{}'.format(
                 'https' if https else 'http',
-                server.port if port is None else port,
+                server_port,
                 path if path != '/' else '')
 
     def wait_for_js(self, message):

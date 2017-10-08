@@ -73,7 +73,7 @@ def redirect_later():
     If delay is -1, wait until a request on redirect-later-continue is done.
     """
     global _redirect_later_event
-    delay = int(flask.request.args.get('delay', '1'))
+    delay = float(flask.request.args.get('delay', '1'))
     if delay == -1:
         _redirect_later_event = threading.Event()
         ok = _redirect_later_event.wait(timeout=30 * 1000)
