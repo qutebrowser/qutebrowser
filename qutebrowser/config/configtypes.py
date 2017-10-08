@@ -828,7 +828,8 @@ class PercOrInt(_Numeric):
 
         if isinstance(value, str):
             if not value.endswith('%'):
-                raise configexc.ValidationError(value, "does not end with %")
+                raise configexc.ValidationError(
+                    value, "needs to end with % or be an integer")
 
             try:
                 intval = int(value[:-1])
