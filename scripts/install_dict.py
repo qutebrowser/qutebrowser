@@ -29,7 +29,6 @@ import json
 import os
 import sys
 import re
-import urllib.parse
 import urllib.request
 
 import attr
@@ -91,7 +90,7 @@ def valid_languages():
 
 def language_list_from_api():
     """Return a JSON with a list of available languages from Google API."""
-    listurl = urllib.parse.urljoin(API_URL, '?format=JSON')
+    listurl = API_URL + '?format=JSON'
     response = urllib.request.urlopen(listurl)
     # A special 5-byte prefix must be stripped from the response content
     # See: https://github.com/google/gitiles/issues/22
@@ -147,7 +146,7 @@ def filter_languages(languages, selected):
 def install_lang(lang):
     """Install a single lang given by the argument."""
     print('Installing {}: {}'.format(lang.code, lang.name))
-    lang_url = urllib.parse.urljoin(API_URL, lang.file_path, '?format=TEXT')
+    lang_url = API_URL + lang.file_path + '?format=TEXT'
     if not os.path.isdir(spell.dictionary_dir()):
         warn_msg = '{} does not exist, creating the directory'
         print(warn_msg.format(spell.dictionary_dir()))
