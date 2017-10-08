@@ -181,7 +181,7 @@ class KeyConfig:
         self._config.update_mutables(save_yaml=save_yaml)
 
     def bind_default(self, key, *, mode='normal', save_yaml=False):
-        """Restore a default keybinding"""
+        """Restore a default keybinding."""
         key = self._prepare(key, mode)
 
         bindings_commands = self._config.get_obj('bindings.commands')
