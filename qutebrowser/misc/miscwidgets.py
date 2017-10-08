@@ -260,7 +260,7 @@ class WrapperLayout(QLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
-        if (qtutils.version_check('5.8.0', exact=True) and
+        if (qtutils.version_check('5.8.0', exact=True, compiled=False) and
                 objects.backend == usertypes.Backend.QtWebEngine and
                 container.window() and
                 container.window().windowHandle() and

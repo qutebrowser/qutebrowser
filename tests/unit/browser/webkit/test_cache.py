@@ -26,7 +26,8 @@ from qutebrowser.utils import qtutils
 
 
 pytestmark = pytest.mark.skipif(
-    qtutils.version_check('5.7.1') and not qtutils.version_check('5.9'),
+    qtutils.version_check('5.7.1', compiled=False) and
+    not qtutils.version_check('5.9', compiled=False),
     reason="QNetworkDiskCache is broken on Qt 5.7.1 and 5.8")
 
 

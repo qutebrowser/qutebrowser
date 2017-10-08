@@ -170,8 +170,7 @@ def check_qt_version():
     """Check if the Qt version is recent enough."""
     from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
     from qutebrowser.utils import qtutils
-    if (not qtutils.version_check('5.7.1', strict=True) or
-            PYQT_VERSION < 0x050200):
+    if not qtutils.version_check('5.7.1') or PYQT_VERSION < 0x050200:
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))

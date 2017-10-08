@@ -720,7 +720,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.set_html(html)
             log.webview.error(msg)
 
-        if qtutils.version_check('5.9'):
+        if qtutils.version_check('5.9', compiled=False):
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),

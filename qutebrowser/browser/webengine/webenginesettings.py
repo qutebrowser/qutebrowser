@@ -240,7 +240,7 @@ def init(args):
 
     # We need to do this here as a WORKAROUND for
     # https://bugreports.qt.io/browse/QTBUG-58650
-    if not qtutils.version_check('5.9'):
+    if not qtutils.version_check('5.9', compiled=False):
         PersistentCookiePolicy().set(config.val.content.cookies.store)
     Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
 
@@ -340,6 +340,6 @@ if qtutils.version_check('5.8'):
     MAPPINGS['spellcheck.languages'] = DictionaryLanguageSetter()
 
 
-if qtutils.version_check('5.9'):
+if qtutils.version_check('5.9', compiled=False):
     # https://bugreports.qt.io/browse/QTBUG-58650
     MAPPINGS['content.cookies.store'] = PersistentCookiePolicy()

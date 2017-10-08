@@ -74,11 +74,12 @@ def test_version_check(monkeypatch, qversion, compiled, version, exact,
     monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
     if compiled is not None:
         monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
-        strict = True
+        compiled_arg = True
     else:
-        strict = False
+        compiled_arg = False
 
-    assert qtutils.version_check(version, exact, strict=strict) == expected
+    actual = qtutils.version_check(version, exact, compiled=compiled_arg)
+    assert actual == expected
 
 
 @pytest.mark.parametrize('version, is_new', [

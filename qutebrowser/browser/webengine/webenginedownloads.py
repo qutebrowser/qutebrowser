@@ -150,7 +150,7 @@ def _get_suggested_filename(path):
     """
     filename = os.path.basename(path)
     filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
-    if not qtutils.version_check('5.9'):
+    if not qtutils.version_check('5.9', compiled=False):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
         # Doing basename a *second* time because there could be a %2F in
