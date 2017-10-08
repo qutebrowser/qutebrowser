@@ -322,15 +322,3 @@ class CommandRunner(QObject):
             self.run(text, count)
         except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())
-
-    @pyqtSlot(str, int)
-    def run_safely_init(self, text, count=None):
-        """Run a command and display exceptions in the statusbar.
-
-        Contrary to run_safely, error messages are queued so this is more
-        suitable to use while initializing.
-        """
-        try:
-            self.run(text, count)
-        except cmdexc.Error as e:
-            message.error(str(e), stack=traceback.format_exc())

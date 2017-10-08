@@ -280,7 +280,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 win_id = mainwindow.get_window(via_ipc, force_tab=True)
             log.init.debug("Startup cmd {!r}".format(cmd))
             commandrunner = runners.CommandRunner(win_id)
-            commandrunner.run_safely_init(cmd[1:])
+            commandrunner.run_safely(cmd[1:])
         elif not cmd:
             log.init.debug("Empty argument")
             win_id = mainwindow.get_window(via_ipc, force_window=True)
