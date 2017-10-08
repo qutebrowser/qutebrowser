@@ -230,14 +230,21 @@ def check_libraries():
     _check_modules(modules)
 
 
-def remove_inputhook():
-    """Remove the PyQt input hook.
+def configure_pyqt():
+    """Remove the PyQt input hook and enable overflow checking.
 
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
     from PyQt5.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
+
+    import sip
+    try:
+        # Added in sip 4.19.4
+        sip.enableoverflowchecking(True)
+    except AttributeError:
+        pass
 
 
 def init_log(args):
@@ -279,6 +286,6 @@ def early_init(args):
     # errors, so people only using the GUI notice them as well.
     check_libraries()
     check_qt_version()
-    remove_inputhook()
+    configure_pyqt()
     check_ssl_support()
     check_optimize_flag()
