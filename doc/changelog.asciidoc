@@ -69,6 +69,8 @@ Added
   - `:config-edit` to open the `config.py` file in an editor
   - `:config-write-py` to write a `config.py` template file
 - New `:version` command which opens `qute://version`.
+- Spell checking support for QtWebEngine, see the `spellcheck.languages`
+  setting.
 
 Changed
 ~~~~~~~

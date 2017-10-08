@@ -125,7 +125,7 @@ When using quickmark, you can give them all names, like
 without having to remember the exact website title or address.
 
 How do I use spell checking?::
-	Configuring spell checking in Qutebrowser depends on the backend in use
+	Configuring spell checking in qutebrowser depends on the backend in use
     (see https://github.com/qutebrowser/qutebrowser/issues/700[#700] for
 	a more detailed discussion).
 +
@@ -145,7 +145,7 @@ For QtWebKit:
 +
 For QtWebEngine:
 
-. Make sure your version of PyQt is 5.8 or higher.
+. Make sure your versions of PyQt and Qt are 5.8 or higher.
 . Use `install_dict.py` script to install dictionaries.
   Run the script with `-h` for the parameter description.
 . Set `spellcheck.languages` to the desired list of languages, e.g.:
