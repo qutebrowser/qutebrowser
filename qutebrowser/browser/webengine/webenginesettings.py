@@ -138,8 +138,8 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
         installed_file = spell.installed_file(code)
         if not installed_file:
             message.warning(
-                'Language {} is not installed - see scripts/install_dict.py '
-                'in qutebrowser\'s sources'.format(code))
+                "Language {} is not installed - see scripts/install_dict.py "
+                "in qutebrowser's sources".format(code))
         return installed_file
 
     def _set(self, value, settings=None):
