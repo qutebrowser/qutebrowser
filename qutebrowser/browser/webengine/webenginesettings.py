@@ -36,9 +36,9 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
 
 from qutebrowser.browser import shared
+from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import utils, standarddir, javascript, qtutils
-
+from qutebrowser.utils import utils, standarddir, javascript, qtutils, message
 
 # The default QWebEngineProfile
 default_profile = None
@@ -127,6 +127,29 @@ class PersistentCookiePolicy(DefaultProfileSetter):
         )
 
 
+class DictionaryLanguageSetter(DefaultProfileSetter):
+
+    """Sets paths to dictionary files based on language codes."""
+
+    def __init__(self):
+        super().__init__('setSpellCheckLanguages', default=[])
+
+    def _find_installed(self, code):
+        installed_file = spell.installed_file(code)
+        if not installed_file:
+            message.warning(
+                'Language {} is not installed - see scripts/install_dict.py '
+                'in qutebrowser\'s sources'.format(code))
+        return installed_file
+
+    def _set(self, value, settings=None):
+        if settings is not None:
+            raise ValueError("'settings' may not be set with "
+                             "DictionaryLanguageSetter!")
+        filenames = [self._find_installed(code) for code in value]
+        super()._set([f for f in filenames if f], settings)
+
+
 def _init_stylesheet(profile):
     """Initialize custom stylesheets.
 
@@ -197,6 +220,10 @@ def _init_profiles():
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
     _set_http_headers(private_profile)
+
+    if qtutils.version_check('5.8'):
+        default_profile.setSpellCheckEnabled(True)
+        private_profile.setSpellCheckEnabled(True)
 
 
 def init(args):
@@ -307,6 +334,10 @@ try:
 except AttributeError:
     # Added in Qt 5.8
     pass
+
+
+if qtutils.version_check('5.8'):
+    MAPPINGS['spellcheck.languages'] = DictionaryLanguageSetter()
 
 
 if qtutils.version_check('5.9'):

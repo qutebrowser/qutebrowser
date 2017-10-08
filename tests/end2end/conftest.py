@@ -29,6 +29,8 @@ import pstats
 import os.path
 import operator
 
+from qutebrowser.browser.webengine import spell
+
 import pytest
 from PyQt5.QtCore import PYQT_VERSION
 
@@ -116,6 +118,27 @@ def _get_backend_tag(tag):
     return pytest_marks[name](desc)
 
 
+def _get_dictionary_tag(tag):
+    """Handle tags like must_have_dict=en-US for BDD tests."""
+    dict_re = re.compile(r"""
+        (?P<event>must_have_dict|cannot_have_dict)=(?P<dict>[a-z]{2}-[A-Z]{2})
+    """, re.VERBOSE)
+
+    match = dict_re.match(tag)
+    if not match:
+        return None
+
+    event = match.group('event')
+    dictionary = match.group('dict')
+    has_dict = spell.installed_file(dictionary) is not None
+    if event == 'must_have_dict':
+        return pytest.mark.skipif(not has_dict, reason=tag)
+    elif event == 'cannot_have_dict':
+        return pytest.mark.skipif(has_dict, reason=tag)
+    else:
+        return None
+
+
 if not getattr(sys, 'frozen', False):
     def pytest_bdd_apply_tag(tag, function):
         """Handle custom tags for BDD tests.
@@ -123,7 +146,7 @@ if not getattr(sys, 'frozen', False):
         This tries various functions, and if none knows how to handle this tag,
         it returns None so it falls back to pytest-bdd's implementation.
         """
-        funcs = [_get_version_tag, _get_backend_tag]
+        funcs = [_get_version_tag, _get_backend_tag, _get_dictionary_tag]
         for func in funcs:
             mark = func(tag)
             if mark is not None:

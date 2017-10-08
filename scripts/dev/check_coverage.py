@@ -176,6 +176,9 @@ PERFECT_FILES = [
     ('tests/unit/completion/test_listcategory.py',
         'completion/models/listcategory.py'),
 
+    ('tests/unit/browser/webengine/test_spell.py',
+        'browser/webengine/spell.py'),
+
 ]
 
 

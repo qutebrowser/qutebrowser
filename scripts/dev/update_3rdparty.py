@@ -27,6 +27,12 @@ import urllib.error
 import shutil
 import json
 import os
+import sys
+
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+from scripts import install_dict
+from qutebrowser.config import configdata
 
 
 def get_latest_pdfjs_url():
@@ -110,7 +116,22 @@ def update_ace():
     urllib.request.urlcleanup()
 
 
-def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None):
+def test_dicts():
+    """Test available dictionaries."""
+    configdata.init()
+    for lang in install_dict.available_languages():
+        print('Testing dictionary {}... '.format(lang.code), end='')
+        lang_url = urllib.parse.urljoin(install_dict.API_URL, lang.file_path)
+        request = urllib.request.Request(lang_url, method='HEAD')
+        response = urllib.request.urlopen(request)
+        if response.status == 200:
+            print('OK')
+        else:
+            print('ERROR: {}'.format(response.status))
+
+
+def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
+        dicts=False):
     """Update components based on the given arguments."""
     if pdfjs:
         update_pdfjs(pdfjs_version)
@@ -118,6 +139,8 @@ def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None):
         update_ace()
     if fancy_dmg:
         update_dmg_makefile()
+    if dicts:
+        test_dicts()
 
 
 def main():
@@ -129,9 +152,14 @@ def main():
         required=False, metavar='VERSION')
     parser.add_argument('--fancy-dmg', help="Update fancy-dmg Makefile",
                         action='store_true')
+    parser.add_argument(
+        '--dicts', '-d',
+        help='Test whether all available dictionaries '
+        'can be reached at the remote repository.',
+        required=False, action='store_true')
     args = parser.parse_args()
     run(ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
-        pdfjs_version=args.pdfjs)
+        pdfjs_version=args.pdfjs, dicts=args.dicts)
 
 
 if __name__ == '__main__':
