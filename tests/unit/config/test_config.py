@@ -205,6 +205,27 @@ class TestKeyConfig:
         key_config_stub.bind('a', 'set-cmd-text :nop ;; rl-beginning-of-line',
                              mode='normal')
 
+    def test_bind_default(self, key_config_stub, config_stub):
+        """Bind a key to its default."""
+        default_cmd = 'message-info default'
+        bound_cmd = 'message-info bound'
+        config_stub.val.bindings.default = {'normal': {'a': default_cmd}}
+        config_stub.val.bindings.commands = {'normal': {'a': bound_cmd}}
+        assert key_config_stub.get_command('a', mode='normal') == bound_cmd
+
+        key_config_stub.bind_default('a', mode='normal')
+
+        assert key_config_stub.get_command('a', mode='normal') == default_cmd
+
+    def test_bind_default_unbound(self, key_config_stub, config_stub,
+                                  no_bindings):
+        """Try binding a key to default which is not bound."""
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        with pytest.raises(configexc.KeybindingError,
+                           match="Can't find binding 'foobar' in normal mode"):
+            key_config_stub.bind_default('foobar', mode='normal')
+
     @pytest.mark.parametrize('key, normalized', [
         ('a', 'a'),  # default bindings
         ('b', 'b'),  # custom bindings

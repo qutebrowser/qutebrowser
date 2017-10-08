@@ -494,6 +494,30 @@ class TestBind:
         config_stub.val.bindings.commands = None
         commands.bind(',x', 'nop')
 
+    def test_bind_default(self, commands, key_config_stub, config_stub):
+        """Bind a key to its default."""
+        default_cmd = 'message-info default'
+        bound_cmd = 'message-info bound'
+        config_stub.val.bindings.default = {'normal': {'a': default_cmd}}
+        config_stub.val.bindings.commands = {'normal': {'a': bound_cmd}}
+        assert key_config_stub.get_command('a', mode='normal') == bound_cmd
+
+        commands.bind('a', mode='normal', default=True)
+
+        assert key_config_stub.get_command('a', mode='normal') == default_cmd
+
+    @pytest.mark.parametrize('key, mode, expected', [
+        ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
+        ('x', 'wrongmode', "Invalid mode wrongmode!"),
+    ])
+    def test_bind_default_invalid(self, commands, key, mode, expected):
+        """Run ':bind --default foobar' / ':bind --default x wrongmode'.
+
+        Should show an error.
+        """
+        with pytest.raises(cmdexc.CommandError, match=expected):
+            commands.bind(key, mode=mode, default=True)
+
     def test_unbind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
         commands.unbind('H')

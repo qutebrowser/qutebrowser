@@ -92,7 +92,7 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
-    def bind(self, key, command=None, *, mode='normal'):
+    def bind(self, key, command=None, *, mode='normal', default=False):
         """Bind a key to a command.
 
         Args:
@@ -102,8 +102,17 @@ class ConfigCommands:
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`). See `:help bindings.commands` for the
                   available modes.
+            default: If given, restore a default binding.
         """
         if command is None:
+            if default:
+                # :bind --default: Restore default
+                with self._handle_config_error():
+                    self._keyconfig.bind_default(key, mode=mode,
+                                                 save_yaml=True)
+                return
+
+            # No --default -> print binding
             if utils.is_special_key(key):
                 # self._keyconfig.get_command does this, but we also need it
                 # normalized for the output below
