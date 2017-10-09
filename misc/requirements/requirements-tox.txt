@@ -2,5 +2,5 @@
 
 pluggy==0.5.2
 py==1.4.34
-tox==2.8.2
+tox==2.9.1
 virtualenv==15.1.0
