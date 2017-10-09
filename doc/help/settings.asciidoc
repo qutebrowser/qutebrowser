@@ -514,6 +514,9 @@ Default:
 * +pass:[PP]+: +pass:[open -t -- {primary}]+
 * +pass:[Pp]+: +pass:[open -t -- {clipboard}]+
 * +pass:[R]+: +pass:[reload -f]+
+* +pass:[Sb]+: +pass:[open qute://bookmarks#bookmarks]+
+* +pass:[Sh]+: +pass:[open qute://history]+
+* +pass:[Sq]+: +pass:[open qute://bookmarks]+
 * +pass:[Ss]+: +pass:[open qute://settings]+
 * +pass:[T]+: +pass:[tab-focus]+
 * +pass:[ZQ]+: +pass:[quit]+
@@ -576,7 +579,10 @@ Default:
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
+* +pass:[xb]+: +pass:[config-cycle statusbar.hide]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
+* +pass:[xt]+: +pass:[config-cycle tabs.show always switching]+
+* +pass:[xx]+: +pass:[config-cycle statusbar.hide ;; config-cycle tabs.show always switching]+
 * +pass:[yD]+: +pass:[yank domain -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
