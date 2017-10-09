@@ -27,6 +27,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser import history
 from qutebrowser.utils import objreg, urlutils, usertypes
 from qutebrowser.commands import cmdexc
+from qutebrowser.misc import sql
 
 
 @pytest.fixture(autouse=True)
@@ -176,6 +177,28 @@ def test_add_url_invalid(qtbot, hist, caplog):
         hist.add_url(QUrl())
     assert not list(hist)
     assert not list(hist.completion)
+
+
+@pytest.mark.parametrize('environmental', [True, False])
+@pytest.mark.parametrize('completion', [True, False])
+def test_add_url_error(monkeypatch, hist, message_mock, caplog,
+                       environmental, completion):
+    def raise_error(url, replace=False):
+        raise sql.SqlError("Error message", environmental=environmental)
+
+    if completion:
+        monkeypatch.setattr(hist.completion, 'insert', raise_error)
+    else:
+        monkeypatch.setattr(hist, 'insert', raise_error)
+
+    if environmental:
+        with caplog.at_level(logging.ERROR):
+            hist.add_url(QUrl('https://www.example.org/'))
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text == "Failed to write history: Error message"
+    else:
+        with pytest.raises(sql.SqlError):
+            hist.add_url(QUrl('https://www.example.org/'))
 
 
 @pytest.mark.parametrize('level, url, req_url, expected', [
