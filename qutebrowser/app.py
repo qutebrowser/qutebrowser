@@ -473,10 +473,6 @@ def _init_modules(args, crash_handler):
     objreg.register('cache', diskcache)
 
     log.init.debug("Misc initialization...")
-    if config.val.window.hide_wayland_decoration:
-        os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
-    else:
-        os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
     macros.init()
     # Init backend-specific stuff
     browsertab.init()

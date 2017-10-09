@@ -94,6 +94,7 @@ Fixes
   insert mode anymore.
 - The keybinding help widget now works correctly when using keybindings with a
   count.
+- The `window.hide_wayland_decoration setting now works correctly again.
 
 v0.11.1 (unreleased)
 --------------------

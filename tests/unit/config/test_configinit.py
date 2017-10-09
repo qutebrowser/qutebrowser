@@ -209,6 +209,23 @@ class TestEarlyInit:
 
         assert os.environ[envvar] == '1'
 
+    @pytest.mark.parametrize('old', ['1', '0', None])
+    @pytest.mark.parametrize('configval', [True, False])
+    def test_hide_wayland_decoration(self, monkeypatch, init_patch, args,
+                                     old, configval):
+        envvar = 'QT_WAYLAND_DISABLE_WINDOWDECORATION'
+        if old is None:
+            monkeypatch.delenv(envvar, raising=False)
+        else:
+            monkeypatch.setenv(envvar, old)
+
+        args.temp_settings = [('window.hide_wayland_decoration',
+                               str(configval))]
+        configinit.early_init(args)
+
+        expected = '1' if configval else None
+        assert os.environ.get(envvar) == expected
+
 
 @pytest.mark.parametrize('errors', [True, False])
 def test_late_init(init_patch, monkeypatch, fake_save_manager, args,

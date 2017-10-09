@@ -80,6 +80,11 @@ def early_init(args):
             config.val.force_software_rendering):
         os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
 
+    if config.val.window.hide_wayland_decoration:
+        os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
+    else:
+        os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
+
 
 def get_backend(args):
     """Find out what backend to use based on available libraries."""
