@@ -190,15 +190,24 @@ class WebHistory(sql.SqlTable):
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())
-        self.insert({'url': self._format_url(url),
-                     'title': title,
-                     'atime': atime,
-                     'redirect': redirect})
-        if not redirect:
-            self.completion.insert({'url': self._format_completion_url(url),
-                                    'title': title,
-                                    'last_atime': atime},
-                                   replace=True)
+
+        try:
+            self.insert({'url': self._format_url(url),
+                        'title': title,
+                        'atime': atime,
+                        'redirect': redirect})
+            if not redirect:
+                self.completion.insert({
+                    'url': self._format_completion_url(url),
+                    'title': title,
+                    'last_atime': atime
+                }, replace=True)
+        except sql.SqlError as e:
+            if e.environmental:
+                message.error("Failed to write history: {}".format(
+                    e.error.databaseText()))
+            else:
+                raise
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
