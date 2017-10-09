@@ -78,3 +78,11 @@ Opening the currently selected word on http://www.dict.cc/[dict.cc]:
 
 echo "open -t http://www.dict.cc/?s=$QUTE_SELECTED_TEXT" >> "$QUTE_FIFO"
 ----
+
+Libraries
+---------
+
+Some third-party libraries are available to make writing userscripts easier:
+
+- Python: https://github.com/hiway/python-qutescript[python-qutescript]
+- Node.js: https://www.npmjs.com/package/qutejs[qutejs]
