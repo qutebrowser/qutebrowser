@@ -71,27 +71,31 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         open_target = 'tab-silent'
 
     window = None
-    raise_window = False
+    should_raise = False
 
     # Try to find the existing tab target if opening in a tab
     if open_target != 'window':
         window = get_target_window()
-        raise_window = open_target not in ['tab-silent', 'tab-bg-silent']
+        should_raise = open_target not in ['tab-silent', 'tab-bg-silent']
 
     # Otherwise, or if no window was found, create a new one
     if window is None:
         window = MainWindow(private=None)
         window.show()
-        raise_window = True
+        should_raise = True
 
-    if raise_window:
-        window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
-        window.setWindowState(window.windowState() | Qt.WindowActive)
-        window.raise_()
-        window.activateWindow()
-        QApplication.instance().alert(window)
+    if should_raise:
+        raise_window(window)
 
     return window.win_id
+
+
+def raise_window(window):
+    window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
+    window.setWindowState(window.windowState() | Qt.WindowActive)
+    window.raise_()
+    window.activateWindow()
+    QApplication.instance().alert(window)
 
 
 def get_target_window():
