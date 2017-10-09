@@ -397,19 +397,6 @@ class TestDefaultConfig:
             for cmd in conf.get_bindings_for(sectname).values():
                 runner.parse(cmd)
 
-    def test_upgrade_version(self):
-        """Fail when the qutebrowser version changed.
-
-        The aim of this is to remind us to add a new file to old_configs.
-
-        If the config file of the current release didn't change compared to the
-        last one in old_configs, just increment the version here.
-
-        If it did change, place a new qutebrowser-vx.y.z.conf in old_configs
-        and then increment the version.
-        """
-        assert qutebrowser.__version__ == '0.11.0'
-
     @pytest.mark.parametrize('filename',
         os.listdir(os.path.join(os.path.dirname(__file__), 'old_configs')),
         ids=os.path.basename)
