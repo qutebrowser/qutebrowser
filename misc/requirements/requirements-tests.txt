@@ -17,7 +17,7 @@ itsdangerous==0.24
 Mako==1.0.7
 # MarkupSafe==1.0
 parse==1.8.2
-parse-type==0.4.1
+parse-type==0.4.2
 py==1.4.34
 py-cpuinfo==3.3.0
 pytest==3.2.2
