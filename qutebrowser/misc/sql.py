@@ -40,6 +40,10 @@ class SqlError(Exception):
         super().__init__(msg)
         self.environmental = environmental
 
+    def text(self):
+        """Get a short text to display."""
+        return str(self)
+
 
 class SqliteError(SqlError):
 
@@ -70,6 +74,9 @@ class SqliteError(SqlError):
             '13',
         ]
         self.environmental = error.nativeErrorCode() in environmental_errors
+
+    def text(self):
+        return self.error.databaseText()
 
     @classmethod
     def from_query(cls, what, query, error):

@@ -204,8 +204,7 @@ class WebHistory(sql.SqlTable):
                 }, replace=True)
         except sql.SqlError as e:
             if e.environmental:
-                message.error("Failed to write history: {}".format(
-                    e.error.databaseText()))
+                message.error("Failed to write history: {}".format(e.text()))
             else:
                 raise
 

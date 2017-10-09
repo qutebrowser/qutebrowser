@@ -29,8 +29,10 @@ pytestmark = pytest.mark.usefixtures('init_sql')
 
 
 def test_sqlerror():
-    err = sql.SqlError("Hello World", environmental=True)
-    assert str(err) == "Hello World"
+    text = "Hello World"
+    err = sql.SqlError(text, environmental=True)
+    assert str(err) == text
+    assert err.text() == text
     assert err.environmental
 
 
@@ -70,6 +72,11 @@ class TestSqliteError:
     def test_subclass(self):
         with pytest.raises(sql.SqlError):
             raise sql.SqliteError("text", QSqlError())
+
+    def test_text(self):
+        sql_err = QSqlError("driver text", "db text")
+        err = sql.SqliteError("Message", sql_err)
+        assert err.text() == "db text"
 
 
 def test_init():
