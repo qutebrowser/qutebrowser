@@ -422,22 +422,25 @@ def _init_modules(args, crash_handler):
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
 
-    log.init.debug("Initializing sql...")
     try:
+        log.init.debug("Initializing sql...")
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
+
+        log.init.debug("Initializing web history...")
+        history.init(qApp)
     except sql.SqlError as e:
-        error.handle_fatal_exc(e, args, 'Error initializing SQL',
-                               pre_text='Error initializing SQL')
-        sys.exit(usertypes.Exit.err_init)
+        if e.environmental:
+            error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                                  pre_text='Error initializing SQL')
+            sys.exit(usertypes.Exit.err_init)
+        else:
+            raise
 
     log.init.debug("Initializing completion...")
     completiondelegate.init()
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-
-    log.init.debug("Initializing web history...")
-    history.init(qApp)
 
     log.init.debug("Initializing crashlog...")
     if not args.no_err_windows:

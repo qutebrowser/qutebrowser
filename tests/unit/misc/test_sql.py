@@ -22,8 +22,67 @@
 import pytest
 from qutebrowser.misc import sql
 
+from PyQt5.QtSql import QSqlError
+
 
 pytestmark = pytest.mark.usefixtures('init_sql')
+
+
+def test_sqlerror():
+    err = sql.SqlError("Hello World", environmental=True)
+    assert str(err) == "Hello World"
+    assert err.environmental
+
+
+class SqlError(QSqlError):
+
+    """A QSqlError with an overridden nativeErrorCode."""
+
+    def __init__(self, *args, native_error=''):
+        super().__init__(args)
+        assert isinstance(native_error, str)
+        self._native_error = native_error
+
+    def nativeErrorCode(self):
+        return self._native_error
+
+
+class TestSqliteError:
+
+    @pytest.mark.parametrize('error_code, expected', [
+        ('9', True),  # SQLITE_LOCKED
+        ('19', False),  # SQLITE_CONSTRAINT
+    ])
+    def test_environmental(self, error_code, expected):
+        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
+                            error_code)
+        err = sql.SqliteError("Message", sql_err)
+        assert err.environmental == expected
+
+    def test_logging(self, caplog):
+        sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
+                            '23')
+        sql.SqliteError("Message", sql_err)
+        lines = [r.message for r in caplog.records]
+        expected = ['SQL error:',
+                    'type: UnknownError',
+                    'database text: db text',
+                    'driver text: driver text',
+                    'error code: 23']
+
+        assert lines == expected
+
+    def test_from_query(self):
+        sql_err = QSqlError("driver text", "db text")
+        err = sql.SqliteError.from_query(
+            what='test', query='SELECT * from foo;', error=sql_err)
+        expected = ('Failed to test query "SELECT * from foo;": '
+                    '"db text driver text"')
+        assert str(err) == expected
+
+    def test_subclass(self):
+        with pytest.raises(sql.SqlError):
+            raise sql.SqliteError("text", QSqlError())
 
 
 def test_init():
