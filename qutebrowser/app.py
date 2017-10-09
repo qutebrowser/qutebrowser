@@ -818,6 +818,14 @@ class Application(QApplication):
         self.focusObjectChanged.connect(self.on_focus_object_changed)
         self.applicationStateChanged.connect(self.on_app_state_changed)
 
+    @pyqtSlot(QObject)
+    def on_focus_object_changed(self, obj):
+        """Log when the focus object changed."""
+        output = repr(obj)
+        if self._last_focus_object != output:
+            log.misc.debug("Focus object changed: {}".format(output))
+        self._last_focus_object = output
+
     @pyqtSlot(Qt.ApplicationState)
     def on_app_state_changed(self, state):
         if state != Qt.ApplicationActive:
@@ -827,22 +835,12 @@ class Application(QApplication):
         mainwindow.raise_window(window)
 
     def event(self, e):
-        if e.type() != QEvent.FileOpen:
+        if e.type() == QEvent.FileOpen:
+            open_url(e.url(), force_raise=False)
+        else:
             return super().event(e)
 
-        url = e.url()
-        log.misc.info("Got FileOpen event: {}".format(url.toDisplayString()))
-        open_url(url, force_raise=False)
         return True
-
-
-    @pyqtSlot(QObject)
-    def on_focus_object_changed(self, obj):
-        """Log when the focus object changed."""
-        output = repr(obj)
-        if self._last_focus_object != output:
-            log.misc.debug("Focus object changed: {}".format(output))
-        self._last_focus_object = output
 
     def __repr__(self):
         return utils.get_repr(self)
