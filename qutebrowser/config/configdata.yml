@@ -658,7 +658,7 @@ completion.web_history_max_items:
 
 completion.use_best_match:
   type: Bool
-  default: true
+  default: false
   desc: Whether to execute the best-matching command on a partial match.
 
 ## downloads
