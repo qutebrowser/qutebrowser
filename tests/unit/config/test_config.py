@@ -27,7 +27,6 @@ import shutil
 from PyQt5.QtGui import QColor
 import pytest
 
-import qutebrowser
 from qutebrowser.config import config, configexc, configdata
 from qutebrowser.config.parsers import keyconf
 from qutebrowser.commands import runners
