@@ -832,9 +832,7 @@ class Application(QApplication):
 
         url = e.url()
         log.misc.info("Got FileOpen event: {}".format(url.toDisplayString()))
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='last-focused')
-        tabbed_browser.tabopen(url, related=False)
+        open_url(url, force_raise=False)
         return True
 
 
