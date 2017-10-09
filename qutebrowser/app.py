@@ -288,22 +288,32 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
             else:
-                open_target = config.val.new_instance_open_target
-            win_id = mainwindow.get_window(via_ipc, force_target=open_target)
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            log.init.debug("Startup URL {}".format(cmd))
+                open_target = None
             if not cwd:  # could also be an empty string due to the PyQt signal
                 cwd = None
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
+                win_id = open_url(url, target=open_target)
             except urlutils.InvalidUrlError as e:
                 message.error("Error in startup argument '{}': {}".format(
                     cmd, e))
-            else:
-                background = open_target in ['tab-bg', 'tab-bg-silent']
-                tabbed_browser.tabopen(url, background=background,
-                                       related=False)
+
+
+def open_url(url, target=None):
+    """Open an URLs in new window/tab
+
+    Args:
+        url: An URL to open
+        target: same as new_instance_open_target (used as a default)
+    """
+    target = target or config.val.new_instance_open_target
+    background = target in ['tab-bg', 'tab-bg-silent']
+    win_id = mainwindow.get_window(True, force_target=target)
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    log.init.debug("About to open URL {}".format(url))
+    tabbed_browser.tabopen(url, background=background, related=False)
+    return win_id
 
 
 def _open_startpage(win_id=None):
