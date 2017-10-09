@@ -300,14 +300,14 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
 
 def open_url(url, target=None, force_raise=None):
-    """Open an URLs in new window/tab
+    """Open an URL in new window/tab
 
     Args:
         url: An URL to open
         target: same as new_instance_open_target (used as a default)
     """
     target = target or config.val.new_instance_open_target
-    background = target in ['tab-bg', 'tab-bg-silent']
+    background = target in {'tab-bg', 'tab-bg-silent'}
     win_id = mainwindow.get_window(True, force_target=target,
                                    force_raise=force_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
