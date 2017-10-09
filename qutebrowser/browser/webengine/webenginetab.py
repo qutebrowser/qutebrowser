@@ -650,6 +650,15 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot()
     def _on_history_trigger(self):
+        try:
+            self._widget.page()
+        except RuntimeError:
+            # Looks like this slot can be triggered on destroyed tabs:
+            # https://crashes.qutebrowser.org/view/3abffbed (Qt 5.9.1)
+            # wrapped C/C++ object of type WebEngineView has been deleted
+            log.misc.debug("Ignoring history trigger for destroyed tab")
+            return
+
         url = self.url()
         requested_url = self.url(requested=True)
 
