@@ -1074,7 +1074,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
     @cmdutils.argument('count', count=True)
-    def tab_focus(self, index: typing.Union[str, int]=None, count=None):
+    def tab_focus(self, index: typing.Union[str, int] = None, count=None):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -1111,7 +1111,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['+', '-'])
     @cmdutils.argument('count', count=True)
-    def tab_move(self, index: typing.Union[str, int]=None, count=None):
+    def tab_move(self, index: typing.Union[str, int] = None, count=None):
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1658,7 +1658,7 @@ class CommandDispatcher:
                        hide=True)
     @cmdutils.argument('filter_', choices=['id'])
     def click_element(self, filter_: str, value, *,
-                      target: usertypes.ClickTarget=
+                      target: usertypes.ClickTarget =
                       usertypes.ClickTarget.normal,
                       force_event=False):
         """Click the element matching the given filter.
@@ -2011,7 +2011,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
     def jseval(self, js_code, file=False, quiet=False, *,
-               world: typing.Union[usertypes.JsWorld, int]=None):
+               world: typing.Union[usertypes.JsWorld, int] = None):
         """Evaluate a JavaScript string.
 
         Args:
