@@ -43,7 +43,7 @@ win_id_gen = itertools.count(0)
 
 
 def get_window(via_ipc, force_window=False, force_tab=False,
-               force_target=None):
+               force_target=None, force_raise=None):
     """Helper function for app.py to get a window id.
 
     Args:
@@ -84,7 +84,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         window.show()
         should_raise = True
 
-    if should_raise:
+    if (force_raise is True) or (force_raise is None and should_raise):
         raise_window(window)
 
     return window.win_id

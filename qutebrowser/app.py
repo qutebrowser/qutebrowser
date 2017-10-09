@@ -299,7 +299,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                     cmd, e))
 
 
-def open_url(url, target=None):
+def open_url(url, target=None, force_raise=None):
     """Open an URLs in new window/tab
 
     Args:
@@ -308,7 +308,8 @@ def open_url(url, target=None):
     """
     target = target or config.val.new_instance_open_target
     background = target in ['tab-bg', 'tab-bg-silent']
-    win_id = mainwindow.get_window(True, force_target=target)
+    win_id = mainwindow.get_window(True, force_target=target,
+                                   force_raise=force_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     log.init.debug("About to open URL {}".format(url))
