@@ -76,6 +76,11 @@ def early_init(args):
         except configexc.Error as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
+    _init_envvars()
+
+
+def _init_envvars():
+    """Initialize environment variables which need to be set early."""
     if (objects.backend == usertypes.Backend.QtWebEngine and
             config.val.force_software_rendering):
         os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'

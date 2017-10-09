@@ -196,22 +196,22 @@ class TestEarlyInit:
         assert msg.text == "set: NoOptionError - No option 'foo'"
         assert 'colors.completion.fg' not in config.instance._values
 
-    def test_force_software_rendering(self, monkeypatch, init_patch, args):
+    def test_force_software_rendering(self, monkeypatch, config_stub):
         """Setting force_software_rendering should set the environment var."""
         envvar = 'QT_XCB_FORCE_SOFTWARE_OPENGL'
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         monkeypatch.delenv(envvar, raising=False)
-        args.temp_settings = [('force_software_rendering', 'true')]
-        args.backend = 'webengine'
 
-        configinit.early_init(args)
+        config_stub.val.force_software_rendering = True
+
+        configinit._init_envvars()
 
         assert os.environ[envvar] == '1'
 
     @pytest.mark.parametrize('old', ['1', '0', None])
     @pytest.mark.parametrize('configval', [True, False])
-    def test_hide_wayland_decoration(self, monkeypatch, init_patch, args,
+    def test_hide_wayland_decoration(self, monkeypatch, config_stub,
                                      old, configval):
         envvar = 'QT_WAYLAND_DISABLE_WINDOWDECORATION'
         if old is None:
@@ -219,12 +219,10 @@ class TestEarlyInit:
         else:
             monkeypatch.setenv(envvar, old)
 
-        args.temp_settings = [('window.hide_wayland_decoration',
-                               str(configval))]
-        configinit.early_init(args)
+        config_stub.val.window.hide_wayland_decoration = configval
+        configinit._init_envvars()
 
-        expected = '1' if configval else None
-        assert os.environ.get(envvar) == expected
+        assert os.environ.get(envvar) == ('1' if configval else None)
 
 
 @pytest.mark.parametrize('errors', [True, False])
