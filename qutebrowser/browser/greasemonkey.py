@@ -61,7 +61,7 @@ class GreasemonkeyScript:
             elif name == 'run-at':
                 self.run_at = value
 
-    HEADER_REGEX = r'^// ==UserScript==|\n+// ==/UserScript==\n'
+    HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s+(?P<val>.+)'
 
     @classmethod
