@@ -51,7 +51,7 @@ import tokenize
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, QEvent, pyqtSignal, Qt)
+                          QObject, QEvent, pyqtSignal)
 try:
     import hunter
 except ImportError:
@@ -820,7 +820,6 @@ class Application(QApplication):
 
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)
-        self.applicationStateChanged.connect(self.on_app_state_changed)
 
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
@@ -829,14 +828,6 @@ class Application(QApplication):
         if self._last_focus_object != output:
             log.misc.debug("Focus object changed: {}".format(output))
         self._last_focus_object = output
-
-    @pyqtSlot(Qt.ApplicationState)
-    def on_app_state_changed(self, state):
-        if state != Qt.ApplicationActive:
-            return
-
-        window = objreg.last_focused_window()
-        mainwindow.raise_window(window)
 
     def event(self, e):
         if e.type() == QEvent.FileOpen:
