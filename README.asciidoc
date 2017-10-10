@@ -178,7 +178,7 @@ Active
   https://github.com/1995eaton/chromium-vim[cVim],
   http://vimium.github.io/[Vimium],
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
-  http://saka-key.lusakasa.com/[Saka Key]
+  https://key.saka.io/[Saka Key]
 * Firefox addons (based on WebExtensions):
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
   http://saka-key.lusakasa.com/[Saka Key]
