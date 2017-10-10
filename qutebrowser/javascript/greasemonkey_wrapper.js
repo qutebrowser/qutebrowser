@@ -7,10 +7,10 @@
 
     var GM_info = (function () {
         return {
-            'script': {{ scriptInfo | tojson }},
+            'script': {{ scriptInfo }},
             'scriptMetaStr': {{ scriptMeta | tojson }},
             'scriptWillUpdate': false,
-            'version': '0.0.1',
+            'version': "{{ quteVersion }}",
             'scriptHandler': 'Tampermonkey' // so scripts don't expect exportFunction
         };
     }());
