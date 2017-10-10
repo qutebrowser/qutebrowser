@@ -51,6 +51,8 @@ class GreasemonkeyScript:
         self.namespace = None
         self.run_at = None
         self.script_meta = None
+        # Running on subframes is only supported on the qtwebengine backend.
+        self.runsOnSubFrames = True
         for name, value in properties:
             if name == 'name':
                 self.name = value
@@ -64,6 +66,8 @@ class GreasemonkeyScript:
                 self.excludes.append(value)
             elif name == 'run-at':
                 self.run_at = value
+            elif name == 'noframes':
+                self.runsOnSubFrames = False
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s+(?P<val>.+)'
