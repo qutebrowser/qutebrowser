@@ -297,23 +297,25 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 message.error("Error in startup argument '{}': {}".format(
                     cmd, e))
             else:
-                win_id = open_url(url, target=open_target)
+                win_id = open_url(url, target=open_target, via_ipc=via_ipc)
 
 
-def open_url(url, target=None, no_raise=False):
+def open_url(url, target=None, no_raise=False, via_ipc=True):
     """Open an URL in new window/tab
 
     Args:
         url: An URL to open
         target: same as new_instance_open_target (used as a default)
         no_raise: suppress target window raising
+        via_ipc: Whether the arguments were transmitted over IPC.
 
     Return:
         ID of a window that was used to open URL
     """
     target = target or config.val.new_instance_open_target
     background = target in {'tab-bg', 'tab-bg-silent'}
-    win_id = mainwindow.get_window(True, force_target=target, no_raise=no_raise)
+    win_id = mainwindow.get_window(via_ipc, force_target=target,
+                                   no_raise=no_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     log.init.debug("About to open URL: {}".format(url.toDisplayString()))
