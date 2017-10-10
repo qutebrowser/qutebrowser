@@ -293,10 +293,11 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 cwd = None
             try:
                 url = urlutils.fuzzy_url(cmd, cwd, relative=True)
-                win_id = open_url(url, target=open_target)
             except urlutils.InvalidUrlError as e:
                 message.error("Error in startup argument '{}': {}".format(
                     cmd, e))
+            else:
+                win_id = open_url(url, target=open_target)
 
 
 def open_url(url, target=None, force_raise=None):
@@ -305,6 +306,13 @@ def open_url(url, target=None, force_raise=None):
     Args:
         url: An URL to open
         target: same as new_instance_open_target (used as a default)
+        force_raise: control target window raising:
+                     * None - obey new_instance_open_target
+                     * True - always raise
+                     * False - never raise
+
+    Return:
+        ID of a window that was used to open URL
     """
     target = target or config.val.new_instance_open_target
     background = target in {'tab-bg', 'tab-bg-silent'}
@@ -312,7 +320,7 @@ def open_url(url, target=None, force_raise=None):
                                    force_raise=force_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    log.init.debug("About to open URL {}".format(url))
+    log.init.debug("About to open URL: {}".format(url.toDisplayString()))
     tabbed_browser.tabopen(url, background=background, related=False)
     return win_id
 
