@@ -5,15 +5,19 @@
         console.log(text);
     }
 
-    var GM_info = (function () {
-        return {
-            'script': {{ scriptInfo | tojson }},
-            'scriptMetaStr': {{ scriptMeta | tojson }},
-            'scriptWillUpdate': false,
-            'version': '0.0.1',
-            'scriptHandler': 'Tampermonkey' // so scripts don't expect exportFunction
-        };
-    }());
+    var GM_info = {
+        'script': {{ scriptInfo }},
+        'scriptMetaStr': {{ scriptMeta | tojson }},
+        'scriptWillUpdate': false,
+        'version': "0.0.1",
+        'scriptHandler': 'Tampermonkey' // so scripts don't expect exportFunction
+    };
+
+    function checkKey(key, funcName) {
+        if (typeof key !== "string") {
+          throw new Error(funcName+" requires the first parameter to be of type string, not '"+typeof key+"'");
+        }
+    }
 
     function GM_setValue(key, value) {
         if (typeof key !== "string") {
