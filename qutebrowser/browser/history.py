@@ -193,9 +193,9 @@ class WebHistory(sql.SqlTable):
 
         try:
             self.insert({'url': self._format_url(url),
-                        'title': title,
-                        'atime': atime,
-                        'redirect': redirect})
+                         'title': title,
+                         'atime': atime,
+                         'redirect': redirect})
             if not redirect:
                 self.completion.insert({
                     'url': self._format_completion_url(url),

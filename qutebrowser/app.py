@@ -431,7 +431,7 @@ def _init_modules(args, crash_handler):
     except sql.SqlError as e:
         if e.environmental:
             error.handle_fatal_exc(e, args, 'Error initializing SQL',
-                                  pre_text='Error initializing SQL')
+                                   pre_text='Error initializing SQL')
             sys.exit(usertypes.Exit.err_init)
         else:
             raise
