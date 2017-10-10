@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
+
 import pytest_bdd as bdd
 bdd.scenarios('javascript.feature')
 
@@ -29,3 +31,23 @@ def check_window_sizes(quteproc):
     hidden_size = hidden.message.split()[-1]
     visible_size = visible.message.split()[-1]
     assert hidden_size == visible_size
+
+test_gm_script="""
+// ==UserScript==
+// @name Qutebrowser test userscript
+// @namespace invalid.org
+// @include http://localhost:*/data/title.html
+// @exclude ???
+// @run-at document-start
+// ==/UserScript==
+console.log("Script is running on " + window.location.pathname);
+"""
+
+@bdd.when("I have a greasemonkey file saved")
+def create_greasemonkey_file(quteproc):
+    script_path = os.path.join(quteproc.basedir, 'data', 'greasemonkey')
+    os.mkdir(script_path)
+    file_path = os.path.join(script_path, 'test.user.js')
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(test_gm_script)
+

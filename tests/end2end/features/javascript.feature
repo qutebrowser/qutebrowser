@@ -123,3 +123,12 @@ Feature: Javascript stuff
         And I wait for "[*/data/javascript/windowsize.html:*] loaded" in the log
         And I run :tab-next
         Then the window sizes should be the same
+
+    Scenario: Have a greasemonkey script run on a page
+        When I have a greasemonkey file saved
+        And I run :greasemonkey-reload
+        And I open data/title.html
+        # This second reload is required in webengine < 5.8 for scripts
+        # registered to run at document-start, some sort of timing issue.
+        And I run :reload
+        Then the javascript message "Script is running." should be logged
