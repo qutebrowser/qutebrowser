@@ -74,3 +74,32 @@ class TestCommandParser:
         parser = runners.CommandParser(partial_match=True)
         result = parser.parse('message-i')
         assert result.cmd.name == 'message-info'
+
+
+class TestCompletions:
+
+    """Tests for completions.use_best_match."""
+
+    def test_dont_use_best_match(self, config_stub, monkeypatch):
+        """Test multiple completion options with use_best_match set to false.
+
+        Should raise NoSuchCommandError
+        """
+        config_stub.val.completion.use_best_match = False
+        monkeypatch.setattr('qutebrowser.config', config_stub)
+        parser = runners.CommandParser(partial_match=True)
+
+        with pytest.raises(cmdexc.NoSuchCommandError):
+            result = parser.parse('do')
+
+    def test_use_best_match(self, config_stub, monkeypatch):
+        """Test multiple completion options with use_best_match set to true.
+
+        The resulting command should be the best match
+        """
+        config_stub.val.completion.use_best_match = True
+        monkeypatch.setattr('qutebrowser.config', config_stub)
+        parser = runners.CommandParser(partial_match=True)
+
+        result = parser.parse('do')
+        assert result.cmd.name == 'download'
