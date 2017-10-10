@@ -27,6 +27,8 @@ import enum
 import json
 import os.path
 import collections
+import datetime
+import traceback
 import functools
 import contextlib
 import socket
@@ -40,8 +42,10 @@ import pkg_resources
 import yaml
 try:
     from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+    YAML_C_EXT = True
 except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
+    YAML_C_EXT = False
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log, debug
@@ -873,7 +877,22 @@ def expand_windows_drive(path):
 
 def yaml_load(f):
     """Wrapper over yaml.load using the C loader if possible."""
-    return yaml.load(f, Loader=YamlLoader)
+    start = datetime.datetime.now()
+    data = yaml.load(f, Loader=YamlLoader)
+    end = datetime.datetime.now()
+
+    delta = (end - start).total_seconds()
+    deadline = 3 if 'CI' in os.environ else 0.5
+    if delta > deadline:
+        log.misc.error(
+            "YAML load took {}s\n"
+            "version: {}\n"
+            "C extension: {}\n\n"
+            "{}".format(
+                delta, yaml.__version__, YAML_C_EXT,
+                '\n'.join(traceback.format_stack())))
+
+    return data
 
 
 def yaml_dump(data, f=None):
