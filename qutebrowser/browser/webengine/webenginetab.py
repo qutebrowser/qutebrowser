@@ -742,11 +742,6 @@ class WebEngineTab(browsertab.AbstractTab):
             self.search.clear()
         super()._on_load_started()
 
-    @pyqtSlot('QUrl')
-    def _on_url_changed(self, url):
-        self._widget.page().inject_userjs(url)
-        super()._on_url_changed(url)
-
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""

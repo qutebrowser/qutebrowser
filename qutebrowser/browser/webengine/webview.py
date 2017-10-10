@@ -137,6 +137,7 @@ class WebEnginePage(QWebEnginePage):
         self._theme_color = theme_color
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
+        self.urlChanged.connect(self._inject_userjs)
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
@@ -303,7 +304,8 @@ class WebEnginePage(QWebEnginePage):
             return False
         return True
 
-    def inject_userjs(self, url):
+    @pyqtSlot('QUrl')
+    def _inject_userjs(self, url):
         """Inject userscripts registered for `url` into the current page."""
         if qtutils.version_check('5.8'):
             # Handled in webenginetab with the builtin greasemonkey
@@ -318,8 +320,8 @@ class WebEnginePage(QWebEnginePage):
         for script in scripts.toList():
             if script.name().startswith("GM-"):
                 really_removed = scripts.remove(script)
-                log.greasemonkey.debug("Removing ({}) script: {}".
-                                       format(really_removed, script.name()))
+                log.greasemonkey.debug("Removing ({}) script: {}"
+                                       .format(really_removed, script.name()))
 
         def _add_script(script, injection_point):
             new_script = QWebEngineScript()
