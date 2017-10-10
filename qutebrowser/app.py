@@ -300,24 +300,20 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 win_id = open_url(url, target=open_target)
 
 
-def open_url(url, target=None, force_raise=None):
+def open_url(url, target=None, no_raise=False):
     """Open an URL in new window/tab
 
     Args:
         url: An URL to open
         target: same as new_instance_open_target (used as a default)
-        force_raise: control target window raising:
-                     * None - obey new_instance_open_target
-                     * True - always raise
-                     * False - never raise
+        no_raise: suppress target window raising
 
     Return:
         ID of a window that was used to open URL
     """
     target = target or config.val.new_instance_open_target
     background = target in {'tab-bg', 'tab-bg-silent'}
-    win_id = mainwindow.get_window(True, force_target=target,
-                                   force_raise=force_raise)
+    win_id = mainwindow.get_window(True, force_target=target, no_raise=no_raise)
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     log.init.debug("About to open URL: {}".format(url.toDisplayString()))
@@ -844,7 +840,7 @@ class Application(QApplication):
 
     def event(self, e):
         if e.type() == QEvent.FileOpen:
-            open_url(e.url(), force_raise=False)
+            open_url(e.url(), no_raise=True)
         else:
             return super().event(e)
 

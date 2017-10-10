@@ -43,7 +43,7 @@ win_id_gen = itertools.count(0)
 
 
 def get_window(via_ipc, force_window=False, force_tab=False,
-               force_target=None, force_raise=None):
+               force_target=None, no_raise=False):
     """Helper function for app.py to get a window id.
 
     Args:
@@ -51,10 +51,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
         force_target: Override the new_instance_open_target config
-        force_raise: control target window raising:
-                     * None - obey new_instance_open_target
-                     * True - always raise
-                     * False - never raise
+        no_raise: suppress target window raising
 
     Return:
         ID of a window that was used to open URL
@@ -91,7 +88,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         window.show()
         should_raise = True
 
-    if (force_raise is True) or (force_raise is None and should_raise):
+    if should_raise and not no_raise:
         raise_window(window)
 
     return window.win_id
