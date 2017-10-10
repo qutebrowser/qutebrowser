@@ -100,4 +100,4 @@ class TestCompletions:
         parser = runners.CommandParser(partial_match=True)
 
         result = parser.parse('do')
-        assert result.cmd.name == 'download'
+        assert result.cmd.name == 'download-cancel'
