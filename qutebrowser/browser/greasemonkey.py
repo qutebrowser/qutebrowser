@@ -27,7 +27,7 @@ import functools
 import glob
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import log, standarddir, jinja
 from qutebrowser.commands import cmdutils
@@ -47,10 +47,13 @@ class GreasemonkeyScript:
         self.excludes = []
         self.description = None
         self.name = None
+        self.namespace = None
         self.run_at = None
         for name, value in properties:
             if name == 'name':
                 self.name = value
+            elif name == 'namespace':
+                self.namespace = value
             elif name == 'description':
                 self.description = value
             elif name in ['include', 'match']:
@@ -93,7 +96,7 @@ class GreasemonkeyScript:
         """
         return jinja.js_environment.get_template(
             'greasemonkey_wrapper.js').render(
-                scriptName=self.name,
+                scriptName="/".join([self.namespace or '', self.name]),
                 scriptInfo=self._meta_json(),
                 scriptMeta=self.script_meta,
                 scriptSource=self._code)
@@ -184,7 +187,7 @@ class GreasemonkeyManager(QObject):
         if url.scheme() not in self.greaseable_schemes:
             return MatchingScripts(url, [], [], [])
         match = functools.partial(fnmatch.fnmatch,
-                                  str(url.toEncoded(), 'utf-8'))
+                                  url.toString(QUrl.FullyEncoded))
         tester = (lambda script:
                   any([match(pat) for pat in script.includes]) and
                   not any([match(pat) for pat in script.excludes]))
