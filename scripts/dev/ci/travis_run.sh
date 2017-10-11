@@ -1,9 +1,17 @@
 #!/bin/bash
 
 if [[ $DOCKER ]]; then
-    docker run --privileged -v "$PWD:/outside" -e "QUTE_BDD_WEBENGINE=$QUTE_BDD_WEBENGINE" -e "DOCKER=$DOCKER" -e "CI=$CI" -e "TRAVIS=$TRAVIS" "qutebrowser/travis:$DOCKER"
+    docker run \
+           --privileged \
+           -v "$PWD:/outside" \
+           -e "QUTE_BDD_WEBENGINE=$QUTE_BDD_WEBENGINE" \
+           -e "DOCKER=$DOCKER" \
+           -e "CI=$CI" \
+           -e "TRAVIS=$TRAVIS" \
+           "qutebrowser/travis:$DOCKER"
 elif [[ $TESTENV == eslint ]]; then
-    # Can't run this via tox as we can't easily install tox in the javascript travis env
+    # Can't run this via tox as we can't easily install tox in the javascript
+    # travis env
     cd qutebrowser/javascript || exit 1
     eslint --color --report-unused-disable-directives .
 else
