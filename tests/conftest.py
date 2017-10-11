@@ -224,6 +224,13 @@ def apply_fake_os(monkeypatch, request):
     monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
 
 
+@pytest.fixture(scope='session', autouse=True)
+def check_yaml_c_exts():
+    """Make sure PyYAML C extensions are available on Travis."""
+    if 'TRAVIS' in os.environ:
+        from yaml import CLoader
+
+
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """Make test information available in fixtures.
