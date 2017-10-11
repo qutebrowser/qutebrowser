@@ -207,7 +207,7 @@ class TestEarlyInit:
                             usertypes.Backend.QtWebEngine)
         monkeypatch.delenv(envvar, raising=False)
 
-        config_stub.val.force_software_rendering = True
+        config_stub.val.qt.force_software_rendering = True
 
         configinit._init_envvars()
 
@@ -300,7 +300,7 @@ class TestQtArgs:
 
     def test_with_settings(self, config_stub, parser):
         parsed = parser.parse_args(['--qt-flag', 'foo'])
-        config_stub.val.qt_args = ['bar']
+        config_stub.val.qt.args = ['bar']
         assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
 
 

@@ -167,7 +167,7 @@ def _handle_nouveau_graphics():
             'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ):
         return
 
-    button = _Button("Force software rendering", 'force_software_rendering',
+    button = _Button("Force software rendering", 'qt.force_software_rendering',
                      True)
     _show_dialog(
         backend=usertypes.Backend.QtWebEngine,
@@ -177,7 +177,7 @@ def _handle_nouveau_graphics():
              "<p>This allows you to use the newer QtWebEngine backend (based "
              "on Chromium) but could have noticable performance impact "
              "(depending on your hardware). "
-             "This sets the <i>force_software_rendering = True</i> option "
+             "This sets the <i>qt.force_software_rendering = True</i> option "
              "(if you have a <i>config.py</i> file, you'll need to set this "
              "manually).</p>",
         buttons=[button],

@@ -88,31 +88,6 @@ session_default_name:
 
     If this is set to null, the session which was last loaded is saved.
 
-qt_args:
-  type:
-    name: List
-    valtype: String
-    none_ok: true
-  default: []
-  desc: >-
-    Additional arguments to pass to Qt, without leading `--`.
-
-    With QtWebEngine, some Chromium arguments (see
-    https://peter.sh/experiments/chromium-command-line-switches/ for a list)
-    will work.
-
-    This setting requires a restart.
-
-force_software_rendering:
-  type: Bool
-  default: false
-  backend: QtWebEngine
-  desc: >-
-    Force software rendering for QtWebEngine.
-
-    This is needed for QtWebEngine to work with Nouveau drivers.
-    This setting requires a restart.
-
 backend:
   type:
     name: String
@@ -135,6 +110,41 @@ backend:
     qutebrowser, but is generally the preferred choice.
 
     This setting requires a restart.
+
+
+## qt
+
+qt_args:
+  renamed: qt.args
+
+qt.args:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default: []
+  desc: >-
+    Additional arguments to pass to Qt, without leading `--`.
+
+    With QtWebEngine, some Chromium arguments (see
+    https://peter.sh/experiments/chromium-command-line-switches/ for a list)
+    will work.
+
+    This setting requires a restart.
+
+force_software_rendering:
+  renamed: qt.force_software_rendering
+
+qt.force_software_rendering:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  desc: >-
+    Force software rendering for QtWebEngine.
+
+    This is needed for QtWebEngine to work with Nouveau drivers.
+    This setting requires a restart.
+
 
 ## auto_save
 

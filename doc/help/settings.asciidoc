@@ -179,7 +179,6 @@
 |<<fonts.web.size.default_fixed,fonts.web.size.default_fixed>>|The default font size for fixed-pitch text.
 |<<fonts.web.size.minimum,fonts.web.size.minimum>>|The hard minimum font size.
 |<<fonts.web.size.minimum_logical,fonts.web.size.minimum_logical>>|The minimum logical font size that is applied when zooming out.
-|<<force_software_rendering,force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<hints.auto_follow,hints.auto_follow>>|Controls when a hint can be automatically followed without pressing Enter.
 |<<hints.auto_follow_timeout,hints.auto_follow_timeout>>|A timeout (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
 |<<hints.border,hints.border>>|CSS border value for hints.
@@ -211,7 +210,8 @@
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
 |<<prompt.radius,prompt.radius>>|The rounding radius for the edges of prompts.
-|<<qt_args,qt_args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<session_default_name,session_default_name>>|The name of the session to save by default.
@@ -2115,17 +2115,6 @@ Type: <<types,Int>>
 
 Default: +pass:[6]+
 
-[[force_software_rendering]]
-=== force_software_rendering
-Force software rendering for QtWebEngine.
-This is needed for QtWebEngine to work with Nouveau drivers. This setting requires a restart.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-This setting is only available with the QtWebEngine backend.
-
 [[hints.auto_follow]]
 === hints.auto_follow
 Controls when a hint can be automatically followed without pressing Enter.
@@ -2444,8 +2433,8 @@ Type: <<types,Int>>
 
 Default: +pass:[8]+
 
-[[qt_args]]
-=== qt_args
+[[qt.args]]
+=== qt.args
 Additional arguments to pass to Qt, without leading `--`.
 With QtWebEngine, some Chromium arguments (see https://peter.sh/experiments/chromium-command-line-switches/ for a list) will work.
 This setting requires a restart.
@@ -2453,6 +2442,17 @@ This setting requires a restart.
 Type: <<types,List of String>>
 
 Default: empty
+
+[[qt.force_software_rendering]]
+=== qt.force_software_rendering
+Force software rendering for QtWebEngine.
+This is needed for QtWebEngine to work with Nouveau drivers. This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+This setting is only available with the QtWebEngine backend.
 
 [[scrolling.bar]]
 === scrolling.bar

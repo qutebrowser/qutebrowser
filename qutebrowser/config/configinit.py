@@ -82,7 +82,7 @@ def early_init(args):
 def _init_envvars():
     """Initialize environment variables which need to be set early."""
     if (objects.backend == usertypes.Backend.QtWebEngine and
-            config.val.force_software_rendering):
+            config.val.qt.force_software_rendering):
         os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
 
     if config.val.window.hide_wayland_decoration:
@@ -138,5 +138,5 @@ def qt_args(namespace):
         for name, value in namespace.qt_arg:
             argv += ['--' + name, value]
 
-    argv += ['--' + arg for arg in config.val.qt_args]
+    argv += ['--' + arg for arg in config.val.qt.args]
     return argv

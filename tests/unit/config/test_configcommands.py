@@ -179,7 +179,7 @@ class TestCycle:
 
         For example, we use [foo] which is represented as ["foo"].
         """
-        opt = 'qt_args'
+        opt = 'qt.args'
         config_stub.set_obj(opt, ['foo'])
         commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['bar']

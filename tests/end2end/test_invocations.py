@@ -329,7 +329,7 @@ def test_force_software_rendering(request, quteproc_new):
         pytest.skip("Only runs with QtWebEngine")
 
     args = (_base_args(request.config) +
-            ['--temp-basedir', '-s', 'force_software_rendering', 'true'])
+            ['--temp-basedir', '-s', 'qt.force_software_rendering', 'true'])
     quteproc_new.start(args)
     quteproc_new.open_path('chrome://gpu')
     message = 'Canvas: Software only, hardware acceleration unavailable'
