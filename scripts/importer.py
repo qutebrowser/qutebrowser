@@ -18,12 +18,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+
 """Tool to import data from other browsers.
 
 Currently only importing bookmarks from Netscape Bookmark files is supported.
 """
 
+
 import argparse
+
 
 browser_default_input_format = {
     'chromium': 'netscape',
@@ -37,9 +41,9 @@ browser_default_input_format = {
 def main():
     args = get_args()
     bookmark_types = []
-    output_format = ''
+    output_format = None
     input_format = args.input_format
-    if args.search_query or args.search_output:
+    if args.import_search:
         bookmark_types = ['search']
         if args.oldconfig:
             output_format = 'oldsearch'
@@ -50,15 +54,18 @@ def main():
             output_format = 'bookmark'
         elif args.quickmark_output:
             output_format = 'quickmark'
-        if args.bookmark_query:
+        if args.import_bookmarks:
             bookmark_types.append('bookmark')
-        if args.keyword_query:
+        if args.import_keywords:
             bookmark_types.append('keyword')
     if not bookmark_types:
         bookmark_types = ['bookmark', 'keyword']
     if not output_format:
         output_format = 'quickmark'
     if not input_format:
+        if not args.browser:
+            print("Must specify either browser or input format")
+            exit(1)
         input_format = browser_default_input_format[args.browser]
 
     import_function = {'netscape': import_netscape_bookmarks}
@@ -85,22 +92,22 @@ def get_args():
         required=False)
     parser.add_argument(
         '-b',
+        '--bookmark-output',
         help="Output in bookmark format.",
-        dest='bookmark_output',
         action='store_true',
         default=False,
         required=False)
     parser.add_argument(
         '-q',
+        '--quickmark-output',
         help="Output in quickmark format (default).",
-        dest='quickmark_output',
         action='store_true',
         default=False,
         required=False)
     parser.add_argument(
         '-s',
-        help="Output search engine format",
-        dest='search_output',
+        '--search-output',
+        help="Output config.py search engine format (negates -B and -K)",
         action='store_true',
         default=False,
         required=False)
@@ -111,23 +118,16 @@ def get_args():
         action='store_true',
         required=False)
     parser.add_argument(
-        '-S',
-        help="Import search engines",
-        dest='search_query',
-        action='store_true',
-        default=False,
-        required=False)
-    parser.add_argument(
         '-B',
-        help="Import plain bookmarks (no keywords)",
-        dest='bookmark_query',
+        '--import-bookmarks',
+        help="Import plain bookmarks (can be combiend with -K)",
         action='store_true',
         default=False,
         required=False)
     parser.add_argument(
         '-K',
-        help="Import keywords (no search)",
-        dest='keyword_query',
+        '--import-keywords',
+        help="Import keywords (can be combined with -B)",
         action='store_true',
         default=False,
         required=False)
