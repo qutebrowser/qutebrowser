@@ -1067,14 +1067,16 @@ class QtFont(Font):
                 # through.
                 raise ValueError("Unexpected size unit in {!r}!".format(
                     size))  # pragma: no cover
+
+        if family == 'monospace':
+            family = self.monospace_fonts
         # The Qt CSS parser handles " and ' before passing the string to
         # QFont.setFamily. We could do proper CSS-like parsing here, but since
         # hopefully nobody will ever have a font with quotes in the family (if
         # that's even possible), we take a much more naive approach.
         family = family.replace('"', '').replace("'", '')
-        if family == 'monospace':
-            family = self.monospace_fonts
         font.setFamily(family)
+
         return font
 
 
