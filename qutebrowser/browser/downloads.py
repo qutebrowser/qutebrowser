@@ -27,6 +27,7 @@ import collections
 import functools
 import pathlib
 import tempfile
+import errno
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
@@ -137,7 +138,8 @@ def create_full_filename(basename, filename):
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
     basename = utils.force_encoding(basename, encoding)
-    if os.path.isabs(filename) and os.path.isdir(filename):
+    if os.path.isabs(filename) and (os.path.isdir(filename) or
+                                    os.path.join(filename, "") == filename):
         # We got an absolute directory from the user, so we save it under
         # the default filename in that directory.
         return os.path.join(filename, basename)
@@ -657,11 +659,42 @@ class AbstractDownloadItem(QObject):
             self._filename = create_full_filename(self.basename,
                                                   os.path.expanduser('~'))
 
+        dirname = os.path.dirname(self._filename)
+        if not os.path.exists(dirname):
+            txt = ("<b>{}</b> does not exist. Create it?".
+                   format(html.escape(
+                       os.path.join(dirname, ""))))
+            self._ask_create_parent_question("Create directory?", txt,
+                                             force_overwrite,
+                                             remember_directory)
+        else:
+            self._after_create_parent_question(force_overwrite,
+                                               remember_directory)
+
+    def _after_create_parent_question(self,
+                                      force_overwrite, remember_directory):
+        """After asking about parent directory.
+
+        Args:
+            force_overwrite: Force overwriting existing files.
+            remember_directory: If True, remember the directory for future
+                                downloads.
+        """
+        global last_used_directory
+
+        try:
+            os.makedirs(os.path.dirname(self._filename))
+        except OSError as e:
+            # Unlikely, but could be created before
+            # we get a chance to create it.
+            if e.errno != errno.EEXIST:
+                raise
+
         self.basename = os.path.basename(self._filename)
         if remember_directory:
             last_used_directory = os.path.dirname(self._filename)
 
-        log.downloads.debug("Setting filename to {}".format(filename))
+        log.downloads.debug("Setting filename to {}".format(self._filename))
         if force_overwrite:
             self._after_set_filename()
         elif os.path.isfile(self._filename):
