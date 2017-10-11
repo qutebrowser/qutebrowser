@@ -213,6 +213,15 @@ class TestEarlyInit:
 
         assert os.environ[envvar] == '1'
 
+    def test_force_platform(self, monkeypatch, config_stub):
+        envvar = 'QT_QPA_PLATFORM'
+        monkeypatch.delenv(envvar, raising=False)
+
+        config_stub.val.qt.force_platform = 'toaster'
+
+        configinit._init_envvars()
+        assert os.environ[envvar] == 'toaster'
+
     @pytest.mark.parametrize('old', ['1', '0', None])
     @pytest.mark.parametrize('configval', [True, False])
     def test_hide_wayland_decoration(self, monkeypatch, config_stub,

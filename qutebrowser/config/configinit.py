@@ -85,6 +85,9 @@ def _init_envvars():
             config.val.qt.force_software_rendering):
         os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
 
+    if config.val.qt.force_platform is not None:
+        os.environ['QT_QPA_PLATFORM'] = config.val.qt.force_platform
+
     if config.val.window.hide_wayland_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:

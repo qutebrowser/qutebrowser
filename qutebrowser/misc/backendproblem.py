@@ -197,14 +197,31 @@ def _handle_wayland():
     if platform not in ['wayland', 'wayland-egl']:
         return
 
-    _show_dialog(
-        backend=usertypes.Backend.QtWebEngine,
-        because="you're using Wayland",
-        text="<p>There are two ways to fix this:</p>"
-             "<p><b>Set up XWayland</b></p>"
-             "<p>This allows you to use the newer QtWebEngine backend (based "
-             "on Chromium). "
-    )
+    if 'DISPLAY' in os.environ:
+        # XWayland is available, but QT_QPA_PLATFORM=wayland is set
+        button = _Button("Force XWayland", 'qt.force_platform', 'xcb')
+        _show_dialog(
+            backend=usertypes.Backend.QtWebEngine,
+            because="you're using Wayland",
+            text="<p>There are two ways to fix this:</p>"
+                 "<p><b>Force Qt to use XWayland</b></p>"
+                 "<p>This allows you to use the newer QtWebEngine backend "
+                 "(based on Chromium). "
+                 "This sets the <i>qt.force_platform = 'xcb'</i> option "
+                 "(if you have a <i>config.py</i> file, you'll need to set "
+                 "this manually).</p>",
+            buttons=[button],
+        )
+    else:
+        # XWayland is unavailable
+        _show_dialog(
+            backend=usertypes.Backend.QtWebEngine,
+            because="you're using Wayland without XWayland",
+            text="<p>There are two ways to fix this:</p>"
+                 "<p><b>Set up XWayland</b></p>"
+                 "<p>This allows you to use the newer QtWebEngine backend "
+                 "(based on Chromium). "
+        )
 
     # Should never be reached
     assert False

@@ -211,6 +211,7 @@
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
 |<<prompt.radius,prompt.radius>>|The rounding radius for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
+|<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
@@ -2440,6 +2441,15 @@ With QtWebEngine, some Chromium arguments (see https://peter.sh/experiments/chro
 This setting requires a restart.
 
 Type: <<types,List of String>>
+
+Default: empty
+
+[[qt.force_platform]]
+=== qt.force_platform
+Force a Qt platform to use.
+This sets the `QT_QPA_PLATFORM` environment variable and is useful to force using the XCB plugin when running QtWebEngine on Wayland.
+
+Type: <<types,String>>
 
 Default: empty
 

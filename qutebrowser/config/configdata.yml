@@ -145,6 +145,17 @@ qt.force_software_rendering:
     This is needed for QtWebEngine to work with Nouveau drivers.
     This setting requires a restart.
 
+qt.force_platform:
+  type:
+    name: String
+    none_ok: true
+  default: null
+  desc: >-
+    Force a Qt platform to use.
+
+    This sets the `QT_QPA_PLATFORM` environment variable and is useful to force
+    using the XCB plugin when running QtWebEngine on Wayland.
+
 
 ## auto_save
 
