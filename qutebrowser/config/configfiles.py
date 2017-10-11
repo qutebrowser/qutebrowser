@@ -162,16 +162,22 @@ class YamlConfig(QObject):
                 "'global' object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        # Handle unknown/renamed keys
-        for name in list(global_obj):
+        self._values = global_obj
+        self._dirty = False
+
+        self._handle_migrations()
+
+    def _handle_migrations(self):
+        """Handle unknown/renamed keys."""
+        for name in list(self._values):
             if name in configdata.MIGRATIONS.renamed:
                 new_name = configdata.MIGRATIONS.renamed[name]
                 log.config.debug("Renaming {} to {}".format(name, new_name))
-                global_obj[new_name] = global_obj[name]
-                del global_obj[name]
+                self._values[new_name] = self._values[name]
+                del self._values[name]
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
-                del global_obj[name]
+                del self._values[name]
             elif name in configdata.DATA:
                 pass
             else:
@@ -179,9 +185,6 @@ class YamlConfig(QObject):
                     "While loading options",
                     "Unknown option {}".format(name))
                 raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-
-        self._values = global_obj
-        self._dirty = False
 
     def unset(self, name):
         """Remove the given option name if it's configured."""

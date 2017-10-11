@@ -103,7 +103,7 @@ class TestEarlyInit:
         else:
             assert config.instance._values == {}
 
-    @pytest.mark.parametrize('load_autoconfig', [True, False])
+    @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     @pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', 'wrong-type',
                                               False])

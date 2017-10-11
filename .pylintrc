@@ -36,7 +36,11 @@ disable=no-self-use,
         too-many-return-statements,
         duplicate-code,
         wrong-import-position,
-        no-else-return
+        no-else-return,
+        # https://github.com/PyCQA/pylint/issues/1698
+        unsupported-membership-test,
+        unsupported-assignment-operation,
+        unsubscriptable-object
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
