@@ -26,6 +26,7 @@ import sys
 import glob
 import os.path
 import shutil
+import plistlib
 import subprocess
 import argparse
 import tarfile
@@ -123,6 +124,40 @@ def patch_mac_app():
         os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
                                 'MacOS', lib),
                    os.path.join(dest, lib))
+    # Patch Info.plist - pyinstaller's options are too limiting
+    plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
+    with open(plist_path, "rb") as f:
+        plist_data = plistlib.load(f)
+    plist_data.update(INFO_PLIST_UPDATES)
+    with open(plist_path, "wb") as f:
+        plistlib.dump(plist_data, f)
+
+
+INFO_PLIST_UPDATES = {
+    'CFBundleVersion': qutebrowser.__version__,
+    'CFBundleShortVersionString': qutebrowser.__version__,
+    'NSSupportsAutomaticGraphicsSwitching': True,
+    'NSHighResolutionCapable': True,
+    'CFBundleURLTypes': [{
+        "CFBundleURLName": "http(s) URL",
+        "CFBundleURLSchemes": ["http", "https"]
+    }, {
+        "CFBundleURLName": "local file URL",
+        "CFBundleURLSchemes": ["file"]
+    }],
+    'CFBundleDocumentTypes': [{
+        "CFBundleTypeExtensions": ["html", "htm"],
+        "CFBundleTypeMIMETypes": ["text/html"],
+        "CFBundleTypeName": "HTML document",
+        "CFBundleTypeOSTypes": ["HTML"],
+        "CFBundleTypeRole": "Viewer",
+    }, {
+        "CFBundleTypeExtensions": ["xhtml"],
+        "CFBundleTypeMIMETypes": ["text/xhtml"],
+        "CFBundleTypeName": "XHTML document",
+        "CFBundleTypeRole": "Viewer",
+    }]
+}
 
 
 def build_mac():

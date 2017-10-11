@@ -288,11 +288,7 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
             else:
-                open_target = config.val.new_instance_open_target
-            win_id = mainwindow.get_window(via_ipc, force_target=open_target)
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            log.init.debug("Startup URL {}".format(cmd))
+                open_target = None
             if not cwd:  # could also be an empty string due to the PyQt signal
                 cwd = None
             try:
@@ -301,9 +297,30 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                 message.error("Error in startup argument '{}': {}".format(
                     cmd, e))
             else:
-                background = open_target in ['tab-bg', 'tab-bg-silent']
-                tabbed_browser.tabopen(url, background=background,
-                                       related=False)
+                win_id = open_url(url, target=open_target, via_ipc=via_ipc)
+
+
+def open_url(url, target=None, no_raise=False, via_ipc=True):
+    """Open an URL in new window/tab
+
+    Args:
+        url: An URL to open
+        target: same as new_instance_open_target (used as a default)
+        no_raise: suppress target window raising
+        via_ipc: Whether the arguments were transmitted over IPC.
+
+    Return:
+        ID of a window that was used to open URL
+    """
+    target = target or config.val.new_instance_open_target
+    background = target in {'tab-bg', 'tab-bg-silent'}
+    win_id = mainwindow.get_window(via_ipc, force_target=target,
+                                   no_raise=no_raise)
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    log.init.debug("About to open URL: {}".format(url.toDisplayString()))
+    tabbed_browser.tabopen(url, background=background, related=False)
+    return win_id
 
 
 def _open_startpage(win_id=None):
@@ -809,6 +826,14 @@ class Application(QApplication):
         if self._last_focus_object != output:
             log.misc.debug("Focus object changed: {}".format(output))
         self._last_focus_object = output
+
+    def event(self, e):
+        if e.type() == QEvent.FileOpen:
+            open_url(e.url(), no_raise=True)
+        else:
+            return super().event(e)
+
+        return True
 
     def __repr__(self):
         return utils.get_repr(self)
