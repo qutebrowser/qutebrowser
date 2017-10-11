@@ -301,12 +301,12 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
 
 def open_url(url, target=None, no_raise=False, via_ipc=True):
-    """Open an URL in new window/tab
+    """Open an URL in new window/tab.
 
     Args:
-        url: An URL to open
-        target: same as new_instance_open_target (used as a default)
-        no_raise: suppress target window raising
+        url: An URL to open.
+        target: same as new_instance_open_target (used as a default).
+        no_raise: suppress target window raising.
         via_ipc: Whether the arguments were transmitted over IPC.
 
     Return:
@@ -828,6 +828,7 @@ class Application(QApplication):
         self._last_focus_object = output
 
     def event(self, e):
+        """Handle macOS FileOpen events."""
         if e.type() == QEvent.FileOpen:
             open_url(e.url(), no_raise=True)
         else:
