@@ -32,10 +32,20 @@ def test_validation_error():
     assert str(e) == "Invalid value 'val' - msg"
 
 
-def test_no_option_error():
-    e = configexc.NoOptionError('opt')
+@pytest.mark.parametrize('deleted, renamed, expected', [
+    (False, None, "No option 'opt'"),
+    (True, None, "No option 'opt' (this option was removed from qutebrowser)"),
+    (False, 'new', "No option 'opt' (this option was renamed to 'new')"),
+])
+def test_no_option_error(deleted, renamed, expected):
+    e = configexc.NoOptionError('opt', deleted=deleted, renamed=renamed)
     assert e.option == 'opt'
-    assert str(e) == "No option 'opt'"
+    assert str(e) == expected
+
+
+def test_no_option_error_clash():
+    with pytest.raises(AssertionError):
+        e = configexc.NoOptionError('opt', deleted=True, renamed='foo')
 
 
 def test_backend_error():

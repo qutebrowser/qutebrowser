@@ -534,6 +534,18 @@ class TestConfigPy:
         assert str(error.exception) == "No option 'foo'"
         assert error.traceback is None
 
+    def test_renamed_option_error(self, confpy, monkeypatch):
+        """Setting an option which has been renamed should show a hint."""
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'qt_args': 'qt.args'})
+        confpy.write('c.qt_args = ["foo"]')
+
+        error = confpy.read(error=True)
+        assert isinstance(error.exception, configexc.NoOptionError)
+        expected = ("No option 'qt_args' (this option was renamed to "
+                    "'qt.args')")
+        assert str(error.exception) == expected
+
     def test_multiple_errors(self, confpy):
         confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")
 

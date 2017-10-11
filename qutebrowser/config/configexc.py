@@ -63,8 +63,16 @@ class NoOptionError(Error):
 
     """Raised when an option was not found."""
 
-    def __init__(self, option):
-        super().__init__("No option {!r}".format(option))
+    def __init__(self, option, *, deleted=False, renamed=None):
+        if deleted:
+            assert renamed is None
+            suffix = ' (this option was removed from qutebrowser)'
+        elif renamed is not None:
+            suffix = ' (this option was renamed to {!r})'.format(renamed)
+        else:
+            suffix = ''
+
+        super().__init__("No option {!r}{}".format(option, suffix))
         self.option = option
 
 

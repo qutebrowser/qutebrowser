@@ -272,7 +272,11 @@ class Config(QObject):
         try:
             return configdata.DATA[name]
         except KeyError:
-            raise configexc.NoOptionError(name) from None
+            deleted = name in configdata.MIGRATIONS.deleted
+            renamed = configdata.MIGRATIONS.renamed.get(name)
+            exception = configexc.NoOptionError(
+                name, deleted=deleted, renamed=renamed)
+            raise exception from None
 
     def get(self, name):
         """Get the given setting converted for Python code."""
