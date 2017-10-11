@@ -679,27 +679,21 @@ qutebrowser release
 * Make sure there are no unstaged changes and the tests are green.
 * Run `x=... y=...` to set the respective shell variables.
 
-* Add newest config to `tests/unit/config/old_configs` and update `test_upgrade_version`:
-    - `python -m qutebrowser --basedir conf :quit`
-    - `sed '/^#/d'  conf/config/qutebrowser.conf > tests/unit/config/old_configs/qutebrowser-v0.$x.$y.conf`
-    - `rm -r conf`
-    - git add
-    - commit
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Update changelog (remove *(unreleased)*).
 * Run tests again.
 * Commit.
 
-* Create annotated git tag (`git tag -s "v0.$x.$y" -m "Release v0.$x.$y"`).
-* `git push origin`; `git push origin v0.$x.$y`.
+* Create annotated git tag (`git tag -s "v1.$x.$y" -m "Release v1.$x.$y"`).
+* `git push origin`; `git push origin v1.$x.$y`.
 * If committing on minor branch, cherry-pick release commit to master.
 * Create release on github.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones
 as closed.
 
-* Linux: Run `python3 scripts/dev/build_release.py --upload v0.$x.$y`.
-* Windows: Run `C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v0.X.Y` (replace X/Y by hand).
-* macOS: Run `python3 scripts/dev/build_release.py --upload v0.X.Y` (replace X/Y by hand).
-* On server: Run `python3 scripts/dev/download_release.py v0.X.Y` (replace X/Y by hand).
+* Linux: Run `python3 scripts/dev/build_release.py --upload v1.$x.$y`.
+* Windows: Run `C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
+* macOS: Run `python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* On server: Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
 * Announce to qutebrowser and qutebrowser-announce mailinglist.
