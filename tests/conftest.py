@@ -228,7 +228,7 @@ def apply_fake_os(monkeypatch, request):
 def check_yaml_c_exts():
     """Make sure PyYAML C extensions are available on Travis."""
     if 'TRAVIS' in os.environ:
-        from yaml import CLoader
+        from yaml import CLoader  # pylint: disable=unused-variable
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
