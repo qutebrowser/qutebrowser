@@ -52,7 +52,7 @@
 |<<colors.messages.info.border,colors.messages.info.border>>|Border color of an info message.
 |<<colors.messages.info.fg,colors.messages.info.fg>>|Foreground color an info message.
 |<<colors.messages.warning.bg,colors.messages.warning.bg>>|Background color of a warning message.
-|<<colors.messages.warning.border,colors.messages.warning.border>>|Border color of an error message.
+|<<colors.messages.warning.border,colors.messages.warning.border>>|Border color of a warning message.
 |<<colors.messages.warning.fg,colors.messages.warning.fg>>|Foreground color a warning message.
 |<<colors.prompts.bg,colors.prompts.bg>>|Background color for prompts.
 |<<colors.prompts.border,colors.prompts.border>>|Border used around UI elements in prompts.
@@ -951,7 +951,7 @@ Default: +pass:[darkorange]+
 
 [[colors.messages.warning.border]]
 === colors.messages.warning.border
-Border color of an error message.
+Border color of a warning message.
 
 Type: <<types,QssColor>>
 

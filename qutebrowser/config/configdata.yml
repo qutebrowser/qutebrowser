@@ -1620,7 +1620,7 @@ colors.messages.warning.bg:
 colors.messages.warning.border:
   default: '#d47300'
   type: QssColor
-  desc: Border color of an error message.
+  desc: Border color of a warning message.
 
 colors.messages.info.fg:
   default: white
