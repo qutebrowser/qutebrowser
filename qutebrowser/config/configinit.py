@@ -48,8 +48,6 @@ def early_init(args):
     for cf in config.change_filters:
         cf.validate()
 
-    configtypes.Font.monospace_fonts = config.val.fonts.monospace
-
     config_commands = configcommands.ConfigCommands(
         config.instance, config.key_instance)
     objreg.register('config-commands', config_commands)
@@ -75,6 +73,8 @@ def early_init(args):
             config.instance.set_str(opt, val)
         except configexc.Error as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
+
+    configtypes.Font.monospace_fonts = config.val.fonts.monospace
 
     _init_envvars()
 
