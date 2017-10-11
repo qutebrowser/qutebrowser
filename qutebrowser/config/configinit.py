@@ -75,6 +75,7 @@ def early_init(args):
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
+    config.instance.changed.connect(_update_monospace_fonts)
 
     _init_envvars()
 
@@ -92,6 +93,21 @@ def _init_envvars():
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
+
+
+@config.change_filter('fonts.monospace', function=True)
+def _update_monospace_fonts():
+    """Update all fonts if fonts.monospace was set."""
+    configtypes.Font.monospace_fonts = config.val.fonts.monospace
+    for name, opt in configdata.DATA.items():
+        if name == 'fonts.monospace':
+            continue
+        elif not isinstance(opt.typ, configtypes.Font):
+            continue
+        elif not config.instance.get_obj(name).endswith(' monospace'):
+            continue
+
+        config.instance.changed.emit(name)
 
 
 def get_backend(args):

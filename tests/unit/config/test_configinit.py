@@ -211,6 +211,22 @@ class TestEarlyInit:
         assert config.instance.get('fonts.keyhint') == '8pt "Comic Sans MS"'
         assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
 
+    def test_monospace_fonts_later(self, init_patch, args):
+        """Ensure setting fonts.monospace after init works properly.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/2973
+        """
+        configinit.early_init(args)
+        changed_options = []
+        config.instance.changed.connect(changed_options.append)
+
+        config.instance.set_obj('fonts.monospace', '"Comic Sans MS"')
+
+        assert 'fonts.keyhint' in changed_options
+        assert config.instance.get('fonts.keyhint') == '8pt "Comic Sans MS"'
+        assert 'fonts.tabs' in changed_options
+        assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
+
     def test_force_software_rendering(self, monkeypatch, config_stub):
         """Setting force_software_rendering should set the environment var."""
         envvar = 'QT_XCB_FORCE_SOFTWARE_OPENGL'
