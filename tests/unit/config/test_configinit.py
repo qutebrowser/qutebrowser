@@ -208,7 +208,9 @@ class TestEarlyInit:
         args.temp_settings = [('fonts.monospace', '"Comic Sans MS"')]
         configinit.early_init(args)
 
+        # Font
         assert config.instance.get('fonts.keyhint') == '8pt "Comic Sans MS"'
+        # QtFont
         assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
 
     def test_monospace_fonts_later(self, init_patch, args):
@@ -222,10 +224,13 @@ class TestEarlyInit:
 
         config.instance.set_obj('fonts.monospace', '"Comic Sans MS"')
 
-        assert 'fonts.keyhint' in changed_options
+        assert 'fonts.keyhint' in changed_options  # Font
         assert config.instance.get('fonts.keyhint') == '8pt "Comic Sans MS"'
-        assert 'fonts.tabs' in changed_options
+        assert 'fonts.tabs' in changed_options  # QtFont
         assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
+
+        # Font subclass, but doesn't end with "monospace"
+        assert 'fonts.web.family.standard' not in changed_options
 
     def test_force_software_rendering(self, monkeypatch, config_stub):
         """Setting force_software_rendering should set the environment var."""
