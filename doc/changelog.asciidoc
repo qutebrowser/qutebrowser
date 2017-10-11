@@ -17,60 +17,51 @@ This project adheres to http://semver.org/[Semantic Versioning].
 v1.0.0 (unreleased)
 -------------------
 
-Breaking changes
-~~~~~~~~~~~~~~~~
+Major changes
+~~~~~~~~~~~~~
 
 - Dependency changes
   - Support for legacy QtWebKit (before 5.212 which is distributed independently
     from Qt) is dropped.
   - Support for Python 3.4 is dropped.
   - Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
-  - (TODO) New dependency on ruamel.yaml; dropped PyYAML dependency.
   - New dependency on the QtSql module and Qt sqlite support.
   - New dependency on the `attrs` Python module.
   - The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
     that PyQt5.QtOpenGL is still a dependency.
   - PyQt5.QtOpenGL is now always required, even with QtWebKit.
-- (TODO) The QtWebEngine backend is now used by default if available.
-- New config system which ignores the old config file.
-- Various documentation files got moved to the doc/ subfolder,
+- The QtWebEngine backend is now used by default.
+- Completely rewritten configuration system which ignores the old config file.
+  See link:qute://help/configuring.html[] tfor details.
+- Various documentation files got moved to the doc/ subfolder;
  `qutebrowser.desktop` got moved to misc/.
-- Migrating QtWebEngine data written by versions before 2016-11-15 (before
-  v0.9.0) is now not supported anymore.
-- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
-  work properly anymore.
-- The `--harfbuzz` and `--relaxed-config` commandline arguments got dropped.
 - `:set` now doesn't support toggling/cycling values anymore, that functionality
   got moved to `:config-cycle`.
-- `:scroll-perc` got renamed to `:scroll-to-perc`.
-
-Major changes
-~~~~~~~~~~~~~
-
 - New completion engine based on sqlite, which allows to complete
-  the entire browsing history.
-- Completely rewritten configuration system.
+  the entire browsing history. The default for
+  `completion.web_history_max_items` got changed to `-1` (unlimited). If the
+  completion is too slow on your machine, try setting it to a few 1000 items.
 
 Added
 ~~~~~
 
-- New back/forward indicator in the statusbar
-- New `bindings.key_mappings` setting to map keys to other keys
-- New `qt.args` setting to pass additional arguments to Qt/Chromium
-- New `backend` setting to select the backend to use (auto/webengine/webkit).
-  Together with the previous setting, this should make wrapper scripts
+- QtWebEngine: Spell checking support, see the `spellcheck.languages` setting.
+- New `qt.args` setting to pass additional arguments to Qt/Chromium.
+- New `backend` setting to select the backend to use.
+  Together with the previous setting, this should make most wrapper scripts
   unnecessary.
-- Proxy authentication is now supported with the QtWebEngine backend.
+- qutebrowser can now be set as the default browser on macOS.
 - New config commands:
   - `:config-cycle` to cycle an option between multiple values.
-  - `:config-unset` to remove a configured option
-  - `:config-clear` to remove all configured options
-  - `:config-source` to (re-)read a `config.py` file
-  - `:config-edit` to open the `config.py` file in an editor
-  - `:config-write-py` to write a `config.py` template file
+  - `:config-unset` to remove a configured option.
+  - `:config-clear` to remove all configured options.
+  - `:config-source` to (re-)read a `config.py` file.
+  - `:config-edit` to open the `config.py` file in an editor.
+  - `:config-write-py` to write a `config.py` template file.
 - New `:version` command which opens `qute://version`.
-- Spell checking support for QtWebEngine, see the `spellcheck.languages`
-  setting.
+- New back/forward indicator in the statusbar.
+- New `bindings.key_mappings` setting to map keys to other keys.
+- QtWebEngine: Support for proxy authentication.
 
 Changed
 ~~~~~~~
@@ -84,6 +75,16 @@ Changed
   setting got removed.
 - `:set-cmd-text` now has a `--run-on-count` argument to run the underlying
   command directly if a count was given.
+- `:scroll-perc` got renamed to `:scroll-to-perc`.
+
+Removed
+~~~~~~~
+
+- Migrating QtWebEngine data written by versions before 2016-11-15 (before
+  v0.9.0) is now not supported anymore.
+- Upgrading qutebrowser with a version older than v0.4.0 still running now won't
+  work properly anymore.
+- The `--harfbuzz` and `--relaxed-config` commandline arguments got dropped.
 
 Fixes
 ~~~~~
@@ -94,10 +95,10 @@ Fixes
   insert mode anymore.
 - The keybinding help widget now works correctly when using keybindings with a
   count.
-- The `window.hide_wayland_decoration setting now works correctly again.
+- The `window.hide_wayland_decoration` setting now works correctly again.
 
-v0.11.1 (unreleased)
---------------------
+v0.11.1
+-------
 
 Fixes
 ~~~~~
