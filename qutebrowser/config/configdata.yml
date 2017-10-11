@@ -1252,6 +1252,9 @@ tabs.width.indicator:
     minval: 0
   desc: Width of the progress indicator (0 to disable).
 
+tabs.width.pinned:
+  deleted: true
+
 tabs.wrap:
   default: true
   type: Bool

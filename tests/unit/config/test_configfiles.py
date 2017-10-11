@@ -119,15 +119,44 @@ class TestYaml:
             'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
 
     def test_unknown_key(self, yaml, config_tmpdir):
-        """An unknown setting should be deleted."""
+        """An unknown setting should show an error."""
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text('global:\n  hello: world', encoding='utf-8')
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "While loading options"
+        assert str(error.exception) == "Unknown option hello"
+
+    def test_deleted_key(self, monkeypatch, yaml, config_tmpdir):
+        """A key marked as deleted should be removed."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  hello: world', encoding='utf-8')
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'deleted', ['hello'])
 
         yaml.load()
         yaml._save()
 
         lines = autoconfig.read_text('utf-8').splitlines()
         assert '  hello:' not in lines
+
+    def test_renamed_key(self, monkeypatch, yaml, config_tmpdir):
+        """A key marked as renamed should be renamed properly."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  old: value', encoding='utf-8')
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed', {'old': 'new'})
+
+        yaml.load()
+        yaml._save()
+
+        lines = autoconfig.read_text('utf-8').splitlines()
+        assert '  old:' not in lines
+        assert '  new:' not in lines
 
     @pytest.mark.parametrize('old_config', [
         None,

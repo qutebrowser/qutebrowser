@@ -31,6 +31,7 @@ from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 
 DATA = None
+MIGRATIONS = None
 
 
 @attr.s
@@ -47,6 +48,15 @@ class Option:
     backends = attr.ib()
     raw_backends = attr.ib()
     description = attr.ib()
+
+
+@attr.s
+class Migrations:
+
+    """Nigrated options in configdata.yml."""
+
+    renamed = attr.ib(default=attr.Factory(dict))
+    deleted = attr.ib(default=attr.Factory(list))
 
 
 def _raise_invalid_node(name, what, node):
@@ -172,14 +182,27 @@ def _read_yaml(yaml_data):
         yaml_data: The YAML string to parse.
 
     Return:
-        A dict mapping option names to Option elements.
+        A tuple with two elements:
+            - A dict mapping option names to Option elements.
+            - A Migrations object.
     """
     parsed = {}
+    migrations = Migrations()
     data = utils.yaml_load(yaml_data)
 
     keys = {'type', 'default', 'desc', 'backend'}
 
     for name, option in data.items():
+        if set(option.keys()) == {'renamed'}:
+            migrations.renamed[name] = option['renamed']
+            continue
+        if set(option.keys()) == {'deleted'}:
+            value = option['deleted']
+            if value is not True:
+                raise ValueError("Invalid deleted value: {}".format(value))
+            migrations.deleted.append(name)
+            continue
+
         if not set(option.keys()).issubset(keys):
             raise ValueError("Invalid keys {} for {}".format(
                 option.keys(), name))
@@ -200,7 +223,12 @@ def _read_yaml(yaml_data):
             if key2.startswith(key1 + '.'):
                 raise ValueError("Shadowing keys {} and {}".format(key1, key2))
 
-    return parsed
+    # Make sure rename targets actually exist.
+    for old, new in migrations.renamed.items():
+        if new not in parsed:
+            raise ValueError("Renaming {} to unknown {}".format(old, new))
+
+    return parsed, migrations
 
 
 @functools.lru_cache(maxsize=256)
@@ -211,5 +239,5 @@ def is_valid_prefix(prefix):
 
 def init():
     """Initialize configdata from the YAML file."""
-    global DATA
-    DATA = _read_yaml(utils.read_file('config/configdata.yml'))
+    global DATA, MIGRATIONS
+    DATA, MIGRATIONS = _read_yaml(utils.read_file('config/configdata.yml'))

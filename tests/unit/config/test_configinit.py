@@ -149,6 +149,10 @@ class TestEarlyInit:
                 error = ("Error{}: Invalid value 'True' - expected a value of "
                         "type str but got bool.".format(suffix))
                 expected_errors.append(error)
+            elif invalid_yaml == 'unknown':
+                error = ("While loading options{}: Unknown option "
+                         "colors.foobar".format(suffix))
+                expected_errors.append(error)
         if config_py == 'error':
             expected_errors.append("While setting 'foo': No option 'foo'")
 

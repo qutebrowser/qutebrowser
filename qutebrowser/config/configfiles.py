@@ -33,7 +33,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata
-from qutebrowser.utils import standarddir, utils, qtutils
+from qutebrowser.utils import standarddir, utils, qtutils, log
 
 
 # The StateConfig instance
@@ -162,11 +162,23 @@ class YamlConfig(QObject):
                 "'global' object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        # Delete unknown values
-        # (e.g. options which were removed from configdata.yml)
+        # Handle unknown/renamed keys
         for name in list(global_obj):
-            if name not in configdata.DATA:
+            if name in configdata.MIGRATIONS.renamed:
+                new_name = configdata.MIGRATIONS.renamed[name]
+                log.config.debug("Renaming {} to {}".format(name, new_name))
+                global_obj[new_name] = global_obj[name]
                 del global_obj[name]
+            elif name in configdata.MIGRATIONS.deleted:
+                log.config.debug("Removing {}".format(name))
+                del global_obj[name]
+            elif name in configdata.DATA:
+                pass
+            else:
+                desc = configexc.ConfigErrorDesc(
+                    "While loading options",
+                    "Unknown option {}".format(name))
+                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         self._values = global_obj
         self._dirty = False
