@@ -860,6 +860,6 @@ class AbstractTab(QWidget):
         try:
             url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode),
                               100)
-        except AttributeError:
-            url = '<AttributeError>'
+        except (AttributeError, RuntimeError) as exc:
+            url = '<{}>'.format(exc.__class__.__name__)
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
