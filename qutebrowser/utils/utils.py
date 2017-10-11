@@ -882,15 +882,18 @@ def yaml_load(f):
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
-    deadline = 3 if 'CI' in os.environ else 0.5
-    if delta > deadline:
-        log.misc.error(
-            "YAML load took {}s\n"
-            "version: {}\n"
-            "C extension: {}\n\n"
+    deadline = 3 if 'CI' in os.environ else 1
+    if delta > deadline:  # pragma: no cover
+        log.misc.warning(
+            "YAML load took unusually long, please report this at "
+            "https://github.com/qutebrowser/qutebrowser/issues/2777\n"
+            "duration: {}s\n"
+            "PyYAML version: {}\n"
+            "C extension: {}\n"
+            "Stack:\n\n"
             "{}".format(
                 delta, yaml.__version__, YAML_C_EXT,
-                '\n'.join(traceback.format_stack())))
+                ''.join(traceback.format_stack())))
 
     return data
 
