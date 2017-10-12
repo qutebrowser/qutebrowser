@@ -85,6 +85,11 @@ def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
     assert actual == expected
 
 
+def test_version_check_compiled_and_exact():
+    with pytest.raises(ValueError):
+        qtutils.version_check('1.2.3', exact=True, compiled=True)
+
+
 @pytest.mark.parametrize('version, is_new', [
     ('537.21', False),  # QtWebKit 5.1
     ('538.1', False),   # Qt 5.8
