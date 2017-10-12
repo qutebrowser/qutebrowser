@@ -39,12 +39,12 @@ from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
-import yaml
+import ruamel.yaml as yaml
 try:
-    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+    from ruamel.yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
+    from ruamel.yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
     YAML_C_EXT = False
 
 import qutebrowser

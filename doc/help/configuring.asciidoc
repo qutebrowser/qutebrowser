@@ -284,7 +284,7 @@ You can use:
 .config.py:
 [source,python]
 ----
-import yaml
+import ruamel.yaml
 
 with (config.configdir / 'config.yml').open() as f:
     yaml_data = yaml.load(f)
@@ -314,7 +314,7 @@ You can use:
 .config.py:
 [source,python]
 ----
-import yaml
+import ruamel.yaml as yaml
 
 with (config.configdir / 'colors.yml').open() as f:
     yaml_data = yaml.load(f)

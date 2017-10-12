@@ -514,7 +514,7 @@ class ImportFake:
             ('pypeg2', True),
             ('jinja2', True),
             ('pygments', True),
-            ('yaml', True),
+            ('ruamel.yaml', True),
             ('cssutils', True),
             ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),

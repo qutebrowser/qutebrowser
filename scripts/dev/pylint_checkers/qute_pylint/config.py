@@ -23,7 +23,7 @@ import sys
 import os
 import os.path
 
-import yaml
+import ruamel.yaml as yaml
 import astroid
 from pylint import interfaces, checkers
 from pylint.checkers import utils

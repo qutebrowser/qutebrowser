@@ -28,7 +28,7 @@ import traceback
 import configparser
 import contextlib
 
-import yaml
+import ruamel.yaml as yaml
 from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser

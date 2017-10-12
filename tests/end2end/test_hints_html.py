@@ -24,7 +24,7 @@ import os.path
 import textwrap
 
 import attr
-import yaml
+import ruamel.yaml as yaml
 import pytest
 import bs4
 
