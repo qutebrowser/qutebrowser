@@ -652,7 +652,7 @@ class TabBarStyle(QCommonStyle):
         icon_state = (QIcon.On if opt.state & QStyle.State_Selected
                       else QIcon.Off)
         icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-        p.drawPixmap(layouts.icon.x(), layouts.icon.y(), icon)
+        p.drawItemPixmap(layouts.icon, Qt.AlignCenter, icon)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
@@ -819,8 +819,7 @@ class TabBarStyle(QCommonStyle):
                       else QIcon.Off)
         # reserve space for favicon when tab bar is vertical (issue #1968)
         position = config.val.tabs.position
-        if (opt.icon.isNull() and
-                position in [QTabWidget.East, QTabWidget.West] and
+        if (position in [QTabWidget.East, QTabWidget.West] and
                 config.val.tabs.favicons.show):
             tab_icon_size = icon_size
         else:
@@ -828,6 +827,7 @@ class TabBarStyle(QCommonStyle):
             tab_icon_size = QSize(
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
+
         icon_top = text_rect.center().y() + 1 - tab_icon_size.height() / 2
         icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
