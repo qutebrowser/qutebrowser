@@ -201,8 +201,9 @@ class Completer(QObject):
         updates if the text is shorter than completion.min_chars (unless we're
         hitting backspace in which case updates won't be ignored).
         """
-        cmd, _sep, rest = self._cmd.text().partition(' ')
-        if (0 < len(rest) < config.val.completion.min_chars and
+        _cmd, _sep, rest = self._cmd.text().partition(' ')
+        input_length = len(rest)
+        if (0 < input_length < config.val.completion.min_chars and
                 self._cmd.cursorPosition() > self._last_cursor_pos):
             log.completion.debug("Ignoring update because the length of "
                                  "the text is less than completion.min_chars.")
@@ -212,7 +213,8 @@ class Completer(QObject):
                                  "changes.")
         else:
             log.completion.debug("Scheduling completion update.")
-            self._timer.start(config.val.completion.delay if self._last_text else 0)
+            start_delay = config.val.completion.delay if self._last_text else 0
+            self._timer.start(start_delay)
         self._last_cursor_pos = self._cmd.cursorPosition()
         self._last_text = self._cmd.text()
 
