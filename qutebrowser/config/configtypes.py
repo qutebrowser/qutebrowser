@@ -1068,7 +1068,7 @@ class QtFont(Font):
                 raise ValueError("Unexpected size unit in {!r}!".format(
                     size))  # pragma: no cover
 
-        if family == 'monospace':
+        if family == 'monospace' and self.monospace_fonts is not None:
             family = self.monospace_fonts
         # The Qt CSS parser handles " and ' before passing the string to
         # QFont.setFamily. We could do proper CSS-like parsing here, but since

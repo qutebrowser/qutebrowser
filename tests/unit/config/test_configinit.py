@@ -27,7 +27,7 @@ import pytest
 
 from qutebrowser import qutebrowser
 from qutebrowser.config import (config, configexc, configfiles, configinit,
-                                configdata)
+                                configdata, configtypes)
 from qutebrowser.utils import objreg, usertypes
 
 
@@ -39,6 +39,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
     monkeypatch.setattr(config, 'key_instance', None)
     monkeypatch.setattr(config, 'change_filters', [])
     monkeypatch.setattr(configinit, '_init_errors', None)
+    monkeypatch.setattr(configtypes.Font, 'monospace_fonts', None)
     yield
     try:
         objreg.delete('config-commands')
@@ -200,18 +201,43 @@ class TestEarlyInit:
         assert msg.text == "set: NoOptionError - No option 'foo'"
         assert 'colors.completion.fg' not in config.instance._values
 
-    def test_monospace_fonts_init(self, init_patch, args):
+    @pytest.mark.parametrize('settings, size, family', [
+        # Only fonts.monospace customized
+        ([('fonts.monospace', '"Comic Sans MS"')], 8, 'Comic Sans MS'),
+        # fonts.monospace and font settings customized
+        # https://github.com/qutebrowser/qutebrowser/issues/3096
+        ([('fonts.monospace', '"Comic Sans MS"'),
+          ('fonts.tabs', '10pt monospace'),
+          ('fonts.keyhint', '10pt monospace')], 10, 'Comic Sans MS'),
+    ])
+    @pytest.mark.parametrize('method', ['temp', 'auto', 'py'])
+    def test_monospace_fonts_init(self, init_patch, args, config_tmpdir,
+                                  method, settings, size, family):
         """Ensure setting fonts.monospace at init works properly.
 
         See https://github.com/qutebrowser/qutebrowser/issues/2973
         """
-        args.temp_settings = [('fonts.monospace', '"Comic Sans MS"')]
+        if method == 'temp':
+            args.temp_settings = settings
+        elif method == 'auto':
+            autoconfig_file = config_tmpdir / 'autoconfig.yml'
+            lines = ["global:"] + ["  {}: '{}'".format(k, v)
+                                   for k, v in settings]
+            autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
+        elif method == 'py':
+            config_py_file = config_tmpdir / 'config.py'
+            lines = ["c.{} = '{}'".format(k, v) for k, v in settings]
+            config_py_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
+
         configinit.early_init(args)
 
         # Font
-        assert config.instance.get('fonts.keyhint') == '8pt "Comic Sans MS"'
+        expected = '{}pt "{}"'.format(size, family)
+        assert config.instance.get('fonts.keyhint') == expected
         # QtFont
-        assert config.instance.get('fonts.tabs').family() == 'Comic Sans MS'
+        font = config.instance.get('fonts.tabs')
+        assert font.pointSize() == size
+        assert font.family() == family
 
     def test_monospace_fonts_later(self, init_patch, args):
         """Ensure setting fonts.monospace after init works properly.
