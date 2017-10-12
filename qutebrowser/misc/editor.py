@@ -96,11 +96,12 @@ class ExternalEditor(QObject):
     def on_proc_error(self, _err):
         self._cleanup()
 
-    def edit(self, text):
+    def edit(self, text, caret_position):
         """Edit a given text.
 
         Args:
             text: The initial text to edit.
+            caret_position: The position of the caret in the text.
         """
         if self._filename is not None:
             raise ValueError("Already editing a file!")
@@ -121,7 +122,32 @@ class ExternalEditor(QObject):
             return
 
         self._remove_file = True
-        self._start_editor()
+
+        # Here we calculate the line and column of the caret based on its
+        # position and the given text.
+        #
+        # NOTE: Both line and column are 1-based indexes, because that's what
+        # most editors use as line and column starting index.
+        # By "most" we mean at least vim, nvim, gvim, emacs, atom, sublimetext,
+        # notepad++, brackets, visual studio, QtCreator and so on.
+        #
+        # To find the line we just count how many newlines there are before
+        # the caret and add 1.
+        #
+        # To find the column we calculate the difference between the caret and
+        # the last newline before the caret.
+        #
+        # For example in the text `aaa\nbb|bbb` (| represents the caret):
+        # caret_position = 6
+        # text[:caret_position] = `aaa\nbb`
+        # text[:caret_psotion].count('\n') = 1
+        # caret_position - text[:caret_position].rfind('\n') = 3
+        #
+        # Thus line, column = 2, 3, and the caret is indeed in the second
+        # line, third column
+        line = text[:caret_position].count('\n') + 1
+        column = caret_position - text[:caret_position].rfind('\n')
+        self._start_editor(line=line, column=column)
 
     def edit_file(self, filename):
         """Edit the file with the given filename."""
@@ -129,13 +155,39 @@ class ExternalEditor(QObject):
         self._remove_file = False
         self._start_editor()
 
-    def _start_editor(self):
-        """Start the editor with the file opened as self._filename."""
+    def _start_editor(self, line=1, column=1):
+        """Start the editor with the file opened as self._filename.
+
+        Args:
+            caret_position: The position of the caret in the text.
+        """
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
         self._proc.finished.connect(self.on_proc_closed)
         self._proc.error.connect(self.on_proc_error)
         editor = config.val.editor.command
         executable = editor[0]
-        args = [arg.replace('{}', self._filename) for arg in editor[1:]]
+
+        args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
         self._proc.start(executable, args)
+
+    def _sub_placeholder(self, possible_placeholder, line, column):
+        """Substitute a single placeholder.
+
+        The input to this function is not guaranteed to be a valid or known
+        placeholder. In this case the return value is the unchanged input.
+
+        Args:
+            possible_placeholder: an argument of editor.command.
+
+        Return:
+            The substituted placeholder or the original argument
+        """
+        sub = possible_placeholder\
+            .replace('{}', self._filename)\
+            .replace('{file}', self._filename)\
+            .replace('{line}', str(line))\
+            .replace('{line0}', str(line-1))\
+            .replace('{column}', str(column))\
+            .replace('{column0}', str(column-1))
+        return sub
