@@ -168,9 +168,11 @@ def qt_version(qversion=None, qt_version_str=None):
 
 def check_qt_version():
     """Check if the Qt version is recent enough."""
-    from PyQt5.QtCore import PYQT_VERSION, PYQT_VERSION_STR
-    from qutebrowser.utils import qtutils
-    if not qtutils.version_check('5.7.1') or PYQT_VERSION < 0x050200:
+    from PyQt5.QtCore import (qVersion, QT_VERSION, PYQT_VERSION,
+                              PYQT_VERSION_STR)
+    from pkg_resources import parse_version
+    if (QT_VERSION < 0x050710 or PYQT_VERSION < 0x050700 or
+            parse_version(qVersion()) < parse_version('5.7.1')):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
