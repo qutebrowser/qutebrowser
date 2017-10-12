@@ -349,12 +349,13 @@ bind_chained('<Escape>', 'clear-keychain', 'search')
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
 
-If you use an editor with flake8 integration which complains about `c` and `config` being undefined, you can use:
+If you use an editor with flake8 and pylint integration which complains about
+`c` and `config` being undefined or invalid, you can use:
 
 [source,python]
 ----
-c = c  # noqa: F821
-config = config  # noqa: F821
+c = c  # noqa: F821 pylint: disable=invalid-name,undefined-variable
+config = config  # noqa: F821 pylint: disable=invalid-name,undefined-variable
 ----
 
 For type annotation support (note that those imports aren't guaranteed to be
