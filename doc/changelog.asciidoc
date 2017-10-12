@@ -21,15 +21,15 @@ Major changes
 ~~~~~~~~~~~~~
 
 - Dependency changes
-  - Support for legacy QtWebKit (before 5.212 which is distributed independently
+  * Support for legacy QtWebKit (before 5.212 which is distributed independently
     from Qt) is dropped.
-  - Support for Python 3.4 is dropped.
-  - Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
-  - New dependency on the QtSql module and Qt sqlite support.
-  - New dependency on the `attrs` Python module.
-  - The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
+  * Support for Python 3.4 is dropped.
+  * Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
+  * New dependency on the QtSql module and Qt sqlite support.
+  * New dependency on the `attrs` Python module.
+  * The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
     that PyQt5.QtOpenGL is still a dependency.
-  - PyQt5.QtOpenGL is now always required, even with QtWebKit.
+  * PyQt5.QtOpenGL is now always required, even with QtWebKit.
 - The QtWebEngine backend is now used by default.
 - Completely rewritten configuration system which ignores the old config file.
   See link:qute://help/configuring.html[] tfor details.
@@ -52,12 +52,12 @@ Added
   unnecessary.
 - qutebrowser can now be set as the default browser on macOS.
 - New config commands:
-  - `:config-cycle` to cycle an option between multiple values.
-  - `:config-unset` to remove a configured option.
-  - `:config-clear` to remove all configured options.
-  - `:config-source` to (re-)read a `config.py` file.
-  - `:config-edit` to open the `config.py` file in an editor.
-  - `:config-write-py` to write a `config.py` template file.
+  * `:config-cycle` to cycle an option between multiple values.
+  * `:config-unset` to remove a configured option.
+  * `:config-clear` to remove all configured options.
+  * `:config-source` to (re-)read a `config.py` file.
+  * `:config-edit` to open the `config.py` file in an editor.
+  * `:config-write-py` to write a `config.py` template file.
 - New `:version` command which opens `qute://version`.
 - New back/forward indicator in the statusbar.
 - New `bindings.key_mappings` setting to map keys to other keys.
@@ -157,11 +157,11 @@ Changed
 - Starting with legacy QtWebKit now shows a warning message.
   *With the next release, support for it will be removed.*
 - The Windows releases are redone from scratch, which means:
-  - They now use the new QtWebEngine backend
-  - The bundled Qt is updated from 5.5 to 5.9
-  - The bundled Python is updated from 3.4 to 3.6
-  - They are now generated with PyInstaller instead of cx_Freeze
-  - The installer is now generated using NSIS instead of being a MSI
+  * They now use the new QtWebEngine backend
+  * The bundled Qt is updated from 5.5 to 5.9
+  * The bundled Python is updated from 3.4 to 3.6
+  * They are now generated with PyInstaller instead of cx_Freeze
+  * The installer is now generated using NSIS instead of being a MSI
 - Improved `qute://history` page (with lazy loading)
 - Crash reports are not public anymore.
 - Paths like `C:` are now treated as absolute paths on Windows for downloads,
@@ -300,13 +300,13 @@ Removed
 ~~~~~~~
 
 - (QtWebKit) Various rarely customized settings were removed:
-  - `ui -> css-media-type` (defaults to desktop)
-  - `general -> site-specific-quirks` (now always turned on)
-  - `storage -> offline-storage-default-quota` (defaults to 5MB)
-  - `storage -> offline-web-application-cache-quota` (defaults to no quota)
-  - `storage -> object-cache-capacities` (default depends on disk space)
-  - `content -> css-regions` (now always turned off)
-  - `storage -> offline-storage-database` (merged into `storage -> local-storage`)
+  * `ui -> css-media-type` (defaults to desktop)
+  * `general -> site-specific-quirks` (now always turned on)
+  * `storage -> offline-storage-default-quota` (defaults to 5MB)
+  * `storage -> offline-web-application-cache-quota` (defaults to no quota)
+  * `storage -> object-cache-capacities` (default depends on disk space)
+  * `content -> css-regions` (now always turned off)
+  * `storage -> offline-storage-database` (merged into `storage -> local-storage`)
 
 Fixed
 ~~~~~
