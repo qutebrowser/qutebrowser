@@ -39,34 +39,36 @@ from qutebrowser.utils import qtutils, utils
 import overflow_test_cases
 
 
-@pytest.mark.parametrize('qversion, compiled, version, exact, expected', [
+@pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
+                          'expected'], [
     # equal versions
-    ('5.4.0', None, '5.4.0', False, True),
-    ('5.4.0', None, '5.4.0', True, True),  # exact=True
-    ('5.4.0', None, '5.4', True, True),  # without trailing 0
+    ('5.4.0', None, None, '5.4.0', False, True),
+    ('5.4.0', None, None, '5.4.0', True, True),  # exact=True
+    ('5.4.0', None, None, '5.4', True, True),  # without trailing 0
     # newer version installed
-    ('5.4.1', None, '5.4', False, True),
-    ('5.4.1', None, '5.4', True, False),  # exact=True
+    ('5.4.1', None, None, '5.4', False, True),
+    ('5.4.1', None, None, '5.4', True, False),  # exact=True
     # older version installed
-    ('5.3.2', None, '5.4', False, False),
-    ('5.3.0', None, '5.3.2', False, False),
-    ('5.3.0', None, '5.3.2', True, False),  # exact=True
-    # strict
-    ('5.4.0', '5.3.0', '5.4.0', False, False),
-    ('5.4.0', '5.4.0', '5.4.0', False, True),
-    # strict and exact=True
-    ('5.4.0', '5.5.0', '5.4.0', True, False),
-    ('5.5.0', '5.4.0', '5.4.0', True, False),
-    ('5.4.0', '5.4.0', '5.4.0', True, True),
+    ('5.3.2', None, None, '5.4', False, False),
+    ('5.3.0', None, None, '5.3.2', False, False),
+    ('5.3.0', None, None, '5.3.2', True, False),  # exact=True
+    # compiled=True
+    # new Qt runtime, but compiled against older version
+    ('5.4.0', '5.3.0', '5.4.0', '5.4.0', False, False),
+    # new Qt runtime, compiled against new version, but old PyQt
+    ('5.4.0', '5.4.0', '5.3.0', '5.4.0', False, False),
+    # all up-to-date
+    ('5.4.0', '5.4.0', '5.4.0', '5.4.0', False, True),
 ])
-def test_version_check(monkeypatch, qversion, compiled, version, exact,
+def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
                        expected):
     """Test for version_check().
 
     Args:
         monkeypatch: The pytest monkeypatch fixture.
         qversion: The version to set as fake qVersion().
-        compiled: The value for QT_VERSION_STR (set strict=True)
+        compiled: The value for QT_VERSION_STR (set compiled=False)
+        pyqt: The value for PYQT_VERSION_STR (set compiled=False)
         version: The version to compare with.
         exact: Use exact comparing (==)
         expected: The expected result.
@@ -74,6 +76,7 @@ def test_version_check(monkeypatch, qversion, compiled, version, exact,
     monkeypatch.setattr(qtutils, 'qVersion', lambda: qversion)
     if compiled is not None:
         monkeypatch.setattr(qtutils, 'QT_VERSION_STR', compiled)
+        monkeypatch.setattr(qtutils, 'PYQT_VERSION_STR', pyqt)
         compiled_arg = True
     else:
         compiled_arg = False
