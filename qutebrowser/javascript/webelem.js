@@ -53,6 +53,7 @@ window._qutebrowser.webelem = (function() {
             "value": elem.value,
             "outer_xml": elem.outerHTML,
             "rects": [],  // Gets filled up later
+            "caret_position": elem.selectionStart,
         };
 
         // https://github.com/qutebrowser/qutebrowser/issues/2569
