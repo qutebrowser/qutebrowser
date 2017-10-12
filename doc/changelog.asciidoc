@@ -4,7 +4,8 @@ Change Log
 // http://keepachangelog.com/
 
 All notable changes to this project will be documented in this file.
-This project adheres to http://semver.org/[Semantic Versioning].
+This project adheres to http://semver.org/[Semantic Versioning], though minor
+breaking changes (such as renamed commands) can happen in minor releases.
 
 // tags:
 // `Added` for new features.
@@ -14,25 +15,29 @@ This project adheres to http://semver.org/[Semantic Versioning].
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.0.0 (unreleased)
--------------------
+v1.0.0
+------
 
 Major changes
 ~~~~~~~~~~~~~
 
-- Dependency changes
-  * Support for legacy QtWebKit (before 5.212 which is distributed independently
-    from Qt) is dropped.
+- Dependency changes:
+  * Support for legacy QtWebKit (before 5.212 which is
+    https://github.com/annulen/webkit/wiki[distributed independently from Qt])
+    is dropped.
   * Support for Python 3.4 is dropped.
   * Support for Qt before 5.7.1 and PyQt before 5.7 is dropped.
   * New dependency on the QtSql module and Qt sqlite support.
-  * New dependency on the `attrs` Python module.
+  * New dependency on the http://www.attrs.org/[attrs] project (packaged as
+    `python-attr` in some distributions).
   * The depedency on PyOpenGL (when using QtWebEngine) got removed. Note
     that PyQt5.QtOpenGL is still a dependency.
   * PyQt5.QtOpenGL is now always required, even with QtWebKit.
-- The QtWebEngine backend is now used by default.
+- The QtWebEngine backend is now used by default. Note this means that
+  QtWebEngine now should be a required dependency, and QtWebKit (if new enough)
+  should be changed to an optional dependency.
 - Completely rewritten configuration system which ignores the old config file.
-  See link:qute://help/configuring.html[] tfor details.
+  See link:qute://help/configuring.html[] for details.
 - Various documentation files got moved to the doc/ subfolder;
  `qutebrowser.desktop` got moved to misc/.
 - `:set` now doesn't support toggling/cycling values anymore, that functionality

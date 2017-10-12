@@ -44,7 +44,7 @@ to install qutebrowser via the Debian package.
 Install the dependencies via apt-get:
 
 ----
-# apt install python-tox python3-{lxml,pyqt5,sip,jinja2,pygments,yaml} python3-pyqt5.qt{webengine,quick,opengl,sql} libqt5sql5-sqlite
+# apt install python-tox python3-{lxml,pyqt5,sip,jinja2,pygments,yaml,attr} python3-pyqt5.qt{webengine,quick,opengl,sql} libqt5sql5-sqlite
 ----
 
 Get the qutebrowser package from the
@@ -89,7 +89,8 @@ qutebrowser is available in the official repositories for Fedora 22 and newer.
 ----
 
 It's also recommended to install `python3-qt5-webengine` and start with `--backend
-webengine` to use the new backend.
+webengine` to use the new backend. v1.0.0 (which is not in the Fedora repos
+currently) uses QtWebEngine by default.
 
 On Archlinux
 ------------
@@ -99,10 +100,6 @@ qutebrowser is available in the official [community] repository.
 ----
 # pacman -S qutebrowser
 ----
-
-Archlinux packages an updated `qt5-webkit` package by default. If you want to
-use the QtWebEngine backend instead, install `qt5-webengine` and start with
-`--backend webengine`.
 
 There is also a -git version available in the AUR:
 https://aur.archlinux.org/packages/qutebrowser-git/[qutebrowser-git].
@@ -128,45 +125,14 @@ If video or sound don't work with QtWebKit, try installing the gstreamer plugins
 On Gentoo
 ---------
 
-WARNING: The Gentoo packages (even the live version) are lagging behind a lot, which means those instructions probably won't work anymore. Until things are looking better, it's recommended to <<tox,install qutebrowser via tox>>.
+The Gentoo packages (even the live version) are lagging behind a lot and are
+effectively unmaintained. If you want to create and maintain an official
+qutebrowser overlay for Gentoo, please mailto:mail@qutebrowser.org[get in
+touch.]
 
-A version of qutebrowser is available in the main repository and can be installed with:
+It's recommended to <<tox,install qutebrowser via tox>> instead.
 
-----
-# emerge -av qutebrowser
-----
-
-However it is suggested to install the Live version (-9999) to take advantage
-of the newest features introduced.
-
-First of all you need to edit your package.accept_keywords file to accept the live
-version:
-
-----
-# nano /etc/portage/package.accept_keywords
-----
-
-And add the following line to it:
-
- =www-client/qutebrowser-9999 **
-
-Save the file and then install qutebrowser via
-
-----
-# emerge -av qutebrowser
-----
-
-Or rebuild your system if you already installed it.
-
-To update to the last Live version, remember to do
-
-----
-# emerge -uDNav @live-rebuild @world
-----
-
-To include qutebrowser among the updates.
-
-You'll also need to install `dev-qt/qtwebengine` or a newer QtWebKit using
+To get an up-to-date QtWebKit, you can use
 https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild].
 
 If video or sound don't work with QtWebKit, try installing the gstreamer
@@ -182,7 +148,6 @@ need to turn off the `bindist` flag for `dev-qt/qtwebengine`.
 See the https://wiki.gentoo.org/wiki/Qutebrowser#USE_flags[Gentoo Wiki] for
 more information.
 
-
 On Void Linux
 -------------
 
@@ -197,6 +162,8 @@ It's currently recommended to install `python3-PyQt5-webengine` and
 `python3-PyQt5-opengl`, then start with `--backend webengine` to use the new
 backend.
 
+Since the v1.0 release, qutebrowser uses QtWebEngine by default.
+
 On NixOS
 --------
 
@@ -209,6 +176,8 @@ $ nix-env -i qutebrowser
 
 It's recommended to install `qt5.qtwebengine` and start with
 `--backend webengine` to use the new backend.
+
+Since the v1.0 release, qutebrowser uses QtWebEngine by default.
 
 On openSUSE
 -----------
@@ -313,19 +282,12 @@ $ brew install qt5
 $ pip3 install qutebrowser
 ----
 
+Since the v1.0 release, qutebrowser uses QtWebEngine by default.
+
 Homebrew's builds of Qt and PyQt don't come with QtWebKit (and `--with-qtwebkit`
 uses an old version of QtWebKit which qutebrowser doesn't support anymore). If
 you want QtWebKit support, you'll need to build an up-to-date QtWebKit
 https://github.com/annulen/webkit/wiki/Building-QtWebKit-on-OS-X[manually].
-
-QtWebKit support, it is necessary to build from source. The build takes several
-hours on an average laptop.
-
-----
-$ brew install qt5 --with-qtwebkit
-$ brew install -s pyqt5
-$ pip3 install qutebrowser
-----
 
 Packagers
 ---------
