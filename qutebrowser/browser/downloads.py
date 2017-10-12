@@ -632,7 +632,6 @@ class AbstractDownloadItem(QObject):
             remember_directory: If True, remember the directory for future
                                 downloads.
         """
-        global last_used_directory
         filename = os.path.expanduser(filename)
         self._ensure_can_set_filename(filename)
 
