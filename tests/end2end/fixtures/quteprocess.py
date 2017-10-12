@@ -31,7 +31,7 @@ import contextlib
 import itertools
 import json
 
-import yaml
+import ruamel.yaml as yaml
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 

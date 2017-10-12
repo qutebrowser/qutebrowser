@@ -20,7 +20,7 @@
 
 import textwrap
 
-import yaml
+import ruamel.yaml as yaml
 import pytest
 
 # To run cmdutils.register decorators

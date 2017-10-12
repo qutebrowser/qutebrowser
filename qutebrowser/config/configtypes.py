@@ -54,7 +54,7 @@ import operator
 import json
 
 import attr
-import yaml
+import ruamel.yaml as yaml
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar

@@ -220,7 +220,7 @@ def check_libraries():
         'pypeg2': _missing_str("pypeg2"),
         'jinja2': _missing_str("jinja2"),
         'pygments': _missing_str("pygments"),
-        'yaml': _missing_str("PyYAML"),
+        'ruamel.yaml': _missing_str("ruamel.yaml"),
         'attr': _missing_str("attrs"),
         'PyQt5.QtQml': _missing_str("PyQt5.QtQml"),
         'PyQt5.QtSql': _missing_str("PyQt5.QtSql"),

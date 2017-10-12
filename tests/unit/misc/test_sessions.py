@@ -22,7 +22,7 @@
 import logging
 
 import pytest
-import yaml
+import ruamel.yaml as yaml
 from PyQt5.QtCore import QUrl, QPoint, QByteArray, QObject
 QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
 

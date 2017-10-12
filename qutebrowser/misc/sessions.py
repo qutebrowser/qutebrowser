@@ -25,7 +25,7 @@ import os.path
 import sip
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
-import yaml
+import ruamel.yaml as yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils)
