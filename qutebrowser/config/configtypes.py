@@ -1341,9 +1341,12 @@ class ShellCommand(List):
         if not value:
             return value
 
-        if self.placeholder and '{}' not in ' '.join(value):
+        if (self.placeholder and
+                '{}' not in ' '.join(value) and
+                '{file}' not in ' '.join(value)):
             raise configexc.ValidationError(value, "needs to contain a "
-                                            "{}-placeholder.")
+                                            "{}-placeholder or a "
+                                            "{file}-placeholder.")
         return value
 
 
