@@ -1594,10 +1594,12 @@ class CommandDispatcher:
             return
         assert isinstance(text, str), text
 
+        caret_position = elem.caret_position()
+
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
-        ed.edit(text)
+        ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', hide=True,
                        scope='window')
