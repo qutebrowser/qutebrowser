@@ -126,6 +126,14 @@ class WebKitElement(webelem.AbstractWebElement):
             value = javascript.string_escape(value)
             self._elem.evaluateJavaScript("this.value='{}'".format(value))
 
+    def caret_position(self):
+        self._check_vanished()
+        pos = self._elem.evaluateJavaScript('this.selectionStart')
+        assert isinstance(pos, (int, float, type(None)))
+        if pos is None:
+            return 0
+        return int(pos)
+
     def insert_text(self, text):
         self._check_vanished()
         if not self.is_editable(strict=True):
