@@ -51,6 +51,8 @@ Feature: Page history
         Then the history should contain:
             http://localhost:(port)/404 Error loading page: http://localhost:(port)/404
 
+    # Hangs a lot on AppVeyor
+    @posix
     Scenario: History with invalid URL
         When I run :tab-only
         And I open data/javascript/window_open.html
