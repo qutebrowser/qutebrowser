@@ -1738,6 +1738,8 @@ Valid values:
 
 Default: +pass:[ask]+
 
+This setting is only available with the QtWebKit backend.
+
 [[content.pdfjs]]
 === content.pdfjs
 Enable pdf.js to view PDF files in the browser.
