@@ -1224,6 +1224,7 @@ tabs.title.format:
       - scroll_pos
       - host
       - private
+      - current_url
     none_ok: true
   desc: |
     The format to use for the tab title.
@@ -1239,6 +1240,7 @@ tabs.title.format:
     * `{host}`: The host of the current web page.
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
+    * `{current_url}` : The url of the current web page.
 
 tabs.title.format_pinned:
   default: '{index}'
@@ -1254,6 +1256,7 @@ tabs.title.format_pinned:
       - scroll_pos
       - host
       - private
+      - current_url
     none_ok: true
   desc: The format to use for the tab title for pinned tabs. The same placeholders
     like for `tabs.title.format` are defined.
@@ -1371,6 +1374,7 @@ window.title_format:
       - host
       - backend
       - private
+      - current_url
   default: '{perc}{title}{title_sep}qutebrowser'
   desc: |
     The format to use for the window title.
@@ -1385,6 +1389,7 @@ window.title_format:
     * `{host}`: The host of the current web page.
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
+    * `{current_url}` : The url of the current web page.
 
 ## zoom
 
