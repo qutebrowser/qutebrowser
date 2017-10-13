@@ -181,7 +181,10 @@ Active
   https://key.saka.io/[Saka Key]
 * Firefox addons (based on WebExtensions):
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
-  http://saka-key.lusakasa.com/[Saka Key]
+  https://key.saka.io[Saka Key],
+  https://github.com/cmcaine/tridactyl[Tridactyl] (in early development, working
+  on a https://bugzilla.mozilla.org/show_bug.cgi?id=1215061[better API] for
+  keyboard integration in Firefox).
 
 Inactive
 ~~~~~~~~
