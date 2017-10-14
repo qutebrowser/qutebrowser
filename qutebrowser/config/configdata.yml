@@ -524,6 +524,7 @@ content.netrc_file:
 content.notifications:
   default: ask
   type: BoolAsk
+  backend: QtWebKit
   desc: Allow websites to show notifications.
 
 content.pdfjs:
