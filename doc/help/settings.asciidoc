@@ -70,6 +70,8 @@
 |<<colors.statusbar.insert.fg,colors.statusbar.insert.fg>>|Foreground color of the statusbar in insert mode.
 |<<colors.statusbar.normal.bg,colors.statusbar.normal.bg>>|Background color of the statusbar.
 |<<colors.statusbar.normal.fg,colors.statusbar.normal.fg>>|Foreground color of the statusbar.
+|<<colors.statusbar.passthrough.bg,colors.statusbar.passthrough.bg>>|Background color of the statusbar in passthrough mode.
+|<<colors.statusbar.passthrough.fg,colors.statusbar.passthrough.fg>>|Foreground color of the statusbar in passthrough mode.
 |<<colors.statusbar.private.bg,colors.statusbar.private.bg>>|Background color of the statusbar in private browsing mode.
 |<<colors.statusbar.private.fg,colors.statusbar.private.fg>>|Foreground color of the statusbar in private browsing mode.
 |<<colors.statusbar.progress.bg,colors.statusbar.progress.bg>>|Background color of the progress bar.
@@ -1088,6 +1090,22 @@ Default: +pass:[black]+
 [[colors.statusbar.normal.fg]]
 === colors.statusbar.normal.fg
 Foreground color of the statusbar.
+
+Type: <<types,QssColor>>
+
+Default: +pass:[white]+
+
+[[colors.statusbar.passthrough.bg]]
+=== colors.statusbar.passthrough.bg
+Background color of the statusbar in passthrough mode.
+
+Type: <<types,QssColor>>
+
+Default: +pass:[darkblue]+
+
+[[colors.statusbar.passthrough.fg]]
+=== colors.statusbar.passthrough.fg
+Foreground color of the statusbar in passthrough mode.
 
 Type: <<types,QssColor>>
 
