@@ -15,10 +15,19 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.1.0 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- New `{current_url}` field for `window.title_format` and `tabs.title.format`.
+- New `colors.statusbar.passthrough.fg`/`.bg` settings.
+
 v1.0.2 (unreleased)
 -------------------
 
-Fixes
+Fixed
 ~~~~~
 
 - Fixed workaround for black screens with Nvidia cards
@@ -27,7 +36,7 @@ Fixes
 v1.0.1
 ------
 
-Fixes
+Fixed
 ~~~~~
 
 - Fixed starting after customizing `fonts.tabs` or `fonts.debug_console`.
