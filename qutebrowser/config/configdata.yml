@@ -1799,22 +1799,22 @@ colors.tabs.even.bg:
   desc: Background color of unselected even tabs.
 
 colors.tabs.selected.odd.fg:
-  default: white
+  default: black
   type: QtColor
   desc: Foreground color of selected odd tabs.
 
 colors.tabs.selected.odd.bg:
-  default: black
+  default: white
   type: QtColor
   desc: Background color of selected odd tabs.
 
 colors.tabs.selected.even.fg:
-  default: white
+  default: black
   type: QtColor
   desc: Foreground color of selected even tabs.
 
 colors.tabs.selected.even.bg:
-  default: black
+  default: white
   type: QtColor
   desc: Background color of selected even tabs.
 
