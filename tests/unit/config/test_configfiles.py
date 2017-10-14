@@ -461,6 +461,20 @@ class TestConfigPy:
         assert config.instance._values['aliases']['foo'] == 'message-info foo'
         assert config.instance._values['aliases']['bar'] == 'message-info bar'
 
+    @pytest.mark.parametrize('option, value', [
+        ('content.user_stylesheets', 'style.css'),
+        ('url.start_pages', 'https://www.python.org/'),
+    ])
+    def test_appending(self, config_tmpdir, confpy, option, value):
+        """Test appending an item to some special list types.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/3104
+        """
+        (config_tmpdir / 'style.css').ensure()
+        confpy.write('c.{}.append("{}")'.format(option, value))
+        confpy.read()
+        assert config.instance._values[option][-1] == value
+
     def test_oserror(self, tmpdir, data_tmpdir, config_tmpdir):
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
             configfiles.read_config_py(str(tmpdir / 'foo'))

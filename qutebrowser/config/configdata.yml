@@ -583,7 +583,7 @@ content.user_stylesheets:
     name: ListOrValue
     valtype: File
     none_ok: True
-  default: null
+  default: []
   desc: A list of user stylesheet filenames to use.
 
 content.webgl:
@@ -1334,7 +1334,7 @@ url.start_pages:
   type:
     name: ListOrValue
     valtype: FuzzyUrl
-  default: "https://start.duckduckgo.com"
+  default: ["https://start.duckduckgo.com"]
   desc: The page(s) to open at the start.
 
 url.yank_ignored_parameters:

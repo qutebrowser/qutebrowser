@@ -30,15 +30,27 @@ from qutebrowser.utils import usertypes
 
 
 def test_init(config_stub):
-    """Test reading the default yaml file and validating the values."""
+    """Test reading the default yaml file."""
     # configdata.init() is called by config_stub
     config_stub.val.aliases = {}
     assert isinstance(configdata.DATA, dict)
     assert 'ignore_case' in configdata.DATA
+
+
+def test_data(config_stub):
+    """Test various properties of the default values."""
     for option in configdata.DATA.values():
         # Make sure to_py and to_str work
         option.typ.to_py(option.default)
         option.typ.to_str(option.default)
+
+        # https://github.com/qutebrowser/qutebrowser/issues/3104
+        # For lists/dicts, don't use None as default
+        if isinstance(option.typ, (configtypes.Dict, configtypes.List)):
+            assert option.default is not None
+        # For ListOrValue, use a list as default
+        if isinstance(option.typ, configtypes.ListOrValue):
+            assert isinstance(option.default, list)
 
 
 # https://github.com/qutebrowser/qutebrowser/issues/2777
