@@ -131,10 +131,11 @@ class FakeUrl:
 
     """QUrl stub which provides .path(), isValid() and host()."""
 
-    def __init__(self, path=None, valid=True, host=None):
+    def __init__(self, path=None, valid=True, host=None, url=None):
         self.path = mock.Mock(return_value=path)
         self.isValid = mock.Mock(returl_value=valid)
         self.host = mock.Mock(returl_value=host)
+        self.url = mock.Mock(return_value=url)
 
 
 class FakeNetworkReply:
