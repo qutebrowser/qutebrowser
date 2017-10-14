@@ -94,19 +94,18 @@
 
     function GM_addStyle(/* String */ styles) {
         var oStyle = document.createElement("style");
+        oStyle.setAttribute("type", "text/css");
+        oStyle.appendChild(document.createTextNode(styles));
+
         var head = document.getElementsByTagName("head")[0];
         if (head === undefined) {
             document.onreadystatechange = function () {
                 if (document.readyState == "interactive") {
-                    oStyle.setAttribute("type", "text/css");
-                    oStyle.appendChild(document.createTextNode(styles));
                     document.getElementsByTagName("head")[0].appendChild(oStyle);
                 }
             }
         }
         else {
-            oStyle.setAttribute("type", "text/css");
-            oStyle.appendChild(document.createTextNode(styles));
             head.appendChild(oStyle);
         }
     }
