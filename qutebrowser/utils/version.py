@@ -148,13 +148,18 @@ def _git_str_subprocess(gitpath):
     if not os.path.isdir(os.path.join(gitpath, ".git")):
         return None
     try:
-        cid = subprocess.check_output(
-            ['git', 'describe', '--tags', '--dirty', '--always'],
+        commit_hash = subprocess.check_output(
+            ['git',
+             'describe',
+             '--match=NeVeRmAtCh',
+             '--always',
+             '--abbrev=40',
+             '--dirty'],
             cwd=gitpath).decode('UTF-8').strip()
         date = subprocess.check_output(
             ['git', 'show', '-s', '--format=%ci', 'HEAD'],
             cwd=gitpath).decode('UTF-8').strip()
-        return '{} ({})'.format(cid, date)
+        return '{} ({})'.format(commit_hash, date)
     except (subprocess.CalledProcessError, OSError):
         return None
 
