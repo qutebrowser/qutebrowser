@@ -511,7 +511,8 @@ class FatalCrashDialog(_CrashDialog):
         if self._chk_history.isChecked():
             try:
                 history = objreg.get('web-history').get_recent()
-                self._crash_info.append(("History", ''.join(history)))
+                self._crash_info.append(("History",
+                                         ''.join(e[0] for e in history)))
             except Exception:
                 self._crash_info.append(("History", traceback.format_exc()))
 
