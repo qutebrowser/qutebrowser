@@ -44,3 +44,4 @@ rules:
      array-element-newline: "off"
      no-multi-spaces: ["error", {"ignoreEOLComments": true}]
      function-paren-newline: "off"
+     multiline-comment-style: "off"
