@@ -9,7 +9,7 @@
         'script': {{ scriptInfo }},
         'scriptMetaStr': {{ scriptMeta | tojson }},
         'scriptWillUpdate': false,
-        'version': "{{ quteVersion }}",
+        'version': "0.0.1",
         'scriptHandler': 'Tampermonkey' // so scripts don't expect exportFunction
     };
 

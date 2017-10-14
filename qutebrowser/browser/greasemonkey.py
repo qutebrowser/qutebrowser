@@ -29,7 +29,6 @@ import glob
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject
 
-import qutebrowser
 from qutebrowser.utils import log, standarddir, jinja
 from qutebrowser.commands import cmdutils
 
@@ -105,8 +104,7 @@ class GreasemonkeyScript:
                 scriptName="/".join([self.namespace or '', self.name]),
                 scriptInfo=self._meta_json(),
                 scriptMeta=self.script_meta,
-                scriptSource=self._code,
-                quteVersion=qutebrowser.__version__)
+                scriptSource=self._code)
 
     def _meta_json(self):
         return json.dumps({
