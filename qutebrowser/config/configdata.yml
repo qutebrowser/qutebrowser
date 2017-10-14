@@ -1504,6 +1504,16 @@ colors.completion.match.fg:
   type: QssColor
   desc: Foreground color of the matched text in the completion.
 
+colors.statusbar.passthrough.fg:
+  default: white
+  type: QssColor
+  desc: Foreground color of the statusbar in passthrough mode.
+
+colors.statusbar.passthrough.bg:
+  default: darkblue
+  type: QssColor
+  desc: Background color of the statusbar in passthrough mode.
+
 colors.completion.scrollbar.fg:
   default: white
   type: QssColor
