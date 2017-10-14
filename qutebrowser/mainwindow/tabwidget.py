@@ -164,6 +164,11 @@ class TabWidget(QTabWidget):
         except qtutils.QtValueError:
             fields['host'] = ''
 
+        try:
+            fields['current_url'] = self.tab_url(idx).url()
+        except qtutils.QtValueError:
+            fields['current_url'] = ''
+
         y = tab.scroller.pos_perc()[1]
         if y is None:
             scroll_pos = '???'

@@ -2810,6 +2810,7 @@ The following placeholders are defined:
 * `{host}`: The host of the current web page.
 * `{backend}`: Either ''webkit'' or ''webengine''
 * `{private}` : Indicates when private mode is enabled.
+* `{current_url}` : The url of the current web page.
 
 
 Type: <<types,FormatString>>
@@ -2946,6 +2947,7 @@ The following placeholders are defined:
 * `{host}`: The host of the current web page.
 * `{backend}`: Either ''webkit'' or ''webengine''
 * `{private}` : Indicates when private mode is enabled.
+* `{current_url}` : The url of the current web page.
 
 
 Type: <<types,FormatString>>
