@@ -173,8 +173,8 @@ uppercase = false
 dictionary = /usr/share/dict/words
 auto-follow = unique-match
 auto-follow-timeout = 0
-next-regexes = \\bnext\\b,\\bmore\\b,\\bnewer\\b,\\b[>\u2192\u226b]\\b,\\b(>>|\xbb)\\b,\\bcontinue\\b
-prev-regexes = \\bprev(ious)?\\b,\\bback\\b,\\bolder\\b,\\b[<\u2190\u226a]\\b,\\b(<<|\xab)\\b
+next-regexes = \\bnext\\b,\\bmore\\b,\\bnewer\\b,^[>\u2192\u226b]($$),^(>>|\xbb)($$),\\bcontinue\\b
+prev-regexes = \\bprev(ious)?\\b,\\bback\\b,\\bolder\\b,^[<\u2190\u226a]($$),^(<<|\xab)($$)
 find-implementation = python
 hide-unmatched-rapid-hints = true
 [searchengines]

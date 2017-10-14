@@ -842,8 +842,8 @@ hints.next_regexes:
     - "\\bnext\\b"
     - "\\bmore\\b"
     - "\\bnewer\\b"
-    - "\\b[>\u2192\u226B]\\b"
-    - "\\b(>>|\xBB)\\b"
+    - "^[>\u2192\u226B]($$)"
+    - "^(>>|\xBB)($$)"
     - "\\bcontinue\\b"
   type:
     name: List
@@ -857,8 +857,8 @@ hints.prev_regexes:
     - "\\bprev(ious)?\\b"
     - "\\bback\\b"
     - "\\bolder\\b"
-    - "\\b[<\u2190\u226A]\\b"
-    - "\\b(<<|\xAB)\\b"
+    - "^[<\u2190\u226A]($$)"
+    - "^(<<|\xAB)($$)"
   type:
     name: List
     valtype:
