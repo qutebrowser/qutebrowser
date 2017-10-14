@@ -357,7 +357,7 @@ class TestGitStrSubprocess:
         """Test with a real git repository."""
         ret = version._git_str_subprocess(str(git_repo))
         assert ret == \
-            '6e4b65a529c0ab78fb370c1527d5809f7436b8f3 ' \
+            '6e4b65a ' \
             + '(1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmpdir):
