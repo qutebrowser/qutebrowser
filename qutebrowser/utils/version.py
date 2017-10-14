@@ -32,6 +32,8 @@ import pkg_resources
 import attr
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
+from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+                         QOffscreenSurface)
 from PyQt5.QtWidgets import QApplication
 
 try:
@@ -392,10 +394,6 @@ def opengl_vendor():  # pragma: no cover
     'Intel Open Source Technology Center'; or None if the vendor can't be
     determined.
     """
-    # We're doing those imports here because this is only available with Qt 5.4
-    # or newer.
-    from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
-                             QOffscreenSurface)
     assert QApplication.instance()
 
     old_context = QOpenGLContext.currentContext()
