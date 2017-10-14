@@ -232,7 +232,7 @@ def inject_userscripts():
             new_script.setWorldId(QWebEngineScript.MainWorld)
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
-            new_script.setRunsOnSubFrames(script.runsOnSubFrames)
+            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
             scripts.insert(new_script)
