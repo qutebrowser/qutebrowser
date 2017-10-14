@@ -349,12 +349,15 @@ bind_chained('<Escape>', 'clear-keychain', 'search')
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
 
-If you use an editor with flake8 integration which complains about `c` and `config` being undefined, you can use:
+If you use an editor with flake8 and pylint integration, it may have some
+complaints about invalid names, undefined variables, or missing docstrings.
+You can silence those with:
 
 [source,python]
 ----
-c = c  # noqa: F821
-config = config  # noqa: F821
+# pylint: disable=C0111
+c = c  # noqa: F821 pylint: disable=E0602,C0103
+config = config  # noqa: F821 pylint: disable=E0602,C0103
 ----
 
 For type annotation support (note that those imports aren't guaranteed to be
@@ -362,8 +365,9 @@ stable across qutebrowser versions):
 
 [source,python]
 ----
+# pylint: disable=C0111
 from qutebrowser.config.configfiles import ConfigAPI  # noqa: F401
 from qutebrowser.config.config import ConfigContainer  # noqa: F401
-config = config  # type: ConfigAPI # noqa: F821
-c = c  # type: ConfigContainer # noqa: F821
+config = config  # type: ConfigAPI # noqa: F821 pylint: disable=E0602,C0103
+c = c  # type: ConfigContainer # noqa: F821 pylint: disable=E0602,C0103
 ----
