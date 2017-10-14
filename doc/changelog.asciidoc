@@ -15,6 +15,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.0.2 (unreleased)
+-------------------
+
+Fixes
+~~~~~
+
+- Fixed workaround for black screens with Nvidia cards
+- Mark the content.notifications setting as QtWebKit only correctly
+
 v1.0.1
 ------
 
