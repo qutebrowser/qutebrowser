@@ -43,7 +43,7 @@ class ColorFlags:
         command: If we're currently in command mode.
         mode: The current caret mode (CaretMode.off/.on/.selection).
         private: Whether this window is in private browsing mode.
-        passthrough: If we're currently in passthrough-mode
+        passthrough: If we're currently in passthrough-mode.
     """
 
     CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
