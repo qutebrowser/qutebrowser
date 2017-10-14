@@ -424,7 +424,7 @@ class TabBar(QTabBar):
             return
         super().mousePressEvent(e)
 
-    def minimumTabSizeHint(self, index, ellipsis: bool = True):
+    def minimumTabSizeHint(self, index, ellipsis: bool = True) -> QSize:
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
@@ -434,11 +434,18 @@ class TabBar(QTabBar):
         Return:
             A QSize of the smallest tab size we can make.
         """
-        text = '\u2026' if ellipsis else self.tabText(index)
+        return self.__minimumTabSizeHintHelper(self.tabText(index),
+                                               self.tabIcon(index), ellipsis)
+
+    @functools.lru_cache(maxsize=100)
+    def __minimumTabSizeHintHelper(self, tab_text: str,
+                                   icon,
+                                   ellipsis: bool) -> QSize:
+        """Helper function to cache tab results."""
+        text = '\u2026' if ellipsis else tab_text
         # Don't ever shorten if text is shorter than the ellipsis
         text_width = min(self.fontMetrics().width(text),
-                         self.fontMetrics().width(self.tabText(index)))
-        icon = self.tabIcon(index)
+                         self.fontMetrics().width(tab_text))
         padding = config.val.tabs.padding
         indicator_padding = config.val.tabs.indicator_padding
         padding_h = padding.left + padding.right
