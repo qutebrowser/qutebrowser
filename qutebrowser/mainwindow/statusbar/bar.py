@@ -249,6 +249,9 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.insert:
             log.statusbar.debug("Setting insert flag to {}".format(val))
             self._color_flags.insert = val
+        if mode == usertypes.KeyMode.passthrough:
+            log.statusbar.debug("Setting passthrough flag to {}".format(val))
+            self._color_flags.passthrough = val
         if mode == usertypes.KeyMode.command:
             log.statusbar.debug("Setting command flag to {}".format(val))
             self._color_flags.command = val
@@ -312,7 +315,8 @@ class StatusBar(QWidget):
                     usertypes.KeyMode.command,
                     usertypes.KeyMode.caret,
                     usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
+                    usertypes.KeyMode.yesno,
+                    usertypes.KeyMode.passthrough]:
             self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
@@ -329,7 +333,8 @@ class StatusBar(QWidget):
                         usertypes.KeyMode.command,
                         usertypes.KeyMode.caret,
                         usertypes.KeyMode.prompt,
-                        usertypes.KeyMode.yesno]:
+                        usertypes.KeyMode.yesno,
+                        usertypes.KeyMode.passthrough]:
             self.set_mode_active(old_mode, False)
 
     @pyqtSlot(browsertab.AbstractTab)
