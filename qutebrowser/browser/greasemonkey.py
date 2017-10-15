@@ -27,7 +27,7 @@ import functools
 import glob
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import log, standarddir, jinja
 from qutebrowser.commands import cmdutils
