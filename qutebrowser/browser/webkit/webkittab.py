@@ -422,12 +422,13 @@ class WebKitScroller(browsertab.AbstractScroller):
         else:
             for val, orientation in [(x, Qt.Horizontal), (y, Qt.Vertical)]:
                 if val is not None:
-                    val = qtutils.check_overflow(val, 'int', fatal=False)
                     frame = self._widget.page().mainFrame()
-                    m = frame.scrollBarMaximum(orientation)
-                    if m == 0:
+                    maximum = frame.scrollBarMaximum(orientation)
+                    if maximum == 0:
                         continue
-                    frame.setScrollBarValue(orientation, int(m * val / 100))
+                    pos = int(maximum * val / 100)
+                    pos = qtutils.check_overflow(pos, 'int', fatal=False)
+                    frame.setScrollBarValue(orientation, pos)
 
     def _key_press(self, key, count=1, getter_name=None, direction=None):
         frame = self._widget.page().mainFrame()
