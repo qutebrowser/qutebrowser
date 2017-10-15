@@ -18,8 +18,9 @@ the old defaults.
 Other changes in default settings:
 
 - `<Up>` and `<Down>` in the completion now navigate through command history
-  instead of selecting completion items. You can get back the old behavior by
-  doing:
+  instead of selecting completion items. Use `<Tab>`/`<Shift-Tab>` to cycle
+  through the completion instead.
+  You can get back the old behavior by doing:
 +
 ----
 :bind -f -m command <Up> completion-item-focus prev

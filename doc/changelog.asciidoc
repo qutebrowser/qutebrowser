@@ -74,6 +74,9 @@ Major changes
   the entire browsing history. The default for
   `completion.web_history_max_items` got changed to `-1` (unlimited). If the
   completion is too slow on your machine, try setting it to a few 1000 items.
+- Up/Down now navigates through the command history instead of selecting
+  completion items. Either use Tab to cycle through the completion, or
+  https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
 
 Added
 ~~~~~
