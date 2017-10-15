@@ -32,6 +32,7 @@ Fixed
 
 - Fixed workaround for black screens with Nvidia cards
 - Mark the content.notifications setting as QtWebKit only correctly
+- Handle a filesystem going read-only gracefully
 
 v1.0.1
 ------

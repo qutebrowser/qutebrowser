@@ -65,13 +65,12 @@ class SqliteError(SqlError):
         log.sql.debug("error code: {}".format(error.nativeErrorCode()))
 
         # https://sqlite.org/rescode.html
+        # https://github.com/qutebrowser/qutebrowser/issues/2930
+        # https://github.com/qutebrowser/qutebrowser/issues/3004
         environmental_errors = [
-            # SQLITE_LOCKED,
-            # https://github.com/qutebrowser/qutebrowser/issues/2930
-            '9',
-            # SQLITE_FULL,
-            # https://github.com/qutebrowser/qutebrowser/issues/3004
-            '13',
+            '8',   # SQLITE_READONLY
+            '9',   # SQLITE_LOCKED,
+            '13',  # SQLITE_FULL,
         ]
         self.environmental = error.nativeErrorCode() in environmental_errors
 
