@@ -116,6 +116,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         self._tab_insert_idx_right = -1
         self.shutting_down = False
         self.tabCloseRequested.connect(self.on_tab_close_requested)
+        self.new_tab_requested.connect(self.openurl)
         self.currentChanged.connect(self.on_current_changed)
         self.cur_load_started.connect(self.on_cur_load_started)
         self.cur_fullscreen_requested.connect(self.tabBar().maybe_hide)
