@@ -17,6 +17,9 @@
 		<category>Network</category>
 		<category>WebBrowser</category>
 	</categories>
+	<provides>
+		<binary>qutebrowser</binary>
+	</provides>
 	<launchable type="desktop-id">qutebrowser.desktop</launchable>
 	<screenshots>
 		<screenshot type="default">
