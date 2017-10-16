@@ -13,6 +13,10 @@
 			and is based on Python and PyQt5.
 		</p>	
 	</description>
+	<categories>
+		<category>Network</category>
+		<category>WebBrowser</category>
+	</categories>
 	<launchable type="desktop-id">qutebrowser.desktop</launchable>
 	<screenshots>
 		<screenshot type="default">
