@@ -657,7 +657,7 @@ class TabBarStyle(QCommonStyle):
         icon_state = (QIcon.On if opt.state & QStyle.State_Selected
                       else QIcon.Off)
         icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-        p.drawItemPixmap(layouts.icon, Qt.AlignCenter, icon)
+        self._style.drawItemPixmap(p, layouts.icon, Qt.AlignCenter, icon)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
