@@ -96,7 +96,9 @@
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
 |<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color)
 |<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|How many commands to save in the command history.
+|<<completion.delay,completion.delay>>|Delay in ms before updating completions after typing a character.
 |<<completion.height,completion.height>>|The height of the completion, in px or as percentage of the window.
+|<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
 |<<completion.quick,completion.quick>>|Move on to the next part when there's only one possible completion left.
 |<<completion.scrollbar.padding,completion.scrollbar.padding>>|Padding of scrollbar handle in the completion window (in px).
 |<<completion.scrollbar.width,completion.scrollbar.width>>|Width of the scrollbar in the completion window (in px).
@@ -1311,6 +1313,14 @@ Type: <<types,Int>>
 
 Default: +pass:[100]+
 
+[[completion.delay]]
+=== completion.delay
+Delay in ms before updating completions after typing a character.
+
+Type: <<types,Int>>
+
+Default: +pass:[0]+
+
 [[completion.height]]
 === completion.height
 The height of the completion, in px or as percentage of the window.
@@ -1318,6 +1328,14 @@ The height of the completion, in px or as percentage of the window.
 Type: <<types,PercOrInt>>
 
 Default: +pass:[50%]+
+
+[[completion.min_chars]]
+=== completion.min_chars
+Minimum amount of characters needed to update completions.
+
+Type: <<types,Int>>
+
+Default: +pass:[1]+
 
 [[completion.quick]]
 === completion.quick
