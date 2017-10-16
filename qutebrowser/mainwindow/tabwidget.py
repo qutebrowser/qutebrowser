@@ -438,7 +438,9 @@ class TabBar(QTabBar):
             idx = self.tabAt(e.pos())
             if idx == -1:
                 action = config.val.tabs.close_mouse_button_on_bar
-                if action == 'new-tab':
+                if action == 'ignore':
+                    return
+                elif action == 'new-tab':
                     self.new_tab_requested.emit()
                     return
                 elif action == 'close-current':

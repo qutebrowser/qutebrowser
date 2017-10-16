@@ -1135,6 +1135,7 @@ tabs.close_mouse_button_on_bar:
       - new-tab: "Open a new tab."
       - close-current: "Close the current tab."
       - close-last: "Close the last tab."
+      - ignore: "Don't do anything."
   desc: Behavior when the close mouse button is pressed on the tab bar.
 
 tabs.favicons.scale:
