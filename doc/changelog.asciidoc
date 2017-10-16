@@ -24,6 +24,7 @@ Fixes
 - Fixed workaround for black screens with Nvidia cards
 - Mark the content.notifications setting as QtWebKit only correctly
 - Handle a filesystem going read-only gracefully
+- Fix wrong rendering of keys like `<back>` in the completion
 
 v1.0.1
 ------
