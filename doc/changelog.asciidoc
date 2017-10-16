@@ -26,6 +26,11 @@ Added
 - New `completion.delay` and `completion.min_chars` settings to update the
   completion less often.
 
+Fixed
+~~~~~
+
+- More consistent sizing for favicons with vertical tabs.
+
 v1.0.2 (unreleased)
 -------------------
 
