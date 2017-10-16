@@ -378,7 +378,9 @@ class FakeTimer(QObject):
     def isSingleShot(self):
         return self._singleshot
 
-    def start(self):
+    def start(self, interval=None):
+        if interval:
+            self._interval = interval
         self._started = True
 
     def stop(self):
@@ -397,7 +399,7 @@ class InstaTimer(QObject):
 
     timeout = pyqtSignal()
 
-    def start(self):
+    def start(self, interval=None):
         self.timeout.emit()
 
     def setSingleShot(self, yes):

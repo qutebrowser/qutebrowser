@@ -678,6 +678,20 @@ completion.web_history_max_items:
 
     0: no history / -1: unlimited
 
+completion.delay:
+  default: 0
+  type:
+    name: Int
+    minval: 0
+  desc: Delay in ms before updating completions after typing a character
+
+completion.min_chars:
+  default: 1
+  type:
+    name: Int
+    minval: 1
+  desc: Minimum amount of characters needed to update completions
+
 ## downloads
 
 downloads.location.directory:
