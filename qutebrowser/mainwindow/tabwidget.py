@@ -50,7 +50,7 @@ class TabWidget(QTabWidget):
     """
 
     tab_index_changed = pyqtSignal(int, int)
-    new_tab_requested = pyqtSignal('QUrl', bool)
+    new_tab_requested = pyqtSignal('QUrl', bool, bool)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -267,7 +267,7 @@ class TabWidget(QTabWidget):
     @pyqtSlot()
     def _on_new_tab_requested(self):
         """Open a new tab."""
-        self.new_tab_requested.emit(config.val.url.default_page, True)
+        self.new_tab_requested.emit(config.val.url.default_page, False, False)
 
     def tab_url(self, idx):
         """Get the URL of the tab at the given index.
