@@ -258,6 +258,15 @@ class TestEarlyInit:
         # Font subclass, but doesn't end with "monospace"
         assert 'fonts.web.family.standard' not in changed_options
 
+    def test_setting_monospace_fonts_family(self, init_patch, args):
+        """Make sure setting fonts.monospace after a family works.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/3130
+        """
+        configinit.early_init(args)
+        config.instance.set_str('fonts.web.family.standard', '')
+        config.instance.set_str('fonts.monospace', 'Terminus')
+
     def test_force_software_rendering(self, monkeypatch, config_stub):
         """Setting force_software_rendering should set the environment var."""
         envvar = 'QT_XCB_FORCE_SOFTWARE_OPENGL'
