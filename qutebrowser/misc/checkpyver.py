@@ -49,7 +49,7 @@ def check_python_version():
         # pylint: disable=bad-builtin
         version_str = '.'.join(map(str, sys.version_info[:3]))
         text = ("At least Python 3.5 is required to run qutebrowser, but " +
-                version_str + " is installed!\n")
+                "it's running with " + version_str + ".\n")
         if Tk and '--no-err-windows' not in sys.argv:  # pragma: no cover
             root = Tk()
             root.withdraw()
