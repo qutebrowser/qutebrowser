@@ -28,7 +28,9 @@
 			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/hints.png</image>
 		</screenshot>
 	</screenshots>
-	<url type="homepage">https://www.qutebrowser.org/</url>
+	<url type="homepage">https://www.qutebrowser.org</url>
+	<url type="bugtracker">https://github.com/qutebrowser/qutebrowser/issues/</url>
+	<url type="donation">https://github.com/qutebrowser/qutebrowser#donating</url>
 </component>
 
 
