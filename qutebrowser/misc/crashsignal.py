@@ -311,6 +311,8 @@ class SignalHandler(QObject):
             signal.SIGINT, self.interrupt)
         self._orig_handlers[signal.SIGTERM] = signal.signal(
             signal.SIGTERM, self.interrupt)
+        self._orig_handlers[signal.SIGUSR1] = signal.signal(
+            signal.SIGUSR1, self.reload_config)
 
         if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
@@ -401,3 +403,6 @@ class SignalHandler(QObject):
         """
         print("WHY ARE YOU DOING THIS TO ME? :(")
         sys.exit(128 + signum)
+
+    def reload_config(self, signum, _frame):
+        objreg.get('config-commands').config_source()
