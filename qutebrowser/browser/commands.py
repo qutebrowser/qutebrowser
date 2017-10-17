@@ -353,6 +353,10 @@ class CommandDispatcher:
         Return:
             A list of URLs that can be opened.
         """
+        if isinstance(url, QUrl):
+            yield url
+            return
+
         force_search = False
         urllist = [u for u in url.split('\n') if u.strip()]
         if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
@@ -1210,7 +1214,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
-        self._current_widget().openurl(config.val.url.start_pages[0])
+        self.openurl(config.val.url.start_pages[0])
 
     def _run_userscript(self, cmd, *args, verbose=False):
         """Run a userscript given as argument.

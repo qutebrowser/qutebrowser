@@ -1197,6 +1197,14 @@ Feature: Tab management
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
 
+    Scenario: :tab-pin open url
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :home
+        Then the message "Tab is pinned!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
     Scenario: Cloning a pinned tab
         When I open data/numbers/1.txt
         And I run :tab-pin
