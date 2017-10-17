@@ -174,20 +174,30 @@ class ExternalEditor(QObject):
     def _sub_placeholder(self, possible_placeholder, line, column):
         """Substitute a single placeholder.
 
-        The input to this function is not guaranteed to be a valid or known
-        placeholder. In this case the return value is the unchanged input.
+        If the `possible_placeholder` input to this function is valid it will
+        be substituted with the appropriate value, otherwise it will be left
+        unchanged.
 
         Args:
             possible_placeholder: an argument of editor.command.
+            line: the previously-calculated line number for the text caret
+            column: the previously-calculated column number for the text caret
 
         Return:
             The substituted placeholder or the original argument
         """
-        sub = possible_placeholder\
-            .replace('{}', self._filename)\
-            .replace('{file}', self._filename)\
-            .replace('{line}', str(line))\
-            .replace('{line0}', str(line-1))\
-            .replace('{column}', str(column))\
-            .replace('{column0}', str(column-1))
-        return sub
+        replacements = {
+            '{}': self._filename,
+            '{file}': self._filename,
+            '{line}': str(line),
+            '{line0}': str(line-1),
+            '{column}': str(column),
+            '{column0}': str(column-1)
+        }
+
+        # The for loop would create a copy anyway, this should be more legible
+        ph = possible_placeholder
+        for old, new in replacements.items():
+            ph = ph.replace(old, new)
+
+        return ph
