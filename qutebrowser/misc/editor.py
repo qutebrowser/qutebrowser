@@ -123,30 +123,7 @@ class ExternalEditor(QObject):
 
         self._remove_file = True
 
-        # Here we calculate the line and column of the caret based on its
-        # position and the given text.
-        #
-        # NOTE: Both line and column are 1-based indexes, because that's what
-        # most editors use as line and column starting index.
-        # By "most" we mean at least vim, nvim, gvim, emacs, atom, sublimetext,
-        # notepad++, brackets, visual studio, QtCreator and so on.
-        #
-        # To find the line we just count how many newlines there are before
-        # the caret and add 1.
-        #
-        # To find the column we calculate the difference between the caret and
-        # the last newline before the caret.
-        #
-        # For example in the text `aaa\nbb|bbb` (| represents the caret):
-        # caret_position = 6
-        # text[:caret_position] = `aaa\nbb`
-        # text[:caret_psotion].count('\n') = 1
-        # caret_position - text[:caret_position].rfind('\n') = 3
-        #
-        # Thus line, column = 2, 3, and the caret is indeed in the second
-        # line, third column
-        line = text[:caret_position].count('\n') + 1
-        column = caret_position - text[:caret_position].rfind('\n')
+        line, column = self._calc_line_and_column(text, caret_position)
         self._start_editor(line=line, column=column)
 
     def edit_file(self, filename):
@@ -171,6 +148,39 @@ class ExternalEditor(QObject):
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
         self._proc.start(executable, args)
+
+    def _calc_line_and_column(self, text, caret_position):
+        """Calculate line and column numbers given a text and caret position
+
+        Args:
+            text: the text for which the numbers must be calculated
+            caret_position: the position of the caret in the text
+
+        Return:
+            A (line, column) tuple of (int, int)
+        """
+        # Both line and column are 1-based indexes, because that's what most
+        # editors use as line and column starting index.  By "most" we mean at
+        # least vim, nvim, gvim, emacs, atom, sublimetext, notepad++, brackets,
+        # visual studio, QtCreator and so on.
+        #
+        # To find the line we just count how many newlines there are before the
+        # caret and add 1.
+        #
+        # To find the column we calculate the difference between the caret and
+        # the last newline before the caret.
+        #
+        # For example in the text `aaa\nbb|bbb` (| represents the caret):
+        # caret_position = 6
+        # text[:caret_position] = `aaa\nbb`
+        # text[:caret_psotion].count('\n') = 1
+        # caret_position - text[:caret_position].rfind('\n') = 3
+        #
+        # Thus line, column = 2, 3, and the caret is indeed in the second
+        # line, third column
+        line = text[:caret_position].count('\n') + 1
+        column = caret_position - text[:caret_position].rfind('\n')
+        return (line, column)
 
     def _sub_placeholder(self, possible_placeholder, line, column):
         """Substitute a single placeholder.
