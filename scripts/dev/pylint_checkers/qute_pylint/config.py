@@ -20,14 +20,11 @@
 """Custom astroid checker for config calls."""
 
 import sys
-import os
-import os.path
-
+import pathlib
 import yaml
 import astroid
 from pylint import interfaces, checkers
 from pylint.checkers import utils
-from pathlib import Path
 
 
 OPTIONS = None
@@ -63,7 +60,7 @@ class ConfigChecker(checkers.BaseChecker):
         """Check that we're accessing proper config options."""
         if FAILED_LOAD:
             if not ConfigChecker.printed_warning:
-                print("[WARN] Could not find configdata.yml. Please run " +
+                print("[WARN] Could not find configdata.yml. Please run "
                       "pylint from qutebrowser root.", file=sys.stderr)
                 print("Skipping some checks...", file=sys.stderr)
                 ConfigChecker.printed_warning = True
@@ -77,7 +74,7 @@ def register(linter):
     linter.register_checker(ConfigChecker(linter))
     global OPTIONS
     global FAILED_LOAD
-    yaml_file = Path('qutebrowser') / 'config' / 'configdata.yml'
+    yaml_file = pathlib.Path('qutebrowser') / 'config' / 'configdata.yml'
     if not yaml_file.exists():
         OPTIONS = None
         FAILED_LOAD = True
