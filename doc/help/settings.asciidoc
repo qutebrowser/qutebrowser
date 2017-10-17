@@ -105,6 +105,7 @@
 |<<completion.show,completion.show>>|When to show the autocompletion window.
 |<<completion.shrink,completion.shrink>>|Shrink the completion to be smaller than the configured size if there are no scrollbars.
 |<<completion.timestamp_format,completion.timestamp_format>>|How to format timestamps (e.g. for the history completion).
+|<<completion.use_best_match,completion.use_best_match>>|Whether to execute the best-matching command on a partial match.
 |<<completion.web_history_max_items,completion.web_history_max_items>>|How many URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Whether quitting the application requires a confirmation.
 |<<content.cache.appcache,content.cache.appcache>>|Whether support for the HTML 5 web application cache feature is enabled.
@@ -1390,6 +1391,14 @@ How to format timestamps (e.g. for the history completion).
 Type: <<types,TimestampTemplate>>
 
 Default: +pass:[%Y-%m-%d]+
+
+[[completion.use_best_match]]
+=== completion.use_best_match
+Whether to execute the best-matching command on a partial match.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[completion.web_history_max_items]]
 === completion.web_history_max_items
