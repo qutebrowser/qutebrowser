@@ -74,7 +74,8 @@ def early_init(args):
         except configexc.Error as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
-    configtypes.Font.monospace_fonts = config.val.fonts.monospace
+    configtypes.Font.monospace_fonts = ', '.join(
+        '"{}"'.format(name) for name in config.val.fonts.monospace)
     config.instance.changed.connect(_update_monospace_fonts)
 
     _init_envvars()
@@ -98,7 +99,8 @@ def _init_envvars():
 @config.change_filter('fonts.monospace', function=True)
 def _update_monospace_fonts():
     """Update all fonts if fonts.monospace was set."""
-    configtypes.Font.monospace_fonts = config.val.fonts.monospace
+    configtypes.Font.monospace_fonts = ', '.join(
+        '"{}"'.format(name) for name in config.val.fonts.monospace)
     for name, opt in configdata.DATA.items():
         if name == 'fonts.monospace':
             continue
