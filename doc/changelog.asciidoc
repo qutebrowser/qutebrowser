@@ -31,15 +31,17 @@ Fixed
 
 - More consistent sizing for favicons with vertical tabs.
 
-v1.0.2 (unreleased)
--------------------
+v1.0.2
+------
 
 Fixed
 ~~~~~
 
-- Fixed workaround for black screens with Nvidia cards
-- Mark the content.notifications setting as QtWebKit only correctly
+- Fix workaround for black screens or crashes with Nvidia cards
 - Handle a filesystem going read-only gracefully
+- Fix crash when setting `fonts.monospace`
+- Fix list options not being modifyable via `.append()` in `config.py`
+- Mark the content.notifications setting as QtWebKit only correctly
 - Fix wrong rendering of keys like `<back>` in the completion
 
 Changed
