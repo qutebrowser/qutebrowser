@@ -25,11 +25,19 @@ Added
 - New `colors.statusbar.passthrough.fg`/`.bg` settings.
 - New `completion.delay` and `completion.min_chars` settings to update the
   completion less often.
+- New `:tab-give` and `:tab-take` commands, to give tabs to another window, or
+  take them from another window.
 
 Fixed
 ~~~~~
 
 - More consistent sizing for favicons with vertical tabs.
+
+Removed
+~~~~~~~
+
+- `:tab-detach` has been removed, as `:tab-give` without argument can be used
+  instead.
 
 v1.0.2
 ------
