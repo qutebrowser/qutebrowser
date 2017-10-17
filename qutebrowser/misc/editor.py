@@ -96,7 +96,7 @@ class ExternalEditor(QObject):
     def on_proc_error(self, _err):
         self._cleanup()
 
-    def edit(self, text, caret_position):
+    def edit(self, text, caret_position=0):
         """Edit a given text.
 
         Args:
