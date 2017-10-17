@@ -389,20 +389,6 @@ class PromptContainer(QWidget):
             question.done()
 
     @cmdutils.register(instance='prompt-container', hide=True, scope='window',
-                       modes=[usertypes.KeyMode.yesno],
-                       deprecated='Use :prompt-accept yes instead!')
-    def prompt_yes(self):
-        """Answer yes to a yes/no prompt."""
-        self.prompt_accept('yes')
-
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
-                       modes=[usertypes.KeyMode.yesno],
-                       deprecated='Use :prompt-accept no instead!')
-    def prompt_no(self):
-        """Answer no to a yes/no prompt."""
-        self.prompt_accept('no')
-
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
     def prompt_open_download(self, cmdline: str = None):
         """Immediately open a download.

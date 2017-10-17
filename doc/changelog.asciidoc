@@ -39,6 +39,12 @@ Deprecated
 - `:tab-detach` has been deprecated, as `:tab-give` without argument can be used
   instead.
 
+Removed
+~~~~~~~
+
+- The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
+  commands have been removed.
+
 v1.0.2
 ------
 

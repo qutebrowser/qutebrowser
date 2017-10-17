@@ -1012,43 +1012,6 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated="Use :open {clipboard}")
-    def paste(self, sel=False, tab=False, bg=False, window=False):
-        """Open a page from the clipboard.
-
-        If the pasted text contains newlines, each line gets opened in its own
-        tab.
-
-        Args:
-            sel: Use the primary selection instead of the clipboard.
-            tab: Open in a new tab.
-            bg: Open in a background tab.
-            window: Open in new window.
-        """
-        force_search = False
-        if not utils.supports_selection():
-            sel = False
-        try:
-            text = utils.get_clipboard(selection=sel)
-        except utils.ClipboardError as e:
-            raise cmdexc.CommandError(e)
-        text_urls = [u for u in text.split('\n') if u.strip()]
-        if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
-            urlutils.get_path_if_valid(
-                text_urls[0], check_exists=True) is None):
-            force_search = True
-            text_urls = [text]
-        for i, text_url in enumerate(text_urls):
-            if not window and i > 0:
-                tab = False
-                bg = True
-            try:
-                url = urlutils.fuzzy_url(text_url, force_search=force_search)
-            except urlutils.InvalidUrlError as e:
-                raise cmdexc.CommandError(e)
-            self._open(url, tab, bg, window)
-
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.
 
@@ -1675,14 +1638,6 @@ class CommandDispatcher:
             elem.set_value(text)
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
-
-    @cmdutils.register(instance='command-dispatcher',
-                       deprecated="Use :insert-text {primary}",
-                       modes=[KeyMode.insert], hide=True, scope='window',
-                       backend=usertypes.Backend.QtWebKit)
-    def paste_primary(self):
-        """Paste the primary selection at cursor position."""
-        self.insert_text(utils.get_clipboard(selection=True, fallback=True))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')
