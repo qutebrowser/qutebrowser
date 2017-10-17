@@ -882,7 +882,7 @@ def yaml_load(f):
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
-    deadline = 3 if 'CI' in os.environ else 1
+    deadline = 3 if 'CI' in os.environ else 2
     if delta > deadline:  # pragma: no cover
         log.misc.warning(
             "YAML load took unusually long, please report this at "
