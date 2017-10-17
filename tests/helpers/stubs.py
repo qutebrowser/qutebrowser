@@ -523,6 +523,9 @@ class TabbedBrowserStub(QObject):
     def count(self):
         return len(self.tabs)
 
+    def widgets(self):
+        return self.tabs
+
     def widget(self, i):
         return self.tabs[i]
 
