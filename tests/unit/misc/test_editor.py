@@ -157,6 +157,24 @@ class TestFileHandling:
             editor.edit("")
 
 
+class TestLineColumnCalculation:
+
+    """Test calculation for line and column given text and caret_position"""
+
+    @pytest.mark.parametrize('text, caret_position, result', [
+        ('', 0, (1, 1)),
+        ('a', 0, (1, 1)),
+        ('a\nb', 1, (1, 2)),
+        ('a\nb', 2, (2, 1)),
+        ('a\nb', 3, (2, 2)),
+        ('a\nbb\nccc', 4, (2, 3)),
+        ('a\nbb\nccc', 5, (3, 1)),
+        ('a\nbb\nccc', 8, (3, 4)),
+    ])
+    def test_calculation(self, editor, text, caret_position, result):
+        assert editor._calc_line_and_column(text, caret_position) == result
+
+
 @pytest.mark.parametrize('initial_text, edited_text', [
     ('', 'Hello'),
     ('Hello', 'World'),
