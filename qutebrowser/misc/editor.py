@@ -159,7 +159,8 @@ class ExternalEditor(QObject):
         """Start the editor with the file opened as self._filename.
 
         Args:
-            caret_position: The position of the caret in the text.
+            line: the line number to pass to the editor
+            column: the column number to pass to the editor
         """
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
         self._proc.finished.connect(self.on_proc_closed)
