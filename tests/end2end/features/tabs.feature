@@ -990,7 +990,7 @@ Feature: Tab management
 
     # :tab-take
 
-    @xfail_norun
+    @xfail_norun  # Needs qutewm
     Scenario: Take a tab from another window
         Given I have a fresh instance
         When I open data/numbers/1.txt
@@ -1015,7 +1015,7 @@ Feature: Tab management
 
     # :tab-give
 
-    @xfail_norun
+    @xfail_norun  # Needs qutewm
     Scenario: Give a tab to another window
         Given I have a fresh instance
         When I open data/numbers/1.txt
