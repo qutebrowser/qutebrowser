@@ -21,6 +21,7 @@
 
 import sys
 import pathlib
+
 import yaml
 import astroid
 from pylint import interfaces, checkers
