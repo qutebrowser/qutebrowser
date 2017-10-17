@@ -1044,7 +1044,7 @@ class CommandDispatcher:
             self._open(url, tab, bg, window)
 
     def _resolve_buffer_index(self, index):
-        """Resolves a buffer index to the tabbedbrowser and tab.
+        """Resolve a buffer index to the tabbedbrowser and tab.
 
         Args:
             index: The [win_id/]index of the tab to be selected. Or a substring
