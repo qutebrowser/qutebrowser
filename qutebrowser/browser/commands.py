@@ -1012,6 +1012,18 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
+        self._open(url, tab, bg, window)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('term')
+    def duckduckgo(self, term, tab=False, bg=False, window=False):
+        """Peform a web search using duckduckgo
+        Args:
+            term: The search term to use
+        """
+        url = urlutils.fuzzy_url("https://duckduckgo.com?q={}".format(term))
+        self._open(url, tab, bg, window)
+
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.
 
