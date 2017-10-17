@@ -89,7 +89,7 @@ class TestCompletions:
         parser = runners.CommandParser(partial_match=True)
 
         with pytest.raises(cmdexc.NoSuchCommandError):
-            result = parser.parse('do')
+            parser.parse('do')
 
     def test_use_best_match(self, config_stub):
         """Test multiple completion options with use_best_match set to true.
