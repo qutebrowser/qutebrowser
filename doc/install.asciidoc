@@ -41,21 +41,17 @@ Debian Stretch / Ubuntu 17.04 and newer
 Those versions come with QtWebEngine in the repositories. This makes it possible
 to install qutebrowser via the Debian package.
 
-Install the dependencies via apt-get:
-
-----
-# apt install python-tox python3-{lxml,pyqt5,sip,jinja2,pygments,yaml,attr} python3-pyqt5.qt{webengine,quick,opengl,sql} libqt5sql5-sqlite
-----
-
 Get the qutebrowser package from the
 https://github.com/qutebrowser/qutebrowser/releases[release page] and download
 the https://qutebrowser.org/python3-pypeg2_2.15.2-1_all.deb[PyPEG2 package].
 
+(If you are using debian testing you can just use the python3-pypeg2 package from the repos)
+
 Install the packages:
 
 ----
-# dpkg -i python3-pypeg2_*_all.deb
-# dpkg -i qutebrowser_*_all.deb
+# apt install ./python3-pypeg2_*_all.deb
+# apt install ./qutebrowser_*_all.deb
 ----
 
 Some additional hints:
@@ -66,7 +62,7 @@ Some additional hints:
   `:help` command:
 +
 ----
-# apt-get install --no-install-recommends asciidoc source-highlight
+# apt install --no-install-recommends asciidoc source-highlight
 $ python3 scripts/asciidoc2html.py
 ----
 
@@ -76,7 +72,7 @@ $ python3 scripts/asciidoc2html.py
 - If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
 +
 ----
-# apt-get install gstreamer1.0-plugins-{bad,base,good,ugly}
+# apt install gstreamer1.0-plugins-{bad,base,good,ugly}
 ----
 
 On Fedora
