@@ -47,6 +47,14 @@ Removed
 - The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
   commands have been removed.
 
+v1.0.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Handle accessing a locked sqlite database gracefully
+
 v1.0.2
 ------
 
