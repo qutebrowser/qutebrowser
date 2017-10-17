@@ -692,6 +692,11 @@ completion.min_chars:
     minval: 1
   desc: Minimum amount of characters needed to update completions.
 
+completion.use_best_match:
+  type: Bool
+  default: false
+  desc: Whether to execute the best-matching command on a partial match.
+
 ## downloads
 
 downloads.location.directory:

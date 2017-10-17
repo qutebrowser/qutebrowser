@@ -220,6 +220,8 @@ class CommandParser:
                 matches.append(valid_command)
         if len(matches) == 1:
             cmdstr = matches[0]
+        elif len(matches) > 1 and config.val.completion.use_best_match:
+            cmdstr = matches[0]
         return cmdstr
 
     def _split_args(self, cmd, argstr, keep):
