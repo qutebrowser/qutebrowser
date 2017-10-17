@@ -21,7 +21,7 @@
 
 import pytest
 
-from qutebrowser.commands import runners, cmdexc
+from qutebrowser.commands import runners, cmdexc, cmdutils
 
 
 class TestCommandParser:
@@ -66,19 +66,28 @@ class TestCommandParser:
         with pytest.raises(cmdexc.NoSuchCommandError):
             parser.parse_all(command)
 
-    def test_partial_parsing(self):
+
+class TestCompletions:
+
+    """Tests for completions.use_best_match."""
+
+    @pytest.fixture(autouse=True)
+    def cmdutils_stub(self, monkeypatch, stubs):
+        """Patch the cmdutils module to provide fake commands."""
+        monkeypatch.setattr(cmdutils, 'cmd_dict', {
+            'one': stubs.FakeCommand(name='one'),
+            'two': stubs.FakeCommand(name='two'),
+            'two-foo': stubs.FakeCommand(name='two-foo'),
+        })
+
+    def test_partial_parsing(self, config_stub):
         """Test partial parsing with a runner where it's enabled.
 
         The same with it being disabled is tested by test_parse_all.
         """
         parser = runners.CommandParser(partial_match=True)
-        result = parser.parse('message-i')
-        assert result.cmd.name == 'message-info'
-
-
-class TestCompletions:
-
-    """Tests for completions.use_best_match."""
+        result = parser.parse('on')
+        assert result.cmd.name == 'one'
 
     def test_dont_use_best_match(self, config_stub):
         """Test multiple completion options with use_best_match set to false.
@@ -89,7 +98,7 @@ class TestCompletions:
         parser = runners.CommandParser(partial_match=True)
 
         with pytest.raises(cmdexc.NoSuchCommandError):
-            parser.parse('do')
+            parser.parse('tw')
 
     def test_use_best_match(self, config_stub):
         """Test multiple completion options with use_best_match set to true.
@@ -99,5 +108,5 @@ class TestCompletions:
         config_stub.val.completion.use_best_match = True
         parser = runners.CommandParser(partial_match=True)
 
-        result = parser.parse('do')
-        assert result.cmd.name == 'download-cancel'
+        result = parser.parse('tw')
+        assert result.cmd.name == 'two'
