@@ -15,15 +15,17 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.0.2 (unreleased)
--------------------
+v1.0.2
+------
 
 Fixes
 ~~~~~
 
-- Fixed workaround for black screens with Nvidia cards
-- Mark the content.notifications setting as QtWebKit only correctly
+- Fix workaround for black screens or crashes with Nvidia cards
 - Handle a filesystem going read-only gracefully
+- Fix crash when setting `fonts.monospace`
+- Fix list options not being modifyable via `.append()` in `config.py`
+- Mark the content.notifications setting as QtWebKit only correctly
 - Fix wrong rendering of keys like `<back>` in the completion
 
 Changed
