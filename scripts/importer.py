@@ -27,7 +27,7 @@ Currently only importing bookmarks from Netscape Bookmark files is supported.
 
 
 import argparse
-
+import sys
 
 browser_default_input_format = {
     'chromium': 'netscape',
@@ -64,8 +64,7 @@ def main():
         output_format = 'quickmark'
     if not input_format:
         if not args.browser:
-            print("Must specify either browser or input format")
-            exit(1)
+            sys.exit("Must specify either browser or input format")
         input_format = browser_default_input_format[args.browser]
 
     import_function = {'netscape': import_netscape_bookmarks}
