@@ -1818,6 +1818,9 @@ class TestShellCommand:
         ({'placeholder': '{}'}, '[foo, "{}", bar]', ['foo', '{}', 'bar']),
         ({'placeholder': '{}'}, '["foo{}bar"]', ['foo{}bar']),
         ({'placeholder': '{}'}, '[foo, "bar {}"]', ['foo', 'bar {}']),
+        ({'placeholder': '{file}'}, '[f, "{file}", b]', ['f', '{file}', 'b']),
+        ({'placeholder': '{file}'}, '["f{file}b"]', ['f{file}b']),
+        ({'placeholder': '{file}'}, '[f, "b {file}"]', ['f', 'b {file}']),
     ])
     def test_valid(self, klass, kwargs, val, expected):
         cmd = klass(**kwargs)
@@ -1827,6 +1830,8 @@ class TestShellCommand:
     @pytest.mark.parametrize('kwargs, val', [
         ({'placeholder': '{}'}, '[foo, bar]'),
         ({'placeholder': '{}'}, '[foo, "{", "}", bar'),
+        ({'placeholder': '{file}'}, '[foo, bar]'),
+        ({'placeholder': '{file}'}, '[foo, "{fi", "le}", bar'),
     ])
     def test_from_str_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
