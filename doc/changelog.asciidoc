@@ -33,10 +33,10 @@ Fixed
 
 - More consistent sizing for favicons with vertical tabs.
 
-Removed
-~~~~~~~
+Deprecated
+~~~~~~~~~~
 
-- `:tab-detach` has been removed, as `:tab-give` without argument can be used
+- `:tab-detach` has been deprecated, as `:tab-give` without argument can be used
   instead.
 
 v1.0.2
