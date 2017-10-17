@@ -133,9 +133,9 @@ class TestSet:
                            "QtWebEngine backend!"):
             commands.set(0, 'content.cookies.accept', 'all')
 
-    @pytest.mark.parametrize('option', ['?', '!', 'url.auto_search'])
+    @pytest.mark.parametrize('option', ['?', 'url.auto_search'])
     def test_empty(self, commands, option):
-        """Run ':set ?' / ':set !' / ':set url.auto_search'.
+        """Run ':set ?' / ':set url.auto_search'.
 
         Should show an error.
         See https://github.com/qutebrowser/qutebrowser/issues/1109
@@ -144,6 +144,16 @@ class TestSet:
                            match="The following arguments are required: "
                                  "value"):
             commands.set(win_id=0, option=option)
+
+    def test_toggle(self, commands):
+        """Try toggling a value.
+
+        Should show an nicer error.
+        """
+        with pytest.raises(cmdexc.CommandError,
+                           match="Toggling values was moved to the "
+                                 ":config-cycle command"):
+            commands.set(win_id=0, option='javascript.enabled!')
 
     def test_invalid(self, commands):
         """Run ':set foo?'.

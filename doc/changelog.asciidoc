@@ -26,6 +26,11 @@ Fixes
 - Handle a filesystem going read-only gracefully
 - Fix wrong rendering of keys like `<back>` in the completion
 
+Changed
+~~~~~~~
+
+- Nicer error messages and other minor improvements
+
 v1.0.1
 ------
 

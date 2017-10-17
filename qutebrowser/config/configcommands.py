@@ -75,6 +75,10 @@ class ConfigCommands:
             tabbed_browser.openurl(QUrl('qute://settings'), newtab=False)
             return
 
+        if option.endswith('!'):
+            raise cmdexc.CommandError("Toggling values was moved to the "
+                                      ":config-cycle command")
+
         if option.endswith('?') and option != '?':
             self._print_value(option[:-1])
             return
