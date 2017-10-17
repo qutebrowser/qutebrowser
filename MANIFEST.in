@@ -13,6 +13,7 @@ include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include LICENSE doc/* README.asciidoc
 include misc/qutebrowser.desktop
+include misc/qutebrowser.appdata.xml
 include requirements.txt
 include tox.ini
 include qutebrowser.py
