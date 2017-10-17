@@ -103,6 +103,20 @@ def test_fake_windows(tmpdir, monkeypatch, what):
     assert func() == str(tmpdir / APPNAME / what)
 
 
+def test_fake_haiku(tmpdir, monkeypatch):
+    """Test getting data dir on HaikuOS."""
+    locations = {
+        QStandardPaths.DataLocation: '',
+        QStandardPaths.ConfigLocation: str(tmpdir / 'config' / APPNAME),
+    }
+    monkeypatch.setattr(standarddir.QStandardPaths, 'writableLocation',
+                        locations.get)
+    monkeypatch.setattr(standarddir.sys, 'platform', 'haiku1')
+
+    standarddir._init_data(args=None)
+    assert standarddir.data() == str(tmpdir / 'config' / APPNAME / 'data')
+
+
 class TestWritableLocation:
 
     """Tests for _writable_location."""
