@@ -68,9 +68,9 @@ class SqliteError(SqlError):
         # https://github.com/qutebrowser/qutebrowser/issues/2930
         # https://github.com/qutebrowser/qutebrowser/issues/3004
         environmental_errors = [
+            '5',   # SQLITE_BUSY ("database is locked")
             '8',   # SQLITE_READONLY
-            '9',   # SQLITE_LOCKED,
-            '13',  # SQLITE_FULL,
+            '13',  # SQLITE_FULL
         ]
         self.environmental = error.nativeErrorCode() in environmental_errors
 
