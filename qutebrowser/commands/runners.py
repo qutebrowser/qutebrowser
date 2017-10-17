@@ -214,7 +214,8 @@ class CommandParser:
         Return:
             cmdstr modified to the matching completion or unmodified
         """
-        matches = [cmd for cmd in cmdutils.cmd_dict if cmdstr in cmd]
+        matches = [cmd for cmd in sorted(cmdutils.cmd_dict, key=len)
+                   if cmdstr in cmd]
         if len(matches) == 1:
             cmdstr = matches[0]
         elif len(matches) > 1 and config.val.completion.use_best_match:
