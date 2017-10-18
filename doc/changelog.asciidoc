@@ -35,6 +35,7 @@ Fixed
 
 - More consistent sizing for favicons with vertical tabs.
 - Using `:home` on pinned tabs is now prevented.
+- Fix crash with unknown file types loaded via qute://help
 
 Deprecated
 ~~~~~~~~~~

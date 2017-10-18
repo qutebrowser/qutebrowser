@@ -29,8 +29,9 @@ import os
 import time
 import urllib.parse
 import textwrap
-import pkg_resources
+import mimetypes
 
+import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
@@ -323,8 +324,10 @@ def qute_help(url):
                       "scripts/asciidoc2html.py.")
 
     path = 'html/doc/{}'.format(urlpath)
-    if urlpath.endswith('.png'):
-        return 'image/png', utils.read_file(path, binary=True)
+    if not urlpath.endswith('.html'):
+        mimetype, _encoding = mimetypes.guess_type(urlpath)
+        assert mimetype is not None, url
+        return mimetype, utils.read_file(path, binary=True)
 
     try:
         data = utils.read_file(path)
