@@ -183,15 +183,15 @@ class ExternalEditor(QObject):
         column = caret_position - text[:caret_position].rfind('\n')
         return (line, column)
 
-    def _sub_placeholder(self, possible_placeholder, line, column):
+    def _sub_placeholder(self, arg, line, column):
         """Substitute a single placeholder.
 
-        If the `possible_placeholder` input to this function is valid it will
+        If the `arg` input to this function is a valid placeholder it will
         be substituted with the appropriate value, otherwise it will be left
         unchanged.
 
         Args:
-            possible_placeholder: an argument of editor.command.
+            arg: an argument of editor.command.
             line: the previously-calculated line number for the text caret.
             column: the previously-calculated column number for the text caret.
 
@@ -207,9 +207,7 @@ class ExternalEditor(QObject):
             '{column0}': str(column-1)
         }
 
-        # The for loop would create a copy anyway, this should be more legible
-        ph = possible_placeholder
         for old, new in replacements.items():
-            ph = ph.replace(old, new)
+            arg = arg.replace(old, new)
 
-        return ph
+        return arg
