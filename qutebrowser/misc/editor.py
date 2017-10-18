@@ -192,11 +192,11 @@ class ExternalEditor(QObject):
 
         Args:
             possible_placeholder: an argument of editor.command.
-            line: the previously-calculated line number for the text caret
-            column: the previously-calculated column number for the text caret
+            line: the previously-calculated line number for the text caret.
+            column: the previously-calculated column number for the text caret.
 
         Return:
-            The substituted placeholder or the original argument
+            The substituted placeholder or the original argument.
         """
         replacements = {
             '{}': self._filename,
