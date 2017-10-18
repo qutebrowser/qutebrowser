@@ -347,6 +347,26 @@ def bind_chained(key, *commands):
 bind_chained('<Escape>', 'clear-keychain', 'search')
 ----
 
+Reading colors from Xresources
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can use something like this to read colors from an `~/.Xresources` file:
+
+[source,python]
+----
+def read_xresources(prefix):
+    props = {}
+    x = subprocess.run(['xrdb', '-query'], stdout=subprocess.PIPE)
+    lines = x.stdout.decode().split('\n')
+    for line in filter(lambda l : l.startswith(prefix), lines):
+        prop, _, value = line.partition(':\t')
+        props[prop] = value
+    return props
+
+xresources = read_xresources('*')
+c.colors.statusbar.normal.bg = xresources['*background']
+----
+
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
 
