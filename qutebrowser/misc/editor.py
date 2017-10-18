@@ -152,6 +152,26 @@ class ExternalEditor(QObject):
     def _calc_line_and_column(self, text, caret_position):
         """Calculate line and column numbers given a text and caret position
 
+        Both line and column are 1-based indexes, because that's what most
+        editors use as line and column starting index.  By "most" we mean at
+        least vim, nvim, gvim, emacs, atom, sublimetext, notepad++, brackets,
+        visual studio, QtCreator and so on.
+
+        To find the line we just count how many newlines there are before the
+        caret and add 1.
+
+        To find the column we calculate the difference between the caret and
+        the last newline before the caret.
+
+        For example in the text `aaa\nbb|bbb` (| represents the caret):
+        caret_position = 6
+        text[:caret_position] = `aaa\nbb`
+        text[:caret_position].count('\n') = 1
+        caret_position - text[:caret_position].rfind('\n') = 3
+
+        Thus line, column = 2, 3, and the caret is indeed in the second
+        line, third column
+
         Args:
             text: the text for which the numbers must be calculated
             caret_position: the position of the caret in the text
@@ -159,25 +179,6 @@ class ExternalEditor(QObject):
         Return:
             A (line, column) tuple of (int, int)
         """
-        # Both line and column are 1-based indexes, because that's what most
-        # editors use as line and column starting index.  By "most" we mean at
-        # least vim, nvim, gvim, emacs, atom, sublimetext, notepad++, brackets,
-        # visual studio, QtCreator and so on.
-        #
-        # To find the line we just count how many newlines there are before the
-        # caret and add 1.
-        #
-        # To find the column we calculate the difference between the caret and
-        # the last newline before the caret.
-        #
-        # For example in the text `aaa\nbb|bbb` (| represents the caret):
-        # caret_position = 6
-        # text[:caret_position] = `aaa\nbb`
-        # text[:caret_psotion].count('\n') = 1
-        # caret_position - text[:caret_position].rfind('\n') = 3
-        #
-        # Thus line, column = 2, 3, and the caret is indeed in the second
-        # line, third column
         line = text[:caret_position].count('\n') + 1
         column = caret_position - text[:caret_position].rfind('\n')
         return (line, column)
