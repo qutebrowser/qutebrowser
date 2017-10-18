@@ -605,6 +605,20 @@ class TestConfigPy:
         assert error.text == "While setting 'foo'"
         assert isinstance(error.exception, configexc.NoOptionError)
 
+    def test_source_multiple_errors(self, tmpdir, confpy):
+        subfile = tmpdir / 'config' / 'subfile.py'
+        subfile.write_text("c.foo = 42", encoding='utf-8')
+        confpy.write("config.source('subfile.py')", "c.bar = 23")
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            configfiles.read_config_py(confpy.filename)
+
+        errors = excinfo.value.errors
+        assert len(errors) == 2
+
+        for error in errors:
+            assert isinstance(error.exception, configexc.NoOptionError)
+
     def test_source_not_found(self, confpy):
         confpy.write("config.source('doesnotexist.py')")
         error = confpy.read(error=True)
