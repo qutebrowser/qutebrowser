@@ -1832,6 +1832,11 @@ class TestShellCommand:
         ({'placeholder': True}, '[foo, "{", "}", bar'),
         ({'placeholder': True}, '[foo, bar]'),
         ({'placeholder': True}, '[foo, "{fi", "le}", bar'),
+
+        # Like valid ones but with wrong placeholder
+        ({'placeholder': True}, '[f, "{wrong}", b]'),
+        ({'placeholder': True}, '["f{wrong}b"]'),
+        ({'placeholder': True}, '[f, "b {wrong}"]'),
     ])
     def test_from_str_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
