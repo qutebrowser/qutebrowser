@@ -29,6 +29,7 @@ Added
   command in the completion.
 - New `:tab-give` and `:tab-take` commands, to give tabs to another window, or
   take them from another window.
+- New `config.source(...)` method for `config.py` to source another file.
 
 Fixed
 ~~~~~

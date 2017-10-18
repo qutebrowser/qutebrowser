@@ -238,6 +238,9 @@ that via `import utils` as well.
 While it's in some cases possible to import code from the qutebrowser
 installation, doing so is unsupported and discouraged.
 
+To read config data from a different file with `c` and `config` available, you
+can use `config.source('otherfile.py')` in your `config.py`.
+
 Getting the config directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
