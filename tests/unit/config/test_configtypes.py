@@ -1815,12 +1815,12 @@ class TestShellCommand:
 
     @pytest.mark.parametrize('kwargs, val, expected', [
         ({}, '[foobar]', ['foobar']),
-        ({'placeholder': '{}'}, '[foo, "{}", bar]', ['foo', '{}', 'bar']),
-        ({'placeholder': '{}'}, '["foo{}bar"]', ['foo{}bar']),
-        ({'placeholder': '{}'}, '[foo, "bar {}"]', ['foo', 'bar {}']),
-        ({'placeholder': '{file}'}, '[f, "{file}", b]', ['f', '{file}', 'b']),
-        ({'placeholder': '{file}'}, '["f{file}b"]', ['f{file}b']),
-        ({'placeholder': '{file}'}, '[f, "b {file}"]', ['f', 'b {file}']),
+        ({'placeholder': True}, '[foo, "{}", bar]', ['foo', '{}', 'bar']),
+        ({'placeholder': True}, '["foo{}bar"]', ['foo{}bar']),
+        ({'placeholder': True}, '[foo, "bar {}"]', ['foo', 'bar {}']),
+        ({'placeholder': True}, '[f, "{file}", b]', ['f', '{file}', 'b']),
+        ({'placeholder': True}, '["f{file}b"]', ['f{file}b']),
+        ({'placeholder': True}, '[f, "b {file}"]', ['f', 'b {file}']),
     ])
     def test_valid(self, klass, kwargs, val, expected):
         cmd = klass(**kwargs)
@@ -1828,10 +1828,10 @@ class TestShellCommand:
         assert cmd.to_py(expected) == expected
 
     @pytest.mark.parametrize('kwargs, val', [
-        ({'placeholder': '{}'}, '[foo, bar]'),
-        ({'placeholder': '{}'}, '[foo, "{", "}", bar'),
-        ({'placeholder': '{file}'}, '[foo, bar]'),
-        ({'placeholder': '{file}'}, '[foo, "{fi", "le}", bar'),
+        ({'placeholder': True}, '[foo, bar]'),
+        ({'placeholder': True}, '[foo, "{", "}", bar'),
+        ({'placeholder': True}, '[foo, bar]'),
+        ({'placeholder': True}, '[foo, "{fi", "le}", bar'),
     ])
     def test_from_str_invalid(self, klass, kwargs, val):
         with pytest.raises(configexc.ValidationError):
