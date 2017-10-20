@@ -54,9 +54,9 @@ class KeyHintView(QLabel):
             background-color: {{ conf.colors.keyhint.bg }};
             padding: 6px;
             {% if conf.statusbar.position == 'top' %}
-                border-bottom-right-radius: 6px;
+                border-bottom-right-radius: {{ conf.keyhint.radius }}px;
             {% else %}
-                border-top-right-radius: 6px;
+                border-top-right-radius: {{ conf.keyhint.radius }}px;
             {% endif %}
         }
     """

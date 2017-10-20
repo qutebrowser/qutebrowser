@@ -978,6 +978,13 @@ keyhint.blacklist:
     Globs are supported, so `;*` will blacklist all keychains starting with `;`.
     Use `*` to disable keyhints.
 
+keyhint.radius:
+  type:
+    name: Int
+    minval: 0
+  default: 6
+  desc: The rounding radius for the edges of the keyhint dialog.
+
 # emacs: '
 
 keyhint.delay:
