@@ -71,32 +71,5 @@ window._qutebrowser.scroll = (function() {
         window.scrollBy(dx, dy);
     };
 
-    funcs.pos = function() {
-        var pos = {
-            "px": {"x": window.scrollX, "y": window.scrollY},
-            "scroll": {
-                "width": Math.max(
-                    document.body.scrollWidth,
-                    document.body.offsetWidth,
-                    document.documentElement.scrollWidth,
-                    document.documentElement.offsetWidth
-                ),
-                "height": Math.max(
-                    document.body.scrollHeight,
-                    document.body.offsetHeight,
-                    document.documentElement.scrollHeight,
-                    document.documentElement.offsetHeight
-                ),
-            },
-            "inner": {
-                "width": window.innerWidth,
-                "height": window.innerHeight,
-            },
-        };
-
-        // console.log(JSON.stringify(pos));
-        return pos;
-    };
-
     return funcs;
 })();

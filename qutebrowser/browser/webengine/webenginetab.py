@@ -24,7 +24,7 @@ import functools
 import html as html_utils
 
 import sip
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QUrl, QTimer
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QPointF, QUrl, QTimer
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -308,40 +308,30 @@ class WebEngineScroller(browsertab.AbstractScroller):
         for _ in range(min(count, 5000)):
             self._tab.key_press(key, modifier)
 
-    @pyqtSlot()
-    def _update_pos(self):
+    @pyqtSlot(QPointF)
+    def _update_pos(self, pos):
         """Update the scroll position attributes when it changed."""
-        def update_pos_cb(jsret):
-            """Callback after getting scroll position via JS."""
-            if jsret is None:
-                # This can happen when the callback would get called after
-                # shutting down a tab
-                return
-            log.webview.vdebug(jsret)
-            assert isinstance(jsret, dict), jsret
-            self._pos_px = QPoint(jsret['px']['x'], jsret['px']['y'])
+        self._pos_px = pos.toPoint()
+        contents_size = self._widget.page().contentsSize()
 
-            dx = jsret['scroll']['width'] - jsret['inner']['width']
-            if dx == 0:
-                perc_x = 0
-            else:
-                perc_x = min(100, round(100 / dx * jsret['px']['x']))
+        scrollable_x = contents_size.width() - self._widget.width()
+        if scrollable_x == 0:
+            perc_x = 0
+        else:
+            perc_x = min(100, round(100 / scrollable_x * pos.x()))
 
-            dy = jsret['scroll']['height'] - jsret['inner']['height']
-            if dy == 0:
-                perc_y = 0
-            else:
-                perc_y = min(100, round(100 / dy * jsret['px']['y']))
+        scrollable_y = contents_size.height() - self._widget.height()
+        if scrollable_y == 0:
+            perc_y = 0
+        else:
+            perc_y = min(100, round(100 / scrollable_y * pos.y()))
 
-            self._at_bottom = math.ceil(jsret['px']['y']) >= dy
+        self._at_bottom = math.ceil(pos.y()) >= scrollable_y
 
-            if (self._pos_perc != (perc_x, perc_y) or
-                    'no-scroll-filtering' in self._args.debug_flags):
-                self._pos_perc = perc_x, perc_y
-                self.perc_changed.emit(*self._pos_perc)
-
-        js_code = javascript.assemble('scroll', 'pos')
-        self._tab.run_js_async(js_code, update_pos_cb)
+        if (self._pos_perc != (perc_x, perc_y) or
+                'no-scroll-filtering' in self._args.debug_flags):
+            self._pos_perc = perc_x, perc_y
+            self.perc_changed.emit(*self._pos_perc)
 
     def pos_px(self):
         return self._pos_px
