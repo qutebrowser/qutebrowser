@@ -293,6 +293,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
+        self._args = objreg.get('args')
         self._pos_perc = (0, 0)
         self._pos_px = QPoint()
         self._at_bottom = False
@@ -333,9 +334,11 @@ class WebEngineScroller(browsertab.AbstractScroller):
                 perc_y = min(100, round(100 / dy * jsret['px']['y']))
 
             self._at_bottom = math.ceil(jsret['px']['y']) >= dy
-            self._pos_perc = perc_x, perc_y
 
-            self.perc_changed.emit(*self._pos_perc)
+            if (self._pos_perc != (perc_x, perc_y) or
+                    'no-scroll-filtering' in self._args.debug_flags):
+                self._pos_perc = perc_x, perc_y
+                self.perc_changed.emit(*self._pos_perc)
 
         js_code = javascript.assemble('scroll', 'pos')
         self._tab.run_js_async(js_code, update_pos_cb)
