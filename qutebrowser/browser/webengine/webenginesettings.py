@@ -36,8 +36,8 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import (utils, standarddir, javascript, qtutils, message,
-                               log)
+from qutebrowser.utils import (utils, standarddir, javascript, qtutils,
+                               message, log)
 
 # The default QWebEngineProfile
 default_profile = None

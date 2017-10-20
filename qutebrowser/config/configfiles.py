@@ -260,6 +260,7 @@ class ConfigAPI:
             self._keyconfig.unbind(key, mode=mode)
 
     def source(self, filename):
+        """Read the given config file from disk."""
         if not os.path.isabs(filename):
             filename = str(self.configdir / filename)
 
