@@ -209,6 +209,7 @@
 |<<input.spatial_navigation,input.spatial_navigation>>|Enable Spatial Navigation.
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
 |<<keyhint.delay,keyhint.delay>>|Time from pressing a key to seeing the keyhint dialog (ms).
+|<<keyhint.radius,keyhint.radius>>|The rounding radius for the edges of the keyhint dialog.
 |<<messages.timeout,messages.timeout>>|Time (in ms) to show messages in the statusbar for.
 |<<messages.unfocused,messages.unfocused>>|Show messages in unfocused windows.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
@@ -2413,6 +2414,14 @@ Time from pressing a key to seeing the keyhint dialog (ms).
 Type: <<types,Int>>
 
 Default: +pass:[500]+
+
+[[keyhint.radius]]
+=== keyhint.radius
+The rounding radius for the edges of the keyhint dialog.
+
+Type: <<types,Int>>
+
+Default: +pass:[6]+
 
 [[messages.timeout]]
 === messages.timeout
