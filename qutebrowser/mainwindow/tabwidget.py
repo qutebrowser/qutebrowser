@@ -310,7 +310,7 @@ class TabBar(QTabBar):
         return self.parent().currentWidget()
 
     @pyqtSlot(str)
-    def _on_config_changed(self, option):
+    def _on_config_changed(self, option: str):
         if option == 'fonts.tabs':
             self._set_font()
         elif option == 'tabs.favicons.scale':
@@ -324,6 +324,12 @@ class TabBar(QTabBar):
 
         if option.startswith('colors.tabs.'):
             self.update()
+
+        # Clear _minimum_tab_size_hint_helper cache when appropriate
+        if option in ["tabs.indicator_padding",
+                      "tabs.padding",
+                      "tabs.width.indicator"]:
+            self._minimum_tab_size_hint_helper.cache_clear()
 
     def _on_show_switching_delay_changed(self):
         """Set timer interval when tabs.show_switching_delay got changed."""
@@ -442,7 +448,12 @@ class TabBar(QTabBar):
     def _minimum_tab_size_hint_helper(self, tab_text: str,
                                       icon,
                                       ellipsis: bool) -> QSize:
-        """Helper function to cache tab results."""
+        """Helper function to cache tab results.
+
+        Acessing config values in here should be added to _on_config_changed to
+        ensure cache is flushed when needed.
+        """
+        print("running!")
         text = '\u2026' if ellipsis else tab_text
         # Don't ever shorten if text is shorter than the ellipsis
         text_width = min(self.fontMetrics().width(text),
