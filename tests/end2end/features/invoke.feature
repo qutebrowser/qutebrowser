@@ -74,12 +74,12 @@ Feature: Invoking a new process
 
     # issue #1060
 
-    Scenario: Using target_window = first-opened after tab-detach
+    Scenario: Using target_window = first-opened after tab-give
         When I set new_instance_open_target to tab
         And I set new_instance_open_target_window to first-opened
         And I open data/title.html
         And I open data/search.html in a new tab
-        And I run :tab-detach
+        And I run :tab-give
         And I wait until data/search.html is loaded
         And I open data/hello.txt as a URL
         Then the session should look like:

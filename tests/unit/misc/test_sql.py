@@ -39,7 +39,7 @@ def test_sqlerror():
 class TestSqliteError:
 
     @pytest.mark.parametrize('error_code, environmental', [
-        ('9', True),  # SQLITE_LOCKED
+        ('5', True),  # SQLITE_BUSY
         ('19', False),  # SQLITE_CONSTRAINT
     ])
     def test_environmental(self, error_code, environmental):

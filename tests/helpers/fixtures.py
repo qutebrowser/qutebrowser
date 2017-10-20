@@ -60,6 +60,9 @@ class WinRegistryHelper:
 
         registry = attr.ib()
 
+        def windowTitle(self):
+            return 'window title - qutebrowser'
+
     def __init__(self):
         self._ids = []
 

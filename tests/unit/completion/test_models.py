@@ -528,6 +528,30 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
+def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
+    tabbed_browser_stubs[0].tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
+    ]
+    tabbed_browser_stubs[1].tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
+    ]
+
+    model = miscmodels.window()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Windows': [
+            ('0', 'window title - qutebrowser',
+                'GitHub, Wikipedia, DuckDuckGo'),
+            ('1', 'window title - qutebrowser', 'ArchWiki')
+        ]
+    })
+
+
 def test_setting_option_completion(qtmodeltester, config_stub,
                                    configdata_stub, info):
     model = configmodel.option(info=info)

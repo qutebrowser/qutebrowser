@@ -121,21 +121,29 @@ class TabWidget(QTabWidget):
         """Get the tab title user data."""
         return self.tabBar().page_title(idx)
 
-    def _update_tab_title(self, idx):
-        """Update the tab text for the given tab."""
+    def _update_tab_title(self, idx, field=None):
+        """Update the tab text for the given tab.
+
+        Args:
+            idx: The tab index to update.
+            field: A field name which was updated. If given, the title
+                   is only set if the given field is in the template.
+        """
         tab = self.widget(idx)
+        if tab.data.pinned:
+            fmt = config.val.tabs.title.format_pinned
+        else:
+            fmt = config.val.tabs.title.format
+
+        if (field is not None and
+                (fmt is None or ('{' + field + '}') not in fmt)):
+            return
+
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
         fields['index'] = idx + 1
 
-        fmt = config.val.tabs.title.format
-        fmt_pinned = config.val.tabs.title.format_pinned
-
-        if tab.data.pinned:
-            title = '' if fmt_pinned is None else fmt_pinned.format(**fields)
-        else:
-            title = '' if fmt is None else fmt.format(**fields)
-
+        title = '' if fmt is None else fmt.format(**fields)
         self.tabBar().setTabText(idx, title)
 
     def get_tab_fields(self, idx):
@@ -163,6 +171,11 @@ class TabWidget(QTabWidget):
             fields['host'] = self.tab_url(idx).host()
         except qtutils.QtValueError:
             fields['host'] = ''
+
+        try:
+            fields['current_url'] = self.tab_url(idx).url()
+        except qtutils.QtValueError:
+            fields['current_url'] = ''
 
         y = tab.scroller.pos_perc()[1]
         if y is None:
@@ -659,7 +672,7 @@ class TabBarStyle(QCommonStyle):
         icon_state = (QIcon.On if opt.state & QStyle.State_Selected
                       else QIcon.Off)
         icon = opt.icon.pixmap(opt.iconSize, icon_mode, icon_state)
-        p.drawPixmap(layouts.icon.x(), layouts.icon.y(), icon)
+        self._style.drawItemPixmap(p, layouts.icon, Qt.AlignCenter, icon)
 
     def drawControl(self, element, opt, p, widget=None):
         """Override drawControl to draw odd tabs in a different color.
@@ -826,8 +839,7 @@ class TabBarStyle(QCommonStyle):
                       else QIcon.Off)
         # reserve space for favicon when tab bar is vertical (issue #1968)
         position = config.val.tabs.position
-        if (opt.icon.isNull() and
-                position in [QTabWidget.East, QTabWidget.West] and
+        if (position in [QTabWidget.East, QTabWidget.West] and
                 config.val.tabs.favicons.show):
             tab_icon_size = icon_size
         else:
@@ -835,6 +847,7 @@ class TabBarStyle(QCommonStyle):
             tab_icon_size = QSize(
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
+
         icon_top = text_rect.center().y() + 1 - tab_icon_size.height() / 2
         icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)

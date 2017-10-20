@@ -17,8 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
+
 import pytest_bdd as bdd
 bdd.scenarios('marks.feature')
+
+
+@pytest.fixture(autouse=True)
+def turn_on_scroll_logging(quteproc):
+    """Make sure all scrolling changes are logged."""
+    quteproc.send_cmd(":debug-pyeval -q objreg.get('args')."
+                      "debug_flags.append('no-scroll-filtering')")
 
 
 @bdd.then(bdd.parsers.parse("the page should be scrolled to {x} {y}"))

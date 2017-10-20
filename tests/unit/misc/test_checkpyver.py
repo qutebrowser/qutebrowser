@@ -28,8 +28,8 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.5 is required to run qutebrowser, but "
-        r"\d+\.\d+\.\d+ is installed!\n")
+TEXT = (r"At least Python 3.5 is required to run qutebrowser, but it's "
+        r"running with \d+\.\d+\.\d+.\n")
 
 
 @pytest.mark.not_frozen

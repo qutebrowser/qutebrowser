@@ -131,10 +131,11 @@ class FakeUrl:
 
     """QUrl stub which provides .path(), isValid() and host()."""
 
-    def __init__(self, path=None, valid=True, host=None):
+    def __init__(self, path=None, valid=True, host=None, url=None):
         self.path = mock.Mock(return_value=path)
         self.isValid = mock.Mock(returl_value=valid)
         self.host = mock.Mock(returl_value=host)
+        self.url = mock.Mock(return_value=url)
 
 
 class FakeNetworkReply:
@@ -377,7 +378,9 @@ class FakeTimer(QObject):
     def isSingleShot(self):
         return self._singleshot
 
-    def start(self):
+    def start(self, interval=None):
+        if interval:
+            self._interval = interval
         self._started = True
 
     def stop(self):
@@ -396,7 +399,7 @@ class InstaTimer(QObject):
 
     timeout = pyqtSignal()
 
-    def start(self):
+    def start(self, interval=None):
         self.timeout.emit()
 
     def setSingleShot(self, yes):
@@ -519,6 +522,9 @@ class TabbedBrowserStub(QObject):
 
     def count(self):
         return len(self.tabs)
+
+    def widgets(self):
+        return self.tabs
 
     def widget(self, i):
         return self.tabs[i]

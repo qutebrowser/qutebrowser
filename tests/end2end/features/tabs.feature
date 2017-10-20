@@ -638,28 +638,6 @@ Feature: Tab management
         And I run :tab-clone
         Then no crash should happen
 
-    # :tab-detach
-
-    Scenario: Detaching a tab
-        When I open data/numbers/1.txt
-        And I open data/numbers/2.txt in a new tab
-        And I run :tab-detach
-        And I wait until data/numbers/2.txt is loaded
-        Then the session should look like:
-            windows:
-            - tabs:
-              - history:
-                - url: about:blank
-                - url: http://localhost:*/data/numbers/1.txt
-            - tabs:
-              - history:
-                - url: http://localhost:*/data/numbers/2.txt
-
-    Scenario: Detach tab from window with only one tab
-        When I open data/hello.txt
-        And I run :tab-detach
-        Then the error "Cannot detach one tab." should be shown
-
     # :undo
 
     Scenario: Undo without any closed tabs
@@ -1010,6 +988,76 @@ Feature: Tab management
         And I run :buffer "1/2/3"
         Then the error "No matching tab for: 1/2/3" should be shown
 
+    # :tab-take
+
+    @xfail_norun  # Needs qutewm
+    Scenario: Take a tab from another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :tab-take 0/1
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
+
+    Scenario: Take a tab from the same window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-take 0/1
+        Then the error "Can't take a tab from the same window" should be shown
+
+    # :tab-give
+
+    @xfail_norun  # Needs qutewm
+    Scenario: Give a tab to another window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :tab-give 0
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+            - tabs:
+              - history:
+                - url: about:blank
+
+    Scenario: Give a tab to the same window
+        Given I have a fresh instance
+        When I open data/numbers/1.txt
+        And I run :tab-give 0
+        Then the error "Can't give a tab to the same window" should be shown
+
+    Scenario: Give a tab to a new window
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-give
+        And I wait until data/numbers/2.txt is loaded
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Give a tab from window with only one tab
+        When I open data/hello.txt
+        And I run :tab-give
+        Then the error "Cannot detach from a window with only one tab" should be shown
+
     # Other
 
     Scenario: Using :tab-next after closing last tab (#1448)
@@ -1145,6 +1193,14 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I run :tab-pin
         And I open data/numbers/2.txt without waiting
+        Then the message "Tab is pinned!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active) (pinned)
+
+    Scenario: :tab-pin open url
+        When I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :home
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)

@@ -15,19 +15,74 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.0.2 (unreleased)
+v1.1.0 (unreleased)
 -------------------
 
-Fixes
+Added
 ~~~~~
 
-- Fixed workaround for black screens with Nvidia cards
+- New `{current_url}` field for `window.title_format` and `tabs.title.format`.
+- New `colors.statusbar.passthrough.fg`/`.bg` settings.
+- New `completion.delay` and `completion.min_chars` settings to update the
+  completion less often.
+- New `completion.use_best_match` setting to automatically use the best-matching
+  command in the completion.
+- New `:tab-give` and `:tab-take` commands, to give tabs to another window, or
+  take them from another window.
+- New `config.source(...)` method for `config.py` to source another file.
+- New `keyhint.radius` option to configure the edge rounding for the key hint
+  widget.
+
+Fixed
+~~~~~
+
+- More consistent sizing for favicons with vertical tabs.
+- Using `:home` on pinned tabs is now prevented.
+- Fix crash with unknown file types loaded via qute://help
+- Scrolling performance improvements
+
+Deprecated
+~~~~~~~~~~
+
+- `:tab-detach` has been deprecated, as `:tab-give` without argument can be used
+  instead.
+
+Removed
+~~~~~~~
+
+- The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
+  commands have been removed.
+
+v1.0.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Handle accessing a locked sqlite database gracefully
+
+v1.0.2
+------
+
+Fixed
+~~~~~
+
+- Fix workaround for black screens or crashes with Nvidia cards
+- Handle a filesystem going read-only gracefully
+- Fix crash when setting `fonts.monospace`
+- Fix list options not being modifyable via `.append()` in `config.py`
 - Mark the content.notifications setting as QtWebKit only correctly
+- Fix wrong rendering of keys like `<back>` in the completion
+
+Changed
+~~~~~~~
+
+- Nicer error messages and other minor improvements
 
 v1.0.1
 ------
 
-Fixes
+Fixed
 ~~~~~
 
 - Fixed starting after customizing `fonts.tabs` or `fonts.debug_console`.
@@ -65,6 +120,9 @@ Major changes
   the entire browsing history. The default for
   `completion.web_history_max_items` got changed to `-1` (unlimited). If the
   completion is too slow on your machine, try setting it to a few 1000 items.
+- Up/Down now navigates through the command history instead of selecting
+  completion items. Either use Tab to cycle through the completion, or
+  https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
 
 Added
 ~~~~~

@@ -43,6 +43,7 @@ class ColorFlags:
         command: If we're currently in command mode.
         mode: The current caret mode (CaretMode.off/.on/.selection).
         private: Whether this window is in private browsing mode.
+        passthrough: If we're currently in passthrough-mode.
     """
 
     CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
@@ -51,6 +52,7 @@ class ColorFlags:
     command = attr.ib(False)
     caret = attr.ib(CaretMode.off)
     private = attr.ib(False)
+    passthrough = attr.ib(False)
 
     def to_stringlist(self):
         """Get a string list of set flags used in the stylesheet.
@@ -66,6 +68,8 @@ class ColorFlags:
             strings.append('command')
         if self.private:
             strings.append('private')
+        if self.passthrough:
+            strings.append('passthrough')
 
         if self.private and self.command:
             strings.append('private-command')
@@ -88,6 +92,7 @@ def _generate_stylesheet():
         ('prompt', 'prompts'),
         ('insert', 'statusbar.insert'),
         ('command', 'statusbar.command'),
+        ('passthrough', 'statusbar.passthrough'),
         ('private-command', 'statusbar.command.private'),
     ]
     stylesheet = """
@@ -244,6 +249,9 @@ class StatusBar(QWidget):
         if mode == usertypes.KeyMode.insert:
             log.statusbar.debug("Setting insert flag to {}".format(val))
             self._color_flags.insert = val
+        if mode == usertypes.KeyMode.passthrough:
+            log.statusbar.debug("Setting passthrough flag to {}".format(val))
+            self._color_flags.passthrough = val
         if mode == usertypes.KeyMode.command:
             log.statusbar.debug("Setting command flag to {}".format(val))
             self._color_flags.command = val
@@ -307,7 +315,8 @@ class StatusBar(QWidget):
                     usertypes.KeyMode.command,
                     usertypes.KeyMode.caret,
                     usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
+                    usertypes.KeyMode.yesno,
+                    usertypes.KeyMode.passthrough]:
             self.set_mode_active(mode, True)
 
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
@@ -324,7 +333,8 @@ class StatusBar(QWidget):
                         usertypes.KeyMode.command,
                         usertypes.KeyMode.caret,
                         usertypes.KeyMode.prompt,
-                        usertypes.KeyMode.yesno]:
+                        usertypes.KeyMode.yesno,
+                        usertypes.KeyMode.passthrough]:
             self.set_mode_active(old_mode, False)
 
     @pyqtSlot(browsertab.AbstractTab)

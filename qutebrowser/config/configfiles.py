@@ -259,6 +259,16 @@ class ConfigAPI:
         with self._handle_error('unbinding', key):
             self._keyconfig.unbind(key, mode=mode)
 
+    def source(self, filename):
+        """Read the given config file from disk."""
+        if not os.path.isabs(filename):
+            filename = str(self.configdir / filename)
+
+        try:
+            read_config_py(filename)
+        except configexc.ConfigFileErrors as e:
+            self.errors += e.errors
+
 
 class ConfigPyWriter:
 

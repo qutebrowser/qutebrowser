@@ -104,7 +104,9 @@ def _update_monospace_fonts():
             continue
         elif not isinstance(opt.typ, configtypes.Font):
             continue
-        elif not config.instance.get_obj(name).endswith(' monospace'):
+
+        value = config.instance.get_obj(name)
+        if value is None or not value.endswith(' monospace'):
             continue
 
         config.instance.changed.emit(name)

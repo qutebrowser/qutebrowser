@@ -387,22 +387,6 @@ Feature: Prompts
         Then the javascript message "confirm reply: true" should be logged
         And the error "No default value was set for this question!" should be shown
 
-    Scenario: Javascript confirm with deprecated :prompt-yes command
-        When I open data/prompt/jsconfirm.html
-        And I run :click-element id button
-        And I wait for a prompt
-        And I run :prompt-yes
-        Then the javascript message "confirm reply: true" should be logged
-        And the warning "prompt-yes is deprecated - Use :prompt-accept yes instead!" should be shown
-
-    Scenario: Javascript confirm with deprecated :prompt-no command
-        When I open data/prompt/jsconfirm.html
-        And I run :click-element id button
-        And I wait for a prompt
-        And I run :prompt-no
-        Then the javascript message "confirm reply: false" should be logged
-        And the warning "prompt-no is deprecated - Use :prompt-accept no instead!" should be shown
-
     # Other
 
     @qtwebengine_skip

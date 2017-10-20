@@ -20,6 +20,7 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
+import sys
 import shutil
 import os.path
 import contextlib
@@ -106,6 +107,10 @@ def _init_data(args):
         if utils.is_windows:
             app_data_path = _writable_location(QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'data')
+        elif sys.platform.startswith('haiku'):
+            # HaikuOS returns an empty value for AppDataLocation
+            config_path = _writable_location(QStandardPaths.ConfigLocation)
+            path = os.path.join(config_path, 'data')
         else:
             path = _writable_location(typ)
     _create(path)

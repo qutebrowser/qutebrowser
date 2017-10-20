@@ -31,6 +31,8 @@ QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
 
 from qutebrowser.browser import webelem
 from qutebrowser.browser.webkit import webkitelem
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,
@@ -715,8 +717,10 @@ class TestRectOnView:
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])
-    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only):
+    def test_zoomed(self, stubs, config_stub, js_rect, monkeypatch,
+                    zoom_text_only):
         """Make sure the coordinates are adjusted when zoomed."""
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
         config_stub.val.zoom.text_only = zoom_text_only
         geometry = QRect(10, 10, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)

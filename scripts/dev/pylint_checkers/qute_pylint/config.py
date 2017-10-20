@@ -20,8 +20,7 @@
 """Custom astroid checker for config calls."""
 
 import sys
-import os
-import os.path
+import pathlib
 
 import yaml
 import astroid
@@ -30,6 +29,7 @@ from pylint.checkers import utils
 
 
 OPTIONS = None
+FAILED_LOAD = False
 
 
 class ConfigChecker(checkers.BaseChecker):
@@ -44,6 +44,7 @@ class ConfigChecker(checkers.BaseChecker):
                   None),
     }
     priority = -1
+    printed_warning = False
 
     @utils.check_messages('bad-config-option')
     def visit_attribute(self, node):
@@ -58,6 +59,13 @@ class ConfigChecker(checkers.BaseChecker):
 
     def _check_config(self, node, name):
         """Check that we're accessing proper config options."""
+        if FAILED_LOAD:
+            if not ConfigChecker.printed_warning:
+                print("[WARN] Could not find configdata.yml. Please run "
+                      "pylint from qutebrowser root.", file=sys.stderr)
+                print("Skipping some checks...", file=sys.stderr)
+                ConfigChecker.printed_warning = True
+            return
         if name not in OPTIONS:
             self.add_message('bad-config-option', node=node, args=name)
 
@@ -66,6 +74,11 @@ def register(linter):
     """Register this checker."""
     linter.register_checker(ConfigChecker(linter))
     global OPTIONS
-    yaml_file = os.path.join('qutebrowser', 'config', 'configdata.yml')
-    with open(yaml_file, 'r', encoding='utf-8') as f:
+    global FAILED_LOAD
+    yaml_file = pathlib.Path('qutebrowser') / 'config' / 'configdata.yml'
+    if not yaml_file.exists():
+        OPTIONS = None
+        FAILED_LOAD = True
+        return
+    with yaml_file.open(mode='r', encoding='utf-8') as f:
         OPTIONS = list(yaml.load(f))

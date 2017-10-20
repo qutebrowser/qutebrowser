@@ -105,6 +105,12 @@ def is_ignored_lowlevel_message(message):
     elif (message.startswith('QNetworkProxyFactory: factory 0x') and
           message.endswith(' has returned an empty result set')):
         return True
+    elif message == '  Error: No such file or directory':
+        # Qt 5.10 with debug Chromium
+        # [1016/155149.941048:WARNING:stack_trace_posix.cc(625)] Failed to open
+        # file: /home/florian/#14687139 (deleted)
+        #   Error: No such file or directory
+        return True
     return False
 
 
@@ -169,6 +175,12 @@ def is_ignored_chromium_message(line):
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
+
+        # Qt 5.10 with debug Chromium
+        # [1016/155149.941048:WARNING:stack_trace_posix.cc(625)] Failed to open
+        # file: /home/florian/#14687139 (deleted)
+        #   Error: No such file or directory
+        'Failed to open file: * (deleted)',
 
         # macOS on Travis
         # [5140:5379:0911/063441.239771:ERROR:mach_port_broker.mm(175)]

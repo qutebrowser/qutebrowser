@@ -83,13 +83,14 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
-|<<tab-detach,tab-detach>>|Detach the current tab to its own window.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
+|<<tab-give,tab-give>>|Give the current tab to a new or existing window if win_id given.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
+|<<tab-take,tab-take>>|Take a tab from another window.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open a closed tab.
 |<<version,version>>|Show version information.
@@ -946,10 +947,6 @@ Close the current/[count]th tab.
 ==== count
 The tab index to close
 
-[[tab-detach]]
-=== tab-detach
-Detach the current tab to its own window.
-
 [[tab-focus]]
 === tab-focus
 Syntax: +:tab-focus ['index']+
@@ -966,6 +963,17 @@ If neither count nor index are given, it behaves like tab-next. If both are give
 
 ==== count
 The tab index to focus, starting with 1.
+
+[[tab-give]]
+=== tab-give
+Syntax: +:tab-give ['win-id']+
+
+Give the current tab to a new or existing window if win_id given.
+
+If no win_id is given, the tab will get detached into a new window.
+
+==== positional arguments
+* +'win-id'+: The window ID of the window to give the current tab to.
 
 [[tab-move]]
 === tab-move
@@ -1018,6 +1026,16 @@ Switch to the previous tab, or switch [count] tabs back.
 
 ==== count
 How many tabs to switch back.
+
+[[tab-take]]
+=== tab-take
+Syntax: +:tab-take 'index'+
+
+Take a tab from another window.
+
+==== positional arguments
+* +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
+
 
 [[unbind]]
 === unbind

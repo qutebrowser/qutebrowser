@@ -146,3 +146,26 @@ class TestHistoryHandler:
         url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, data = benchmark(qutescheme.qute_history, url)
         assert len(json.loads(data)) > 1
+
+
+class TestHelpHandler:
+
+    """Tests for qute://help."""
+
+    @pytest.fixture
+    def data_patcher(self, monkeypatch):
+        def _patch(path, data):
+            def _read_file(name, binary=False):
+                assert path == name
+                if binary:
+                    return data
+                return data.decode('utf-8')
+
+            monkeypatch.setattr(qutescheme.utils, 'read_file', _read_file)
+        return _patch
+
+    def test_unknown_file_type(self, data_patcher):
+        data_patcher('html/doc/foo.bin', b'\xff')
+        mimetype, data = qutescheme.qute_help(QUrl('qute://help/foo.bin'))
+        assert mimetype == 'application/octet-stream'
+        assert data == b'\xff'

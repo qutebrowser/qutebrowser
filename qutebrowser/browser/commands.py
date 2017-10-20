@@ -353,6 +353,10 @@ class CommandDispatcher:
         Return:
             A list of URLs that can be opened.
         """
+        if isinstance(url, QUrl):
+            yield url
+            return
+
         force_search = False
         urllist = [u for u in url.split('\n') if u.strip()]
         if (len(urllist) > 1 and not urlutils.is_url(urllist[0]) and
@@ -514,14 +518,54 @@ class CommandDispatcher:
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', completion=miscmodels.buffer)
+    def tab_take(self, index):
+        """Take a tab from another window.
+
+        Args:
+            index: The [win_id/]index of the tab to take. Or a substring
+                   in which case the closest match will be taken.
+        """
+        tabbed_browser, tab = self._resolve_buffer_index(index)
+
+        if tabbed_browser is self._tabbed_browser:
+            raise cmdexc.CommandError("Can't take a tab from the same window")
+
+        self._open(tab.url(), tab=True)
+        tabbed_browser.close_tab(tab, add_undo=False)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('win_id', completion=miscmodels.window)
+    def tab_give(self, win_id: int = None):
+        """Give the current tab to a new or existing window if win_id given.
+
+        If no win_id is given, the tab will get detached into a new window.
+
+        Args:
+            win_id: The window ID of the window to give the current tab to.
+        """
+        if win_id == self._win_id:
+            raise cmdexc.CommandError("Can't give a tab to the same window")
+
+        if win_id is None:
+            if self._count() < 2:
+                raise cmdexc.CommandError("Cannot detach from a window with "
+                                          "only one tab")
+
+            tabbed_browser = self._new_tabbed_browser(
+                private=self._tabbed_browser.private)
+        else:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+
+        tabbed_browser.tabopen(self._current_url())
+        self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
+
+    @cmdutils.register(instance='command-dispatcher', hide=True,
+                       scope='window', deprecated='Use :tab-give instead!')
     def tab_detach(self):
-        """Detach the current tab to its own window."""
-        if self._count() < 2:
-            raise cmdexc.CommandError("Cannot detach one tab.")
-        url = self._current_url()
-        self._open(url, window=True)
-        cur_widget = self._current_widget()
-        self._tabbed_browser.close_tab(cur_widget, add_undo=False)
+        """Deprecated way to detach a tab."""
+        self.tab_give()
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -972,77 +1016,27 @@ class CommandDispatcher:
         else:
             raise cmdexc.CommandError("Last tab")
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated="Use :open {clipboard}")
-    def paste(self, sel=False, tab=False, bg=False, window=False):
-        """Open a page from the clipboard.
-
-        If the pasted text contains newlines, each line gets opened in its own
-        tab.
+    def _resolve_buffer_index(self, index):
+        """Resolve a buffer index to the tabbedbrowser and tab.
 
         Args:
-            sel: Use the primary selection instead of the clipboard.
-            tab: Open in a new tab.
-            bg: Open in a background tab.
-            window: Open in new window.
-        """
-        force_search = False
-        if not utils.supports_selection():
-            sel = False
-        try:
-            text = utils.get_clipboard(selection=sel)
-        except utils.ClipboardError as e:
-            raise cmdexc.CommandError(e)
-        text_urls = [u for u in text.split('\n') if u.strip()]
-        if (len(text_urls) > 1 and not urlutils.is_url(text_urls[0]) and
-            urlutils.get_path_if_valid(
-                text_urls[0], check_exists=True) is None):
-            force_search = True
-            text_urls = [text]
-        for i, text_url in enumerate(text_urls):
-            if not window and i > 0:
-                tab = False
-                bg = True
-            try:
-                url = urlutils.fuzzy_url(text_url, force_search=force_search)
-            except urlutils.InvalidUrlError as e:
-                raise cmdexc.CommandError(e)
-            self._open(url, tab, bg, window)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', completion=miscmodels.buffer)
-    @cmdutils.argument('count', count=True)
-    def buffer(self, index=None, count=None):
-        """Select tab by index or url/title best match.
-
-        Focuses window if necessary when index is given. If both index and
-        count are given, use count.
-
-        Args:
-            index: The [win_id/]index of the tab to focus. Or a substring
+            index: The [win_id/]index of the tab to be selected. Or a substring
                    in which case the closest match will be focused.
-            count: The tab index to focus, starting with 1.
         """
-        if count is not None:
-            index_parts = [count]
-        elif index is None:
-            raise cmdexc.CommandError("buffer: Either a count or the argument "
-                                      "index must be specified.")
-        else:
-            index_parts = index.split('/', 1)
+        index_parts = index.split('/', 1)
 
-            try:
-                for part in index_parts:
-                    int(part)
-            except ValueError:
-                model = miscmodels.buffer()
-                model.set_pattern(index)
-                if model.count() > 0:
-                    index = model.data(model.first_item())
-                    index_parts = index.split('/', 1)
-                else:
-                    raise cmdexc.CommandError(
-                        "No matching tab for: {}".format(index))
+        try:
+            for part in index_parts:
+                int(part)
+        except ValueError:
+            model = miscmodels.buffer()
+            model.set_pattern(index)
+            if model.count() > 0:
+                index = model.data(model.first_item())
+                index_parts = index.split('/', 1)
+            else:
+                raise cmdexc.CommandError(
+                    "No matching tab for: {}".format(index))
 
         if len(index_parts) == 2:
             win_id = int(index_parts[0])
@@ -1066,10 +1060,35 @@ class CommandDispatcher:
             raise cmdexc.CommandError(
                 "There's no tab with index {}!".format(idx))
 
-        window = objreg.window_registry[win_id]
+        return (tabbed_browser, tabbed_browser.widget(idx-1))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('index', completion=miscmodels.buffer)
+    @cmdutils.argument('count', count=True)
+    def buffer(self, index=None, count=None):
+        """Select tab by index or url/title best match.
+
+        Focuses window if necessary when index is given. If both index and
+        count are given, use count.
+
+        Args:
+            index: The [win_id/]index of the tab to focus. Or a substring
+                   in which case the closest match will be focused.
+            count: The tab index to focus, starting with 1.
+        """
+        if count is None and index is None:
+            raise cmdexc.CommandError("buffer: Either a count or the argument "
+                                      "index must be specified.")
+
+        if count is not None:
+            index = str(count)
+
+        tabbed_browser, tab = self._resolve_buffer_index(index)
+
+        window = tabbed_browser.window()
         window.activateWindow()
         window.raise_()
-        tabbed_browser.setCurrentIndex(idx-1)
+        tabbed_browser.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
@@ -1195,7 +1214,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
-        self._current_widget().openurl(config.val.url.start_pages[0])
+        self.openurl(config.val.url.start_pages[0])
 
     def _run_userscript(self, cmd, *args, verbose=False):
         """Run a userscript given as argument.
@@ -1623,14 +1642,6 @@ class CommandDispatcher:
             elem.set_value(text)
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
-
-    @cmdutils.register(instance='command-dispatcher',
-                       deprecated="Use :insert-text {primary}",
-                       modes=[KeyMode.insert], hide=True, scope='window',
-                       backend=usertypes.Backend.QtWebKit)
-    def paste_primary(self):
-        """Paste the primary selection at cursor position."""
-        self.insert_text(utils.get_clipboard(selection=True, fallback=True))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')
