@@ -1147,6 +1147,9 @@ tabs.favicons.show:
   desc: Show favicons in the tab bar.
   type: Bool
 
+tabs.indicator_padding:
+  renamed: tabs.indicator.padding
+
 tabs.indicator.padding:
   default:
     top: 2
@@ -1280,6 +1283,9 @@ tabs.title.format_pinned:
   desc: The format to use for the tab title for pinned tabs. The same placeholders
     like for `tabs.title.format` are defined.
 
+tabs.width.bar:
+  renamed: tabs.width
+
 tabs.width:
   default: 20%
   type:
@@ -1288,6 +1294,9 @@ tabs.width:
     maxperc: 100
     minint: 1
   desc: "The width of the tab bar if it's vertical, in px or as percentage of the window."
+
+tabs.width.indicator:
+  renamed: tabs.indicator.width
 
 tabs.indicator.width:
   default: 3
