@@ -121,21 +121,29 @@ class TabWidget(QTabWidget):
         """Get the tab title user data."""
         return self.tabBar().page_title(idx)
 
-    def _update_tab_title(self, idx):
-        """Update the tab text for the given tab."""
+    def _update_tab_title(self, idx, field=None):
+        """Update the tab text for the given tab.
+
+        Args:
+            idx: The tab index to update.
+            field: A field name which was updated. If given, the title
+                   is only set if the given field is in the template.
+        """
         tab = self.widget(idx)
+        if tab.data.pinned:
+            fmt = config.val.tabs.title.format_pinned
+        else:
+            fmt = config.val.tabs.title.format
+
+        if (field is not None and
+                (fmt is None or ('{' + field + '}') not in fmt)):
+            return
+
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
         fields['index'] = idx + 1
 
-        fmt = config.val.tabs.title.format
-        fmt_pinned = config.val.tabs.title.format_pinned
-
-        if tab.data.pinned:
-            title = '' if fmt_pinned is None else fmt_pinned.format(**fields)
-        else:
-            title = '' if fmt is None else fmt.format(**fields)
-
+        title = '' if fmt is None else fmt.format(**fields)
         self.tabBar().setTabText(idx, title)
 
     def get_tab_fields(self, idx):
