@@ -30,6 +30,8 @@ Added
 - New `:tab-give` and `:tab-take` commands, to give tabs to another window, or
   take them from another window.
 - New `config.source(...)` method for `config.py` to source another file.
+- New `keyhint.radius` option to configure the edge rounding for the key hint
+  widget.
 
 Fixed
 ~~~~~
