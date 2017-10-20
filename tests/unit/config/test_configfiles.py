@@ -591,7 +591,7 @@ class TestConfigPy:
 
         subfile.write_text("c.content.javascript.enabled = False",
                            encoding='utf-8')
-        confpy.write("config.source('{}')".format(arg))
+        confpy.write("config.source({!r})".format(arg))
         confpy.read()
 
         assert not config.instance._values['content.javascript.enabled']
