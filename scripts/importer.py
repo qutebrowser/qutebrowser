@@ -135,6 +135,14 @@ def get_args():
     return args
 
 
+def search_escape(url):
+    """Escapes URLs such that preexisting { and } are handled properly.
+
+    Will obviously trash a properly-formatted Qutebrowser URL.
+    """
+    return url.replace('{', '{{').replace('}', '}}')
+
+
 def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
     """Import bookmarks from a NETSCAPE-Bookmark-file v1.
 
@@ -180,7 +188,7 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
         tags = soup.findAll(bookmark_query[typ])
         for tag in tags:
             if typ == 'search':
-                tag['href'] = tag['href'].replace('%s', '{}')
+                tag['href'] = search_escape(tag['href']).replace('%s', '{}')
             if tag['href'] not in bookmarks:
                 bookmarks.append(
                     output_template[output_format][typ].format(tag=tag))
