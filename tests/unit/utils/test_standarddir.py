@@ -103,6 +103,7 @@ def test_fake_windows(tmpdir, monkeypatch, what):
     assert func() == str(tmpdir / APPNAME / what)
 
 
+@pytest.mark.posix
 def test_fake_haiku(tmpdir, monkeypatch):
     """Test getting data dir on HaikuOS."""
     locations = {
