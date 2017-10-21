@@ -555,6 +555,10 @@ class CommandDispatcher:
             tabbed_browser = self._new_tabbed_browser(
                 private=self._tabbed_browser.private)
         else:
+            if win_id not in objreg.window_registry:
+                raise cmdexc.CommandError(
+                    "There's no window with id {}!".format(win_id))
+
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
 

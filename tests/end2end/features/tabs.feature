@@ -1058,6 +1058,11 @@ Feature: Tab management
         And I run :tab-give
         Then the error "Cannot detach from a window with only one tab" should be shown
 
+    Scenario: Give a tab to a window ID that does not exist
+        When I open data/hello.txt
+        And I run :tab-give 99
+        Then the error "There's no window with id 99!" should be shown
+
     # Other
 
     Scenario: Using :tab-next after closing last tab (#1448)
