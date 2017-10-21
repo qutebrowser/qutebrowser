@@ -453,20 +453,25 @@ class TabBar(QTabBar):
         Return:
             A QSize of the smallest tab size we can make.
         """
+        icon = self.tabIcon(index)
+        extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None, self)
+        if not icon:
+            icon_width = 0
+        else:
+            icon_width = icon.actualSize(QSize(extent, extent)).width()
         return self._minimum_tab_size_hint_helper(self.tabText(index),
-                                                  self.tabIcon(index),
+                                                  icon_width,
                                                   ellipsis)
 
-    @functools.lru_cache(maxsize=100)
+    @functools.lru_cache(maxsize=2**10)
     def _minimum_tab_size_hint_helper(self, tab_text: str,
-                                      icon,
+                                      icon_width: int,
                                       ellipsis: bool) -> QSize:
         """Helper function to cache tab results.
 
         Acessing config values in here should be added to _on_config_changed to
         ensure cache is flushed when needed.
         """
-        print("running!")
         text = '\u2026' if ellipsis else tab_text
         # Don't ever shorten if text is shorter than the ellipsis
         text_width = min(self.fontMetrics().width(text),
@@ -476,14 +481,8 @@ class TabBar(QTabBar):
         padding_h = padding.left + padding.right
         padding_h += indicator_padding.left + indicator_padding.right
         padding_v = padding.top + padding.bottom
-        if icon.isNull():
-            icon_size = QSize(0, 0)
-        else:
-            extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None,
-                                              self)
-            icon_size = icon.actualSize(QSize(extent, extent))
         height = self.fontMetrics().height() + padding_v
-        width = (text_width + icon_size.width() +
+        width = (text_width + icon_width +
                  padding_h + config.val.tabs.width.indicator)
         return QSize(width, height)
 
