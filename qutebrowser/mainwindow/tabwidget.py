@@ -486,17 +486,15 @@ class TabBar(QTabBar):
                  padding_h + config.val.tabs.width.indicator)
         return QSize(width, height)
 
-    def _tab_total_width_pinned(self):
-        """Get the current total width of pinned tabs.
-
-        This width is calculated assuming no shortening due to ellipsis."""
-        return sum(self.minimumTabSizeHint(idx, ellipsis=False).width()
-            for idx in range(self.count())
-            if self._tab_pinned(idx))
-
-    def _pinnedCount(self) -> int:
-        """Get the number of pinned tabs."""
-        return sum(self._tab_pinned(idx) for idx in range(self.count()))
+    def _pinned_statistics(self) -> (int, int):
+        """Get the number of pinned tabs and the total width of pinned tabs."""
+        pinned_list = [idx
+                       for idx in range(self.count())
+                       if self._tab_pinned(idx)]
+        pinned_count = len(pinned_list)
+        pinned_width = sum(self.minimumTabSizeHint(idx, ellipsis=False).width()
+                           for idx in pinned_list)
+        return (pinned_count, pinned_width)
 
     def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
@@ -535,8 +533,8 @@ class TabBar(QTabBar):
             return QSize()
         else:
             pinned = self._tab_pinned(index)
-            no_pinned_count = self.count() - self._pinnedCount()
-            pinned_width = self._tab_total_width_pinned()
+            pinned_count, pinned_width = self._pinned_statistics()
+            no_pinned_count = self.count() - pinned_count
             no_pinned_width = self.width() - pinned_width
 
             if pinned:
