@@ -729,8 +729,6 @@ class TestSendOrListen:
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)
 
-        assert len(caplog.records) == 1
-
         error_msgs = [
             'Handling fatal misc.ipc.ListenError with --no-err-windows!',
             '',
@@ -740,7 +738,7 @@ class TestSendOrListen:
             ('exception text: Error while listening to IPC server: Error '
                 'string (error 4)'),
         ]
-        assert caplog.records[0].msg == '\n'.join(error_msgs)
+        assert caplog.records[-1].msg == '\n'.join(error_msgs)
 
 
 @pytest.mark.windows
