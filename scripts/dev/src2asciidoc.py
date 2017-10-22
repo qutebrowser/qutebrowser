@@ -160,9 +160,9 @@ def _get_configtypes():
                                      configtypes.MappingType,
                                      # pylint: disable=protected-access
                                      configtypes._Numeric] and
+                                     # pylint: enable=protected-access
                            issubclass(e, configtypes.BaseType))
     yield from inspect.getmembers(configtypes, predicate)
-    # pylint: enable=protected-access
 
 
 def _get_setting_types_quickref():
@@ -501,7 +501,6 @@ def regenerate_manpage(filename):
     """Update manpage OPTIONS using an argparse parser."""
     # pylint: disable=protected-access
     parser = qutebrowser.get_argparser()
-    # pylint: enable=protected-access
     groups = []
     # positionals, optionals and user-defined groups
     for group in parser._action_groups:
@@ -514,6 +513,7 @@ def regenerate_manpage(filename):
             if action_data is not None:
                 groupdata.append(action_data)
         groups.append('\n'.join(groupdata))
+    # pylint: enable=protected-access
     options = '\n'.join(groups)
     # epilog
     if parser.epilog is not None:

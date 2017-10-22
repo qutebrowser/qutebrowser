@@ -294,7 +294,6 @@ class TestListen:
 
     @pytest.mark.posix
     def test_permissions_posix(self, ipc_server):
-        # pylint: disable=no-member,useless-suppression
         ipc_server.listen()
         sockfile = ipc_server._server.fullServerName()
         sockdir = os.path.dirname(sockfile)
@@ -302,8 +301,10 @@ class TestListen:
         file_stat = os.stat(sockfile)
         dir_stat = os.stat(sockdir)
 
+        # pylint: disable=no-member,useless-suppression
         file_owner_ok = file_stat.st_uid == os.getuid()
         dir_owner_ok = dir_stat.st_uid == os.getuid()
+        # pylint: enable=no-member,useless-suppression
         file_mode_ok = file_stat.st_mode & 0o777 == 0o700
         dir_mode_ok = dir_stat.st_mode & 0o777 == 0o700
 
@@ -311,7 +312,6 @@ class TestListen:
             sockdir, dir_stat.st_uid, dir_stat.st_mode))
         print('sockfile: {} / owner {} / mode {:o}'.format(
             sockfile, file_stat.st_uid, file_stat.st_mode))
-        # pylint: enable=no-member,useless-suppression
 
         assert file_owner_ok or dir_owner_ok
         assert file_mode_ok or dir_mode_ok

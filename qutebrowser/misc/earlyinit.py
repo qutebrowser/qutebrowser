@@ -187,7 +187,6 @@ def check_ssl_support():
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
-    # pylint: enable=unused-variable
 
 
 def _check_modules(modules):

@@ -1490,8 +1490,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
         """Show the source of the current page in a new tab."""
-        # pylint: disable=no-member
-        # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/491/
+        
         tab = self._current_widget()
         if tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
@@ -1504,10 +1503,13 @@ class CommandDispatcher:
 
         def show_source_cb(source):
             """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
             lexer = pygments.lexers.HtmlLexer()
             formatter = pygments.formatters.HtmlFormatter(
                 full=True, linenos='table',
                 title='Source for {}'.format(current_url.toDisplayString()))
+            # pylint: enable=no-member
             highlighted = pygments.highlight(source, lexer, formatter)
 
             new_tab = self._tabbed_browser.tabopen()
@@ -1515,7 +1517,6 @@ class CommandDispatcher:
             new_tab.data.viewing_source = True
 
         tab.dump_async(show_source_cb)
-        # pylint: enable=no-member
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

@@ -267,7 +267,6 @@ class TestGetAllObjects:
 
             global object registry - 0 objects:
         """).rstrip('\n')
-        # pylint: enable=unused-variable
 
         assert debug.get_all_objects(start_obj=root) == expected
 

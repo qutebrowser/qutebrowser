@@ -177,7 +177,6 @@ class TestEarlyInit:
             assert config.instance._values == {}
         else:
             assert config.instance._values == {'colors.hints.fg': 'magenta'}
-        # pylint: enable=too-many-locals,too-many-branches
 
     def test_invalid_change_filter(self, init_patch, args):
         config.change_filter('foobar')

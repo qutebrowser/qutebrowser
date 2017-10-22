@@ -109,10 +109,10 @@ class TestYaml:
         # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
         # pylint: disable=superfluous-parens
         if 'magenta' in (old_config or ''):
+        # pylint: enable=superfluous-parens
             assert '  colors.hints.fg: magenta' in lines
         if insert:
             assert '  tabs.show: never' in lines
-        # pylint: enable=superfluous-parens
 
     def test_init_save_manager(self, yaml, fake_save_manager):
         yaml.init_save_manager(fake_save_manager)

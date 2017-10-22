@@ -287,7 +287,6 @@ def _try_import_backends():
         assert results.webengine_error is not None
 
     return results
-    # pylint: enable=unused-variable
 
 
 def _handle_ssl_support(fatal=False):

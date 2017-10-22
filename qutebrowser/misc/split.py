@@ -119,7 +119,6 @@ class ShellLexer:
                     self.token += nextchar
             else:
                 raise AssertionError("Invalid state {!r}!".format(self.state))
-        # pylint: enable=too-many-branches,too-many-statements
         if self.state in self.escape and not self.keep:
             self.token += self.state
         if self.token or self.quoted:

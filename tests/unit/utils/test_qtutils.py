@@ -702,12 +702,12 @@ class TestPyQIODevice:
             whence = os.SEEK_HOLE
         elif hasattr(os, 'SEEK_DATA'):
             whence = os.SEEK_DATA
+        # pylint: enable=no-member,useless-suppression
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
         pyqiodev.open(QIODevice.ReadOnly)
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
-        # pylint: enable=no-member,useless-suppression
 
     @pytest.mark.flaky()
     def test_qprocess(self, py_proc):
@@ -907,4 +907,3 @@ class TestEventLoop:
         QTimer.singleShot(400, self.loop.quit)
         self.loop.exec_()
         assert not self.loop._executing
-    # pylint: enable=attribute-defined-outside-init
