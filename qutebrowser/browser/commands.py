@@ -1515,6 +1515,7 @@ class CommandDispatcher:
             new_tab.data.viewing_source = True
 
         tab.dump_async(show_source_cb)
+        # pylint: enable=no-member
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

@@ -171,6 +171,7 @@ def debug_cache_stats():
     prefix_info = configdata.is_valid_prefix.cache_info()
     # pylint: disable=protected-access
     render_stylesheet_info = config._render_stylesheet.cache_info()
+    # pylint: enable=protected-access
 
     history_info = None
     try:

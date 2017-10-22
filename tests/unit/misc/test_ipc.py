@@ -311,6 +311,7 @@ class TestListen:
             sockdir, dir_stat.st_uid, dir_stat.st_mode))
         print('sockfile: {} / owner {} / mode {:o}'.format(
             sockfile, file_stat.st_uid, file_stat.st_mode))
+        # pylint: enable=no-member,useless-suppression
 
         assert file_owner_ok or dir_owner_ok
         assert file_mode_ok or dir_mode_ok

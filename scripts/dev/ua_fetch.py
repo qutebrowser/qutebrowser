@@ -73,6 +73,7 @@ def filter_list(complete_list, browsers):
             if found:
                 break
     return table
+    # pylint: enable=too-many-nested-blocks
 
 
 def add_diversity(table):

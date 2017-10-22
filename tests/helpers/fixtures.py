@@ -137,6 +137,7 @@ def fake_statusbar(qtbot):
     # pylint: disable=attribute-defined-outside-init
     statusbar.container = container
     vbox.addWidget(statusbar)
+    # pylint: enable=attribute-defined-outside-init
 
     with qtbot.waitExposed(container):
         container.show()

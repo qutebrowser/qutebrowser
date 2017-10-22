@@ -239,6 +239,7 @@ class FileDownloadTarget(_DownloadTarget):
     def __init__(self, filename):
         # pylint: disable=super-init-not-called
         self.filename = filename
+        # pylint: enable=super-init-not-called
 
     def suggested_filename(self):
         return os.path.basename(self.filename)
@@ -258,6 +259,7 @@ class FileObjDownloadTarget(_DownloadTarget):
     def __init__(self, fileobj):
         # pylint: disable=super-init-not-called
         self.fileobj = fileobj
+        # pylint: enable=super-init-not-called
 
     def suggested_filename(self):
         try:
@@ -285,6 +287,7 @@ class OpenFileDownloadTarget(_DownloadTarget):
     def __init__(self, cmdline=None):
         # pylint: disable=super-init-not-called
         self.cmdline = cmdline
+        # pylint: enable=super-init-not-called
 
     def suggested_filename(self):
         raise NoFilenameError

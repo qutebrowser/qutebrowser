@@ -94,6 +94,8 @@ def _pac_noexcept_test(call):
     ("known.domain", "'1.2.3.4'"),
     ("bogus.domain.foobar", "null")
 ])
+# pylint: enable=line-too-long, invalid-name
+
 def test_dnsResolve(monkeypatch, domain, expected):
     def mock_fromName(host):
         info = QHostInfo()

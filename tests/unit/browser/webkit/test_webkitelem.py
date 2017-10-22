@@ -130,6 +130,7 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     elem.styleProperty.side_effect = _style_property
     wrapped = webkitelem.WebKitElement(elem, tab=None)
     return wrapped
+    # pylint: enable=too-many-locals,too-many-branches
 
 
 class SelectionAndFilterTests:

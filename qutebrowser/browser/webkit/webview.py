@@ -184,6 +184,7 @@ class WebView(QWebView):
                                     window=self.win_id)
         # pylint: disable=protected-access
         return tabbed_browser.tabopen(background=False)._widget
+        # pylint: enable=protected-access
 
     def paintEvent(self, e):
         """Extend paintEvent to emit a signal if the scroll position changed.

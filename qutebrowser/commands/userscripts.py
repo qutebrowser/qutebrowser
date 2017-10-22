@@ -59,6 +59,7 @@ class _QtFIFOReader(QObject):
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)
+        # pylint: enable=no-member,useless-suppression
 
     @pyqtSlot()
     def read_line(self):
@@ -247,6 +248,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
                                              dir=standarddir.runtime())
             # pylint: disable=no-member,useless-suppression
             os.mkfifo(self._filepath)
+            # pylint: enable=no-member,useless-suppression
         except OSError as e:
             message.error("Error while creating FIFO: {}".format(e))
             return

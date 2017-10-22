@@ -27,6 +27,7 @@ import unittest.mock
 try:
     # pylint: disable=no-name-in-module,useless-suppression
     from test import test_file
+    # pylint: enable=no-name-in-module,useless-suppression
 except ImportError:
     # Debian patches Python to remove the tests...
     test_file = None
@@ -706,6 +707,7 @@ class TestPyQIODevice:
         pyqiodev.open(QIODevice.ReadOnly)
         with pytest.raises(io.UnsupportedOperation):
             pyqiodev.seek(0, whence)
+        # pylint: enable=no-member,useless-suppression
 
     @pytest.mark.flaky()
     def test_qprocess(self, py_proc):
@@ -905,3 +907,4 @@ class TestEventLoop:
         QTimer.singleShot(400, self.loop.quit)
         self.loop.exec_()
         assert not self.loop._executing
+    # pylint: enable=attribute-defined-outside-init

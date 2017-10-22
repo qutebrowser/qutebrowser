@@ -182,6 +182,7 @@ class AsciiDoc:
 
         asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual']
         self.call(modified_src, dst, *asciidoc_args)
+        # pylint: enable=too-many-locals,too-many-statements
 
     def _build_website(self):
         """Prepare and build the website."""

@@ -127,6 +127,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # If available, we also want a traceback on SIGUSR1.
         # pylint: disable=no-member,useless-suppression
         faulthandler.register(signal.SIGUSR1)
+        # pylint: enable=no-member,useless-suppression
 
 
 def check_pyqt_core():
@@ -186,6 +187,7 @@ def check_ssl_support():
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
+    # pylint: enable=unused-variable
 
 
 def _check_modules(modules):

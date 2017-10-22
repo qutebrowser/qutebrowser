@@ -496,6 +496,7 @@ def _init_modules(args, crash_handler):
     macros.init()
     # Init backend-specific stuff
     browsertab.init()
+    # pylint: enable=too-many-statements
 
 
 class Quitter:

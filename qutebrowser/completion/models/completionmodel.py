@@ -154,6 +154,7 @@ class CompletionModel(QAbstractItemModel):
         """Override QAbstractItemModel::columnCount."""
         # pylint: disable=unused-argument
         return 3
+        # pylint: enable=unused-argument
 
     def canFetchMore(self, parent):
         """Override to forward the call to the categories."""

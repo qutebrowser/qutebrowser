@@ -91,6 +91,8 @@ class Tab(browsertab.AbstractTab):
     def _install_event_filter(self):
         pass
 
+    # pylint: enable=abstract-method
+
 
 @pytest.mark.xfail(run=False, reason='Causes segfaults, see #1638')
 def test_tab(qtbot, view, config_stub, tab_registry, mode_manager):

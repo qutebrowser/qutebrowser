@@ -112,6 +112,7 @@ class TestYaml:
             assert '  colors.hints.fg: magenta' in lines
         if insert:
             assert '  tabs.show: never' in lines
+        # pylint: enable=superfluous-parens
 
     def test_init_save_manager(self, yaml, fake_save_manager):
         yaml.init_save_manager(fake_save_manager)
@@ -404,6 +405,7 @@ class TestConfigPy:
         """Test whether getting options works correctly."""
         # pylint: disable=bad-config-option
         config.val.colors.hints.fg = 'green'
+        # pylint: enable=bad-config-option
         if set_first:
             confpy.write('c.colors.hints.fg = "red"',
                          'assert {} == "red"'.format(get_line))

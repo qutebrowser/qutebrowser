@@ -172,6 +172,7 @@ def pytest_configure(config):
     # pylint: disable=unused-variable
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
+    # pylint: enable=unused-variable
 
 
 @pytest.fixture(scope='session', autouse=True)

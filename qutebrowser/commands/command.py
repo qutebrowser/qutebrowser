@@ -100,6 +100,7 @@ class Command:
         if scope != 'global' and instance is None:
             raise ValueError("Setting scope without setting instance makes "
                              "no sense!")
+        # pylint: enable=too-many-locals
 
         self.name = name
         self.maxsplit = maxsplit

@@ -677,6 +677,7 @@ class AbstractTab(QWidget):
 
         self._install_event_filter()
         self.zoom.set_default()
+        # pylint: enable=protected-access
 
     def _install_event_filter(self):
         raise NotImplementedError
