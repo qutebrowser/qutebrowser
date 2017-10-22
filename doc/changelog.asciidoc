@@ -40,6 +40,7 @@ Fixed
 - Using `:home` on pinned tabs is now prevented.
 - Fix crash with unknown file types loaded via qute://help
 - Scrolling performance improvements
+- Fix crash when `:tab-give` is used with an unknown window ID.
 
 Deprecated
 ~~~~~~~~~~
@@ -61,7 +62,6 @@ Fixed
 ~~~~~
 
 - Handle accessing a locked sqlite database gracefully
-- Fix crash when `:tab-give` is used with an unknown window ID.
 
 v1.0.2
 ------
