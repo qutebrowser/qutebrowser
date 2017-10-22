@@ -61,6 +61,7 @@ Fixed
 ~~~~~
 
 - Handle accessing a locked sqlite database gracefully
+- Fix crash when `:tab-give` is used with an unknown window ID.
 
 v1.0.2
 ------
