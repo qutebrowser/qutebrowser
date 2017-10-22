@@ -134,6 +134,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         self._js_call('set_value', value)
 
     def caret_position(self):
+        """Get the text caret position for the current element"""
         return self._js_dict.get('caret_position', 0)
 
     def insert_text(self, text):
