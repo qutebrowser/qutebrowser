@@ -1919,8 +1919,8 @@ respective value when executing the command.
 `{file}` gets replaced by the filename of the file to be edited.
 `{line}` gets replaced by the line in which the caret is found in the text.
 `{column}` gets replaced by the column in which the caret is found in the text.
-`{line0}` same as `{line}`, but starting from index 0
-`{column0}` same as `{column}`, but starting from index 0
+`{line0}` same as `{line}`, but starting from index 0.
+`{column0}` same as `{column}`, but starting from index 0.
 
 Type: <<types,ShellCommand>>
 
