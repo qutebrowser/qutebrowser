@@ -60,8 +60,9 @@ class TestSet:
     @pytest.mark.parametrize('option, old_value, inp, new_value', [
         ('url.auto_search', 'naive', 'dns', 'dns'),
         # https://github.com/qutebrowser/qutebrowser/issues/2962
-        ('editor.command', ['gvim', '-f', '{}'], '[emacs, "{}"]',
-         ['emacs', '{}']),
+        ('editor.command',
+         ['gvim', '-f', '{file}', '-c', 'normal {line}G{column0}l'],
+         '[emacs, "{}"]', ['emacs', '{}']),
     ])
     def test_set_simple(self, monkeypatch, commands, config_stub,
                         temp, option, old_value, inp, new_value):
