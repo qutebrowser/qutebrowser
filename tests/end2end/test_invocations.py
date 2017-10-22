@@ -70,7 +70,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
-def test_ascii_locale(request, server, tmpdir, quteproc_new):
+def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/908
@@ -100,6 +100,23 @@ def test_ascii_locale(request, server, tmpdir, quteproc_new):
 
     assert len(tmpdir.listdir()) == 1
     assert (tmpdir / '?-issue908.bin').exists()
+
+
+@pytest.mark.linux
+def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new):
+    """Test opening non-ascii URL with LC_ALL=C set.
+
+    https://github.com/qutebrowser/qutebrowser/issues/1450
+    """
+    args = ['--temp-basedir'] + _base_args(request.config)
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
+
+    # Test opening a file whose name contains non-ascii characters.
+    # No exception thrown means test success.
+    url = 'file:///föö.html'
+    quteproc_new.send_cmd(':open {}'.format(url))
+    quteproc_new.wait_for(category='url',
+                          message='URL contains characters *')
 
 
 @pytest.mark.linux
