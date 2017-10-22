@@ -211,7 +211,6 @@
 |<<keyhint.delay,keyhint.delay>>|Time from pressing a key to seeing the keyhint dialog (ms).
 |<<keyhint.radius,keyhint.radius>>|The rounding radius for the edges of the keyhint dialog.
 |<<messages.timeout,messages.timeout>>|Time (in ms) to show messages in the statusbar for.
-|<<messages.unfocused,messages.unfocused>>|Show messages in unfocused windows.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
@@ -2431,14 +2430,6 @@ Set to 0 to never clear messages.
 Type: <<types,Int>>
 
 Default: +pass:[2000]+
-
-[[messages.unfocused]]
-=== messages.unfocused
-Show messages in unfocused windows.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[new_instance_open_target]]
 === new_instance_open_target

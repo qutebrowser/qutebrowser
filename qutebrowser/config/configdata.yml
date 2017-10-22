@@ -1007,9 +1007,7 @@ messages.timeout:
     Set to 0 to never clear messages.
 
 messages.unfocused:
-  type: Bool
-  default: false
-  desc: Show messages in unfocused windows.
+  deleted: true
 
 ## prompt
 

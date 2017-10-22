@@ -52,6 +52,7 @@ Removed
 
 - The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
   commands have been removed.
+- The `messages.unfocused` option which wasn't used anymore was removed.
 
 v1.0.3 (unreleased)
 -------------------
