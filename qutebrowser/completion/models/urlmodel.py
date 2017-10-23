@@ -61,9 +61,9 @@ def url(*, info):
     bookmarks = objreg.get('bookmark-manager').marks.items()
 
     model.add_category(listcategory.ListCategory(
-        'Quickmarks', quickmarks, delete_func=_delete_quickmark))
+        'Quickmarks', quickmarks, delete_func=_delete_quickmark, sort=False))
     model.add_category(listcategory.ListCategory(
-        'Bookmarks', bookmarks, delete_func=_delete_bookmark))
+        'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
 
     if info.config.get('completion.web_history_max_items') != 0:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)

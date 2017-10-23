@@ -466,9 +466,9 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Sessions": [('default', None, None),
-                     ('1', None, None),
-                     ('2', None, None)]
+        "Sessions": [('1', None, None),
+                     ('2', None, None),
+                     ('default', None, None)]
     })
 
 

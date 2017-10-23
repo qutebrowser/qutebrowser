@@ -29,7 +29,7 @@ def option(*, info):
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     options = ((opt.name, opt.description, info.config.get_str(opt.name))
                for opt in configdata.DATA.values())
-    model.add_category(listcategory.ListCategory("Options", sorted(options)))
+    model.add_category(listcategory.ListCategory("Options", options))
     return model
 
 
@@ -39,7 +39,7 @@ def customized_option(*, info):
     options = ((opt.name, opt.description, info.config.get_str(opt.name))
                for opt, _value in info.config)
     model.add_category(listcategory.ListCategory("Customized options",
-                                                 sorted(options)))
+                                                 options))
     return model
 
 
@@ -66,8 +66,7 @@ def value(optname, *_values, info):
 
     vals = opt.typ.complete()
     if vals is not None:
-        model.add_category(listcategory.ListCategory("Completions",
-                                                     sorted(vals)))
+        model.add_category(listcategory.ListCategory("Completions", vals))
     return model
 
 

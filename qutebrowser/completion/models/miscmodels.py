@@ -43,7 +43,7 @@ def helptopic(*, info):
                 for opt in configdata.DATA.values())
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
-    model.add_category(listcategory.ListCategory("Settings", sorted(settings)))
+    model.add_category(listcategory.ListCategory("Settings", settings))
     return model
 
 
@@ -59,7 +59,8 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('quickmark-manager').marks.items()
     model.add_category(listcategory.ListCategory('Quickmarks', marks,
-                                                 delete_func=delete))
+                                                 delete_func=delete,
+                                                 sort=False))
     return model
 
 
@@ -75,7 +76,8 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
     marks = objreg.get('bookmark-manager').marks.items()
     model.add_category(listcategory.ListCategory('Bookmarks', marks,
-                                                 delete_func=delete))
+                                                 delete_func=delete,
+                                                 sort=False))
     return model
 
 
