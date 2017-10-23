@@ -19,6 +19,7 @@
 
 """The main statusbar widget."""
 
+import enum
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
@@ -46,7 +47,7 @@ class ColorFlags:
         passthrough: If we're currently in passthrough-mode.
     """
 
-    CaretMode = usertypes.enum('CaretMode', ['off', 'on', 'selection'])
+    CaretMode = enum.Enum('CaretMode', ['off', 'on', 'selection'])
     prompt = attr.ib(False)
     insert = attr.ib(False)
     command = attr.ib(False)

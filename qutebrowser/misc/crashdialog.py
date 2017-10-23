@@ -27,6 +27,7 @@ import getpass
 import fnmatch
 import traceback
 import datetime
+import enum
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
@@ -35,14 +36,14 @@ from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QDialogButtonBox, QApplication, QMessageBox)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg, usertypes
+from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin)
 from qutebrowser.config import config, configfiles
 
 
-Result = usertypes.enum('Result', ['restore', 'no_restore'], is_int=True,
-                        start=QDialog.Accepted + 1)
+Result = enum.IntEnum('Result', ['restore', 'no_restore'],
+                      start=QDialog.Accepted + 1)
 
 
 def parse_fatal_stacktrace(text):

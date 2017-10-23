@@ -27,6 +27,7 @@ import collections
 import functools
 import pathlib
 import tempfile
+import enum
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
@@ -38,8 +39,7 @@ from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils)
 
 
-ModelRole = usertypes.enum('ModelRole', ['item'], start=Qt.UserRole,
-                           is_int=True)
+ModelRole = enum.IntEnum('ModelRole', ['item'], start=Qt.UserRole)
 
 
 # Remember the last used directory

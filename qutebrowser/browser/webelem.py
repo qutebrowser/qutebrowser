@@ -24,6 +24,7 @@ Module attributes:
     SELECTORS: CSS selectors for different groups of elements.
 """
 
+import enum
 import collections.abc
 
 from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer
@@ -35,7 +36,7 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
-Group = usertypes.enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
+Group = enum.Enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
 
 
 SELECTORS = {

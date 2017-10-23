@@ -25,6 +25,7 @@ import functools
 import html
 import ctypes
 import ctypes.util
+import enum
 
 import attr
 from PyQt5.QtCore import Qt
@@ -37,10 +38,10 @@ from qutebrowser.utils import usertypes, objreg, version, qtutils, log, utils
 from qutebrowser.misc import objects, msgbox
 
 
-_Result = usertypes.enum(
+_Result = enum.IntEnum(
     '_Result',
     ['quit', 'restart', 'restart_webkit', 'restart_webengine'],
-    is_int=True, start=QDialog.Accepted + 1)
+    start=QDialog.Accepted + 1)
 
 
 @attr.s
