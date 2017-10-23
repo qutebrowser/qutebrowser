@@ -212,6 +212,7 @@ Other sponsors
 - Julie Engel
 - Jörg Behrmann
 - Jørgen Skancke
+- Kevin Kainan Li
 - Kevin Velghe
 - Konstantin Shmelkov
 - Kyle Frazer
