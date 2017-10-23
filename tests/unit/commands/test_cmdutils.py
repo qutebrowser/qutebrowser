@@ -25,6 +25,7 @@ import sys
 import logging
 import types
 import typing
+import enum
 
 import pytest
 
@@ -243,7 +244,7 @@ class TestRegister:
         else:
             assert pos_args == [('arg', 'arg')]
 
-    Enum = usertypes.enum('Test', ['x', 'y'])
+    Enum = enum.Enum('Test', ['x', 'y'])
 
     @pytest.mark.parametrize('typ, inp, choices, expected', [
         (int, '42', None, 42),

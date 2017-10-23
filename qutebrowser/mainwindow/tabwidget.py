@@ -20,6 +20,7 @@
 """The tab widget used for TabbedBrowser from browser.py."""
 
 import functools
+import enum
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
@@ -34,8 +35,8 @@ from qutebrowser.config import config
 from qutebrowser.misc import objects
 
 
-PixelMetrics = usertypes.enum('PixelMetrics', ['icon_padding'],
-                              start=QStyle.PM_CustomBase, is_int=True)
+PixelMetrics = enum.IntEnum('PixelMetrics', ['icon_padding'],
+                         start=QStyle.PM_CustomBase)
 
 
 class TabWidget(QTabWidget):

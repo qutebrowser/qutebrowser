@@ -24,6 +24,7 @@ import functools
 import math
 import re
 import html
+import enum
 from string import ascii_lowercase
 
 import attr
@@ -37,10 +38,10 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
 
-Target = usertypes.enum('Target', ['normal', 'current', 'tab', 'tab_fg',
-                                   'tab_bg', 'window', 'yank', 'yank_primary',
-                                   'run', 'fill', 'hover', 'download',
-                                   'userscript', 'spawn'])
+Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg',
+                              'tab_bg', 'window', 'yank', 'yank_primary',
+                              'run', 'fill', 'hover', 'download',
+                              'userscript', 'spawn'])
 
 
 class HintingError(Exception):

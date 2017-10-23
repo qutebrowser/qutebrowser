@@ -27,6 +27,7 @@ import platform
 import subprocess
 import importlib
 import collections
+import enum
 import pkg_resources
 
 import attr
@@ -63,7 +64,7 @@ class DistributionInfo:
     pretty = attr.ib()
 
 
-Distribution = usertypes.enum(
+Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
 
