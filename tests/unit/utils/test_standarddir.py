@@ -555,8 +555,9 @@ def test_no_qapplication(qapp, tmpdir):
     pyfile = tmpdir / 'sub.py'
     pyfile.write_text(textwrap.dedent(sub_code), encoding='ascii')
 
-    output = subprocess.check_output([sys.executable, str(pyfile)] + sys.path,
-                                     universal_newlines=True)
+    output = subprocess.run([sys.executable, str(pyfile)] + sys.path,
+                            universal_newlines=True,
+                            check=True, stdout=subprocess.PIPE).stdout
     sub_locations = json.loads(output)
 
     standarddir._init_dirs()

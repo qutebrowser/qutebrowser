@@ -76,14 +76,15 @@ def main():
         pass
     elif args.profile_tool == 'gprof2dot':
         # yep, shell=True. I know what I'm doing.
-        subprocess.call('gprof2dot -f pstats {} | dot -Tpng | feh -F -'.format(
-                        shlex.quote(profilefile)), shell=True)
+        subprocess.run(
+            'gprof2dot -f pstats {} | dot -Tpng | feh -F -'.format(
+                shlex.quote(profilefile)), shell=True)
     elif args.profile_tool == 'kcachegrind':
         callgraphfile = os.path.join(tempdir, 'callgraph')
-        subprocess.call(['pyprof2calltree', '-k', '-i', profilefile,
-                         '-o', callgraphfile])
+        subprocess.run(['pyprof2calltree', '-k', '-i', profilefile,
+                        '-o', callgraphfile])
     elif args.profile_tool == 'snakeviz':
-        subprocess.call(['snakeviz', profilefile])
+        subprocess.run(['snakeviz', profilefile])
 
     shutil.rmtree(tempdir)
 
