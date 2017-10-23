@@ -120,6 +120,18 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new):
 
 
 @pytest.mark.linux
+def test_open_command_line_with_ascii_locale(request, server, tmpdir, quteproc_new):
+    """Test opening file from the command line with a non-ascii name with LC_ALL=C set.
+
+    https://github.com/qutebrowser/qutebrowser/issues/1450
+    """
+    # The file does not actually have to exist because the relevant checks will
+    # all be called. No exception thrown means test success.
+    args = ['--temp-basedir'] + _base_args(request.config) + ['/home/user/föö.html']
+    quteproc_new.start(args, env={'LC_ALL': 'C'})
+
+
+@pytest.mark.linux
 def test_misconfigured_user_dirs(request, server, temp_basedir_env,
                                  tmpdir, quteproc_new):
     """Test downloads with a misconfigured XDG_DOWNLOAD_DIR.
