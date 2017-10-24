@@ -1137,6 +1137,17 @@ tabs.close_mouse_button:
       - none: "Don't close tabs using the mouse."
   desc: On which mouse button to close tabs.
 
+tabs.close_mouse_button_on_bar:
+  default: new-tab
+  type:
+    name: String
+    valid_values:
+      - new-tab: "Open a new tab."
+      - close-current: "Close the current tab."
+      - close-last: "Close the last tab."
+      - ignore: "Don't do anything."
+  desc: Behavior when the close mouse button is pressed on the tab bar.
+
 tabs.favicons.scale:
   default: 1.0
   type:

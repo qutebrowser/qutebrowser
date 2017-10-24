@@ -46,9 +46,11 @@ class TabWidget(QTabWidget):
         tab_index_changed: Emitted when the current tab was changed.
                            arg 0: The index of the tab which is now focused.
                            arg 1: The total count of tabs.
+        new_tab_requested: Emitted when a new tab is requested.
     """
 
     tab_index_changed = pyqtSignal(int, int)
+    new_tab_requested = pyqtSignal('QUrl', bool, bool)
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -59,6 +61,7 @@ class TabWidget(QTabWidget):
         bar.tabMoved.connect(functools.partial(
             QTimer.singleShot, 0, self._update_tab_titles))
         bar.currentChanged.connect(self._on_current_changed)
+        bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
         self.setElideMode(Qt.ElideRight)
@@ -269,6 +272,11 @@ class TabWidget(QTabWidget):
         self.tabBar().on_current_changed()
         self.tab_index_changed.emit(index, self.count())
 
+    @pyqtSlot()
+    def _on_new_tab_requested(self):
+        """Open a new tab."""
+        self.new_tab_requested.emit(config.val.url.default_page, False, False)
+
     def tab_url(self, idx):
         """Get the URL of the tab at the given index.
 
@@ -298,7 +306,12 @@ class TabBar(QTabBar):
     Attributes:
         vertical: When the tab bar is currently vertical.
         win_id: The window ID this TabBar belongs to.
+
+    Signals:
+        new_tab_requested: Emitted when a new tab is requested.
     """
+
+    new_tab_requested = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -432,7 +445,16 @@ class TabBar(QTabBar):
             e.accept()
             idx = self.tabAt(e.pos())
             if idx == -1:
-                idx = self.currentIndex()
+                action = config.val.tabs.close_mouse_button_on_bar
+                if action == 'ignore':
+                    return
+                elif action == 'new-tab':
+                    self.new_tab_requested.emit()
+                    return
+                elif action == 'close-current':
+                    idx = self.currentIndex()
+                elif action == 'close-last':
+                    idx = self.count() - 1
             self.tabCloseRequested.emit(idx)
             return
         super().mousePressEvent(e)
