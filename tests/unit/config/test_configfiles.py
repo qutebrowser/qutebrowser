@@ -109,6 +109,7 @@ class TestYaml:
         # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
         # pylint: disable=superfluous-parens
         if 'magenta' in (old_config or ''):
+        # pylint: enable=superfluous-parens
             assert '  colors.hints.fg: magenta' in lines
         if insert:
             assert '  tabs.show: never' in lines
@@ -404,6 +405,7 @@ class TestConfigPy:
         """Test whether getting options works correctly."""
         # pylint: disable=bad-config-option
         config.val.colors.hints.fg = 'green'
+        # pylint: enable=bad-config-option
         if set_first:
             confpy.write('c.colors.hints.fg = "red"',
                          'assert {} == "red"'.format(get_line))

@@ -208,3 +208,4 @@ def test_enter_folder(dir_layout, quteproc, folder):
     assert foldernames == folders
     filenames = [item.text for item in page.files]
     assert filenames == files
+    # pylint: enable=not-an-iterable

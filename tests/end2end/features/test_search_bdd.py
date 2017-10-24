@@ -23,6 +23,7 @@ import pytest_bdd as bdd
 
 # pylint: disable=unused-import
 from end2end.features.test_yankpaste_bdd import init_fake_clipboard
+# pylint: enable=unused-import
 
 
 @bdd.then(bdd.parsers.parse('"{text}" should be found'))

@@ -27,6 +27,7 @@ import unittest.mock
 try:
     # pylint: disable=no-name-in-module,useless-suppression
     from test import test_file
+    # pylint: enable=no-name-in-module,useless-suppression
 except ImportError:
     # Debian patches Python to remove the tests...
     test_file = None
@@ -701,6 +702,7 @@ class TestPyQIODevice:
             whence = os.SEEK_HOLE
         elif hasattr(os, 'SEEK_DATA'):
             whence = os.SEEK_DATA
+        # pylint: enable=no-member,useless-suppression
         else:
             pytest.skip("Needs os.SEEK_HOLE or os.SEEK_DATA available.")
         pyqiodev.open(QIODevice.ReadOnly)

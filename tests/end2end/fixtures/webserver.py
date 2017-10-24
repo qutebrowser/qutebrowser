@@ -87,6 +87,7 @@ class Request(testprocess.Line):
             path_to_statuses[key] = [http.client.UNAUTHORIZED, http.client.OK]
 
         default_statuses = [http.client.OK, http.client.NOT_MODIFIED]
+        # pylint: enable=no-member
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
         expected_statuses = path_to_statuses.get(sanitized, default_statuses)

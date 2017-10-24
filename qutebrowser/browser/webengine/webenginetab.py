@@ -686,6 +686,7 @@ class WebEngineTab(browsertab.AbstractTab):
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
+                # pylint: enable=no-member, useless-suppression
             except AttributeError:
                 url_string = url.toDisplayString()
                 error_page = jinja.render(
@@ -705,6 +706,7 @@ class WebEngineTab(browsertab.AbstractTab):
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
+                # pylint: enable=no-member, useless-suppression
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html

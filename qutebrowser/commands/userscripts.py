@@ -56,6 +56,7 @@ class _QtFIFOReader(QObject):
         # can add O_NONBLOCK.
         # pylint: disable=no-member,useless-suppression
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
+        # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)
@@ -247,6 +248,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
                                              dir=standarddir.runtime())
             # pylint: disable=no-member,useless-suppression
             os.mkfifo(self._filepath)
+            # pylint: enable=no-member,useless-suppression
         except OSError as e:
             message.error("Error while creating FIFO: {}".format(e))
             return

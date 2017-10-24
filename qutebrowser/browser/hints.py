@@ -393,6 +393,7 @@ class HintManager(QObject):
         # pylint: disable=not-an-iterable
         for label in self._context.all_labels:
             label.cleanup()
+        # pylint: enable=not-an-iterable
 
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -809,6 +810,7 @@ class HintManager(QObject):
                     label.hide()
             except webelem.Error:
                 pass
+        # pylint: enable=not-an-iterable
 
         if not visible:
             # Whoops, filtered all hints
