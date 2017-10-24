@@ -450,13 +450,13 @@ class TabBar(QTabBar):
                                                   icon_width,
                                                   ellipsis)
 
-    @functools.lru_cache(maxsize=2**10)
+    @functools.lru_cache(maxsize=2**9)
     def _minimum_tab_size_hint_helper(self, tab_text: str,
                                       icon_width: int,
                                       ellipsis: bool) -> QSize:
         """Helper function to cache tab results.
 
-        Acessing config values in here should be added to _on_config_changed to
+        Config values accessed in here should be added to _on_config_changed to
         ensure cache is flushed when needed.
         """
         text = '\u2026' if ellipsis else tab_text

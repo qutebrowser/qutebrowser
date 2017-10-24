@@ -171,6 +171,7 @@ def debug_cache_stats():
     prefix_info = configdata.is_valid_prefix.cache_info()
     # pylint: disable=protected-access
     render_stylesheet_info = config._render_stylesheet.cache_info()
+    # pylint: enable=protected-access
 
     history_info = None
     try:
@@ -183,8 +184,10 @@ def debug_cache_stats():
 
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
+    # pylint: disable=protected-access
     tabbed_browser_info = tabbed_browser.tabBar(). \
         _minimum_tab_size_hint_helper.cache_info()
+    # pylint: enable=protected-access
 
     log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
     log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
