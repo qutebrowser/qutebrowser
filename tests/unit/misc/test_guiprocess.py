@@ -195,7 +195,8 @@ def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
             proc.start(*py_proc('import sys; sys.exit(1)'))
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text == "Testprocess exited with status 1."
+    expected = "Testprocess exited with status 1, see :messages for details."
+    assert msg.text == expected
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])

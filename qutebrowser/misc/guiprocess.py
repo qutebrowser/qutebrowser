@@ -106,8 +106,8 @@ class GUIProcess(QObject):
             assert status == QProcess.NormalExit
             # We call this 'status' here as it makes more sense to the user -
             # it's actually 'code'.
-            message.error("{} exited with status {}.".format(
-                self._what.capitalize(), code))
+            message.error("{} exited with status {}, see :messages for "
+                          "details.".format(self._what.capitalize(), code))
 
             stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
             stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
