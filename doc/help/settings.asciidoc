@@ -227,6 +227,7 @@
 |<<statusbar.position,statusbar.position>>|The position of the status bar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|On which mouse button to close tabs.
+|<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|Behavior when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|Show favicons in the tab bar.
 |<<tabs.indicator_padding,tabs.indicator_padding>>|Padding for tab indicators
@@ -2650,6 +2651,21 @@ Valid values:
  * +none+: Don't close tabs using the mouse.
 
 Default: +pass:[middle]+
+
+[[tabs.close_mouse_button_on_bar]]
+=== tabs.close_mouse_button_on_bar
+Behavior when the close mouse button is pressed on the tab bar.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +new-tab+: Open a new tab.
+ * +close-current+: Close the current tab.
+ * +close-last+: Close the last tab.
+ * +ignore+: Don't do anything.
+
+Default: +pass:[new-tab]+
 
 [[tabs.favicons.scale]]
 === tabs.favicons.scale
