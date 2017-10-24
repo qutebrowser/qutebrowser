@@ -186,10 +186,6 @@ Why takes it longer to open an URL in qutebrowser than in chromium?::
     
 == Troubleshooting
 
-Configuration not saved after modifying config.::
-    When editing your config file manually, qutebrowser must be exited completely.
-    This can be done by issuing the command `:quit` or by pressing `Ctrl+q`.
-
 Unable to view flash content.::
     If you have flash installed for on your system, it's necessary to enable plugins
     to use the flash plugin. Using the command `:set content.plugins true`
