@@ -86,12 +86,33 @@ class BrowserPage(QWebPage):
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
-        self.mainFrame().javaScriptWindowObjectCleared.connect(
-            functools.partial(self.inject_userjs, load='start'))
-        self.mainFrame().initialLayoutCompleted.connect(
-            functools.partial(self.inject_userjs, load='end'))
-        self.mainFrame().loadFinished.connect(
-            functools.partial(self.inject_userjs, load='idle'))
+        self.connect_userjs_signals(None)
+        self.frameCreated.connect(self.connect_userjs_signals)
+
+    @pyqtSlot('QWebFrame*')
+    def connect_userjs_signals(self, frame_arg):
+        """
+        Connect the signals used as triggers for injecting user
+        javascripts into `frame_arg`.
+        """
+        # If we pass whatever self.mainFrame() or self.currentFrame() returns
+        # at init time into the partial functions which the signals
+        # below call then the signals don't seem to be called at all for
+        # the main frame of the first tab. I have no idea why I am
+        # seeing this behavior. Replace the None in the call to this
+        # function in __init__ with self.mainFrame() and try for
+        # yourself.
+        if frame_arg:
+            frame = frame_arg
+        else:
+            frame = self.mainFrame()
+
+        frame.javaScriptWindowObjectCleared.connect(
+            functools.partial(self.inject_userjs, frame_arg, load='start'))
+        frame.initialLayoutCompleted.connect(
+            functools.partial(self.inject_userjs, frame_arg, load='end'))
+        frame.loadFinished.connect(
+            functools.partial(self.inject_userjs, frame_arg, load='idle'))
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
@@ -290,16 +311,24 @@ class BrowserPage(QWebPage):
             self.error_occurred = False
 
     @pyqtSlot()
-    def inject_userjs(self, load):
+    def inject_userjs(self, frame, load):
         """Inject user javascripts into the page.
 
-        param: The page load stage to inject the corresponding scripts
-               for. Support values are "start", "end" and "idle",
-               corresponding to the allowed values of the `@run-at`
-               directive in the greasemonkey metadata spec.
+        Args:
+            frame: The QWebFrame to inject the user scripts into, or
+                   None for the main frame.
+            load: The page load stage to inject the corresponding
+                  scripts for. Support values are "start", "end" and
+                  "idle", corresponding to the allowed values of the
+                  `@run-at` directive in the greasemonkey metadata spec.
         """
+        if not frame:
+            frame = self.mainFrame()
+        url = frame.url()
+        if url.isEmpty():
+            url = frame.requestedUrl()
+
         greasemonkey = objreg.get('greasemonkey')
-        url = self.currentFrame().url()
         scripts = greasemonkey.scripts_for(url)
 
         if load == "start":
@@ -309,9 +338,15 @@ class BrowserPage(QWebPage):
         elif load == "idle":
             toload = scripts.idle
 
+        if url.isEmpty():
+            # This happens during normal usage like with view source but may
+            # also indicate a bug.
+            log.greasemonkey.debug("Not running scripts for frame with no "
+                                   "url: {}".format(frame))
         for script in toload:
-            log.webview.debug('Running GM script: {}'.format(script.name))
-            self.currentFrame().evaluateJavaScript(script.code())
+            if frame is self.mainFrame() or script.runs_on_sub_frames:
+                log.webview.debug('Running GM script: {}'.format(script.name))
+                frame.evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
