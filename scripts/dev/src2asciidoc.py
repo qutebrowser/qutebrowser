@@ -155,13 +155,13 @@ def _get_setting_quickref():
 
 def _get_configtypes():
     """Get configtypes classes to document."""
-    predicate = lambda e: (inspect.isclass(e) and
-                           e not in [configtypes.BaseType,
-                                     configtypes.MappingType,
-                                     # pylint: disable=protected-access
-                                     configtypes._Numeric] and
-                                     # pylint: enable=protected-access
-                           issubclass(e, configtypes.BaseType))
+    predicate = lambda e: (
+        inspect.isclass(e) and
+        # pylint: disable=protected-access
+        e not in [configtypes.BaseType, configtypes.MappingType,
+                  configtypes._Numeric] and
+        # pylint: enable=protected-access
+        issubclass(e, configtypes.BaseType))
     yield from inspect.getmembers(configtypes, predicate)
 
 
@@ -504,7 +504,6 @@ def regenerate_manpage(filename):
     # positionals, optionals and user-defined groups
     # pylint: disable=protected-access
     for group in parser._action_groups:
-    # pylint: enable=protected-access
         groupdata = []
         groupdata.append('=== {}'.format(group.title))
         if group.description is not None:
@@ -514,6 +513,7 @@ def regenerate_manpage(filename):
             if action_data is not None:
                 groupdata.append(action_data)
         groups.append('\n'.join(groupdata))
+    # pylint: enable=protected-access
     options = '\n'.join(groups)
     # epilog
     if parser.epilog is not None:

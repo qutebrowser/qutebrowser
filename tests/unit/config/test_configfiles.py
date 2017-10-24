@@ -109,7 +109,7 @@ class TestYaml:
         # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
         # pylint: disable=superfluous-parens
         if 'magenta' in (old_config or ''):
-        # pylint: enable=superfluous-parens
+            # pylint: enable=superfluous-parens
             assert '  colors.hints.fg: magenta' in lines
         if insert:
             assert '  tabs.show: never' in lines
