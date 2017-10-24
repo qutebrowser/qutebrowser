@@ -78,15 +78,10 @@ $ python3 scripts/asciidoc2html.py
 On Fedora
 ---------
 
-qutebrowser is available in the official repositories for Fedora 22 and newer.
+The Fedora packages are lagging behind a lot and are currently effectively
+unmaintained. It's recommended to <<tox,install qutebrowser via tox>> instead.
 
-----
-# dnf install qutebrowser
-----
-
-It's also recommended to install `python3-qt5-webengine` and start with `--backend
-webengine` to use the new backend. v1.0.0 (which is not in the Fedora repos
-currently) uses QtWebEngine by default.
+Related Fedora bug: https://bugzilla.redhat.com/show_bug.cgi?id=1467748[1467748]
 
 On Archlinux
 ------------
@@ -122,11 +117,13 @@ On Gentoo
 ---------
 
 The Gentoo packages (even the live version) are lagging behind a lot and are
-effectively unmaintained. If you want to create and maintain an official
-qutebrowser overlay for Gentoo, please mailto:mail@qutebrowser.org[get in
-touch.]
+effectively unmaintained. Efforts to fix this (via
+https://wiki.gentoo.org/wiki/Project:Proxy_Maintainers[proxy maintainers]) are
+currently underway. In the meantime, it's recommended to <<tox,install
+qutebrowser via tox>> instead.
 
-It's recommended to <<tox,install qutebrowser via tox>> instead.
+Related Gentoo bugs with patches: https://bugs.gentoo.org/628000[-9999],
+https://bugs.gentoo.org/630542[v1.0]
 
 To get an up-to-date QtWebKit, you can use
 https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild].

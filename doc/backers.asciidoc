@@ -118,7 +118,7 @@ TODO: people with t-shirts or higher pledge levels
 - toml
 - vimja
 - wiz
-- 43 Anonymous
+- 44 Anonymous
 
 2016
 ----
@@ -212,6 +212,7 @@ Other sponsors
 - Julie Engel
 - Jörg Behrmann
 - Jørgen Skancke
+- Kevin Kainan Li
 - Kevin Velghe
 - Konstantin Shmelkov
 - Kyle Frazer
