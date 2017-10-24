@@ -43,7 +43,7 @@ def main():
     bookmark_types = []
     output_format = None
     input_format = args.input_format
-    if args.import_search:
+    if args.search_output:
         bookmark_types = ['search']
         if args.oldconfig:
             output_format = 'oldsearch'
