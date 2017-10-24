@@ -1490,7 +1490,6 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self):
         """Show the source of the current page in a new tab."""
-        
         tab = self._current_widget()
         if tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")

@@ -499,11 +499,12 @@ def _format_block(filename, what, data):
 
 def regenerate_manpage(filename):
     """Update manpage OPTIONS using an argparse parser."""
-    # pylint: disable=protected-access
     parser = qutebrowser.get_argparser()
     groups = []
     # positionals, optionals and user-defined groups
+    # pylint: disable=protected-access
     for group in parser._action_groups:
+    # pylint: enable=protected-access
         groupdata = []
         groupdata.append('=== {}'.format(group.title))
         if group.description is not None:
@@ -513,7 +514,6 @@ def regenerate_manpage(filename):
             if action_data is not None:
                 groupdata.append(action_data)
         groups.append('\n'.join(groupdata))
-    # pylint: enable=protected-access
     options = '\n'.join(groups)
     # epilog
     if parser.epilog is not None:

@@ -94,7 +94,6 @@ def _pac_noexcept_test(call):
     ("known.domain", "'1.2.3.4'"),
     ("bogus.domain.foobar", "null")
 ])
-
 def test_dnsResolve(monkeypatch, domain, expected):
     def mock_fromName(host):
         info = QHostInfo()
