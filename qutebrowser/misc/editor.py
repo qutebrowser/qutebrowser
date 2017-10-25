@@ -150,7 +150,7 @@ class ExternalEditor(QObject):
         self._proc.start(executable, args)
 
     def _calc_line_and_column(self, text, caret_position):
-        """Calculate line and column numbers given a text and caret position
+        r"""Calculate line and column numbers given a text and caret position.
 
         Both line and column are 1-based indexes, because that's what most
         editors use as line and column starting index.  By "most" we mean at
