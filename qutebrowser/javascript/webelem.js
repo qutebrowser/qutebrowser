@@ -53,7 +53,9 @@ window._qutebrowser.webelem = (function() {
         try {
             caret_position = elem.selectionStart;
         } catch (e) {
-            // nothing to do, caret_position is already 0
+            if (e instanceof DOMException && e.name === "InvalidStateError") {
+                // nothing to do, caret_position is already 0
+            }
         }
 
         var out = {
