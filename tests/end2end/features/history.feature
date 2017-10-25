@@ -74,7 +74,8 @@ Feature: Page history
             http://localhost:(port)/data/title.html Test title
 
     Scenario: Clearing history
-        When I open data/title.html
+        When I run :tab-only
+        And I open data/title.html
         And I run :history-clear --force
         Then the history should be empty
 
