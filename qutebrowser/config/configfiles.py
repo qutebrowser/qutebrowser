@@ -354,15 +354,16 @@ class ConfigPyWriter:
         normal_bindings = self._bindings.pop('normal', {})
         if normal_bindings:
             yield self._line('# Bindings for normal mode')
-        for key, command in sorted(normal_bindings.items()):
-            yield self._line('config.bind({!r}, {!r})'.format(key, command))
+            for key, command in sorted(normal_bindings.items()):
+                yield self._line('config.bind({!r}, {!r})'.format(key, command))
+            yield ''
 
         for mode, mode_bindings in sorted(self._bindings.items()):
-            yield ''
             yield self._line('# Bindings for {} mode'.format(mode))
             for key, command in sorted(mode_bindings.items()):
                 yield self._line('config.bind({!r}, {!r}, mode={!r})'.format(
                     key, command, mode))
+            yield ''
 
 
 def read_config_py(filename, raising=False):
