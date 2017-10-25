@@ -27,7 +27,6 @@ Currently only importing bookmarks from Netscape Bookmark files is supported.
 
 
 import argparse
-import sys
 
 browser_default_input_format = {
     'chromium': 'netscape',
