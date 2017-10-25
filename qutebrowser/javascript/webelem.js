@@ -48,12 +48,20 @@ window._qutebrowser.webelem = (function() {
         var id = elements.length;
         elements[id] = elem;
 
+        // InvalidStateError will be thrown if elem doesn't have selectionStart
+        var caret_position = 0;
+        try {
+            caret_position = elem.selectionStart;
+        } catch (e) {
+            // nothing to do, caret_position is already 0
+        }
+
         var out = {
             "id": id,
             "value": elem.value,
             "outer_xml": elem.outerHTML,
             "rects": [],  // Gets filled up later
-            "caret_position": elem.selectionStart,
+            "caret_position": caret_position,
         };
 
         // https://github.com/qutebrowser/qutebrowser/issues/2569
