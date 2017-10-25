@@ -63,9 +63,11 @@ def main():
     if not output_format:
         output_format = 'quickmark'
     if not input_format:
-        if not args.browser:
-            sys.exit("Must specify either browser or input format")
-        input_format = browser_default_input_format[args.browser]
+        if args.browser:
+            input_format = browser_default_input_format[args.browser]
+        else:
+            #default to netscape
+            input_format = 'netscape'
 
     import_function = {'netscape': import_netscape_bookmarks}
     import_function[input_format](args.bookmarks, bookmark_types,
@@ -86,7 +88,8 @@ def get_args():
     parser.add_argument(
         '-i',
         '--input-format',
-        help='Which input format? (overrides browser default)',
+        help='Which input format? (overrides browser default; "netscape" if '
+        'neither given)',
         choices=set(browser_default_input_format.values()),
         required=False)
     parser.add_argument(
