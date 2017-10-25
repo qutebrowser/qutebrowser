@@ -51,7 +51,7 @@ import tokenize
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, QEvent, pyqtSignal)
+                          QObject, QEvent, pyqtSignal, Qt)
 try:
     import hunter
 except ImportError:
@@ -821,6 +821,7 @@ class Application(QApplication):
 
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)
+        self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
