@@ -318,6 +318,8 @@ class QuteProc(testprocess.Process):
         else:
             raise ValueError("Invalid value {!r} for 'what'.".format(what))
         if self._load_ready and self._focus_ready:
+            self._load_ready = False
+            self._focus_ready = False
             self.ready.emit()
 
     def _process_line(self, log_line):
