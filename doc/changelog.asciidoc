@@ -33,6 +33,11 @@ Added
 - New `keyhint.radius` option to configure the edge rounding for the key hint
   widget.
 
+Changed
+~~~~~~~
+
+- High-DPI favicons are now used when available.
+
 Fixed
 ~~~~~
 
