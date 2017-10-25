@@ -121,6 +121,12 @@ class HostBlocker:
         """Check if the given URL (as QUrl) is blocked."""
         if not config.val.content.host_blocking.enabled:
             return False
+
+        if (url.host() == 'www.youtube.com'
+                and url.path() == '/get_video_info'
+                and '&adformat=' in url.query()):
+            return True
+
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
