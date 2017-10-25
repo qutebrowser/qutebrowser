@@ -55,6 +55,9 @@ window._qutebrowser.webelem = (function() {
         } catch (e) {
             if (e instanceof DOMException && e.name === "InvalidStateError") {
                 // nothing to do, caret_position is already 0
+            } else {
+                // not the droid we're looking for
+                throw e
             }
         }
 
