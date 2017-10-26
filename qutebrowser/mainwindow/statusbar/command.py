@@ -221,7 +221,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def _incremental_search(self, text):
-        if config.val.incremental_search:
+        if config.val.search.incremental:
             search_prefixes = {
                 '/': 'search -- ',
                 '?': 'search -r -- ',
