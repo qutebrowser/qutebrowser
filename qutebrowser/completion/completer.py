@@ -186,8 +186,6 @@ class Completer(QObject):
                 # keep offering completions (see issue #1519)
                 self._ignore_change = True
         else:
-            log.completion.debug("Will ignore next completion update.")
-            self._ignore_change = True
             self._change_completed_part(text, before, after)
 
     @pyqtSlot()
@@ -284,7 +282,20 @@ class Completer(QObject):
             # pad with a space if quick-completing the last entry
             text += ' '
         log.completion.debug("setting text = '{}', pos = {}".format(text, pos))
+
+        # generally, we don't want to let self._cmd emit cursorPositionChanged,
+        # because that'll schedule a completion update. That happens when
+        # tabbing through the completions, and we want to change the command
+        # text but we also want to keep the original completion list for the
+        # command the user manually entered. The exception is when we're
+        # immediately completing, in which case we *do* want to update the
+        # completion view so that we can start completing the next part
+        if not immediate:
+            self._cmd.blockSignals(True)
+
         self._cmd.setText(text)
         self._cmd.setCursorPosition(pos)
         self._cmd.setFocus()
+
+        self._cmd.blockSignals(False)
         self._cmd.show_cmd.emit()

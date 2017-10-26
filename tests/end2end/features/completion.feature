@@ -95,3 +95,9 @@ Feature: Using completion
         Then the following tabs should be open:
             - data/hello2.txt (active)
             - data/hello.txt
+
+    Scenario: Space updates completion model after selecting full command
+        When I run :set-cmd-text :set
+        And I run :completion-item-focus next
+        When I run :set-cmd-text -s :set
+        Then the completion model should be option
