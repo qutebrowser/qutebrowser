@@ -1770,7 +1770,7 @@ class CommandDispatcher:
             return
 
         options = {
-            'ignore_case': config.val.ignore_case,
+            'ignore_case': config.val.search.ignore_case,
             'reverse': reverse,
         }
 

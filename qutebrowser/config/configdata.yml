@@ -33,7 +33,7 @@ history_gap_interval:
     Items with less time between them are grouped when being displayed in
     `:history`. Use -1 to disable separation.
 
-ignore_case:
+search.ignore_case:
   type:
     name: String
     valid_values:
@@ -43,10 +43,10 @@ ignore_case:
   default: smart
   desc: When to find text on a page case-insensitively.
 
-incremental_search:
+search.incremental:
   type: Bool
   default: True
-  desc: Find text on a page incrementally, renewing the search for each typing character.
+  desc: Find text on a page incrementally, renewing the search for each typed character.
 
 new_instance_open_target:
   type:
