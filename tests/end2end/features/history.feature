@@ -73,6 +73,8 @@ Feature: Page history
         Then the history should contain:
             http://localhost:(port)/data/title.html Test title
 
+    # Hangs a lot on AppVeyor
+    @posix
     Scenario: Clearing history
         When I run :tab-only
         And I open data/title.html
