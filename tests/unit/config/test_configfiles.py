@@ -667,7 +667,7 @@ class TestConfigPyWriter:
 
             # Bindings for caret mode
             config.bind(',y', 'message-info caret', mode='caret')
-        """).strip()
+        """).lstrip()
 
     def test_binding_options_hidden(self):
         opt1 = configdata.DATA['bindings.default']
