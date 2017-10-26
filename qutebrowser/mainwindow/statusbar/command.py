@@ -27,6 +27,7 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.config import config
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -45,6 +46,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         update_completion: Emitted when the completion should be shown/updated.
         show_cmd: Emitted when command input should be shown.
         hide_cmd: Emitted when command input can be hidden.
+        update_search: Emitted when search term could be updated.
     """
 
     got_cmd = pyqtSignal([str], [str, int])
@@ -53,6 +55,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     update_completion = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
+    update_search = pyqtSignal()
 
     def __init__(self, *, win_id, private, parent=None):
         misc.CommandLineEdit.__init__(self, parent=parent)
@@ -66,6 +69,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
+        self.textChanged.connect(self.update_search)
+        self.update_search.connect(self.incrementSearch)
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -216,3 +221,13 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text = 'x'
         width = self.fontMetrics().width(text)
         return QSize(width, height)
+
+    def incrementSearch(self):
+        if config.val.incremental_search == True:
+            search_prefixes = {
+                '/': 'search -- ',
+                '?': 'search -r -- ',
+            }
+            if self.prefix() == '/' or self.prefix() == '?':
+                text = self.text()
+                self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
