@@ -43,6 +43,11 @@ ignore_case:
   default: smart
   desc: When to find text on a page case-insensitively.
 
+incremental_search:
+  type: Bool
+  default: False
+  desc: Find text on a page incrementally, renewing the search for each typing character.
+
 new_instance_open_target:
   type:
     name: String
