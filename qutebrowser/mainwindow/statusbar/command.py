@@ -227,6 +227,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                 '?': 'search -r -- ',
             }
 
-            # len(text) check is for when user presses <Esc>
-            if self.prefix() in '/?' and len(text) != 0:
+            # `if text` check is for when user presses <Esc> and `len(text)` is 0
+            if self.prefix() in '/?' and text:
                 self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
