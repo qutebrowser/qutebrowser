@@ -37,6 +37,8 @@ Changed
 ~~~~~~~
 
 - High-DPI favicons are now used when available.
+- The `asciidoc2html.py` script now uses Pygments (which is already a dependency
+  of qutebrowser) instead of `source-highlight` for syntax highlighting.
 
 Fixed
 ~~~~~

@@ -89,6 +89,7 @@ class AsciiDoc:
             ("http://qutebrowser.org/img/cheatsheet-small.png",
                 "qute://help/img/cheatsheet-small.png")
         ]
+        asciidoc_args = ['-a', 'source-highlighter=pygments']
 
         for src, dst in files:
             src_basename = os.path.basename(src)
@@ -99,7 +100,7 @@ class AsciiDoc:
                     for orig, repl in replacements:
                         line = line.replace(orig, repl)
                     modified_f.write(line)
-            self.call(modified_src, dst)
+            self.call(modified_src, dst, *asciidoc_args)
 
     def _copy_images(self):
         """Copy image files to qutebrowser/html/doc."""
@@ -180,7 +181,8 @@ class AsciiDoc:
         with open(modified_src, 'w+', encoding='utf-8') as final_version:
             final_version.write(title + "\n\n" + header + current_lines)
 
-        asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual']
+        asciidoc_args = ['--theme=qute', '-a toc', '-a toc-placement=manual',
+                         '-a', 'source-highlighter=pygments']
         self.call(modified_src, dst, *asciidoc_args)
 
     def _build_website(self):
