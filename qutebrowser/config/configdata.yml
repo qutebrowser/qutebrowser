@@ -45,7 +45,7 @@ ignore_case:
 
 incremental_search:
   type: Bool
-  default: False
+  default: True
   desc: Find text on a page incrementally, renewing the search for each typing character.
 
 new_instance_open_target:

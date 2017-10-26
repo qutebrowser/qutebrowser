@@ -1750,7 +1750,7 @@ class CommandDispatcher:
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
             message.warning("Text '{}' not found on page!".format(text),
-                    replace=True)
+                replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
