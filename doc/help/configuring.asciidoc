@@ -11,9 +11,9 @@ Migrating older configurations
 ------------------------------
 
 qutebrowser does no automatic migration for the new configuration. However,
-there's a special link:qute://configdiff/old[configdiff] page in qutebrowser,
-which will show you the changes you did in your old configuration, compared to
-the old defaults.
+there's a special link:qute://configdiff/old[configdiff] page
+(`qute://configdiff/old`) in qutebrowser, which will show you the changes you
+did in your old configuration, compared to the old defaults.
 
 Other changes in default settings:
 
