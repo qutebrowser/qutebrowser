@@ -1749,7 +1749,8 @@ class CommandDispatcher:
             elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
-            message.warning("Text '{}' not found on page!".format(text))
+            message.warning("Text '{}' not found on page!".format(text),
+                    replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
