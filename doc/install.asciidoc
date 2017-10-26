@@ -116,16 +116,16 @@ If video or sound don't work with QtWebKit, try installing the gstreamer plugins
 On Gentoo
 ---------
 
-The Gentoo packages (even the live version) are lagging behind a lot and are
-effectively unmaintained. Efforts to fix this (via
-https://wiki.gentoo.org/wiki/Project:Proxy_Maintainers[proxy maintainers]) are
-currently underway. In the meantime, it's recommended to <<tox,install
-qutebrowser via tox>> instead.
+NOTE: Gentoo's packages used to be severely outdated for a long time, but are
+now (October 2017) maintained and up-to-date again.
 
-Related Gentoo bugs with patches: https://bugs.gentoo.org/628000[-9999],
-https://bugs.gentoo.org/630542[v1.0]
+qutebrowser is available in the main repository and can be installed with:
 
-To get an up-to-date QtWebKit, you can use
+----
+# emerge -av qutebrowser
+----
+
+To use QtWebKit instead of QtWebEngine, you'll need a newer QtWebKit using
 https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild].
 
 If video or sound don't work with QtWebKit, try installing the gstreamer
