@@ -99,5 +99,5 @@ Feature: Using completion
     Scenario: Space updates completion model after selecting full command
         When I run :set-cmd-text :set
         And I run :completion-item-focus next
-        When I run :set-cmd-text -s :set
+        And I run :set-cmd-text -s :set
         Then the completion model should be option
