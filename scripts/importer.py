@@ -138,7 +138,7 @@ def get_args():
 
 
 def search_escape(url):
-    """Escapes URLs such that preexisting { and } are handled properly.
+    """Escape URLs such that preexisting { and } are handled properly.
 
     Will obviously trash a properly-formatted Qutebrowser URL.
     """
