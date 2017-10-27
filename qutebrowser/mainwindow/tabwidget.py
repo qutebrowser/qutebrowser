@@ -442,7 +442,7 @@ class TabBar(QTabBar):
         """
         icon = self.tabIcon(index)
         extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None, self)
-        if not icon:
+        if icon.isNull():
             icon_width = 0
         else:
             icon_width = icon.actualSize(QSize(extent, extent)).width()
