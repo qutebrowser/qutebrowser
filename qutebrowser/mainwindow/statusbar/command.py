@@ -243,12 +243,13 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def _incremental_search(self, text):
-        if config.val.search.incremental:
-            search_prefixes = {
-                '/': 'search -- ',
-                '?': 'search -r -- ',
-            }
+        if not config.val.search.incremental:
+            return
 
-            # `if text` check is for when user presses <Esc> and `len(text)` is 0
-            if self.prefix() in '/?' and text:
-                self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
+        search_prefixes = {
+            '/': 'search -- ',
+            '?': 'search -r -- ',
+        }
+
+        if self.prefix() in ['/', '?']:
+            self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
