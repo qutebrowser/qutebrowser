@@ -23,8 +23,8 @@ Other changes in default settings:
   You can get back the old behavior by doing:
 +
 ----
-:bind -f -m command <Up> completion-item-focus prev
-:bind -f -m command <Down> completion-item-focus next
+:bind -m command <Up> completion-item-focus prev
+:bind -m command <Down> completion-item-focus next
 ----
 
 - The default for `completion.web_history_max_items` is now set to `-1`, showing
