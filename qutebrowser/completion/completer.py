@@ -43,7 +43,6 @@ class Completer(QObject):
 
     Attributes:
         _cmd: The statusbar Command object this completer belongs to.
-        _ignore_change: Whether to ignore the next completion update.
         _timer: The timer used to trigger the completion update.
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
@@ -54,7 +53,6 @@ class Completer(QObject):
     def __init__(self, cmd, parent=None):
         super().__init__(parent)
         self._cmd = cmd
-        self._ignore_change = False
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -178,13 +176,14 @@ class Completer(QObject):
             text = self._quote(text)
         model = self._model()
         if model.count() == 1 and config.val.completion.quick:
-            # If we only have one item, we want to apply it immediately
-            # and go on to the next part.
-            self._change_completed_part(text, before, after, immediate=True)
+            # If we only have one item, we want to apply it immediately and go
+            # on to the next part, unless we are quick-completing the part
+            # after maxsplit, so that we don't keep offering completions
+            # (see issue #1519)
             if maxsplit is not None and maxsplit < len(before):
-                # If we are quick-completing the part after maxsplit, don't
-                # keep offering completions (see issue #1519)
-                self._ignore_change = True
+                self._change_completed_part(text, before, after)
+            else:
+                self._change_completed_part(text, before, after, immediate=True)
         else:
             self._change_completed_part(text, before, after)
 
@@ -219,12 +218,6 @@ class Completer(QObject):
     @pyqtSlot()
     def _update_completion(self):
         """Check if completions are available and activate them."""
-        if self._ignore_change:
-            log.completion.debug("Ignoring completion update because "
-                                 "ignore_change is True.")
-            self._ignore_change = False
-            return
-
         completion = self.parent()
 
         if self._cmd.prefix() != ':':
