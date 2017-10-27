@@ -2113,7 +2113,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def edit_url(self, url=None, bg=False, tab=False, window=False,
-                 private=False):
+                 private=False, related=False):
         """Navigate to a url formed in an external editor.
 
         The editor which should be launched can be configured via the
@@ -2125,6 +2125,8 @@ class CommandDispatcher:
             tab: Open in a new tab.
             window: Open in a new window.
             private: Open a new window in private browsing mode.
+            related: If opening a new tab, position the tab as related to the
+                     current one (like clicking on a link).
         """
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
 
@@ -2135,7 +2137,7 @@ class CommandDispatcher:
         # Passthrough for openurl args (e.g. -t, -b, -w)
         ed.editing_finished.connect(functools.partial(
             self._open_if_changed, old_url=old_url, bg=bg, tab=tab,
-            window=window, private=private))
+            window=window, private=private, related=related))
 
         ed.edit(url or old_url)
 
@@ -2160,7 +2162,7 @@ class CommandDispatcher:
         self._tabbed_browser.jump_mark(key)
 
     def _open_if_changed(self, url=None, old_url=None, bg=False, tab=False,
-                         window=False, private=False):
+                         window=False, private=False, related=False):
         """Open a URL unless it's already open in the tab.
 
         Args:
@@ -2170,10 +2172,12 @@ class CommandDispatcher:
             tab: Open in a new tab.
             window: Open in a new window.
             private: Open a new window in private browsing mode.
+            related: If opening a new tab, position the tab as related to the
+                     current one (like clicking on a link).
         """
-        if bg or tab or window or private or url != old_url:
+        if bg or tab or window or private or related or url != old_url:
             self.openurl(url=url, bg=bg, tab=tab, window=window,
-                         private=private)
+                         private=private, related=related)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fullscreen(self, leave=False):
