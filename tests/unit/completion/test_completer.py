@@ -299,6 +299,12 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     config_stub.val.completion.quick = True
 
     _set_cmd_prompt(status_command_stub, ':open |')
-    completer_obj.on_selection_changed('http://example.com')
-    completer_obj.schedule_completion_update()
-    assert not completion_widget_stub.set_model.called
+
+    url = 'http://example.com'
+    completer_obj._change_completed_part = unittest.mock.Mock()
+    completer_obj.on_selection_changed(url)
+
+    # no immediate (default is false)
+    completer_obj._change_completed_part.assert_called_with(url,      # text
+                                                            ['open'], # before
+                                                            [])       # after
