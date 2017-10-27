@@ -188,9 +188,10 @@ def server(qapp):
 
 
 @pytest.fixture(autouse=True)
-def server_after_test(server, request):
+def server_per_test(server, request):
     """Fixture to clean server request list after each test."""
     request.node._server_log = server.captured_log
+    server.before_test()
     yield
     server.after_test()
 
