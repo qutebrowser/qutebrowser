@@ -113,8 +113,6 @@ window._qutebrowser.stylesheet = (function() {
         style_observer.observe(document, {"childList": true, "subtree": true});
     }
 
-    var doc = document;
-
     funcs.set_css = function(css) {
         if (!initialized) {
             init();
