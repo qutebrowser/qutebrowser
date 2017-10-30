@@ -65,8 +65,5 @@ class TestTabWidget:
             widget.show()
 
         def bench():
-            for _a in range(1000):
-                # pylint: disable=protected-access
-                widget._update_tab_titles()
-                # pylint: enable=protected-access
+            widget._update_tab_titles()
         benchmark(bench)
