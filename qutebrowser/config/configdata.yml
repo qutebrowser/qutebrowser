@@ -225,7 +225,7 @@ content.cookies.accept:
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
           a cookie is already set for the domain."
       - never: "Don't accept cookies at all."
-  desc: Control which cookies to accept.
+  desc: Which cookies to accept.
 
 content.cookies.store:
   default: true
@@ -293,7 +293,7 @@ content.headers.custom:
       name: String
       encoding: ascii
     none_ok: true
-  desc: Set custom headers for qutebrowser HTTP requests.
+  desc: Custom headers for qutebrowser HTTP requests.
 
 content.headers.do_not_track:
   type:
@@ -811,8 +811,7 @@ hints.auto_follow:
           (letter, word or number mode) or the element's text (only in number
           mode)."
       - never: "The user will always need to press Enter to follow a hint."
-  desc: Controls when a hint can be automatically followed without pressing
-    Enter.
+  desc: When a hint can be automatically followed without pressing Enter.
 
 hints.auto_follow_timeout:
   default: 0
@@ -1381,7 +1380,7 @@ url.searchengines:
     keytype: String
     valtype: SearchEngineUrl
   desc: >-
-    Definitions of search engines which can be used via the address bar.
+    Search engines which can be used via the address bar.
 
     Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a
     `{}` placeholder. The placeholder will be replaced by the search term, use
