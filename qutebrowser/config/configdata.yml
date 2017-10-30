@@ -420,7 +420,7 @@ content.host_blocking.whitelist:
 content.hyperlink_auditing:
   default: false
   type: Bool
-  desc: Enable or disable hyperlink auditing (`<a ping>`).
+  desc: Enable hyperlink auditing (`<a ping>`).
 
 content.images:
   default: true
@@ -455,7 +455,7 @@ content.javascript.can_open_tabs_automatically:
 content.javascript.enabled:
   default: true
   type: Bool
-  desc: Enable or disable JavaScript.
+  desc: Enable JavaScript.
 
 content.javascript.log:
   type:
@@ -544,7 +544,7 @@ content.pdfjs:
 content.plugins:
   default: false
   type: Bool
-  desc: Enable or disable plugins in Web pages.
+  desc: Enable plugins in Web pages.
 
 content.print_element_backgrounds:
   type: Bool
@@ -592,7 +592,7 @@ content.user_stylesheets:
 content.webgl:
   default: true
   type: Bool
-  desc: Enable or disable WebGL.
+  desc: Enable WebGL.
 
 content.xss_auditing:
   type: Bool
