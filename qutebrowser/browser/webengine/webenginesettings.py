@@ -29,6 +29,7 @@ Module attributes:
 
 import os
 
+import sip
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
@@ -181,7 +182,10 @@ def _update_stylesheet():
     """Update the custom stylesheet in existing tabs."""
     css = shared.get_user_stylesheet()
     code = javascript.assemble('stylesheet', 'set_css', css)
-    for win_id in objreg.window_registry:
+    for win_id, window in objreg.window_registry.items():
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(window):
+            continue
         tab_registry = objreg.get('tab-registry', scope='window',
                                   window=win_id)
         for tab in tab_registry.values():
