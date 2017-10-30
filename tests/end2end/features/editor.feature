@@ -2,6 +2,9 @@
 
 Feature: Opening external editors
 
+    Background:
+        Given I have a fresh instance
+
     ## :edit-url
 
     Scenario: Editing a URL
@@ -19,6 +22,16 @@ Feature: Opening external editors
         And the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt (active)
+
+    Scenario: Editing a URL with -rt
+        When I set tabs.new_position.related to prev
+        And I open data/numbers/1.txt
+        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I run :edit-url -rt
+        Then data/numbers/2.txt should be loaded
+        And the following tabs should be open:
+            - data/numbers/2.txt (active)
+            - data/numbers/1.txt
 
     Scenario: Editing a URL with -b
         When I run :tab-only
@@ -48,6 +61,26 @@ Feature: Opening external editors
                 history:
                 - active: true
                   url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Editing a URL with -p
+        When I open data/numbers/1.txt in a new tab
+        And I run :tab-only
+        And I set up a fake editor replacing "1.txt" by "2.txt"
+        And I run :edit-url -p
+        Then data/numbers/2.txt should be loaded
+        And the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/numbers/1.txt
+            - tabs:
+              - active: true
+                history:
+                - active: true
+                  url: http://localhost:*/data/numbers/2.txt
+              private: true
 
     Scenario: Editing a URL with -t and -b
         When I run :edit-url -t -b
