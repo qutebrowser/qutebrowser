@@ -27,7 +27,7 @@ history_gap_interval:
   type: Int
   default: 30
   desc: >-
-    The maximum time in minutes between two history items for them to be
+    The maximum time (in minutes) between two history items for them to be
     considered being from the same browsing session.
 
     Items with less time between them are grouped when being displayed in
@@ -628,7 +628,8 @@ completion.height:
     maxperc: 100
     minint: 1
   default: 50%
-  desc: The height of the completion, in pixels or as percentage of the window.
+  desc: The height (in pixels or as percentage of the window) of the
+    completion.
 
 completion.quick:
   default: true
@@ -657,14 +658,14 @@ completion.scrollbar.width:
   type:
     name: Int
     minval: 0
-  desc: Width of the scrollbar in the completion window (in pixels).
+  desc: Width (in pixels) of the scrollbar in the completion window.
 
 completion.scrollbar.padding:
   default: 2
   type:
     name: Int
     minval: 0
-  desc: Padding of the scrollbar handle in the completion window (in pixels).
+  desc: Padding (in pixels) of the scrollbar handle in the completion window.
 
 completion.timestamp_format:
   type:
@@ -689,7 +690,7 @@ completion.delay:
   type:
     name: Int
     minval: 0
-  desc: Delay in milliseconds before updating completions after typing a
+  desc: Delay (in milliseconds) before updating completions after typing a
     character.
 
 completion.min_chars:
@@ -763,7 +764,7 @@ downloads.remove_finished:
     name: Int
     minval: -1
   desc: >-
-    Duration in milliseconds to wait before removing finished downloads.
+    Duration (in milliseconds) to wait before removing finished downloads.
 
     If set to -1, downloads are never removed.
 
@@ -1012,7 +1013,8 @@ keyhint.delay:
     name: Int
     minval: 0
   default: 500
-  desc: Time from pressing a key to seeing the keyhint dialog (milliseconds).
+  desc: Time (in milliseconds) from pressing a key to seeing the keyhint
+    dialog.
 
 ## messages
 
@@ -1324,8 +1326,8 @@ tabs.width.bar:
     minperc: 0
     maxperc: 100
     minint: 1
-  desc: "The width of the tab bar if it's vertical, in pixels or as percentage
-    of the window."
+  desc: "The width (in pixels or as percentage of the window) of the tab bar if
+    it's vertical."
 
 tabs.width.indicator:
   default: 3
