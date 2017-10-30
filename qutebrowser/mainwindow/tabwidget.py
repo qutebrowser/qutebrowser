@@ -475,8 +475,7 @@ class TabBar(QTabBar):
 
     def _pinned_statistics(self) -> (int, int):
         """Get the number of pinned tabs and the total width of pinned tabs."""
-        pinned_list = [idx
-                       for idx in range(self.count())
+        pinned_list = [idx for idx in range(self.count())
                        if self._tab_pinned(idx)]
         pinned_count = len(pinned_list)
         pinned_width = sum(self.minimumTabSizeHint(idx, ellipsis=False).width()

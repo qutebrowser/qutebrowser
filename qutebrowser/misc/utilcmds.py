@@ -185,8 +185,8 @@ def debug_cache_stats():
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
     # pylint: disable=protected-access
-    tabbed_browser_info = tabbed_browser.tabBar(). \
-        _minimum_tab_size_hint_helper.cache_info()
+    tab_bar = tabbed_browser.tabBar()
+    tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
     # pylint: enable=protected-access
 
     log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
