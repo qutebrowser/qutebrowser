@@ -55,6 +55,14 @@ Feature: Special qute:// pages
         And I hint with args "links normal" and follow a
         Then qute://help/quickstart.html should be loaded
 
+    Scenario: Opening a link with qute://help
+        When the documentation is up to date
+        And I run :tab-only
+        And I open qute://help
+        And I wait until qute://help/ is loaded
+        And I hint with args "links normal" and follow a
+        Then qute://help/quickstart.html should be loaded
+
     # :history
 
     Scenario: :history without arguments
