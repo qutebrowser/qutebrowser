@@ -1181,8 +1181,8 @@ tabs.favicons.scale:
 
 tabs.favicons.show:
   default: true
-  desc: Show favicons in the tab bar.
   type: Bool
+  desc: Show favicons in the tab bar.
 
 tabs.indicator_padding:
   default:
@@ -1798,8 +1798,8 @@ colors.statusbar.url.error.fg:
 
 colors.statusbar.url.hover.fg:
   default: aqua
-  desc: Foreground color of the URL in the statusbar for hovered links.
   type: QssColor
+  desc: Foreground color of the URL in the statusbar for hovered links.
 
 colors.statusbar.url.success.http.fg:
   default: white
