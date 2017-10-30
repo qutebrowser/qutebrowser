@@ -41,7 +41,7 @@ ignore_case:
       - never: Search case-sensitively.
       - smart: Search case-sensitively if there are capital characters.
   default: smart
-  desc: Find text on a page case-insensitively.
+  desc: When to find text on a page case-insensitively.
 
 new_instance_open_target:
   type:
@@ -318,7 +318,7 @@ content.headers.referer:
           still protect your privacy, but shouldn't break any sites."
   backend: QtWebKit
   desc: >-
-    Send the Referer header.
+    When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
     when visting them.
@@ -924,7 +924,7 @@ input.forward_unbound_keys:
     - all: "Forward all unbound keys."
     - auto: "Forward unbound non-alphanumeric keys."
     - none: "Don't forward any keys."
-  desc: Forward unbound keys to the webview in normal mode.
+  desc: Which unbound keys to forward to the webview in normal mode.
 
 input.insert_mode.auto_load:
   default: false
@@ -1163,7 +1163,7 @@ tabs.close_mouse_button_on_bar:
       - close-current: "Close the current tab."
       - close-last: "Close the last tab."
       - ignore: "Don't do anything."
-  desc: Behavior when the close mouse button is pressed on the tab bar.
+  desc: How to behave when the close mouse button is pressed on the tab bar.
 
 tabs.favicons.scale:
   default: 1.0
@@ -1200,7 +1200,7 @@ tabs.last_close:
       - startpage: "Load the start page."
       - default-page: "Load the default page."
       - close: "Close the window."
-  desc: Behavior when the last tab is closed.
+  desc: How to behave when the last tab is closed.
 
 tabs.mousewheel_switching:
   default: true
@@ -1349,7 +1349,7 @@ url.auto_search:
       - dns: Use DNS requests (might be slow!).
       - never: Never search automatically.
   default: naive
-  desc: Whether to start a search when something else than a URL is entered.
+  desc: What search to start when something else than a URL is entered.
 
 url.default_page:
   type: FuzzyUrl
