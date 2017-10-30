@@ -39,7 +39,7 @@ ignore_case:
     valid_values:
       - always: Search case-insensitively.
       - never: Search case-sensitively.
-      - smart: Search case-sensitively if there are capital chars.
+      - smart: Search case-sensitively if there are capital characters.
   default: smart
   desc: Find text on a page case-insensitively.
 
@@ -628,7 +628,7 @@ completion.height:
     maxperc: 100
     minint: 1
   default: 50%
-  desc: The height of the completion, in px or as percentage of the window.
+  desc: The height of the completion, in pixels or as percentage of the window.
 
 completion.quick:
   default: true
@@ -657,14 +657,14 @@ completion.scrollbar.width:
   type:
     name: Int
     minval: 0
-  desc: Width of the scrollbar in the completion window (in px).
+  desc: Width of the scrollbar in the completion window (in pixels).
 
 completion.scrollbar.padding:
   default: 2
   type:
     name: Int
     minval: 0
-  desc: Padding of the scrollbar handle in the completion window (in px).
+  desc: Padding of the scrollbar handle in the completion window (in pixels).
 
 completion.timestamp_format:
   type:
@@ -689,7 +689,8 @@ completion.delay:
   type:
     name: Int
     minval: 0
-  desc: Delay in ms before updating completions after typing a character.
+  desc: Delay in milliseconds before updating completions after typing a
+    character.
 
 completion.min_chars:
   default: 1
@@ -832,7 +833,7 @@ hints.chars:
       - ['asdfghjkl', "Home row"]
       - ['aoeuidnths', "Home row (Dvorak)"]
       - ['abcdefghijklmnopqrstuvwxyz', "All letters"]
-  desc: Chars used for hint strings.
+  desc: Characters used for hint strings.
 
 hints.dictionary:
   default: /usr/share/dict/words
@@ -861,7 +862,7 @@ hints.min_chars:
   type:
     name: Int
     minval: 1
-  desc: Minimum number of chars used for hint strings.
+  desc: Minimum number of characters used for hint strings.
 
 hints.mode:
   default: letter
@@ -871,7 +872,7 @@ hints.mode:
       - number: Use numeric hints. (In this mode you can also type letters from
           the hinted element to filter and reduce the number of elements that
           are hinted.)
-      - letter: Use the chars in the `hints.chars` setting.
+      - letter: Use the characters in the `hints.chars` setting.
       - word: Use hints words based on the html elements and the extra words.
   desc: Mode to use for hints.
 
@@ -888,7 +889,7 @@ hints.next_regexes:
     valtype:
       name: Regex
       flags: IGNORECASE
-  desc: A comma-separated list of regexes to use for 'next' links.
+  desc: A comma-separated list of regular expressions to use for 'next' links.
 
 hints.prev_regexes:
   default:
@@ -902,7 +903,7 @@ hints.prev_regexes:
     valtype:
       name: Regex
       flags: IGNORECASE
-  desc: A comma-separated list of regexes to use for 'prev' links.
+  desc: A comma-separated list of regular expressions to use for 'prev' links.
 
 hints.scatter:
   default: true
@@ -915,7 +916,7 @@ hints.scatter:
 hints.uppercase:
   default: false
   type: Bool
-  desc: Make chars in hint strings uppercase.
+  desc: Make characters in hint strings uppercase.
 
 ## input
 
@@ -1011,7 +1012,7 @@ keyhint.delay:
     name: Int
     minval: 0
   default: 500
-  desc: Time from pressing a key to seeing the keyhint dialog (ms).
+  desc: Time from pressing a key to seeing the keyhint dialog (milliseconds).
 
 ## messages
 
@@ -1021,7 +1022,7 @@ messages.timeout:
     minval: 0
   default: 2000
   desc: >-
-    Time (in ms) to show messages in the statusbar for.
+    Time (in milliseconds) to show messages in the statusbar for.
 
     Set to 0 to never clear messages.
 
@@ -1323,8 +1324,8 @@ tabs.width.bar:
     minperc: 0
     maxperc: 100
     minint: 1
-  desc: "The width of the tab bar if it's vertical, in px or as percentage of
-    the window."
+  desc: "The width of the tab bar if it's vertical, in pixels or as percentage
+    of the window."
 
 tabs.width.indicator:
   default: 3
