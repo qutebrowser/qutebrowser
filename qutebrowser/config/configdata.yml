@@ -240,7 +240,7 @@ content.default_encoding:
   desc: >-
     Default encoding to use for websites.
 
-    Encoding must be a string describing an encoding such as _utf-8_,
+    The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
 content.developer_extras:
@@ -392,7 +392,7 @@ content.host_blocking.lists:
   desc: |
     List of URLs of lists which contain hosts to block.
 
-    File can be in one of the following formats:
+    The file can be in one of the following formats:
 
     - An `/etc/hosts`-like file
     - One host per line
@@ -422,7 +422,7 @@ content.hyperlink_auditing:
 content.images:
   default: true
   type: Bool
-  desc: Load images are automatically in web pages.
+  desc: Load images automatically in web pages.
 
 content.javascript.alert:
   default: true
@@ -433,7 +433,7 @@ content.javascript.can_access_clipboard:
   default: false
   type: Bool
   desc: >-
-    Enable JavaScript to read from or write to the clipboard.
+    Allow JavaScript to read from or write to the clipboard.
 
     With QtWebEngine, writing the clipboard as response to a user interaction is
     always allowed.
@@ -442,12 +442,12 @@ content.javascript.can_close_tabs:
   default: false
   type: Bool
   backend: QtWebKit
-  desc: Enable JavaScript to close tabs.
+  desc: Allow JavaScript to close tabs.
 
 content.javascript.can_open_tabs_automatically:
   default: false
   type: Bool
-  desc: Enable JavaScript to open new tabs without user interaction.
+  desc: Allow JavaScript to open new tabs without user interaction.
 
 content.javascript.enabled:
   default: true
@@ -526,14 +526,14 @@ content.notifications:
   default: ask
   type: BoolAsk
   backend: QtWebKit
-  desc: Wheter to allow websites to show notifications.
+  desc: Allow websites to show notifications.
 
 content.pdfjs:
   default: false
   type: Bool
   backend: QtWebKit
   desc: >-
-    Enable pdf.js to view PDF files in the browser.
+    Allow pdf.js to view PDF files in the browser.
 
     Note that the files can still be downloaded by clicking the download button in
     the pdf.js viewer.
@@ -869,7 +869,7 @@ hints.next_regexes:
     valtype:
       name: Regex
       flags: IGNORECASE
-  desc: A comma-separated list of regular expressions to use for 'next' links.
+  desc: Comma-separated list of regular expressions to use for 'next' links.
 
 hints.prev_regexes:
   default:
@@ -883,7 +883,7 @@ hints.prev_regexes:
     valtype:
       name: Regex
       flags: IGNORECASE
-  desc: A comma-separated list of regular expressions to use for 'prev' links.
+  desc: Comma-separated list of regular expressions to use for 'prev' links.
 
 hints.scatter:
   default: true
@@ -1136,7 +1136,7 @@ tabs.close_mouse_button:
       - right: "Close tabs on right-click."
       - middle: "Close tabs on middle-click."
       - none: "Don't close tabs using the mouse."
-  desc: Mouse button on which to close tabs.
+  desc: Mouse button with which to close tabs.
 
 tabs.close_mouse_button_on_bar:
   default: new-tab
@@ -1157,7 +1157,7 @@ tabs.favicons.scale:
   desc: >-
     Scaling factor for favicons in the tab bar.
 
-    Tab size is unchanged, so big favicons also require extra `tabs.padding`.
+    The tab size is unchanged, so big favicons also require extra `tabs.padding`.
 
 tabs.favicons.show:
   default: true
@@ -1269,7 +1269,7 @@ tabs.title.format:
     * `{perc}`: Percentage as a string like `[10%]`.
     * `{perc_raw}`: Raw percentage, e.g. `10`
     * `{title}`: Title of the current web page
-    * `{title_sep}`: String ` - ` if a title is set, empty otherwise.
+    * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
     * `{id}`: Internal tab ID of this tab.
     * `{scroll_pos}`: Page scroll position.
@@ -1294,8 +1294,8 @@ tabs.title.format_pinned:
       - private
       - current_url
     none_ok: true
-  desc: Format to use for the tab title for pinned tabs. Same placeholders like
-    for `tabs.title.format` are defined.
+  desc: Format to use for the tab title for pinned tabs. The same placeholders
+    like for `tabs.title.format` are defined.
 
 tabs.width.bar:
   default: 20%
@@ -1415,12 +1415,12 @@ window.title_format:
   default: '{perc}{title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title.
-    Following placeholders are defined:
+    The following placeholders are defined:
 
     * `{perc}`: Percentage as a string like `[10%]`.
     * `{perc_raw}`: Raw percentage, e.g. `10`
     * `{title}`: Title of the current web page
-    * `{title_sep}`: String ` - ` if a title is set, empty otherwise.
+    * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
     * `{id}`: Internal window ID of this window.
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
@@ -2008,7 +2008,7 @@ fonts.web.size.default:
     name: Int
     minval: 1
     maxval: maxint
-  desc: Default font size (in points) for regular text.
+  desc: Default font size (in pixels) for regular text.
 
 fonts.web.size.default_fixed:
   default: 13
@@ -2016,7 +2016,7 @@ fonts.web.size.default_fixed:
     name: Int
     minval: 1
     maxval: maxint
-  desc: Default font size (in points) for fixed-pitch text.
+  desc: Default font size (in pixels) for fixed-pitch text.
 
 fonts.web.size.minimum:
   default: 0
@@ -2024,7 +2024,7 @@ fonts.web.size.minimum:
     name: Int
     minval: 0
     maxval: maxint
-  desc: Hard minimum font size (in points).
+  desc: Hard minimum font size (in pixels).
 
 fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
@@ -2034,7 +2034,7 @@ fonts.web.size.minimum_logical:
     name: Int
     minval: 0
     maxval: maxint
-  desc: Minimum logical font size (in points) that is applied when zooming out.
+  desc: Minimum logical font size (in pixels) that is applied when zooming out.
 
 ## keybindings
 
@@ -2329,7 +2329,7 @@ bindings.default:
     Default keybindings. If you want to add bindings, modify
     `bindings.commands` instead.
 
-    Main purpose of this setting is that you can set it to an empty
+    The main purpose of this setting is that you can set it to an empty
     dictionary if you want to load no default keybindings at all.
 
     If you want to preserve default bindings (and get new bindings when there
@@ -2389,7 +2389,7 @@ bindings.commands:
     interactively) are hidden from the command completion. See `:help` for a
     full list of available commands.
 
-    Following modes are available:
+    The following modes are available:
 
 
     * normal: Default mode, where most commands are invoked.
