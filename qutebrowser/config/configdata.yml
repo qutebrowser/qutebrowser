@@ -1539,12 +1539,12 @@ colors.completion.match.fg:
 colors.completion.scrollbar.fg:
   default: white
   type: QssColor
-  desc: Color of the scrollbar handle in completion view.
+  desc: Color of the scrollbar handle in the completion view.
 
 colors.completion.scrollbar.bg:
   default: '#333333'
   type: QssColor
-  desc: Color of the scrollbar in completion view.
+  desc: Color of the scrollbar in the completion view.
 
 colors.downloads.bar.bg:
   default: black
