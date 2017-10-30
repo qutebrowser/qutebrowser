@@ -794,7 +794,7 @@ editor.command:
 editor.encoding:
   type: Encoding
   default: utf-8
-  desc : Encoding to use for the editor.
+  desc: Encoding to use for the editor.
 
 ## hints
 
