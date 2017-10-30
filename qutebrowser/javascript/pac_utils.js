@@ -39,7 +39,7 @@
 
 /*
    Script for Proxy Auto Config in the new world order.
-       - Gagan Saksena 04/24/00 
+       - Gagan Saksena 04/24/00
 */
 
 function dnsDomainIs(host, domain) {
@@ -52,8 +52,8 @@ function dnsDomainLevels(host) {
 }
 
 function convert_addr(ipchars) {
-    var bytes = ipchars.split('.');
-    var result = ((bytes[0] & 0xff) << 24) |
+    const bytes = ipchars.split('.');
+    const result = ((bytes[0] & 0xff) << 24) |
                  ((bytes[1] & 0xff) << 16) |
                  ((bytes[2] & 0xff) <<  8) |
                   (bytes[3] & 0xff);
@@ -61,7 +61,7 @@ function convert_addr(ipchars) {
 }
 
 function isInNet(ipaddr, pattern, maskstr) {
-    var test = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+    const test = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
                .exec(ipaddr);
     if (test == null) {
         ipaddr = dnsResolve(ipaddr);
@@ -71,9 +71,9 @@ function isInNet(ipaddr, pattern, maskstr) {
                test[3] > 255 || test[4] > 255) {
         return false;    // not an IP address
     }
-    var host = convert_addr(ipaddr);
-    var pat  = convert_addr(pattern);
-    var mask = convert_addr(maskstr);
+    const host = convert_addr(ipaddr);
+    const pat  = convert_addr(pattern);
+    const mask = convert_addr(maskstr);
     return ((host & mask) == (pat & mask));
 }
 
@@ -82,75 +82,75 @@ function isPlainHostName(host) {
 }
 
 function isResolvable(host) {
-    var ip = dnsResolve(host);
+    const ip = dnsResolve(host);
     return (ip != null);
 }
 
 function localHostOrDomainIs(host, hostdom) {
     return (host == hostdom) ||
-           (hostdom.lastIndexOf(host + '.', 0) == 0);
+           (hostdom.lastIndexOf(`${host}.`, 0) == 0);
 }
 
 function shExpMatch(url, pattern) {
    pattern = pattern.replace(/\./g, '\\.');
    pattern = pattern.replace(/\*/g, '.*');
    pattern = pattern.replace(/\?/g, '.');
-   var newRe = new RegExp('^'+pattern+'$');
+   const newRe = new RegExp(`^${pattern}$`);
    return newRe.test(url);
 }
 
-var wdays = {SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6};
+const wdays = {SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6};
 
-var months = {JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6,
+const months = {JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6,
               AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11};
 
-function weekdayRange() {
+function weekdayRange(...args) {
     function getDay(weekday) {
         if (weekday in wdays) {
             return wdays[weekday];
         }
         return -1;
     }
-    var date = new Date();
-    var argc = arguments.length;
-    var wday;
+    const date = new Date();
+    let argc = args.length;
+    let wday;
     if (argc < 1)
         return false;
-    if (arguments[argc - 1] == 'GMT') {
+    if (args[argc - 1] == 'GMT') {
         argc--;
         wday = date.getUTCDay();
     } else {
         wday = date.getDay();
     }
-    var wd1 = getDay(arguments[0]);
-    var wd2 = (argc == 2) ? getDay(arguments[1]) : wd1;
+    const wd1 = getDay(args[0]);
+    const wd2 = (argc == 2) ? getDay(args[1]) : wd1;
     return (wd1 == -1 || wd2 == -1) ? false
                                     : (wd1 <= wday && wday <= wd2);
 }
 
-function dateRange() {
+function dateRange(...args) {
     function getMonth(name) {
         if (name in months) {
             return months[name];
         }
         return -1;
     }
-    var date = new Date();
-    var argc = arguments.length;
+    let date = new Date();
+    let argc = args.length;
     if (argc < 1) {
         return false;
     }
-    var isGMT = (arguments[argc - 1] == 'GMT');
+    const isGMT = (args[argc - 1] == 'GMT');
 
     if (isGMT) {
         argc--;
     }
     // function will work even without explict handling of this case
     if (argc == 1) {
-        var tmp = parseInt(arguments[0]);
+        var tmp = parseInt(args[0]);
         if (isNaN(tmp)) {
-            return ((isGMT ? date.getUTCMonth() : date.getMonth()) ==
-                    getMonth(arguments[0]));
+            return (isGMT ? date.getUTCMonth() : date.getMonth()) ==
+                    getMonth(args[0]);
         } else if (tmp < 32) {
             return ((isGMT ? date.getUTCDate() : date.getDate()) == tmp);
         } else {
@@ -158,15 +158,16 @@ function dateRange() {
                     tmp);
         }
     }
-    var year = date.getFullYear();
-    var date1, date2;
+    const year = date.getFullYear();
+    let date1;
+    let date2;
     date1 = new Date(year,  0,  1,  0,  0,  0);
     date2 = new Date(year, 11, 31, 23, 59, 59);
-    var adjustMonth = false;
+    let adjustMonth = false;
     for (var i = 0; i < (argc >> 1); i++) {
-        var tmp = parseInt(arguments[i]);
+        var tmp = parseInt(args[i]);
         if (isNaN(tmp)) {
-            var mon = getMonth(arguments[i]);
+            var mon = getMonth(args[i]);
             date1.setMonth(mon);
         } else if (tmp < 32) {
             adjustMonth = (argc <= 2);
@@ -176,9 +177,9 @@ function dateRange() {
         }
     }
     for (var i = (argc >> 1); i < argc; i++) {
-        var tmp = parseInt(arguments[i]);
+        var tmp = parseInt(args[i]);
         if (isNaN(tmp)) {
-            var mon = getMonth(arguments[i]);
+            var mon = getMonth(args[i]);
             date2.setMonth(mon);
         } else if (tmp < 32) {
             date2.setDate(tmp);
@@ -203,39 +204,40 @@ function dateRange() {
     return ((date1 <= date) && (date <= date2));
 }
 
-function timeRange() {
-    var argc = arguments.length;
-    var date = new Date();
-    var isGMT= false;
+function timeRange(...args) {
+    let argc = args.length;
+    const date = new Date();
+    let isGMT= false;
 
     if (argc < 1) {
         return false;
     }
-    if (arguments[argc - 1] == 'GMT') {
+    if (args[argc - 1] == 'GMT') {
         isGMT = true;
         argc--;
     }
 
-    var hour = isGMT ? date.getUTCHours() : date.getHours();
-    var date1, date2;
+    const hour = isGMT ? date.getUTCHours() : date.getHours();
+    let date1;
+    let date2;
     date1 = new Date();
     date2 = new Date();
 
     if (argc == 1) {
-        return (hour == arguments[0]);
+        return hour == args[0];
     } else if (argc == 2) {
-        return ((arguments[0] <= hour) && (hour <= arguments[1]));
+        return (args[0] <= hour) && (hour <= args[1]);
     } else {
         switch (argc) {
         case 6:
-            date1.setSeconds(arguments[2]);
-            date2.setSeconds(arguments[5]);
+            date1.setSeconds(args[2]);
+            date2.setSeconds(args[5]);
         case 4:
-            var middle = argc >> 1;
-            date1.setHours(arguments[0]);
-            date1.setMinutes(arguments[1]);
-            date2.setHours(arguments[middle]);
-            date2.setMinutes(arguments[middle + 1]);
+            const middle = argc >> 1;
+            date1.setHours(args[0]);
+            date1.setMinutes(args[1]);
+            date2.setHours(args[middle]);
+            date2.setMinutes(args[middle + 1]);
             if (middle == 2) {
                 date2.setSeconds(59);
             }
