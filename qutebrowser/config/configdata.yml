@@ -21,7 +21,7 @@ aliases:
 confirm_quit:
   type: ConfirmQuit
   default: [never]
-  desc: Whether quitting the application requires a confirmation.
+  desc: Require a confirmation before quitting the application.
 
 history_gap_interval:
   type: Int
@@ -208,7 +208,7 @@ content.cache.appcache:
   type: Bool
   backend: QtWebKit
   desc: >-
-    Whether support for the HTML 5 web application cache feature is enabled.
+    Enable support for the HTML 5 web application cache feature.
 
     An application cache acts like an HTTP cache in some sense. For documents
     that use the application cache via JavaScript, the loader engine will first
@@ -379,7 +379,7 @@ content.headers.user_agent:
 content.host_blocking.enabled:
   default: true
   type: Bool
-  desc: Whether host blocking is enabled.
+  desc: Enable host blocking.
 
 content.host_blocking.lists:
   default:
@@ -425,7 +425,7 @@ content.hyperlink_auditing:
 content.images:
   default: true
   type: Bool
-  desc: Whether images are automatically loaded in web pages.
+  desc: Load images automatically in web pages.
 
 content.javascript.alert:
   default: true
@@ -436,7 +436,7 @@ content.javascript.can_access_clipboard:
   default: false
   type: Bool
   desc: >-
-    Whether JavaScript can read from or write to the clipboard.
+    Allow JavaScript to read from or write to the clipboard.
 
     With QtWebEngine, writing the clipboard as response to a user interaction
     is always allowed.
@@ -445,17 +445,17 @@ content.javascript.can_close_tabs:
   default: false
   type: Bool
   backend: QtWebKit
-  desc: Whether JavaScript can close tabs.
+  desc: Allow JavaScript to close tabs.
 
 content.javascript.can_open_tabs_automatically:
   default: false
   type: Bool
-  desc: Whether JavaScript can open new tabs without user interaction.
+  desc: Allow JavaScript to open new tabs without user interaction.
 
 content.javascript.enabled:
   default: true
   type: Bool
-  desc: Enables or disables JavaScript.
+  desc: Enable or disable JavaScript.
 
 content.javascript.log:
   type:
@@ -497,18 +497,17 @@ content.javascript.prompt:
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
-  desc: Whether locally loaded documents are allowed to access remote URLs.
+  desc: Allow locally loaded documents to access remote URLs.
 
 content.local_content_can_access_file_urls:
   default: true
   type: Bool
-  desc: Whether locally loaded documents are allowed to access other local
-    URLs.
+  desc: Allow locally loaded documents to access other local URLs.
 
 content.local_storage:
   default: true
   type: Bool
-  desc: Whether support for HTML 5 local storage and Web SQL is enabled.
+  desc: Enable support for HTML 5 local storage and Web SQL.
 
 content.media_capture:
   default: ask
@@ -545,7 +544,7 @@ content.pdfjs:
 content.plugins:
   default: false
   type: Bool
-  desc: Enables or disables plugins in Web pages.
+  desc: Enable or disable plugins in Web pages.
 
 content.print_element_backgrounds:
   type: Bool
@@ -554,8 +553,7 @@ content.print_element_backgrounds:
     QtWebKit: true
     QtWebEngine: Qt 5.8
   desc: >-
-    Whether the background color and images are also drawn when the page is
-    printed.
+    Draw the background color and images also when the page is printed.
 
 content.private_browsing:
   type: Bool
@@ -594,14 +592,13 @@ content.user_stylesheets:
 content.webgl:
   default: true
   type: Bool
-  desc: Enables or disables WebGL.
+  desc: Enable or disable WebGL.
 
 content.xss_auditing:
   type: Bool
   default: false
   desc: >-
-    Whether load requests should be monitored for cross-site scripting
-    attempts.
+    Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console. Enabling this feature might have an impact on
@@ -702,7 +699,7 @@ completion.min_chars:
 completion.use_best_match:
   type: Bool
   default: false
-  desc: Whether to execute the best-matching command on a partial match.
+  desc: Execute the best-matching command on a partial match.
 
 ## downloads
 
@@ -1340,7 +1337,7 @@ tabs.width.pinned:
 tabs.wrap:
   default: true
   type: Bool
-  desc: Whether to wrap when changing tabs.
+  desc: Wrap when changing tabs.
 
 ## url
 
@@ -1481,8 +1478,7 @@ zoom.text_only:
   type: Bool
   default: false
   backend: QtWebKit
-  desc: Whether the zoom factor on a frame applies only to the text or to all
-    content.
+  desc: Apply the zoom factor on a frame only to the text or to all content.
 
 ## colors
 
