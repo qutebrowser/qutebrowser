@@ -100,7 +100,6 @@ window._qutebrowser.stylesheet = (function() {
             return;
         }
         var iter = document.createNodeIterator(document,
-            // eslint-disable-next-line no-bitwise
             NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_ELEMENT);
         var node;
         while ((node = iter.nextNode())) {
