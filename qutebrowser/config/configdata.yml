@@ -196,7 +196,7 @@ content.cache.maximum_pages:
   desc: >-
     The maximum number of pages to hold in the global memory page cache.
 
-    The Page Cache allows for a nicer user experience when navigating forth or back
+    The page cache allows for a nicer user experience when navigating forth or back
     to pages in the forward/back history, by pausing and resuming up to _n_ pages.
 
     For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
@@ -493,12 +493,12 @@ content.javascript.prompt:
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
-  desc: Whether locally loaded documents are allowed to access remote urls.
+  desc: Whether locally loaded documents are allowed to access remote URLs.
 
 content.local_content_can_access_file_urls:
   default: true
   type: Bool
-  desc: Whether locally loaded documents are allowed to access other local urls.
+  desc: Whether locally loaded documents are allowed to access other local URLs.
 
 content.local_storage:
   default: true
@@ -707,7 +707,7 @@ downloads.location.directory:
   desc: >-
     The directory to save downloads to.
 
-    If unset, a sensible os-specific default is used.
+    If unset, a sensible OS-specific default is used.
 
 downloads.location.prompt:
   default: true
@@ -967,7 +967,7 @@ input.spatial_navigation:
   default: false
   type: Bool
   desc: >-
-    Enable Spatial Navigation.
+    Enable spatial navigation.
 
     Spatial navigation consists in the ability to navigate between focusable elements
     in a Web page, such as hyperlinks and form controls, by using Left, Right, Up
@@ -1287,7 +1287,7 @@ tabs.title.format:
     * `{host}`: The host of the current web page.
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
-    * `{current_url}` : The url of the current web page.
+    * `{current_url}` : The URL of the current web page.
 
 tabs.title.format_pinned:
   default: '{index}'
@@ -1436,7 +1436,7 @@ window.title_format:
     * `{host}`: The host of the current web page.
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
-    * `{current_url}` : The url of the current web page.
+    * `{current_url}` : The URL of the current web page.
 
 ## zoom
 
