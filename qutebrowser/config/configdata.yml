@@ -30,8 +30,8 @@ history_gap_interval:
     The maximum time in minutes between two history items for them to be
     considered being from the same browsing session.
 
-    Items with less time between them are grouped when being displayed in `:history`.
-    Use -1 to disable separation.
+    Items with less time between them are grouped when being displayed in
+    `:history`. Use -1 to disable separation.
 
 ignore_case:
   type:
@@ -50,8 +50,8 @@ new_instance_open_target:
       - tab: Open a new tab in the existing window and activate the window.
       - tab-bg: Open a new background tab in the existing window and activate
           the window.
-      - tab-silent: Open a new tab in the existing window without activating the
-          window.
+      - tab-silent: Open a new tab in the existing window without activating
+          the window.
       - tab-bg-silent: Open a new background tab in the existing window without
           activating the window.
       - window: Open in a new window.
@@ -196,10 +196,12 @@ content.cache.maximum_pages:
   desc: >-
     The maximum number of pages to hold in the global memory page cache.
 
-    The page cache allows for a nicer user experience when navigating forth or back
-    to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+    The page cache allows for a nicer user experience when navigating forth or
+    back to pages in the forward/back history, by pausing and resuming up to
+    _n_ pages.
 
-    For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
+    For more information about the feature, please refer to:
+    http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
 content.cache.appcache:
   default: true
@@ -208,9 +210,9 @@ content.cache.appcache:
   desc: >-
     Whether support for the HTML 5 web application cache feature is enabled.
 
-    An application cache acts like an HTTP cache in some sense. For documents that
-    use the application cache via JavaScript, the loader engine will first ask the
-    application cache for the contents, before hitting the network.
+    An application cache acts like an HTTP cache in some sense. For documents
+    that use the application cache via JavaScript, the loader engine will first
+    ask the application cache for the contents, before hitting the network.
 
 content.cookies.accept:
   default: no-3rdparty
@@ -220,8 +222,8 @@ content.cookies.accept:
     valid_values:
       - all: "Accept all cookies."
       - no-3rdparty: "Accept cookies from the same origin only."
-      - no-unknown-3rdparty: "Accept cookies from the same origin only, unless a
-          cookie is already set for the domain."
+      - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
+          a cookie is already set for the domain."
       - never: "Don't accept cookies at all."
   desc: Control which cookies to accept.
 
@@ -249,8 +251,8 @@ content.developer_extras:
   desc: >-
     Enable extra tools for Web developers.
 
-    This needs to be enabled for `:inspector` to work and also adds an _Inspect_
-    entry to the context menu. For QtWebEngine, see
+    This needs to be enabled for `:inspector` to work and also adds an
+    _Inspect_ entry to the context menu. For QtWebEngine, see
     `--enable-webengine-inspector` in `qutebrowser --help` instead.
 
 content.dns_prefetch:
@@ -312,8 +314,8 @@ content.headers.referer:
       - always: "Always send the Referer."
       - never: "Never send the Referer. This is not recommended, as some sites
           may break."
-      - same-domain: "Only send the Referer for the same domain. This will still
-          protect your privacy, but shouldn't break any sites."
+      - same-domain: "Only send the Referer for the same domain. This will
+          still protect your privacy, but shouldn't break any sites."
   backend: QtWebKit
   desc: >-
     Send the Referer header.
@@ -327,7 +329,8 @@ content.headers.user_agent:
     name: String
     none_ok: true
     completions:
-      # To update the following list of user agents, run the script 'ua_fetch.py'
+      # To update the following list of user agents, run the script
+      # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101
@@ -336,8 +339,8 @@ content.headers.user_agent:
       - - "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101
           Firefox/53.0"
         - Firefox 53.0 Linux
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0) Gecko/20100101
-          Firefox/53.0"
+      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0)
+          Gecko/20100101 Firefox/53.0"
         - Firefox 53.0 MacOSX
 
       - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4
@@ -364,10 +367,11 @@ content.headers.user_agent:
         - wget 1.16.1
       - - "curl/7.40.0"
         - curl 7.40.0
-      - - "Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 (KHTML, like
-          Gecko) Version/4.0 Mobile Safari/534.30"
+      - - "Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 (KHTML,
+          like Gecko) Version/4.0 Mobile Safari/534.30"
         - Mobile Generic Android
-      - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
+      - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like
+          Gecko"
         - IE 11.0 for Desktop Win7 64-bit
 
   desc: User agent to send. Unset to send the default.
@@ -395,8 +399,8 @@ content.host_blocking.lists:
 
     - An `/etc/hosts`-like file
     - One host per line
-    - A zip-file of any of the above, with either only one file, or a file named
-      `hosts` (with any extension).
+    - A zip-file of any of the above, with either only one file, or a file
+      named `hosts` (with any extension).
 
 content.host_blocking.whitelist:
   default:
@@ -408,8 +412,8 @@ content.host_blocking.whitelist:
   desc: >-
     List of domains that should always be loaded, despite being ad-blocked.
 
-    Domains may contain * and ? wildcards and are otherwise required to exactly match
-    the requested domain.
+    Domains may contain * and ? wildcards and are otherwise required to exactly
+    match the requested domain.
 
     Local domains are always exempt from hostblocking.
 
@@ -434,8 +438,8 @@ content.javascript.can_access_clipboard:
   desc: >-
     Whether JavaScript can read from or write to the clipboard.
 
-    With QtWebEngine, writing the clipboard as response to a user interaction is
-    always allowed.
+    With QtWebEngine, writing the clipboard as response to a user interaction
+    is always allowed.
 
 content.javascript.can_close_tabs:
   default: false
@@ -475,8 +479,8 @@ content.javascript.log:
     Log levels to use for JavaScript console logging messages.
 
     When a JavaScript message with the level given in the dictionary key is
-    logged, the corresponding dictionary value selects the qutebrowser logger to
-    use.
+    logged, the corresponding dictionary value selects the qutebrowser logger
+    to use.
 
     On QtWebKit, the "unknown" setting is always used.
 
@@ -498,7 +502,8 @@ content.local_content_can_access_remote_urls:
 content.local_content_can_access_file_urls:
   default: true
   type: Bool
-  desc: Whether locally loaded documents are allowed to access other local URLs.
+  desc: Whether locally loaded documents are allowed to access other local
+    URLs.
 
 content.local_storage:
   default: true
@@ -534,8 +539,8 @@ content.pdfjs:
   desc: >-
     Enable pdf.js to view PDF files in the browser.
 
-    Note that the files can still be downloaded by clicking the download button in
-    the pdf.js viewer.
+    Note that the files can still be downloaded by clicking the download button
+    in the pdf.js viewer.
 
 content.plugins:
   default: false
@@ -564,8 +569,8 @@ content.proxy:
   desc: >-
     The proxy to use.
 
-    In addition to the listed values, you can use a `socks://...` or `http://...`
-    URL.
+    In addition to the listed values, you can use a `socks://...` or
+    `http://...` URL.
 
 content.proxy_dns_requests:
   default: true
@@ -595,7 +600,8 @@ content.xss_auditing:
   type: Bool
   default: false
   desc: >-
-    Whether load requests should be monitored for cross-site scripting attempts.
+    Whether load requests should be monitored for cross-site scripting
+    attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console. Enabling this feature might have an impact on
@@ -797,10 +803,11 @@ hints.auto_follow:
     name: String
     valid_values:
       - always: "Auto-follow whenever there is only a single hint on a page."
-      - unique-match: "Auto-follow whenever there is a unique non-empty match in
-          either the hint string (word mode) or filter (number mode)."
-      - full-match: "Follow the hint when the user typed the whole hint (letter,
-          word or number mode) or the element's text (only in number mode)."
+      - unique-match: "Auto-follow whenever there is a unique non-empty match
+          in either the hint string (word mode) or filter (number mode)."
+      - full-match: "Follow the hint when the user typed the whole hint
+          (letter, word or number mode) or the element's text (only in number
+          mode)."
       - never: "The user will always need to press Enter to follow a hint."
   desc: Controls when a hint can be automatically followed without pressing
     Enter.
@@ -952,8 +959,8 @@ input.partial_timeout:
   desc: >-
     Timeout (in milliseconds) for partially typed key bindings.
 
-    If the current input forms only partial matches, the keystring will be cleared
-    after this time.
+    If the current input forms only partial matches, the keystring will be
+    cleared after this time.
 
 input.rocker_gestures:
   default: false
@@ -969,11 +976,11 @@ input.spatial_navigation:
   desc: >-
     Enable spatial navigation.
 
-    Spatial navigation consists in the ability to navigate between focusable elements
-    in a Web page, such as hyperlinks and form controls, by using Left, Right, Up
-    and Down arrow keys. For example, if a user presses the Right key, heuristics
-    determine whether there is an element he might be trying to reach towards the
-    right and which element he probably wants.
+    Spatial navigation consists in the ability to navigate between focusable
+    elements in a Web page, such as hyperlinks and form controls, by using
+    Left, Right, Up and Down arrow keys. For example, if a user presses the
+    Right key, heuristics determine whether there is an element he might be
+    trying to reach towards the right and which element he probably wants.
 
 ## keyhint
 
@@ -987,8 +994,8 @@ keyhint.blacklist:
   desc: >-
     Keychains that shouldn't be shown in the keyhint dialog.
 
-    Globs are supported, so `;*` will blacklist all keychains starting with `;`.
-    Use `*` to disable keyhints.
+    Globs are supported, so `;*` will blacklist all keychains starting with
+    `;`. Use `*` to disable keyhints.
 
 keyhint.radius:
   type:
@@ -1168,7 +1175,8 @@ tabs.favicons.scale:
   desc: >-
     Scaling for favicons in the tab bar.
 
-    The tab size is unchanged, so big favicons also require extra `tabs.padding`.
+    The tab size is unchanged, so big favicons also require extra
+    `tabs.padding`.
 
 tabs.favicons.show:
   default: true
@@ -1305,8 +1313,8 @@ tabs.title.format_pinned:
       - private
       - current_url
     none_ok: true
-  desc: The format to use for the tab title for pinned tabs. The same placeholders
-    like for `tabs.title.format` are defined.
+  desc: The format to use for the tab title for pinned tabs. The same
+    placeholders like for `tabs.title.format` are defined.
 
 tabs.width.bar:
   default: 20%
@@ -1315,7 +1323,8 @@ tabs.width.bar:
     minperc: 0
     maxperc: 100
     minint: 1
-  desc: "The width of the tab bar if it's vertical, in px or as percentage of the window."
+  desc: "The width of the tab bar if it's vertical, in px or as percentage of
+    the window."
 
 tabs.width.indicator:
   default: 3
@@ -1357,8 +1366,8 @@ url.incdec_segments:
     name: FlagList
     valid_values: [host, path, query, anchor]
   default: [path, query]
-  desc: The URL segments where `:navigate increment/decrement` will search for a
-    number.
+  desc: The URL segments where `:navigate increment/decrement` will search for
+    a number.
 
 url.searchengines:
   default:
@@ -1371,14 +1380,14 @@ url.searchengines:
   desc: >-
     Definitions of search engines which can be used via the address bar.
 
-    Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}`
-    placeholder. The placeholder will be replaced by the search term, use `{{`
-    and `}}` for literal `{`/`}` signs.
+    Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a
+    `{}` placeholder. The placeholder will be replaced by the search term, use
+    `{{` and `}}` for literal `{`/`}` signs.
 
-    The search engine named `DEFAULT` is used when `url.auto_search` is turned on
-    and something else than a URL was entered to be opened. Other search engines
-    can be used by prepending the search engine name to the search term, e.g.
-    `:open google qutebrowser`.
+    The search engine named `DEFAULT` is used when `url.auto_search` is turned
+    on and something else than a URL was entered to be opened. Other search
+    engines can be used by prepending the search engine name to the search
+    term, e.g.  `:open google qutebrowser`.
 
 url.start_pages:
   type:
@@ -1475,7 +1484,8 @@ zoom.mouse_divider:
   type:
     name: Int
     minval: 0
-  desc: How much to divide the mouse wheel movements to translate them into zoom increments.
+  desc: How much to divide the mouse wheel movements to translate them into
+    zoom increments.
 
 zoom.text_only:
   type: Bool
@@ -1507,7 +1517,8 @@ colors.completion.category.fg:
   desc: Foreground color of completion widget category headers.
 
 colors.completion.category.bg:
-  default: 'qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #888888, stop:1 #505050)'
+  default: 'qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #888888,
+    stop:1 #505050)'
   type: QssColor
   desc: Background color of the completion widget category headers.
 
@@ -1607,8 +1618,8 @@ colors.hints.fg:
   desc: Font color for hints.
 
 colors.hints.bg:
-  default: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 247, 133, 0.8),
-    stop:1 rgba(255, 197, 66, 0.8))
+  default: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+    stop:0 rgba(255, 247, 133, 0.8), stop:1 rgba(255, 197, 66, 0.8))
   type: QssColor
   desc: >-
     Background color for hints.
@@ -1808,7 +1819,8 @@ colors.statusbar.url.success.http.fg:
 colors.statusbar.url.success.https.fg:
   default: lime
   type: QssColor
-  desc: Foreground color of the URL in the statusbar on successful load (https).
+  desc: Foreground color of the URL in the statusbar on successful load
+    (https).
 
 colors.statusbar.url.warn.fg:
   default: yellow
@@ -1885,14 +1897,15 @@ colors.webpage.bg:
   type:
     name: QtColor
     none_ok: true
-  desc: "Background color for webpages if unset (or empty to use the theme's color)."
+  desc: "Background color for webpages if unset (or empty to use the theme's
+    color)."
 
 ## fonts
 
 fonts.monospace:
-  default: '"xos4 Terminus", Terminus, Monospace, "DejaVu Sans Mono", Monaco, "Bitstream
-    Vera Sans Mono", "Andale Mono", "Courier New", Courier, "Liberation Mono", monospace,
-    Fixed, Consolas, Terminal'
+  default: '"xos4 Terminus", Terminus, Monospace, "DejaVu Sans Mono", Monaco,
+    "Bitstream Vera Sans Mono", "Andale Mono", "Courier New", Courier,
+    "Liberation Mono", monospace, Fixed, Consolas, Terminal'
   type: Font
   desc: >-
     Default monospace fonts.
@@ -2062,8 +2075,8 @@ bindings.key_mappings:
   desc: >-
     This setting can be used to map keys to other keys.
 
-    When the key used as dictionary-key is pressed, the binding for the key used
-    as dictionary-value is invoked instead.
+    When the key used as dictionary-key is pressed, the binding for the key
+    used as dictionary-value is invoked instead.
 
     This is useful for global remappings of keys, for example to map Ctrl-[ to
     Escape.
@@ -2336,12 +2349,12 @@ bindings.default:
     Default keybindings. If you want to add bindings, modify
     `bindings.commands` instead.
 
-    The main purpose of this setting is that you can set it to an empty dictionary if you
-    want to load no default keybindings at all.
+    The main purpose of this setting is that you can set it to an empty
+    dictionary if you want to load no default keybindings at all.
 
-    If you want to preserve default bindings (and get new bindings when there is
-    an update), use `config.bind()` in `config.py` or the `:bind` command, and
-    leave this setting alone.
+    If you want to preserve default bindings (and get new bindings when there
+    is an update), use `config.bind()` in `config.py` or the `:bind` command,
+    and leave this setting alone.
 
 bindings.commands:
   default: {}
@@ -2374,7 +2387,8 @@ bindings.commands:
     setting instead.
 
     For special keys (can't be part of a keychain), enclose them in `<`...`>`.
-    For modifiers, you can use either `-` or `+` as delimiters, and these names:
+    For modifiers, you can use either `-` or `+` as delimiters, and these
+    names:
 
       * Control: `Control`, `Ctrl`
 
@@ -2404,17 +2418,17 @@ bindings.commands:
 
     * insert: Entered when an input field is focused on a website, or by
       pressing `i` in normal mode. Passes through almost all keypresses to the
-      website, but has some bindings like `<Ctrl-e>` to open an external editor.
-      Note that single keys can't be bound in this mode.
+      website, but has some bindings like `<Ctrl-e>` to open an external
+      editor. Note that single keys can't be bound in this mode.
 
     * hint: Entered when `f` is pressed to select links with the keyboard. Note
       that single keys can't be bound in this mode.
 
     * passthrough: Similar to insert mode, but passes through all keypresses
-      except `<Escape>` to leave the mode. It might be useful to bind `<Escape>`
-      to some other key in this mode if you want to be able to send an Escape
-      key to the website as well. Note that single keys can't be bound in this
-      mode.
+      except `<Escape>` to leave the mode. It might be useful to bind
+      `<Escape>` to some other key in this mode if you want to be able to send
+      an Escape key to the website as well. Note that single keys can't be
+      bound in this mode.
 
     * command: Entered when pressing the `:` key in order to enter a command.
       Note that single keys can't be bound in this mode.
@@ -2422,9 +2436,9 @@ bindings.commands:
     * prompt: Entered when there's a prompt to display, like for download
       locations or when invoked from JavaScript.
       +
-      You can bind normal keys in this mode, but they will be only active when a
-      yes/no-prompt is asked. For other prompt modes, you can only bind special
-      keys.
+      You can bind normal keys in this mode, but they will be only active when
+      a yes/no-prompt is asked. For other prompt modes, you can only bind
+      special keys.
 
     * caret: Entered when pressing the `v` mode, used to select text using the
       keyboard.
