@@ -27,7 +27,7 @@ history_gap_interval:
   type: Int
   default: 30
   desc: >-
-    The maximum time (in minutes) between two history items for them to be
+    Maximum time (in minutes) between two history items for them to be
     considered being from the same browsing session.
 
     Items with less time between them are grouped when being displayed in
@@ -84,7 +84,7 @@ session_default_name:
     none_ok: true
   default: null
   desc: >-
-    The name of the session to save by default.
+    Name of the session to save by default.
 
     If this is set to null, the session which was last loaded is saved.
 
@@ -96,7 +96,7 @@ backend:
       - webkit: Use QtWebKit (based on WebKit, similar to Safari).
   default: webengine
   desc: >-
-    The backend to use to display websites.
+    Backend to use to display websites.
 
     qutebrowser supports two different web rendering engines / backends,
     QtWebKit and QtWebEngine.
@@ -194,7 +194,7 @@ content.cache.maximum_pages:
     maxval: maxint
   backend: QtWebKit
   desc: >-
-    The maximum number of pages to hold in the global memory page cache.
+    Maximum number of pages to hold in the global memory page cache.
 
     The page cache allows for a nicer user experience when navigating forth or
     back to pages in the forward/back history, by pausing and resuming up to
@@ -567,7 +567,7 @@ content.proxy:
   default: system
   type: Proxy
   desc: >-
-    The proxy to use.
+    Proxy to use.
 
     In addition to the listed values, you can use a `socks://...` or
     `http://...` URL.
@@ -589,7 +589,7 @@ content.user_stylesheets:
     valtype: File
     none_ok: True
   default: []
-  desc: A list of user stylesheet filenames to use.
+  desc: List of user stylesheet filenames to use.
 
 content.webgl:
   default: true
@@ -628,8 +628,7 @@ completion.height:
     maxperc: 100
     minint: 1
   default: 50%
-  desc: The height (in pixels or as percentage of the window) of the
-    completion.
+  desc: Height (in pixels or as percentage of the window) of the completion.
 
 completion.quick:
   default: true
@@ -713,7 +712,7 @@ downloads.location.directory:
     name: Directory
     none_ok: true
   desc: >-
-    The directory to save downloads to.
+    Directory to save downloads to.
 
     If unset, a sensible OS-specific default is used.
 
@@ -746,7 +745,7 @@ downloads.open_dispatcher:
     none_ok: true
   default: null
   desc: >-
-    The default program used to open downloads.
+    Default program used to open downloads.
 
     If null, the default internal handler is used.
 
@@ -776,7 +775,7 @@ editor.command:
     placeholder: true
   default: ["gvim", "-f", "{file}", "-c", "normal {line}G{column0}l"]
   desc: >-
-    The editor (and arguments) to use for the `open-editor` command.
+    Editor (and arguments) to use for the `open-editor` command.
 
     Several placeholders are supported. Placeholders are substituted by the
     respective value when executing the command.
@@ -840,7 +839,7 @@ hints.dictionary:
   type:
     name: File
     required: false
-  desc: The dictionary file to be used by the word hints.
+  desc: Dictionary file to be used by the word hints.
 
 hints.find_implementation:
   default: python
@@ -889,7 +888,7 @@ hints.next_regexes:
     valtype:
       name: Regex
       flags: IGNORECASE
-  desc: A comma-separated list of regular expressions to use for 'next' links.
+  desc: Comma-separated list of regular expressions to use for 'next' links.
 
 hints.prev_regexes:
   default:
@@ -903,7 +902,7 @@ hints.prev_regexes:
     valtype:
       name: Regex
       flags: IGNORECASE
-  desc: A comma-separated list of regular expressions to use for 'prev' links.
+  desc: Comma-separated list of regular expressions to use for 'prev' links.
 
 hints.scatter:
   default: true
@@ -1003,7 +1002,7 @@ keyhint.radius:
     name: Int
     minval: 0
   default: 6
-  desc: The rounding radius for the edges of the keyhint dialog.
+  desc: Rounding radius for the edges of the keyhint dialog.
 
 # emacs: '
 
@@ -1042,7 +1041,7 @@ prompt.radius:
     name: Int
     minval: 0
   default: 8
-  desc: The rounding radius for the edges of prompts.
+  desc: Rounding radius for the edges of prompts.
 
 ## scrolling
 
@@ -1139,7 +1138,7 @@ statusbar.padding:
 statusbar.position:
   type: VerticalPosition
   default: bottom
-  desc: The position of the status bar.
+  desc: Position of the status bar.
 
 ## tabs
 
@@ -1233,7 +1232,7 @@ tabs.padding:
 tabs.position:
   default: top
   type: Position
-  desc: The position of the tab bar.
+  desc: Position of the tab bar.
 
 tabs.select_on_remove:
   default: 'next'
@@ -1284,20 +1283,20 @@ tabs.title.format:
       - current_url
     none_ok: true
   desc: |
-    The format to use for the tab title.
+    Format to use for the tab title.
     The following placeholders are defined:
 
-    * `{perc}`: The percentage as a string like `[10%]`.
-    * `{perc_raw}`: The raw percentage, e.g. `10`
-    * `{title}`: The title of the current web page
+    * `{perc}`: Percentage as a string like `[10%]`.
+    * `{perc_raw}`: Raw percentage, e.g. `10`
+    * `{title}`: Title of the current web page
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
-    * `{index}`: The index of this tab.
-    * `{id}`: The internal tab ID of this tab.
-    * `{scroll_pos}`: The page scroll position.
-    * `{host}`: The host of the current web page.
+    * `{index}`: Index of this tab.
+    * `{id}`: Internal tab ID of this tab.
+    * `{scroll_pos}`: Page scroll position.
+    * `{host}`: Host of the current web page.
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
-    * `{current_url}` : The URL of the current web page.
+    * `{current_url}` : URL of the current web page.
 
 tabs.title.format_pinned:
   default: '{index}'
@@ -1315,8 +1314,8 @@ tabs.title.format_pinned:
       - private
       - current_url
     none_ok: true
-  desc: The format to use for the tab title for pinned tabs. The same
-    placeholders like for `tabs.title.format` are defined.
+  desc: Format to use for the tab title for pinned tabs. The same placeholders
+    like for `tabs.title.format` are defined.
 
 tabs.width.bar:
   default: 20%
@@ -1325,7 +1324,7 @@ tabs.width.bar:
     minperc: 0
     maxperc: 100
     minint: 1
-  desc: "The width (in pixels or as percentage of the window) of the tab bar if
+  desc: "Width (in pixels or as percentage of the window) of the tab bar if
     it's vertical."
 
 tabs.width.indicator:
@@ -1359,7 +1358,7 @@ url.default_page:
   type: FuzzyUrl
   default: https://start.duckduckgo.com/
   desc: >-
-    The page to open if :open -t/-b/-w is used without URL.
+    Page to open if :open -t/-b/-w is used without URL.
 
     Use `about:blank` for a blank page.
 
@@ -1368,7 +1367,7 @@ url.incdec_segments:
     name: FlagList
     valid_values: [host, path, query, anchor]
   default: [path, query]
-  desc: The URL segments where `:navigate increment/decrement` will search for
+  desc: URL segments where `:navigate increment/decrement` will search for
     a number.
 
 url.searchengines:
@@ -1396,7 +1395,7 @@ url.start_pages:
     name: ListOrValue
     valtype: FuzzyUrl
   default: ["https://start.duckduckgo.com"]
-  desc: The page(s) to open at the start.
+  desc: Page(s) to open at the start.
 
 url.yank_ignored_parameters:
   type:
@@ -1410,7 +1409,7 @@ url.yank_ignored_parameters:
     - utm_campaign
     - utm_term
     - utm_content
-  desc: The URL parameters to strip with `:yank url`.
+  desc: URL parameters to strip with `:yank url`.
 
 ## window
 
@@ -1435,7 +1434,7 @@ window.title_format:
       - current_url
   default: '{perc}{title}{title_sep}qutebrowser'
   desc: |
-    The format to use for the window title. The same placeholders like for
+    Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
 
 ## zoom
@@ -1443,7 +1442,7 @@ window.title_format:
 zoom.default:
   type: Perc
   default: 100%
-  desc: The default zoom level.
+  desc: Default zoom level.
 
 zoom.levels:
   type:
@@ -1468,7 +1467,7 @@ zoom.levels:
     - 300%
     - 400%
     - 500%
-  desc: The available zoom levels.
+  desc: Available zoom levels.
 
 zoom.mouse_divider:
   default: 512
@@ -2019,7 +2018,7 @@ fonts.web.size.default:
     name: Int
     minval: 1
     maxval: maxint
-  desc: The default font size for regular text.
+  desc: Default font size for regular text.
 
 fonts.web.size.default_fixed:
   default: 13
@@ -2027,7 +2026,7 @@ fonts.web.size.default_fixed:
     name: Int
     minval: 1
     maxval: maxint
-  desc: The default font size for fixed-pitch text.
+  desc: Default font size for fixed-pitch text.
 
 fonts.web.size.minimum:
   default: 0
@@ -2035,7 +2034,7 @@ fonts.web.size.minimum:
     name: Int
     minval: 0
     maxval: maxint
-  desc: The hard minimum font size.
+  desc: Hard minimum font size.
 
 fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
@@ -2045,7 +2044,7 @@ fonts.web.size.minimum_logical:
     name: Int
     minval: 0
     maxval: maxint
-  desc: The minimum logical font size that is applied when zooming out.
+  desc: Minimum logical font size that is applied when zooming out.
 
 ## keybindings
 
@@ -2404,7 +2403,7 @@ bindings.commands:
     The following modes are available:
 
 
-    * normal: The default mode, where most commands are invoked.
+    * normal: Default mode, where most commands are invoked.
 
 
     * insert: Entered when an input field is focused on a website, or by
