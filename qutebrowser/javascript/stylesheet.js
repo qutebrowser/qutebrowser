@@ -99,7 +99,9 @@ window._qutebrowser.stylesheet = (function() {
             create_style();
             return;
         }
-        var iter = document.createNodeIterator(document);
+        var iter = document.createNodeIterator(document,
+            // eslint-disable-next-line no-bitwise
+            NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_ELEMENT);
         var node;
         while ((node = iter.nextNode())) {
             if (check_style(node)) {
