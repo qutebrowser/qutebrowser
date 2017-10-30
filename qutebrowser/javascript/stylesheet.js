@@ -75,18 +75,15 @@ window._qutebrowser.stylesheet = (function() {
         var known_ns = node.nodeType === Node.ELEMENT_NODE &&
                        (node.namespaceURI === xhtml_ns ||
                         node.namespaceURI === svg_ns);
-        if (stylesheet || known_ns) {
-            create_style();
-            return true;
-        }
-        return false;
+        return stylesheet || known_ns;
     }
 
-    function check_added_style(mutations) {
+    function watch_added_style(mutations) {
         for (var mi = 0; mi < mutations.length; ++mi) {
             var nodes = mutations[mi].addedNodes;
             for (var ni = 0; ni < nodes.length; ++ni) {
                 if (check_style(nodes[ni])) {
+                    create_style();
                     style_observer.disconnect();
                     return;
                 }
@@ -106,10 +103,11 @@ window._qutebrowser.stylesheet = (function() {
         var node;
         while ((node = iter.nextNode())) {
             if (check_style(node)) {
+                create_style();
                 return;
             }
         }
-        style_observer = new MutationObserver(check_added_style);
+        style_observer = new MutationObserver(watch_added_style);
         style_observer.observe(document, {"childList": true, "subtree": true});
     }
 
