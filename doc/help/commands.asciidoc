@@ -361,7 +361,7 @@ The index of the download to retry.
 
 [[edit-url]]
 === edit-url
-Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] ['url']+
+Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] [*--private*] [*--related*] ['url']+
 
 Navigate to a url formed in an external editor.
 
@@ -374,6 +374,9 @@ The editor which should be launched can be configured via the `editor.command` c
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-p*+, +*--private*+: Open a new window in private browsing mode.
+* +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
+
 
 [[fake-key]]
 === fake-key
