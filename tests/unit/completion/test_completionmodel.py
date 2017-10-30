@@ -68,17 +68,18 @@ def test_count(counts):
     assert model.count() == sum(counts)
 
 
-@hypothesis.given(strategies.text())
-def test_set_pattern(pat):
+@hypothesis.given(pat=strategies.text())
+def test_set_pattern(pat, qtbot):
     """Validate the filtering and sorting results of set_pattern."""
     model = completionmodel.CompletionModel()
-    cats = [mock.Mock(spec=['set_pattern', 'layoutChanged',
-                            'layoutAboutToBeChanged'])
+    cats = [mock.Mock(spec=['set_pattern', 'layoutAboutToBeChanged'])
             for _ in range(3)]
     for c in cats:
         c.set_pattern = mock.Mock(spec=[])
         model.add_category(c)
-    model.set_pattern(pat)
+    with qtbot.waitSignals([model.layoutAboutToBeChanged, model.layoutChanged],
+                           order='strict'):
+        model.set_pattern(pat)
     for c in cats:
         c.set_pattern.assert_called_with(pat)
 
