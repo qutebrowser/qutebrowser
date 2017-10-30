@@ -106,7 +106,7 @@ backend:
     only supports the fork.
 
     QtWebEngine is Qt's official successor to QtWebKit. It's slightly more
-    resource hungry that QtWebKit and has a couple of missing features in
+    resource hungry than QtWebKit and has a couple of missing features in
     qutebrowser, but is generally the preferred choice.
 
     This setting requires a restart.
@@ -658,7 +658,7 @@ completion.scrollbar.padding:
   type:
     name: Int
     minval: 0
-  desc: Padding of scrollbar handle in the completion window (in px).
+  desc: Padding of the scrollbar handle in the completion window (in px).
 
 completion.timestamp_format:
   type:
@@ -1371,11 +1371,11 @@ url.searchengines:
   desc: >-
     Definitions of search engines which can be used via the address bar.
 
-    Maps a searchengine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}`
+    Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}`
     placeholder. The placeholder will be replaced by the search term, use `{{`
     and `}}` for literal `{`/`}` signs.
 
-    The searchengine named `DEFAULT` is used when `url.auto_search` is turned on
+    The search engine named `DEFAULT` is used when `url.auto_search` is turned on
     and something else than a URL was entered to be opened. Other search engines
     can be used by prepending the search engine name to the search term, e.g.
     `:open google qutebrowser`.
@@ -1549,12 +1549,12 @@ colors.completion.match.fg:
 colors.completion.scrollbar.fg:
   default: white
   type: QssColor
-  desc: Color of the scrollbar handle in completion view.
+  desc: Color of the scrollbar handle in the completion view.
 
 colors.completion.scrollbar.bg:
   default: '#333333'
   type: QssColor
-  desc: Color of the scrollbar in completion view
+  desc: Color of the scrollbar in the completion view
 
 colors.downloads.bar.bg:
   default: black
@@ -1653,7 +1653,7 @@ colors.messages.error.border:
 colors.messages.warning.fg:
   default: white
   type: QssColor
-  desc: Foreground color a warning message.
+  desc: Foreground color of a warning message.
 
 colors.messages.warning.bg:
   default: darkorange
@@ -1668,7 +1668,7 @@ colors.messages.warning.border:
 colors.messages.info.fg:
   default: white
   type: QssColor
-  desc: Foreground color an info message.
+  desc: Foreground color of an info message.
 
 colors.messages.info.bg:
   default: black
