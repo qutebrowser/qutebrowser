@@ -8,7 +8,6 @@ extends:
     "eslint:all"
 
 rules:
-     strict: ["error", "global"]
      one-var: "off"
      padded-blocks: ["error", "never"]
      space-before-function-paren: ["error", "never"]
@@ -44,3 +43,15 @@ rules:
      no-multi-spaces: ["error", {"ignoreEOLComments": true}]
      function-paren-newline: "off"
      multiline-comment-style: "off"
+
+     no-unused-vars: "off"
+     no-implicit-globals: "off"
+     no-bitwise: "off"
+     strict: "off"
+     no-undef: "off"
+     no-param-reassign: "off"
+     no-eq-null: "off"
+     no-ternary: "off"
+     curly: "off"
+     eqeqeq: "off"
+     max-statements: "off"

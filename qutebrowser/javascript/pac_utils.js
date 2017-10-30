@@ -48,25 +48,22 @@ function dnsDomainIs(host, domain) {
 }
 
 function dnsDomainLevels(host) {
-    return host.split('.').length-1;
+    return host.split(".").length - 1;
 }
 
 function convert_addr(ipchars) {
-    const bytes = ipchars.split('.');
-    const result = ((bytes[0] & 0xff) << 24) |
+    const bytes = ipchars.split(".");
+    return ((bytes[0] & 0xff) << 24) |
                  ((bytes[1] & 0xff) << 16) |
-                 ((bytes[2] & 0xff) <<  8) |
+                 ((bytes[2] & 0xff) << 8) |
                   (bytes[3] & 0xff);
-    return result;
 }
 
 function isInNet(ipaddr, pattern, maskstr) {
-    const test = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
-               .exec(ipaddr);
+    const test = (/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/).exec(ipaddr);
     if (test == null) {
         ipaddr = dnsResolve(ipaddr);
-        if (ipaddr == null)
-            return false;
+        if (ipaddr == null) return false;
     } else if (test[1] > 255 || test[2] > 255 ||
                test[3] > 255 || test[4] > 255) {
         return false;    // not an IP address
@@ -78,7 +75,7 @@ function isInNet(ipaddr, pattern, maskstr) {
 }
 
 function isPlainHostName(host) {
-    return (host.search('\\.') == -1);
+    return (host.search("\\.") == -1);
 }
 
 function isResolvable(host) {
@@ -87,36 +84,52 @@ function isResolvable(host) {
 }
 
 function localHostOrDomainIs(host, hostdom) {
-    return (host == hostdom) ||
-           (hostdom.lastIndexOf(`${host}.`, 0) == 0);
+    return (host == hostdom) || (hostdom.lastIndexOf(`${host}.`, 0) == 0);
 }
 
 function shExpMatch(url, pattern) {
-   pattern = pattern.replace(/\./g, '\\.');
-   pattern = pattern.replace(/\*/g, '.*');
-   pattern = pattern.replace(/\?/g, '.');
-   const newRe = new RegExp(`^${pattern}$`);
-   return newRe.test(url);
+    pattern = pattern.replace(/\./g, "\\.");
+    pattern = pattern.replace(/\*/g, ".*");
+    pattern = pattern.replace(/\?/g, ".");
+    const newRe = new RegExp(`^${pattern}$`);
+    return newRe.test(url);
 }
 
-const wdays = {SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6};
+const wdays = {
+    "SUN": 0,
+    "MON": 1,
+    "TUE": 2,
+    "WED": 3,
+    "THU": 4,
+    "FRI": 5,
+    "SAT": 6,
+};
 
-const months = {JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6,
-              AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11};
+const months = {
+    "JAN": 0,
+    "FEB": 1,
+    "MAR": 2,
+    "APR": 3,
+    "MAY": 4,
+    "JUN": 5,
+    "JUL": 6,
+    "AUG": 7,
+    "SEP": 8,
+    "OCT": 9,
+    "NOV": 10,
+    "DEC": 11,
+};
 
 function weekdayRange(...args) {
     function getDay(weekday) {
-        if (weekday in wdays) {
-            return wdays[weekday];
-        }
+        if (weekday in wdays) return wdays[weekday];
         return -1;
     }
     const date = new Date();
     let argc = args.length;
     let wday;
-    if (argc < 1)
-        return false;
-    if (args[argc - 1] == 'GMT') {
+    if (argc < 1) return false;
+    if (args[argc - 1] == "GMT" ) {
         argc--;
         wday = date.getUTCDay();
     } else {
@@ -124,51 +137,46 @@ function weekdayRange(...args) {
     }
     const wd1 = getDay(args[0]);
     const wd2 = (argc == 2) ? getDay(args[1]) : wd1;
-    return (wd1 == -1 || wd2 == -1) ? false
-                                    : (wd1 <= wday && wday <= wd2);
+    if (wd1 == -1 || wd2 == -1) return false;
+    return wd1 <= wday && wday <= wd2;
 }
 
 function dateRange(...args) {
     function getMonth(name) {
-        if (name in months) {
-            return months[name];
-        }
+        if (name in months) return months[name];
         return -1;
     }
-    let date = new Date();
+    const date = new Date();
     let argc = args.length;
-    if (argc < 1) {
-        return false;
-    }
-    const isGMT = (args[argc - 1] == 'GMT');
+    if (argc < 1) return false;
+    const isGMT = (args[argc - 1] == "GMT");
 
-    if (isGMT) {
-        argc--;
-    }
+    if (isGMT) argc--;
+
     // function will work even without explict handling of this case
     if (argc == 1) {
-        var tmp = parseInt(args[0]);
+        const tmp = parseInt(args[0], 10);
         if (isNaN(tmp)) {
-            return (isGMT ? date.getUTCMonth() : date.getMonth()) ==
-                    getMonth(args[0]);
+            if (isGMT) return date.getUTCDate() == tmp;
+            return date.getMonth() == getMonth(args[0]);
         } else if (tmp < 32) {
-            return ((isGMT ? date.getUTCDate() : date.getDate()) == tmp);
-        } else {
-            return ((isGMT ? date.getUTCFullYear() : date.getFullYear()) ==
-                    tmp);
+            if (isGMT) return date.getUTCDate() == tmp;
+            return date.getDate() == tmp;
+        } else if (isGMT) {
+            return date.getUTCFullYear == tmp;
         }
+        return date.getFullYear() == tmp;
     }
+
     const year = date.getFullYear();
-    let date1;
-    let date2;
-    date1 = new Date(year,  0,  1,  0,  0,  0);
-    date2 = new Date(year, 11, 31, 23, 59, 59);
+    const date1 = new Date(year,  0,  1,  0,  0,  0);
+    const date2 = new Date(year, 11, 31, 23, 59, 59);
     let adjustMonth = false;
-    for (var i = 0; i < (argc >> 1); i++) {
-        var tmp = parseInt(args[i]);
+
+    for (let i = 0; i < (argc >> 1); i++) {
+        const tmp = parseInt(args[i], 10);
         if (isNaN(tmp)) {
-            var mon = getMonth(args[i]);
-            date1.setMonth(mon);
+            date1.setMonth(getMonth(args[i]));
         } else if (tmp < 32) {
             adjustMonth = (argc <= 2);
             date1.setDate(tmp);
@@ -176,30 +184,23 @@ function dateRange(...args) {
             date1.setFullYear(tmp);
         }
     }
-    for (var i = (argc >> 1); i < argc; i++) {
-        var tmp = parseInt(args[i]);
-        if (isNaN(tmp)) {
-            var mon = getMonth(args[i]);
-            date2.setMonth(mon);
-        } else if (tmp < 32) {
-            date2.setDate(tmp);
-        } else {
-            date2.setFullYear(tmp);
-        }
+    for (let i = (argc >> 1); i < argc; i++) {
+        const tmp = parseInt(args[i], 10);
+        if (isNaN(tmp)) date2.setMonth(getMonth(args[i]));
+        else if (tmp < 32) date2.setDate(tmp);
+        else date2.setFullYear(tmp);
     }
     if (adjustMonth) {
         date1.setMonth(date.getMonth());
         date2.setMonth(date.getMonth());
     }
     if (isGMT) {
-    var tmp = date;
-        tmp.setFullYear(date.getUTCFullYear());
-        tmp.setMonth(date.getUTCMonth());
-        tmp.setDate(date.getUTCDate());
-        tmp.setHours(date.getUTCHours());
-        tmp.setMinutes(date.getUTCMinutes());
-        tmp.setSeconds(date.getUTCSeconds());
-        date = tmp;
+        date.setFullYear(date.getUTCFullYear());
+        date.setMonth(date.getUTCMonth());
+        date.setDate(date.getUTCDate());
+        date.setHours(date.getUTCHours());
+        date.setMinutes(date.getUTCMinutes());
+        date.setSeconds(date.getUTCSeconds());
     }
     return ((date1 <= date) && (date <= date2));
 }
@@ -207,44 +208,36 @@ function dateRange(...args) {
 function timeRange(...args) {
     let argc = args.length;
     const date = new Date();
-    let isGMT= false;
+    let isGMT = false;
 
-    if (argc < 1) {
-        return false;
-    }
-    if (args[argc - 1] == 'GMT') {
+    if (argc < 1) return false;
+    if (args[argc - 1] == "GMT") {
         isGMT = true;
         argc--;
     }
 
     const hour = isGMT ? date.getUTCHours() : date.getHours();
-    let date1;
-    let date2;
-    date1 = new Date();
-    date2 = new Date();
+    const date1 = new Date();
+    const date2 = new Date();
+    const middle = argc >> 1;
 
-    if (argc == 1) {
-        return hour == args[0];
-    } else if (argc == 2) {
-        return (args[0] <= hour) && (hour <= args[1]);
-    } else {
-        switch (argc) {
-        case 6:
-            date1.setSeconds(args[2]);
-            date2.setSeconds(args[5]);
-        case 4:
-            const middle = argc >> 1;
-            date1.setHours(args[0]);
-            date1.setMinutes(args[1]);
-            date2.setHours(args[middle]);
-            date2.setMinutes(args[middle + 1]);
-            if (middle == 2) {
-                date2.setSeconds(59);
-            }
-            break;
-        default:
-          throw 'timeRange: bad number of arguments'
-        }
+    if (argc == 1) return hour == args[0];
+    else if (argc == 2) return (args[0] <= hour) && (hour <= args[1]);
+
+    switch (argc) {
+    case 6:
+        date1.setSeconds(args[2]);
+        date2.setSeconds(args[5]);
+        break;
+    case 4:
+        date1.setHours(args[0]);
+        date1.setMinutes(args[1]);
+        date2.setHours(args[middle]);
+        date2.setMinutes(args[middle + 1]);
+        if (middle == 2) date2.setSeconds(59);
+        break;
+    default:
+        throw new Error("timeRange: bad number of arguments");
     }
 
     if (isGMT) {
