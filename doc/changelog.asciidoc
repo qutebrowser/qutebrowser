@@ -67,6 +67,11 @@ Removed
 v1.0.3 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- Performance improvements for tab rendering
+
 Fixed
 ~~~~~
 
