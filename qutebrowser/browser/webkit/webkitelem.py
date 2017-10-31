@@ -130,7 +130,6 @@ class WebKitElement(webelem.AbstractWebElement):
         """Get the text caret position for the current element."""
         self._check_vanished()
         pos = self._elem.evaluateJavaScript('this.selectionStart')
-        assert isinstance(pos, (int, float, type(None)))
         if pos is None:
             return 0
         return int(pos)
