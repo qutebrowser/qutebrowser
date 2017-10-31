@@ -41,7 +41,10 @@ disable=no-self-use,
         unsupported-membership-test,
         unsupported-assignment-operation,
         unsubscriptable-object,
-        too-many-boolean-expressions
+        too-many-boolean-expressions,
+        too-many-locals,
+        too-many-branches,
+        too-many-statements
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
