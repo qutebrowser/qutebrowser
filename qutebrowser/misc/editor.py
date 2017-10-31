@@ -181,7 +181,7 @@ class ExternalEditor(QObject):
         """
         line = text[:caret_position].count('\n') + 1
         column = caret_position - text[:caret_position].rfind('\n')
-        return (line, column)
+        return line, column
 
     def _sub_placeholder(self, arg, line, column):
         """Substitute a single placeholder.
