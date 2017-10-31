@@ -274,7 +274,11 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
     check(True, 2, after_txt, after_pos)
 
     # quick-completing a single item should move the cursor ahead by 1 and add
-    # a trailing space if at the end of the cmd string
+    # a trailing space if at the end of the cmd string, unless the command has
+    # maxsplit < len(before) (such as :open in these tests)
+    if after_txt.startswith(':open'):
+        return
+
     after_pos += 1
     if after_pos > len(after_txt):
         after_txt += ' '
