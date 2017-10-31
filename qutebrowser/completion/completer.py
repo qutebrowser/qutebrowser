@@ -183,7 +183,8 @@ class Completer(QObject):
             if maxsplit is not None and maxsplit < len(before):
                 self._change_completed_part(text, before, after)
             else:
-                self._change_completed_part(text, before, after, immediate=True)
+                self._change_completed_part(text, before, after,
+                                            immediate=True)
         else:
             self._change_completed_part(text, before, after)
 
