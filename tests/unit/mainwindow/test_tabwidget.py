@@ -52,3 +52,16 @@ class TestTabWidget:
 
         with qtbot.waitExposed(widget):
             widget.show()
+
+    def test_update_tab_titles_benchmark(self, benchmark, widget,
+                                         qtbot, fake_web_tab):
+        """Benchmark for update_tab_titles."""
+        widget.addTab(fake_web_tab(), 'foobar')
+        widget.addTab(fake_web_tab(), 'foobar2')
+        widget.addTab(fake_web_tab(), 'foobar3')
+        widget.addTab(fake_web_tab(), 'foobar4')
+
+        with qtbot.waitExposed(widget):
+            widget.show()
+
+        benchmark(widget._update_tab_titles)
