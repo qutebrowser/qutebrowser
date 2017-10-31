@@ -22,18 +22,21 @@
 
 """Tool to import data from other browsers.
 
-Currently only importing bookmarks from Netscape Bookmark files is supported.
+Currently importing bookmarks from Netscape Bookmark files and Mozilla
+profiles is supported.
 """
 
 
 import argparse
+import sqlite3
+import os
 
 browser_default_input_format = {
     'chromium': 'netscape',
     'ie': 'netscape',
-    'firefox': 'netscape',
-    'seamonkey': 'netscape',
-    'palemoon': 'netscape'
+    'firefox': 'mozilla',
+    'seamonkey': 'mozilla',
+    'palemoon': 'mozilla'
 }
 
 
@@ -68,7 +71,10 @@ def main():
             #default to netscape
             input_format = 'netscape'
 
-    import_function = {'netscape': import_netscape_bookmarks}
+    import_function = {
+        'netscape': import_netscape_bookmarks,
+        'mozilla': import_moz_places
+    }
     import_function[input_format](args.bookmarks, bookmark_types,
                                   output_format)
 
@@ -132,7 +138,10 @@ def get_args():
         action='store_true',
         default=False,
         required=False)
-    parser.add_argument('bookmarks', help="Bookmarks file (html format)")
+    parser.add_argument(
+        'bookmarks',
+        help="Bookmarks file (html format) or "
+        "profile folder (Mozilla format)")
     args = parser.parse_args()
     return args
 
@@ -200,6 +209,63 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
                     output_template[output_format][typ].format(tag=tag))
     for bookmark in bookmarks:
         print(bookmark)
+
+
+def import_moz_places(profile, bookmark_types, output_format):
+    """Import bookmarks from a Mozilla profile's places.sqlite database."""
+    place_query = {
+        'bookmark':
+        ("SELECT DISTINCT moz_bookmarks.title,moz_places.url "
+         "FROM moz_bookmarks,moz_places "
+         "WHERE moz_places.id=moz_bookmarks.fk "
+         "AND moz_places.id NOT IN (SELECT place_id FROM moz_keywords) "
+         "AND moz_places.url NOT LIKE 'place:%';"
+         ),  # Bookmarks with no keywords assigned
+        'keyword':
+        ("SELECT moz_keywords.keyword,moz_places.url "
+         "FROM moz_keywords,moz_places,moz_bookmarks "
+         "WHERE moz_places.id=moz_bookmarks.fk "
+         "AND moz_places.id=moz_keywords.place_id "
+         "AND moz_places.url NOT LIKE '%!%s%' ESCAPE '!';"
+         ),  # Bookmarks with keywords assigned but no %s substitution
+        'search':
+        ("SELECT moz_keywords.keyword, "
+         "    moz_bookmarks.title, "
+         "    search_conv(moz_places.url) AS url "
+         "FROM moz_keywords,moz_places,moz_bookmarks "
+         "WHERE moz_places.id=moz_bookmarks.fk "
+         "AND moz_places.id=moz_keywords.place_id "
+         "AND moz_places.url LIKE '%!%s%' ESCAPE '!';"
+         )  # bookmarks with keyword and %s substitution
+    }
+    out_template = {
+        'bookmark': {
+            'bookmark': '{url} {title}',
+            'keyword': '{url} {keyword}'
+        },
+        'quickmark': {
+            'bookmark': '{title} {url}',
+            'keyword': '{keyword} {url}'
+        },
+        'oldsearch': {
+            'search': '{keyword} {url} #{title}'
+        },
+        'search': {
+            'search': "c.url.searchengines['{keyword}'] = '{url}' #{title}"
+        }
+    }
+
+    def search_conv(url):
+        return search_escape(url).replace('%s', '{}')
+
+    places = sqlite3.connect(os.path.join(profile, "places.sqlite"))
+    places.create_function('search_conv', 1, search_conv)
+    places.row_factory = sqlite3.Row
+    c = places.cursor()
+    for typ in bookmark_types:
+        c.execute(place_query[typ])
+        for row in c:
+            print(out_template[output_format][typ].format(**row))
 
 
 if __name__ == '__main__':

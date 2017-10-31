@@ -122,6 +122,7 @@ def whitelist_generator():  # noqa
     yield 'qutebrowser.command.command.ArgInfo._validate_exclusive'
     yield 'scripts.get_coredumpctl_traces.Line.uid'
     yield 'scripts.get_coredumpctl_traces.Line.gid'
+    yield 'scripts.importer.import_moz_places.places.row_factory'
 
 
 def filter_func(item):
