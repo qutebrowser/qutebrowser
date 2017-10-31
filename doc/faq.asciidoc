@@ -152,7 +152,7 @@ For QtWebEngine:
   `:set spellcheck.languages "['en-US', 'pl-PL']"`
 
 How do I use Tor with qutebrowser?::
-    Start tor on your machine, and do `:set network proxy socks://localhost:9050/`
+    Start tor on your machine, and do `:set content.proxy socks://localhost:9050/`
     in qutebrowser. Note this won't give you the same amount of fingerprinting
     protection that the Tor Browser does, but it's useful to be able to access
     `.onion` sites.
@@ -162,7 +162,7 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
     and qutebrowser's keybindings are designed to be compatible with dwb's.
     The rationale behind it is that J is "down" in vim, and K is "up", which
     corresponds nicely to "next"/"previous". It also makes much more sense with
-    vertical tabs (e.g. `:set tabs position left`).
+    vertical tabs (e.g. `:set tabs.position left`).
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
