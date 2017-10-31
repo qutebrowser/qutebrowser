@@ -27,7 +27,7 @@
  */
 
 "use strict";
-(() => {
+(function() {
     // FIXME:qtwebengine integrate this with other window._qutebrowser code?
     function isElementInViewport(node) {  // eslint-disable-line complexity
         let i;

@@ -19,7 +19,7 @@
 
 "use strict";
 
-window.loadHistory = (() => {
+window.loadHistory = (function() {
     // Date of last seen item.
     let lastItemDate = null;
 

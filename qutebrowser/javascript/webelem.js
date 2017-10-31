@@ -36,7 +36,7 @@
 
 "use strict";
 
-window._qutebrowser.webelem = (() => {
+window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 

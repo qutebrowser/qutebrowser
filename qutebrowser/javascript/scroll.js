@@ -19,7 +19,7 @@
 
 "use strict";
 
-window._qutebrowser.scroll = (() => {
+window._qutebrowser.scroll = (function() {
     const funcs = {};
 
     funcs.to_perc = (x, y) => {
