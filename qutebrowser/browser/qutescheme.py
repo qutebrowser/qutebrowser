@@ -138,6 +138,7 @@ def data_for_url(url):
     """
     path = url.path()
     host = url.host()
+    query = url.query()
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))
@@ -152,6 +153,8 @@ def data_for_url(url):
             new_url.setHost(path)
 
         new_url.setPath('/')
+        if query:
+            new_url.setQuery(query)
         if new_url.host():  # path was a valid host
             raise Redirect(new_url)
 
