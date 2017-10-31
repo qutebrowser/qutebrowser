@@ -202,10 +202,10 @@ class TestEarlyInit:
 
     @pytest.mark.parametrize('settings, size, family', [
         # Only fonts.monospace customized
-        ([('fonts.monospace', '"Comic Sans MS"')], 8, 'Comic Sans MS'),
+        ([('fonts.monospace', 'Comic Sans MS')], 8, 'Comic Sans MS'),
         # fonts.monospace and font settings customized
         # https://github.com/qutebrowser/qutebrowser/issues/3096
-        ([('fonts.monospace', '"Comic Sans MS"'),
+        ([('fonts.monospace', 'Comic Sans MS'),
           ('fonts.tabs', '10pt monospace'),
           ('fonts.keyhint', '10pt monospace')], 10, 'Comic Sans MS'),
     ])
@@ -247,7 +247,7 @@ class TestEarlyInit:
         changed_options = []
         config.instance.changed.connect(changed_options.append)
 
-        config.instance.set_obj('fonts.monospace', '"Comic Sans MS"')
+        config.instance.set_obj('fonts.monospace', 'Comic Sans MS')
 
         assert 'fonts.keyhint' in changed_options  # Font
         assert config.instance.get('fonts.keyhint') == '8pt "Comic Sans MS"'
