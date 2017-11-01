@@ -41,6 +41,9 @@ argument_parser.add_argument('--password-pattern', '-P', default=r'(.*)',
                              help='Regular expression that matches the password')
 argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu',
                              help='Invocation used to execute a dmenu-provider')
+group = argument_parser.add_mutually_exclusive_group()
+group.add_argument('--username-only', '-uo', action='store_true', help='Only insert username')
+group.add_argument('--password-only', '-po', action='store_true', help='Only insert password')
 
 stderr = functools.partial(print, file=sys.stderr)
 
@@ -119,9 +122,15 @@ def main(arguments):
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     password = match.group(1)
 
-    # Enter username and password using fake-key and <Tab> (which seems to work almost universally) and switch back into
-    # insert-mode, so the form can be directly submitted by hitting enter afterwards
-    qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {} ;; enter-mode insert'.format(username, password))
+    if arguments.username_only:
+        qute_command('fake-key {} ;; enter-mode insert'.format(username))
+    elif arguments.password_only:
+        qute_command('fake-key {} ;; enter-mode insert'.format(password))
+    else:
+        # Enter username and password using fake-key and <Tab> (which seems to work almost universally) and switch back
+        # into insert-mode, so the form can be directly submitted by hitting enter afterwards
+        qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {} ;; enter-mode insert'.format(username, password))
+
     return ExitCodes.SUCCESS
 
 
