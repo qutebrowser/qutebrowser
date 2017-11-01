@@ -21,12 +21,61 @@
 
 import traceback
 
+from PyQt5.QtCore import pyqtSlot
+
 from qutebrowser.keyinput.basekeyparser import BaseKeyParser
-from qutebrowser.utils import message, utils
+from qutebrowser.utils import message, usertypes, utils
 from qutebrowser.commands import runners, cmdexc
+from qutebrowser.config import config
+
+class KeyChainParser(BaseKeyParser):
+    """KeyChainParser which implements chaining of multiple keys."""
+    def __init__(self, win_id, parent=None, supports_count=False):
+        super().__init__(win_id, parent, supports_count, supports_chains=True)
+        self._partial_timer = usertypes.Timer(self, 'partial-match')
+        self._partial_timer.setSingleShot(True)
+
+    def __repr__(self):
+        return utils.get_repr(self)
+
+    def _handle_single_key(self, e):
+        """Override _handle_single_key to abort if the key is a startchar.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+
+        Return:
+            A self.Match member.
+        """
+        match = super()._handle_single_key(e)
+        if match == self.Match.partial:
+            timeout = config.val.input.partial_timeout
+            if timeout != 0:
+                self._partial_timer.setInterval(timeout)
+                self._partial_timer.timeout.connect(self._clear_partial_match)
+                self._partial_timer.start()
+        return match
+
+    @pyqtSlot()
+    def _clear_partial_match(self):
+        """Clear a partial keystring after a timeout."""
+        self._debug_log("Clearing partial keystring {}".format(
+            self._keystring))
+        self._keystring = ''
+        self.keystring_updated.emit(self._keystring)
+
+    @pyqtSlot()
+    def _stop_timers(self):
+        super()._stop_timers()
+        self._partial_timer.stop()
+        try:
+            self._partial_timer.timeout.disconnect(self._clear_partial_match)
+        except TypeError:
+            # no connections
+            pass
 
 
-class CommandKeyParser(BaseKeyParser):
+class CommandKeyParser(KeyChainParser):
 
     """KeyChainParser for command bindings.
 
@@ -34,9 +83,8 @@ class CommandKeyParser(BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None, supports_count=None,
-                 supports_chains=False):
-        super().__init__(win_id, parent, supports_count, supports_chains)
+    def __init__(self, win_id, parent=None, supports_count=False):
+        super().__init__(win_id, parent, supports_count)
         self._commandrunner = runners.CommandRunner(win_id)
 
     def execute(self, cmdstr, _keytype, count=None):
@@ -44,7 +92,6 @@ class CommandKeyParser(BaseKeyParser):
             self._commandrunner.run(cmdstr, count)
         except cmdexc.Error as e:
             message.error(str(e), stack=traceback.format_exc())
-
 
 class PassthroughKeyParser(CommandKeyParser):
 
@@ -59,19 +106,16 @@ class PassthroughKeyParser(CommandKeyParser):
     do_log = False
     passthrough = True
 
-    def __init__(self, win_id, mode, parent=None, warn=True):
+    def __init__(self, win_id, mode, parent=None):
         """Constructor.
 
         Args:
             mode: The mode this keyparser is for.
             parent: Qt parent.
-            warn: Whether to warn if an ignored key was bound.
         """
-        super().__init__(win_id, parent, supports_chains=False)
-        self._warn_on_keychains = warn
+        super().__init__(win_id, parent, supports_count=False)
         self._read_config(mode)
         self._mode = mode
 
     def __repr__(self):
-        return utils.get_repr(self, mode=self._mode,
-                              warn=self._warn_on_keychains)
+        return utils.get_repr(self, mode=self._mode)

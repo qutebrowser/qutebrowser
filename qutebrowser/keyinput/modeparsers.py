@@ -39,18 +39,11 @@ LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 class NormalKeyParser(keyparser.CommandKeyParser):
 
-    """KeyParser for normal mode with added STARTCHARS detection and more.
-
-    Attributes:
-        _partial_timer: Timer to clear partial keypresses.
-    """
+    """KeyParser for normal mode with added STARTCHARS detection and more."""
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=True)
         self._read_config('normal')
-        self._partial_timer = usertypes.Timer(self, 'partial-match')
-        self._partial_timer.setSingleShot(True)
         self._inhibited = False
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
@@ -72,14 +65,8 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             self._debug_log("Ignoring key '{}', because the normal mode is "
                 "currently inhibited.".format(txt))
             return self.Match.none
-        match = super()._handle_single_key(e)
-        if match == self.Match.partial:
-            timeout = config.val.input.partial_timeout
-            if timeout != 0:
-                self._partial_timer.setInterval(timeout)
-                self._partial_timer.timeout.connect(self._clear_partial_match)
-                self._partial_timer.start()
-        return match
+
+        return super()._handle_single_key(e)
 
     def set_inhibited_timeout(self, timeout):
         if timeout != 0:
@@ -91,14 +78,6 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             self._inhibited_timer.start()
 
     @pyqtSlot()
-    def _clear_partial_match(self):
-        """Clear a partial keystring after a timeout."""
-        self._debug_log("Clearing partial keystring {}".format(
-            self._keystring))
-        self._keystring = ''
-        self.keystring_updated.emit(self._keystring)
-
-    @pyqtSlot()
     def _clear_inhibited(self):
         """Reset inhibition state after a timeout."""
         self._debug_log("Releasing inhibition state of normal mode.")
@@ -107,12 +86,6 @@ class NormalKeyParser(keyparser.CommandKeyParser):
     @pyqtSlot()
     def _stop_timers(self):
         super()._stop_timers()
-        self._partial_timer.stop()
-        try:
-            self._partial_timer.timeout.disconnect(self._clear_partial_match)
-        except TypeError:
-            # no connections
-            pass
         self._inhibited_timer.stop()
         try:
             self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
@@ -126,8 +99,7 @@ class PromptKeyParser(keyparser.CommandKeyParser):
     """KeyParser for yes/no prompts."""
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=False)
         # We don't want an extra section for this in the config, so we just
         # abuse the prompt section.
         self._read_config('prompt')
@@ -146,8 +118,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
     """
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=False)
         self._filtertext = ''
         self._last_press = LastPress.none
         self._read_config('hint')
@@ -262,8 +233,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
     passthrough = True
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=True)
         self._read_config('caret')
 
 
@@ -277,8 +247,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
     """
 
     def __init__(self, win_id, mode, parent=None):
-        super().__init__(win_id, parent, supports_count=False,
-                         supports_chains=False)
+        super().__init__(win_id, parent, supports_count=False)
         self._mode = mode
         self._read_config('register')
 
