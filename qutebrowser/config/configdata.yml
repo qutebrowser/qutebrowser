@@ -976,7 +976,7 @@ input.spatial_navigation:
 
     Spatial navigation consists in the ability to navigate between focusable
     elements in a Web page, such as hyperlinks and form controls, by using
-    Left, Right, Up and Down arrow keys. For example, if a user presses the
+    Left, Right, Up and Down arrow keys. For example, if the user presses the
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
