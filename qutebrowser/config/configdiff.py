@@ -755,6 +755,6 @@ def get_diff():
     lexer = pygments.lexers.DiffLexer()
     formatter = pygments.formatters.HtmlFormatter(
         full=True, linenos='table',
-        title='Config diff')
+        title='Diffing pre-1.0 default config with pre-1.0 modified config')
     # pylint: enable=no-member
     return pygments.highlight(conf_diff + key_diff, lexer, formatter)
