@@ -50,7 +50,6 @@ class GreasemonkeyScript:
         self.namespace = None
         self.run_at = None
         self.script_meta = None
-        # Running on subframes is only supported on the qtwebengine backend.
         self.runs_on_sub_frames = True
         for name, value in properties:
             if name == 'name':
@@ -96,7 +95,7 @@ class GreasemonkeyScript:
         Adorns the source code with GM_* methods for greasemonkey
         compatibility and wraps it in an IFFE to hide it within a
         lexical scope. Note that this means line numbers in your
-        browsers debugger/inspector will not match up to the line
+        browser's debugger/inspector will not match up to the line
         numbers in the source script directly.
         """
         return jinja.js_environment.get_template(
@@ -184,7 +183,7 @@ class GreasemonkeyManager(QObject):
         self.scripts_reloaded.emit()
 
     def scripts_for(self, url):
-        """Fetch scripts that a registered to run for url.
+        """Fetch scripts that are registered to run for url.
 
         returns a tuple of lists of scripts meant to run at (document-start,
         document-end, document-idle)
