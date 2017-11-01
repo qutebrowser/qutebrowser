@@ -763,7 +763,7 @@ downloads.remove_finished:
     name: Int
     minval: -1
   desc: >-
-    Number of milliseconds to wait before removing finished downloads.
+    Duration in milliseconds to wait before removing finished downloads.
 
     If set to -1, downloads are never removed.
 
@@ -816,7 +816,7 @@ hints.auto_follow:
 hints.auto_follow_timeout:
   default: 0
   type: Int
-  desc: A timeout (in milliseconds) to ignore normal-mode key bindings after a
+  desc: Duration (in milliseconds) to ignore normal-mode key bindings after a
     successful auto-follow.
 
 hints.border:
@@ -1022,7 +1022,7 @@ messages.timeout:
     minval: 0
   default: 2000
   desc: >-
-    Time (in milliseconds) to show messages in the statusbar for.
+    Duration (in milliseconds) to show messages in the statusbar for.
 
     Set to 0 to never clear messages.
 
@@ -1253,7 +1253,7 @@ tabs.show:
 tabs.show_switching_delay:
   default: 800
   type: Int
-  desc: "Time to show the tab bar before hiding it when tabs.show is set to
+  desc: "Duration to show the tab bar before hiding it when tabs.show is set to
     'switching'."
 
 tabs.tabs_are_windows:
