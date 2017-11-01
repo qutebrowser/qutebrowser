@@ -68,7 +68,7 @@ class GreasemonkeyScript:
                 self.runs_on_sub_frames = False
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
-    PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s+(?P<val>.+)'
+    PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
 
     @classmethod
     def parse(cls, source):
