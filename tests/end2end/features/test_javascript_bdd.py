@@ -32,22 +32,37 @@ def check_window_sizes(quteproc):
     visible_size = visible.message.split()[-1]
     assert hidden_size == visible_size
 
-test_gm_script="""
+
+test_gm_script = r"""
 // ==UserScript==
 // @name Qutebrowser test userscript
 // @namespace invalid.org
-// @include http://localhost:*/data/title.html
+// @include http://localhost:*/data/hints/iframe.html
+// @include http://localhost:*/data/hints/html/wrapped.html
 // @exclude ???
-// @run-at document-start
+// @run-at {stage}
+// {frames}
 // ==/UserScript==
 console.log("Script is running on " + window.location.pathname);
 """
 
-@bdd.when("I have a greasemonkey file saved")
-def create_greasemonkey_file(quteproc):
-    script_path = os.path.join(quteproc.basedir, 'data', 'greasemonkey')
-    os.mkdir(script_path)
-    file_path = os.path.join(script_path, 'test.user.js')
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(test_gm_script)
 
+@bdd.when(bdd.parsers.parse("I have a greasemonkey file saved for {stage} "
+                            "with noframes {frameset}"))
+def create_greasemonkey_file(quteproc, stage, frameset):
+    script_path = os.path.join(quteproc.basedir, 'data', 'greasemonkey')
+    try:
+        os.mkdir(script_path)
+    except FileExistsError:
+        pass
+    file_path = os.path.join(script_path, 'test.user.js')
+    if frameset == "set":
+        frames = "@noframes"
+    elif frameset == "unset":
+        frames = ""
+    else:
+        raise ValueError("noframes can only be set or unset, "
+                         "not {}".format(frameset))
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(test_gm_script.format(stage=stage,
+                                     frames=frames))
