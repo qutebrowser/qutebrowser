@@ -1,0 +1,130 @@
+#!/usr/bin/env python
+
+# Insert login information using pass and a dmenu-provider (e.g. dmenu, rofi -dmenu, ...).
+# A short demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
+#
+# The domain of the site has to appear as a segment in the pass path, for example: "github.com/cryzed" or
+# "websites/github.com". How the username and password are determined is freely configurable using the CLI arguments.
+# The login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
+# [USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
+#
+# Dependencies: tldextract (Python 3 module), pass
+# For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts
+#
+# Chris Braun (cryzed), 2017
+
+import argparse
+import enum
+import fnmatch
+import functools
+import os
+import re
+import shlex
+import subprocess
+import sys
+
+import tldextract
+
+PASSWORD_STORE_PATH = os.path.expanduser('~/.password-store')
+DMENU_INVOCATION = 'rofi -dmenu'
+ENCODING = 'UTF-8'
+
+argument_parser = argparse.ArgumentParser()
+argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
+argument_parser.add_argument('--password-store', '-p', default=PASSWORD_STORE_PATH,
+                             help='Path to your pass password-store')
+argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
+                             help='Regular expression that matches the username')
+argument_parser.add_argument('--username-target', '-U', choices=['path', 'secret'], default='path',
+                             help='The target for the username regular expression')
+argument_parser.add_argument('--password-pattern', '-P', default=r'(.*)',
+                             help='Regular expression that matches the password')
+argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu',
+                             help='Invocation used to execute a dmenu-provider')
+
+stderr = functools.partial(print, file=sys.stderr)
+
+
+class ExitCodes(enum.IntEnum):
+    SUCCESS = 0
+    COULD_NOT_DETERMINE_URL = 1
+    COULD_NOT_DETERMINE_DOMAIN = 2
+    NO_PASS_CANDIDATES = 3
+    COULD_NOT_MATCH_USERNAME = 4
+    COULD_NOT_MATCH_PASSWORD = 5
+
+
+def qute_command(command):
+    with open(os.environ['QUTE_FIFO'], 'w') as fifo:
+        fifo.write(command + '\n')
+        fifo.flush()
+
+
+def find_pass_candidates(domain, password_store_path=PASSWORD_STORE_PATH):
+    candidates = []
+    for path, directories, file_names in os.walk(password_store_path):
+        if directories or domain not in path.split(os.path.sep):
+            continue
+
+        # Strip password store path prefix to get the relative pass path
+        pass_path = path[len(password_store_path) + 1:]
+        secrets = fnmatch.filter(file_names, '*.gpg')
+        candidates.extend(os.path.join(pass_path, os.path.splitext(secret)[0]) for secret in secrets)
+    return candidates
+
+
+def pass_(path):
+    process = subprocess.run(['pass', path], stdout=subprocess.PIPE, encoding=ENCODING)
+    return process.stdout.strip()
+
+
+def dmenu(items, invocation=DMENU_INVOCATION):
+    command = shlex.split(invocation)
+    process = subprocess.run(command, input='\n'.join(items), stdout=subprocess.PIPE, encoding=ENCODING)
+    return process.stdout.strip()
+
+
+def main(arguments):
+    # Domain wasn't overriden using CLI argument or found in qutebrowser environment variable
+    if not arguments.url:
+        stderr('Could not determine URL!')
+        return ExitCodes.COULD_NOT_DETERMINE_URL
+
+    domain = tldextract.extract(arguments.url).registered_domain
+    if not domain:
+        stderr('Could not determine domain from URL: {!r}!'.format(arguments.url))
+        return ExitCodes.COULD_NOT_DETERMINE_DOMAIN
+
+    # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
+    candidates = find_pass_candidates(domain, os.path.expanduser(arguments.password_store))
+    if not candidates:
+        stderr('No candidates for domain {!r} found!'.format(domain))
+        return ExitCodes.NO_PASS_CANDIDATES
+
+    selection = candidates[0] if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation)
+    secret = pass_(selection)
+
+    # Match username
+    target = selection if arguments.username_target == 'path' else secret
+    match = re.match(arguments.username_pattern, target)
+    if not match:
+        stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
+        return ExitCodes.COULD_NOT_MATCH_USERNAME
+    username = match.group(1)
+
+    # Match password
+    match = re.match(arguments.password_pattern, secret)
+    if not match:
+        stderr('Failed to match password pattern on secret!')
+        return ExitCodes.COULD_NOT_MATCH_PASSWORD
+    password = match.group(1)
+
+    # Enter username and password using fake-key and <Tab> (which seems to work almost universally) and switch back into
+    # insert-mode, so the form can be directly submitted by hitting enter afterwards
+    qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {} ;; enter-mode insert'.format(username, password))
+    return ExitCodes.SUCCESS
+
+
+if __name__ == '__main__':
+    arguments = argument_parser.parse_args()
+    sys.exit(main(arguments))
