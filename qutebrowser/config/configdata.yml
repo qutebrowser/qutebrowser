@@ -181,7 +181,8 @@ content.cache.size:
     none_ok: true
     minval: 0
     maxval: maxint64
-  desc: Size of the HTTP network cache. Null to use the default value.
+  desc: Size (in bytes) of the HTTP network cache. Null to use the default
+    value.
 
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
@@ -999,7 +1000,7 @@ keyhint.radius:
     name: Int
     minval: 0
   default: 6
-  desc: Rounding radius for the edges of the keyhint dialog.
+  desc: Rounding radius (in pixels) for the edges of the keyhint dialog.
 
 # emacs: '
 
@@ -1038,7 +1039,7 @@ prompt.radius:
     name: Int
     minval: 0
   default: 8
-  desc: Rounding radius for the edges of prompts.
+  desc: Rounding radius (in pixels) for the edges of prompts.
 
 ## scrolling
 
@@ -1130,7 +1131,7 @@ statusbar.padding:
     bottom: 1
     left: 0
     right: 0
-  desc: Padding for the statusbar.
+  desc: Padding (in pixels) for the statusbar.
 
 statusbar.position:
   type: VerticalPosition
@@ -1188,7 +1189,7 @@ tabs.indicator_padding:
     left: 0
     right: 4
   type: Padding
-  desc: Padding for tab indicators.
+  desc: Padding (in pixels) for tab indicators.
 
 tabs.last_close:
   default: ignore
@@ -1224,7 +1225,7 @@ tabs.padding:
     left: 5
     right: 5
   type: Padding
-  desc: Padding around text for tabs.
+  desc: Padding (in pixels) around text for tabs.
 
 tabs.position:
   default: top
@@ -1250,8 +1251,8 @@ tabs.show:
 tabs.show_switching_delay:
   default: 800
   type: Int
-  desc: "Duration to show the tab bar before hiding it when tabs.show is set to
-    'switching'."
+  desc: "Duration (in milliseconds) to show the tab bar before hiding it when
+    tabs.show is set to 'switching'."
 
 tabs.tabs_are_windows:
   default: false
@@ -1329,7 +1330,7 @@ tabs.width.indicator:
   type:
     name: Int
     minval: 0
-  desc: Width of the progress indicator (0 to disable).
+  desc: Width (in pixels) of the progress indicator (0 to disable).
 
 tabs.width.pinned:
   deleted: true
@@ -2014,7 +2015,7 @@ fonts.web.size.default:
     name: Int
     minval: 1
     maxval: maxint
-  desc: Default font size for regular text.
+  desc: Default font size (in pixels) for regular text.
 
 fonts.web.size.default_fixed:
   default: 13
@@ -2022,7 +2023,7 @@ fonts.web.size.default_fixed:
     name: Int
     minval: 1
     maxval: maxint
-  desc: Default font size for fixed-pitch text.
+  desc: Default font size (in pixels) for fixed-pitch text.
 
 fonts.web.size.minimum:
   default: 0
@@ -2030,7 +2031,7 @@ fonts.web.size.minimum:
     name: Int
     minval: 0
     maxval: maxint
-  desc: Hard minimum font size.
+  desc: Hard minimum font size (in pixels).
 
 fonts.web.size.minimum_logical:
   # This is 0 as default on QtWebKit, and 6 on QtWebEngine - so let's
@@ -2040,7 +2041,7 @@ fonts.web.size.minimum_logical:
     name: Int
     minval: 0
     maxval: maxint
-  desc: Minimum logical font size that is applied when zooming out.
+  desc: Minimum logical font size (in pixels) that is applied when zooming out.
 
 ## keybindings
 
