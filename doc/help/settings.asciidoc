@@ -1961,9 +1961,7 @@ Default: +pass:[-1]+
 [[editor.command]]
 === editor.command
 The editor (and arguments) to use for the `open-editor` command.
-Several placeholders are supported. Placeholders are substituted by the
-respective value when executing the command.
-
+Several placeholders are supported. Placeholders are substituted by the respective value when executing the command.
 `{file}` gets replaced by the filename of the file to be edited.
 `{line}` gets replaced by the line in which the caret is found in the text.
 `{column}` gets replaced by the column in which the caret is found in the text.
@@ -1976,7 +1974,9 @@ Default:
 
 - +pass:[gvim]+
 - +pass:[-f]+
-- +pass:[{}]+
+- +pass:[{file}]+
+- +pass:[-c]+
+- +pass:[normal {line}G{column0}l]+
 
 [[editor.encoding]]
 === editor.encoding
