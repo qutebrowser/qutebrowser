@@ -523,7 +523,7 @@ content.netrc_file:
     name: File
     none_ok: true
   desc: >-
-    Location of a netrc-file for HTTP authentication.
+    Netrc-file for HTTP authentication.
 
     If unset, `~/.netrc` is used.
 
@@ -538,7 +538,7 @@ content.pdfjs:
   type: Bool
   backend: QtWebKit
   desc: >-
-    Enable pdf.js to view PDF files in the browser.
+    Allow pdf.js to view PDF files in the browser.
 
     Note that the files can still be downloaded by clicking the download button
     in the pdf.js viewer.
@@ -1110,7 +1110,7 @@ spellcheck.languages:
     none_ok: true
   default: []
   desc: >-
-    Spell checking languages.
+    Languages to use for spell checking.
 
     You can check for available languages and install dictionaries using
     scripts/install_dict.py. Run the script with -h/--help for instructions.
@@ -1154,7 +1154,7 @@ tabs.close_mouse_button:
       - right: "Close tabs on right-click."
       - middle: "Close tabs on middle-click."
       - none: "Don't close tabs using the mouse."
-  desc: On which mouse button to close tabs.
+  desc: Mouse button with which to close tabs.
 
 tabs.close_mouse_button_on_bar:
   default: new-tab
@@ -1173,7 +1173,7 @@ tabs.favicons.scale:
     name: Float
     minval: 0.0
   desc: >-
-    Scaling for favicons in the tab bar.
+    Scaling factor for favicons in the tab bar.
 
     The tab size is unchanged, so big favicons also require extra
     `tabs.padding`.
