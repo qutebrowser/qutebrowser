@@ -20,19 +20,19 @@
 "use strict";
 
 window._qutebrowser.scroll = (function() {
-    var funcs = {};
+    const funcs = {};
 
-    funcs.to_perc = function(x, y) {
-        var x_px = window.scrollX;
-        var y_px = window.scrollY;
+    funcs.to_perc = (x, y) => {
+        let x_px = window.scrollX;
+        let y_px = window.scrollY;
 
-        var width = Math.max(
+        const width = Math.max(
             document.body.scrollWidth,
             document.body.offsetWidth,
             document.documentElement.scrollWidth,
             document.documentElement.offsetWidth
         );
-        var height = Math.max(
+        const height = Math.max(
             document.body.scrollHeight,
             document.body.offsetHeight,
             document.documentElement.scrollHeight,
@@ -65,9 +65,9 @@ window._qutebrowser.scroll = (function() {
         window.scroll(x_px, y_px);
     };
 
-    funcs.delta_page = function(x, y) {
-        var dx = window.innerWidth * x;
-        var dy = window.innerHeight * y;
+    funcs.delta_page = (x, y) => {
+        const dx = window.innerWidth * x;
+        const dy = window.innerHeight * y;
         window.scrollBy(dx, dy);
     };
 

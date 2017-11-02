@@ -21,22 +21,22 @@
 
 window.loadHistory = (function() {
     // Date of last seen item.
-    var lastItemDate = null;
+    let lastItemDate = null;
 
     // Each request for new items includes the time of the last item and an
     // offset. The offset is equal to the number of items from the previous
     // request that had time=nextTime, and causes the next request to skip
     // those items to avoid duplicates.
-    var nextTime = null;
-    var nextOffset = 0;
+    let nextTime = null;
+    let nextOffset = 0;
 
     // The URL to fetch data from.
-    var DATA_URL = "qute://history/data";
+    const DATA_URL = "qute://history/data";
 
     // Various fixed elements
-    var EOF_MESSAGE = document.getElementById("eof");
-    var LOAD_LINK = document.getElementById("load");
-    var HIST_CONTAINER = document.getElementById("hist-container");
+    const EOF_MESSAGE = document.getElementById("eof");
+    const LOAD_LINK = document.getElementById("load");
+    const HIST_CONTAINER = document.getElementById("hist-container");
 
     /**
      * Finds or creates the session table>tbody to which item with given date
@@ -47,17 +47,17 @@ window.loadHistory = (function() {
      */
     function getSessionNode(date) {
         // Find/create table
-        var tableId = ["hist", date.getDate(), date.getMonth(),
+        const tableId = ["hist", date.getDate(), date.getMonth(),
             date.getYear()].join("-");
-        var table = document.getElementById(tableId);
+        let table = document.getElementById(tableId);
         if (table === null) {
             table = document.createElement("table");
             table.id = tableId;
 
             // Caption contains human-readable date
-            var caption = document.createElement("caption");
+            const caption = document.createElement("caption");
             caption.className = "date";
-            var options = {
+            const options = {
                 "weekday": "long",
                 "year": "numeric",
                 "month": "long",
@@ -71,7 +71,7 @@ window.loadHistory = (function() {
         }
 
         // Find/create tbody
-        var tbody = table.lastChild;
+        let tbody = table.lastChild;
         if (tbody.tagName !== "TBODY") {
             tbody = document.createElement("tbody");
             table.appendChild(tbody);
@@ -80,10 +80,10 @@ window.loadHistory = (function() {
         // Create session-separator and new tbody if necessary
         if (tbody.lastChild !== null && lastItemDate !== null &&
                 window.GAP_INTERVAL > 0) {
-            var interval = lastItemDate.getTime() - date.getTime();
+            const interval = lastItemDate.getTime() - date.getTime();
             if (interval > window.GAP_INTERVAL) {
                 // Add session-separator
-                var sessionSeparator = document.createElement("td");
+                const sessionSeparator = document.createElement("td");
                 sessionSeparator.className = "session-separator";
                 sessionSeparator.colSpan = 2;
                 sessionSeparator.innerHTML = "&#167;";
@@ -108,20 +108,20 @@ window.loadHistory = (function() {
      * @returns {Element} the completed tr.
      */
     function makeHistoryRow(itemUrl, itemTitle, itemTime) {
-        var row = document.createElement("tr");
+        const row = document.createElement("tr");
 
-        var title = document.createElement("td");
+        const title = document.createElement("td");
         title.className = "title";
-        var link = document.createElement("a");
+        const link = document.createElement("a");
         link.href = itemUrl;
         link.innerHTML = itemTitle;
-        var host = document.createElement("span");
+        const host = document.createElement("span");
         host.className = "hostname";
         host.innerHTML = link.hostname;
         title.appendChild(link);
         title.appendChild(host);
 
-        var time = document.createElement("td");
+        const time = document.createElement("td");
         time.className = "time";
         time.innerHTML = itemTime;
 
@@ -139,11 +139,11 @@ window.loadHistory = (function() {
      * @returns {void}
      */
     function getJSON(url, callback) {
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         xhr.open("GET", url, true);
         xhr.responseType = "json";
-        xhr.onload = function() {
-            var status = xhr.status;
+        xhr.onload = () => {
+            const status = xhr.status;
             callback(status, xhr.response);
         };
         xhr.send();
@@ -172,10 +172,10 @@ window.loadHistory = (function() {
         nextTime = history[history.length - 1].time;
         nextOffset = 0;
 
-        for (var i = 0, len = history.length; i < len; i++) {
-            var item = history[i];
+        for (let i = 0, len = history.length; i < len; i++) {
+            const item = history[i];
             // python's time.time returns seconds, but js Date expects ms
-            var currentItemDate = new Date(item.time * 1000);
+            const currentItemDate = new Date(item.time * 1000);
             getSessionNode(currentItemDate).appendChild(makeHistoryRow(
                 item.url, item.title, currentItemDate.toLocaleTimeString()
             ));
@@ -191,7 +191,7 @@ window.loadHistory = (function() {
      * @return {void}
      */
     function loadHistory() {
-        var url = DATA_URL.concat("?offset=", nextOffset.toString());
+        let url = DATA_URL.concat("?offset=", nextOffset.toString());
         if (nextTime === null) {
             getJSON(url, receiveHistory);
         } else {
