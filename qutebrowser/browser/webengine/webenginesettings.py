@@ -193,6 +193,24 @@ def _set_http_headers(profile):
         profile.setHttpAcceptLanguage(accept_language)
 
 
+def _init_js(profile):
+    """Initialize QtWebEngine JavaScript on the given profile."""
+    js_code = '\n'.join([
+        '"use strict";',
+        'window._qutebrowser = {};',
+        utils.read_file('javascript/scroll.js'),
+        utils.read_file('javascript/webelem.js'),
+    ])
+
+    script = QWebEngineScript()
+    script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+    script.setSourceCode(js_code)
+    script.setWorldId(QWebEngineScript.ApplicationWorld)
+    # FIXME:qtwebengine What about runsOnSubFrames?
+
+    profile.scripts().insert(script)
+
+
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     websettings.update_mappings(MAPPINGS, option)
@@ -215,11 +233,13 @@ def _init_profiles():
         os.path.join(standarddir.data(), 'webengine'))
     _init_stylesheet(default_profile)
     _set_http_headers(default_profile)
+    _init_js(default_profile)
 
     private_profile = QWebEngineProfile()
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
     _set_http_headers(private_profile)
+    _init_js(private_profile)
 
     if qtutils.version_check('5.8'):
         default_profile.setSpellCheckEnabled(True)
