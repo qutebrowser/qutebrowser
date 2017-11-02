@@ -165,7 +165,8 @@ auto_save.interval:
     minval: 0
     maxval: maxint
   default: 15000
-  desc: How often (in milliseconds) to auto-save config/cookies/etc.
+  desc: Time interval (in milliseconds) between auto-saves of
+    config/cookies/etc.
 
 auto_save.session:
   type: Bool
@@ -615,7 +616,7 @@ completion.cmd_history_max_items:
     name: Int
     minval: -1
   desc: >-
-    How many commands to save in the command history.
+    Number of commands to save in the command history.
 
     0: no history / -1: unlimited
 
@@ -669,7 +670,7 @@ completion.timestamp_format:
     name: TimestampTemplate
     none_ok: true
   default: '%Y-%m-%d'
-  desc: How to format timestamps (e.g. for the history completion).
+  desc: Format of timestamps (e.g. for the history completion).
 
 completion.web_history_max_items:
   default: -1
@@ -678,7 +679,7 @@ completion.web_history_max_items:
     minval: -1
     maxval: maxint64
   desc: >-
-    How many URLs to show in the web history.
+    Number of URLs to show in the web history.
 
     0: no history / -1: unlimited
 
@@ -1211,12 +1212,12 @@ tabs.mousewheel_switching:
 tabs.new_position.related:
   default: next
   type: NewTabPosition
-  desc: How new tabs opened from another tab are positioned.
+  desc: Position of new tabs opened from another tab.
 
 tabs.new_position.unrelated:
   default: last
   type: NewTabPosition
-  desc: "How new tabs which aren't opened from another tab are positioned."
+  desc: "Position of new tabs which aren't opened from another tab."
 
 tabs.padding:
   default:
@@ -1472,8 +1473,7 @@ zoom.mouse_divider:
   type:
     name: Int
     minval: 0
-  desc: How much to divide the mouse wheel movements to translate them into
-    zoom increments.
+  desc: Number of zoom increments to divide the mouse wheel movements to.
 
 zoom.text_only:
   type: Bool
