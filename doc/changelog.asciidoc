@@ -76,6 +76,8 @@ Fixed
 ~~~~~
 
 - Handle accessing a locked sqlite database gracefully
+- Abort pinned tab dialogs properly when a tab is closed e.g. by closing a
+  window.
 
 v1.0.2
 ------
