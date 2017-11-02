@@ -116,9 +116,11 @@ def main():
 
         with tempfile.TemporaryDirectory() as tmpdir:
             pip_bin = os.path.join(tmpdir, 'bin', 'pip')
-            subprocess.check_call(['virtualenv', tmpdir])
-            subprocess.check_call([pip_bin, 'install', '-r', filename])
-            reqs = subprocess.check_output([pip_bin, 'freeze']).decode('utf-8')
+            subprocess.run(['virtualenv', tmpdir], check=True)
+            subprocess.run([pip_bin, 'install', '-r', filename], check=True)
+            reqs = subprocess.run([pip_bin, 'freeze'], check=True,
+                                  stdout=subprocess.PIPE
+                                  ).stdout.decode('utf-8')
 
         with open(filename, 'r', encoding='utf-8') as f:
             comments = read_comments(f)

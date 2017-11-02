@@ -529,9 +529,9 @@ def regenerate_cheatsheet():
     ]
 
     for filename, x, y in files:
-        subprocess.check_call(['inkscape', '-e', filename, '-b', 'white',
-                               '-w', str(x), '-h', str(y),
-                               'misc/cheatsheet.svg'])
+        subprocess.run(['inkscape', '-e', filename, '-b', 'white',
+                        '-w', str(x), '-h', str(y),
+                        'misc/cheatsheet.svg'], check=True)
 
 
 def main():

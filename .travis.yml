@@ -51,7 +51,7 @@ matrix:
       env: TESTENV=eslint
       language: node_js
       python: null
-      node_js: node
+      node_js: "lts/*"
   fast_finish: true
 
 cache:

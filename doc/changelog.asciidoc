@@ -34,6 +34,8 @@ Added
   widget.
 - `:edit-url` now handles the `--private` and `--related` flags, which have the
   same effect they have with `:open`.
+- New `{line}` and `{column}` replacements for `editor.command` to position the
+  cursor correctly.
 
 Changed
 ~~~~~~~
@@ -76,6 +78,8 @@ Fixed
 ~~~~~
 
 - Handle accessing a locked sqlite database gracefully
+- Abort pinned tab dialogs properly when a tab is closed e.g. by closing a
+  window.
 
 v1.0.2
 ------

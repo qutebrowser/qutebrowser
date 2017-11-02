@@ -23,4 +23,4 @@
 import subprocess
 
 with open('qutebrowser/resources.py', 'w', encoding='utf-8') as f:
-    subprocess.check_call(['pyrcc5', 'qutebrowser.rcc'], stdout=f)
+    subprocess.run(['pyrcc5', 'qutebrowser.rcc'], stdout=f, check=True)

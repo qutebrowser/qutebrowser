@@ -24,7 +24,8 @@ import sys
 import subprocess
 import os
 
-code = subprocess.call(['git', '--no-pager', 'diff', '--exit-code', '--stat'])
+code = subprocess.run(['git', '--no-pager', 'diff',
+                       '--exit-code', '--stat']).returncode
 
 if os.environ.get('TRAVIS_PULL_REQUEST', 'false') != 'false':
     if code != 0:
@@ -42,6 +43,6 @@ if code != 0:
     if 'TRAVIS' in os.environ:
         print()
         print("travis_fold:start:gitdiff")
-        subprocess.call(['git', '--no-pager', 'diff'])
+        subprocess.run(['git', '--no-pager', 'diff'])
         print("travis_fold:end:gitdiff")
 sys.exit(code)

@@ -46,12 +46,14 @@ def run_py(executable, *code):
             f.write('\n'.join(code))
         cmd = [executable, filename]
         try:
-            ret = subprocess.check_output(cmd, universal_newlines=True)
+            ret = subprocess.run(cmd, universal_newlines=True, check=True,
+                                 stdout=subprocess.PIPE).stdout
         finally:
             os.remove(filename)
     else:
         cmd = [executable, '-c', '\n'.join(code)]
-        ret = subprocess.check_output(cmd, universal_newlines=True)
+        ret = subprocess.run(cmd, universal_newlines=True, check=True,
+                             stdout=subprocess.PIPE).stdout
     return ret.rstrip()
 
 
