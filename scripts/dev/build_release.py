@@ -90,7 +90,7 @@ def _maybe_remove(path):
 def smoke_test(executable):
     """Try starting the given qutebrowser executable."""
     subprocess.run([executable, '--no-err-windows', '--nowindow',
-                   '--temp-basedir', 'about:blank', ':later 500 quit'],
+                    '--temp-basedir', 'about:blank', ':later 500 quit'],
                    check=True)
 
 
