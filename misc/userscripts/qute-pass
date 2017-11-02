@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Insert login information using pass and a dmenu-provider (e.g. dmenu, rofi -dmenu, ...).
 # A short demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
@@ -25,13 +25,9 @@ import sys
 
 import tldextract
 
-PASSWORD_STORE_PATH = os.path.expanduser('~/.password-store')
-DMENU_INVOCATION = 'rofi -dmenu'
-ENCODING = 'UTF-8'
-
 argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p', default=PASSWORD_STORE_PATH,
+argument_parser.add_argument('url', nargs='?', default=os.environ['QUTE_URL'])
+argument_parser.add_argument('--password-store', '-p', default=os.path.expanduser('~/.password-store'),
                              help='Path to your pass password-store')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
                              help='Regular expression that matches the username')
@@ -43,9 +39,11 @@ argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu',
                              help='Invocation used to execute a dmenu-provider')
 argument_parser.add_argument('--no-insert-mode', '-n', dest='insert_mode', action='store_false',
                              help="Don't automatically enter insert mode")
+argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
+                             help='Encoding used to communicate with subprocesses')
 group = argument_parser.add_mutually_exclusive_group()
-group.add_argument('--username-only', '-uo', action='store_true', help='Only insert username')
-group.add_argument('--password-only', '-po', action='store_true', help='Only insert password')
+group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
+group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
 
 stderr = functools.partial(print, file=sys.stderr)
 
@@ -65,7 +63,7 @@ def qute_command(command):
         fifo.flush()
 
 
-def find_pass_candidates(domain, password_store_path=PASSWORD_STORE_PATH):
+def find_pass_candidates(domain, password_store_path):
     candidates = []
     for path, directories, file_names in os.walk(password_store_path):
         if directories or domain not in path.split(os.path.sep):
@@ -78,15 +76,15 @@ def find_pass_candidates(domain, password_store_path=PASSWORD_STORE_PATH):
     return candidates
 
 
-def pass_(path):
-    process = subprocess.run(['pass', path], stdout=subprocess.PIPE, encoding=ENCODING)
-    return process.stdout.strip()
+def pass_(path, encoding):
+    process = subprocess.run(['pass', path], stdout=subprocess.PIPE)
+    return process.stdout.decode(encoding).strip()
 
 
-def dmenu(items, invocation=DMENU_INVOCATION):
+def dmenu(items, invocation, encoding):
     command = shlex.split(invocation)
-    process = subprocess.run(command, input='\n'.join(items), stdout=subprocess.PIPE, encoding=ENCODING)
-    return process.stdout.strip()
+    process = subprocess.run(command, input='\n'.join(items).encode(encoding), stdout=subprocess.PIPE)
+    return process.stdout.decode(encoding).strip()
 
 
 def main(arguments):
@@ -106,8 +104,9 @@ def main(arguments):
         stderr('No candidates for domain {!r} found!'.format(domain))
         return ExitCodes.NO_PASS_CANDIDATES
 
-    selection = candidates[0] if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation)
-    secret = pass_(selection)
+    selection = candidates[0] if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation,
+                                                                 arguments.io_encoding)
+    secret = pass_(selection, arguments.io_encoding)
 
     # Match username
     target = selection if arguments.username_target == 'path' else secret
