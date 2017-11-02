@@ -299,8 +299,8 @@ class TestGitStr:
 def _has_git():
     """Check if git is installed."""
     try:
-        subprocess.check_call(['git', '--version'], stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
+        subprocess.run(['git', '--version'], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, check=True)
     except (OSError, subprocess.CalledProcessError):
         return False
     else:
@@ -337,12 +337,13 @@ class TestGitStrSubprocess:
                 # If we don't call this with shell=True it might fail under
                 # some environments on Windows...
                 # http://bugs.python.org/issue24493
-                subprocess.check_call(
+                subprocess.run(
                     'git -C "{}" {}'.format(tmpdir, ' '.join(args)),
-                    env=env, shell=True)
+                    env=env, check=True, shell=True)
             else:
-                subprocess.check_call(
-                    ['git', '-C', str(tmpdir)] + list(args), env=env)
+                subprocess.run(
+                    ['git', '-C', str(tmpdir)] + list(args),
+                    check=True, env=env)
 
         (tmpdir / 'file').write_text("Hello World!", encoding='utf-8')
         _git('init')
@@ -368,14 +369,14 @@ class TestGitStrSubprocess:
         subprocess.CalledProcessError(1, 'foobar')
     ])
     def test_exception(self, exc, mocker, tmpdir):
-        """Test with subprocess.check_output raising an exception.
+        """Test with subprocess.run raising an exception.
 
         Args:
             exc: The exception to raise.
         """
         m = mocker.patch('qutebrowser.utils.version.os')
         m.path.isdir.return_value = True
-        mocker.patch('qutebrowser.utils.version.subprocess.check_output',
+        mocker.patch('qutebrowser.utils.version.subprocess.run',
                      side_effect=exc)
         ret = version._git_str_subprocess(str(tmpdir))
         assert ret is None

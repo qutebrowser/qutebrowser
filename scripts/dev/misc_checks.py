@@ -62,7 +62,8 @@ def check_git():
         print()
         return False
     untracked = []
-    gitst = subprocess.check_output(['git', 'status', '--porcelain'])
+    gitst = subprocess.run(['git', 'status', '--porcelain'], check=True,
+                           stdout=subprocess.PIPE).stdout
     gitst = gitst.decode('UTF-8').strip()
     for line in gitst.splitlines():
         s, name = line.split(maxsplit=1)
