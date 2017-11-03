@@ -10,9 +10,9 @@
 |==============
 |Setting|Description
 |<<aliases,aliases>>|Aliases for commands.
-|<<auto_save.interval,auto_save.interval>>|How often (in milliseconds) to auto-save config/cookies/etc.
+|<<auto_save.interval,auto_save.interval>>|Time interval (in milliseconds) between auto-saves of config/cookies/etc.
 |<<auto_save.session,auto_save.session>>|Always restore open sites when qutebrowser is reopened.
-|<<backend,backend>>|The backend to use to display websites.
+|<<backend,backend>>|Backend to use to display websites.
 |<<bindings.commands,bindings.commands>>|Keybindings mapping keys to commands in different modes.
 |<<bindings.default,bindings.default>>|Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 |<<bindings.key_mappings,bindings.key_mappings>>|This setting can be used to map keys to other keys.
@@ -28,8 +28,8 @@
 |<<colors.completion.item.selected.fg,colors.completion.item.selected.fg>>|Foreground color of the selected completion item.
 |<<colors.completion.match.fg,colors.completion.match.fg>>|Foreground color of the matched text in the completion.
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
-|<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in completion view
-|<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in completion view.
+|<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
+|<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in the completion view.
 |<<colors.downloads.bar.bg,colors.downloads.bar.bg>>|Background color for the download bar.
 |<<colors.downloads.error.bg,colors.downloads.error.bg>>|Background color for downloads with errors.
 |<<colors.downloads.error.fg,colors.downloads.error.fg>>|Foreground color for downloads with errors.
@@ -50,10 +50,10 @@
 |<<colors.messages.error.fg,colors.messages.error.fg>>|Foreground color of an error message.
 |<<colors.messages.info.bg,colors.messages.info.bg>>|Background color of an info message.
 |<<colors.messages.info.border,colors.messages.info.border>>|Border color of an info message.
-|<<colors.messages.info.fg,colors.messages.info.fg>>|Foreground color an info message.
+|<<colors.messages.info.fg,colors.messages.info.fg>>|Foreground color of an info message.
 |<<colors.messages.warning.bg,colors.messages.warning.bg>>|Background color of a warning message.
 |<<colors.messages.warning.border,colors.messages.warning.border>>|Border color of a warning message.
-|<<colors.messages.warning.fg,colors.messages.warning.fg>>|Foreground color a warning message.
+|<<colors.messages.warning.fg,colors.messages.warning.fg>>|Foreground color of a warning message.
 |<<colors.prompts.bg,colors.prompts.bg>>|Background color for prompts.
 |<<colors.prompts.border,colors.prompts.border>>|Border used around UI elements in prompts.
 |<<colors.prompts.fg,colors.prompts.fg>>|Foreground color for prompts.
@@ -94,24 +94,24 @@
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
 |<<colors.tabs.selected.odd.fg,colors.tabs.selected.odd.fg>>|Foreground color of selected odd tabs.
-|<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color)
-|<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|How many commands to save in the command history.
-|<<completion.delay,completion.delay>>|Delay in ms before updating completions after typing a character.
-|<<completion.height,completion.height>>|The height of the completion, in px or as percentage of the window.
+|<<colors.webpage.bg,colors.webpage.bg>>|Background color for webpages if unset (or empty to use the theme's color).
+|<<completion.cmd_history_max_items,completion.cmd_history_max_items>>|Number of commands to save in the command history.
+|<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
+|<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
 |<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
 |<<completion.quick,completion.quick>>|Move on to the next part when there's only one possible completion left.
-|<<completion.scrollbar.padding,completion.scrollbar.padding>>|Padding of scrollbar handle in the completion window (in px).
-|<<completion.scrollbar.width,completion.scrollbar.width>>|Width of the scrollbar in the completion window (in px).
+|<<completion.scrollbar.padding,completion.scrollbar.padding>>|Padding (in pixels) of the scrollbar handle in the completion window.
+|<<completion.scrollbar.width,completion.scrollbar.width>>|Width (in pixels) of the scrollbar in the completion window.
 |<<completion.show,completion.show>>|When to show the autocompletion window.
 |<<completion.shrink,completion.shrink>>|Shrink the completion to be smaller than the configured size if there are no scrollbars.
-|<<completion.timestamp_format,completion.timestamp_format>>|How to format timestamps (e.g. for the history completion).
-|<<completion.use_best_match,completion.use_best_match>>|Whether to execute the best-matching command on a partial match.
-|<<completion.web_history_max_items,completion.web_history_max_items>>|How many URLs to show in the web history.
-|<<confirm_quit,confirm_quit>>|Whether quitting the application requires a confirmation.
-|<<content.cache.appcache,content.cache.appcache>>|Whether support for the HTML 5 web application cache feature is enabled.
-|<<content.cache.maximum_pages,content.cache.maximum_pages>>|The maximum number of pages to hold in the global memory page cache.
-|<<content.cache.size,content.cache.size>>|Size of the HTTP network cache. Null to use the default value.
-|<<content.cookies.accept,content.cookies.accept>>|Control which cookies to accept.
+|<<completion.timestamp_format,completion.timestamp_format>>|Format of timestamps (e.g. for the history completion).
+|<<completion.use_best_match,completion.use_best_match>>|Execute the best-matching command on a partial match.
+|<<completion.web_history_max_items,completion.web_history_max_items>>|Number of URLs to show in the web history.
+|<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
+|<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
+|<<content.cache.maximum_pages,content.cache.maximum_pages>>|Maximum number of pages to hold in the global memory page cache.
+|<<content.cache.size,content.cache.size>>|Size (in bytes) of the HTTP network cache. Null to use the default value.
+|<<content.cookies.accept,content.cookies.accept>>|Which cookies to accept.
 |<<content.cookies.store,content.cookies.store>>|Store cookies.
 |<<content.default_encoding,content.default_encoding>>|Default encoding to use for websites.
 |<<content.developer_extras,content.developer_extras>>|Enable extra tools for Web developers.
@@ -119,47 +119,47 @@
 |<<content.frame_flattening,content.frame_flattening>>|Expand each subframe to its contents.
 |<<content.geolocation,content.geolocation>>|Allow websites to request geolocations.
 |<<content.headers.accept_language,content.headers.accept_language>>|Value to send in the `Accept-Language` header.
-|<<content.headers.custom,content.headers.custom>>|Set custom headers for qutebrowser HTTP requests.
+|<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
-|<<content.headers.referer,content.headers.referer>>|Send the Referer header.
+|<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
 |<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
-|<<content.host_blocking.enabled,content.host_blocking.enabled>>|Whether host blocking is enabled.
+|<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
-|<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable or disable hyperlink auditing (`<a ping>`).
-|<<content.images,content.images>>|Whether images are automatically loaded in web pages.
+|<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable hyperlink auditing (`<a ping>`).
+|<<content.images,content.images>>|Load images automatically in web pages.
 |<<content.javascript.alert,content.javascript.alert>>|Show javascript alerts.
-|<<content.javascript.can_access_clipboard,content.javascript.can_access_clipboard>>|Whether JavaScript can read from or write to the clipboard.
-|<<content.javascript.can_close_tabs,content.javascript.can_close_tabs>>|Whether JavaScript can close tabs.
-|<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Whether JavaScript can open new tabs without user interaction.
-|<<content.javascript.enabled,content.javascript.enabled>>|Enables or disables JavaScript.
+|<<content.javascript.can_access_clipboard,content.javascript.can_access_clipboard>>|Allow JavaScript to read from or write to the clipboard.
+|<<content.javascript.can_close_tabs,content.javascript.can_close_tabs>>|Allow JavaScript to close tabs.
+|<<content.javascript.can_open_tabs_automatically,content.javascript.can_open_tabs_automatically>>|Allow JavaScript to open new tabs without user interaction.
+|<<content.javascript.enabled,content.javascript.enabled>>|Enable JavaScript.
 |<<content.javascript.log,content.javascript.log>>|Log levels to use for JavaScript console logging messages.
-|<<content.javascript.modal_dialog,content.javascript.modal_dialog>>|Use the standard JavaScript modal dialog for `alert()` and `confirm()`
+|<<content.javascript.modal_dialog,content.javascript.modal_dialog>>|Use the standard JavaScript modal dialog for `alert()` and `confirm()`.
 |<<content.javascript.prompt,content.javascript.prompt>>|Show javascript prompts.
-|<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Whether locally loaded documents are allowed to access other local urls.
-|<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Whether locally loaded documents are allowed to access remote urls.
-|<<content.local_storage,content.local_storage>>|Whether support for HTML 5 local storage and Web SQL is enabled.
+|<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Allow locally loaded documents to access other local URLs.
+|<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Allow locally loaded documents to access remote URLs.
+|<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
 |<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
-|<<content.netrc_file,content.netrc_file>>|Location of a netrc-file for HTTP authentication.
+|<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
-|<<content.pdfjs,content.pdfjs>>|Enable pdf.js to view PDF files in the browser.
-|<<content.plugins,content.plugins>>|Enables or disables plugins in Web pages.
-|<<content.print_element_backgrounds,content.print_element_backgrounds>>|Whether the background color and images are also drawn when the page is printed.
+|<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
+|<<content.plugins,content.plugins>>|Enable plugins in Web pages.
+|<<content.print_element_backgrounds,content.print_element_backgrounds>>|Draw the background color and images also when the page is printed.
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
-|<<content.proxy,content.proxy>>|The proxy to use.
+|<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
-|<<content.user_stylesheets,content.user_stylesheets>>|A list of user stylesheet filenames to use.
-|<<content.webgl,content.webgl>>|Enables or disables WebGL.
-|<<content.xss_auditing,content.xss_auditing>>|Whether load requests should be monitored for cross-site scripting attempts.
-|<<downloads.location.directory,downloads.location.directory>>|The directory to save downloads to.
+|<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
+|<<content.webgl,content.webgl>>|Enable WebGL.
+|<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
+|<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
 |<<downloads.location.prompt,downloads.location.prompt>>|Prompt the user for the download location.
 |<<downloads.location.remember,downloads.location.remember>>|Remember the last used download directory.
 |<<downloads.location.suggestion,downloads.location.suggestion>>|What to display in the download filename input.
-|<<downloads.open_dispatcher,downloads.open_dispatcher>>|The default program used to open downloads.
+|<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
-|<<downloads.remove_finished,downloads.remove_finished>>|Number of milliseconds to wait before removing finished downloads.
-|<<editor.command,editor.command>>|The editor (and arguments) to use for the `open-editor` command.
+|<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
@@ -180,85 +180,85 @@
 |<<fonts.web.family.sans_serif,fonts.web.family.sans_serif>>|Font family for sans-serif fonts.
 |<<fonts.web.family.serif,fonts.web.family.serif>>|Font family for serif fonts.
 |<<fonts.web.family.standard,fonts.web.family.standard>>|Font family for standard fonts.
-|<<fonts.web.size.default,fonts.web.size.default>>|The default font size for regular text.
-|<<fonts.web.size.default_fixed,fonts.web.size.default_fixed>>|The default font size for fixed-pitch text.
-|<<fonts.web.size.minimum,fonts.web.size.minimum>>|The hard minimum font size.
-|<<fonts.web.size.minimum_logical,fonts.web.size.minimum_logical>>|The minimum logical font size that is applied when zooming out.
-|<<hints.auto_follow,hints.auto_follow>>|Controls when a hint can be automatically followed without pressing Enter.
-|<<hints.auto_follow_timeout,hints.auto_follow_timeout>>|A timeout (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
+|<<fonts.web.size.default,fonts.web.size.default>>|Default font size (in pixels) for regular text.
+|<<fonts.web.size.default_fixed,fonts.web.size.default_fixed>>|Default font size (in pixels) for fixed-pitch text.
+|<<fonts.web.size.minimum,fonts.web.size.minimum>>|Hard minimum font size (in pixels).
+|<<fonts.web.size.minimum_logical,fonts.web.size.minimum_logical>>|Minimum logical font size (in pixels) that is applied when zooming out.
+|<<hints.auto_follow,hints.auto_follow>>|When a hint can be automatically followed without pressing Enter.
+|<<hints.auto_follow_timeout,hints.auto_follow_timeout>>|Duration (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
 |<<hints.border,hints.border>>|CSS border value for hints.
-|<<hints.chars,hints.chars>>|Chars used for hint strings.
-|<<hints.dictionary,hints.dictionary>>|The dictionary file to be used by the word hints.
+|<<hints.chars,hints.chars>>|Characters used for hint strings.
+|<<hints.dictionary,hints.dictionary>>|Dictionary file to be used by the word hints.
 |<<hints.find_implementation,hints.find_implementation>>|Which implementation to use to find elements to hint.
 |<<hints.hide_unmatched_rapid_hints,hints.hide_unmatched_rapid_hints>>|Hide unmatched hints in rapid mode.
-|<<hints.min_chars,hints.min_chars>>|Minimum number of chars used for hint strings.
+|<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
-|<<hints.next_regexes,hints.next_regexes>>|A comma-separated list of regexes to use for 'next' links.
-|<<hints.prev_regexes,hints.prev_regexes>>|A comma-separated list of regexes to use for 'prev' links.
+|<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
+|<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
-|<<hints.uppercase,hints.uppercase>>|Make chars in hint strings uppercase.
-|<<history_gap_interval,history_gap_interval>>|The maximum time in minutes between two history items for them to be considered being from the same browsing session.
-|<<ignore_case,ignore_case>>|Find text on a page case-insensitively.
-|<<input.forward_unbound_keys,input.forward_unbound_keys>>|Forward unbound keys to the webview in normal mode.
+|<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
+|<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
+|<<ignore_case,ignore_case>>|When to find text on a page case-insensitively.
+|<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
 |<<input.rocker_gestures,input.rocker_gestures>>|Enable Opera-like mouse rocker gestures.
-|<<input.spatial_navigation,input.spatial_navigation>>|Enable Spatial Navigation.
+|<<input.spatial_navigation,input.spatial_navigation>>|Enable spatial navigation.
 |<<keyhint.blacklist,keyhint.blacklist>>|Keychains that shouldn't be shown in the keyhint dialog.
-|<<keyhint.delay,keyhint.delay>>|Time from pressing a key to seeing the keyhint dialog (ms).
-|<<keyhint.radius,keyhint.radius>>|The rounding radius for the edges of the keyhint dialog.
-|<<messages.timeout,messages.timeout>>|Time (in ms) to show messages in the statusbar for.
+|<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
+|<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
+|<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
 |<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
 |<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
-|<<prompt.radius,prompt.radius>>|The rounding radius for the edges of prompts.
+|<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
-|<<session_default_name,session_default_name>>|The name of the session to save by default.
-|<<spellcheck.languages,spellcheck.languages>>|Spell checking languages.
+|<<session_default_name,session_default_name>>|Name of the session to save by default.
+|<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
 |<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
-|<<statusbar.padding,statusbar.padding>>|Padding for the statusbar.
-|<<statusbar.position,statusbar.position>>|The position of the status bar.
+|<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
+|<<statusbar.position,statusbar.position>>|Position of the status bar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
-|<<tabs.close_mouse_button,tabs.close_mouse_button>>|On which mouse button to close tabs.
-|<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|Behavior when the close mouse button is pressed on the tab bar.
-|<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling for favicons in the tab bar.
+|<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
+|<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
+|<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|Show favicons in the tab bar.
-|<<tabs.indicator_padding,tabs.indicator_padding>>|Padding for tab indicators
-|<<tabs.last_close,tabs.last_close>>|Behavior when the last tab is closed.
+|<<tabs.indicator_padding,tabs.indicator_padding>>|Padding (in pixels) for tab indicators.
+|<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
-|<<tabs.new_position.related,tabs.new_position.related>>|How new tabs opened from another tab are positioned.
-|<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|How new tabs which aren't opened from another tab are positioned.
-|<<tabs.padding,tabs.padding>>|Padding around text for tabs
-|<<tabs.position,tabs.position>>|The position of the tab bar.
+|<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
+|<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
+|<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
+|<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
 |<<tabs.show,tabs.show>>|When to show the tab bar.
-|<<tabs.show_switching_delay,tabs.show_switching_delay>>|Time to show the tab bar before hiding it when tabs.show is set to 'switching'.
+|<<tabs.show_switching_delay,tabs.show_switching_delay>>|Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
-|<<tabs.title.format,tabs.title.format>>|The format to use for the tab title.
-|<<tabs.title.format_pinned,tabs.title.format_pinned>>|The format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
-|<<tabs.width.bar,tabs.width.bar>>|The width of the tab bar if it's vertical, in px or as percentage of the window.
-|<<tabs.width.indicator,tabs.width.indicator>>|Width of the progress indicator (0 to disable).
-|<<tabs.wrap,tabs.wrap>>|Whether to wrap when changing tabs.
-|<<url.auto_search,url.auto_search>>|Whether to start a search when something else than a URL is entered.
-|<<url.default_page,url.default_page>>|The page to open if :open -t/-b/-w is used without URL.
-|<<url.incdec_segments,url.incdec_segments>>|The URL segments where `:navigate increment/decrement` will search for a number.
-|<<url.searchengines,url.searchengines>>|Definitions of search engines which can be used via the address bar.
-|<<url.start_pages,url.start_pages>>|The page(s) to open at the start.
-|<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|The URL parameters to strip with `:yank url`.
-|<<window.hide_wayland_decoration,window.hide_wayland_decoration>>|Hide the window decoration when using wayland (requires restart)
-|<<window.title_format,window.title_format>>|The format to use for the window title.
-|<<zoom.default,zoom.default>>|The default zoom level.
-|<<zoom.levels,zoom.levels>>|The available zoom levels.
-|<<zoom.mouse_divider,zoom.mouse_divider>>|How much to divide the mouse wheel movements to translate them into zoom increments.
-|<<zoom.text_only,zoom.text_only>>|Whether the zoom factor on a frame applies only to the text or to all content.
+|<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
+|<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+|<<tabs.width.bar,tabs.width.bar>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
+|<<tabs.width.indicator,tabs.width.indicator>>|Width (in pixels) of the progress indicator (0 to disable).
+|<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
+|<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
+|<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
+|<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
+|<<url.searchengines,url.searchengines>>|Search engines which can be used via the address bar.
+|<<url.start_pages,url.start_pages>>|Page(s) to open at the start.
+|<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
+|<<window.hide_wayland_decoration,window.hide_wayland_decoration>>|Hide the window decoration when using wayland (requires restart).
+|<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
+|<<zoom.default,zoom.default>>|Default zoom level.
+|<<zoom.levels,zoom.levels>>|Available zoom levels.
+|<<zoom.mouse_divider,zoom.mouse_divider>>|Number of zoom increments to divide the mouse wheel movements to.
+|<<zoom.text_only,zoom.text_only>>|Apply the zoom factor on a frame only to the text or to all content.
 |==============
 
 [[aliases]]
@@ -276,7 +276,7 @@ Default:
 
 [[auto_save.interval]]
 === auto_save.interval
-How often (in milliseconds) to auto-save config/cookies/etc.
+Time interval (in milliseconds) between auto-saves of config/cookies/etc.
 
 Type: <<types,Int>>
 
@@ -292,18 +292,18 @@ Default: +pass:[false]+
 
 [[backend]]
 === backend
-The backend to use to display websites.
+Backend to use to display websites.
 qutebrowser supports two different web rendering engines / backends, QtWebKit and QtWebEngine.
 QtWebKit was discontinued by the Qt project with Qt 5.6, but picked up as a well maintained fork: https://github.com/annulen/webkit/wiki - qutebrowser only supports the fork.
-QtWebEngine is Qt's official successor to QtWebKit. It's slightly more resource hungry that QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
+QtWebEngine is Qt's official successor to QtWebKit. It's slightly more resource hungry than QtWebKit and has a couple of missing features in qutebrowser, but is generally the preferred choice.
 This setting requires a restart.
 
 Type: <<types,String>>
 
 Valid values:
 
- * +webengine+: Use QtWebEngine (based on Chromium)
- * +webkit+: Use QtWebKit (based on WebKit, similar to Safari)
+ * +webengine+: Use QtWebEngine (based on Chromium).
+ * +webkit+: Use QtWebKit (based on WebKit, similar to Safari).
 
 Default: +pass:[webengine]+
 
@@ -329,21 +329,21 @@ If you want a binding to do nothing, bind it to the `nop` command. If you want a
 Note that some commands which are only useful for bindings (but not used interactively) are hidden from the command completion. See `:help` for a full list of available commands.
 The following modes are available:
 
-* normal: The default mode, where most commands are invoked.
+* normal: Default mode, where most commands are invoked.
 
 * insert: Entered when an input field is focused on a website, or by
   pressing `i` in normal mode. Passes through almost all keypresses to the
-  website, but has some bindings like `<Ctrl-e>` to open an external editor.
-  Note that single keys can't be bound in this mode.
+  website, but has some bindings like `<Ctrl-e>` to open an external
+  editor. Note that single keys can't be bound in this mode.
 
 * hint: Entered when `f` is pressed to select links with the keyboard. Note
   that single keys can't be bound in this mode.
 
 * passthrough: Similar to insert mode, but passes through all keypresses
-  except `<Escape>` to leave the mode. It might be useful to bind `<Escape>`
-  to some other key in this mode if you want to be able to send an Escape
-  key to the website as well. Note that single keys can't be bound in this
-  mode.
+  except `<Escape>` to leave the mode. It might be useful to bind
+  `<Escape>` to some other key in this mode if you want to be able to send
+  an Escape key to the website as well. Note that single keys can't be
+  bound in this mode.
 
 * command: Entered when pressing the `:` key in order to enter a command.
   Note that single keys can't be bound in this mode.
@@ -351,9 +351,9 @@ The following modes are available:
 * prompt: Entered when there's a prompt to display, like for download
   locations or when invoked from JavaScript.
   +
-  You can bind normal keys in this mode, but they will be only active when a
-  yes/no-prompt is asked. For other prompt modes, you can only bind special
-  keys.
+  You can bind normal keys in this mode, but they will be only active when
+  a yes/no-prompt is asked. For other prompt modes, you can only bind
+  special keys.
 
 * caret: Entered when pressing the `v` mode, used to select text using the
   keyboard.
@@ -750,7 +750,7 @@ Default: +pass:[#444444]+
 
 [[colors.completion.scrollbar.bg]]
 === colors.completion.scrollbar.bg
-Color of the scrollbar in completion view
+Color of the scrollbar in the completion view.
 
 Type: <<types,QssColor>>
 
@@ -758,7 +758,7 @@ Default: +pass:[#333333]+
 
 [[colors.completion.scrollbar.fg]]
 === colors.completion.scrollbar.fg
-Color of the scrollbar handle in completion view.
+Color of the scrollbar handle in the completion view.
 
 Type: <<types,QssColor>>
 
@@ -941,7 +941,7 @@ Default: +pass:[#333333]+
 
 [[colors.messages.info.fg]]
 === colors.messages.info.fg
-Foreground color an info message.
+Foreground color of an info message.
 
 Type: <<types,QssColor>>
 
@@ -965,7 +965,7 @@ Default: +pass:[#d47300]+
 
 [[colors.messages.warning.fg]]
 === colors.messages.warning.fg
-Foreground color a warning message.
+Foreground color of a warning message.
 
 Type: <<types,QssColor>>
 
@@ -1300,7 +1300,7 @@ Default: +pass:[white]+
 
 [[colors.webpage.bg]]
 === colors.webpage.bg
-Background color for webpages if unset (or empty to use the theme's color)
+Background color for webpages if unset (or empty to use the theme's color).
 
 Type: <<types,QtColor>>
 
@@ -1308,7 +1308,7 @@ Default: +pass:[white]+
 
 [[completion.cmd_history_max_items]]
 === completion.cmd_history_max_items
-How many commands to save in the command history.
+Number of commands to save in the command history.
 0: no history / -1: unlimited
 
 Type: <<types,Int>>
@@ -1317,7 +1317,7 @@ Default: +pass:[100]+
 
 [[completion.delay]]
 === completion.delay
-Delay in ms before updating completions after typing a character.
+Delay (in milliseconds) before updating completions after typing a character.
 
 Type: <<types,Int>>
 
@@ -1325,7 +1325,7 @@ Default: +pass:[0]+
 
 [[completion.height]]
 === completion.height
-The height of the completion, in px or as percentage of the window.
+Height (in pixels or as percentage of the window) of the completion.
 
 Type: <<types,PercOrInt>>
 
@@ -1349,7 +1349,7 @@ Default: +pass:[true]+
 
 [[completion.scrollbar.padding]]
 === completion.scrollbar.padding
-Padding of scrollbar handle in the completion window (in px).
+Padding (in pixels) of the scrollbar handle in the completion window.
 
 Type: <<types,Int>>
 
@@ -1357,7 +1357,7 @@ Default: +pass:[2]+
 
 [[completion.scrollbar.width]]
 === completion.scrollbar.width
-Width of the scrollbar in the completion window (in px).
+Width (in pixels) of the scrollbar in the completion window.
 
 Type: <<types,Int>>
 
@@ -1387,7 +1387,7 @@ Default: +pass:[false]+
 
 [[completion.timestamp_format]]
 === completion.timestamp_format
-How to format timestamps (e.g. for the history completion).
+Format of timestamps (e.g. for the history completion).
 
 Type: <<types,TimestampTemplate>>
 
@@ -1395,7 +1395,7 @@ Default: +pass:[%Y-%m-%d]+
 
 [[completion.use_best_match]]
 === completion.use_best_match
-Whether to execute the best-matching command on a partial match.
+Execute the best-matching command on a partial match.
 
 Type: <<types,Bool>>
 
@@ -1403,7 +1403,7 @@ Default: +pass:[false]+
 
 [[completion.web_history_max_items]]
 === completion.web_history_max_items
-How many URLs to show in the web history.
+Number of URLs to show in the web history.
 0: no history / -1: unlimited
 
 Type: <<types,Int>>
@@ -1412,7 +1412,7 @@ Default: +pass:[-1]+
 
 [[confirm_quit]]
 === confirm_quit
-Whether quitting the application requires a confirmation.
+Require a confirmation before quitting the application.
 
 Type: <<types,ConfirmQuit>>
 
@@ -1429,7 +1429,7 @@ Default:
 
 [[content.cache.appcache]]
 === content.cache.appcache
-Whether support for the HTML 5 web application cache feature is enabled.
+Enable support for the HTML 5 web application cache feature.
 An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
 
 Type: <<types,Bool>>
@@ -1440,8 +1440,8 @@ This setting is only available with the QtWebKit backend.
 
 [[content.cache.maximum_pages]]
 === content.cache.maximum_pages
-The maximum number of pages to hold in the global memory page cache.
-The Page Cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
+Maximum number of pages to hold in the global memory page cache.
+The page cache allows for a nicer user experience when navigating forth or back to pages in the forward/back history, by pausing and resuming up to _n_ pages.
 For more information about the feature, please refer to: http://webkit.org/blog/427/webkit-page-cache-i-the-basics/
 
 Type: <<types,Int>>
@@ -1452,7 +1452,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content.cache.size]]
 === content.cache.size
-Size of the HTTP network cache. Null to use the default value.
+Size (in bytes) of the HTTP network cache. Null to use the default value.
 
 Type: <<types,Int>>
 
@@ -1460,7 +1460,7 @@ Default: empty
 
 [[content.cookies.accept]]
 === content.cookies.accept
-Control which cookies to accept.
+Which cookies to accept.
 
 Type: <<types,String>>
 
@@ -1549,7 +1549,7 @@ Default: +pass:[en-US,en]+
 
 [[content.headers.custom]]
 === content.headers.custom
-Set custom headers for qutebrowser HTTP requests.
+Custom headers for qutebrowser HTTP requests.
 
 Type: <<types,Dict>>
 
@@ -1566,7 +1566,7 @@ Default: +pass:[true]+
 
 [[content.headers.referer]]
 === content.headers.referer
-Send the Referer header.
+When to send the Referer header.
 The Referer header tells websites from which website you were coming from when visting them.
 
 Type: <<types,String>>
@@ -1591,7 +1591,7 @@ Default: empty
 
 [[content.host_blocking.enabled]]
 === content.host_blocking.enabled
-Whether host blocking is enabled.
+Enable host blocking.
 
 Type: <<types,Bool>>
 
@@ -1605,8 +1605,8 @@ The file can be in one of the following formats:
 
 - An `/etc/hosts`-like file
 - One host per line
-- A zip-file of any of the above, with either only one file, or a file named
-  `hosts` (with any extension).
+- A zip-file of any of the above, with either only one file, or a file
+  named `hosts` (with any extension).
 
 
 Type: <<types,List of Url>>
@@ -1633,7 +1633,7 @@ Default:
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
-Enable or disable hyperlink auditing (`<a ping>`).
+Enable hyperlink auditing (`<a ping>`).
 
 Type: <<types,Bool>>
 
@@ -1641,7 +1641,7 @@ Default: +pass:[false]+
 
 [[content.images]]
 === content.images
-Whether images are automatically loaded in web pages.
+Load images automatically in web pages.
 
 Type: <<types,Bool>>
 
@@ -1657,7 +1657,7 @@ Default: +pass:[true]+
 
 [[content.javascript.can_access_clipboard]]
 === content.javascript.can_access_clipboard
-Whether JavaScript can read from or write to the clipboard.
+Allow JavaScript to read from or write to the clipboard.
 With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
 
 Type: <<types,Bool>>
@@ -1666,7 +1666,7 @@ Default: +pass:[false]+
 
 [[content.javascript.can_close_tabs]]
 === content.javascript.can_close_tabs
-Whether JavaScript can close tabs.
+Allow JavaScript to close tabs.
 
 Type: <<types,Bool>>
 
@@ -1676,7 +1676,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content.javascript.can_open_tabs_automatically]]
 === content.javascript.can_open_tabs_automatically
-Whether JavaScript can open new tabs without user interaction.
+Allow JavaScript to open new tabs without user interaction.
 
 Type: <<types,Bool>>
 
@@ -1684,7 +1684,7 @@ Default: +pass:[false]+
 
 [[content.javascript.enabled]]
 === content.javascript.enabled
-Enables or disables JavaScript.
+Enable JavaScript.
 
 Type: <<types,Bool>>
 
@@ -1707,7 +1707,7 @@ Default:
 
 [[content.javascript.modal_dialog]]
 === content.javascript.modal_dialog
-Use the standard JavaScript modal dialog for `alert()` and `confirm()`
+Use the standard JavaScript modal dialog for `alert()` and `confirm()`.
 
 Type: <<types,Bool>>
 
@@ -1723,7 +1723,7 @@ Default: +pass:[true]+
 
 [[content.local_content_can_access_file_urls]]
 === content.local_content_can_access_file_urls
-Whether locally loaded documents are allowed to access other local urls.
+Allow locally loaded documents to access other local URLs.
 
 Type: <<types,Bool>>
 
@@ -1731,7 +1731,7 @@ Default: +pass:[true]+
 
 [[content.local_content_can_access_remote_urls]]
 === content.local_content_can_access_remote_urls
-Whether locally loaded documents are allowed to access remote urls.
+Allow locally loaded documents to access remote URLs.
 
 Type: <<types,Bool>>
 
@@ -1739,7 +1739,7 @@ Default: +pass:[false]+
 
 [[content.local_storage]]
 === content.local_storage
-Whether support for HTML 5 local storage and Web SQL is enabled.
+Enable support for HTML 5 local storage and Web SQL.
 
 Type: <<types,Bool>>
 
@@ -1763,7 +1763,7 @@ This setting is only available with the QtWebEngine backend.
 
 [[content.netrc_file]]
 === content.netrc_file
-Location of a netrc-file for HTTP authentication.
+Netrc-file for HTTP authentication.
 If unset, `~/.netrc` is used.
 
 Type: <<types,File>>
@@ -1788,7 +1788,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content.pdfjs]]
 === content.pdfjs
-Enable pdf.js to view PDF files in the browser.
+Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
 
 Type: <<types,Bool>>
@@ -1799,7 +1799,7 @@ This setting is only available with the QtWebKit backend.
 
 [[content.plugins]]
 === content.plugins
-Enables or disables plugins in Web pages.
+Enable plugins in Web pages.
 
 Type: <<types,Bool>>
 
@@ -1807,7 +1807,7 @@ Default: +pass:[false]+
 
 [[content.print_element_backgrounds]]
 === content.print_element_backgrounds
-Whether the background color and images are also drawn when the page is printed.
+Draw the background color and images also when the page is printed.
 
 Type: <<types,Bool>>
 
@@ -1825,7 +1825,7 @@ Default: +pass:[false]+
 
 [[content.proxy]]
 === content.proxy
-The proxy to use.
+Proxy to use.
 In addition to the listed values, you can use a `socks://...` or `http://...` URL.
 
 Type: <<types,Proxy>>
@@ -1863,7 +1863,7 @@ Default: +pass:[ask]+
 
 [[content.user_stylesheets]]
 === content.user_stylesheets
-A list of user stylesheet filenames to use.
+List of user stylesheet filenames to use.
 
 Type: <<types,List of File&#44; or File>>
 
@@ -1871,7 +1871,7 @@ Default: empty
 
 [[content.webgl]]
 === content.webgl
-Enables or disables WebGL.
+Enable WebGL.
 
 Type: <<types,Bool>>
 
@@ -1879,7 +1879,7 @@ Default: +pass:[true]+
 
 [[content.xss_auditing]]
 === content.xss_auditing
-Whether load requests should be monitored for cross-site scripting attempts.
+Monitor load requests for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
 
 Type: <<types,Bool>>
@@ -1888,8 +1888,8 @@ Default: +pass:[false]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
-The directory to save downloads to.
-If unset, a sensible os-specific default is used.
+Directory to save downloads to.
+If unset, a sensible OS-specific default is used.
 
 Type: <<types,Directory>>
 
@@ -1928,7 +1928,7 @@ Default: +pass:[path]+
 
 [[downloads.open_dispatcher]]
 === downloads.open_dispatcher
-The default program used to open downloads.
+Default program used to open downloads.
 If null, the default internal handler is used.
 Any `{}` in the string will be expanded to the filename, else the filename will be appended.
 
@@ -1951,7 +1951,7 @@ Default: +pass:[top]+
 
 [[downloads.remove_finished]]
 === downloads.remove_finished
-Number of milliseconds to wait before removing finished downloads.
+Duration (in milliseconds) to wait before removing finished downloads.
 If set to -1, downloads are never removed.
 
 Type: <<types,Int>>
@@ -1960,13 +1960,8 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-The editor (and arguments) to use for the `open-editor` command.
-Several placeholders are supported. Placeholders are substituted by the respective value when executing the command.
-`{file}` gets replaced by the filename of the file to be edited.
-`{line}` gets replaced by the line in which the caret is found in the text.
-`{column}` gets replaced by the column in which the caret is found in the text.
-`{line0}` same as `{line}`, but starting from index 0.
-`{column0}` same as `{column}`, but starting from index 0.
+Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
+* `{file}`: Filename of the file to be edited. * `{line}`: Line in which the caret is found in the text. * `{column}`: Column in which the caret is found in the text. * `{line0}`: Same as `{line}`, but starting from index 0. * `{column0}`: Same as `{column}`, but starting from index 0.
 
 Type: <<types,ShellCommand>>
 
@@ -2141,7 +2136,7 @@ Default: empty
 
 [[fonts.web.size.default]]
 === fonts.web.size.default
-The default font size for regular text.
+Default font size (in pixels) for regular text.
 
 Type: <<types,Int>>
 
@@ -2149,7 +2144,7 @@ Default: +pass:[16]+
 
 [[fonts.web.size.default_fixed]]
 === fonts.web.size.default_fixed
-The default font size for fixed-pitch text.
+Default font size (in pixels) for fixed-pitch text.
 
 Type: <<types,Int>>
 
@@ -2157,7 +2152,7 @@ Default: +pass:[13]+
 
 [[fonts.web.size.minimum]]
 === fonts.web.size.minimum
-The hard minimum font size.
+Hard minimum font size (in pixels).
 
 Type: <<types,Int>>
 
@@ -2165,7 +2160,7 @@ Default: +pass:[0]+
 
 [[fonts.web.size.minimum_logical]]
 === fonts.web.size.minimum_logical
-The minimum logical font size that is applied when zooming out.
+Minimum logical font size (in pixels) that is applied when zooming out.
 
 Type: <<types,Int>>
 
@@ -2173,7 +2168,7 @@ Default: +pass:[6]+
 
 [[hints.auto_follow]]
 === hints.auto_follow
-Controls when a hint can be automatically followed without pressing Enter.
+When a hint can be automatically followed without pressing Enter.
 
 Type: <<types,String>>
 
@@ -2188,7 +2183,7 @@ Default: +pass:[unique-match]+
 
 [[hints.auto_follow_timeout]]
 === hints.auto_follow_timeout
-A timeout (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
+Duration (in milliseconds) to ignore normal-mode key bindings after a successful auto-follow.
 
 Type: <<types,Int>>
 
@@ -2204,7 +2199,7 @@ Default: +pass:[1px solid #E3BE23]+
 
 [[hints.chars]]
 === hints.chars
-Chars used for hint strings.
+Characters used for hint strings.
 
 Type: <<types,UniqueCharString>>
 
@@ -2212,7 +2207,7 @@ Default: +pass:[asdfghjkl]+
 
 [[hints.dictionary]]
 === hints.dictionary
-The dictionary file to be used by the word hints.
+Dictionary file to be used by the word hints.
 
 Type: <<types,File>>
 
@@ -2243,7 +2238,7 @@ Default: +pass:[true]+
 
 [[hints.min_chars]]
 === hints.min_chars
-Minimum number of chars used for hint strings.
+Minimum number of characters used for hint strings.
 
 Type: <<types,Int>>
 
@@ -2258,14 +2253,14 @@ Type: <<types,String>>
 Valid values:
 
  * +number+: Use numeric hints. (In this mode you can also type letters from the hinted element to filter and reduce the number of elements that are hinted.)
- * +letter+: Use the chars in the `hints.chars` setting.
+ * +letter+: Use the characters in the `hints.chars` setting.
  * +word+: Use hints words based on the html elements and the extra words.
 
 Default: +pass:[letter]+
 
 [[hints.next_regexes]]
 === hints.next_regexes
-A comma-separated list of regexes to use for 'next' links.
+Comma-separated list of regular expressions to use for 'next' links.
 
 Type: <<types,List of Regex>>
 
@@ -2280,7 +2275,7 @@ Default:
 
 [[hints.prev_regexes]]
 === hints.prev_regexes
-A comma-separated list of regexes to use for 'prev' links.
+Comma-separated list of regular expressions to use for 'prev' links.
 
 Type: <<types,List of Regex>>
 
@@ -2303,7 +2298,7 @@ Default: +pass:[true]+
 
 [[hints.uppercase]]
 === hints.uppercase
-Make chars in hint strings uppercase.
+Make characters in hint strings uppercase.
 
 Type: <<types,Bool>>
 
@@ -2311,7 +2306,7 @@ Default: +pass:[false]+
 
 [[history_gap_interval]]
 === history_gap_interval
-The maximum time in minutes between two history items for them to be considered being from the same browsing session.
+Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 Items with less time between them are grouped when being displayed in `:history`. Use -1 to disable separation.
 
 Type: <<types,Int>>
@@ -2320,21 +2315,21 @@ Default: +pass:[30]+
 
 [[ignore_case]]
 === ignore_case
-Find text on a page case-insensitively.
+When to find text on a page case-insensitively.
 
 Type: <<types,String>>
 
 Valid values:
 
- * +always+: Search case-insensitively
- * +never+: Search case-sensitively
- * +smart+: Search case-sensitively if there are capital chars
+ * +always+: Search case-insensitively.
+ * +never+: Search case-sensitively.
+ * +smart+: Search case-sensitively if there are capital characters.
 
 Default: +pass:[smart]+
 
 [[input.forward_unbound_keys]]
 === input.forward_unbound_keys
-Forward unbound keys to the webview in normal mode.
+Which unbound keys to forward to the webview in normal mode.
 
 Type: <<types,String>>
 
@@ -2398,8 +2393,8 @@ Default: +pass:[false]+
 
 [[input.spatial_navigation]]
 === input.spatial_navigation
-Enable Spatial Navigation.
-Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if a user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
+Enable spatial navigation.
+Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if the user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
 
 Type: <<types,Bool>>
 
@@ -2416,7 +2411,7 @@ Default: empty
 
 [[keyhint.delay]]
 === keyhint.delay
-Time from pressing a key to seeing the keyhint dialog (ms).
+Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 
 Type: <<types,Int>>
 
@@ -2424,7 +2419,7 @@ Default: +pass:[500]+
 
 [[keyhint.radius]]
 === keyhint.radius
-The rounding radius for the edges of the keyhint dialog.
+Rounding radius (in pixels) for the edges of the keyhint dialog.
 
 Type: <<types,Int>>
 
@@ -2432,7 +2427,7 @@ Default: +pass:[6]+
 
 [[messages.timeout]]
 === messages.timeout
-Time (in ms) to show messages in the statusbar for.
+Duration (in milliseconds) to show messages in the statusbar for.
 Set to 0 to never clear messages.
 
 Type: <<types,Int>>
@@ -2483,7 +2478,7 @@ Default: +pass:[true]+
 
 [[prompt.radius]]
 === prompt.radius
-The rounding radius for the edges of prompts.
+Rounding radius (in pixels) for the edges of prompts.
 
 Type: <<types,Int>>
 
@@ -2538,7 +2533,7 @@ Default: +pass:[false]+
 
 [[session_default_name]]
 === session_default_name
-The name of the session to save by default.
+Name of the session to save by default.
 If this is set to null, the session which was last loaded is saved.
 
 Type: <<types,SessionName>>
@@ -2547,7 +2542,7 @@ Default: empty
 
 [[spellcheck.languages]]
 === spellcheck.languages
-Spell checking languages.
+Languages to use for spell checking.
 You can check for available languages and install dictionaries using scripts/install_dict.py. Run the script with -h/--help for instructions.
 
 Type: <<types,List of String>>
@@ -2613,7 +2608,7 @@ Default: +pass:[false]+
 
 [[statusbar.padding]]
 === statusbar.padding
-Padding for the statusbar.
+Padding (in pixels) for the statusbar.
 
 Type: <<types,Padding>>
 
@@ -2626,7 +2621,7 @@ Default:
 
 [[statusbar.position]]
 === statusbar.position
-The position of the status bar.
+Position of the status bar.
 
 Type: <<types,VerticalPosition>>
 
@@ -2647,7 +2642,7 @@ Default: +pass:[false]+
 
 [[tabs.close_mouse_button]]
 === tabs.close_mouse_button
-On which mouse button to close tabs.
+Mouse button with which to close tabs.
 
 Type: <<types,String>>
 
@@ -2661,7 +2656,7 @@ Default: +pass:[middle]+
 
 [[tabs.close_mouse_button_on_bar]]
 === tabs.close_mouse_button_on_bar
-Behavior when the close mouse button is pressed on the tab bar.
+How to behave when the close mouse button is pressed on the tab bar.
 
 Type: <<types,String>>
 
@@ -2676,7 +2671,7 @@ Default: +pass:[new-tab]+
 
 [[tabs.favicons.scale]]
 === tabs.favicons.scale
-Scaling for favicons in the tab bar.
+Scaling factor for favicons in the tab bar.
 The tab size is unchanged, so big favicons also require extra `tabs.padding`.
 
 Type: <<types,Float>>
@@ -2693,7 +2688,7 @@ Default: +pass:[true]+
 
 [[tabs.indicator_padding]]
 === tabs.indicator_padding
-Padding for tab indicators
+Padding (in pixels) for tab indicators.
 
 Type: <<types,Padding>>
 
@@ -2706,7 +2701,7 @@ Default:
 
 [[tabs.last_close]]
 === tabs.last_close
-Behavior when the last tab is closed.
+How to behave when the last tab is closed.
 
 Type: <<types,String>>
 
@@ -2730,7 +2725,7 @@ Default: +pass:[true]+
 
 [[tabs.new_position.related]]
 === tabs.new_position.related
-How new tabs opened from another tab are positioned.
+Position of new tabs opened from another tab.
 
 Type: <<types,NewTabPosition>>
 
@@ -2745,7 +2740,7 @@ Default: +pass:[next]+
 
 [[tabs.new_position.unrelated]]
 === tabs.new_position.unrelated
-How new tabs which aren't opened from another tab are positioned.
+Position of new tabs which aren't opened from another tab.
 
 Type: <<types,NewTabPosition>>
 
@@ -2760,7 +2755,7 @@ Default: +pass:[last]+
 
 [[tabs.padding]]
 === tabs.padding
-Padding around text for tabs
+Padding (in pixels) around text for tabs.
 
 Type: <<types,Padding>>
 
@@ -2773,7 +2768,7 @@ Default:
 
 [[tabs.position]]
 === tabs.position
-The position of the tab bar.
+Position of the tab bar.
 
 Type: <<types,Position>>
 
@@ -2817,7 +2812,7 @@ Default: +pass:[always]+
 
 [[tabs.show_switching_delay]]
 === tabs.show_switching_delay
-Time to show the tab bar before hiding it when tabs.show is set to 'switching'.
+Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
 
 Type: <<types,Int>>
 
@@ -2847,20 +2842,20 @@ Default: +pass:[left]+
 
 [[tabs.title.format]]
 === tabs.title.format
-The format to use for the tab title.
+Format to use for the tab title.
 The following placeholders are defined:
 
-* `{perc}`: The percentage as a string like `[10%]`.
-* `{perc_raw}`: The raw percentage, e.g. `10`
-* `{title}`: The title of the current web page
+* `{perc}`: Percentage as a string like `[10%]`.
+* `{perc_raw}`: Raw percentage, e.g. `10`.
+* `{title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
-* `{index}`: The index of this tab.
-* `{id}`: The internal tab ID of this tab.
-* `{scroll_pos}`: The page scroll position.
-* `{host}`: The host of the current web page.
+* `{index}`: Index of this tab.
+* `{id}`: Internal tab ID of this tab.
+* `{scroll_pos}`: Page scroll position.
+* `{host}`: Host of the current web page.
 * `{backend}`: Either ''webkit'' or ''webengine''
 * `{private}` : Indicates when private mode is enabled.
-* `{current_url}` : The url of the current web page.
+* `{current_url}` : URL of the current web page.
 
 
 Type: <<types,FormatString>>
@@ -2869,7 +2864,7 @@ Default: +pass:[{index}: {title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
-The format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 
 Type: <<types,FormatString>>
 
@@ -2877,7 +2872,7 @@ Default: +pass:[{index}]+
 
 [[tabs.width.bar]]
 === tabs.width.bar
-The width of the tab bar if it's vertical, in px or as percentage of the window.
+Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 
 Type: <<types,PercOrInt>>
 
@@ -2885,7 +2880,7 @@ Default: +pass:[20%]+
 
 [[tabs.width.indicator]]
 === tabs.width.indicator
-Width of the progress indicator (0 to disable).
+Width (in pixels) of the progress indicator (0 to disable).
 
 Type: <<types,Int>>
 
@@ -2893,7 +2888,7 @@ Default: +pass:[3]+
 
 [[tabs.wrap]]
 === tabs.wrap
-Whether to wrap when changing tabs.
+Wrap when changing tabs.
 
 Type: <<types,Bool>>
 
@@ -2901,7 +2896,7 @@ Default: +pass:[true]+
 
 [[url.auto_search]]
 === url.auto_search
-Whether to start a search when something else than a URL is entered.
+What search to start when something else than a URL is entered.
 
 Type: <<types,String>>
 
@@ -2915,7 +2910,7 @@ Default: +pass:[naive]+
 
 [[url.default_page]]
 === url.default_page
-The page to open if :open -t/-b/-w is used without URL.
+Page to open if :open -t/-b/-w is used without URL.
 Use `about:blank` for a blank page.
 
 Type: <<types,FuzzyUrl>>
@@ -2924,7 +2919,7 @@ Default: +pass:[https://start.duckduckgo.com/]+
 
 [[url.incdec_segments]]
 === url.incdec_segments
-The URL segments where `:navigate increment/decrement` will search for a number.
+URL segments where `:navigate increment/decrement` will search for a number.
 
 Type: <<types,FlagList>>
 
@@ -2942,9 +2937,9 @@ Default:
 
 [[url.searchengines]]
 === url.searchengines
-Definitions of search engines which can be used via the address bar.
-Maps a searchengine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}` placeholder. The placeholder will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
-The searchengine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g. `:open google qutebrowser`.
+Search engines which can be used via the address bar.
+Maps a search engine name (such as `DEFAULT`, or `ddg`) to a URL with a `{}` placeholder. The placeholder will be replaced by the search term, use `{{` and `}}` for literal `{`/`}` signs.
+The search engine named `DEFAULT` is used when `url.auto_search` is turned on and something else than a URL was entered to be opened. Other search engines can be used by prepending the search engine name to the search term, e.g.  `:open google qutebrowser`.
 
 Type: <<types,Dict>>
 
@@ -2954,7 +2949,7 @@ Default:
 
 [[url.start_pages]]
 === url.start_pages
-The page(s) to open at the start.
+Page(s) to open at the start.
 
 Type: <<types,List of FuzzyUrl&#44; or FuzzyUrl>>
 
@@ -2962,7 +2957,7 @@ Default: +pass:[https://start.duckduckgo.com]+
 
 [[url.yank_ignored_parameters]]
 === url.yank_ignored_parameters
-The URL parameters to strip with `:yank url`.
+URL parameters to strip with `:yank url`.
 
 Type: <<types,List of String>>
 
@@ -2977,7 +2972,7 @@ Default:
 
 [[window.hide_wayland_decoration]]
 === window.hide_wayland_decoration
-Hide the window decoration when using wayland (requires restart)
+Hide the window decoration when using wayland (requires restart).
 
 Type: <<types,Bool>>
 
@@ -2985,19 +2980,8 @@ Default: +pass:[false]+
 
 [[window.title_format]]
 === window.title_format
-The format to use for the window title.
-The following placeholders are defined:
-
-* `{perc}`: The percentage as a string like `[10%]`.
-* `{perc_raw}`: The raw percentage, e.g. `10`
-* `{title}`: The title of the current web page
-* `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
-* `{id}`: The internal window ID of this window.
-* `{scroll_pos}`: The page scroll position.
-* `{host}`: The host of the current web page.
-* `{backend}`: Either ''webkit'' or ''webengine''
-* `{private}` : Indicates when private mode is enabled.
-* `{current_url}` : The url of the current web page.
+Format to use for the window title. The same placeholders like for
+`tabs.title.format` are defined.
 
 
 Type: <<types,FormatString>>
@@ -3006,7 +2990,7 @@ Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
 
 [[zoom.default]]
 === zoom.default
-The default zoom level.
+Default zoom level.
 
 Type: <<types,Perc>>
 
@@ -3014,7 +2998,7 @@ Default: +pass:[100%]+
 
 [[zoom.levels]]
 === zoom.levels
-The available zoom levels.
+Available zoom levels.
 
 Type: <<types,List of Perc>>
 
@@ -3039,7 +3023,7 @@ Default:
 
 [[zoom.mouse_divider]]
 === zoom.mouse_divider
-How much to divide the mouse wheel movements to translate them into zoom increments.
+Number of zoom increments to divide the mouse wheel movements to.
 
 Type: <<types,Int>>
 
@@ -3047,7 +3031,7 @@ Default: +pass:[512]+
 
 [[zoom.text_only]]
 === zoom.text_only
-Whether the zoom factor on a frame applies only to the text or to all content.
+Apply the zoom factor on a frame only to the text or to all content.
 
 Type: <<types,Bool>>
 
