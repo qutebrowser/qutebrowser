@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2014-2017 Chris Braun (cryzed) <cryzed@googlemail.com>
+# Copyright 2017 Chris Braun (cryzed) <cryzed@googlemail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -27,10 +27,10 @@
 # [USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
 #
 # Dependencies: tldextract (Python 3 module), pass
-# For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts
+# For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
 #
-# Warning: The login details are viewable in plaintext in qutebrowser's debug log (qute://log)
-
+# WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
+# you decide to submit a crash report!
 
 import argparse
 import enum
