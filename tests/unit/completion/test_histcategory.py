@@ -147,7 +147,7 @@ def test_remove_rows(hist, model_validator):
     cat.set_pattern('')
     hist.delete('url', 'foo')
     cat.removeRows(0, 1)
-    model_validator.validate([('bar', 'Bar', '1970-01-01')])
+    model_validator.validate([('bar', 'Bar')])
 
 
 def test_remove_rows_fetch(hist):

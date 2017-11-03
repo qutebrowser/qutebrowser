@@ -24,27 +24,36 @@ import pytest
 from qutebrowser.completion.models import listcategory
 
 
-@pytest.mark.parametrize('pattern, before, after', [
+@pytest.mark.parametrize('pattern, before, after, after_nosort', [
     ('foo',
      [('foo', ''), ('bar', '')],
+     [('foo', '')],
      [('foo', '')]),
 
     ('foo',
      [('foob', ''), ('fooc', ''), ('fooa', '')],
+     [('fooa', ''), ('foob', ''), ('fooc', '')],
      [('foob', ''), ('fooc', ''), ('fooa', '')]),
 
     # prefer foobar as it starts with the pattern
     ('foo',
-     [('barfoo', ''), ('foobar', '')],
-     [('foobar', ''), ('barfoo', '')]),
+     [('barfoo', ''), ('foobaz', ''), ('foobar', '')],
+     [('foobar', ''), ('foobaz', ''), ('barfoo', '')],
+     [('foobaz', ''), ('foobar', ''), ('barfoo', '')]),
 
     ('foo',
      [('foo', 'bar'), ('bar', 'foo'), ('bar', 'bar')],
+     [('foo', 'bar'), ('bar', 'foo')],
      [('foo', 'bar'), ('bar', 'foo')]),
 ])
-def test_set_pattern(pattern, before, after, model_validator):
+def test_set_pattern(pattern, before, after, after_nosort, model_validator):
     """Validate the filtering and sorting results of set_pattern."""
     cat = listcategory.ListCategory('Foo', before)
     model_validator.set_model(cat)
     cat.set_pattern(pattern)
     model_validator.validate(after)
+
+    cat = listcategory.ListCategory('Foo', before, sort=False)
+    model_validator.set_model(cat)
+    cat.set_pattern(pattern)
+    model_validator.validate(after_nosort)

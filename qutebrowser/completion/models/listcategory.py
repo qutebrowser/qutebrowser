@@ -31,7 +31,7 @@ class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
-    def __init__(self, name, items, delete_func=None, parent=None):
+    def __init__(self, name, items, sort=True, delete_func=None, parent=None):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)
@@ -43,6 +43,7 @@ class ListCategory(QSortFilterProxyModel):
             self.srcmodel.appendRow([QStandardItem(x) for x in item])
         self.setSourceModel(self.srcmodel)
         self.delete_func = delete_func
+        self._sort = sort
 
     def set_pattern(self, val):
         """Setter for pattern.
@@ -60,19 +61,33 @@ class ListCategory(QSortFilterProxyModel):
         sortcol = 0
         self.sort(sortcol)
 
-    def lessThan(self, _lindex, rindex):
+    def lessThan(self, lindex, rindex):
         """Custom sorting implementation.
 
-        Prefers all items which start with self._pattern. Other than that, keep
-        items in their original order.
+        Prefers all items which start with self._pattern. Other than that, uses
+        normal Python string sorting.
 
         Args:
-            _lindex: The QModelIndex of the left item (*left* < right)
+            lindex: The QModelIndex of the left item (*left* < right)
             rindex: The QModelIndex of the right item (left < *right*)
 
         Return:
             True if left < right, else False
         """
+        qtutils.ensure_valid(lindex)
         qtutils.ensure_valid(rindex)
+
+        left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
-        return not right.startswith(self._pattern)
+
+        leftstart = left.startswith(self._pattern)
+        rightstart = right.startswith(self._pattern)
+
+        if leftstart and not rightstart:
+            return True
+        elif rightstart and not leftstart:
+            return False
+        elif self._sort:
+            return left < right
+        else:
+            return False
