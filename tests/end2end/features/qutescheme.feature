@@ -55,6 +55,14 @@ Feature: Special qute:// pages
         And I hint with args "links normal" and follow a
         Then qute://help/quickstart.html should be loaded
 
+    Scenario: Opening a link with qute://help
+        When the documentation is up to date
+        And I run :tab-only
+        And I open qute://help without waiting
+        And I wait until qute://help/ is loaded
+        And I hint with args "links normal" and follow a
+        Then qute://help/quickstart.html should be loaded
+
     # :history
 
     Scenario: :history without arguments
@@ -139,12 +147,12 @@ Feature: Special qute:// pages
 
     Scenario: Running :pyeval
         When I run :debug-pyeval 1+1
-        And I wait until qute://pyeval is loaded
+        And I wait until qute://pyeval/ is loaded
         Then the page should contain the plaintext "2"
 
     Scenario: Causing exception in :pyeval
         When I run :debug-pyeval 1/0
-        And I wait until qute://pyeval is loaded
+        And I wait until qute://pyeval/ is loaded
         Then the page should contain the plaintext "ZeroDivisionError"
 
     Scenario: Running :pyeval with --quiet
@@ -158,7 +166,7 @@ Feature: Special qute:// pages
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages
-        Then qute://log?level=info should be loaded
+        Then qute://log/?level=info should be loaded
         And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
@@ -170,7 +178,7 @@ Feature: Special qute:// pages
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages warning
-        Then qute://log?level=warning should be loaded
+        Then qute://log/?level=warning should be loaded
         And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"
@@ -182,7 +190,7 @@ Feature: Special qute:// pages
         And I run :message-warning the-warning-message
         And I run :message-info the-info-message
         And I run :messages info
-        Then qute://log?level=info should be loaded
+        Then qute://log/?level=info should be loaded
         And the error "the-error-message" should be shown
         And the warning "the-warning-message" should be shown
         And the page should contain the plaintext "the-error-message"

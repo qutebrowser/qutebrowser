@@ -138,14 +138,23 @@ def data_for_url(url):
     """
     path = url.path()
     host = url.host()
+    query = url.query()
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))
-    if path and not host:
+    if not path or not host:
         new_url = QUrl()
         new_url.setScheme('qute')
-        new_url.setHost(path)
+        # When path is absent, e.g. qute://help (with no trailing slash)
+        if host:
+            new_url.setHost(host)
+        # When host is absent, e.g. qute:help
+        else:
+            new_url.setHost(path)
+
         new_url.setPath('/')
+        if query:
+            new_url.setQuery(query)
         if new_url.host():  # path was a valid host
             raise Redirect(new_url)
 
