@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
 
+# Copyright 2014-2017 Chris Braun (cryzed) <cryzed@googlemail.com>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+
 # Insert login information using pass and a dmenu-provider (e.g. dmenu, rofi -dmenu, ...).
 # A short demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
 #
@@ -11,7 +29,8 @@
 # Dependencies: tldextract (Python 3 module), pass
 # For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts
 #
-# Chris Braun (cryzed), 2017
+# Warning: The login details are viewable in plaintext in qutebrowser's debug log (qute://log)
+
 
 import argparse
 import enum
