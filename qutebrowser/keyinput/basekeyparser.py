@@ -19,6 +19,7 @@
 
 """Base class for vim-like key sequence parser."""
 
+import enum
 import re
 import unicodedata
 
@@ -75,8 +76,8 @@ class BaseKeyParser(QObject):
     do_log = True
     passthrough = False
 
-    Match = usertypes.enum('Match', ['partial', 'definitive', 'other', 'none'])
-    Type = usertypes.enum('Type', ['chain', 'special'])
+    Match = enum.Enum('Match', ['partial', 'definitive', 'other', 'none'])
+    Type = enum.Enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
                  supports_chains=False):
