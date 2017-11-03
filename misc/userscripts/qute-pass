@@ -129,7 +129,7 @@ def main(arguments):
             stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
             return ExitCodes.NO_PASS_CANDIDATES
 
-    selection = candidates.pop() if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation,
+    selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
                                                                     arguments.io_encoding)
     secret = pass_(selection, arguments.io_encoding)
 
