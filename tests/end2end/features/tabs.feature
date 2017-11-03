@@ -713,6 +713,7 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/hello.txt (active)
 
+    @flaky
     Scenario: Double-undo with single tab on tabs.last_close default page
         Given I have a fresh instance
         When I open about:blank

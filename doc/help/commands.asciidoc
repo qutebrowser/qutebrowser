@@ -60,6 +60,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<messages,messages>>|Show a log of past messages.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
 |<<open,open>>|Open a URL in the current/[count]th tab.
+|<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<print,print>>|Print the current/[count]th tab.
 |<<quickmark-add,quickmark-add>>|Add a new quickmark.
 |<<quickmark-del,quickmark-del>>|Delete a quickmark.
@@ -361,7 +362,7 @@ The index of the download to retry.
 
 [[edit-url]]
 === edit-url
-Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] ['url']+
+Syntax: +:edit-url [*--bg*] [*--tab*] [*--window*] [*--private*] [*--related*] ['url']+
 
 Navigate to a url formed in an external editor.
 
@@ -374,6 +375,9 @@ The editor which should be launched can be configured via the `editor.command` c
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
 * +*-w*+, +*--window*+: Open in a new window.
+* +*-p*+, +*--private*+: Open a new window in private browsing mode.
+* +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
+
 
 [[fake-key]]
 === fake-key
@@ -653,6 +657,12 @@ The tab index to open the URL in.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[open-editor]]
+=== open-editor
+Open an external editor with the currently selected form field.
+
+The editor which should be launched can be configured via the `editor.command` config option.
 
 [[print]]
 === print
@@ -1155,7 +1165,6 @@ How many steps to zoom out.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
 |<<nop,nop>>|Do nothing.
-|<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
@@ -1405,12 +1414,6 @@ How many blocks to move.
 [[nop]]
 === nop
 Do nothing.
-
-[[open-editor]]
-=== open-editor
-Open an external editor with the currently selected form field.
-
-The editor which should be launched can be configured via the `editor.command` config option.
 
 [[prompt-accept]]
 === prompt-accept

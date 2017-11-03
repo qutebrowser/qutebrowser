@@ -177,3 +177,18 @@ def test_modify(qtbot, editor, initial_text, edited_text):
         editor._proc.finished.emit(0, QProcess.NormalExit)
 
     assert blocker.args == [edited_text]
+
+
+@pytest.mark.parametrize('text, caret_position, result', [
+    ('', 0, (1, 1)),
+    ('a', 0, (1, 1)),
+    ('a\nb', 1, (1, 2)),
+    ('a\nb', 2, (2, 1)),
+    ('a\nb', 3, (2, 2)),
+    ('a\nbb\nccc', 4, (2, 3)),
+    ('a\nbb\nccc', 5, (3, 1)),
+    ('a\nbb\nccc', 8, (3, 4)),
+])
+def test_calculation(editor, text, caret_position, result):
+    """Test calculation for line and column given text and caret_position."""
+    assert editor._calc_line_and_column(text, caret_position) == result

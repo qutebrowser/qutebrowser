@@ -117,7 +117,6 @@ class AsciiDoc:
 
     def _build_website_file(self, root, filename):
         """Build a single website file."""
-        # pylint: disable=too-many-locals,too-many-statements
         src = os.path.join(root, filename)
         src_basename = os.path.basename(src)
         parts = [self._args.website[0]]
@@ -225,16 +224,16 @@ class AsciiDoc:
             return self._args.asciidoc
 
         try:
-            subprocess.call(['asciidoc'], stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
+            subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
         except OSError:
             pass
         else:
             return ['asciidoc']
 
         try:
-            subprocess.call(['asciidoc.py'], stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
+            subprocess.run(['asciidoc.py'], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
         except OSError:
             pass
         else:
@@ -259,7 +258,7 @@ class AsciiDoc:
         try:
             env = os.environ.copy()
             env['HOME'] = self._homedir
-            subprocess.check_call(cmdline, env=env)
+            subprocess.run(cmdline, check=True, env=env)
         except (subprocess.CalledProcessError, OSError) as e:
             self._failed = True
             utils.print_col(str(e), 'red')

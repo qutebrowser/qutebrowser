@@ -19,6 +19,8 @@
 
 """URL displayed in the statusbar."""
 
+import enum
+
 from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt, QUrl
 
 from qutebrowser.mainwindow.statusbar import textbase
@@ -27,8 +29,8 @@ from qutebrowser.utils import usertypes, urlutils
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = usertypes.enum('UrlType', ['success', 'success_https', 'error',
-                                     'warn', 'hover', 'normal'])
+UrlType = enum.Enum('UrlType', ['success', 'success_https', 'error', 'warn',
+                                'hover', 'normal'])
 
 
 class UrlText(textbase.TextBase):

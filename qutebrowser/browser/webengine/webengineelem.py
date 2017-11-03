@@ -47,6 +47,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             'class_name': str,
             'rects': list,
             'attributes': dict,
+            'caret_position': int,
         }
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
         for name, typ in js_dict_types.items():
@@ -131,6 +132,10 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def set_value(self, value):
         self._js_call('set_value', value)
+
+    def caret_position(self):
+        """Get the text caret position for the current element."""
+        return self._js_dict.get('caret_position', 0)
 
     def insert_text(self, text):
         if not self.is_editable(strict=True):

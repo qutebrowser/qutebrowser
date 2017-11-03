@@ -19,6 +19,7 @@
 
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
+import enum
 import itertools
 
 import attr
@@ -74,7 +75,7 @@ class UnsupportedOperationError(WebTabError):
     """Raised when an operation is not supported with the given backend."""
 
 
-TerminationStatus = usertypes.enum('TerminationStatus', [
+TerminationStatus = enum.Enum('TerminationStatus', [
     'normal',
     'abnormal',  # non-zero exit status
     'crashed',   # e.g. segfault

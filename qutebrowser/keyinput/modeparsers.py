@@ -24,6 +24,7 @@ Module attributes:
 """
 
 import traceback
+import enum
 
 from PyQt5.QtCore import pyqtSlot, Qt
 
@@ -34,7 +35,7 @@ from qutebrowser.utils import usertypes, log, message, objreg, utils
 
 
 STARTCHARS = ":/?"
-LastPress = usertypes.enum('LastPress', ['none', 'filtertext', 'keystring'])
+LastPress = enum.Enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 
 class NormalKeyParser(keyparser.CommandKeyParser):

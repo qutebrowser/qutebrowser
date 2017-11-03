@@ -73,7 +73,7 @@ def main():
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(pythonpath)
 
-    ret = subprocess.call(['pylint'] + args, env=env)
+    ret = subprocess.run(['pylint'] + args, env=env).returncode
     return ret
 
 

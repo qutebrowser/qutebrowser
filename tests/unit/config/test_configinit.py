@@ -111,7 +111,6 @@ class TestEarlyInit:
     def test_autoconfig_yml(self, init_patch, config_tmpdir, caplog, args,
                             load_autoconfig, config_py, invalid_yaml):
         """Test interaction between config.py and autoconfig.yml."""
-        # pylint: disable=too-many-locals,too-many-branches
         # Prepare files
         autoconfig_file = config_tmpdir / 'autoconfig.yml'
         config_py_file = config_tmpdir / 'config.py'

@@ -27,6 +27,7 @@ import platform
 import subprocess
 import importlib
 import collections
+import enum
 import pkg_resources
 
 import attr
@@ -63,7 +64,7 @@ class DistributionInfo:
     pretty = attr.ib()
 
 
-Distribution = usertypes.enum(
+Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
 
@@ -151,12 +152,14 @@ def _git_str_subprocess(gitpath):
         return None
     try:
         # https://stackoverflow.com/questions/21017300/21017394#21017394
-        commit_hash = subprocess.check_output(
+        commit_hash = subprocess.run(
             ['git', 'describe', '--match=NeVeRmAtCh', '--always', '--dirty'],
-            cwd=gitpath).decode('UTF-8').strip()
-        date = subprocess.check_output(
+            cwd=gitpath, check=True,
+            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+        date = subprocess.run(
             ['git', 'show', '-s', '--format=%ci', 'HEAD'],
-            cwd=gitpath).decode('UTF-8').strip()
+            cwd=gitpath, check=True,
+            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
         return '{} ({})'.format(commit_hash, date)
     except (subprocess.CalledProcessError, OSError):
         return None

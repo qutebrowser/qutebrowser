@@ -92,22 +92,22 @@ def main():
         utils.print_bold("==== {} ====".format(page))
         if test_harfbuzz:
             print("With system harfbuzz:")
-        ret = subprocess.call([sys.executable, '-c', SCRIPT, page])
+        ret = subprocess.run([sys.executable, '-c', SCRIPT, page]).returncode
         print_ret(ret)
         retvals.append(ret)
         if test_harfbuzz:
             print("With QT_HARFBUZZ=old:")
             env = dict(os.environ)
             env['QT_HARFBUZZ'] = 'old'
-            ret = subprocess.call([sys.executable, '-c', SCRIPT, page],
-                                  env=env)
+            ret = subprocess.run([sys.executable, '-c', SCRIPT, page],
+                                 env=env).returncode
             print_ret(ret)
             retvals.append(ret)
             print("With QT_HARFBUZZ=new:")
             env = dict(os.environ)
             env['QT_HARFBUZZ'] = 'new'
-            ret = subprocess.call([sys.executable, '-c', SCRIPT, page],
-                                  env=env)
+            ret = subprocess.run([sys.executable, '-c', SCRIPT, page],
+                                 env=env).returncode
             print_ret(ret)
             retvals.append(ret)
     if all(r == 0 for r in retvals):

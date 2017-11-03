@@ -417,7 +417,6 @@ def _init_modules(args, crash_handler):
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
     """
-    # pylint: disable=too-many-statements
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
@@ -661,9 +660,9 @@ class Quitter:
         try:
             args, cwd = self._get_restart_args(pages, session, override_args)
             if cwd is None:
-                subprocess.Popen(args)
+                subprocess.run(args)
             else:
-                subprocess.Popen(args, cwd=cwd)
+                subprocess.run(args, cwd=cwd)
         except OSError:
             log.destroy.exception("Failed to restart")
             return False

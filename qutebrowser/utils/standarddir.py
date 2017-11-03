@@ -24,19 +24,20 @@ import sys
 import shutil
 import os.path
 import contextlib
+import enum
 
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, usertypes, message, utils
+from qutebrowser.utils import log, debug, message, utils
 
 # The cached locations
 _locations = {}
 
 
-Location = usertypes.enum('Location', ['config', 'auto_config',
-                                       'data', 'system_data',
-                                       'cache', 'download', 'runtime'])
+Location = enum.Enum('Location', ['config', 'auto_config',
+                                  'data', 'system_data',
+                                  'cache', 'download', 'runtime'])
 
 
 APPNAME = 'qutebrowser'

@@ -259,14 +259,13 @@ def test_command_on_start(request, quteproc_new):
 
 def test_launching_with_python2():
     try:
-        proc = subprocess.Popen(['python2', '-m', 'qutebrowser',
-                                '--no-err-windows'], stderr=subprocess.PIPE)
+        proc = subprocess.run(['python2', '-m', 'qutebrowser',
+                               '--no-err-windows'], stderr=subprocess.PIPE)
     except FileNotFoundError:
         pytest.skip("python2 not found")
-    _stdout, stderr = proc.communicate()
     assert proc.returncode == 1
     error = "At least Python 3.5 is required to run qutebrowser"
-    assert stderr.decode('ascii').startswith(error)
+    assert proc.stderr.decode('ascii').startswith(error)
 
 
 def test_initial_private_browsing(request, quteproc_new):

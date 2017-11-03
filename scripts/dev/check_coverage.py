@@ -285,8 +285,8 @@ def main_check():
             print(msg.text)
         print()
         filters = ','.join('qutebrowser/' + msg.filename for msg in messages)
-        subprocess.check_call([sys.executable, '-m', 'coverage', 'report',
-                               '--show-missing', '--include', filters])
+        subprocess.run([sys.executable, '-m', 'coverage', 'report',
+                        '--show-missing', '--include', filters], check=True)
         print()
         print("To debug this, run 'tox -e py36-pyqt59-cov' "
               "(or py35-pyqt59-cov) locally and check htmlcov/index.html")
@@ -312,9 +312,9 @@ def main_check_all():
     for test_file, src_file in PERFECT_FILES:
         if test_file is None:
             continue
-        subprocess.check_call(
+        subprocess.run(
             [sys.executable, '-m', 'pytest', '--cov', 'qutebrowser',
-             '--cov-report', 'xml', test_file])
+             '--cov-report', 'xml', test_file], check=True)
         with open('coverage.xml', encoding='utf-8') as f:
             messages = check(f, [(test_file, src_file)])
         os.remove('coverage.xml')

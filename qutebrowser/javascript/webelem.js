@@ -37,22 +37,37 @@
 "use strict";
 
 window._qutebrowser.webelem = (function() {
-    var funcs = {};
-    var elements = [];
+    const funcs = {};
+    const elements = [];
 
     function serialize_elem(elem) {
         if (!elem) {
             return null;
         }
 
-        var id = elements.length;
+        const id = elements.length;
         elements[id] = elem;
 
-        var out = {
+        // InvalidStateError will be thrown if elem doesn't have selectionStart
+        let caret_position = 0;
+        try {
+            caret_position = elem.selectionStart;
+        } catch (err) {
+            if (err instanceof DOMException &&
+                    err.name === "InvalidStateError") {
+                // nothing to do, caret_position is already 0
+            } else {
+                // not the droid we're looking for
+                throw err;
+            }
+        }
+
+        const out = {
             "id": id,
             "value": elem.value,
             "outer_xml": elem.outerHTML,
             "rects": [],  // Gets filled up later
+            "caret_position": caret_position,
         };
 
         // https://github.com/qutebrowser/qutebrowser/issues/2569
@@ -77,16 +92,16 @@ window._qutebrowser.webelem = (function() {
             out.text = elem.text;
         }  // else: don't add the text at all
 
-        var attributes = {};
-        for (var i = 0; i < elem.attributes.length; ++i) {
-            var attr = elem.attributes[i];
+        const attributes = {};
+        for (let i = 0; i < elem.attributes.length; ++i) {
+            const attr = elem.attributes[i];
             attributes[attr.name] = attr.value;
         }
         out.attributes = attributes;
 
-        var client_rects = elem.getClientRects();
-        for (var k = 0; k < client_rects.length; ++k) {
-            var rect = client_rects[k];
+        const client_rects = elem.getClientRects();
+        for (let k = 0; k < client_rects.length; ++k) {
+            const rect = client_rects[k];
             out.rects.push({
                 "top": rect.top,
                 "right": rect.right,
@@ -111,8 +126,8 @@ window._qutebrowser.webelem = (function() {
         // the cVim implementation here?
         // https://github.com/1995eaton/chromium-vim/blob/1.2.85/content_scripts/dom.js#L74-L134
 
-        var win = elem.ownerDocument.defaultView;
-        var rect = elem.getBoundingClientRect();
+        const win = elem.ownerDocument.defaultView;
+        let rect = elem.getBoundingClientRect();
 
         if (!rect ||
                 rect.top > window.innerHeight ||
@@ -127,7 +142,7 @@ window._qutebrowser.webelem = (function() {
             return false;
         }
 
-        var style = win.getComputedStyle(elem, null);
+        const style = win.getComputedStyle(elem, null);
         if (style.getPropertyValue("visibility") !== "visible" ||
                 style.getPropertyValue("display") === "none" ||
                 style.getPropertyValue("opacity") === "0") {
@@ -144,11 +159,11 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
-    funcs.find_css = function(selector, only_visible) {
-        var elems = document.querySelectorAll(selector);
-        var out = [];
+    funcs.find_css = (selector, only_visible) => {
+        const elems = document.querySelectorAll(selector);
+        const out = [];
 
-        for (var i = 0; i < elems.length; ++i) {
+        for (let i = 0; i < elems.length; ++i) {
             if (!only_visible || is_visible(elems[i])) {
                 out.push(serialize_elem(elems[i]));
             }
@@ -157,13 +172,13 @@ window._qutebrowser.webelem = (function() {
         return out;
     };
 
-    funcs.find_id = function(id) {
-        var elem = document.getElementById(id);
+    funcs.find_id = (id) => {
+        const elem = document.getElementById(id);
         return serialize_elem(elem);
     };
 
-    funcs.find_focused = function() {
-        var elem = document.activeElement;
+    funcs.find_focused = () => {
+        const elem = document.activeElement;
 
         if (!elem || elem === document.body) {
             // "When there is no selection, the active element is the page's
@@ -174,43 +189,43 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
-    funcs.find_at_pos = function(x, y) {
+    funcs.find_at_pos = (x, y) => {
         // FIXME:qtwebengine
         // If the element at the specified point belongs to another document
         // (for example, an iframe's subdocument), the subdocument's parent
         // element is returned (the iframe itself).
 
-        var elem = document.elementFromPoint(x, y);
+        const elem = document.elementFromPoint(x, y);
         return serialize_elem(elem);
     };
 
     // Function for returning a selection to python (so we can click it)
-    funcs.find_selected_link = function() {
-        var elem = window.getSelection().anchorNode;
+    funcs.find_selected_link = () => {
+        const elem = window.getSelection().anchorNode;
         if (!elem) {
             return null;
         }
         return serialize_elem(elem.parentNode);
     };
 
-    funcs.set_value = function(id, value) {
+    funcs.set_value = (id, value) => {
         elements[id].value = value;
     };
 
-    funcs.insert_text = function(id, text) {
-        var elem = elements[id];
+    funcs.insert_text = (id, text) => {
+        const elem = elements[id];
         elem.focus();
         document.execCommand("insertText", false, text);
     };
 
-    funcs.set_attribute = function(id, name, value) {
+    funcs.set_attribute = (id, name, value) => {
         elements[id].setAttribute(name, value);
     };
 
-    funcs.remove_blank_target = function(id) {
-        var elem = elements[id];
+    funcs.remove_blank_target = (id) => {
+        let elem = elements[id];
         while (elem !== null) {
-            var tag = elem.tagName.toLowerCase();
+            const tag = elem.tagName.toLowerCase();
             if (tag === "a" || tag === "area") {
                 if (elem.getAttribute("target") === "_blank") {
                     elem.setAttribute("target", "_top");
@@ -221,18 +236,18 @@ window._qutebrowser.webelem = (function() {
         }
     };
 
-    funcs.click = function(id) {
-        var elem = elements[id];
+    funcs.click = (id) => {
+        const elem = elements[id];
         elem.click();
     };
 
-    funcs.focus = function(id) {
-        var elem = elements[id];
+    funcs.focus = (id) => {
+        const elem = elements[id];
         elem.focus();
     };
 
-    funcs.move_cursor_to_end = function(id) {
-        var elem = elements[id];
+    funcs.move_cursor_to_end = (id) => {
+        const elem = elements[id];
         elem.selectionStart = elem.value.length;
         elem.selectionEnd = elem.value.length;
     };

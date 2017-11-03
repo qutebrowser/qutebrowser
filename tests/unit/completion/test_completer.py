@@ -274,7 +274,11 @@ def test_on_selection_changed(before, newtxt, after, completer_obj,
     check(True, 2, after_txt, after_pos)
 
     # quick-completing a single item should move the cursor ahead by 1 and add
-    # a trailing space if at the end of the cmd string
+    # a trailing space if at the end of the cmd string, unless the command has
+    # maxsplit < len(before) (such as :open in these tests)
+    if after_txt.startswith(':open'):
+        return
+
     after_pos += 1
     if after_pos > len(after_txt):
         after_txt += ' '
@@ -299,6 +303,11 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     config_stub.val.completion.quick = True
 
     _set_cmd_prompt(status_command_stub, ':open |')
+    completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.called
+    completion_widget_stub.set_model.reset_mock()
+
+    # selecting a completion should not re-set the model
     completer_obj.on_selection_changed('http://example.com')
     completer_obj.schedule_completion_update()
     assert not completion_widget_stub.set_model.called

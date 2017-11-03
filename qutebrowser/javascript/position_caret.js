@@ -27,16 +27,15 @@
  */
 
 "use strict";
-
 (function() {
     // FIXME:qtwebengine integrate this with other window._qutebrowser code?
     function isElementInViewport(node) {  // eslint-disable-line complexity
-        var i;
-        var boundingRect = (node.getClientRects()[0] ||
+        let i;
+        let boundingRect = (node.getClientRects()[0] ||
                             node.getBoundingClientRect());
 
         if (boundingRect.width <= 1 && boundingRect.height <= 1) {
-            var rects = node.getClientRects();
+            const rects = node.getClientRects();
             for (i = 0; i < rects.length; i++) {
                 if (rects[i].width > rects[0].height &&
                         rects[i].height > rects[0].height) {
@@ -51,8 +50,8 @@
             return null;
         }
         if (boundingRect.width <= 1 || boundingRect.height <= 1) {
-            var children = node.children;
-            var visibleChildNode = false;
+            const children = node.children;
+            let visibleChildNode = false;
             for (i = 0; i < children.length; ++i) {
                 boundingRect = (children[i].getClientRects()[0] ||
                                 children[i].getBoundingClientRect());
@@ -69,7 +68,7 @@
                 boundingRect.left + boundingRect.width < -10) {
             return null;
         }
-        var computedStyle = window.getComputedStyle(node, null);
+        const computedStyle = window.getComputedStyle(node, null);
         if (computedStyle.visibility !== "visible" ||
                 computedStyle.display === "none" ||
                 node.hasAttribute("disabled") ||
@@ -81,27 +80,27 @@
     }
 
     function positionCaret() {
-        var walker = document.createTreeWalker(document.body, 4, null);
-        var node;
-        var textNodes = [];
-        var el;
+        const walker = document.createTreeWalker(document.body, 4, null);
+        let node;
+        const textNodes = [];
+        let el;
         while ((node = walker.nextNode())) {
             if (node.nodeType === 3 && node.data.trim() !== "") {
                 textNodes.push(node);
             }
         }
-        for (var i = 0; i < textNodes.length; i++) {
-            var element = textNodes[i].parentElement;
+        for (let i = 0; i < textNodes.length; i++) {
+            const element = textNodes[i].parentElement;
             if (isElementInViewport(element.parentElement)) {
                 el = element;
                 break;
             }
         }
         if (el !== undefined) {
-            var range = document.createRange();
+            const range = document.createRange();
             range.setStart(el, 0);
             range.setEnd(el, 0);
-            var sel = window.getSelection();
+            const sel = window.getSelection();
             sel.removeAllRanges();
             sel.addRange(range);
         }
