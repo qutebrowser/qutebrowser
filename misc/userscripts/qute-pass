@@ -41,6 +41,8 @@ argument_parser.add_argument('--no-insert-mode', '-n', dest='insert_mode', actio
                              help="Don't automatically enter insert mode")
 argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
                              help='Encoding used to communicate with subprocesses')
+argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
+                             help='Merge pass candidates for fully-qualified and registered domain name')
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
@@ -50,7 +52,7 @@ stderr = functools.partial(print, file=sys.stderr)
 
 class ExitCodes(enum.IntEnum):
     SUCCESS = 0
-    # 1 is reserved for general script errors
+    # 1 is automatically used if Python throws an exception
     NO_PASS_CANDIDATES = 2
     COULD_NOT_MATCH_USERNAME = 3
     COULD_NOT_MATCH_PASSWORD = 4
@@ -87,23 +89,29 @@ def dmenu(items, invocation, encoding):
 
 
 def main(arguments):
-    domain = tldextract.extract(arguments.url)
+    extract_result = tldextract.extract(arguments.url)
 
     # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
     password_store_path = os.path.expanduser(arguments.password_store)
 
-    # Try to find candidates using targets in the following order: fully qualified domain (including subdomains),
-    # registered domain and finally the IPv4 address if that's what the URL was
-    for target in filter(None, [domain.fqdn, domain.registered_domain, domain.ipv4]):
-        candidates = find_pass_candidates(target, password_store_path)
-        if candidates:
+    # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
+    # the registered domain name and finally: the IPv4 address if that's what the URL represents
+    candidates = set()
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+        target_candidates = find_pass_candidates(target, password_store_path)
+        if not target_candidates:
+            continue
+
+        candidates.update(target_candidates)
+        if not arguments.merge_candidates:
             break
     else:
-        stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
-        return ExitCodes.NO_PASS_CANDIDATES
+        if not candidates:
+            stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
+            return ExitCodes.NO_PASS_CANDIDATES
 
-    selection = candidates[0] if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation,
-                                                                 arguments.io_encoding)
+    selection = candidates.pop() if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation,
+                                                                    arguments.io_encoding)
     secret = pass_(selection, arguments.io_encoding)
 
     # Match username
@@ -127,8 +135,8 @@ def main(arguments):
     elif arguments.password_only:
         qute_command('fake-key {}{}'.format(password, insert_mode))
     else:
-        # Enter username and password using fake-key and <Tab> (which seems to work almost universally) and switch back
-        # into insert-mode, so the form can be directly submitted by hitting enter afterwards
+        # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
+        # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
         qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {}{}'.format(username, password, insert_mode))
 
     return ExitCodes.SUCCESS
