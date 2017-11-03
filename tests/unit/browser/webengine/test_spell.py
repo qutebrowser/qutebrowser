@@ -21,6 +21,11 @@
 from qutebrowser.browser.webengine import spell
 
 
+def test_version():
+    assert spell.version('en-US-8-0.bdic') == [8, 0]
+    assert spell.version('pl-PL-3-0.bdic') == [3, 0]
+
+
 def test_installed_file_dictionary_does_not_exist(tmpdir, monkeypatch):
     monkeypatch.setattr(
         spell, 'dictionary_dir', lambda: '/some-non-existing-dir')
@@ -34,7 +39,7 @@ def test_installed_file_dictionary_not_installed(tmpdir, monkeypatch):
 
 def test_installed_file_dictionary_installed(tmpdir, monkeypatch):
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
-    for lang_file in ['en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
+    for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
         (tmpdir / lang_file).ensure()
-    assert spell.installed_file('en-US') == 'en-US-7-1'
+    assert spell.installed_file('en-US') == 'en-US-11-0'
     assert spell.installed_file('pl-PL') == 'pl-PL-3-0'
