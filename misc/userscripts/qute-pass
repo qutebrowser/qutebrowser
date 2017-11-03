@@ -50,11 +50,10 @@ stderr = functools.partial(print, file=sys.stderr)
 
 class ExitCodes(enum.IntEnum):
     SUCCESS = 0
-    COULD_NOT_DETERMINE_URL = 1
-    COULD_NOT_DETERMINE_DOMAIN = 2
-    NO_PASS_CANDIDATES = 3
-    COULD_NOT_MATCH_USERNAME = 4
-    COULD_NOT_MATCH_PASSWORD = 5
+    # 1 is reserved for general script errors
+    NO_PASS_CANDIDATES = 2
+    COULD_NOT_MATCH_USERNAME = 3
+    COULD_NOT_MATCH_PASSWORD = 4
 
 
 def qute_command(command):
@@ -88,20 +87,19 @@ def dmenu(items, invocation, encoding):
 
 
 def main(arguments):
-    # Domain wasn't overriden using CLI argument or found in qutebrowser environment variable
-    if not arguments.url:
-        stderr('Could not determine URL!')
-        return ExitCodes.COULD_NOT_DETERMINE_URL
-
-    domain = tldextract.extract(arguments.url).registered_domain
-    if not domain:
-        stderr('Could not determine domain from URL: {!r}!'.format(arguments.url))
-        return ExitCodes.COULD_NOT_DETERMINE_DOMAIN
+    domain = tldextract.extract(arguments.url)
 
     # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
-    candidates = find_pass_candidates(domain, os.path.expanduser(arguments.password_store))
-    if not candidates:
-        stderr('No candidates for domain {!r} found!'.format(domain))
+    password_store_path = os.path.expanduser(arguments.password_store)
+
+    # Try to find candidates using targets in the following order: fully qualified domain (including subdomains),
+    # registered domain and finally the IPv4 address if that's what the URL was
+    for target in filter(None, [domain.fqdn, domain.registered_domain, domain.ipv4]):
+        candidates = find_pass_candidates(target, password_store_path)
+        if candidates:
+            break
+    else:
+        stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
         return ExitCodes.NO_PASS_CANDIDATES
 
     selection = candidates[0] if len(candidates) == 1 else dmenu(candidates, arguments.dmenu_invocation,
