@@ -24,18 +24,17 @@ window._qutebrowser.stylesheet = (function() {
         return window._qutebrowser.stylesheet;
     }
 
-    var funcs = {};
+    const funcs = {};
 
-    var xhtml_ns = "http://www.w3.org/1999/xhtml";
-    var svg_ns = "http://www.w3.org/2000/svg";
+    const xhtml_ns = "http://www.w3.org/1999/xhtml";
+    const svg_ns = "http://www.w3.org/2000/svg";
 
-    var root_elem;
-    var style_elem;
-    var css_content = "";
+    let root_elem;
+    let style_elem;
+    let css_content = "";
 
-    var root_observer;
-    var style_observer;
-    var initialized = false;
+    let root_observer;
+    let initialized = false;
 
     // Watch for rewrites of the root element and changes to its children,
     // then move the stylesheet to the end. Partially inspired by Stylus:
@@ -53,7 +52,7 @@ window._qutebrowser.stylesheet = (function() {
     }
 
     function create_style() {
-        var ns = xhtml_ns;
+        let ns = xhtml_ns;
         if (document.documentElement.namespaceURI === svg_ns) {
             ns = svg_ns;
         }
@@ -69,26 +68,13 @@ window._qutebrowser.stylesheet = (function() {
     // starting point for exploring the relevant code in Chromium, see
     // https://github.com/qt/qtwebengine-chromium/blob/cfe8c60/chromium/third_party/WebKit/Source/core/xml/parser/XMLDocumentParser.cpp#L1539-L1540
     function check_style(node) {
-        var stylesheet = node.nodeType === Node.PROCESSING_INSTRUCTION_NODE &&
-                         node.target === "xml-stylesheet" &&
-                         node.parentNode === document;
-        var known_ns = node.nodeType === Node.ELEMENT_NODE &&
-                       (node.namespaceURI === xhtml_ns ||
-                        node.namespaceURI === svg_ns);
+        const stylesheet = node.nodeType === Node.PROCESSING_INSTRUCTION_NODE &&
+                           node.target === "xml-stylesheet" &&
+                           node.parentNode === document;
+        const known_ns = node.nodeType === Node.ELEMENT_NODE &&
+                         (node.namespaceURI === xhtml_ns ||
+                          node.namespaceURI === svg_ns);
         return stylesheet || known_ns;
-    }
-
-    function watch_added_style(mutations) {
-        for (var mi = 0; mi < mutations.length; ++mi) {
-            var nodes = mutations[mi].addedNodes;
-            for (var ni = 0; ni < nodes.length; ++ni) {
-                if (check_style(nodes[ni])) {
-                    create_style();
-                    style_observer.disconnect();
-                    return;
-                }
-            }
-        }
     }
 
     function init() {
@@ -99,16 +85,26 @@ window._qutebrowser.stylesheet = (function() {
             create_style();
             return;
         }
-        var iter = document.createNodeIterator(document,
+        const iter = document.createNodeIterator(document,
             NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_ELEMENT);
-        var node;
+        let node;
         while ((node = iter.nextNode())) {
             if (check_style(node)) {
                 create_style();
                 return;
             }
         }
-        style_observer = new MutationObserver(watch_added_style);
+        const style_observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const added of mutation.addedNodes) {
+                    if (check_style(added)) {
+                        create_style();
+                        style_observer.disconnect();
+                        return;
+                    }
+                }
+            }
+        });
         style_observer.observe(document, {"childList": true, "subtree": true});
     }
 
@@ -127,8 +123,8 @@ window._qutebrowser.stylesheet = (function() {
         }
         // Propagate the new CSS to all child frames.
         // FIXME:qtwebengine This does not work for cross-origin frames.
-        for (var i = 0; i < window.frames.length; ++i) {
-            var frame = window.frames[i];
+        for (let i = 0; i < window.frames.length; ++i) {
+            const frame = window.frames[i];
             if (frame._qutebrowser && frame._qutebrowser.stylesheet) {
                 frame._qutebrowser.stylesheet.set_css(css);
             }
