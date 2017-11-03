@@ -131,6 +131,10 @@ def main(arguments):
 
     selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
                                                                     arguments.io_encoding)
+    # Nothing was selected, simply return
+    if not selection:
+        return ExitCodes.SUCCESS
+
     secret = pass_(selection, arguments.io_encoding)
 
     # Match username
