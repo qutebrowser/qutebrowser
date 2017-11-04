@@ -37,7 +37,7 @@ Added
 - New `{line}` and `{column}` replacements for `editor.command` to position the
   cursor correctly.
 - New `qute-pass` userscript as alternative to `password_fill` which allows
-  selecting accounts via rofi.
+  selecting accounts via rofi or any other dmenu-compatile application.
 
 Changed
 ~~~~~~~
