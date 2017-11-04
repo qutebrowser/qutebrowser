@@ -1,11 +1,11 @@
 (function () {
-    var _qute_script_id = "__gm_"+{{ scriptName | tojson }};
+    const _qute_script_id = "__gm_"+{{ scriptName | tojson }};
 
     function GM_log(text) {
         console.log(text);
     }
 
-    var GM_info = {
+    const GM_info = {
         'script': {{ scriptInfo }},
         'scriptMetaStr': {{ scriptMeta | tojson }},
         'scriptWillUpdate': false,
@@ -15,7 +15,7 @@
 
     function checkKey(key, funcName) {
         if (typeof key !== "string") {
-          throw new Error(funcName+" requires the first parameter to be of type string, not '"+typeof key+"'");
+          throw new Error(`${funcName} requires the first parameter to be of type string, not '${typeof key}'`);
         }
     }
 
@@ -24,7 +24,7 @@
         if (typeof value !== "string" &&
             typeof value !== "number" &&
             typeof value !== "boolean") {
-          throw new Error("GM_setValue requires the second parameter to be of type string, number or boolean, not '"+typeof value+"'");
+          throw new Error(`GM_setValue requires the second parameter to be of type string, number or boolean, not '${typeof value}'`);
         }
         localStorage.setItem(_qute_script_id + key, value);
     }
@@ -40,8 +40,8 @@
     }
 
     function GM_listValues() {
-        var keys = [];
-        for (var i = 0; i < localStorage.length; i++) {
+        let keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
             if (localStorage.key(i).startsWith(_qute_script_id)) {
                 keys.push(localStorage.key(i).slice(_qute_script_id.length));
             }
@@ -63,7 +63,7 @@
         }
 
         // build XMLHttpRequest object
-        var oXhr = new XMLHttpRequest();
+        let oXhr = new XMLHttpRequest();
         // run it
         if ("onreadystatechange" in details) {
             oXhr.onreadystatechange = function () {
@@ -80,7 +80,7 @@
         oXhr.open(details.method, details.url, true);
 
         if ("headers" in details) {
-            for (var header in details.headers) {
+            for (let header in details.headers) {
                 oXhr.setRequestHeader(header, details.headers[header]);
             }
         }
@@ -93,11 +93,11 @@
     }
 
     function GM_addStyle(/* String */ styles) {
-        var oStyle = document.createElement("style");
+        let oStyle = document.createElement("style");
         oStyle.setAttribute("type", "text/css");
         oStyle.appendChild(document.createTextNode(styles));
 
-        var head = document.getElementsByTagName("head")[0];
+        let head = document.getElementsByTagName("head")[0];
         if (head === undefined) {
             document.onreadystatechange = function () {
                 if (document.readyState == "interactive") {
@@ -110,7 +110,7 @@
         }
     }
 
-    var unsafeWindow = window;
+    const unsafeWindow = window;
 
     //====== The actual user script source ======//
 {{ scriptSource }}
