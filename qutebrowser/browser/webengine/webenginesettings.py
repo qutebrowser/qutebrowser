@@ -134,12 +134,12 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
         super().__init__('setSpellCheckLanguages', default=[])
 
     def _find_installed(self, code):
-        installed_file = spell.installed_file(code)
-        if not installed_file:
+        local_filename = spell.local_filename(code)
+        if not local_filename:
             message.warning(
-                "Language {} is not installed - see scripts/install_dict.py "
+                "Language {} is not installed - see scripts/dict.py "
                 "in qutebrowser's sources".format(code))
-        return installed_file
+        return local_filename
 
     def _set(self, value, settings=None):
         if settings is not None:
