@@ -36,6 +36,8 @@ Added
   same effect they have with `:open`.
 - New `{line}` and `{column}` replacements for `editor.command` to position the
   cursor correctly.
+- New `qute-pass` userscript as alternative to `password_fill` which allows
+  selecting accounts via rofi.
 
 Changed
 ~~~~~~~
@@ -43,15 +45,19 @@ Changed
 - High-DPI favicons are now used when available.
 - The `asciidoc2html.py` script now uses Pygments (which is already a dependency
   of qutebrowser) instead of `source-highlight` for syntax highlighting.
+- The `importer.py` script was largely rewritten and now also supports importing
+  from Firefox' `places.sqlite` file.
+- Various internal refactorings to use Python 3.5 and ECMAscript 6 features
 
 Fixed
 ~~~~~
 
 - More consistent sizing for favicons with vertical tabs.
 - Using `:home` on pinned tabs is now prevented.
-- Fix crash with unknown file types loaded via qute://help
-- Scrolling performance improvements
-- Fix crash when `:tab-give` is used with an unknown window ID.
+- Fix crash with unknown file types loaded via qute://help.
+- Scrolling performance improvements.
+- Sites like `qute://help` now redirect to `qute://help/` to make sure links
+  work properly.
 
 Deprecated
 ~~~~~~~~~~
@@ -66,20 +72,27 @@ Removed
   commands have been removed.
 - The `messages.unfocused` option which wasn't used anymore was removed.
 
-v1.0.3 (unreleased)
--------------------
+v1.0.3
+------
 
 Changed
 ~~~~~~~
 
-- Performance improvements for tab rendering
+- macOS and Windows builds are now built with PyQt 5.9.1 and Qt 5.9.2, including
+  various bugfixes, as well as security fixes from Chromium up to version
+  61.0.3163.79.
+- Performance improvements for tab rendering.
+- The :open-editor command is now not hidden anymore as it's also usable in
+  normal mode.
 
 Fixed
 ~~~~~
 
 - Handle accessing a locked sqlite database gracefully
 - Abort pinned tab dialogs properly when a tab is closed e.g. by closing a
-  window.
+  window
+- Unbinding a default keybinding twice now doesn't bind it again
+- Completions are now sorted correctly again when filtered
 
 v1.0.2
 ------
