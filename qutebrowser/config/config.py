@@ -198,7 +198,7 @@ class KeyConfig:
 
         bindings_commands = self._config.get_obj('bindings.commands')
 
-        if key in val.bindings.commands[mode]:
+        if val.bindings.commands[mode].get(key, None) is not None:
             # In custom bindings -> remove it
             del bindings_commands[mode][key]
         elif key in val.bindings.default[mode]:

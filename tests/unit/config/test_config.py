@@ -269,6 +269,22 @@ class TestKeyConfig:
                            match="Can't find binding 'foobar' in normal mode"):
             key_config_stub.unbind('foobar', mode='normal')
 
+    def test_unbound_twice(self, key_config_stub, config_stub, no_bindings):
+        """Try unbinding an already-unbound default key.
+
+        For custom-bound keys (in bindings.commands), it's okay to display an
+        error, as this isn't something you'd do in e.g a config.py anyways.
+
+        https://github.com/qutebrowser/qutebrowser/issues/3162
+        """
+        config_stub.val.bindings.default = {'normal': {'a': 'nop'}}
+        config_stub.val.bindings.commands = no_bindings
+
+        key_config_stub.unbind('a')
+        assert key_config_stub.get_command('a', mode='normal') is None
+        key_config_stub.unbind('a')
+        assert key_config_stub.get_command('a', mode='normal') is None
+
 
 class TestConfig:
 
