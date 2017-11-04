@@ -139,7 +139,7 @@ def create_full_filename(basename, filename):
     filename = utils.force_encoding(filename, encoding)
     basename = utils.force_encoding(basename, encoding)
     if os.path.isabs(filename) and (os.path.isdir(filename) or
-                                    os.path.join(filename, "") == filename):
+                                    filename.endswith(os.sep)):
         # We got an absolute directory from the user, so we save it under
         # the default filename in that directory.
         return os.path.join(filename, basename)
@@ -606,6 +606,11 @@ class AbstractDownloadItem(QObject):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
+    def _ask_create_parent_question(self, title, msg,
+                                    force_overwrite, remember_directory):
+        """Ask a confirmation question for the parent directory."""
+        raise NotImplementedError
+
     def _set_fileobj(self, fileobj, *, autoclose=True):
         """Set a file object to save the download to.
 
@@ -683,11 +688,10 @@ class AbstractDownloadItem(QObject):
 
         try:
             os.makedirs(os.path.dirname(self._filename))
+        except FileExistsError:
+            pass
         except OSError as e:
-            # Unlikely, but could be created before
-            # we get a chance to create it.
-            if e.errno != errno.EEXIST:
-                raise
+            self._die(e.strerror)
 
         self.basename = os.path.basename(self._filename)
         if remember_directory:
