@@ -15,10 +15,32 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.0.3
+------
+
+Changed
+~~~~~~~
+
+- macOS and Windows builds are now built with PyQt 5.9.1 and Qt 5.9.2, including
+  various bugfixes, as well as security fixes from Chromium up to version
+  61.0.3163.79.
+- Performance improvements for tab rendering.
+- The :open-editor command is now not hidden anymore as it's also usable in
+  normal mode.
+
+Fixed
+~~~~~
+
+- Handle accessing a locked sqlite database gracefully
+- Abort pinned tab dialogs properly when a tab is closed e.g. by closing a
+  window
+- Unbinding a default keybinding twice now doesn't bind it again
+- Completions are now sorted correctly again when filtered
+
 v1.0.2
 ------
 
-Fixes
+Fixed
 ~~~~~
 
 - Fix workaround for black screens or crashes with Nvidia cards
@@ -36,7 +58,7 @@ Changed
 v1.0.1
 ------
 
-Fixes
+Fixed
 ~~~~~
 
 - Fixed starting after customizing `fonts.tabs` or `fonts.debug_console`.
@@ -74,6 +96,9 @@ Major changes
   the entire browsing history. The default for
   `completion.web_history_max_items` got changed to `-1` (unlimited). If the
   completion is too slow on your machine, try setting it to a few 1000 items.
+- Up/Down now navigates through the command history instead of selecting
+  completion items. Either use Tab to cycle through the completion, or
+  https://github.com/qutebrowser/qutebrowser/blob/master/doc/help/configuring.asciidoc#migrating-older-configurations[restore the old behavior].
 
 Added
 ~~~~~
