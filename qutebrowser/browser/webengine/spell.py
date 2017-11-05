@@ -23,19 +23,18 @@ import glob
 import os
 import re
 
-from qutebrowser.utils import log
 from PyQt5.QtCore import QLibraryInfo
+from qutebrowser.utils import log
 
 
 def version(filename):
     """Extract the version number from the dictionary file name."""
-    version_re = re.compile(r"""
-        .+-(?P<version>[0-9]+-[0-9]+?)\.bdic
-    """, re.VERBOSE)
+    version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
     match = version_re.match(filename)
-    assert match is not None, \
-        'the given dictionary file name is malformed: {}'.format(filename)
-    return [int(n) for n in match.group('version').split('-')]
+    if match is None:
+        raise ValueError('the given dictionary file name is malformed: {}'
+                         .format(filename))
+    return tuple(int(n) for n in match.group('version').split('-'))
 
 
 def dictionary_dir():

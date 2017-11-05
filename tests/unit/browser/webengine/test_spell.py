@@ -22,8 +22,8 @@ from qutebrowser.browser.webengine import spell
 
 
 def test_version():
-    assert spell.version('en-US-8-0.bdic') == [8, 0]
-    assert spell.version('pl-PL-3-0.bdic') == [3, 0]
+    assert spell.version('en-US-8-0.bdic') == (8, 0)
+    assert spell.version('pl-PL-3-0.bdic') == (3, 0)
 
 
 def test_local_filename_dictionary_does_not_exist(tmpdir, monkeypatch):

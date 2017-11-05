@@ -137,7 +137,7 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
         local_filename = spell.local_filename(code)
         if not local_filename:
             message.warning(
-                "Language {} is not installed - see scripts/dict.py "
+                "Language {} is not installed - see scripts/dictcli.py "
                 "in qutebrowser's sources".format(code))
         return local_filename
 

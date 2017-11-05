@@ -97,6 +97,7 @@ def get_argparser():
     parser = argparse.ArgumentParser(prog='dictcli',
                                      description=desc)
     subparsers = parser.add_subparsers(help='Command', dest='cmd')
+    subparsers.required = True
     subparsers.add_parser('list',
         help='Display the list of available languages.')
     subparsers.add_parser('update',
@@ -228,8 +229,7 @@ def install(languages):
             print('Installing {}: {}'.format(lang.code, lang.name))
             install_lang(lang)
         except PermissionError as e:
-            print(e)
-            sys.exit(1)
+            sys.exit(str(e))
 
 
 def update(languages):
@@ -258,18 +258,14 @@ def main():
     argv = sys.argv[1:]
     args = parser.parse_args(argv)
     languages = available_languages()
-    if args.cmd is None:
-        parser.print_usage()
-        exit(1)
-    elif args.cmd == 'list':
+    if args.cmd == 'list':
         print_list(languages)
     elif args.cmd == 'update':
         update(languages)
     elif args.cmd == 'remove-old':
         remove_old(languages)
     elif not args.language:
-        print('You must provide a list of languages to install.')
-        exit(1)
+        sys.exit('You must provide a list of languages to install.')
     else:
         try:
             install(filter_languages(languages, args.language))
