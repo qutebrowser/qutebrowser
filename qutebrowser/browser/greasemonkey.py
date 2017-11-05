@@ -226,6 +226,10 @@ class GreasemonkeyManager(QObject):
     """
 
     scripts_reloaded = pyqtSignal()
+    # https://wiki.greasespot.net/Include_and_exclude_rules#Greaseable_schemes
+    # Limit the schemes scripts can run on due to unreasonable levels of
+    # exploitability
+    greaseable_schemes = ['http', 'https', 'ftp', 'file']
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -273,6 +277,8 @@ class GreasemonkeyManager(QObject):
         returns a tuple of lists of scripts meant to run at (document-start,
         document-end, document-idle)
         """
+        if url.split(':', 1)[0] not in self.greaseable_schemes:
+            return [], [], []
         match = functools.partial(fnmatch.fnmatch, url)
         tester = (lambda script:
                   any([match(pat) for pat in script.includes]) and
