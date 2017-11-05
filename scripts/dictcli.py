@@ -162,7 +162,7 @@ def language_list_from_api():
 
 
 def latest_yet(code2file, code, filename):
-    """Determine wether the latest version so far."""
+    """Determine whether the latest version so far."""
     if code not in code2file:
         return True
     return spell.version(code2file[code]) < spell.version(filename)
@@ -176,7 +176,6 @@ def available_languages():
     for code, filename in api_list:
         if latest_yet(code2file, code, filename):
             code2file[code] = filename
-    print(code2file)
     return [
         Language(code, name, code2file[code])
         for code, name in lang_map.items()
