@@ -133,9 +133,15 @@ echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
 
 tmpdir=$(mktemp -d)
 file_to_cast=${tmpdir}/qutecast
+program_=$(command -v castnow)
+
+if [[ "${program_}" == "" ]]; then
+    msg error "castnow can't be found..."
+    exit 1
+fi
 
 # kill any running instance of castnow
-pkill -f /usr/bin/castnow
+pkill -f "${program_}"
 
 # start youtube download in stream mode (-o -) into temporary file
 youtube-dl -qo - "$1" > ${file_to_cast} &
@@ -143,7 +149,7 @@ ytdl_pid=$!
 
 msg info "Casting $1" >> "$QUTE_FIFO"
 # start castnow in stream mode to cast on ChromeCast
-tail -F "${file_to_cast}" | castnow -
+tail -F "${file_to_cast}" | ${program_} -
 
 # cleanup remaining background process and file on disk
 kill ${ytdl_pid}
