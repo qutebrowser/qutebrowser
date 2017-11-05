@@ -1066,7 +1066,8 @@ class CommandDispatcher:
 
         return (tabbed_browser, tabbed_browser.widget(idx-1))
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.buffer)
     @cmdutils.argument('count', count=True)
     def buffer(self, index=None, count=None):

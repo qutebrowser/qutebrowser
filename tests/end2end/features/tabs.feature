@@ -884,7 +884,7 @@ Feature: Tab management
         When I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll/simple.html in a new tab
-        And I run :buffer "Searching text"
+        And I run :buffer Searching text
         And I wait for "Current tab changed, focusing <qutebrowser.browser.* tab_id=* url='http://localhost:*/data/search.html'>" in the log
         Then the following tabs should be open:
             - data/title.html
@@ -892,7 +892,7 @@ Feature: Tab management
             - data/scroll/simple.html
 
     Scenario: :buffer with no matching title
-        When I run :buffer "invalid title"
+        When I run :buffer invalid title
         Then the error "No matching tab for: invalid title" should be shown
 
     Scenario: :buffer with matching title and two windows
@@ -901,7 +901,7 @@ Feature: Tab management
         And I open data/scroll/simple.html in a new tab
         And I open data/caret.html in a new window
         And I open data/paste_primary.html in a new tab
-        And I run :buffer "Scrolling"
+        And I run :buffer Scrolling
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
@@ -924,12 +924,12 @@ Feature: Tab management
 
     Scenario: :buffer with no matching index
         When I open data/title.html
-        And I run :buffer "666"
+        And I run :buffer 666
         Then the error "There's no tab with index 666!" should be shown
 
     Scenario: :buffer with no matching window index
         When I open data/title.html
-        And I run :buffer "99/1"
+        And I run :buffer 99/1
         Then the error "There's no window with id 99!" should be shown
 
     @skip   # Too flaky
@@ -941,7 +941,7 @@ Feature: Tab management
         And I run :open -w http://localhost:(port)/data/caret.html
         And I open data/paste_primary.html in a new tab
         And I wait until data/caret.html is loaded
-        And I run :buffer "0/2"
+        And I run :buffer 0/2
         And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
@@ -964,29 +964,29 @@ Feature: Tab management
 
     Scenario: :buffer with wrong argument (-1)
         When I open data/title.html
-        And I run :buffer "-1"
+        And I run :buffer -1
         Then the error "There's no tab with index -1!" should be shown
 
     Scenario: :buffer with wrong argument (/)
         When I open data/title.html
-        And I run :buffer "/"
+        And I run :buffer /
         Then the following tabs should be open:
             - data/title.html (active)
 
     Scenario: :buffer with wrong argument (//)
         When I open data/title.html
-        And I run :buffer "//"
+        And I run :buffer //
         Then the following tabs should be open:
             - data/title.html (active)
 
     Scenario: :buffer with wrong argument (0/x)
         When I open data/title.html
-        And I run :buffer "0/x"
+        And I run :buffer 0/x
         Then the error "No matching tab for: 0/x" should be shown
 
     Scenario: :buffer with wrong argument (1/2/3)
         When I open data/title.html
-        And I run :buffer "1/2/3"
+        And I run :buffer 1/2/3
         Then the error "No matching tab for: 1/2/3" should be shown
 
     # :tab-take
