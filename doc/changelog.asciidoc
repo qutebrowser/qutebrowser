@@ -59,6 +59,7 @@ Fixed
 - Scrolling performance improvements.
 - Sites like `qute://help` now redirect to `qute://help/` to make sure links
   work properly.
+- Fixes for the size calculation of pinned tabs in the tab bar.
 
 Deprecated
 ~~~~~~~~~~
