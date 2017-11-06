@@ -381,10 +381,10 @@ class CompletionView(QTreeView):
     @cmdutils.register(instance='completion', hide=True,
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_yank(self, sel=False):
-        """Yank the current completion item onto the clipboard.
+        """Yank the current completion item into the clipboard.
 
         Args:
-            sel: True to use the primary selection instead of the clipboard.
+            sel: Use the primary selection instead of the clipboard.
         """
         index = self.currentIndex()
         if not index.isValid():
