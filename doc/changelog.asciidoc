@@ -45,6 +45,7 @@ Changed
 - High-DPI favicons are now used when available.
 - The `asciidoc2html.py` script now uses Pygments (which is already a dependency
   of qutebrowser) instead of `source-highlight` for syntax highlighting.
+- The `:buffer` command now doesn't require quoting anymore, similar to `:open`.
 - The `importer.py` script was largely rewritten and now also supports importing
   from Firefox' `places.sqlite` file.
 - Various internal refactorings to use Python 3.5 and ECMAscript 6 features
