@@ -38,6 +38,7 @@ Added
   cursor correctly.
 - New `qute-pass` userscript as alternative to `password_fill` which allows
   selecting accounts via rofi or any other dmenu-compatile application.
+- New `qt.highdpi` setting to turn on Qt's High-DPI scaling.
 
 Changed
 ~~~~~~~

@@ -206,6 +206,9 @@ Focuses window if necessary when index is given. If both index and count are giv
 ==== count
 The tab index to focus, starting with 1.
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+
 [[close]]
 === close
 Close the current window.

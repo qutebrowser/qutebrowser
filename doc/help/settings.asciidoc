@@ -218,6 +218,7 @@
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
+|<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<session_default_name,session_default_name>>|Name of the session to save by default.
@@ -2498,6 +2499,7 @@ Default: empty
 === qt.force_platform
 Force a Qt platform to use.
 This sets the `QT_QPA_PLATFORM` environment variable and is useful to force using the XCB plugin when running QtWebEngine on Wayland.
+This setting requires a restart.
 
 Type: <<types,String>>
 
@@ -2506,13 +2508,25 @@ Default: empty
 [[qt.force_software_rendering]]
 === qt.force_software_rendering
 Force software rendering for QtWebEngine.
-This is needed for QtWebEngine to work with Nouveau drivers. This setting requires a restart.
+This is needed for QtWebEngine to work with Nouveau drivers.
+This setting requires a restart.
 
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
 This setting is only available with the QtWebEngine backend.
+
+[[qt.highdpi]]
+=== qt.highdpi
+Turn on Qt HighDPI scaling.
+This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 in the environment.
+It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[scrolling.bar]]
 === scrolling.bar

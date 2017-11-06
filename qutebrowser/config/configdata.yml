@@ -143,6 +143,7 @@ qt.force_software_rendering:
     Force software rendering for QtWebEngine.
 
     This is needed for QtWebEngine to work with Nouveau drivers.
+
     This setting requires a restart.
 
 qt.force_platform:
@@ -155,6 +156,8 @@ qt.force_platform:
 
     This sets the `QT_QPA_PLATFORM` environment variable and is useful to force
     using the XCB plugin when running QtWebEngine on Wayland.
+
+    This setting requires a restart.
 
 
 qt.highdpi:
@@ -169,6 +172,8 @@ qt.highdpi:
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
     `zoom.default` setting.
+
+    This setting requires a restart.
 
 ## auto_save
 
