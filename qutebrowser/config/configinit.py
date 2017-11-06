@@ -94,6 +94,9 @@ def _init_envvars():
     else:
         os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
 
+    if config.val.qt.highdpi:
+        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+
 
 @config.change_filter('fonts.monospace', function=True)
 def _update_monospace_fonts():

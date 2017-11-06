@@ -157,6 +157,19 @@ qt.force_platform:
     using the XCB plugin when running QtWebEngine on Wayland.
 
 
+qt.highdpi:
+  type: Bool
+  default: false
+  desc: >-
+    Turn on Qt HighDPI scaling.
+
+    This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 in the
+    environment.
+
+    It's off by default as it can cause issues with some bitmap fonts.
+    As an alternative to this, it's possible to set font sizes and the
+    `zoom.default` setting.
+
 ## auto_save
 
 auto_save.interval:

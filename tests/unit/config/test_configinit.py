@@ -288,6 +288,15 @@ class TestEarlyInit:
         configinit._init_envvars()
         assert os.environ[envvar] == 'toaster'
 
+    def test_highdpi(self, monkeypatch, config_stub):
+        envvar = 'QT_AUTO_SCREEN_SCALE_FACTOR'
+        monkeypatch.delenv(envvar, raising=False)
+
+        config_stub.val.qt.highdpi = True
+
+        configinit._init_envvars()
+        assert os.environ[envvar] == '1'
+
     @pytest.mark.parametrize('old', ['1', '0', None])
     @pytest.mark.parametrize('configval', [True, False])
     def test_hide_wayland_decoration(self, monkeypatch, config_stub,
