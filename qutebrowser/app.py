@@ -660,9 +660,9 @@ class Quitter:
         try:
             args, cwd = self._get_restart_args(pages, session, override_args)
             if cwd is None:
-                subprocess.run(args)
+                subprocess.Popen(args)
             else:
-                subprocess.run(args, cwd=cwd)
+                subprocess.Popen(args, cwd=cwd)
         except OSError:
             log.destroy.exception("Failed to restart")
             return False
