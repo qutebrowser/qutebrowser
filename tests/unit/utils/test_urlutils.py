@@ -758,6 +758,11 @@ def test_safe_display_string_invalid():
         urlutils.safe_display_string(QUrl())
 
 
+def test_query_string():
+    url = QUrl('https://www.example.com/?foo=bar')
+    assert urlutils.query_string(url) == 'foo=bar'
+
+
 class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [

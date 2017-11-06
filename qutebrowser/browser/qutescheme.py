@@ -36,7 +36,7 @@ from PyQt5.QtCore import QUrlQuery, QUrl
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg)
+                               objreg, urlutils)
 from qutebrowser.misc import objects
 
 
@@ -137,7 +137,7 @@ def data_for_url(url):
     """
     path = url.path()
     host = url.host()
-    query = url.query()
+    query = urlutils.query_string(url)
     # A url like "qute:foo" is split as "scheme:path", not "scheme:host".
     log.misc.debug("url: {}, path: {}, host {}".format(
         url.toDisplayString(), path, host))

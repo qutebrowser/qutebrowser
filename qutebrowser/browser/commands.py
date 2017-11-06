@@ -814,7 +814,7 @@ class CommandDispatcher:
             flags |= QUrl.FullyEncoded
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
-        url_query_str = url.query()
+        url_query_str = urlutils.query_string(url)
         if '&' not in url_query_str and ';' in url_query_str:
             url_query.setQueryDelimiters('=', ';')
         url_query.setQuery(url_query_str)

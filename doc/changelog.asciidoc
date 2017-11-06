@@ -64,6 +64,8 @@ Fixed
 - Sites like `qute://help` now redirect to `qute://help/` to make sure links
   work properly.
 - Fixes for the size calculation of pinned tabs in the tab bar.
+- Worked around a crash with PyQt 5.9.1 compiled against Qt < 5.9.1 when using
+  :yank or qute:// URLs.
 
 Deprecated
 ~~~~~~~~~~
