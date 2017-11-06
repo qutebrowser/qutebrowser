@@ -80,6 +80,14 @@ Removed
   commands have been removed.
 - The `messages.unfocused` option which wasn't used anymore was removed.
 
+v1.0.4 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- The `qute://gpl` page now works correctly again.
+
 v1.0.3
 ------
 
