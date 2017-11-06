@@ -27,6 +27,7 @@ __pycache__
 /.cache
 /.testmondata
 /.hypothesis
+/.mypy_cache
 /prof
 /venv
 TODO
