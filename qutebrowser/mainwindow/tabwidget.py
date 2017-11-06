@@ -431,6 +431,8 @@ class TabBar(QTabBar):
         """Set the tab bar font."""
         self.setFont(config.val.fonts.tabs)
         self._set_icon_size()
+        # clear tab size cache
+        self._minimum_tab_size_hint_helper.cache_clear()
 
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
@@ -477,11 +479,13 @@ class TabBar(QTabBar):
             A QSize of the smallest tab size we can make.
         """
         icon = self.tabIcon(index)
-        extent = self.style().pixelMetric(QStyle.PM_TabBarIconSize, None, self)
+        icon_padding = self.style().pixelMetric(PixelMetrics.icon_padding,
+                                                None, self)
         if icon.isNull():
             icon_width = 0
         else:
-            icon_width = icon.actualSize(QSize(extent, extent)).width()
+            icon_width = min(icon.actualSize(self.iconSize()).width(),
+                             self.iconSize().width()) + icon_padding
         return self._minimum_tab_size_hint_helper(self.tabText(index),
                                                   icon_width,
                                                   ellipsis)
@@ -500,13 +504,16 @@ class TabBar(QTabBar):
         text_width = min(self.fontMetrics().width(text),
                          self.fontMetrics().width(tab_text))
         padding = config.val.tabs.padding
+        indicator_width = config.val.tabs.width.indicator
         indicator_padding = config.val.tabs.indicator_padding
         padding_h = padding.left + padding.right
-        padding_h += indicator_padding.left + indicator_padding.right
+        # Only add padding if indicator exists
+        if indicator_width != 0:
+            padding_h += indicator_padding.left + indicator_padding.right
         padding_v = padding.top + padding.bottom
         height = self.fontMetrics().height() + padding_v
         width = (text_width + icon_width +
-                 padding_h + config.val.tabs.width.indicator)
+                 padding_h + indicator_width)
         return QSize(width, height)
 
     def _pinned_statistics(self) -> (int, int):
