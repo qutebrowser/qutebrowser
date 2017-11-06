@@ -307,7 +307,7 @@ def qute_log(url):
 @add_handler('gpl')
 def qute_gpl(_url):
     """Handler for qute://gpl. Return HTML content as string."""
-    return 'text/html', utils.read_file('html/LICENSE.html')
+    return 'text/html', utils.read_file('html/license.html')
 
 
 @add_handler('help')
