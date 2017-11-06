@@ -217,3 +217,9 @@ Feature: Special qute:// pages
     Scenario: Open qute://version
         When I open qute://version
         Then the page should contain the plaintext "Version info"
+
+    # qute://gpl
+
+    Scenario: Open qute://gpl
+        When I open qute://gpl
+        Then the page should contain the plaintext "GNU GENERAL PUBLIC LICENSE"
