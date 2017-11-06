@@ -55,6 +55,8 @@ Changed
 - If the `window.hide_wayland_decoration` setting is False, but
   `QT_WAYLAND_DISABLE_WINDOWDECORATION` is set in the environment,
   the decorations are still hidden.
+- The `install_dict.py` script for QtWebEngine was renamed to `dictcli.py` and
+  can now also upgrade dictionaries correctly.
 
 Fixed
 ~~~~~
