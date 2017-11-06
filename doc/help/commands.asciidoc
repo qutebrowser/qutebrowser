@@ -1143,6 +1143,7 @@ How many steps to zoom out.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
 |<<completion-item-del,completion-item-del>>|Delete the current completion item.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
+|<<completion-item-yank,completion-item-yank>>|Yank the current completion item onto the clipboard.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow a hint.
@@ -1246,6 +1247,15 @@ Shift the focus of the completion menu to another item.
 
 ==== positional arguments
 * +'which'+: 'next', 'prev', 'next-category', or 'prev-category'.
+
+[[completion-item-yank]]
+=== completion-item-yank
+Syntax: +:completion-item-yank [*--sel*]+
+
+Yank the current completion item onto the clipboard.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: True to use the primary selection instead of the clipboard.
 
 [[drop-selection]]
 === drop-selection

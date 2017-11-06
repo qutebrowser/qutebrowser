@@ -414,6 +414,7 @@ Default:
 * +pass:[&lt;Ctrl-?&gt;]+: +pass:[rl-delete-char]+
 * +pass:[&lt;Ctrl-A&gt;]+: +pass:[rl-beginning-of-line]+
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[rl-backward-char]+
+* +pass:[&lt;Ctrl-C&gt;]+: +pass:[completion-item-yank]+
 * +pass:[&lt;Ctrl-D&gt;]+: +pass:[completion-item-del]+
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[rl-end-of-line]+
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
@@ -421,6 +422,7 @@ Default:
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
 * +pass:[&lt;Ctrl-N&gt;]+: +pass:[command-history-next]+
 * +pass:[&lt;Ctrl-P&gt;]+: +pass:[command-history-prev]+
+* +pass:[&lt;Ctrl-Shift-C&gt;]+: +pass:[completion-item-yank --sel]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+

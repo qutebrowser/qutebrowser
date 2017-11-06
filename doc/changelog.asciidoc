@@ -39,6 +39,8 @@ Added
 - New `qute-pass` userscript as alternative to `password_fill` which allows
   selecting accounts via rofi or any other dmenu-compatile application.
 - New `qt.highdpi` setting to turn on Qt's High-DPI scaling.
+- New `:completion-item-yank` command (bound to `<Ctrl-C>`) to yank the current
+  completion item text.
 
 Changed
 ~~~~~~~
