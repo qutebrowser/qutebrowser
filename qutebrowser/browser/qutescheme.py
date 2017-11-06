@@ -27,7 +27,6 @@ Module attributes:
 import json
 import os
 import time
-import urllib.parse
 import textwrap
 import mimetypes
 
@@ -284,9 +283,8 @@ def qute_plainlog(url):
     if log.ram_handler is None:
         text = "Log output was disabled."
     else:
-        try:
-            level = urllib.parse.parse_qs(url.query())['level'][0]
-        except KeyError:
+        level = QUrlQuery(url).queryItemValue('level')
+        if not level:
             level = 'vdebug'
         text = log.ram_handler.dump_log(html=False, level=level)
     html = jinja.render('pre.html', title='log', content=text)
@@ -304,9 +302,8 @@ def qute_log(url):
     if log.ram_handler is None:
         html_log = None
     else:
-        try:
-            level = urllib.parse.parse_qs(url.query())['level'][0]
-        except KeyError:
+        level = QUrlQuery(url).queryItemValue('level')
+        if not level:
             level = 'vdebug'
         html_log = log.ram_handler.dump_log(html=True, level=level)
 
