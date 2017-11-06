@@ -266,36 +266,23 @@ class TestEarlyInit:
         config.instance.set_str('fonts.web.family.standard', '')
         config.instance.set_str('fonts.monospace', 'Terminus')
 
-    def test_force_software_rendering(self, monkeypatch, config_stub):
-        """Setting force_software_rendering should set the environment var."""
-        envvar = 'QT_XCB_FORCE_SOFTWARE_OPENGL'
+    @pytest.mark.parametrize('config_opt, config_val, envvar, expected', [
+        ('qt.force_software_rendering', True,
+         'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
+        ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
+        ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
+    ])
+    def test_env_vars(self, monkeypatch, config_stub,
+                      config_opt, config_val, envvar, expected):
+        """Check settings which set an environment variable."""
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
         monkeypatch.delenv(envvar, raising=False)
 
-        config_stub.val.qt.force_software_rendering = True
-
+        config_stub.set_obj(config_opt, config_val)
         configinit._init_envvars()
 
-        assert os.environ[envvar] == '1'
-
-    def test_force_platform(self, monkeypatch, config_stub):
-        envvar = 'QT_QPA_PLATFORM'
-        monkeypatch.delenv(envvar, raising=False)
-
-        config_stub.val.qt.force_platform = 'toaster'
-
-        configinit._init_envvars()
-        assert os.environ[envvar] == 'toaster'
-
-    def test_highdpi(self, monkeypatch, config_stub):
-        envvar = 'QT_AUTO_SCREEN_SCALE_FACTOR'
-        monkeypatch.delenv(envvar, raising=False)
-
-        config_stub.val.qt.highdpi = True
-
-        configinit._init_envvars()
-        assert os.environ[envvar] == '1'
+        assert os.environ[envvar] == expected
 
     @pytest.mark.parametrize('old', ['1', '0', None])
     @pytest.mark.parametrize('configval', [True, False])
