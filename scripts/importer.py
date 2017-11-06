@@ -30,9 +30,13 @@ profiles is supported.
 import argparse
 import sqlite3
 import os
+import urllib.parse
+import json
+import string
 
 browser_default_input_format = {
-    'chromium': 'netscape',
+    'chromium': 'chrome',
+    'chrome': 'chrome',
     'ie': 'netscape',
     'firefox': 'mozilla',
     'seamonkey': 'mozilla',
@@ -73,7 +77,8 @@ def main():
 
     import_function = {
         'netscape': import_netscape_bookmarks,
-        'mozilla': import_moz_places
+        'mozilla': import_moz_places,
+        'chrome': import_chrome
     }
     import_function[input_format](args.bookmarks, bookmark_types,
                                   output_format)
@@ -152,6 +157,33 @@ def search_escape(url):
     Will obviously trash a properly-formatted Qutebrowser URL.
     """
     return url.replace('{', '{{').replace('}', '}}')
+
+
+def opensearch_convert(url):
+    """Convert a basic OpenSearch URL into something Qutebrowser can use.
+
+    Exceptions:
+        KeyError:
+            An unknown and required parameter is present in the URL. This
+            usually means there's browser/addon specific functionality needed
+            to build the URL (I'm looking at you and your browser, Google) that
+            obviously won't be present here.
+    """
+    subst = {
+        'searchTerms': '%s',  # for proper escaping later
+        'language': '*',
+        'inputEncoding': 'UTF-8',
+        'outputEncoding': 'UTF-8'
+    }
+
+    # remove optional parameters (even those we don't support)
+    for param in string.Formatter().parse(url):
+        if param[1]:
+            if param[1].endswith('?'):
+                url = url.replace('{' + param[1] + '}', '')
+            elif param[2] and param[2].endswith('?'):
+                url = url.replace('{' + param[1] + ':' + param[2] + '}', '')
+    return search_escape(url.format(**subst)).replace('%s', '{}')
 
 
 def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
@@ -266,6 +298,50 @@ def import_moz_places(profile, bookmark_types, output_format):
         c.execute(place_query[typ])
         for row in c:
             print(out_template[output_format][typ].format(**row))
+
+
+def import_chrome(profile, bookmark_types, output_format):
+    """Import bookmarks and search keywords from Chrome-type profiles.
+
+    On Chrome, keywords and search engines are the same thing and handled in
+    their own database table; bookmarks cannot have associated keywords. This
+    is why the dictionary lookups here are much simpler.
+    """
+    out_template = {
+        'bookmark': '{url} {name}',
+        'quickmark': '{name} {url}',
+        'search': "c.url.searchengines['{keyword}'] = '{url}'",
+        'oldsearch': '{keyword} {url}'
+    }
+
+    if 'search' in bookmark_types:
+        webdata = sqlite3.connect(os.path.join(profile, 'Web Data'))
+        c = webdata.cursor()
+        c.execute('SELECT keyword,url FROM keywords;')
+        for keyword, url in c:
+            try:
+                url = opensearch_convert(url)
+                print(out_template[output_format].format(
+                    keyword=keyword, url=url))
+            except KeyError:
+                print('# Unsupported parameter in url for {}; skipping....'.
+                      format(keyword))
+
+    else:
+        with open(os.path.join(profile, 'Bookmarks'), encoding='utf-8') as f:
+            bookmarks = json.load(f)
+
+        def bm_tree_walk(bm, template):
+            assert 'type' in bm
+            if bm['type'] == 'url':
+                if urllib.parse.urlparse(bm['url']).scheme != 'chrome':
+                    print(template.format(**bm))
+            elif bm['type'] == 'folder':
+                for child in bm['children']:
+                    bm_tree_walk(child, template)
+
+        for root in bookmarks['roots'].values():
+            bm_tree_walk(root, out_template[output_format])
 
 
 if __name__ == '__main__':
