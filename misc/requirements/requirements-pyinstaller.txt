@@ -3,5 +3,5 @@
 altgraph==0.14
 future==0.16.0
 macholib==1.8
-pefile==2017.9.3
+pefile==2017.11.5
 -e git+https://github.com/pyinstaller/pyinstaller.git@develop#egg=PyInstaller
