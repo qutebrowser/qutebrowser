@@ -245,6 +245,23 @@ def test_completion_item_del_no_selection(completionview):
     func.assert_not_called()
 
 
+@pytest.mark.parametrize('sel', [True, False])
+def test_completion_item_yank(completionview, mocker, sel):
+    """Test that completion_item_yank invokes delete_cur_item in the model."""
+    m = mocker.patch(
+        'qutebrowser.completion.completionwidget.utils',
+        autospec=True)
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')])
+    model.add_category(cat)
+
+    completionview.set_model(model)
+    completionview.completion_item_focus('next')
+    completionview.completion_item_yank(sel)
+
+    m.set_clipboard.assert_called_once_with('foo', sel)
+
+
 def test_resize_no_model(completionview, qtbot):
     """Ensure no crash if resizeEvent is triggered with no model (#2854)."""
     completionview.resizeEvent(None)

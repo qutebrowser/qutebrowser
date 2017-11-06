@@ -377,3 +377,17 @@ class CompletionView(QTreeView):
         if not index.isValid():
             raise cmdexc.CommandError("No item selected!")
         self.model().delete_cur_item(index)
+
+    @cmdutils.register(instance='completion', hide=True,
+                       modes=[usertypes.KeyMode.command], scope='window')
+    def completion_item_yank(self, sel=False):
+        """Yank the current completion item onto the clipboard.
+
+        Args:
+            sel: True to use the primary selection instead of the clipboard.
+        """
+        index = self.currentIndex()
+        if not index.isValid():
+            raise cmdexc.CommandError("No item selected!")
+        data = self.model().data(index)
+        utils.set_clipboard(data, selection=sel)
