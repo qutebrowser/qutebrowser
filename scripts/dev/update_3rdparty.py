@@ -31,7 +31,7 @@ import sys
 
 sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-from scripts import install_dict
+from scripts import dictcli
 from qutebrowser.config import configdata
 
 
@@ -119,9 +119,9 @@ def update_ace():
 def test_dicts():
     """Test available dictionaries."""
     configdata.init()
-    for lang in install_dict.available_languages():
+    for lang in dictcli.available_languages():
         print('Testing dictionary {}... '.format(lang.code), end='')
-        lang_url = urllib.parse.urljoin(install_dict.API_URL, lang.file_path)
+        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_path)
         request = urllib.request.Request(lang_url, method='HEAD')
         response = urllib.request.urlopen(request)
         if response.status == 200:

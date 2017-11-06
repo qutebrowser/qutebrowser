@@ -17,24 +17,31 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import pytest
 from qutebrowser.browser.webengine import spell
 
 
-def test_installed_file_dictionary_does_not_exist(tmpdir, monkeypatch):
+def test_version():
+    assert spell.version('en-US-8-0.bdic') == (8, 0)
+    assert spell.version('pl-PL-3-0.bdic') == (3, 0)
+    with pytest.raises(ValueError):
+        spell.version('malformed_filename')
+
+
+def test_local_filename_dictionary_does_not_exist(tmpdir, monkeypatch):
     monkeypatch.setattr(
         spell, 'dictionary_dir', lambda: '/some-non-existing-dir')
-    assert not spell.installed_file('en-US')
+    assert not spell.local_filename('en-US')
 
 
-def test_installed_file_dictionary_not_installed(tmpdir, monkeypatch):
+def test_local_filename_dictionary_not_installed(tmpdir, monkeypatch):
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
-    assert not spell.installed_file('en-US')
+    assert not spell.local_filename('en-US')
 
 
-def test_installed_file_dictionary_installed(tmpdir, monkeypatch):
+def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
-    for lang_file in ['en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
+    for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
         (tmpdir / lang_file).ensure()
-    assert spell.installed_file('en-US') == 'en-US-7-1'
-    assert spell.installed_file('pl-PL') == 'pl-PL-3-0'
+    assert spell.local_filename('en-US') == 'en-US-11-0'
+    assert spell.local_filename('pl-PL') == 'pl-PL-3-0'

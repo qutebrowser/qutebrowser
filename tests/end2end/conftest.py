@@ -131,7 +131,7 @@ def _get_dictionary_tag(tag):
 
     event = match.group('event')
     dictionary = match.group('dict')
-    has_dict = spell.installed_file(dictionary) is not None
+    has_dict = spell.local_filename(dictionary) is not None
     if event == 'must_have_dict':
         return pytest.mark.skipif(not has_dict, reason=tag)
     elif event == 'cannot_have_dict':
