@@ -91,8 +91,6 @@ def _init_envvars():
 
     if config.val.window.hide_wayland_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
-    else:
-        os.environ.pop('QT_WAYLAND_DISABLE_WINDOWDECORATION', None)
 
     if config.val.qt.highdpi:
         os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'

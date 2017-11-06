@@ -271,6 +271,8 @@ class TestEarlyInit:
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
         ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
+        ('window.hide_wayland_decoration', True,
+         'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])
     def test_env_vars(self, monkeypatch, config_stub,
                       config_opt, config_val, envvar, expected):
@@ -283,21 +285,6 @@ class TestEarlyInit:
         configinit._init_envvars()
 
         assert os.environ[envvar] == expected
-
-    @pytest.mark.parametrize('old', ['1', '0', None])
-    @pytest.mark.parametrize('configval', [True, False])
-    def test_hide_wayland_decoration(self, monkeypatch, config_stub,
-                                     old, configval):
-        envvar = 'QT_WAYLAND_DISABLE_WINDOWDECORATION'
-        if old is None:
-            monkeypatch.delenv(envvar, raising=False)
-        else:
-            monkeypatch.setenv(envvar, old)
-
-        config_stub.val.window.hide_wayland_decoration = configval
-        configinit._init_envvars()
-
-        assert os.environ.get(envvar) == ('1' if configval else None)
 
 
 @pytest.mark.parametrize('errors', [True, False])

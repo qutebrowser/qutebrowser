@@ -50,6 +50,9 @@ Changed
 - The `importer.py` script was largely rewritten and now also supports importing
   from Firefox' `places.sqlite` file.
 - Various internal refactorings to use Python 3.5 and ECMAscript 6 features
+- If the `window.hide_wayland_decoration` setting is False, but
+  `QT_WAYLAND_DISABLE_WINDOWDECORATION` is set in the environment,
+  the decorations are still hidden.
 
 Fixed
 ~~~~~
