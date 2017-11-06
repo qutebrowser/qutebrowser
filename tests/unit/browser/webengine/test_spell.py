@@ -17,13 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import pytest
 from qutebrowser.browser.webengine import spell
 
 
 def test_version():
     assert spell.version('en-US-8-0.bdic') == (8, 0)
     assert spell.version('pl-PL-3-0.bdic') == (3, 0)
+    with pytest.raises(ValueError):
+        spell.version('malformed_filename')
 
 
 def test_local_filename_dictionary_does_not_exist(tmpdir, monkeypatch):
