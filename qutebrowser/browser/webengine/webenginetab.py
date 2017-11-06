@@ -318,7 +318,18 @@ class WebEngineScroller(browsertab.AbstractScroller):
         if scrollable_x == 0:
             perc_x = 0
         else:
-            perc_x = min(100, round(100 / scrollable_x * pos.x()))
+            try:
+                perc_x = min(100, round(100 / scrollable_x * pos.x()))
+            except ValueError:
+                # https://github.com/qutebrowser/qutebrowser/issues/3219
+                log.misc.debug("Got ValueError!")
+                log.misc.debug("contents_size.width(): {}".format(
+                    contents_size.width()))
+                log.misc.debug("self._widget.width(): {}".format(
+                    self._widget.width()))
+                log.misc.debug("scrollable_x: {}".format(scrollable_x))
+                log.misc.debug("pos.x(): {}".format(pos.x()))
+                raise
 
         scrollable_y = contents_size.height() - self._widget.height()
         if scrollable_y == 0:
