@@ -1988,7 +1988,7 @@ Font used in the completion categories.
 
 Type: <<types,Font>>
 
-Default: +pass:[bold 8pt monospace]+
+Default: +pass:[bold 10pt monospace]+
 
 [[fonts.completion.entry]]
 === fonts.completion.entry
@@ -1996,7 +1996,7 @@ Font used in the completion widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.debug_console]]
 === fonts.debug_console
@@ -2004,7 +2004,7 @@ Font used for the debugging console.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.downloads]]
 === fonts.downloads
@@ -2012,7 +2012,7 @@ Font used for the downloadbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.hints]]
 === fonts.hints
@@ -2028,7 +2028,7 @@ Font used in the keyhint widget.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.messages.error]]
 === fonts.messages.error
@@ -2036,7 +2036,7 @@ Font used for error messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.messages.info]]
 === fonts.messages.info
@@ -2044,7 +2044,7 @@ Font used for info messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.messages.warning]]
 === fonts.messages.warning
@@ -2052,7 +2052,7 @@ Font used for warning messages.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.monospace]]
 === fonts.monospace
@@ -2069,7 +2069,7 @@ Font used for prompts.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt sans-serif]+
+Default: +pass:[10pt sans-serif]+
 
 [[fonts.statusbar]]
 === fonts.statusbar
@@ -2077,7 +2077,7 @@ Font used in the statusbar.
 
 Type: <<types,Font>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.tabs]]
 === fonts.tabs
@@ -2085,7 +2085,7 @@ Font used in the tab bar.
 
 Type: <<types,QtFont>>
 
-Default: +pass:[8pt monospace]+
+Default: +pass:[10pt monospace]+
 
 [[fonts.web.family.cursive]]
 === fonts.web.family.cursive

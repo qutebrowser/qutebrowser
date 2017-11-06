@@ -1915,22 +1915,22 @@ fonts.monospace:
 # emacs: '
 
 fonts.completion.entry:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used in the completion widget.
 
 fonts.completion.category:
-  default: bold 8pt monospace
+  default: bold 10pt monospace
   type: Font
   desc: Font used in the completion categories.
 
 fonts.debug_console:
-  default: 8pt monospace
+  default: 10pt monospace
   type: QtFont
   desc: Font used for the debugging console.
 
 fonts.downloads:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used for the downloadbar.
 
@@ -1940,37 +1940,37 @@ fonts.hints:
   desc: Font used for the hints.
 
 fonts.keyhint:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used in the keyhint widget.
 
 fonts.messages.error:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used for error messages.
 
 fonts.messages.info:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used for info messages.
 
 fonts.messages.warning:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used for warning messages.
 
 fonts.prompts:
-  default: 8pt sans-serif
+  default: 10pt sans-serif
   type: Font
   desc: Font used for prompts.
 
 fonts.statusbar:
-  default: 8pt monospace
+  default: 10pt monospace
   type: Font
   desc: Font used in the statusbar.
 
 fonts.tabs:
-  default: 8pt monospace
+  default: 10pt monospace
   type: QtFont
   desc: Font used in the tab bar.
 
