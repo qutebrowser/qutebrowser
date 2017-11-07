@@ -32,6 +32,7 @@ Feature: Page history
         Then the history should contain:
             http://localhost:(port)/data/title%20with%20spaces.html Test title
 
+    @unicode_locale
     Scenario: History item with umlauts
         When I open data/äöü.html
         Then the history should contain:

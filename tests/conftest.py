@@ -63,6 +63,8 @@ def _apply_platform_markers(config, item):
         ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', utils.is_windows and config.webengine,
          "Broken with QtWebEngine on Windows"),
+        ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
+         "Skipped because of ASCII locale"),
     ]
 
     for searched_marker, condition, default_reason in markers:

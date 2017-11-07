@@ -241,9 +241,8 @@ def test_unicode_error(caplog, qtbot, py_proc, runner):
             runner.store_html('')
 
     assert len(caplog.records) == 1
-    expected = ("Invalid unicode in userscript output: 'utf-8' codec can't "
-                "decode byte 0x80 in position 0: invalid start byte")
-    assert caplog.records[0].message == expected
+    expected = "Invalid unicode in userscript output: "
+    assert caplog.records[0].message.startswith(expected)
 
 
 @pytest.mark.fake_os('unknown')
