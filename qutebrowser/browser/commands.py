@@ -968,13 +968,15 @@ class CommandDispatcher:
                             prev=prev, next_=next_, force=True))
                     return
 
+        first_tab = True
         for i, tab in enumerate(self._tabbed_browser.widgets()):
             if _to_close(i):
-                self._tabbed_browser.close_tab(tab)
+                self._tabbed_browser.close_tab(tab, new_undo=first_tab)
+                first_tab = False
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):
-        """Re-open a closed tab."""
+        """Re-open the last closed tab or tabs."""
         try:
             self._tabbed_browser.undo()
         except IndexError:
