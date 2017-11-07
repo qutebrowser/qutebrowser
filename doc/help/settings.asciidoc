@@ -2572,6 +2572,7 @@ Valid values:
  * +da-DK+: Danish (Denmark)
  * +de-DE+: German (Germany)
  * +el-GR+: Greek (Greece)
+ * +en-AU+: English (Australia)
  * +en-CA+: English (Canada)
  * +en-GB+: English (United Kingdom)
  * +en-US+: English (United States)
