@@ -2559,7 +2559,7 @@ Default: empty
 [[spellcheck.languages]]
 === spellcheck.languages
 Languages to use for spell checking.
-You can check for available languages and install dictionaries using scripts/install_dict.py. Run the script with -h/--help for instructions.
+You can check for available languages and install dictionaries using scripts/dictcli.py. Run the script with -h/--help for instructions.
 
 Type: <<types,List of String>>
 
