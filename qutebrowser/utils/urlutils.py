@@ -378,7 +378,7 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
                     log.url.debug("URL is a local file")
             except UnicodeEncodeError:
                 log.url.debug(
-                    "URL contains characters which are not present in the " \
+                    "URL contains characters which are not present in the "
                     "current locale")
                 path = None
 
