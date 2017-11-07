@@ -57,6 +57,7 @@ Changed
   the decorations are still hidden.
 - The `install_dict.py` script for QtWebEngine was renamed to `dictcli.py` and
   can now also upgrade dictionaries correctly.
+- `:undo` now can re-open multiple tabs after `:tab-only` was used.
 
 Fixed
 ~~~~~
