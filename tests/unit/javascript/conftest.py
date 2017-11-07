@@ -25,10 +25,12 @@ import logging
 
 import pytest
 import jinja2
+from tests.helpers.fixtures import CallbackChecker
 
 try:
     from PyQt5.QtWebKit import QWebSettings
     from PyQt5.QtWebKitWidgets import QWebPage
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings
 except ImportError:
     # FIXME:qtwebengine Make these tests use the tab API
     QWebSettings = None
@@ -67,6 +69,34 @@ else:
         def javaScriptConsoleMessage(self, msg, line, source):
             """Fail tests on js console messages as they're used for errors."""
             pytest.fail("js console ({}:{}): {}".format(source, line, msg))
+
+    class TestWebEnginePage(QWebEnginePage):
+
+        """QWebPage subclass which overrides some test methods.
+
+        Attributes:
+            _logger: The logger used for alerts.
+        """
+
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self._logger = logging.getLogger('js-tests')
+
+        def javaScriptAlert(self, _frame, msg):
+            """Log javascript alerts."""
+            self._logger.info("js alert: {}".format(msg))
+
+        def javaScriptConfirm(self, _frame, msg):
+            """Fail tests on js confirm() as that should never happen."""
+            pytest.fail("js confirm: {}".format(msg))
+
+        def javaScriptPrompt(self, _frame, msg, _default):
+            """Fail tests on js prompt() as that should never happen."""
+            pytest.fail("js prompt: {}".format(msg))
+
+        def javaScriptConsoleMessage(self, level, msg, line, source):
+            """Fail tests on js console messages as they're used for errors."""
+            pytest.fail("[{}] js console ({}:{}): {}".format(level, source, line, msg))
 
 
 class JSTester:
@@ -133,8 +163,75 @@ class JSTester:
             QWebSettings.JavascriptEnabled)
         return self.webview.page().mainFrame().evaluateJavaScript(source)
 
+class JSWebEngineTester:
+
+    """Object returned by js_tester_webengine which provides test data and a webview.
+
+    Attributes:
+        webview: The webview which is used.
+        _qtbot: The QtBot fixture from pytest-qt.
+        _jinja_env: The jinja2 environment used to get templates.
+    """
+
+    def __init__(self, webview, callback_checker, qtbot):
+        self.webview = webview
+        self.webview.setPage(TestWebEnginePage(self.webview))
+        self.callback_checker = callback_checker
+        self._qtbot = qtbot
+        loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
+        self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
+
+    def load(self, path, **kwargs):
+        """Load and display the given test data.
+
+        Args:
+            path: The path to the test file, relative to the javascript/
+                  folder.
+            **kwargs: Passed to jinja's template.render().
+        """
+        template = self._jinja_env.get_template(path)
+        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
+            self.webview.setHtml(template.render(**kwargs))
+        assert blocker.args == [True]
+
+    def run_file(self, filename, expected):
+        """Run a javascript file.
+
+        Args:
+            filename: The javascript filename, relative to
+                      qutebrowser/javascript.
+
+        Return:
+            The javascript return value.
+        """
+        source = utils.read_file(os.path.join('javascript', filename))
+        self.run(source, expected)
+
+    def run(self, source, expected):
+        """Run the given javascript source.
+
+        Args:
+            source: The source to run as a string.
+
+        Return:
+            The javascript return value.
+        """
+        # TODO how to do this properly
+        callback_checker = CallbackChecker(self._qtbot)
+        assert self.webview.settings().testAttribute(QWebEngineSettings.JavascriptEnabled)
+        self.webview.page().runJavaScript(source, callback_checker.callback)
+        callback_checker.check(expected)
+
 
 @pytest.fixture
 def js_tester(webview, qtbot):
     """Fixture to test javascript snippets."""
     return JSTester(webview, qtbot)
+
+
+@pytest.fixture
+def js_tester_webengine(callback_checker, webengineview, qtbot):
+    """Fixture to test javascript snippets."""
+    webengineview.settings().setAttribute(
+        QWebEngineSettings.JavascriptEnabled, True)
+    return JSWebEngineTester(webengineview, callback_checker, qtbot)
