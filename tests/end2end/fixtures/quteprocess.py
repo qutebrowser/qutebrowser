@@ -190,6 +190,10 @@ def is_ignored_chromium_message(line):
         # on receiving Mach ports FFA56F125F699ADB.E28E252911A8704B. Dropping
         # message.
         'Error on receiving Mach ports *. Dropping message.',
+
+        # [2734:2746:1107/131154.072032:ERROR:nss_ocsp.cc(591)] No
+        # URLRequestContext for NSS HTTP handler. host: ocsp.digicert.com
+        'No URLRequestContext for NSS HTTP handler. host: *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -571,6 +575,12 @@ class QuteProc(testprocess.Process):
         ipc.send_to_running_instance(self._ipc_socket, commands, target_arg)
         self.wait_for(category='ipc', module='ipc', function='on_ready_read',
                       message='Read from socket *')
+
+    def start(self, *args, wait_focus=True,
+              **kwargs):  # pylint: disable=arguments-differ
+        if not wait_focus:
+            self._focus_ready = True
+        super().start(*args, **kwargs)
 
     def send_cmd(self, command, count=None, invalid=False, *, escape=True):
         """Send a command to the running qutebrowser instance.

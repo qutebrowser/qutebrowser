@@ -103,20 +103,27 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
 
 
 @pytest.mark.linux
-def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new):
+@pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
+def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
     """Test opening non-ascii URL with LC_ALL=C set.
 
     https://github.com/qutebrowser/qutebrowser/issues/1450
     """
     args = ['--temp-basedir'] + _base_args(request.config)
     quteproc_new.start(args, env={'LC_ALL': 'C'})
+    quteproc_new.set_setting('url.auto_search', 'never')
 
     # Test opening a file whose name contains non-ascii characters.
     # No exception thrown means test success.
-    url = 'file:///föö.html'
     quteproc_new.send_cmd(':open {}'.format(url))
-    quteproc_new.wait_for(category='url',
-                          message='URL contains characters *')
+
+    if not request.config.webengine:
+        line = quteproc_new.wait_for(message="Error while loading *: Error "
+                                     "opening /*: No such file or directory")
+        line.expected = True
+
+    quteproc_new.wait_for(message="load status for <* tab_id=* "
+                          "url='*/f%C3%B6%C3%B6.html'>: LoadStatus.error")
 
 
 @pytest.mark.linux
@@ -130,7 +137,15 @@ def test_open_command_line_with_ascii_locale(request, server, tmpdir,
     # all be called. No exception thrown means test success.
     args = (['--temp-basedir'] + _base_args(request.config) +
             ['/home/user/föö.html'])
-    quteproc_new.start(args, env={'LC_ALL': 'C'})
+    quteproc_new.start(args, env={'LC_ALL': 'C'}, wait_focus=False)
+
+    if not request.config.webengine:
+        line = quteproc_new.wait_for(message="Error while loading *: Error "
+                                     "opening /*: No such file or directory")
+        line.expected = True
+
+    quteproc_new.wait_for(message="load status for <* tab_id=* "
+                          "url='*/f*.html'>: LoadStatus.error")
 
 
 @pytest.mark.linux
