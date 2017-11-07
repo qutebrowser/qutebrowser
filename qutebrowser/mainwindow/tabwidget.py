@@ -501,8 +501,12 @@ class TabBar(QTabBar):
         """
         text = '\u2026' if ellipsis else tab_text
         # Don't ever shorten if text is shorter than the ellipsis
-        text_width = min(self.fontMetrics().width(text),
-                         self.fontMetrics().width(tab_text))
+
+        def _text_to_width(text):
+            # Calculate text width taking into account qt mnemonics
+            return self.fontMetrics().size(Qt.TextShowMnemonic, text).width()
+        text_width = min(_text_to_width(text),
+                         _text_to_width(tab_text))
         padding = config.val.tabs.padding
         indicator_width = config.val.tabs.width.indicator
         indicator_padding = config.val.tabs.indicator_padding
