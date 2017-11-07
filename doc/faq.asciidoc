@@ -146,7 +146,7 @@ For QtWebKit:
 For QtWebEngine:
 
 . Make sure your versions of PyQt and Qt are 5.8 or higher.
-. Use `install_dict.py` script to install dictionaries.
+. Use `dictcli.py` script to install dictionaries.
   Run the script with `-h` for the parameter description.
 . Set `spellcheck.languages` to the desired list of languages, e.g.:
   `:set spellcheck.languages "['en-US', 'pl-PL']"`
