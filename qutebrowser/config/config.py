@@ -170,6 +170,11 @@ class KeyConfig:
 
     def bind(self, key, command, *, mode, save_yaml=False):
         """Add a new binding from key to command."""
+        if command is not None and not command.strip():
+            raise configexc.KeybindingError(
+                "Can't add binding '{}' with empty command in {} "
+                'mode'.format(key, mode))
+
         key = self._prepare(key, mode)
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
