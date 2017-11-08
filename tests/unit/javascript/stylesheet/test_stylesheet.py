@@ -26,6 +26,8 @@ from qutebrowser.browser import shared
 from qutebrowser.config import config
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
+DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"
+
 class StylesheetTester:
 
     """Helper class (for the caret_tester fixture) for asserts.
@@ -37,18 +39,24 @@ class StylesheetTester:
     def __init__(self, js_tester):
         self.js = js_tester
 
-    def check(self):
-        """Check whether the caret is before the MARKER text."""
+    def init_stylesheet(self):
+        """Initializes stylesheet.
+        Run after document is loaded."""
         self.js.run('window._qutebrowser = window._qutebrowser || {};', {})
         self.js.run_file('stylesheet.js', {})
-        code = javascript.assemble('stylesheet', 'set_css',
-                            "body {background-color: lightblue;}")
+
+    def set_css(self, css):
+        """Set css to CSS via stylesheet.js."""
+        code = javascript.assemble('stylesheet', 'set_css', css)
         self.js.run(code, None)
-        self.js.run("window.getComputedStyle(document.body, null).getPropertyValue('background-color')", "rgb(173, 216, 230)")
+
+    def check_set(self, element, value):
+        """Check whether the css in ELEMENT is set to VALUE."""
+        self.js.run("window.getComputedStyle(document.body, null)"
+                    ".getPropertyValue('{}');".format(element), value)
 
 
 @pytest.fixture
-@pytest.mark.usefixtures('redirect_webengine_data')
 def stylesheet_tester(js_tester_webengine):
     """Helper fixture to test caret browsing positions."""
     ss_tester = StylesheetTester(js_tester_webengine)
@@ -57,9 +65,25 @@ def stylesheet_tester(js_tester_webengine):
     ss_tester.js.webview.show()
     return ss_tester
 
-
-@pytest.mark.integration
-def test_simple(stylesheet_tester):
-    """Test with a simple (one-line) HTML text."""
+def test_no_set_stylesheet(stylesheet_tester):
     stylesheet_tester.js.load('stylesheet/simple.html')
-    stylesheet_tester.check()
+    stylesheet_tester.init_stylesheet()
+    stylesheet_tester.check_set("background-color", DEFAULT_BODY_BG)
+
+def test_no_set_stylesheet_no_load(stylesheet_tester):
+    stylesheet_tester.js.load('stylesheet/simple.html')
+    stylesheet_tester.check_set("background-color", DEFAULT_BODY_BG)
+
+def test_simple_set_bg(stylesheet_tester):
+    stylesheet_tester.js.load('stylesheet/simple.html')
+    stylesheet_tester.init_stylesheet()
+    stylesheet_tester.set_css("body {background-color: rgb(10, 10, 10);}")
+    stylesheet_tester.check_set("background-color", "rgb(10, 10, 10)")
+
+def test_simple_set_clear_bg(stylesheet_tester):
+    stylesheet_tester.js.load('stylesheet/simple.html')
+    stylesheet_tester.init_stylesheet()
+    stylesheet_tester.set_css("body {background-color: rgb(10, 10, 10);}")
+    stylesheet_tester.check_set("background-color", "rgb(10, 10, 10)")
+    stylesheet_tester.set_css("")
+    stylesheet_tester.check_set("background-color", DEFAULT_BODY_BG)

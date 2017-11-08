@@ -100,7 +100,10 @@ class CallbackChecker(QObject):
         if self._result is self.UNSET:
             with self._qtbot.waitSignal(self.got_result, timeout=2000):
                 pass
-        assert self._result == expected
+        self._assert_result(self._result, expected)
+
+    def _assert_result(self, result, expected):
+        assert result == expected
 
 
 @pytest.fixture
