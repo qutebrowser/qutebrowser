@@ -27,7 +27,6 @@ import collections
 import functools
 import pathlib
 import tempfile
-import errno
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
