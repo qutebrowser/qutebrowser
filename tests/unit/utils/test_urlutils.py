@@ -245,13 +245,25 @@ class TestFuzzyUrl:
         ('/foo', False),
         ('/bar', True),
     ])
-    def test_get_path_existing(self, path, check_exists, os_mock):
+    def test_get_path_existing(self, path, check_exists, os_mock, caplog):
         """Test with an absolute path."""
         os_mock.path.exists.return_value = False
         expected = None if check_exists else path
 
         url = urlutils.get_path_if_valid(path, check_exists=check_exists)
         assert url == expected
+
+    def test_get_path_unicode_encode_error(self, os_mock, caplog):
+        """Make sure LC_ALL=C is handled correctly."""
+        err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
+        os_mock.path.exists.side_effect = err
+
+        url = urlutils.get_path_if_valid('/', check_exists=True)
+        assert url is None
+
+        msg = ("URL contains characters which are not present in the current "
+               "locale")
+        assert caplog.records[-1].message == msg
 
 
 @pytest.mark.parametrize('url, special', [

@@ -263,3 +263,14 @@ class TestFileSchemeHandler:
         handler = filescheme.FileSchemeHandler(win_id=0)
         reply = handler.createRequest(None, req, None)
         assert reply is None
+
+    def test_unicode_encode_error(self, mocker):
+        url = QUrl('file:///tmp/foo')
+        req = QNetworkRequest(url)
+        handler = filescheme.FileSchemeHandler(win_id=0)
+
+        err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
+        mocker.patch('os.path.isdir', side_effect=err)
+
+        reply = handler.createRequest(None, req, None)
+        assert reply is None
