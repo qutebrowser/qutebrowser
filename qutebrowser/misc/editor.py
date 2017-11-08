@@ -96,7 +96,7 @@ class ExternalEditor(QObject):
     def on_proc_error(self, _err):
         self._cleanup()
 
-    def edit(self, text, caret_position=0):
+    def edit(self, text, caret_position=None):
         """Edit a given text.
 
         Args:
@@ -174,11 +174,13 @@ class ExternalEditor(QObject):
 
         Args:
             text: the text for which the numbers must be calculated
-            caret_position: the position of the caret in the text
+            caret_position: the position of the caret in the text, or None
 
         Return:
             A (line, column) tuple of (int, int)
         """
+        if caret_position is None:
+            return 0, 0
         line = text[:caret_position].count('\n') + 1
         column = caret_position - text[:caret_position].rfind('\n')
         return line, column

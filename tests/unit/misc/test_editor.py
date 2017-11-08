@@ -188,6 +188,7 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     ('a\nbb\nccc', 4, (2, 3)),
     ('a\nbb\nccc', 5, (3, 1)),
     ('a\nbb\nccc', 8, (3, 4)),
+    ('', None, (0, 0)),
 ])
 def test_calculation(editor, text, caret_position, result):
     """Test calculation for line and column given text and caret_position."""
