@@ -32,7 +32,8 @@ def check_window_sizes(quteproc):
     visible_size = visible.message.split()[-1]
     assert hidden_size == visible_size
 
-test_gm_script=r"""
+
+test_gm_script = r"""
 // ==UserScript==
 // @name Qutebrowser test userscript
 // @namespace invalid.org
@@ -44,6 +45,7 @@ test_gm_script=r"""
 // ==/UserScript==
 console.log("Script is running on " + window.location.pathname);
 """
+
 
 @bdd.when(bdd.parsers.parse("I have a greasemonkey file saved for {stage} "
                             "with noframes {frameset}"))
@@ -60,4 +62,3 @@ def create_greasemonkey_file(quteproc, stage, frameset):
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(test_gm_script.format(stage=stage,
                                      frames=frames))
-
