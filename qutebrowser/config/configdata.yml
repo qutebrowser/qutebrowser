@@ -1197,6 +1197,9 @@ tabs.favicons.show:
   desc: Show favicons in the tab bar.
 
 tabs.indicator_padding:
+  renamed: tabs.indicator.padding
+
+tabs.indicator.padding:
   default:
     top: 2
     bottom: 2
@@ -1330,6 +1333,9 @@ tabs.title.format_pinned:
     like for `tabs.title.format` are defined.
 
 tabs.width.bar:
+  renamed: tabs.width
+
+tabs.width:
   default: 20%
   type:
     name: PercOrInt
@@ -1340,6 +1346,9 @@ tabs.width.bar:
     it's vertical."
 
 tabs.width.indicator:
+  renamed: tabs.indicator.width
+
+tabs.indicator.width:
   default: 3
   type:
     name: Int
