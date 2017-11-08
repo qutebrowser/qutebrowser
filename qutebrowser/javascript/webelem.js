@@ -48,14 +48,16 @@ window._qutebrowser.webelem = (function() {
         const id = elements.length;
         elements[id] = elem;
 
-        // InvalidStateError will be thrown if elem doesn't have selectionStart
-        let caret_position = 0;
+        // With older Chromium versions (and QtWebKit), InvalidStateError will
+        // be thrown if elem doesn't have selectionStart.
+        // With newer Chromium versions (>= Qt 5.10), we get null.
+        let caret_position = null;
         try {
             caret_position = elem.selectionStart;
         } catch (err) {
             if (err instanceof DOMException &&
                     err.name === "InvalidStateError") {
-                // nothing to do, caret_position is already 0
+                // nothing to do, caret_position is already null
             } else {
                 // not the droid we're looking for
                 throw err;
