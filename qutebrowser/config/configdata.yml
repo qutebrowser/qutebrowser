@@ -1206,7 +1206,7 @@ tabs.indicator.padding:
     left: 0
     right: 4
   type: Padding
-  desc: Padding for tab indicators
+  desc: Padding (in pixels) for tab indicators.
 
 tabs.last_close:
   default: ignore
@@ -1353,7 +1353,7 @@ tabs.indicator.width:
   type:
     name: Int
     minval: 0
-  desc: Width of the progress indicator (0 to disable).
+  desc: Width (in pixels) of the progress indicator (0 to disable).
 
 tabs.width.pinned:
   deleted: true
