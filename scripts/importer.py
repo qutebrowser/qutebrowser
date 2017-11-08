@@ -154,13 +154,13 @@ def get_args():
 def search_escape(url):
     """Escape URLs such that preexisting { and } are handled properly.
 
-    Will obviously trash a properly-formatted Qutebrowser URL.
+    Will obviously trash a properly-formatted qutebrowser URL.
     """
     return url.replace('{', '{{').replace('}', '}}')
 
 
 def opensearch_convert(url):
-    """Convert a basic OpenSearch URL into something Qutebrowser can use.
+    """Convert a basic OpenSearch URL into something qutebrowser can use.
 
     Exceptions:
         KeyError:
