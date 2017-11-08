@@ -65,17 +65,23 @@ def stylesheet_tester(js_tester_webengine):
     ss_tester.js.webview.show()
     return ss_tester
 
-def test_no_set_stylesheet(stylesheet_tester):
-    stylesheet_tester.js.load('stylesheet/simple.html')
-    stylesheet_tester.init_stylesheet()
-    stylesheet_tester.check_set("background-color", DEFAULT_BODY_BG)
+@pytest.mark.parametrize('init', [False, True])
+@pytest.mark.parametrize('page,expected', [('stylesheet/simple.html', DEFAULT_BODY_BG),
+                                           ('stylesheet/simple_bg_set_red.html', "rgb(255, 0, 0)")])
+def test_no_set_stylesheet(stylesheet_tester, init, page, expected):
+    stylesheet_tester.js.load(page)
+    if init:
+        stylesheet_tester.init_stylesheet()
+    stylesheet_tester.check_set("background-color", expected)
 
-def test_no_set_stylesheet_no_load(stylesheet_tester):
-    stylesheet_tester.js.load('stylesheet/simple.html')
-    stylesheet_tester.check_set("background-color", DEFAULT_BODY_BG)
-
-def test_simple_set_bg(stylesheet_tester):
-    stylesheet_tester.js.load('stylesheet/simple.html')
+@pytest.mark.parametrize('page', ['stylesheet/simple.html',
+                                  'stylesheet/simple_bg_set_red.html'])
+@pytest.mark.parametrize('set_js', [True, False])
+def test_simple_set_bg(stylesheet_tester, page, set_js):
+    stylesheet_tester.js.load(page)
+    if set_js:
+        stylesheet_tester.js.run('document.body.style.backgroundColor = "red";', 'red')
+        pytest.xfail("overring values set with js does not work.")
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.set_css("body {background-color: rgb(10, 10, 10);}")
     stylesheet_tester.check_set("background-color", "rgb(10, 10, 10)")
