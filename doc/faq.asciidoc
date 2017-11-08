@@ -28,16 +28,20 @@ What's wrong with link:http://portix.bitbucket.org/dwb/[dwb]/link:http://sourcef
     https://lists.webkit.org/pipermail/webkit-gtk/2014-March/001821.html[deprecated],
     these bugs are never going to be fixed.
 +
-The newer http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2
-API] seems to lack basic features like proxy support, and almost no projects
-seem to have started porting to WebKit2 (I only know of
-http://www.uzbl.org/[uzbl]).
+When qutebrowser was created, the newer
+http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API] lacked
+basic features like proxy support, and almost no projects have started porting
+to WebKit2. In the meantime, this situation has improved a bit, but there are
+stil only a few project which have some kind of WebKit2 support (see the
+https://github.com/qutebrowser/qutebrowser#similar-projects[list of
+alternatives]).
 +
-qutebrowser uses http://qt.io/[Qt] and http://wiki.qt.io/QtWebKit[QtWebKit]
-instead, which suffers from far less such crashes. It might switch to
-http://wiki.qt.io/QtWebEngine[QtWebEngine] in the future, which is based on
-Google's https://en.wikipedia.org/wiki/Blink_(layout_engine)[Blink] rendering
-engine.
+qutebrowser uses http://qt.io/[Qt] and
+http://wiki.qt.io/QtWebEngine[QtWebEngine] by default (and supports
+http://wiki.qt.io/QtWebKit[QtWebKit] optionally). QtWebEngine is based on
+Google's https://www.chromium.org/Home[Chromium]. With an up-to-date Qt, it has
+much more man-power behind it than WebKitGTK+ has, and thus supports more modern
+web features - it's also arguably more secure.
 
 What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
     Firefox likes to break compatibility with addons on each upgrade, gets
