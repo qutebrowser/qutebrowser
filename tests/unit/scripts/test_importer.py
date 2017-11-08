@@ -41,7 +41,10 @@ def test_opensearch_convert():
     ]
     for os_url, qb_url in urls:
         assert importer.opensearch_convert(os_url) == qb_url
-    # pass a required unsupported parameter
+
+
+def test_opensearch_convert_unsupported():
+    """pass an unsupported, required parameter"""
     with pytest.raises(KeyError):
         os_url = 'http://foo.bar/s?q={searchTerms}&req={unsupported}'
         importer.opensearch_convert(os_url)
