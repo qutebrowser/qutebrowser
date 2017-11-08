@@ -285,6 +285,12 @@ class TestKeyConfig:
         key_config_stub.unbind('a')
         assert key_config_stub.get_command('a', mode='normal') is None
 
+    def test_empty_command(self, key_config_stub):
+        """Try binding a key to an empty command."""
+        message = "Can't add binding 'x' with empty command in normal mode"
+        with pytest.raises(configexc.KeybindingError, match=message):
+            key_config_stub.bind('x', ' ', mode='normal')
+
 
 class TestConfig:
 
