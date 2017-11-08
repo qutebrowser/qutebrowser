@@ -19,17 +19,14 @@
 """Tests for qutebrowser.browser.greasemonkey."""
 
 import os
-import copy
 import logging
-import tempfile
 
 import pytest
-from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import greasemonkey
-from qutebrowser.browser.greasemonkey import GreasemonkeyScript
 
-test_gm_script="""
+test_gm_script = """
 // ==UserScript==
 // @name Qutebrowser test userscript
 // @namespace invalid.org
@@ -43,6 +40,7 @@ console.log("Script is running.");
 
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 
+
 def save_script(script_text, filename):
     script_path = greasemonkey._scripts_dir()
     try:
@@ -53,6 +51,7 @@ def save_script(script_text, filename):
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(script_text)
 
+
 def test_all():
     """Test that a script gets read from file, parsed and returned."""
     save_script(test_gm_script, 'test.user.js')
@@ -60,6 +59,7 @@ def test_all():
     gm_manager = greasemonkey.GreasemonkeyManager()
     assert (gm_manager.all_scripts()[0].name ==
             "Qutebrowser test userscript")
+
 
 @pytest.mark.parametrize("url, expected_matches", [
     # included
@@ -70,8 +70,7 @@ def test_all():
     ('https://badhost.xxx/', 0),
 ])
 def test_get_scripts_by_url(url, expected_matches):
-    """Check @include, @match and @exclude work as expected via
-    scripts_for."""
+    """Check greasemonkey include/exclude rules work."""
     save_script(test_gm_script, 'test.user.js')
     gm_manager = greasemonkey.GreasemonkeyManager()
 
@@ -79,9 +78,9 @@ def test_get_scripts_by_url(url, expected_matches):
     assert (len(scripts.start + scripts.end + scripts.idle) ==
             expected_matches)
 
+
 def test_no_metadata(caplog):
-    """Scripts with no metadata should run on all sites at
-    document-end."""
+    """Run on all sites at document-end is the default."""
     save_script("var nothing = true;\n", 'nothing.user.js')
 
     with caplog.at_level(logging.WARNING):
@@ -90,6 +89,7 @@ def test_no_metadata(caplog):
     scripts = gm_manager.scripts_for(QUrl('http://notamatch.invalid/'))
     assert len(scripts.start + scripts.end + scripts.idle) == 1
     assert len(scripts.end) == 1
+
 
 def test_bad_scheme(caplog):
     """qute:// isn't in the list of allowed schemes."""
@@ -101,10 +101,10 @@ def test_bad_scheme(caplog):
     scripts = gm_manager.scripts_for(QUrl('qute://settings'))
     assert len(scripts.start + scripts.end + scripts.idle) == 0
 
+
 def test_load_emits_signal(qtbot):
     gm_manager = greasemonkey.GreasemonkeyManager()
     # maybe should figure out how to call the greasemonkey-reload command
     # to check it is being registered correctly
     with qtbot.wait_signal(gm_manager.scripts_reloaded):
         gm_manager.load_scripts()
-
