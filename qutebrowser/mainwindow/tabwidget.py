@@ -353,9 +353,9 @@ class TabBar(QTabBar):
             self.update()
 
         # Clear _minimum_tab_size_hint_helper cache when appropriate
-        if option in ["tabs.indicator_padding",
+        if option in ["tabs.indicator.padding",
                       "tabs.padding",
-                      "tabs.width.indicator"]:
+                      "tabs.indicator.width"]:
             self._minimum_tab_size_hint_helper.cache_clear()
 
     def _on_show_switching_delay_changed(self):
@@ -508,8 +508,8 @@ class TabBar(QTabBar):
         text_width = min(_text_to_width(text),
                          _text_to_width(tab_text))
         padding = config.val.tabs.padding
-        indicator_width = config.val.tabs.width.indicator
-        indicator_padding = config.val.tabs.indicator_padding
+        indicator_width = config.val.tabs.indicator.width
+        indicator_padding = config.val.tabs.indicator.padding
         padding_h = padding.left + padding.right
         # Only add padding if indicator exists
         if indicator_width != 0:
@@ -550,7 +550,7 @@ class TabBar(QTabBar):
         minimum_size = self.minimumTabSizeHint(index)
         height = minimum_size.height()
         if self.vertical:
-            confwidth = str(config.val.tabs.width.bar)
+            confwidth = str(config.val.tabs.width)
             if confwidth.endswith('%'):
                 main_window = objreg.get('main-window', scope='window',
                                          window=self._win_id)
@@ -826,7 +826,7 @@ class TabBarStyle(QCommonStyle):
             A Layout object with two QRects.
         """
         padding = config.val.tabs.padding
-        indicator_padding = config.val.tabs.indicator_padding
+        indicator_padding = config.val.tabs.indicator.padding
 
         text_rect = QRect(opt.rect)
         if not text_rect.isValid():
@@ -837,7 +837,7 @@ class TabBarStyle(QCommonStyle):
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
 
-        indicator_width = config.val.tabs.width.indicator
+        indicator_width = config.val.tabs.indicator.width
         if indicator_width == 0:
             indicator_rect = QRect()
         else:

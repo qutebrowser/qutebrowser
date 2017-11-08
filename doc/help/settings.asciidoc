@@ -231,7 +231,7 @@
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|Show favicons in the tab bar.
-|<<tabs.indicator_padding,tabs.indicator_padding>>|Padding (in pixels) for tab indicators.
+|<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
@@ -245,8 +245,8 @@
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
-|<<tabs.width.bar,tabs.width.bar>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
-|<<tabs.width.indicator,tabs.width.indicator>>|Width (in pixels) of the progress indicator (0 to disable).
+|<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
+|<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
