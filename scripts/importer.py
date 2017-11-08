@@ -40,7 +40,7 @@ browser_default_input_format = {
     'ie': 'netscape',
     'firefox': 'mozilla',
     'seamonkey': 'mozilla',
-    'palemoon': 'mozilla'
+    'palemoon': 'mozilla',
 }
 
 
@@ -78,7 +78,7 @@ def main():
     import_function = {
         'netscape': import_netscape_bookmarks,
         'mozilla': import_moz_places,
-        'chrome': import_chrome
+        'chrome': import_chrome,
     }
     import_function[input_format](args.bookmarks, bookmark_types,
                                   output_format)
@@ -332,7 +332,7 @@ def import_chrome(profile, bookmark_types, output_format):
             bookmarks = json.load(f)
 
         def bm_tree_walk(bm, template):
-            assert 'type' in bm
+            assert 'type' in bm, bm
             if bm['type'] == 'url':
                 if urllib.parse.urlparse(bm['url']).scheme != 'chrome':
                     print(template.format(**bm))
