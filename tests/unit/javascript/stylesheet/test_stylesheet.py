@@ -111,3 +111,9 @@ def test_no_set_svg(stylesheet_tester):
     stylesheet_tester.check_set(None)
     stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
     stylesheet_tester.check_set(None)
+
+def test_set_error(stylesheet_tester):
+    """Test stylesheet modifies file not found error pages."""
+    stylesheet_tester.init_stylesheet()
+    stylesheet_tester.js.load_file('non-existent.html', force=True)
+    stylesheet_tester.check_set(GREEN_BODY_BG)
