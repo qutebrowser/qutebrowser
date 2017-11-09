@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for position_caret.js."""
+"""Tests for stylesheet.js."""
 
 import os
 import pytest
@@ -34,10 +34,11 @@ CSS_BODY_RED = "body {background-color: rgb(255, 0, 0);}"
 
 class StylesheetTester:
 
-    """Helper class (for the caret_tester fixture) for asserts.
+    """Helper class (for the stylesheet_tester fixture) for asserts.
 
     Attributes:
         js: The js_tester fixture.
+        config_stub: The config stub object.
     """
 
     def __init__(self, js_tester, config_stub):
@@ -64,10 +65,8 @@ class StylesheetTester:
 
 @pytest.fixture
 def stylesheet_tester(js_tester_webengine, config_stub):
-    """Helper fixture to test caret browsing positions."""
+    """Helper fixture to test stylesheets"""
     ss_tester = StylesheetTester(js_tester_webengine, config_stub)
-    # Showing webview here is necessary for test_scrolled_down_img to
-    # succeed in some cases, see #1988
     ss_tester.js.webview.show()
     return ss_tester
 
@@ -75,6 +74,7 @@ def stylesheet_tester(js_tester_webengine, config_stub):
                                   'stylesheet/simple_bg_set_red.html'])
 @pytest.mark.parametrize('set_js', [True, False])
 def test_set_delayed(stylesheet_tester, page, set_js):
+    """Test a delayed invocation of set_css."""
     stylesheet_tester.init_stylesheet("none.css")
     stylesheet_tester.js.load(page)
     if set_js:
@@ -87,6 +87,7 @@ def test_set_delayed(stylesheet_tester, page, set_js):
 @pytest.mark.parametrize('page', ['stylesheet/simple.html',
                                   'stylesheet/simple_bg_set_red.html'])
 def test_set_clear_bg(stylesheet_tester, page):
+    """Test setting and clearing the stylesheet"""
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load('stylesheet/simple.html')
     stylesheet_tester.check_set(GREEN_BODY_BG)
@@ -94,7 +95,19 @@ def test_set_clear_bg(stylesheet_tester, page):
     stylesheet_tester.check_set(DEFAULT_BODY_BG)
 
 def test_no_set_xml(stylesheet_tester):
+    """Test stylesheet never modifies xml files."""
     stylesheet_tester.init_stylesheet()
-    pytest.xfail("loading xml files throws exceptions")
+    pytest.xfail("loading xml/svg files throws exceptions")
     stylesheet_tester.js.load_file('stylesheet/simple.xml')
     stylesheet_tester.check_set(DEFAULT_BODY_BG)
+    stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
+    stylesheet_tester.check_set(DEFAULT_BODY_BG)
+
+def test_no_set_svg(stylesheet_tester):
+    """Test stylesheet never modifies svg files."""
+    stylesheet_tester.init_stylesheet()
+    pytest.xfail("loading xml/svg files throws exceptions")
+    stylesheet_tester.js.load_file('../../../misc/cheatsheet.svg')
+    stylesheet_tester.check_set(None)
+    stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
+    stylesheet_tester.check_set(None)
