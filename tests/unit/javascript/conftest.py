@@ -195,16 +195,17 @@ class JSWebEngineTester:
             self.webview.setHtml(template.render(**kwargs))
         assert blocker.args == [True]
 
-    def load_file(self, path: str):
+    def load_file(self, path: str, force=False):
         """Loads a file from disk"""
         self.load_url(QUrl.fromLocalFile(
-            os.path.join(os.path.dirname(__file__), path)))
+            os.path.join(os.path.dirname(__file__), path)), force)
 
-    def load_url(self, url: QUrl):
+    def load_url(self, url: QUrl, force=False):
         """Load a given QUrl."""
         with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
             self.webview.load(url)
-        assert blocker.args == [True]
+        if not force:
+            assert blocker.args == [True]
         import time
         time.sleep(1)
 
