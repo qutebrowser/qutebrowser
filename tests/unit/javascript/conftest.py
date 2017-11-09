@@ -26,16 +26,24 @@ import logging
 import pytest
 import jinja2
 from tests.helpers.fixtures import CallbackChecker
+from PyQt5.QtCore import QUrl
 
 try:
-    from PyQt5.QtCore import QUrl, QFile, QFileInfo
     from PyQt5.QtWebKit import QWebSettings
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings, QWebEngineScript
 except ImportError:
     # FIXME:qtwebengine Make these tests use the tab API
     QWebSettings = None
     QWebPage = None
+
+try:
+    from PyQt5.QtWebEngineWidgets import (QWebEnginePage,
+                                          QWebEngineSettings,
+                                          QWebEngineScript)
+except ImportError:
+    QWebEnginePage = None
+    QWebEngineSettings = None
+    QWebEngineScript = None
 
 from qutebrowser.utils import utils
 
@@ -71,9 +79,12 @@ else:
             """Fail tests on js console messages as they're used for errors."""
             pytest.fail("js console ({}:{}): {}".format(source, line, msg))
 
+if QWebEnginePage is None:
+    TestWebEnginePage = None
+else:
     class TestWebEnginePage(QWebEnginePage):
 
-        """QWebPage subclass which overrides some test methods.
+        """QWebEnginePage which overrides javascript logging methods.
 
         Attributes:
             _logger: The logger used for alerts.
@@ -97,7 +108,8 @@ else:
 
         def javaScriptConsoleMessage(self, level, msg, line, source):
             """Fail tests on js console messages as they're used for errors."""
-            pytest.fail("[{}] js console ({}:{}): {}".format(level, source, line, msg))
+            pytest.fail("[{}] js console ({}:{}): {}".format(level, source,
+                                                             line, msg))
 
 
 class JSTester:
@@ -164,9 +176,10 @@ class JSTester:
             QWebSettings.JavascriptEnabled)
         return self.webview.page().mainFrame().evaluateJavaScript(source)
 
+
 class JSWebEngineTester:
 
-    """Object returned by js_tester_webengine which provides test data and a webview.
+    """Object returned by js_tester_webengine which provides a webview.
 
     Attributes:
         webview: The webview which is used.
@@ -183,7 +196,7 @@ class JSWebEngineTester:
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
 
     def load(self, path, **kwargs):
-        """Load and display the given test data.
+        """Load and display the given jinja test data.
 
         Args:
             path: The path to the test file, relative to the javascript/
@@ -196,42 +209,47 @@ class JSWebEngineTester:
         assert blocker.args == [True]
 
     def load_file(self, path: str, force=False):
-        """Loads a file from disk"""
+        """Load a file from disk.
+
+        Args:
+            path: The string path from disk to load (relative to this file)
+            force: Whether to force loading even if the file is invalid.
+        """
         self.load_url(QUrl.fromLocalFile(
             os.path.join(os.path.dirname(__file__), path)), force)
 
-    def load_url(self, url: QUrl, force=False):
-        """Load a given QUrl."""
+    def load_url(self, url: QUrl, force: bool = False):
+        """Load a given QUrl.
+
+        Args:
+            url: The QUrl to load.
+            force: Whether to force loading even if the file is invalid.
+        """
         with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
             self.webview.load(url)
         if not force:
             assert blocker.args == [True]
-        import time
-        time.sleep(1)
 
-    def run_file(self, filename, expected):
+    def run_file(self, filename: str, expected) -> None:
         """Run a javascript file.
 
         Args:
             filename: The javascript filename, relative to
                       qutebrowser/javascript.
-
-        Return:
-            The javascript return value.
+            expected: The value expected return from the javascript execution
         """
         source = utils.read_file(os.path.join('javascript', filename))
         self.run(source, expected)
 
-    def run(self, source, expected, world=QWebEngineScript.ApplicationWorld):
+    def run(self, source: str, expected,
+            world=QWebEngineScript.ApplicationWorld) -> None:
         """Run the given javascript source.
 
         Args:
             source: The source to run as a string.
-
-        Return:
-            The javascript return value.
+            expected: The value expected return from the javascript execution
+            world: The scope the javascript will run in
         """
-        # TODO how to do this properly
         callback_checker = CallbackChecker(self._qtbot)
         assert self.webview.settings().testAttribute(
             QWebEngineSettings.JavascriptEnabled)
@@ -242,13 +260,11 @@ class JSWebEngineTester:
 
 @pytest.fixture
 def js_tester(webview, qtbot):
-    """Fixture to test javascript snippets."""
+    """Fixture to test javascript snippets in webkit."""
     return JSTester(webview, qtbot)
 
 
 @pytest.fixture
 def js_tester_webengine(callback_checker, webengineview, qtbot):
-    """Fixture to test javascript snippets."""
-    webengineview.settings().setAttribute(
-        QWebEngineSettings.JavascriptEnabled, True)
+    """Fixture to test javascript snippets in webengine."""
     return JSWebEngineTester(webengineview, callback_checker, qtbot)
