@@ -96,8 +96,9 @@ window._qutebrowser.stylesheet = (function() {
         }
         const style_observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
-                for (const added of mutation.addedNodes) {
-                    if (check_style(added)) {
+                const nodes = mutation.addedNodes;
+                for (let i = 0; i < nodes.length; ++i) {
+                    if (check_style(nodes[i])) {
                         create_style();
                         style_observer.disconnect();
                         return;
