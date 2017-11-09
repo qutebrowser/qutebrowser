@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017 Jay Kamat
 #
 # This file is part of qutebrowser.
 #
@@ -21,16 +21,16 @@
 
 import os
 import pytest
-from qutebrowser.utils import javascript, utils
-from qutebrowser.browser import shared
-from qutebrowser.config import config
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile, QWebEngineScript
-import qutebrowser.browser.webengine.webenginesettings as webenginesettings
+from qutebrowser.utils import javascript
+from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+from qutebrowser.browser.webengine import webenginesettings
+
 
 DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"
 GREEN_BODY_BG = "rgb(0, 255, 0)"
 CSS_BODY_GREEN = "body {background-color: rgb(0, 255, 0);}"
 CSS_BODY_RED = "body {background-color: rgb(255, 0, 0);}"
+
 
 class StylesheetTester:
 
@@ -46,7 +46,7 @@ class StylesheetTester:
         self.config_stub = config_stub
 
     def init_stylesheet(self, css_file="green.css"):
-
+        """Initialize the stylesheet with a provided css file."""
         self.config_stub.val.content.user_stylesheets = \
             os.path.join(os.path.dirname(__file__), css_file)
         p = QWebEngineProfile.defaultProfile()
@@ -65,10 +65,11 @@ class StylesheetTester:
 
 @pytest.fixture
 def stylesheet_tester(js_tester_webengine, config_stub):
-    """Helper fixture to test stylesheets"""
+    """Helper fixture to test stylesheets."""
     ss_tester = StylesheetTester(js_tester_webengine, config_stub)
     ss_tester.js.webview.show()
     return ss_tester
+
 
 @pytest.mark.parametrize('page', ['stylesheet/simple.html',
                                   'stylesheet/simple_bg_set_red.html'])
@@ -84,15 +85,17 @@ def test_set_delayed(stylesheet_tester, page, set_js):
     stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
     stylesheet_tester.check_set("rgb(0, 255, 0)")
 
+
 @pytest.mark.parametrize('page', ['stylesheet/simple.html',
                                   'stylesheet/simple_bg_set_red.html'])
 def test_set_clear_bg(stylesheet_tester, page):
-    """Test setting and clearing the stylesheet"""
+    """Test setting and clearing the stylesheet."""
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load('stylesheet/simple.html')
     stylesheet_tester.check_set(GREEN_BODY_BG)
     stylesheet_tester.set_css("")
     stylesheet_tester.check_set(DEFAULT_BODY_BG)
+
 
 def test_no_set_xml(stylesheet_tester):
     """Test stylesheet never modifies xml files."""
@@ -103,6 +106,7 @@ def test_no_set_xml(stylesheet_tester):
     stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
     stylesheet_tester.check_set(DEFAULT_BODY_BG)
 
+
 def test_no_set_svg(stylesheet_tester):
     """Test stylesheet never modifies svg files."""
     stylesheet_tester.init_stylesheet()
@@ -111,6 +115,7 @@ def test_no_set_svg(stylesheet_tester):
     stylesheet_tester.check_set(None)
     stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
     stylesheet_tester.check_set(None)
+
 
 def test_set_error(stylesheet_tester):
     """Test stylesheet modifies file not found error pages."""
