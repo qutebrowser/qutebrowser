@@ -64,6 +64,10 @@ class StylesheetTester:
                     ".getPropertyValue('{}');".format(document_element,
                                                       css_style), value)
 
+    def check_eq(self, one, two, true=True):
+        """Check if one and two are equal."""
+        self.js.run("{} === {}".format(one, two), true)
+
 
 @pytest.fixture
 def stylesheet_tester(js_tester_webengine, config_stub):
@@ -94,27 +98,20 @@ def test_set_clear_bg(stylesheet_tester, page):
     stylesheet_tester.check_set(DEFAULT_BODY_BG)
 
 
-def test_no_set_xml(stylesheet_tester):
-    """Test stylesheet never modifies xml files."""
+def test_set_xml(stylesheet_tester):
+    """Test stylesheet is applied without altering xml files."""
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load_file('stylesheet/simple.xml')
-    pytest.xfail("stylesheet is set on xml documents")
-    stylesheet_tester.check_set(DEFAULT_BODY_BG)
-    stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
-    stylesheet_tester.check_set(DEFAULT_BODY_BG)
+    stylesheet_tester.check_set(GREEN_BODY_BG)
+    stylesheet_tester.check_eq("\"html\"", "document.documentElement.nodeName")
 
-
-def test_no_set_svg(stylesheet_tester):
-    """Test stylesheet never modifies svg files."""
+def test_set_svg(stylesheet_tester):
+    """Test stylesheet is applied for svg files."""
     stylesheet_tester.init_stylesheet()
-    # pytest.xfail("loading xml/svg files throws exceptions")
     stylesheet_tester.js.load_file('../../../misc/cheatsheet.svg')
-    pytest.xfail("stylesheet is set on svg documents??")
-    stylesheet_tester.check_set(DEFAULT_BODY_BG,
+    stylesheet_tester.check_set(GREEN_BODY_BG,
                                 document_element="document.documentElement")
-    stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
-    stylesheet_tester.check_set(DEFAULT_BODY_BG,
-                                document_element="document.documentElement")
+    stylesheet_tester.check_eq("\"svg\"", "document.documentElement.nodeName")
 
 
 def test_set_error(stylesheet_tester):
