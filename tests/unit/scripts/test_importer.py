@@ -21,6 +21,8 @@
 import pytest
 from scripts import importer
 
+_chrome_profile = 'tests/unit/scripts/chrome-profile'
+
 
 def test_opensearch_convert():
     urls = [
@@ -44,7 +46,28 @@ def test_opensearch_convert():
 
 
 def test_opensearch_convert_unsupported():
-    """pass an unsupported, required parameter"""
+    """pass an unsupported, required parameter."""
     with pytest.raises(KeyError):
         os_url = 'http://foo.bar/s?q={searchTerms}&req={unsupported}'
         importer.opensearch_convert(os_url)
+
+
+def test_chrome_bookmarks(capsys):
+    """Read sample bookmarks from chrome profile."""
+    expected = ('Foo http://foo.com/\n' 'Bar http://bar.com/\n')
+    importer.import_chrome(_chrome_profile, ['bookmark'], 'quickmark')
+    imported = capsys.readouterr()[0]
+    assert imported == expected
+
+
+def test_chrome_searches(capsys):
+    """Read sample searches from chrome profile."""
+    expected = (
+        "# Unsupported parameter in url for google.com; skipping....\n"
+        "c.url.searchengines['bing.com'] = 'https://www.bing.com/search?q={}&PC=U316&FORM=CHROMN'\n"
+        "c.url.searchengines['yahoo.com'] = 'https://search.yahoo.com/search?ei=UTF-8&fr=crmas&p={}'\n"
+        "c.url.searchengines['aol.com'] = 'https://search.aol.com/aol/search?q={}'\n"
+        "c.url.searchengines['ask.com'] = 'http://www.ask.com/web?q={}'\n")
+    importer.import_chrome(_chrome_profile, ['search'], 'search')
+    imported = capsys.readouterr()[0]
+    assert imported == expected
