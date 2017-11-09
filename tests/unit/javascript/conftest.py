@@ -28,9 +28,10 @@ import jinja2
 from tests.helpers.fixtures import CallbackChecker
 
 try:
+    from PyQt5.QtCore import QUrl, QFile, QFileInfo
     from PyQt5.QtWebKit import QWebSettings
     from PyQt5.QtWebKitWidgets import QWebPage
-    from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings
+    from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings, QWebEngineScript
 except ImportError:
     # FIXME:qtwebengine Make these tests use the tab API
     QWebSettings = None
@@ -194,6 +195,19 @@ class JSWebEngineTester:
             self.webview.setHtml(template.render(**kwargs))
         assert blocker.args == [True]
 
+    def load_file(self, path: str):
+        """Loads a file from disk"""
+        self.load_url(QUrl.fromLocalFile(
+            os.path.join(os.path.dirname(__file__), path)))
+
+    def load_url(self, url: QUrl):
+        """Load a given QUrl."""
+        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
+            self.webview.load(url)
+        assert blocker.args == [True]
+        import time
+        time.sleep(1)
+
     def run_file(self, filename, expected):
         """Run a javascript file.
 
@@ -207,7 +221,7 @@ class JSWebEngineTester:
         source = utils.read_file(os.path.join('javascript', filename))
         self.run(source, expected)
 
-    def run(self, source, expected):
+    def run(self, source, expected, world=QWebEngineScript.ApplicationWorld):
         """Run the given javascript source.
 
         Args:
@@ -218,8 +232,10 @@ class JSWebEngineTester:
         """
         # TODO how to do this properly
         callback_checker = CallbackChecker(self._qtbot)
-        assert self.webview.settings().testAttribute(QWebEngineSettings.JavascriptEnabled)
-        self.webview.page().runJavaScript(source, callback_checker.callback)
+        assert self.webview.settings().testAttribute(
+            QWebEngineSettings.JavascriptEnabled)
+        self.webview.page().runJavaScript(source, world,
+                                          callback_checker.callback)
         callback_checker.check(expected)
 
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2017 suve <veg@svgames.pl> -->
+<component type="desktop">
+	<id>org.qutebrowser.qutebrowser</id>
+	<metadata_license>CC-BY-SA-3.0</metadata_license>
+	<project_license>GPL-3.0</project_license>
+	<name>qutebrowser</name>
+	<summary>A keyboard-driven web browser</summary>
+	<description>
+		<p>
+			qutebrowser is a keyboard-focused browser with a minimal GUI.
+			It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl, 
+			and is based on Python and PyQt5.
+		</p>	
+	</description>
+	<categories>
+		<category>Network</category>
+		<category>WebBrowser</category>
+	</categories>
+	<provides>
+		<binary>qutebrowser</binary>
+	</provides>
+	<launchable type="desktop-id">qutebrowser.desktop</launchable>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/main.png</image>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/downloads.png</image>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/completion.png</image>
+		</screenshot>
+		<screenshot>
+			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/hints.png</image>
+		</screenshot>
+	</screenshots>
+	<url type="homepage">https://www.qutebrowser.org</url>
+	<url type="faq">https://qutebrowser.org/doc/faq.html</url>
+	<url type="help">https://qutebrowser.org/doc/help/</url>
+	<url type="bugtracker">https://github.com/qutebrowser/qutebrowser/issues/</url>
+	<url type="donation">https://github.com/qutebrowser/qutebrowser#donating</url>
+</component>
