@@ -114,8 +114,7 @@ else:
 
 
 class JSTester:
-
-    """Object returned by js_tester which provides test data and a webview.
+    """Common subclass providing basic functionality for all JS testers.
 
     Attributes:
         webview: The webview which is used.
@@ -125,21 +124,12 @@ class JSTester:
 
     def __init__(self, webview, qtbot):
         self.webview = webview
-        self.webview.setPage(TestWebPage(self.webview))
         self._qtbot = qtbot
         loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
 
-    def scroll_anchor(self, name):
-        """Scroll the main frame to the given anchor."""
-        page = self.webview.page()
-        old_pos = page.mainFrame().scrollPosition()
-        page.mainFrame().scrollToAnchor(name)
-        new_pos = page.mainFrame().scrollPosition()
-        assert old_pos != new_pos
-
     def load(self, path, **kwargs):
-        """Load and display the given test data.
+        """Load and display the given jinja test data.
 
         Args:
             path: The path to the test file, relative to the javascript/
@@ -150,6 +140,29 @@ class JSTester:
         with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
             self.webview.setHtml(template.render(**kwargs))
         assert blocker.args == [True]
+
+
+class JSWebKitTester(JSTester):
+
+    """Object returned by js_tester which provides test data and a webview.
+
+    Attributes:
+        webview: The webview which is used.
+        _qtbot: The QtBot fixture from pytest-qt.
+        _jinja_env: The jinja2 environment used to get templates.
+    """
+
+    def __init__(self, webview, qtbot):
+        JSTester.__init__(self, webview, qtbot)
+        self.webview.setPage(TestWebPage(self.webview))
+
+    def scroll_anchor(self, name):
+        """Scroll the main frame to the given anchor."""
+        page = self.webview.page()
+        old_pos = page.mainFrame().scrollPosition()
+        page.mainFrame().scrollToAnchor(name)
+        new_pos = page.mainFrame().scrollPosition()
+        assert old_pos != new_pos
 
     def run_file(self, filename):
         """Run a javascript file.
@@ -178,7 +191,7 @@ class JSTester:
         return self.webview.page().mainFrame().evaluateJavaScript(source)
 
 
-class JSWebEngineTester:
+class JSWebEngineTester(JSTester):
 
     """Object returned by js_tester_webengine which provides a webview.
 
@@ -189,25 +202,9 @@ class JSWebEngineTester:
     """
 
     def __init__(self, webview, callback_checker, qtbot):
-        self.webview = webview
+        JSTester.__init__(self, webview, qtbot)
         self.webview.setPage(TestWebEnginePage(self.webview))
         self.callback_checker = callback_checker
-        self._qtbot = qtbot
-        loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
-        self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
-
-    def load(self, path, **kwargs):
-        """Load and display the given jinja test data.
-
-        Args:
-            path: The path to the test file, relative to the javascript/
-                  folder.
-            **kwargs: Passed to jinja's template.render().
-        """
-        template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
-            self.webview.setHtml(template.render(**kwargs))
-        assert blocker.args == [True]
 
     def load_file(self, path: str, force=False):
         """Load a file from disk.
@@ -262,7 +259,7 @@ class JSWebEngineTester:
 @pytest.fixture
 def js_tester(webview, qtbot):
     """Fixture to test javascript snippets in webkit."""
-    return JSTester(webview, qtbot)
+    return JSWebKitTester(webview, qtbot)
 
 
 @pytest.fixture

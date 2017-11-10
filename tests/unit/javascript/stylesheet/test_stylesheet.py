@@ -105,6 +105,7 @@ def test_set_xml(stylesheet_tester):
     stylesheet_tester.check_set(GREEN_BODY_BG)
     stylesheet_tester.check_eq("\"html\"", "document.documentElement.nodeName")
 
+
 def test_set_svg(stylesheet_tester):
     """Test stylesheet is applied for svg files."""
     stylesheet_tester.init_stylesheet()
