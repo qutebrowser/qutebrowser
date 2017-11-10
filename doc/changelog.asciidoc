@@ -96,6 +96,7 @@ Fixed
 ~~~~~
 
 - The `qute://gpl` page now works correctly again.
+- Trying to bind an empty command now doesn't crash anymore.
 
 v1.0.3
 ------
