@@ -25,7 +25,7 @@ import logging
 
 import pytest
 import jinja2
-from tests.helpers.fixtures import CallbackChecker
+from helpers.utils import CallbackChecker
 from PyQt5.QtCore import QUrl
 
 try:
