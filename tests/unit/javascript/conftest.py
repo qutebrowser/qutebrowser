@@ -27,6 +27,7 @@ import pytest
 import jinja2
 from helpers.utils import CallbackChecker
 from PyQt5.QtCore import QUrl
+from qutebrowser.utils.debug import qenum_key
 
 try:
     from PyQt5.QtWebKit import QWebSettings
@@ -108,8 +109,8 @@ else:
 
         def javaScriptConsoleMessage(self, level, msg, line, source):
             """Fail tests on js console messages as they're used for errors."""
-            pytest.fail("[{}] js console ({}:{}): {}".format(level, source,
-                                                             line, msg))
+            pytest.fail("[{}] js console ({}:{}): {}".format(
+                qenum_key(QWebEnginePage, level), source, line, msg))
 
 
 class JSTester:
