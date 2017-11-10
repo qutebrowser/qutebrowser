@@ -1196,15 +1196,6 @@ tabs.favicons.show:
   type: Bool
   desc: Show favicons in the tab bar.
 
-tabs.indicator_padding:
-  default:
-    top: 2
-    bottom: 2
-    left: 0
-    right: 4
-  type: Padding
-  desc: Padding (in pixels) for tab indicators.
-
 tabs.last_close:
   default: ignore
   type:
@@ -1330,6 +1321,9 @@ tabs.title.format_pinned:
     like for `tabs.title.format` are defined.
 
 tabs.width.bar:
+  renamed: tabs.width
+
+tabs.width:
   default: 20%
   type:
     name: PercOrInt
@@ -1340,11 +1334,26 @@ tabs.width.bar:
     it's vertical."
 
 tabs.width.indicator:
+  renamed: tabs.indicator.width
+
+tabs.indicator.width:
   default: 3
   type:
     name: Int
     minval: 0
   desc: Width (in pixels) of the progress indicator (0 to disable).
+
+tabs.indicator_padding:
+  renamed: tabs.indicator.padding
+
+tabs.indicator.padding:
+  default:
+    top: 2
+    bottom: 2
+    left: 0
+    right: 4
+  type: Padding
+  desc: Padding (in pixels) for tab indicators.
 
 tabs.width.pinned:
   deleted: true
