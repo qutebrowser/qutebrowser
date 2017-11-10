@@ -493,10 +493,10 @@ Start hinting.
 
 
 ==== optional arguments
-* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily open
- multiple links. This is only possible with targets `tab`
- (with `tabs.background_tabs=true`), `tab-bg`, `window`,
- `run`, `hover`, `userscript` and `spawn`.
+* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
+ open multiple links. This is only possible with targets
+ `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+ `window`, `run`, `hover`, `userscript` and `spawn`.
 
 * +*-m*+, +*--mode*+: The hinting mode to use. 
 

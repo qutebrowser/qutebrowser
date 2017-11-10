@@ -618,10 +618,10 @@ class HintManager(QObject):
 
         Args:
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
-                   mode isn't left after a hint is followed, so you can easily open
-                   multiple links. This is only possible with targets `tab`
-                   (with `tabs.background_tabs=true`), `tab-bg`, `window`,
-                   `run`, `hover`, `userscript` and `spawn`.
+                   mode isn't left after a hint is followed, so you can easily
+                   open multiple links. This is only possible with targets
+                   `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+                   `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
             group: The element types to hint.
