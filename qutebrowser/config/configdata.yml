@@ -1358,6 +1358,11 @@ tabs.indicator.padding:
 tabs.width.pinned:
   deleted: true
 
+tabs.pinned.shrink:
+  default: true
+  type: Bool
+  desc: Shrink pinned tabs down to their contents.
+
 tabs.wrap:
   default: true
   type: Bool
