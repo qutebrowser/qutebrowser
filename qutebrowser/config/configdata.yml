@@ -95,6 +95,7 @@ backend:
       - webengine: Use QtWebEngine (based on Chromium).
       - webkit: Use QtWebKit (based on WebKit, similar to Safari).
   default: webengine
+  restart: true
   desc: >-
     Backend to use to display websites.
 
@@ -109,8 +110,6 @@ backend:
     resource hungry than QtWebKit and has a couple of missing features in
     qutebrowser, but is generally the preferred choice.
 
-    This setting requires a restart.
-
 
 ## qt
 
@@ -123,14 +122,13 @@ qt.args:
     valtype: String
     none_ok: true
   default: []
+  restart: true
   desc: >-
     Additional arguments to pass to Qt, without leading `--`.
 
     With QtWebEngine, some Chromium arguments (see
     https://peter.sh/experiments/chromium-command-line-switches/ for a list)
     will work.
-
-    This setting requires a restart.
 
 force_software_rendering:
   renamed: qt.force_software_rendering
@@ -139,30 +137,29 @@ qt.force_software_rendering:
   type: Bool
   default: false
   backend: QtWebEngine
+  restart: true
   desc: >-
     Force software rendering for QtWebEngine.
 
     This is needed for QtWebEngine to work with Nouveau drivers.
-
-    This setting requires a restart.
 
 qt.force_platform:
   type:
     name: String
     none_ok: true
   default: null
+  restart: true
   desc: >-
     Force a Qt platform to use.
 
     This sets the `QT_QPA_PLATFORM` environment variable and is useful to force
     using the XCB plugin when running QtWebEngine on Wayland.
 
-    This setting requires a restart.
-
 
 qt.highdpi:
   type: Bool
   default: false
+  restart: true
   desc: >-
     Turn on Qt HighDPI scaling.
 
@@ -172,8 +169,6 @@ qt.highdpi:
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
     `zoom.default` setting.
-
-    This setting requires a restart.
 
 ## auto_save
 
@@ -1437,7 +1432,8 @@ url.yank_ignored_parameters:
 window.hide_wayland_decoration:
   type: Bool
   default: false
-  desc: Hide the window decoration when using wayland (requires restart).
+  restart: true
+  desc: Hide the window decoration when using wayland.
 
 window.title_format:
   type:

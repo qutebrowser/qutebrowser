@@ -416,6 +416,8 @@ def _generate_setting_option(f, opt):
     f.write('[[{}]]'.format(opt.name) + "\n")
     f.write("=== {}".format(opt.name) + "\n")
     f.write(opt.description + "\n")
+    if opt.restart:
+        f.write("This setting requires a restart.\n")
     f.write("\n")
     typ = opt.typ.get_name().replace(',', '&#44;')
     f.write('Type: <<types,{typ}>>\n'.format(typ=typ))
