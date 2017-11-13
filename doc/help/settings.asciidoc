@@ -238,6 +238,7 @@
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
+|<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
 |<<tabs.show,tabs.show>>|When to show the tab bar.
@@ -589,10 +590,7 @@ Default:
 * +pass:[wo]+: +pass:[set-cmd-text -s :open -w]+
 * +pass:[wp]+: +pass:[open -w -- {clipboard}]+
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
-* +pass:[xb]+: +pass:[config-cycle statusbar.hide]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
-* +pass:[xt]+: +pass:[config-cycle tabs.show always switching]+
-* +pass:[xx]+: +pass:[config-cycle statusbar.hide ;; config-cycle tabs.show always switching]+
 * +pass:[yD]+: +pass:[yank domain -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
@@ -2790,6 +2788,14 @@ Default:
 - +pass:[left]+: +pass:[5]+
 - +pass:[right]+: +pass:[5]+
 - +pass:[top]+: +pass:[0]+
+
+[[tabs.pinned.shrink]]
+=== tabs.pinned.shrink
+Shrink pinned tabs down to their contents.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[tabs.position]]
 === tabs.position

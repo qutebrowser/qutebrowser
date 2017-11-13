@@ -41,6 +41,8 @@ Added
 - New `qt.highdpi` setting to turn on Qt's High-DPI scaling.
 - New `:completion-item-yank` command (bound to `<Ctrl-C>`) to yank the current
   completion item text.
+- New `tabs.pinned.shrink` setting to (`true` by default) to make it possible
+  for pinned tabs and normal tabs to have the same size.
 
 Changed
 ~~~~~~~
@@ -88,6 +90,8 @@ Removed
 - The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
   commands have been removed.
 - The `messages.unfocused` option which wasn't used anymore was removed.
+- The `x[xtb]` default bindings got removed again as many users accidentally
+  triggered them.
 
 v1.0.4 (unreleased)
 -------------------
