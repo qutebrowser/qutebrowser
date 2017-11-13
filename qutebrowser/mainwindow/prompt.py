@@ -364,7 +364,7 @@ class PromptContainer(QWidget):
             widget.hide()
             widget.deleteLater()
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
     def prompt_accept(self, value=None):
@@ -388,7 +388,7 @@ class PromptContainer(QWidget):
             message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
             question.done()
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
     def prompt_open_download(self, cmdline: str = None):
         """Immediately open a download.
@@ -407,7 +407,7 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
-    @cmdutils.register(instance='prompt-container', hide=True, scope='window',
+    @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt])
     @cmdutils.argument('which', choices=['next', 'prev'])
     def prompt_item_focus(self, which):

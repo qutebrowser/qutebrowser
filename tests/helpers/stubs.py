@@ -338,6 +338,7 @@ class FakeCommand:
     completion = attr.ib(None)
     maxsplit = attr.ib(None)
     takes_count = attr.ib(lambda: False)
+    modes = attr.ib((usertypes.KeyMode.normal, ))
 
 
 class FakeTimer(QObject):

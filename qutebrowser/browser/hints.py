@@ -902,7 +902,7 @@ class HintManager(QObject):
         except HintingError as e:
             message.error(str(e))
 
-    @cmdutils.register(instance='hintmanager', scope='tab', hide=True,
+    @cmdutils.register(instance='hintmanager', scope='tab',
                        modes=[usertypes.KeyMode.hint])
     def follow_hint(self, keystring=None):
         """Follow a hint.

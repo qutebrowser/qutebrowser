@@ -124,7 +124,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             self.set_cmd_text(text)
 
-    @cmdutils.register(instance='status-command', hide=True,
+    @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
     def command_history_prev(self):
         """Go back in the commandline history."""
@@ -139,7 +139,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='status-command', hide=True,
+    @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
     def command_history_next(self):
         """Go forward in the commandline history."""
@@ -152,7 +152,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if item:
             self.set_cmd_text(item)
 
-    @cmdutils.register(instance='status-command', hide=True,
+    @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
     def command_accept(self):
         """Execute the command currently in the commandline."""

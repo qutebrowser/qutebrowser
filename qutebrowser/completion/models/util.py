@@ -19,7 +19,7 @@
 
 """Utility functions for completion models."""
 
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, usertypes
 from qutebrowser.commands import cmdutils
 
 
@@ -28,7 +28,7 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
 
     Args:
         info: The CompletionInfo.
-        include_hidden: True to include commands annotated with hide=True.
+        include_hidden: Include commands which are not in normal mode.
         include_aliases: True to include command aliases.
         prefix: String to append to the command name.
 
@@ -39,8 +39,9 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
     cmd_to_keys = info.keyconf.get_reverse_bindings_for('normal')
     for obj in set(cmdutils.cmd_dict.values()):
         hide_debug = obj.debug and not objreg.get('args').debug
-        hide_hidden = obj.hide and not include_hidden
-        if not (hide_debug or hide_hidden or obj.deprecated):
+        hide_mode = (usertypes.KeyMode.normal not in obj.modes and
+                     not include_hidden)
+        if not (hide_debug or hide_mode or obj.deprecated):
             bindings = ', '.join(cmd_to_keys.get(obj.name, []))
             cmdlist.append((prefix + obj.name, obj.desc, bindings))
 

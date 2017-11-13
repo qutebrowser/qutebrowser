@@ -58,7 +58,6 @@ class Command:
         name: The main name of the command.
         maxsplit: The maximum amount of splits to do for the commandline, or
                   None.
-        hide: Whether to hide the arguments or not.
         deprecated: False, or a string to describe why a command is deprecated.
         desc: The description of the command.
         handler: The handler function to call.
@@ -69,39 +68,37 @@ class Command:
         backend: Which backend the command works with (or None if it works with
                  both)
         no_replace_variables: Don't replace variables like {url}
+        modes: The modes the command can be executed in.
         _qute_args: The saved data from @cmdutils.argument
-        _modes: The modes the command can be executed in.
         _count: The count set for the command.
         _instance: The object to bind 'self' to.
         _scope: The scope to get _instance for in the object registry.
     """
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
-                 hide=False, modes=None, not_modes=None, debug=False,
-                 deprecated=False, no_cmd_split=False,
-                 star_args_optional=False, scope='global', backend=None,
-                 no_replace_variables=False):
+                 modes=None, not_modes=None, debug=False, deprecated=False,
+                 no_cmd_split=False, star_args_optional=False, scope='global',
+                 backend=None, no_replace_variables=False):
         if modes is not None and not_modes is not None:
             raise ValueError("Only modes or not_modes can be given!")
         if modes is not None:
             for m in modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
-            self._modes = set(modes)
+            self.modes = set(modes)
         elif not_modes is not None:
             for m in not_modes:
                 if not isinstance(m, usertypes.KeyMode):
                     raise TypeError("Mode {} is no KeyMode member!".format(m))
-            self._modes = set(usertypes.KeyMode).difference(not_modes)
+            self.modes = set(usertypes.KeyMode).difference(not_modes)
         else:
-            self._modes = set(usertypes.KeyMode)
+            self.modes = set(usertypes.KeyMode)
         if scope != 'global' and instance is None:
             raise ValueError("Setting scope without setting instance makes "
                              "no sense!")
 
         self.name = name
         self.maxsplit = maxsplit
-        self.hide = hide
         self.deprecated = deprecated
         self._instance = instance
         self._scope = scope
@@ -508,8 +505,8 @@ class Command:
         Args:
             mode: The usertypes.KeyMode to check.
         """
-        if mode not in self._modes:
-            mode_names = '/'.join(sorted(m.name for m in self._modes))
+        if mode not in self.modes:
+            mode_names = '/'.join(sorted(m.name for m in self.modes))
             raise cmdexc.PrerequisitesError(
                 "{}: This command is only allowed in {} mode, not {}.".format(
                     self.name, mode_names, mode.name))

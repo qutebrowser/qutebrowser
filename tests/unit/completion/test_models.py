@@ -68,9 +68,10 @@ def cmdutils_stub(monkeypatch, stubs):
         'quit': stubs.FakeCommand(name='quit', desc='quit qutebrowser'),
         'open': stubs.FakeCommand(name='open', desc='open a url'),
         'prompt-yes': stubs.FakeCommand(name='prompt-yes', deprecated=True),
-        'scroll': stubs.FakeCommand(name='scroll',
+        'scroll': stubs.FakeCommand(
+            name='scroll',
             desc='Scroll the current tab in the given direction.',
-            hide=True),
+            modes=()),
     })
 
 

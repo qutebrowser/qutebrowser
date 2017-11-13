@@ -142,14 +142,6 @@ class TestRegister:
             pass
         assert cmdutils.cmd_dict['fun']._instance == 'foobar'
 
-    def test_kwargs(self):
-        """Make sure the other keyword arguments get passed to Command."""
-        @cmdutils.register(hide=True)
-        def fun():
-            """Blah."""
-            pass
-        assert cmdutils.cmd_dict['fun'].hide
-
     def test_star_args(self):
         """Check handling of *args."""
         @cmdutils.register()

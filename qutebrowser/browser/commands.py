@@ -565,8 +565,8 @@ class CommandDispatcher:
         tabbed_browser.tabopen(self._current_url())
         self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window', deprecated='Use :tab-give instead!')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       deprecated='Use :tab-give instead!')
     def tab_detach(self):
         """Deprecated way to detach a tab."""
         self.tab_give()
@@ -677,8 +677,7 @@ class CommandDispatcher:
         except navigate.Error as e:
             raise cmdexc.CommandError(e)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def scroll_px(self, dx: int, dy: int, count=1):
         """Scroll the current tab by 'count * dx/dy' pixels.
@@ -694,8 +693,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(dy, 'int')
         self._current_widget().scroller.delta(dx, dy)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def scroll(self, direction: typing.Union[str, int], count=1):
         """Scroll the current tab in the given direction.
@@ -732,8 +730,7 @@ class CommandDispatcher:
         else:
             func(count=count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
     def scroll_to_perc(self, perc: float = None, horizontal=False, count=None):
@@ -764,8 +761,7 @@ class CommandDispatcher:
 
         self._current_widget().scroller.to_perc(x, y)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('top_navigate', metavar='ACTION',
                        choices=('prev', 'decrement'))
@@ -1388,8 +1384,7 @@ class CommandDispatcher:
         except KeyError:
             raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def follow_selected(self, *, tab=False):
         """Follow the selected text.
 
@@ -1674,8 +1669,7 @@ class CommandDispatcher:
 
         tab.elements.find_focused(_insert_text_cb)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       hide=True)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('filter_', choices=['id'])
     def click_element(self, filter_: str, value, *,
                       target: usertypes.ClickTarget =
@@ -1780,8 +1774,7 @@ class CommandDispatcher:
 
         tab.search.search(text, **options)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
@@ -1815,8 +1808,7 @@ class CommandDispatcher:
             tab.search.next_result()
         tab.search.next_result(result_cb=cb)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
@@ -1850,8 +1842,8 @@ class CommandDispatcher:
             tab.search.prev_result()
         tab.search.prev_result(result_cb=cb)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_next_line(self, count=1):
         """Move the cursor or selection to the next line.
@@ -1861,8 +1853,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_next_line(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_prev_line(self, count=1):
         """Move the cursor or selection to the prev line.
@@ -1872,8 +1864,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_prev_line(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_next_char(self, count=1):
         """Move the cursor or selection to the next char.
@@ -1883,8 +1875,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_next_char(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_prev_char(self, count=1):
         """Move the cursor or selection to the previous char.
@@ -1894,8 +1886,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_prev_char(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_end_of_word(self, count=1):
         """Move the cursor or selection to the end of the word.
@@ -1905,8 +1897,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_end_of_word(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_next_word(self, count=1):
         """Move the cursor or selection to the next word.
@@ -1916,8 +1908,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_next_word(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_prev_word(self, count=1):
         """Move the cursor or selection to the previous word.
@@ -1927,20 +1919,20 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_prev_word(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     def move_to_start_of_line(self):
         """Move the cursor or selection to the start of the line."""
         self._current_widget().caret.move_to_start_of_line()
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     def move_to_end_of_line(self):
         """Move the cursor or selection to the end of line."""
         self._current_widget().caret.move_to_end_of_line()
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_start_of_next_block(self, count=1):
         """Move the cursor or selection to the start of next block.
@@ -1950,8 +1942,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_start_of_next_block(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_start_of_prev_block(self, count=1):
         """Move the cursor or selection to the start of previous block.
@@ -1961,8 +1953,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_start_of_prev_block(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_end_of_next_block(self, count=1):
         """Move the cursor or selection to the end of next block.
@@ -1972,8 +1964,8 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_end_of_next_block(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     @cmdutils.argument('count', count=True)
     def move_to_end_of_prev_block(self, count=1):
         """Move the cursor or selection to the end of previous block.
@@ -1983,26 +1975,26 @@ class CommandDispatcher:
         """
         self._current_widget().caret.move_to_end_of_prev_block(count)
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     def move_to_start_of_document(self):
         """Move the cursor or selection to the start of the document."""
         self._current_widget().caret.move_to_start_of_document()
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     def move_to_end_of_document(self):
         """Move the cursor or selection to the end of the document."""
         self._current_widget().caret.move_to_end_of_document()
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     def toggle_selection(self):
         """Toggle caret selection mode."""
         self._current_widget().caret.toggle_selection()
 
-    @cmdutils.register(instance='command-dispatcher', hide=True,
-                       modes=[KeyMode.caret], scope='window')
+    @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
+                       scope='window')
     def drop_selection(self):
         """Drop selection and keep selection mode enabled."""
         self._current_widget().caret.drop_selection()
@@ -2145,8 +2137,7 @@ class CommandDispatcher:
 
         ed.edit(url or old_url)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       hide=True)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def set_mark(self, key):
         """Set a mark at the current scroll position in the current tab.
 
@@ -2155,8 +2146,7 @@ class CommandDispatcher:
         """
         self._tabbed_browser.set_mark(key)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       hide=True)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def jump_mark(self, key):
         """Jump to the mark named by `key`.
 

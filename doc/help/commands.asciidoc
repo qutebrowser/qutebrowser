@@ -30,6 +30,9 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<bookmark-del,bookmark-del>>|Delete a bookmark.
 |<<bookmark-load,bookmark-load>>|Load a bookmark.
 |<<buffer,buffer>>|Select tab by index or url/title best match.
+|<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
+|<<clear-messages,clear-messages>>|Clear all message notifications.
+|<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
@@ -45,7 +48,9 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
 |<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
+|<<enter-mode,enter-mode>>|Enter a key mode.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
+|<<follow-selected,follow-selected>>|Follow the selected text.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
 |<<help,help>>|Show help about a command or setting.
@@ -56,9 +61,14 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<insert-text,insert-text>>|Insert text at cursor position.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
+|<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
+|<<message-error,message-error>>|Show an error message in the statusbar.
+|<<message-info,message-info>>|Show an info message in the statusbar.
+|<<message-warning,message-warning>>|Show a warning message in the statusbar.
 |<<messages,messages>>|Show a log of past messages.
 |<<navigate,navigate>>|Open typical prev/next links or navigate using the URL path.
+|<<nop,nop>>|Do nothing.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<print,print>>|Print the current/[count]th tab.
@@ -70,16 +80,25 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<record-macro,record-macro>>|Start or stop recording a macro.
 |<<reload,reload>>|Reload the current/[count]th tab.
 |<<repeat,repeat>>|Repeat a given command.
+|<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<report,report>>|Report a bug in qutebrowser.
 |<<restart,restart>>|Restart qutebrowser while keeping existing tabs open.
 |<<run-macro,run-macro>>|Run a recorded macro.
+|<<run-with-count,run-with-count>>|Run a command with the given count.
 |<<save,save>>|Save configs and state.
+|<<scroll,scroll>>|Scroll the current tab in the given direction.
+|<<scroll-page,scroll-page>>|Scroll the frame page-wise.
+|<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
+|<<scroll-to-perc,scroll-to-perc>>|Scroll to a specific percentage of the page.
 |<<search,search>>|Search for a text on the current page. With no text, clear results.
+|<<search-next,search-next>>|Continue the search to the ([count]th) next term.
+|<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
 |<<session-delete,session-delete>>|Delete a session.
 |<<session-load,session-load>>|Load a session.
 |<<session-save,session-save>>|Save a session.
 |<<set,set>>|Set an option.
 |<<set-cmd-text,set-cmd-text>>|Preset the statusbar to some text.
+|<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<spawn,spawn>>|Spawn a command in a shell.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
@@ -208,6 +227,31 @@ The tab index to focus, starting with 1.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[clear-keychain]]
+=== clear-keychain
+Clear the currently entered key chain.
+
+[[clear-messages]]
+=== clear-messages
+Clear all message notifications.
+
+[[click-element]]
+=== click-element
+Syntax: +:click-element [*--target* 'target'] [*--force-event*] 'filter' 'value'+
+
+Click the element matching the given filter.
+
+The given filter needs to result in exactly one element, otherwise, an error is shown.
+
+==== positional arguments
+* +'filter'+: How to filter the elements. id: Get an element based on its ID.
+
+* +'value'+: The value to filter for.
+
+==== optional arguments
+* +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
+* +*-f*+, +*--force-event*+: Force generating a fake click event.
 
 [[close]]
 === close
@@ -382,6 +426,15 @@ The editor which should be launched can be configured via the `editor.command` c
 * +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
 
 
+[[enter-mode]]
+=== enter-mode
+Syntax: +:enter-mode 'mode'+
+
+Enter a key mode.
+
+==== positional arguments
+* +'mode'+: The mode to enter.
+
 [[fake-key]]
 === fake-key
 Syntax: +:fake-key [*--global*] 'keystring'+
@@ -395,6 +448,15 @@ Send a fake keypress or key string to the website or qutebrowser.
 
 ==== optional arguments
 * +*-g*+, +*--global*+: If given, the keys are sent to the qutebrowser UI.
+
+[[follow-selected]]
+=== follow-selected
+Syntax: +:follow-selected [*--tab*]+
+
+Follow the selected text.
+
+==== optional arguments
+* +*-t*+, +*--tab*+: Load the selected link in a new tab.
 
 [[forward]]
 === forward
@@ -576,6 +638,15 @@ Evaluate a JavaScript string.
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 
+[[jump-mark]]
+=== jump-mark
+Syntax: +:jump-mark 'key'+
+
+Jump to the mark named by `key`.
+
+==== positional arguments
+* +'key'+: mark identifier; capital indicates a global mark
+
 [[later]]
 === later
 Syntax: +:later 'ms' 'command'+
@@ -590,6 +661,36 @@ Execute a command after some time.
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 * This command does not replace variables like +\{url\}+.
+
+[[message-error]]
+=== message-error
+Syntax: +:message-error 'text'+
+
+Show an error message in the statusbar.
+
+==== positional arguments
+* +'text'+: The text to show.
+
+[[message-info]]
+=== message-info
+Syntax: +:message-info 'text'+
+
+Show an info message in the statusbar.
+
+==== positional arguments
+* +'text'+: The text to show.
+
+==== count
+How many times to show the message
+
+[[message-warning]]
+=== message-warning
+Syntax: +:message-warning 'text'+
+
+Show a warning message in the statusbar.
+
+==== positional arguments
+* +'text'+: The text to show.
 
 [[messages]]
 === messages
@@ -635,6 +736,10 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
 ==== count
 For `increment` and `decrement`, the number to change the URL by. For `up`, the number of levels to go up in the URL.
 
+
+[[nop]]
+=== nop
+Do nothing.
 
 [[open]]
 === open
@@ -778,6 +883,13 @@ Repeat a given command.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
 * This command does not replace variables like +\{url\}+.
 
+[[repeat-command]]
+=== repeat-command
+Repeat the last executed command.
+
+==== count
+Which count to pass the command.
+
 [[report]]
 === report
 Report a bug in qutebrowser.
@@ -798,6 +910,26 @@ Run a recorded macro.
 ==== count
 How many times to run the macro.
 
+[[run-with-count]]
+=== run-with-count
+Syntax: +:run-with-count 'count-arg' 'command'+
+
+Run a command with the given count.
+
+If run_with_count itself is run with a count, it multiplies count_arg.
+
+==== positional arguments
+* +'count-arg'+: The count to pass to the command.
+* +'command'+: The command to run, with optional args.
+
+==== count
+The count that run_with_count itself received.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+* With this command, +;;+ is interpreted literally instead of splitting off a second command.
+* This command does not replace variables like +\{url\}+.
+
 [[save]]
 === save
 Syntax: +:save ['what' ['what' ...]]+
@@ -807,6 +939,70 @@ Save configs and state.
 ==== positional arguments
 * +'what'+: What to save (`config`/`key-config`/`cookies`/...). If not given, everything is saved.
 
+
+[[scroll]]
+=== scroll
+Syntax: +:scroll 'direction'+
+
+Scroll the current tab in the given direction.
+
+Note you can use `:run-with-count` to have a keybinding with a bigger scroll increment.
+
+==== positional arguments
+* +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).
+
+
+==== count
+multiplier
+
+[[scroll-page]]
+=== scroll-page
+Syntax: +:scroll-page [*--top-navigate* 'ACTION'] [*--bottom-navigate* 'ACTION'] 'x' 'y'+
+
+Scroll the frame page-wise.
+
+==== positional arguments
+* +'x'+: How many pages to scroll to the right.
+* +'y'+: How many pages to scroll down.
+
+==== optional arguments
+* +*-t*+, +*--top-navigate*+: :navigate action (prev, decrement) to run when scrolling up at the top of the page.
+
+* +*-b*+, +*--bottom-navigate*+: :navigate action (next, increment) to run when scrolling down at the bottom of the page.
+
+
+==== count
+multiplier
+
+[[scroll-px]]
+=== scroll-px
+Syntax: +:scroll-px 'dx' 'dy'+
+
+Scroll the current tab by 'count * dx/dy' pixels.
+
+==== positional arguments
+* +'dx'+: How much to scroll in x-direction.
+* +'dy'+: How much to scroll in y-direction.
+
+==== count
+multiplier
+
+[[scroll-to-perc]]
+=== scroll-to-perc
+Syntax: +:scroll-to-perc [*--horizontal*] ['perc']+
+
+Scroll to a specific percentage of the page.
+
+The percentage can be given either as argument or as count. If no percentage is given, the page is scrolled to the end.
+
+==== positional arguments
+* +'perc'+: Percentage to scroll.
+
+==== optional arguments
+* +*-x*+, +*--horizontal*+: Scroll horizontally instead of vertically.
+
+==== count
+Percentage to scroll.
 
 [[search]]
 === search
@@ -822,6 +1018,20 @@ Search for a text on the current page. With no text, clear results.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[search-next]]
+=== search-next
+Continue the search to the ([count]th) next term.
+
+==== count
+How many elements to ignore.
+
+[[search-prev]]
+=== search-prev
+Continue the search to the ([count]th) previous term.
+
+==== count
+How many elements to ignore.
 
 [[session-delete]]
 === session-delete
@@ -906,6 +1116,15 @@ The count if given.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[set-mark]]
+=== set-mark
+Syntax: +:set-mark 'key'+
+
+Set a mark at the current scroll position in the current tab.
+
+==== positional arguments
+* +'key'+: mark identifier; capital indicates a global mark
 
 [[spawn]]
 === spawn
@@ -1132,14 +1351,11 @@ Decrease the zoom level for the current tab.
 How many steps to zoom out.
 
 
-== Hidden commands
+== Commands not usable in normal mode
 .Quick reference
 [options="header",width="75%",cols="25%,75%"]
 |==============
 |Command|Description
-|<<clear-keychain,clear-keychain>>|Clear the currently entered key chain.
-|<<clear-messages,clear-messages>>|Clear all message notifications.
-|<<click-element,click-element>>|Click the element matching the given filter.
 |<<command-accept,command-accept>>|Execute the command currently in the commandline.
 |<<command-history-next,command-history-next>>|Go forward in the commandline history.
 |<<command-history-prev,command-history-prev>>|Go back in the commandline history.
@@ -1147,14 +1363,8 @@ How many steps to zoom out.
 |<<completion-item-focus,completion-item-focus>>|Shift the focus of the completion menu to another item.
 |<<completion-item-yank,completion-item-yank>>|Yank the current completion item into the clipboard.
 |<<drop-selection,drop-selection>>|Drop selection and keep selection mode enabled.
-|<<enter-mode,enter-mode>>|Enter a key mode.
 |<<follow-hint,follow-hint>>|Follow a hint.
-|<<follow-selected,follow-selected>>|Follow the selected text.
-|<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<leave-mode,leave-mode>>|Leave the mode we're currently in.
-|<<message-error,message-error>>|Show an error message in the statusbar.
-|<<message-info,message-info>>|Show an info message in the statusbar.
-|<<message-warning,message-warning>>|Show a warning message in the statusbar.
 |<<move-to-end-of-document,move-to-end-of-document>>|Move the cursor or selection to the end of the document.
 |<<move-to-end-of-line,move-to-end-of-line>>|Move the cursor or selection to the end of line.
 |<<move-to-end-of-next-block,move-to-end-of-next-block>>|Move the cursor or selection to the end of next block.
@@ -1170,11 +1380,9 @@ How many steps to zoom out.
 |<<move-to-start-of-line,move-to-start-of-line>>|Move the cursor or selection to the start of the line.
 |<<move-to-start-of-next-block,move-to-start-of-next-block>>|Move the cursor or selection to the start of next block.
 |<<move-to-start-of-prev-block,move-to-start-of-prev-block>>|Move the cursor or selection to the start of previous block.
-|<<nop,nop>>|Do nothing.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
-|<<repeat-command,repeat-command>>|Repeat the last executed command.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1190,41 +1398,8 @@ How many steps to zoom out.
 |<<rl-unix-line-discard,rl-unix-line-discard>>|Remove chars backward from the cursor to the beginning of the line.
 |<<rl-unix-word-rubout,rl-unix-word-rubout>>|Remove chars from the cursor to the beginning of the word.
 |<<rl-yank,rl-yank>>|Paste the most recently deleted text.
-|<<run-with-count,run-with-count>>|Run a command with the given count.
-|<<scroll,scroll>>|Scroll the current tab in the given direction.
-|<<scroll-page,scroll-page>>|Scroll the frame page-wise.
-|<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
-|<<scroll-to-perc,scroll-to-perc>>|Scroll to a specific percentage of the page.
-|<<search-next,search-next>>|Continue the search to the ([count]th) next term.
-|<<search-prev,search-prev>>|Continue the search to the ([count]th) previous term.
-|<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<toggle-selection,toggle-selection>>|Toggle caret selection mode.
 |==============
-[[clear-keychain]]
-=== clear-keychain
-Clear the currently entered key chain.
-
-[[clear-messages]]
-=== clear-messages
-Clear all message notifications.
-
-[[click-element]]
-=== click-element
-Syntax: +:click-element [*--target* 'target'] [*--force-event*] 'filter' 'value'+
-
-Click the element matching the given filter.
-
-The given filter needs to result in exactly one element, otherwise, an error is shown.
-
-==== positional arguments
-* +'filter'+: How to filter the elements. id: Get an element based on its ID.
-
-* +'value'+: The value to filter for.
-
-==== optional arguments
-* +*-t*+, +*--target*+: How to open the clicked element (normal/tab/tab-bg/window).
-* +*-f*+, +*--force-event*+: Force generating a fake click event.
-
 [[command-accept]]
 === command-accept
 Execute the command currently in the commandline.
@@ -1263,15 +1438,6 @@ Yank the current completion item into the clipboard.
 === drop-selection
 Drop selection and keep selection mode enabled.
 
-[[enter-mode]]
-=== enter-mode
-Syntax: +:enter-mode 'mode'+
-
-Enter a key mode.
-
-==== positional arguments
-* +'mode'+: The mode to enter.
-
 [[follow-hint]]
 === follow-hint
 Syntax: +:follow-hint ['keystring']+
@@ -1281,57 +1447,9 @@ Follow a hint.
 ==== positional arguments
 * +'keystring'+: The hint to follow.
 
-[[follow-selected]]
-=== follow-selected
-Syntax: +:follow-selected [*--tab*]+
-
-Follow the selected text.
-
-==== optional arguments
-* +*-t*+, +*--tab*+: Load the selected link in a new tab.
-
-[[jump-mark]]
-=== jump-mark
-Syntax: +:jump-mark 'key'+
-
-Jump to the mark named by `key`.
-
-==== positional arguments
-* +'key'+: mark identifier; capital indicates a global mark
-
 [[leave-mode]]
 === leave-mode
 Leave the mode we're currently in.
-
-[[message-error]]
-=== message-error
-Syntax: +:message-error 'text'+
-
-Show an error message in the statusbar.
-
-==== positional arguments
-* +'text'+: The text to show.
-
-[[message-info]]
-=== message-info
-Syntax: +:message-info 'text'+
-
-Show an info message in the statusbar.
-
-==== positional arguments
-* +'text'+: The text to show.
-
-==== count
-How many times to show the message
-
-[[message-warning]]
-=== message-warning
-Syntax: +:message-warning 'text'+
-
-Show a warning message in the statusbar.
-
-==== positional arguments
-* +'text'+: The text to show.
 
 [[move-to-end-of-document]]
 === move-to-end-of-document
@@ -1426,10 +1544,6 @@ Move the cursor or selection to the start of previous block.
 ==== count
 How many blocks to move.
 
-[[nop]]
-=== nop
-Do nothing.
-
 [[prompt-accept]]
 === prompt-accept
 Syntax: +:prompt-accept ['value']+
@@ -1465,13 +1579,6 @@ If no specific command is given, this will use the system's default application 
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
-
-[[repeat-command]]
-=== repeat-command
-Repeat the last executed command.
-
-==== count
-Which count to pass the command.
 
 [[rl-backward-char]]
 === rl-backward-char
@@ -1562,113 +1669,6 @@ This acts like readline's unix-word-rubout. Whitespace is used as a word delimit
 Paste the most recently deleted text.
 
 This acts like readline's yank.
-
-[[run-with-count]]
-=== run-with-count
-Syntax: +:run-with-count 'count-arg' 'command'+
-
-Run a command with the given count.
-
-If run_with_count itself is run with a count, it multiplies count_arg.
-
-==== positional arguments
-* +'count-arg'+: The count to pass to the command.
-* +'command'+: The command to run, with optional args.
-
-==== count
-The count that run_with_count itself received.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-* With this command, +;;+ is interpreted literally instead of splitting off a second command.
-* This command does not replace variables like +\{url\}+.
-
-[[scroll]]
-=== scroll
-Syntax: +:scroll 'direction'+
-
-Scroll the current tab in the given direction.
-
-Note you can use `:run-with-count` to have a keybinding with a bigger scroll increment.
-
-==== positional arguments
-* +'direction'+: In which direction to scroll (up/down/left/right/top/bottom).
-
-
-==== count
-multiplier
-
-[[scroll-page]]
-=== scroll-page
-Syntax: +:scroll-page [*--top-navigate* 'ACTION'] [*--bottom-navigate* 'ACTION'] 'x' 'y'+
-
-Scroll the frame page-wise.
-
-==== positional arguments
-* +'x'+: How many pages to scroll to the right.
-* +'y'+: How many pages to scroll down.
-
-==== optional arguments
-* +*-t*+, +*--top-navigate*+: :navigate action (prev, decrement) to run when scrolling up at the top of the page.
-
-* +*-b*+, +*--bottom-navigate*+: :navigate action (next, increment) to run when scrolling down at the bottom of the page.
-
-
-==== count
-multiplier
-
-[[scroll-px]]
-=== scroll-px
-Syntax: +:scroll-px 'dx' 'dy'+
-
-Scroll the current tab by 'count * dx/dy' pixels.
-
-==== positional arguments
-* +'dx'+: How much to scroll in x-direction.
-* +'dy'+: How much to scroll in y-direction.
-
-==== count
-multiplier
-
-[[scroll-to-perc]]
-=== scroll-to-perc
-Syntax: +:scroll-to-perc [*--horizontal*] ['perc']+
-
-Scroll to a specific percentage of the page.
-
-The percentage can be given either as argument or as count. If no percentage is given, the page is scrolled to the end.
-
-==== positional arguments
-* +'perc'+: Percentage to scroll.
-
-==== optional arguments
-* +*-x*+, +*--horizontal*+: Scroll horizontally instead of vertically.
-
-==== count
-Percentage to scroll.
-
-[[search-next]]
-=== search-next
-Continue the search to the ([count]th) next term.
-
-==== count
-How many elements to ignore.
-
-[[search-prev]]
-=== search-prev
-Continue the search to the ([count]th) previous term.
-
-==== count
-How many elements to ignore.
-
-[[set-mark]]
-=== set-mark
-Syntax: +:set-mark 'key'+
-
-Set a mark at the current scroll position in the current tab.
-
-==== positional arguments
-* +'key'+: mark identifier; capital indicates a global mark
 
 [[toggle-selection]]
 === toggle-selection

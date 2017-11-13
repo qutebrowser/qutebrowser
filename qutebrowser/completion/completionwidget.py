@@ -222,7 +222,7 @@ class CompletionView(QTreeView):
                 self.scrollTo(idx)
                 return idx.child(0, 0)
 
-    @cmdutils.register(instance='completion', hide=True,
+    @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
     @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
                                          'prev-category'])
@@ -369,7 +369,7 @@ class CompletionView(QTreeView):
             scrollbar.setValue(scrollbar.minimum())
         super().showEvent(e)
 
-    @cmdutils.register(instance='completion', hide=True,
+    @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_del(self):
         """Delete the current completion item."""
@@ -378,7 +378,7 @@ class CompletionView(QTreeView):
             raise cmdexc.CommandError("No item selected!")
         self.model().delete_cur_item(index)
 
-    @cmdutils.register(instance='completion', hide=True,
+    @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
     def completion_item_yank(self, sel=False):
         """Yank the current completion item into the clipboard.

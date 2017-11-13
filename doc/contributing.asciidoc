@@ -470,7 +470,6 @@ The following arguments are supported for `@cmdutils.argument`:
 - `flag`: Customize the short flag (`-x`) the argument will get.
 - `win_id=True`: Mark the argument as special window ID argument.
 - `count=True`: Mark the argument as special count argument.
-- `hide=True`: Hide the argument from the documentation.
 - `completion`: A completion function (see `qutebrowser.completions.models.*`)
   to use when completing arguments for the given command.
 - `choices`: The allowed string choices for the argument.
