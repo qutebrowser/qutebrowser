@@ -269,6 +269,8 @@ class ConfigCommands:
         if filename is None:
             filename = os.path.join(standarddir.config(), 'config.py')
         else:
+            if not os.path.isabs(filename):
+                filename = os.path.join(standarddir.config(), filename)
             filename = os.path.expanduser(filename)
 
         if os.path.exists(filename) and not force:
