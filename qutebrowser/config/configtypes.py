@@ -1261,12 +1261,12 @@ class File(BaseType):
         try:
             if not os.path.isabs(value):
                 value = os.path.join(standarddir.config(), value)
-                not_isfile_message = ("must be a valid path relative to the "
-                                      "config directory!")
-            else:
-                not_isfile_message = "must be a valid file!"
+
             if self.required and not os.path.isfile(value):
-                raise configexc.ValidationError(value, not_isfile_message)
+                raise configexc.ValidationError(
+                    value,
+                    "Must be an existing file (absolute or relative to the "
+                    "config directory)!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 
