@@ -2237,9 +2237,6 @@ bindings.default:
       Sb: open qute://bookmarks#bookmarks
       Sq: open qute://bookmarks
       Sh: open qute://history
-      xx: config-cycle statusbar.hide ;; config-cycle tabs.show always switching
-      xt: config-cycle tabs.show always switching
-      xb: config-cycle statusbar.hide
       <Return>: follow-selected
       <Ctrl-Return>: follow-selected -t
       .: repeat-command
