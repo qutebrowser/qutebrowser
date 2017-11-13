@@ -44,6 +44,7 @@ def _check_completions(model, expected):
                 ...
             }
     """
+    __tracebackhide__ = True
     actual = {}
     assert model.rowCount() == len(expected)
     for i in range(0, model.rowCount()):
