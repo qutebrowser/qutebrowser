@@ -565,8 +565,12 @@ class TabBar(QTabBar):
             # want to ensure it's valid in this special case.
             return QSize()
         else:
-            pinned = self._tab_pinned(index)
-            pinned_count, pinned_width = self._pinned_statistics()
+            if config.val.tabs.pinned.shrink:
+                pinned = self._tab_pinned(index)
+                pinned_count, pinned_width = self._pinned_statistics()
+            else:
+                pinned = False
+                pinned_count, pinned_width = (0, 0)
             no_pinned_count = self.count() - pinned_count
             no_pinned_width = self.width() - pinned_width
 
