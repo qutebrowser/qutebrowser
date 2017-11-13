@@ -601,7 +601,7 @@ class StyleObj(QObject):
 def test_get_stylesheet(config_stub):
     config_stub.val.colors.hints.fg = 'magenta'
     observer = config.StyleSheetObserver(
-        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}")
+        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}", update=False)
     assert observer._get_stylesheet() == 'magenta'
 
 

@@ -483,8 +483,8 @@ def set_register_stylesheet(obj, *, stylesheet=None, update=True):
         stylesheet: The stylesheet to use.
         update: Whether to update the stylesheet on config changes.
     """
-    observer = StyleSheetObserver(obj, stylesheet=stylesheet)
-    observer.register(update=update)
+    observer = StyleSheetObserver(obj, stylesheet, update)
+    observer.register()
 
 
 @functools.lru_cache()
@@ -504,9 +504,14 @@ class StyleSheetObserver(QObject):
         _stylesheet: The stylesheet template to use.
     """
 
-    def __init__(self, obj, stylesheet):
-        super().__init__(parent=obj)
+    def __init__(self, obj, stylesheet, update):
+        super().__init__()
         self._obj = obj
+        self._update = update
+
+        # We only need to hang around if we are asked to update.
+        if self._update:
+            self.setParent(self._obj)
         if stylesheet is None:
             self._stylesheet = obj.STYLESHEET
         else:
@@ -525,7 +530,7 @@ class StyleSheetObserver(QObject):
         """Update the stylesheet for obj."""
         self._obj.setStyleSheet(self._get_stylesheet())
 
-    def register(self, update):
+    def register(self):
         """Do a first update and listen for more.
 
         Args:
@@ -535,5 +540,5 @@ class StyleSheetObserver(QObject):
         log.config.vdebug("stylesheet for {}: {}".format(
             self._obj.__class__.__name__, qss))
         self._obj.setStyleSheet(qss)
-        if update:
+        if self._update:
             instance.changed.connect(self._update_stylesheet)
