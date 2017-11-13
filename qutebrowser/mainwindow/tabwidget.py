@@ -570,7 +570,7 @@ class TabBar(QTabBar):
                 pinned_count, pinned_width = self._pinned_statistics()
             else:
                 pinned = False
-                pinned_count, pinned_width = (0, 0)
+                pinned_count, pinned_width = 0, 0
             no_pinned_count = self.count() - pinned_count
             no_pinned_width = self.width() - pinned_width
 
