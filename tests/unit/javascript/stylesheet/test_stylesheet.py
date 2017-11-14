@@ -22,7 +22,11 @@
 import os
 import pytest
 
-from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+except ImportError:
+    QWebEngineProfile = None
+
 
 from qutebrowser.utils import javascript
 from qutebrowser.browser.webengine import webenginesettings
@@ -51,6 +55,8 @@ class StylesheetTester:
         """Initialize the stylesheet with a provided css file."""
         css_path = os.path.join(os.path.dirname(__file__), css_file)
         self.config_stub.val.content.user_stylesheets = css_path
+        if QWebEngineProfile is None:
+            pytest.skip("QTWebEngine not found.")
         p = QWebEngineProfile.defaultProfile()
         webenginesettings._init_stylesheet(p)
 
