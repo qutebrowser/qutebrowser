@@ -57,7 +57,7 @@ Then edit your `/etc/pacman.conf` to add the repository to the bottom:
 
 ----
 [qt-debug]
-Server = http://qutebrowser.org/qt-debug/$arch
+Server = https://qutebrowser.org/qt-debug/$arch
 ----
 
 Then install the packages:

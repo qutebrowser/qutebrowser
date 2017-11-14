@@ -15,6 +15,6 @@
 	<a href="/doc/contributing.html">Contributing</a>
 	<a href="https://www.github.com/qutebrowser/qutebrowser">GitHub</a>
 	<a href="https://github.com/qutebrowser/qutebrowser/releases">Releases</a>
-	<a href="http://blog.qutebrowser.org/">Blog</a>
+	<a href="https://blog.qutebrowser.org/">Blog</a>
 </div>
 +++
