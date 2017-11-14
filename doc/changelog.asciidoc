@@ -66,6 +66,7 @@ Changed
 - `:undo` now can re-open multiple tabs after `:tab-only` was used.
 - `:config-write-py` with a relative path now puts the file into the config
   directory.
+- The `qute://version` page now also shows the uptime of qutebrowser.
 
 Fixed
 ~~~~~
