@@ -259,6 +259,12 @@ content.default_encoding:
     The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
+content.desktop_fullscreen:
+  type: Bool
+  default: true
+  desc: >-
+    Allow fullscreen to cover the entire desktop.
+
 content.developer_extras:
   type: Bool
   default: false
