@@ -31,6 +31,7 @@ import importlib
 import logging
 import textwrap
 import pkg_resources
+import datetime
 
 import attr
 import pytest
@@ -870,6 +871,7 @@ def test_version_output(params, stubs, monkeypatch):
                          stubs.FakeQApplication(instance=None)),
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
+        '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
     }
 
     substitutions = {
@@ -913,6 +915,8 @@ def test_version_output(params, stubs, monkeypatch):
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
+    substitutions['uptime'] = "1:23:45"
+
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
@@ -934,6 +938,8 @@ def test_version_output(params, stubs, monkeypatch):
         {osinfo}
         Paths:
         PATH DESC: PATH NAME
+
+        Uptime: {uptime}
     """.lstrip('\n'))
 
     expected = template.rstrip('\n').format(**substitutions)
