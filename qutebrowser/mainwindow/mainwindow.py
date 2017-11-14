@@ -491,14 +491,12 @@ class MainWindow(QWidget):
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
-        if on:
-            self.window_state_before_fullscreen = self.windowState()
-            self.config_state_before_fullscreen = config.val.content.desktop_fullscreen
-            if config.val.content.desktop_fullscreen:
+        if not config.val.content.windowed_fullscreen:
+            if on:
+                self.state_before_fullscreen = self.windowState()
                 self.showFullScreen()
-        elif self.isFullScreen():
-            if config.val.content.desktop_fullscreen or self.config_state_before_fullscreen:
-                self.setWindowState(self.window_state_before_fullscreen)
+            elif self.isFullScreen():
+                self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
             on, debug.qflags_key(Qt, self.state_before_fullscreen)))
 

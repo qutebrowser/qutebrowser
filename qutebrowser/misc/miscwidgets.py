@@ -300,10 +300,10 @@ class FullscreenNotification(QLabel):
             self.setText("Page is now fullscreen.")
 
         self.resize(self.sizeHint())
-        if config.val.content.desktop_fullscreen:
-            geom = QApplication.desktop().screenGeometry(self)
-        else:
+        if config.val.content.windowed_fullscreen:
             geom = self.parentWidget().geometry()
+        else:
+            geom = QApplication.desktop().screenGeometry(self)
         self.move((geom.width() - self.sizeHint().width()) / 2, 30)
 
     def set_timeout(self, timeout):
