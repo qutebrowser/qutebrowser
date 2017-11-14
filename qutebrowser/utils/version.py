@@ -397,7 +397,7 @@ def version():
 
     lines += [
         '',
-        'Uptime: {}'.format(str(_uptime()))
+        'Uptime: {}'.format(_uptime()),
     ]
 
     return '\n'.join(lines)
