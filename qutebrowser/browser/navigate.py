@@ -64,6 +64,7 @@ def path_up(url, count):
         raise Error("Can't go up!")
     for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
+    path = posixpath.normpath(path)
     url.setPath(path)
     return url
 

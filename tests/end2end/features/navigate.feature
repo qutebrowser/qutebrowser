@@ -18,6 +18,22 @@ Feature: Using :navigate
         And I run :navigate up with count 2
         Then data/navigate should be loaded
 
+    Scenario: Navigating up in qute://help/
+        When I open qute://help/commands.html
+        And I run :navigate up
+        Then qute://help/ should be loaded
+
+    Scenario: Navigating up by count in qute://help/
+        When I open qute://help/img/cheatsheet-big.png
+        And I run :navigate up with count 2
+        Then qute://help/ should be loaded
+
+    Scenario: Navigating up in qute://help/img/cheatsheet-big.png
+        When I open qute://help/img/cheatsheet-big.png
+        And I run :navigate up
+        Then "OSError while handling qute://* URL" should be logged
+        And "* url='qute://help/img'* LoadStatus.error" should be logged
+
     # prev/next
 
     Scenario: Navigating to previous page

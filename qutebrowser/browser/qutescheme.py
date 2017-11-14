@@ -135,6 +135,11 @@ def data_for_url(url):
     Return:
         A (mimetype, data) tuple.
     """
+    # normalize path and strip redundant trailing slashes
+    norm_url = url.adjusted(QUrl.NormalizePathSegments | QUrl.StripTrailingSlash)
+    if norm_url != url:
+       raise Redirect(norm_url)
+
     path = url.path()
     host = url.host()
     query = urlutils.query_string(url)
@@ -331,9 +336,13 @@ def qute_help(url):
 
     path = 'html/doc/{}'.format(urlpath)
     if not urlpath.endswith('.html'):
+        try:
+            bdata = utils.read_file(path, binary=True)
+        except OSError as e:
+            raise QuteSchemeOSError(e)
         mimetype, _encoding = mimetypes.guess_type(urlpath)
         assert mimetype is not None, url
-        return mimetype, utils.read_file(path, binary=True)
+        return mimetype, bdata
 
     try:
         data = utils.read_file(path)
