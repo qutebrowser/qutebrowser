@@ -30,10 +30,10 @@ import types
 import importlib
 import logging
 import textwrap
-import pkg_resources
 import datetime
 
 import attr
+import pkg_resources
 import pytest
 
 import qutebrowser
