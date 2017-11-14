@@ -21,8 +21,10 @@
 
 import os
 import pytest
-from qutebrowser.utils import javascript
+
 from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+
+from qutebrowser.utils import javascript
 from qutebrowser.browser.webengine import webenginesettings
 
 
@@ -61,12 +63,13 @@ class StylesheetTester:
                   document_element="document.body"):
         """Check whether the css in ELEMENT is set to VALUE."""
         self.js.run("window.getComputedStyle({}, null)"
-                    ".getPropertyValue('{}');".format(document_element,
-                                                      css_style), value)
+                    ".getPropertyValue('{}');"
+                    .format(document_element,
+                            javascript.string_escape(css_style)), value)
 
     def check_eq(self, one, two, true=True):
         """Check if one and two are equal."""
-        self.js.run("{} === {}".format(one, two), true)
+        self.js.run("{} === {};".format(one, two), true)
 
 
 @pytest.fixture
@@ -103,7 +106,7 @@ def test_set_xml(stylesheet_tester):
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load_file('stylesheet/simple.xml')
     stylesheet_tester.check_set(GREEN_BODY_BG)
-    stylesheet_tester.check_eq("\"html\"", "document.documentElement.nodeName")
+    stylesheet_tester.check_eq('"html"', "document.documentElement.nodeName")
 
 
 def test_set_svg(stylesheet_tester):
@@ -112,7 +115,7 @@ def test_set_svg(stylesheet_tester):
     stylesheet_tester.js.load_file('../../../misc/cheatsheet.svg')
     stylesheet_tester.check_set(GREEN_BODY_BG,
                                 document_element="document.documentElement")
-    stylesheet_tester.check_eq("\"svg\"", "document.documentElement.nodeName")
+    stylesheet_tester.check_eq('"svg"', "document.documentElement.nodeName")
 
 
 def test_set_error(stylesheet_tester):

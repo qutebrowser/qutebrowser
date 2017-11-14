@@ -27,8 +27,9 @@ import contextlib
 
 import pytest
 
-from qutebrowser.utils import qtutils
 from PyQt5.QtCore import QObject, pyqtSignal
+
+from qutebrowser.utils import qtutils
 
 
 qt58 = pytest.mark.skipif(

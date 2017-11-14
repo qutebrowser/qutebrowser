@@ -37,7 +37,7 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 
 import helpers.stubs as stubsmod
-from helpers.utils import CallbackChecker
+import helpers.utils
 from qutebrowser.config import config, configdata, configtypes, configexc
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
@@ -81,7 +81,7 @@ class WinRegistryHelper:
 
 @pytest.fixture
 def callback_checker(qtbot):
-    return CallbackChecker(qtbot)
+    return helpers.utils.CallbackChecker(qtbot)
 
 
 class FakeStatusBar(QWidget):

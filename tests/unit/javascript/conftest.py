@@ -25,9 +25,12 @@ import logging
 
 import pytest
 import jinja2
-from helpers.utils import CallbackChecker
+
 from PyQt5.QtCore import QUrl
-from qutebrowser.utils.debug import qenum_key
+
+import helpers.utils
+import qutebrowser.utils.debug
+from qutebrowser.utils import utils
 
 try:
     from PyQt5.QtWebKit import QWebSettings
@@ -45,8 +48,6 @@ except ImportError:
     QWebEnginePage = None
     QWebEngineSettings = None
     QWebEngineScript = None
-
-from qutebrowser.utils import utils
 
 
 if QWebPage is None:
@@ -110,10 +111,12 @@ else:
         def javaScriptConsoleMessage(self, level, msg, line, source):
             """Fail tests on js console messages as they're used for errors."""
             pytest.fail("[{}] js console ({}:{}): {}".format(
-                qenum_key(QWebEnginePage, level), source, line, msg))
+                qutebrowser.utils.debug.qenum_key(
+                    QWebEnginePage, level), source, line, msg))
 
 
 class JSTester:
+
     """Common subclass providing basic functionality for all JS testers.
 
     Attributes:
@@ -141,6 +144,28 @@ class JSTester:
             self.webview.setHtml(template.render(**kwargs))
         assert blocker.args == [True]
 
+    def load_file(self, path: str, force: bool = False):
+        """Load a file from disk.
+
+        Args:
+            path: The string path from disk to load (relative to this file)
+            force: Whether to force loading even if the file is invalid.
+        """
+        self.load_url(QUrl.fromLocalFile(
+            os.path.join(os.path.dirname(__file__), path)), force)
+
+    def load_url(self, url: QUrl, force: bool = False):
+        """Load a given QUrl.
+
+        Args:
+            url: The QUrl to load.
+            force: Whether to force loading even if the file is invalid.
+        """
+        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
+            self.webview.load(url)
+        if not force:
+            assert blocker.args == [True]
+
 
 class JSWebKitTester(JSTester):
 
@@ -153,7 +178,7 @@ class JSWebKitTester(JSTester):
     """
 
     def __init__(self, webview, qtbot):
-        JSTester.__init__(self, webview, qtbot)
+        super().__init__(webview, qtbot)
         self.webview.setPage(TestWebPage(self.webview))
 
     def scroll_anchor(self, name):
@@ -201,32 +226,9 @@ class JSWebEngineTester(JSTester):
         _jinja_env: The jinja2 environment used to get templates.
     """
 
-    def __init__(self, webview, callback_checker, qtbot):
-        JSTester.__init__(self, webview, qtbot)
+    def __init__(self, webview, qtbot):
+        super().__init__(webview, qtbot)
         self.webview.setPage(TestWebEnginePage(self.webview))
-        self.callback_checker = callback_checker
-
-    def load_file(self, path: str, force=False):
-        """Load a file from disk.
-
-        Args:
-            path: The string path from disk to load (relative to this file)
-            force: Whether to force loading even if the file is invalid.
-        """
-        self.load_url(QUrl.fromLocalFile(
-            os.path.join(os.path.dirname(__file__), path)), force)
-
-    def load_url(self, url: QUrl, force: bool = False):
-        """Load a given QUrl.
-
-        Args:
-            url: The QUrl to load.
-            force: Whether to force loading even if the file is invalid.
-        """
-        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
-            self.webview.load(url)
-        if not force:
-            assert blocker.args == [True]
 
     def run_file(self, filename: str, expected) -> None:
         """Run a javascript file.
@@ -239,8 +241,7 @@ class JSWebEngineTester(JSTester):
         source = utils.read_file(os.path.join('javascript', filename))
         self.run(source, expected)
 
-    def run(self, source: str, expected,
-            world=QWebEngineScript.ApplicationWorld) -> None:
+    def run(self, source: str, expected, world=None) -> None:
         """Run the given javascript source.
 
         Args:
@@ -248,7 +249,10 @@ class JSWebEngineTester(JSTester):
             expected: The value expected return from the javascript execution
             world: The scope the javascript will run in
         """
-        callback_checker = CallbackChecker(self._qtbot)
+        if world is None:
+            world = QWebEngineScript.ApplicationWorld
+
+        callback_checker = helpers.utils.CallbackChecker(self._qtbot)
         assert self.webview.settings().testAttribute(
             QWebEngineSettings.JavascriptEnabled)
         self.webview.page().runJavaScript(source, world,
@@ -257,7 +261,7 @@ class JSWebEngineTester(JSTester):
 
 
 @pytest.fixture
-def js_tester(webview, qtbot):
+def js_tester_webkit(webview, qtbot):
     """Fixture to test javascript snippets in webkit."""
     return JSWebKitTester(webview, qtbot)
 
@@ -265,4 +269,4 @@ def js_tester(webview, qtbot):
 @pytest.fixture
 def js_tester_webengine(callback_checker, webengineview, qtbot):
     """Fixture to test javascript snippets in webengine."""
-    return JSWebEngineTester(webengineview, callback_checker, qtbot)
+    return JSWebEngineTester(webengineview, qtbot)
