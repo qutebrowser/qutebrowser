@@ -135,10 +135,10 @@ def data_for_url(url):
     Return:
         A (mimetype, data) tuple.
     """
-    # normalize path and strip redundant trailing slashes
-    norm_url = url.adjusted(QUrl.NormalizePathSegments | QUrl.StripTrailingSlash)
+    norm_url = url.adjusted(QUrl.NormalizePathSegments |
+            QUrl.StripTrailingSlash)
     if norm_url != url:
-       raise Redirect(norm_url)
+        raise Redirect(norm_url)
 
     path = url.path()
     host = url.host()
