@@ -151,6 +151,7 @@
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
+|<<content.windowed_fullscreen,content.windowed_fullscreen>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
 |<<downloads.location.prompt,downloads.location.prompt>>|Prompt the user for the download location.
@@ -1877,6 +1878,14 @@ Enable WebGL.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.windowed_fullscreen]]
+=== content.windowed_fullscreen
+Limit fullscreen to the browser window (does not expand to fill the screen).
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[content.xss_auditing]]
 === content.xss_auditing
