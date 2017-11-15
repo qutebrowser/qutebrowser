@@ -262,6 +262,26 @@ def test_completion_item_yank(completionview, mocker, sel):
     m.set_clipboard.assert_called_once_with('foo', sel)
 
 
+@pytest.mark.parametrize('sel', [True, False])
+def test_completion_item_yank_selected(completionview, status_command_stub,
+                                       mocker, sel):
+    """Test that completion_item_yank yanks selected text."""
+    m = mocker.patch(
+        'qutebrowser.completion.completionwidget.utils',
+        autospec=True)
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')])
+    model.add_category(cat)
+
+    completionview.set_model(model)
+    completionview.completion_item_focus('next')
+
+    status_command_stub.selectedText = mock.Mock(return_value='something')
+    completionview.completion_item_yank(sel)
+
+    m.set_clipboard.assert_called_once_with('something', sel)
+
+
 def test_resize_no_model(completionview, qtbot):
     """Ensure no crash if resizeEvent is triggered with no model (#2854)."""
     completionview.resizeEvent(None)

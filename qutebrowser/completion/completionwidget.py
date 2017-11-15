@@ -28,7 +28,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log
+from qutebrowser.utils import utils, usertypes, debug, log, objreg
 from qutebrowser.commands import cmdexc, cmdutils
 
 
@@ -386,8 +386,12 @@ class CompletionView(QTreeView):
         Args:
             sel: Use the primary selection instead of the clipboard.
         """
-        index = self.currentIndex()
-        if not index.isValid():
-            raise cmdexc.CommandError("No item selected!")
-        data = self.model().data(index)
-        utils.set_clipboard(data, selection=sel)
+        status = objreg.get('status-command', scope='window',
+                            window=self._win_id)
+        text = status.selectedText()
+        if not text:
+            index = self.currentIndex()
+            if not index.isValid():
+                raise cmdexc.CommandError("No item selected!")
+            text = self.model().data(index)
+        utils.set_clipboard(text, selection=sel)
