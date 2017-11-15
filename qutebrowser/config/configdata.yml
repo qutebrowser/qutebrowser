@@ -259,6 +259,12 @@ content.default_encoding:
     The encoding must be a string describing an encoding such as _utf-8_,
     _iso-8859-1_, etc.
 
+content.windowed_fullscreen:
+  type: Bool
+  default: false
+  desc: >-
+    Limit fullscreen to the browser window (does not expand to fill the screen).
+
 content.developer_extras:
   type: Bool
   default: false
