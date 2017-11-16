@@ -183,7 +183,8 @@ Active
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
   https://key.saka.io[Saka Key],
   https://github.com/ueokande/vim-vixen[Vim Vixen],
-  https://github.com/cmcaine/tridactyl[Tridactyl] (in early development, working
+  https://github.com/shinglyu/QuantumVim[QuantumVim],
+  https://github.com/cmcaine/tridactyl[Tridactyl] (working
   on a https://bugzilla.mozilla.org/show_bug.cgi?id=1215061[better API] for
   keyboard integration in Firefox).
 
@@ -201,7 +202,6 @@ main inspiration for qutebrowser)
   http://www.vimperator.org/[Vimperator],
   http://5digits.org/pentadactyl/[Pentadactyl],
   https://github.com/akhodakivskiy/VimFx[VimFx],
-  https://github.com/shinglyu/QuantumVim[QuantumVim]
 * Chrome/Chromium addons:
   https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
   https://github.com/jinzhu/vrome[Vrome]
