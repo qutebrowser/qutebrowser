@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.misc import cmdhistory
+from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg
 
@@ -165,6 +165,24 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.history.append(text)
         modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
         self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
+
+    @cmdutils.register(instance='status-command', scope='window', maxsplit=0)
+    def edit_command(self, run=False):
+        """Open an editor to modify the current command.
+
+        Args:
+            run: Run the command if the editor exits sucessfully.
+        """
+
+        ed = editor.ExternalEditor(parent=self)
+
+        def callback(text):
+            self.set_cmd_text(text)
+            if run:
+                self.got_cmd[str].emit(text)
+
+        ed.editing_finished.connect(callback)
+        ed.edit(self.text())
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
