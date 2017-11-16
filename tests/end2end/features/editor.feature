@@ -141,3 +141,11 @@ Feature: Opening external editors
         And I wait for "Read back: bar" in the log
         And I run :click-element id qute-button
         Then the javascript message "text: bar" should be logged
+
+    ## :edit-command
+
+    Scenario: Edit a command and run it
+        When I run :set-cmd-text :message-info foo
+        And I set up a fake editor replacing "foo" by "bar"
+        And I run :edit-command --run
+        Then the message "bar" should be shown
