@@ -82,6 +82,9 @@ Fixed
 - Fixes for the size calculation of pinned tabs in the tab bar.
 - Worked around a crash with PyQt 5.9.1 compiled against Qt < 5.9.1 when using
   :yank or qute:// URLs.
+- Fixed crash when opening `qute://help/img`
+- Fixed `gU` (`:navigate up`) on `qute://help` and webservers not handling `..`
+  in a URL.
 
 Deprecated
 ~~~~~~~~~~
