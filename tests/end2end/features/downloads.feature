@@ -255,9 +255,19 @@ Feature: Downloading things from a website.
         When I run :download --mhtml http://foobar/
         Then the error "Can only download the current page as mhtml." should be shown
 
+    Scenario: :download with a filename and directory which doesn't exist
+        When I run :download --dest (tmpdir)(dirsep)downloads(dirsep)somedir(dirsep)file http://localhost:(port)/data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> does not exist. Create it?' title='Create directory?'>, *" in the log
+        And I run :prompt-accept yes
+        And I wait until the download is finished
+        Then the downloaded file somedir/file should exist
+
     Scenario: :download with a directory which doesn't exist
-        When I run :download --dest (tmpdir)/downloads/somedir/filename http://localhost:(port)/
-        Then the error "Download error: No such file or directory" should be shown
+        When I run :download --dest (tmpdir)(dirsep)downloads(dirsep)somedir(dirsep) http://localhost:(port)/data/downloads/download.bin
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> does not exist. Create it?' title='Create directory?'>, *" in the log
+        And I run :prompt-accept yes
+        And I wait until the download is finished
+        Then the downloaded file somedir/download.bin should exist
 
     ## mhtml downloads
 

@@ -133,6 +133,22 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self.error.connect(question.abort)
         message.global_bridge.ask(question, blocking=True)
 
+    def _ask_create_parent_question(self, title, msg,
+                                    force_overwrite, remember_directory):
+        no_action = functools.partial(self.cancel, remove_data=False)
+        question = usertypes.Question()
+        question.title = title
+        question.text = msg
+        question.mode = usertypes.PromptMode.yesno
+        question.answered_yes.connect(lambda:
+                                      self._after_create_parent_question(
+                                          force_overwrite, remember_directory))
+        question.answered_no.connect(no_action)
+        question.cancelled.connect(no_action)
+        self.cancelled.connect(question.abort)
+        self.error.connect(question.abort)
+        message.global_bridge.ask(question, blocking=True)
+
     def _after_set_filename(self):
         self._qt_item.setPath(self._filename)
         self._qt_item.accept()

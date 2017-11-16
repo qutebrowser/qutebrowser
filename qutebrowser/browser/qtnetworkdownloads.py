@@ -203,6 +203,17 @@ class DownloadItem(downloads.AbstractDownloadItem):
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error])
 
+    def _ask_create_parent_question(self, title, msg,
+                                    force_overwrite, remember_directory):
+        no_action = functools.partial(self.cancel, remove_data=False)
+        message.confirm_async(title=title, text=msg,
+                              yes_action=(lambda:
+                                          self._after_create_parent_question(
+                                              force_overwrite,
+                                              remember_directory)),
+                              no_action=no_action, cancel_action=no_action,
+                              abort_on=[self.cancelled, self.error])
+
     def _set_fileobj(self, fileobj, *, autoclose=True):
         """"Set the file object to write the download to.
 
