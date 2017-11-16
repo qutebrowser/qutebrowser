@@ -18,8 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
 import os
+import pytest
 from scripts import importer
 
 _samples = 'tests/unit/scripts/importer_sample'
@@ -27,19 +27,28 @@ _samples = 'tests/unit/scripts/importer_sample'
 
 def qm_expected(input_format):
     """Read expected quickmark-formatted output."""
-    with open(os.path.join(_samples, input_format, 'quickmarks'), 'r', encoding='utf-8') as f:
+    with open(
+            os.path.join(_samples, input_format, 'quickmarks'),
+            'r',
+            encoding='utf-8') as f:
         return f.read()
 
 
 def bm_expected(input_format):
     """Read expected bookmark-formatted output."""
-    with open(os.path.join(_samples, input_format, 'bookmarks'), 'r', encoding='utf-8') as f:
+    with open(
+            os.path.join(_samples, input_format, 'bookmarks'),
+            'r',
+            encoding='utf-8') as f:
         return f.read()
 
 
 def search_expected(input_format):
     """Read expected search-formatted (config.py) output."""
-    with open(os.path.join(_samples, input_format, 'config_py'), 'r', encoding='utf-8') as f:
+    with open(
+            os.path.join(_samples, input_format, 'config_py'),
+            'r',
+            encoding='utf-8') as f:
         return f.read()
 
 
@@ -98,31 +107,36 @@ def test_chrome_searches(capsys):
 
 
 def test_netscape_bookmarks(capsys):
-    importer.import_netscape_bookmarks(sample_input('netscape'), ['bookmark', 'keyword'], 'bookmark')
+    importer.import_netscape_bookmarks(
+        sample_input('netscape'), ['bookmark', 'keyword'], 'bookmark')
     imported = capsys.readouterr()[0]
     assert imported == bm_expected('netscape')
 
 
 def test_netscape_quickmarks(capsys):
-    importer.import_netscape_bookmarks(sample_input('netscape'), ['bookmark', 'keyword'], 'quickmark')
+    importer.import_netscape_bookmarks(
+        sample_input('netscape'), ['bookmark', 'keyword'], 'quickmark')
     imported = capsys.readouterr()[0]
     assert imported == qm_expected('netscape')
 
 
 def test_netscape_searches(capsys):
-    importer.import_netscape_bookmarks(sample_input('netscape'), ['search'], 'search')
+    importer.import_netscape_bookmarks(
+        sample_input('netscape'), ['search'], 'search')
     imported = capsys.readouterr()[0]
     assert imported == search_expected('netscape')
 
 
 def test_mozilla_bookmarks(capsys):
-    importer.import_moz_places(sample_input('mozilla'), ['bookmark', 'keyword'], 'bookmark')
+    importer.import_moz_places(
+        sample_input('mozilla'), ['bookmark', 'keyword'], 'bookmark')
     imported = capsys.readouterr()[0]
     assert imported == bm_expected('mozilla')
 
 
 def test_mozilla_quickmarks(capsys):
-    importer.import_moz_places(sample_input('mozilla'), ['bookmark', 'keyword'], 'quickmark')
+    importer.import_moz_places(
+        sample_input('mozilla'), ['bookmark', 'keyword'], 'quickmark')
     imported = capsys.readouterr()[0]
     assert imported == qm_expected('mozilla')
 
