@@ -69,6 +69,8 @@ Changed
 - `:config-write-py` with a relative path now puts the file into the config
   directory.
 - The `qute://version` page now also shows the uptime of qutebrowser.
+- qutebrowser now prompts to create a non-existing directory when starting a
+  download.
 
 Fixed
 ~~~~~
