@@ -18,10 +18,43 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import pytest
 from scripts import importer
 
-_chrome_profile = 'tests/unit/scripts/chrome-profile'
+_samples = 'tests/unit/scripts/importer_sample'
+
+
+def qm_expected(input_format):
+    """Read expected quickmark-formatted output."""
+    with open(
+            os.path.join(_samples, input_format, 'quickmarks'),
+            'r',
+            encoding='utf-8') as f:
+        return f.read()
+
+
+def bm_expected(input_format):
+    """Read expected bookmark-formatted output."""
+    with open(
+            os.path.join(_samples, input_format, 'bookmarks'),
+            'r',
+            encoding='utf-8') as f:
+        return f.read()
+
+
+def search_expected(input_format):
+    """Read expected search-formatted (config.py) output."""
+    with open(
+            os.path.join(_samples, input_format, 'config_py'),
+            'r',
+            encoding='utf-8') as f:
+        return f.read()
+
+
+def sample_input(input_format):
+    """Get the sample input path."""
+    return os.path.join(_samples, input_format, 'input')
 
 
 def test_opensearch_convert():
@@ -54,20 +87,61 @@ def test_opensearch_convert_unsupported():
 
 def test_chrome_bookmarks(capsys):
     """Read sample bookmarks from chrome profile."""
-    expected = ('Foo http://foo.com/\n' 'Bar http://bar.com/\n')
-    importer.import_chrome(_chrome_profile, ['bookmark'], 'quickmark')
+    importer.import_chrome(sample_input('chrome'), ['bookmark'], 'bookmark')
     imported = capsys.readouterr()[0]
-    assert imported == expected
+    assert imported == bm_expected('chrome')
+
+
+def test_chrome_quickmarks(capsys):
+    """Read sample bookmarks from chrome profile."""
+    importer.import_chrome(sample_input('chrome'), ['bookmark'], 'quickmark')
+    imported = capsys.readouterr()[0]
+    assert imported == qm_expected('chrome')
 
 
 def test_chrome_searches(capsys):
     """Read sample searches from chrome profile."""
-    expected = (
-        "# Unsupported parameter in url for google.com; skipping....\n"
-        "c.url.searchengines['bing.com'] = 'https://www.bing.com/search?q={}&PC=U316&FORM=CHROMN'\n"
-        "c.url.searchengines['yahoo.com'] = 'https://search.yahoo.com/search?ei=UTF-8&fr=crmas&p={}'\n"
-        "c.url.searchengines['aol.com'] = 'https://search.aol.com/aol/search?q={}'\n"
-        "c.url.searchengines['ask.com'] = 'http://www.ask.com/web?q={}'\n")
-    importer.import_chrome(_chrome_profile, ['search'], 'search')
+    importer.import_chrome(sample_input('chrome'), ['search'], 'search')
     imported = capsys.readouterr()[0]
-    assert imported == expected
+    assert imported == search_expected('chrome')
+
+
+def test_netscape_bookmarks(capsys):
+    importer.import_netscape_bookmarks(
+        sample_input('netscape'), ['bookmark', 'keyword'], 'bookmark')
+    imported = capsys.readouterr()[0]
+    assert imported == bm_expected('netscape')
+
+
+def test_netscape_quickmarks(capsys):
+    importer.import_netscape_bookmarks(
+        sample_input('netscape'), ['bookmark', 'keyword'], 'quickmark')
+    imported = capsys.readouterr()[0]
+    assert imported == qm_expected('netscape')
+
+
+def test_netscape_searches(capsys):
+    importer.import_netscape_bookmarks(
+        sample_input('netscape'), ['search'], 'search')
+    imported = capsys.readouterr()[0]
+    assert imported == search_expected('netscape')
+
+
+def test_mozilla_bookmarks(capsys):
+    importer.import_moz_places(
+        sample_input('mozilla'), ['bookmark', 'keyword'], 'bookmark')
+    imported = capsys.readouterr()[0]
+    assert imported == bm_expected('mozilla')
+
+
+def test_mozilla_quickmarks(capsys):
+    importer.import_moz_places(
+        sample_input('mozilla'), ['bookmark', 'keyword'], 'quickmark')
+    imported = capsys.readouterr()[0]
+    assert imported == qm_expected('mozilla')
+
+
+def test_mozilla_searches(capsys):
+    importer.import_moz_places(sample_input('mozilla'), ['search'], 'search')
+    imported = capsys.readouterr()[0]
+    assert imported == search_expected('mozilla')

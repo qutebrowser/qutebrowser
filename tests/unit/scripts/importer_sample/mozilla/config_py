@@ -1,0 +1,1 @@
+c.url.searchengines['search'] = 'about:blank/{}' #Keyword-based search
