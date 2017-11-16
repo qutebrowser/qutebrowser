@@ -63,6 +63,22 @@ Feature: Special qute:// pages
         And I hint with args "links normal" and follow a
         Then qute://help/quickstart.html should be loaded
 
+    Scenario: Opening a link with qute://help/index.html/..
+        When the documentation is up to date
+        And I open qute://help/index.html/.. without waiting
+        Then qute://help/ should be loaded
+
+    Scenario: Opening a link with qute://help/index.html/../
+        When the documentation is up to date
+        And I open qute://help/index.html/../ without waiting
+        Then qute://help/ should be loaded
+
+    Scenario: Opening a link with qute://help/img/
+        When the documentation is up to date
+        And I open qute://help/img/ without waiting
+        Then "OSError while handling qute://* URL" should be logged
+        And "* url='qute://help/img'* LoadStatus.error" should be logged
+
     # :history
 
     Scenario: :history without arguments
