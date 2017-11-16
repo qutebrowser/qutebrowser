@@ -179,7 +179,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
-        pass
+        js_code = javascript.assemble('caret', 'setInitialCursor')
+        self._tab.run_js_async(js_code)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
@@ -547,6 +548,8 @@ class WebEngineTab(browsertab.AbstractTab):
             'window._qutebrowser = {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/webengine_caret.js'),
+            utils.read_file('javascript/axs_testing.js'),
         ])
         script = QWebEngineScript()
         script.setInjectionPoint(QWebEngineScript.DocumentCreation)
