@@ -348,8 +348,8 @@ class SessionManager(QObject):
                 new_tab.data.pinned = histentry['pinned']
 
             active = (histentry.get('active', False) and
-                     (not config.val.session_lazy_restore or
-                      histentry['url'].startswith('qute://')))
+                        (not config.val.session_lazy_restore or
+                        histentry['url'].startswith('qute://')))
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
                 orig_url = QUrl.fromEncoded(
@@ -370,8 +370,10 @@ class SessionManager(QObject):
             active = last.get('active', False)
 
             if not last['url'].startswith('qute://'):
-                entries.append(TabHistoryItem(url=QUrl.fromEncoded(url.encode('ascii')),
-                                              title=title, active=active, user_data={}))
+                entries.append(TabHistoryItem(
+                    url=QUrl.fromEncoded(url.encode('ascii')),
+                    title=title, active=active, user_data={}))
+
                 if active:
                     new_tab.title_changed.emit(title)
 

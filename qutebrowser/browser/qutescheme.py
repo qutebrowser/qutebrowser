@@ -424,6 +424,7 @@ def qute_settings(url):
                         confget=config.instance.get_str)
     return 'text/html', html
 
+
 @add_handler('back')
 def qute_back(url):
     """Handler for qute://back. Simple page to free ram / lazy load a site,
@@ -431,6 +432,7 @@ def qute_back(url):
 
     html = jinja.render('back.html', title='Suspended')
     return 'text/html', html
+
 
 @add_handler('configdiff')
 def qute_configdiff(url):
