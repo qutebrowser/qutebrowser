@@ -73,7 +73,15 @@ def open_db(data_base):
 
 
 def extract(source, query):
-    """Extracts (datetime,url,title) from source database."""
+    """Get records from source database.
+
+    Args:
+        source: File path to the source database where we want to extract the
+        data from.
+        query: The query string to be executed in order to retrieve relevant
+        attributes as (datetime, url, time) from the source database according
+        to the browser chosen.
+    """
     try:
         conn = open_db(source)
         cursor = conn.cursor()
@@ -89,10 +97,15 @@ def extract(source, query):
 
 def clean(history):
     """Clean up records from source database.
-    Receives a list of records:(datetime,url,title). And clean all records
-    in place, that has a NULL/None datetime attribute. Otherwise qutebrowser
-    will throw errors. Also, will add a 4th attribute of '0' for the redirect
-    field in history.sqlite in qutebrowser."""
+
+    Receives a list of record and sanityze them in order for them to be
+    properly imported to qutebrowser. Sanitation requires addiing a 4th
+    attribute 'redirect' which is filled with '0's, and also purging all
+    records that have a NULL/None datetime attribute.
+
+    Args:
+        history: List of records (datetime, url, title) from source database.
+    """
     nulls = [record for record in history if record[0] is None]
     for null_datetime in nulls:
         history.remove(null_datetime)
@@ -103,9 +116,13 @@ def clean(history):
 
 
 def insert_qb(history, dest):
-    """Insert history into dest database
-    Given a list of records in history and a dest db, insert all records in
-    the dest db."""
+    """Insert history into dest database.
+
+    Args:
+        history: List of records.
+        dest: File path to the destination database, where history will be
+        inserted.
+    """
     conn = open_db(dest)
     cursor = conn.cursor()
     cursor.executemany(
