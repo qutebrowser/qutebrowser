@@ -88,6 +88,14 @@ session_default_name:
 
     If this is set to null, the session which was last loaded is saved.
 
+session_lazy_restore:
+  type:
+    name: Bool
+    none_ok: true
+  default: false
+  desc: >-
+    Load a restored tab as soon as it takes focus.
+
 backend:
   type:
     name: String
