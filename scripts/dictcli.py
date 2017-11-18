@@ -63,7 +63,7 @@ class Language:
 
     def __attrs_post_init__(self):
         if self.local_filename is None:
-            self.local_filename = spell.local_filename(self.code)
+            self.local_filename = spell.dictionary_dir() + os.sep + self.code
 
     @property
     def remote_path(self):
