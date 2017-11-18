@@ -6,9 +6,17 @@ window.onload = function() {
 	var node = document.getElementsByTagName('h1')[0];
 	node.innerText = document.title = title;
 };
-window.onfocus = function() {
-	window.history.back();
-};
+setTimeout(function() {
+	/* drop first focus event, to avoid problems
+	(allow to go easily to newer history entries) */
+	var triggered = false;
+	window.onfocus = function() {
+		if (! triggered) {
+			triggered = true;
+			window.history.back();
+		}
+	};
+}, 1000);
 {% endblock %}
 
 {% block content %}

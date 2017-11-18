@@ -206,7 +206,9 @@ class SessionManager(QObject):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
             if item_data['url'].startswith('qute://back'):
+                # dont add qute://back to the session file
                 if item_data.get('active', False) and data['history']:
+                    # mark entry before qute://back as active
                     data['history'][-1]['active'] = True
             else:
                 data['history'].append(item_data)
@@ -331,15 +333,7 @@ class SessionManager(QObject):
         if config.val.session_lazy_restore and data['history']:
             last = data['history'][-1]
 
-            if not last['url'].startswith('qute://'):
-                data['history'].append({
-                    'title': last['title'],
-                    'url': 'qute://back#' + last['title'],
-                    'active': last.get('active', False)
-                })
-                last['active'] = False
-
-        for histentry in data['history']:
+        for i, histentry in enumerate(data['history']):
             user_data = {}
 
             if 'zoom' in data:
@@ -363,6 +357,20 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
+            if (config.val.session_lazy_restore and
+                    histentry.get('active', False) and
+                    not histentry['url'].startswith('qute://back')):
+                # remove "active" mark and insert back page marked as active
+                data['history'].insert(
+                    i + 1,
+                    {
+                        'title': histentry['title'],
+                        'url': 'qute://back#' + histentry['title'],
+                        'active': True
+                    })
+                histentry['active'] = False
+
+            print(histentry)
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
