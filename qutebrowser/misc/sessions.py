@@ -330,9 +330,6 @@ class SessionManager(QObject):
         """Load yaml data into a newly opened tab."""
         entries = []
 
-        if config.val.session_lazy_restore and data['history']:
-            last = data['history'][-1]
-
         for i, histentry in enumerate(data['history']):
             user_data = {}
 
@@ -370,7 +367,6 @@ class SessionManager(QObject):
                     })
                 histentry['active'] = False
 
-            print(histentry)
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
