@@ -323,6 +323,18 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):
         """Load yaml data into a newly opened tab."""
         entries = []
+
+        if config.val.session_lazy_restore and data['history']:
+            last = data['history'][-1]
+
+            if not last['url'].startswith('qute://'):
+                data['history'].append({
+                    'title': last['title'],
+                    'url': 'qute://back#' + last['title'],
+                    'active': last.get('active', False)
+                })
+                last['active'] = False
+
         for histentry in data['history']:
             user_data = {}
 
@@ -347,9 +359,7 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
-            active = (histentry.get('active', False) and
-                        (not config.val.session_lazy_restore or
-                        histentry['url'].startswith('qute://')))
+            active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
                 orig_url = QUrl.fromEncoded(
@@ -362,20 +372,6 @@ class SessionManager(QObject):
             entries.append(entry)
             if active:
                 new_tab.title_changed.emit(histentry['title'])
-
-        if config.val.session_lazy_restore and data['history']:
-            last = data['history'][-1]
-            title = last['title']
-            url = 'qute://back#' + title
-            active = last.get('active', False)
-
-            if not last['url'].startswith('qute://'):
-                entries.append(TabHistoryItem(
-                    url=QUrl.fromEncoded(url.encode('ascii')),
-                    title=title, active=active, user_data={}))
-
-                if active:
-                    new_tab.title_changed.emit(title)
 
         try:
             new_tab.history.load_items(entries)
