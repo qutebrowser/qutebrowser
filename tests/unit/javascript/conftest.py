@@ -140,7 +140,8 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
+        with self._qtbot.waitSignal(self.webview.loadFinished,
+                                    timeout=2000) as blocker:
             self.webview.setHtml(template.render(**kwargs))
         assert blocker.args == [True]
 
@@ -161,7 +162,8 @@ class JSTester:
             url: The QUrl to load.
             force: Whether to force loading even if the file is invalid.
         """
-        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
+        with self._qtbot.waitSignal(self.webview.loadFinished,
+                                    timeout=2000) as blocker:
             self.webview.load(url)
         if not force:
             assert blocker.args == [True]
