@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block script %}
+window.onload = function() {
+	var title = 'Suspended: ' + document.location.hash.substr(1);
+	var node = document.getElementsByTagName('h1')[0];
+	node.innerText = document.title = title;
+};
+window.onfocus = function() {
+	window.history.back();
+};
+{% endblock %}
+
+{% block content %}
+<noscript><h1 class="noscript">View Only</h1><p class="noscript-text">Changing settings requires javascript to be enabled!</p></noscript>
+<header><h1>{{ title }}</h1></header>
+
+{% endblock %}
