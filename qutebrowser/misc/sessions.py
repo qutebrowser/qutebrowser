@@ -205,7 +205,11 @@ class SessionManager(QObject):
         for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
-            data['history'].append(item_data)
+            if item_data['url'].startswith('qute://back'):
+                if 'active' in item_data and data['history']:
+                    data['history'][-1]['active'] = item_data.get('active', False)
+            else:
+                data['history'].append(item_data)
         return data
 
     def _save_all(self, *, only_window=None, with_private=False):
