@@ -207,7 +207,8 @@ class SessionManager(QObject):
             item_data = self._save_tab_item(tab, idx, item)
             if item_data['url'].startswith('qute://back'):
                 if 'active' in item_data and data['history']:
-                    data['history'][-1]['active'] = item_data.get('active', False)
+                    data['history'][-1]['active'] = \
+                        item_data.get('active', False)
             else:
                 data['history'].append(item_data)
         return data
