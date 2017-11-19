@@ -43,8 +43,9 @@ Added
   completion item text.
 - New `tabs.pinned.shrink` setting to (`true` by default) to make it possible
   for pinned tabs and normal tabs to have the same size.
-_ New `content.windowed_fullscreen` setting to show e.g. a fullscreened video in
+- New `content.windowed_fullscreen` setting to show e.g. a fullscreened video in
   the window without fullscreening that window.
+- New `:edit-command` command to edit the commandline in an editor.
 
 Changed
 ~~~~~~~
