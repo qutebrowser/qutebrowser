@@ -234,13 +234,12 @@ def debug_pyeval(s, file=False, quiet=False):
 
     Args:
         s: The string to evaluate.
-        file: Interpret s as a path to file.
+        file: Interpret s as a path to file also implies --quiete.
         quiet: Don't show the output in a new tab.
     """
     if file:
         quiet = True
         path = os.path.expanduser(s)
-        message.info(path)
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 s = f.read()
