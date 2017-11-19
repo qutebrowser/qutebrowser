@@ -171,6 +171,15 @@ Feature: Special qute:// pages
         And I wait until qute://pyeval/ is loaded
         Then the page should contain the plaintext "ZeroDivisionError"
 
+    Scenario: Running :pyveal with --file using a file that exists as python code
+        When I run :debug-pyeval --file (testdata)/misc/pyeval_file.py
+        Then the message "Hello World" should be shown
+        And "pyeval output: No error" should be logged
+
+    Scenario: Running :pyeval --file using a non existing file
+        When I run :debug-pyeval --file nonexistentfile
+        Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
+
     Scenario: Running :pyeval with --quiet
         When I run :debug-pyeval --quiet 1+1
         Then "pyeval output: 2" should be logged
