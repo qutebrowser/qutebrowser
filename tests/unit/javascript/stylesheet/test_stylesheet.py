@@ -133,6 +133,6 @@ def test_set_error(stylesheet_tester):
 def test_appendchild(stylesheet_tester):
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load('stylesheet/simple.html')
-    js_test_file_path = \
-        '../../tests/unit/javascript/stylesheet/test_appendchild.js'
+    js_test_file_path = ('../../tests/unit/javascript/stylesheet/'
+                         'test_appendchild.js')
     stylesheet_tester.js.run_file(js_test_file_path, {})
