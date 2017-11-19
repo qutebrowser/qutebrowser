@@ -166,7 +166,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
         self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
 
-    @cmdutils.register(instance='status-command', scope='window', maxsplit=0)
+    @cmdutils.register(instance='status-command', scope='window')
     def edit_command(self, run=False):
         """Open an editor to modify the current command.
 
