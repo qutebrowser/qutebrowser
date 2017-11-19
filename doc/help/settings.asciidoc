@@ -436,7 +436,7 @@ Default:
 * +pass:[&lt;Shift-Delete&gt;]+: +pass:[completion-item-del]+
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[completion-item-focus prev]+
 * +pass:[&lt;Tab&gt;]+: +pass:[completion-item-focus next]+
-* +pass:[&lt;Up&gt;]+: +pass:[completion-item-focus --history priv]+
+* +pass:[&lt;Up&gt;]+: +pass:[completion-item-focus --history prev]+
 - +pass:[hint]+:
 
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[hint all tab-bg]+

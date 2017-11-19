@@ -1786,7 +1786,7 @@ Change the log level for console logging.
 
 [[debug-pyeval]]
 === debug-pyeval
-Syntax: +:debug-pyeval [*--quiet*] 's'+
+Syntax: +:debug-pyeval [*--file*] [*--quiet*] 's'+
 
 Evaluate a python string and display the results as a web page.
 
@@ -1794,6 +1794,7 @@ Evaluate a python string and display the results as a web page.
 * +'s'+: The string to evaluate.
 
 ==== optional arguments
+* +*-f*+, +*--file*+: Interpret s as a path to file, also implies --quiet.
 * +*-q*+, +*--quiet*+: Don't show the output in a new tab.
 
 ==== note
