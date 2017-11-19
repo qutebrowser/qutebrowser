@@ -37,13 +37,14 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 
 import helpers.stubs as stubsmod
+import helpers.utils
 from qutebrowser.config import config, configdata, configtypes, configexc
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
 
-from PyQt5.QtCore import pyqtSignal, QEvent, QSize, Qt, QObject
+from PyQt5.QtCore import QEvent, QSize, Qt
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
@@ -78,34 +79,9 @@ class WinRegistryHelper:
             del objreg.window_registry[win_id]
 
 
-class CallbackChecker(QObject):
-
-    """Check if a value provided by a callback is the expected one."""
-
-    got_result = pyqtSignal(object)
-    UNSET = object()
-
-    def __init__(self, qtbot, parent=None):
-        super().__init__(parent)
-        self._qtbot = qtbot
-        self._result = self.UNSET
-
-    def callback(self, result):
-        """Callback which can be passed to runJavaScript."""
-        self._result = result
-        self.got_result.emit(result)
-
-    def check(self, expected):
-        """Wait until the JS result arrived and compare it."""
-        if self._result is self.UNSET:
-            with self._qtbot.waitSignal(self.got_result, timeout=2000):
-                pass
-        assert self._result == expected
-
-
 @pytest.fixture
 def callback_checker(qtbot):
-    return CallbackChecker(qtbot)
+    return helpers.utils.CallbackChecker(qtbot)
 
 
 class FakeStatusBar(QWidget):
