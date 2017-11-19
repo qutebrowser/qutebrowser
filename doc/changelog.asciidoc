@@ -72,6 +72,8 @@ Changed
 - The `qute://version` page now also shows the uptime of qutebrowser.
 - qutebrowser now prompts to create a non-existing directory when starting a
   download.
+- Much improved user stylesheet handling which reduces flickering
+  and updates immediately after setting a stylesheet.
 
 Fixed
 ~~~~~
