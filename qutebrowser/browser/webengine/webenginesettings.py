@@ -29,6 +29,7 @@ Module attributes:
 
 import os
 
+import sip
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
@@ -37,7 +38,7 @@ from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import (utils, standarddir, javascript, qtutils,
-                               message, log)
+                               message, log, objreg)
 
 # The default QWebEngineProfile
 default_profile = None
@@ -153,31 +154,42 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
 def _init_stylesheet(profile):
     """Initialize custom stylesheets.
 
-    Mostly inspired by QupZilla:
+    Partially inspired by QupZilla:
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
-    https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/tools/scripts.cpp#L119-L132
     """
     old_script = profile.scripts().findScript('_qute_stylesheet')
     if not old_script.isNull():
         profile.scripts().remove(old_script)
 
     css = shared.get_user_stylesheet()
-    source = """
-        (function() {{
-            var css = document.createElement('style');
-            css.setAttribute('type', 'text/css');
-            css.appendChild(document.createTextNode('{}'));
-            document.getElementsByTagName('head')[0].appendChild(css);
-        }})()
-    """.format(javascript.string_escape(css))
+    source = '\n'.join([
+        '"use strict";',
+        'window._qutebrowser = window._qutebrowser || {};',
+        utils.read_file('javascript/stylesheet.js'),
+        javascript.assemble('stylesheet', 'set_css', css),
+    ])
 
     script = QWebEngineScript()
     script.setName('_qute_stylesheet')
-    script.setInjectionPoint(QWebEngineScript.DocumentReady)
+    script.setInjectionPoint(QWebEngineScript.DocumentCreation)
     script.setWorldId(QWebEngineScript.ApplicationWorld)
     script.setRunsOnSubFrames(True)
     script.setSourceCode(source)
     profile.scripts().insert(script)
+
+
+def _update_stylesheet():
+    """Update the custom stylesheet in existing tabs."""
+    css = shared.get_user_stylesheet()
+    code = javascript.assemble('stylesheet', 'set_css', css)
+    for win_id, window in objreg.window_registry.items():
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(window):
+            continue
+        tab_registry = objreg.get('tab-registry', scope='window',
+                                  window=win_id)
+        for tab in tab_registry.values():
+            tab.run_js_async(code)
 
 
 def _set_http_headers(profile):
@@ -199,6 +211,7 @@ def _update_settings(option):
     if option in ['scrolling.bar', 'content.user_stylesheets']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
+        _update_stylesheet()
     elif option in ['content.headers.user_agent',
                     'content.headers.accept_language']:
         _set_http_headers(default_profile)

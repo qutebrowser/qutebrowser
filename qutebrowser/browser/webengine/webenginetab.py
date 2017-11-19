@@ -544,7 +544,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _init_js(self):
         js_code = '\n'.join([
             '"use strict";',
-            'window._qutebrowser = {};',
+            'window._qutebrowser = window._qutebrowser || {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
         ])
