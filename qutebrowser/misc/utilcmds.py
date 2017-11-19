@@ -234,7 +234,7 @@ def debug_pyeval(s, file=False, quiet=False):
 
     Args:
         s: The string to evaluate.
-        file: Interpret s as a path to file also implies --quiete.
+        file: Interpret s as a path to file, also implies --quiet.
         quiet: Don't show the output in a new tab.
     """
     if file:
