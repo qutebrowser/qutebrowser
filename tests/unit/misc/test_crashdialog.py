@@ -47,7 +47,7 @@ Thread 0x00007fa135ac7700 (most recent call first):
   File "", line 1 in testfunc
 """
 
-WINDOWS_CRASH_TEXT = """
+WINDOWS_CRASH_TEXT = r"""
 Windows fatal exception: access violation
 _
 Current thread 0x000014bc (most recent call first):
