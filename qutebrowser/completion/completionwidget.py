@@ -253,16 +253,13 @@ class CompletionView(QTreeView):
 
         selmodel = self.selectionModel()
 
-        if which == 'next':
-            idx = self._next_idx(upwards=False)
-        elif which == 'prev':
-            idx = self._next_idx(upwards=True)
-        elif which == 'next-category':
-            idx = self._next_category_idx(upwards=False)
-        elif which == 'prev-category':
-            idx = self._next_category_idx(upwards=True)
-        else:  # pragma: no cover
-            raise ValueError("Invalid 'which' value {!r}".format(which))
+        indices = {
+            'next': self._next_idx(upwards=False),
+            'prev': self._next_idx(upwards=True),
+            'next-category': self._next_category_idx(upwards=False),
+            'prev-category': self._next_category_idx(upwards=True),
+        }
+        idx = indices[which]
 
         if not idx.isValid():
             return
