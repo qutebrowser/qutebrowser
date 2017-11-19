@@ -247,7 +247,7 @@ def debug_pyeval(s, file=False, quiet=False):
             raise cmdexc.CommandError(str(e))
         try:
             exec(s)
-            out = "No Error"
+            out = "No error"
         except Exception:
             out = traceback.format_exc()
     else:
