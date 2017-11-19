@@ -177,7 +177,7 @@ Feature: Special qute:// pages
         And "pyeval output: No error" should be logged
 
     Scenario: Running :pyeval --file using a non existing file
-        When I run :debug-pyeval --file nonexestentfile
+        When I run :debug-pyeval --file nonexistentfile
         Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
 
     Scenario: Running :pyeval with --quiet
