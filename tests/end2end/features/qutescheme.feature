@@ -171,7 +171,7 @@ Feature: Special qute:// pages
         And I wait until qute://pyeval/ is loaded
         Then the page should contain the plaintext "ZeroDivisionError"
 
-    Scenario: Running :pyveal with --file using a file that exists aspython code
+    Scenario: Running :pyveal with --file using a file that exists as python code
         When I run :debug-pyeval --file (testdata)/misc/pyeval_file.py
         Then the message "Hello World" should be shown
         And "pyeval output: No error" should be logged
