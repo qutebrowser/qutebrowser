@@ -197,6 +197,21 @@ Or alternatively, use the ports system :
 # make install
 ----
 
+On FreeBSD
+----------
+
+qutebrowser is in https://www.freshports.org/www/qutebrowser/[FreeBSD ports].
+
+It can be installed with:
+
+----
+# cd /usr/ports/www/qutebrowser
+# make install clean
+----
+
+At present, precompiled packages are not available for this port,
+and QtWebEngine backend is also not available.
+
 On Windows
 ----------
 
