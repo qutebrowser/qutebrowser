@@ -1428,12 +1428,15 @@ Delete the current completion item.
 
 [[completion-item-focus]]
 === completion-item-focus
-Syntax: +:completion-item-focus 'which'+
+Syntax: +:completion-item-focus [*--history*] 'which'+
 
 Shift the focus of the completion menu to another item.
 
 ==== positional arguments
 * +'which'+: 'next', 'prev', 'next-category', or 'prev-category'.
+
+==== optional arguments
+* +*-H*+, +*--history*+: Navigate through command history if no text was typed.
 
 [[completion-item-yank]]
 === completion-item-yank

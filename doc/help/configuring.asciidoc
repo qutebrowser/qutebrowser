@@ -17,14 +17,23 @@ did in your old configuration, compared to the old defaults.
 
 Other changes in default settings:
 
-- `<Up>` and `<Down>` in the completion now navigate through command history
-  instead of selecting completion items. Use `<Tab>`/`<Shift-Tab>` to cycle
-  through the completion instead.
+- In v1.1.x and newer, `<Up>` and `<Down>` navigate through command history
+  if no text was entered yet.
+  With v1.0.x, they always navigate through command history instead of selecting
+  completion items. Use `<Tab>`/`<Shift-Tab>` to cycle through the completion
+  instead.
   You can get back the old behavior by doing:
 +
 ----
 :bind -m command <Up> completion-item-focus prev
 :bind -m command <Down> completion-item-focus next
+----
++
+or always navigate through command history with
++
+----
+:bind -m command <Up> command-history-prev
+:bind -m command <Down> command-history-next
 ----
 
 - The default for `completion.web_history_max_items` is now set to `-1`, showing

@@ -2269,8 +2269,8 @@ bindings.default:
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next
-      <Up>: command-history-prev
-      <Down>: command-history-next
+      <Up>: completion-item-focus --history prev
+      <Down>: completion-item-focus --history next
       <Shift-Tab>: completion-item-focus prev
       <Tab>: completion-item-focus next
       <Ctrl-Tab>: completion-item-focus next-category

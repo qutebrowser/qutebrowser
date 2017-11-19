@@ -226,14 +226,31 @@ class CompletionView(QTreeView):
                        modes=[usertypes.KeyMode.command], scope='window')
     @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
                                          'prev-category'])
-    def completion_item_focus(self, which):
+    @cmdutils.argument('history', flag='H')
+    def completion_item_focus(self, which, history=False):
         """Shift the focus of the completion menu to another item.
 
         Args:
             which: 'next', 'prev', 'next-category', or 'prev-category'.
+            history: Navigate through command history if no text was typed.
         """
         if not self._active:
             return
+
+        if history:
+            status = objreg.get('status-command', scope='window',
+                                window=self._win_id)
+            if status.text() == ':' or status.history.is_browsing():
+                if which == 'next':
+                    status.command_history_next()
+                    return
+                elif which == 'prev':
+                    status.command_history_prev()
+                    return
+                else:
+                    raise cmdexc.CommandError("Can't combine --history with "
+                                              "{}!".format(which))
+
         selmodel = self.selectionModel()
 
         if which == 'next':

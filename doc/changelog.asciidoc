@@ -74,6 +74,10 @@ Changed
   download.
 - Much improved user stylesheet handling which reduces flickering
   and updates immediately after setting a stylesheet.
+- `:completion-item-focus` now has a `--history` flag which causes it to go
+  through the command history when no text was entered. The default bindings for
+  cursor keys in the completion changed to use that, so that they can be used
+  again to navigate through completion items when a text was entered.
 
 Fixed
 ~~~~~
