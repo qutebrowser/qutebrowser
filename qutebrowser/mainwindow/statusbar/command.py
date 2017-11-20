@@ -178,7 +178,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         def callback(text):
             self.set_cmd_text(text)
             if run:
-                self.got_cmd[str].emit(text)
+                self.command_accept()
 
         ed.editing_finished.connect(callback)
         ed.edit(self.text())
