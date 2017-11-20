@@ -527,6 +527,7 @@ class QuteProc(testprocess.Process):
         super().before_test()
         self.send_cmd(':config-clear')
         self._init_settings()
+        self.clear_data()
 
     def _init_settings(self):
         """Adjust some qutebrowser settings after starting."""
