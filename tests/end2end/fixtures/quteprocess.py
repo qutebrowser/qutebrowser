@@ -111,6 +111,10 @@ def is_ignored_lowlevel_message(message):
         # file: /home/florian/#14687139 (deleted)
         #   Error: No such file or directory
         return True
+    # Qt 5.7.1
+    elif message.startswith('qt.network.ssl: QSslSocket: cannot call '
+                            'unresolved function '):
+        return True
     return False
 
 
