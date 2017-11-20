@@ -33,7 +33,7 @@ import json
 
 import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
+from PyQt5.QtCore import pyqtSignal, QUrl, qVersion
 
 from qutebrowser.misc import ipc
 from qutebrowser.utils import log, utils, javascript
@@ -422,10 +422,14 @@ class QuteProc(testprocess.Process):
 
     def _default_args(self):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
-        return ['--debug', '--no-err-windows', '--temp-basedir',
+        args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, '--debug-flag', 'no-sql-history',
-                'about:blank']
+                '--backend', backend, '--debug-flag', 'no-sql-history']
+        if qVersion() == '5.7.1':
+            # https://github.com/qutebrowser/qutebrowser/issues/3163
+            args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
+        args.append('about:blank')
+        return args
 
     def path_to_url(self, path, *, port=None, https=False):
         """Get a URL based on a filename for the localhost webserver.

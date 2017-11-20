@@ -27,7 +27,7 @@ import re
 
 import pytest
 
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, qVersion
 
 
 def _base_args(config):
@@ -37,6 +37,9 @@ def _base_args(config):
         args += ['--backend', 'webengine']
     else:
         args += ['--backend', 'webkit']
+    if qVersion() == '5.7.1':
+        # https://github.com/qutebrowser/qutebrowser/issues/3163
+        args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
     args.append('about:blank')
     return args
 
