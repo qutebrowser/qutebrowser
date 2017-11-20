@@ -2,7 +2,7 @@
 
 attrs==17.3.0
 beautifulsoup4==4.6.0
-cheroot==5.8.3
+cheroot==5.9.1
 click==6.7
 # colorama==0.3.9
 coverage==4.4.2
@@ -11,16 +11,16 @@ fields==5.0.0
 Flask==0.12.2
 glob2==0.6
 hunter==2.0.1
-hypothesis==3.37.0
+hypothesis==3.38.0
 itsdangerous==0.24
 # Jinja2==2.9.6
 Mako==1.0.7
 # MarkupSafe==1.0
 parse==1.8.2
 parse-type==0.4.2
-py==1.4.34
+py==1.5.2
 py-cpuinfo==3.3.0
-pytest==3.2.3
+pytest==3.2.5
 pytest-bdd==2.19.0
 pytest-benchmark==3.1.1
 pytest-catchlog==1.2.2
