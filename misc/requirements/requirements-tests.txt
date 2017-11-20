@@ -20,7 +20,7 @@ parse==1.8.2
 parse-type==0.4.2
 py==1.5.2
 py-cpuinfo==3.3.0
-pytest==3.2.3
+pytest==3.2.5
 pytest-bdd==2.19.0
 pytest-benchmark==3.1.1
 pytest-catchlog==1.2.2
