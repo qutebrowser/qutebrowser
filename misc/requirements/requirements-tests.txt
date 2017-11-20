@@ -11,7 +11,7 @@ fields==5.0.0
 Flask==0.12.2
 glob2==0.6
 hunter==2.0.1
-hypothesis==3.37.0
+hypothesis==3.38.0
 itsdangerous==0.24
 # Jinja2==2.9.6
 Mako==1.0.7
