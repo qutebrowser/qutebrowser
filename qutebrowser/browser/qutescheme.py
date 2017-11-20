@@ -427,10 +427,12 @@ def qute_settings(url):
 
 @add_handler('back')
 def qute_back(url):
-    """Handler for qute://back. Simple page to free ram / lazy load a site,
-    goes back on focusing the tab."""
+    """Handler for qute://back.
 
-    html = jinja.render('back.html', title='Suspended')
+    Simple page to free ram / lazy load a site, goes back on focusing the tab.
+    """
+    html = jinja.render('back.html',
+                        title='Suspended: ' + url.url().split('#')[-1])
     return 'text/html', html
 
 

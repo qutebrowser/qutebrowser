@@ -1070,7 +1070,7 @@ Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-win
 Save a session.
 
 ==== positional arguments
-* +'name'+: The name of the session. If not given, the session configured in session_default_name is saved.
+* +'name'+: The name of the session. If not given, the session configured in session.default_name is saved.
 
 
 ==== optional arguments

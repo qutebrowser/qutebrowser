@@ -22,6 +22,8 @@
 import os
 import os.path
 
+from itertools import chain, dropwhile, takewhile
+
 import sip
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -205,8 +207,8 @@ class SessionManager(QObject):
         for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
-            if item_data['url'].startswith('qute://back'):
-                # dont add qute://back to the session file
+            if item.url().url().startswith('qute://back'):
+                # don't add qute://back to the session file
                 if item_data.get('active', False) and data['history']:
                     # mark entry before qute://back as active
                     data['history'][-1]['active'] = True
@@ -257,7 +259,7 @@ class SessionManager(QObject):
                   object.
         """
         if name is default:
-            name = config.val.session_default_name
+            name = config.val.session.default_name
             if name is None:
                 if self._current is not None:
                     name = self._current
@@ -329,8 +331,16 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):
         """Load yaml data into a newly opened tab."""
         entries = []
+        lazy_load = []
+        # use len(data['history'])
+        # -> dropwhile empty if not session.lazy_session
+        lazy_index = len(data['history'])
+        gen = chain(
+            takewhile(lambda _: not lazy_load, enumerate(data['history'])),
+            enumerate(lazy_load),
+            dropwhile(lambda i: i[0] < lazy_index, enumerate(data['history'])))
 
-        for i, histentry in enumerate(data['history']):
+        for i, histentry in gen:
             user_data = {}
 
             if 'zoom' in data:
@@ -354,13 +364,12 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
-            if (config.val.session_lazy_restore and
+            if (config.val.session.lazy_restore and
                     histentry.get('active', False) and
                     not histentry['url'].startswith('qute://back')):
                 # remove "active" mark and insert back page marked as active
-                data['history'].insert(
-                    i + 1,
-                    {
+                lazy_index = i + 1
+                lazy_load.append({
                         'title': histentry['title'],
                         'url': 'qute://back#' + histentry['title'],
                         'active': True
@@ -481,7 +490,7 @@ class SessionManager(QObject):
 
         Args:
             name: The name of the session. If not given, the session configured
-                  in session_default_name is saved.
+                  in session.default_name is saved.
             current: Save the current session instead of the default.
             quiet: Don't show confirmation message.
             force: Force saving internal sessions (starting with an underline).
