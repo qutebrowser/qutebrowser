@@ -55,67 +55,55 @@ def is_ignored_qt_message(message):
 
 def is_ignored_lowlevel_message(message):
     """Check if we want to ignore a lowlevel process output."""
-    if message.startswith('Xlib: sequence lost'):
+    ignored_messages = [
         # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
         # ???
-        return True
-    elif ("_dl_allocate_tls_init: Assertion `listp->slotinfo[cnt].gen <= "
-          "GL(dl_tls_generation)' failed!" in message):
+        'Xlib: sequence lost*',
         # Started appearing with Qt 5.8...
         # http://patchwork.sourceware.org/patch/10255/
-        return True
-    elif message == 'getrlimit(RLIMIT_NOFILE) failed':
-        return True
-    # Travis CI containers don't have a /etc/machine-id
-    elif message.endswith('D-Bus library appears to be incorrectly set up; '
-                          'failed to read machine uuid: Failed to open '
-                          '"/etc/machine-id": No such file or directory'):
-        return True
-    elif message == ('See the manual page for dbus-uuidgen to correct this '
-                     'issue.'):
-        return True
-    # Travis CI macOS:
-    # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
-    # selectedTextBackgroundColor from default ()
-    elif message.endswith("Couldn't set selectedTextBackgroundColor from "
-                          "default ()"):
-        return True
-    # Mac Mini:
-    # <<<< VTVideoEncoderSelection >>>>
-    # VTSelectAndCreateVideoEncoderInstanceInternal: no video encoder found for
-    # 'avc1'
-    #
-    # [22:32:03.636] VTSelectAndCreateVideoEncoderInstanceInternal signalled
-    # err=-12908 (err) (Video encoder not available) at
-    # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
-    # VideoToolbox/VTVideoEncoderSelection.c line 1245
-    #
-    # [22:32:03.636] VTCompressionSessionCreate signalled err=-12908 (err)
-    # (Could not select and open encoder instance) at
-    # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
-    # VideoToolbox/VTCompressionSession.c # line 946
-    elif 'VTSelectAndCreateVideoEncoderInstanceInternal' in message:
-        return True
-    elif 'VTSelectAndCreateVideoEncoderInstanceInternal' in message:
-        return True
-    elif 'VTCompressionSessionCreate' in message:
-        return True
-    # During shutdown on AppVeyor:
-    # https://ci.appveyor.com/project/qutebrowser/qutebrowser/build/master-2089/job/or4tbct1oeqsfhfm
-    elif (message.startswith('QNetworkProxyFactory: factory 0x') and
-          message.endswith(' has returned an empty result set')):
-        return True
-    elif message == '  Error: No such file or directory':
+        ("*_dl_allocate_tls_init: Assertion `listp->slotinfo[cnt].gen <= "
+         "GL(dl_tls_generation)' failed!*"),
+        # ???
+        'getrlimit(RLIMIT_NOFILE) failed',
+        # Travis CI containers don't have a /etc/machine-id
+        ('*D-Bus library appears to be incorrectly set up; failed to read '
+         'machine uuid: Failed to open "/etc/machine-id": No such file or '
+         'directory'),
+        'See the manual page for dbus-uuidgen to correct this issue.',
+        # Travis CI macOS:
+        # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
+        # selectedTextBackgroundColor from default ()
+        "* Couldn't set selectedTextBackgroundColor from default ()"
+        # Mac Mini:
+        # <<<< VTVideoEncoderSelection >>>>
+        # VTSelectAndCreateVideoEncoderInstanceInternal: no video encoder
+        # found for 'avc1'
+        #
+        # [22:32:03.636] VTSelectAndCreateVideoEncoderInstanceInternal
+        # signalled err=-12908 (err) (Video encoder not available) at
+        # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
+        # VideoToolbox/VTVideoEncoderSelection.c line 1245
+        #
+        # [22:32:03.636] VTCompressionSessionCreate signalled err=-12908 (err)
+        # (Could not select and open encoder instance) at
+        # /SourceCache/CoreMedia_frameworks/CoreMedia-1562.240/Sources/
+        # VideoToolbox/VTCompressionSession.c # line 946
+        '*VTSelectAndCreateVideoEncoderInstanceInternal*',
+        '*VTSelectAndCreateVideoEncoderInstanceInternal*',
+        '*VTCompressionSessionCreate*',
+        # During shutdown on AppVeyor:
+        # https://ci.appveyor.com/project/qutebrowser/qutebrowser/build/master-2089/job/or4tbct1oeqsfhfm
+        'QNetworkProxyFactory: factory 0x* has returned an empty result set',
         # Qt 5.10 with debug Chromium
         # [1016/155149.941048:WARNING:stack_trace_posix.cc(625)] Failed to open
         # file: /home/florian/#14687139 (deleted)
         #   Error: No such file or directory
-        return True
-    # Qt 5.7.1
-    elif message.startswith('qt.network.ssl: QSslSocket: cannot call '
-                            'unresolved function '):
-        return True
-    return False
+        '  Error: No such file or directory',
+        # Qt 5.7.1
+        'qt.network.ssl: QSslSocket: cannot call unresolved function *',
+    ]
+    return any(testutils.pattern_match(pattern=pattern, value=message)
+               for pattern in ignored_messages)
 
 
 def is_ignored_chromium_message(line):
