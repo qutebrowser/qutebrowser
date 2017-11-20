@@ -149,3 +149,4 @@ Feature: Opening external editors
         And I set up a fake editor replacing "foo" by "bar"
         And I run :edit-command --run
         Then the message "bar" should be shown
+        And "Leaving mode KeyMode.command (reason: cmd accept)" should be logged
