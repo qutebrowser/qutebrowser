@@ -315,10 +315,12 @@ def qnam(qapp):
 
 
 @pytest.fixture
-def webengineview():
+def webengineview(qtbot):
     """Get a QWebEngineView if QtWebEngine is available."""
     QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
-    return QtWebEngineWidgets.QWebEngineView()
+    view = QtWebEngineWidgets.QWebEngineView()
+    qtbot.add_widget(view)
+    return view
 
 
 @pytest.fixture
