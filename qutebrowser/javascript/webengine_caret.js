@@ -1076,7 +1076,15 @@ window._qutebrowser.caret = (function() {
      * first text character in the document.
      */
     funcs.setInitialCursor = () => {
-        CaretBrowsing.setInitialCursor();
+        if (!CaretBrowsing.initiated) {
+            CaretBrowsing.setInitialCursor();
+        } else {
+            CaretBrowsing.toggle();
+        }
+    }
+
+    funcs.toggle = () => {
+        CaretBrowsing.toggle();
     }
 
     CaretBrowsing.setInitialCursor = function() {
@@ -1094,6 +1102,8 @@ window._qutebrowser.caret = (function() {
         }
         CaretBrowsing.setAndValidateSelection(start, start);
         CaretBrowsing.toggle();
+        CaretBrowsing.initiated = true;
+        CaretBrowsing.selectionEnabled = false;
     };
 
     /**
@@ -1534,11 +1544,7 @@ window._qutebrowser.caret = (function() {
      * @return {boolean} True if the cursor should move by word.
      */
     CaretBrowsing.isMoveByWordEvent = function(evt) {
-        if (CaretBrowsing.isMac) {
-            return evt.altKey;
-        } else {
-            return evt.ctrlKey;
-        }
+        return evt.ctrlKey;
     };
 
     /**
@@ -1588,6 +1594,75 @@ window._qutebrowser.caret = (function() {
 
         return result;
     };
+
+    funcs.moveRight = () => {
+        var evt = Object.assign({}, document.activeElement);
+        evt.keyCode = 39;
+        CaretBrowsing.onKeyDown(evt);
+    }
+
+    funcs.moveLeft = () => {
+        var evt = Object.assign({}, document.activeElement);
+        evt.keyCode = 37;
+        CaretBrowsing.onKeyDown(evt);
+    }
+
+    funcs.moveDown = () => {
+        var evt = Object.assign({}, document.activeElement);
+        evt.keyCode = 40;
+        CaretBrowsing.onKeyDown(evt);
+    }
+
+    funcs.moveUp = () => {
+        var evt = Object.assign({}, document.activeElement);
+        evt.keyCode = 38;
+        CaretBrowsing.onKeyDown(evt);
+    }
+
+    funcs.moveToEndOfWord = () => {
+        funcs.moveToNextWord();
+        funcs.moveLeft();
+    }
+
+    funcs.moveToNextWord = () => {
+        var evt = Object.assign({}, document.activeElement);
+        evt.keyCode = 39;
+        evt.ctrlKey = true;
+        CaretBrowsing.onKeyDown(evt);
+        funcs.moveRight();
+    }
+
+    funcs.moveToPreviousWord = () => {
+        var evt = Object.assign({}, document.activeElement);
+        evt.keyCode = 37;
+        evt.ctrlKey = true;
+        CaretBrowsing.onKeyDown(evt);
+    }
+
+    funcs.moveToStartOfLine = () => {
+        CaretBrowsing.moveToLineBoundary('left');
+    }
+
+    funcs.moveToEndOfLine = () => {
+        CaretBrowsing.moveToLineBoundary('right');
+    }
+
+    CaretBrowsing.moveToLineBoundary = function(side) {
+        window
+            .getSelection()
+            .modify(
+                CaretBrowsing.selectionEnabled ? 'extend' : 'move', 
+                side, 
+                'lineboundary');
+
+        window.setTimeout(function() {
+            CaretBrowsing.updateCaretOrSelection(true);
+        }, 0);
+    };
+
+    funcs.toggleSelection = () => {
+        CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
+    }
 
     /**
      * Called when the user presses the right arrow. If there's a selection,
@@ -2002,24 +2077,15 @@ window._qutebrowser.caret = (function() {
      * @return {boolean} True if the default action should be performed.
      */
     CaretBrowsing.onKeyDown = function(evt) {
-        if (evt.defaultPrevented) {
-            return;
-        }
-
-        if (evt.keyCode == 118) {  // F7
-            CaretBrowsing.toggle();
-        }
-
         if (!CaretBrowsing.isEnabled) {
             return true;
         }
 
+        evt.shiftKey = CaretBrowsing.selectionEnabled;
         if (evt.target && CaretBrowsing.isControlThatNeedsArrowKeys(
             /** @type (Node) */(evt.target))) {
             if (evt.keyCode == 27) {
                 CaretBrowsing.escapeFromControl(/** @type {Node} */(evt.target));
-                evt.preventDefault();
-                evt.stopPropagation();
                 return false;
             } else {
                 return true;
@@ -2060,11 +2126,6 @@ window._qutebrowser.caret = (function() {
             case 40:
                 result = CaretBrowsing.moveDown(evt);
                 break;
-        }
-
-        if (result == false) {
-            evt.preventDefault();
-            evt.stopPropagation();
         }
 
         window.setTimeout(function() {
@@ -2161,7 +2222,7 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.init = function() {
         CaretBrowsing.isWindowFocused = document.hasFocus();
 
-        document.addEventListener('keydown', CaretBrowsing.onKeyDown, false);
+        // document.addEventListener('keydown', CaretBrowsing.onKeyDown, false);
         document.addEventListener('click', CaretBrowsing.onClick, false);
         window.addEventListener('focus', CaretBrowsing.onWindowFocus, false);
         window.addEventListener('blur', CaretBrowsing.onWindowBlur, false);
