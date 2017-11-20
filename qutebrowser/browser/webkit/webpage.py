@@ -96,6 +96,8 @@ class BrowserPage(QWebPage):
         Connect the signals used as triggers for injecting user
         javascripts into the passed QWebFrame.
         """
+        log.greasemonkey.debug("Connecting to frame {} ({})"
+                               .format(frame, frame.url().toDisplayString()))
         frame.loadFinished.connect(
             functools.partial(self.inject_userjs, frame))
 
@@ -305,6 +307,9 @@ class BrowserPage(QWebPage):
         url = frame.url()
         if url.isEmpty():
             url = frame.requestedUrl()
+
+        log.greasemonkey.debug("inject_userjs called for {} ({})"
+                               .format(frame, url.toDisplayString()))
 
         greasemonkey = objreg.get('greasemonkey')
         scripts = greasemonkey.scripts_for(url)
