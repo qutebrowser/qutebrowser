@@ -86,7 +86,8 @@ class BrowserPage(QWebPage):
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
-        self.connect_userjs_signals(self.mainFrame())
+        self.loadFinished.connect(
+            functools.partial(self.inject_userjs, self.mainFrame()))
         self.frameCreated.connect(self.connect_userjs_signals)
 
     @pyqtSlot('QWebFrame*')
