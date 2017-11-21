@@ -370,10 +370,10 @@ class SessionManager(QObject):
                 # remove "active" mark and insert back page marked as active
                 lazy_index = i + 1
                 lazy_load.append({
-                        'title': histentry['title'],
-                        'url': 'qute://back#' + histentry['title'],
-                        'active': True
-                    })
+                    'title': histentry['title'],
+                    'url': 'qute://back#' + histentry['title'],
+                    'active': True
+                })
                 histentry['active'] = False
 
             active = histentry.get('active', False)
