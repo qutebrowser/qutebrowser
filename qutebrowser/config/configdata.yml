@@ -1235,6 +1235,11 @@ tabs.padding:
   type: Padding
   desc: Padding (in pixels) around text for tabs.
 
+tabs.persist_mode_on_change:
+  default: false
+  type: Bool
+  desc: When switching tabs, retain the current mode.
+
 tabs.position:
   default: top
   type: Position
