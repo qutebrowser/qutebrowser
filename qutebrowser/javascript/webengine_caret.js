@@ -825,7 +825,6 @@ window._qutebrowser.caret = (function() {
             str = word + str;
             nodesCrossed = nodesCrossed.concat(newNodesCrossed);
             startCursor.copyFrom(wordStartCursor);
-            v
             // Get the previous word and go back to the top of the loop.
             newNodesCrossed = [];
             word = TraverseUtil.getPreviousWord(
@@ -1595,28 +1594,54 @@ window._qutebrowser.caret = (function() {
         return result;
     };
 
+    CaretBrowsing.move = function(direction, granularity) {
+        window
+            .getSelection()
+            .modify(
+                CaretBrowsing.selectionEnabled ? 'extend' : 'move', 
+                direction,
+                granularity);
+
+        window.setTimeout(function() {
+            CaretBrowsing.updateCaretOrSelection(true);
+        }, 0);
+    }
+
+    CaretBrowsing.moveToBlock = function(paragraph, boundary) {
+        window
+            .getSelection()
+            .modify(
+                CaretBrowsing.selectionEnabled ? 'extend' : 'move', 
+                paragraph, 
+                'paragraph');
+
+        window
+            .getSelection()
+            .modify(
+                CaretBrowsing.selectionEnabled ? 'extend' : 'move', 
+                boundary, 
+                'paragraphboundary');
+
+        window.setTimeout(function() {
+            CaretBrowsing.updateCaretOrSelection(true);
+        }, 0);
+
+    }
+
     funcs.moveRight = () => {
-        var evt = Object.assign({}, document.activeElement);
-        evt.keyCode = 39;
-        CaretBrowsing.onKeyDown(evt);
+        CaretBrowsing.move('right', 'character');
     }
 
     funcs.moveLeft = () => {
-        var evt = Object.assign({}, document.activeElement);
-        evt.keyCode = 37;
-        CaretBrowsing.onKeyDown(evt);
+        CaretBrowsing.move('left', 'character');
     }
 
     funcs.moveDown = () => {
-        var evt = Object.assign({}, document.activeElement);
-        evt.keyCode = 40;
-        CaretBrowsing.onKeyDown(evt);
+        CaretBrowsing.move('forward', 'line');
     }
 
     funcs.moveUp = () => {
-        var evt = Object.assign({}, document.activeElement);
-        evt.keyCode = 38;
-        CaretBrowsing.onKeyDown(evt);
+        CaretBrowsing.move('backward', 'line');
     }
 
     funcs.moveToEndOfWord = () => {
@@ -1625,40 +1650,45 @@ window._qutebrowser.caret = (function() {
     }
 
     funcs.moveToNextWord = () => {
-        var evt = Object.assign({}, document.activeElement);
-        evt.keyCode = 39;
-        evt.ctrlKey = true;
-        CaretBrowsing.onKeyDown(evt);
+        CaretBrowsing.move('forward', 'word');
         funcs.moveRight();
     }
 
     funcs.moveToPreviousWord = () => {
-        var evt = Object.assign({}, document.activeElement);
-        evt.keyCode = 37;
-        evt.ctrlKey = true;
-        CaretBrowsing.onKeyDown(evt);
+        CaretBrowsing.move('backward', 'word');
     }
 
     funcs.moveToStartOfLine = () => {
-        CaretBrowsing.moveToLineBoundary('left');
+        CaretBrowsing.move('left', 'lineboundary');
     }
 
     funcs.moveToEndOfLine = () => {
-        CaretBrowsing.moveToLineBoundary('right');
+        CaretBrowsing.move('right', 'lineboundary');
     }
 
-    CaretBrowsing.moveToLineBoundary = function(side) {
-        window
-            .getSelection()
-            .modify(
-                CaretBrowsing.selectionEnabled ? 'extend' : 'move', 
-                side, 
-                'lineboundary');
+    funcs.moveToStartOfNextBlock = () => {
+        CaretBrowsing.moveToBlock('forward', 'backward');
+    }
 
-        window.setTimeout(function() {
-            CaretBrowsing.updateCaretOrSelection(true);
-        }, 0);
-    };
+    funcs.moveToStartOfPrevBlock = () => {
+        CaretBrowsing.moveToBlock('backward', 'backward');
+    }
+
+    funcs.moveToEndOfNextBlock = () => {
+        CaretBrowsing.moveToBlock('forward', 'forward');
+    }
+
+    funcs.moveToEndOfPrevBlock = () => {
+        CaretBrowsing.moveToBlock('backward', 'forward');
+    }
+
+    funcs.moveToStartOfDocument = () => {
+        CaretBrowsing.move('backward', 'documentboundary');
+    }
+
+    funcs.moveToEndOfDocument = () => {
+        CaretBrowsing.move('forward', 'documentboundary');
+    }
 
     funcs.toggleSelection = () => {
         CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;

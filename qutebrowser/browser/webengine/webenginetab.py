@@ -231,22 +231,28 @@ class WebEngineCaret(browsertab.AbstractCaret):
                 javascript.assemble('caret', 'moveToEndOfLine'))
 
     def move_to_start_of_next_block(self, count=1):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'moveToStartOfNextBlock'))
 
     def move_to_start_of_prev_block(self, count=1):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'moveToStartOfPrevBlock'))
 
     def move_to_end_of_next_block(self, count=1):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'moveToEndOfNextBlock'))
 
     def move_to_end_of_prev_block(self, count=1):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'moveToEndOfPrevBlock'))
 
     def move_to_start_of_document(self):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'moveToStartOfDocument'))
 
     def move_to_end_of_document(self):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'moveToEndOfDocument'))
 
     def toggle_selection(self):
         self._tab.run_js_async(
