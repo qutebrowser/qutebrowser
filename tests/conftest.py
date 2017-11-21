@@ -25,6 +25,7 @@ import os
 import sys
 import warnings
 
+import sip
 import pytest
 import hypothesis
 from PyQt5.QtCore import PYQT_VERSION
@@ -174,6 +175,12 @@ def pytest_configure(config):
     # pylint: disable=unused-variable
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
+
+    try:
+        # Added in sip 4.19.4
+        sip.enableoverflowchecking(True)
+    except AttributeError:
+        pass
 
 
 @pytest.fixture(scope='session', autouse=True)
