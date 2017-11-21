@@ -73,7 +73,7 @@ def is_ignored_lowlevel_message(message):
         # Travis CI macOS:
         # 2017-09-11 07:32:56.191 QtWebEngineProcess[5455:28501] Couldn't set
         # selectedTextBackgroundColor from default ()
-        "* Couldn't set selectedTextBackgroundColor from default ()"
+        "* Couldn't set selectedTextBackgroundColor from default ()",
         # Mac Mini:
         # <<<< VTVideoEncoderSelection >>>>
         # VTSelectAndCreateVideoEncoderInstanceInternal: no video encoder
