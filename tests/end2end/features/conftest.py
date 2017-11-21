@@ -162,7 +162,7 @@ def clean_open_tabs(quteproc):
     quteproc.send_cmd(':window-only')
     quteproc.send_cmd(':tab-only --force')
     quteproc.send_cmd(':tab-close --force')
-    quteproc.wait_for_load_finished_url('about:blank')
+    quteproc.wait_for(message="Changing title for idx 0 to 'about:blank'")
 
 
 @bdd.given('pdfjs is available')
