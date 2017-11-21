@@ -146,6 +146,7 @@ Fixed
   window
 - Unbinding a default keybinding twice now doesn't bind it again
 - Completions are now sorted correctly again when filtered
+- Fix crash when setting content.cache.size to a big value (> 2 GB)
 
 v1.0.2
 ------
