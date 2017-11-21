@@ -21,6 +21,9 @@ v1.1.0 (unreleased)
 Added
 ~~~~~
 
+- There's now a `misc/Makefile` file in releases, which should help
+  distributions which package qutebrowser, as they can run something like
+  `make -f misc/Makefile DESTDIR="$pkgdir" install` now.
 - New `{current_url}` field for `window.title_format` and `tabs.title.format`.
 - New `colors.statusbar.passthrough.fg`/`.bg` settings.
 - New `completion.delay` and `completion.min_chars` settings to update the
