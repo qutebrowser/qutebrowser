@@ -195,8 +195,10 @@ content.cache.size:
     none_ok: true
     minval: 0
     maxval: maxint64
-  desc: Size (in bytes) of the HTTP network cache. Null to use the default
-    value.
+  desc: >-
+    Size (in bytes) of the HTTP network cache. Null to use the default value.
+
+    With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
 
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp

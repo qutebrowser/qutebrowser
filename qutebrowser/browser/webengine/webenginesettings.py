@@ -94,9 +94,10 @@ class DefaultProfileSetter(websettings.Base):
 
     """A setting set on the QWebEngineProfile."""
 
-    def __init__(self, setter, default=websettings.UNSET):
+    def __init__(self, setter, converter=None, default=websettings.UNSET):
         super().__init__(default)
         self._setter = setter
+        self._converter = converter
 
     def __repr__(self):
         return utils.get_repr(self, setter=self._setter, constructor=True)
@@ -105,7 +106,11 @@ class DefaultProfileSetter(websettings.Base):
         if settings is not None:
             raise ValueError("'settings' may not be set with "
                              "DefaultProfileSetters!")
+
         setter = getattr(default_profile, self._setter)
+        if self._converter is not None:
+            value = self._converter(value)
+
         setter(value)
 
 
@@ -296,7 +301,9 @@ MAPPINGS = {
         Attribute(QWebEngineSettings.LocalStorageEnabled),
     'content.cache.size':
         # 0: automatically managed by QtWebEngine
-        DefaultProfileSetter('setHttpCacheMaximumSize', default=0),
+        DefaultProfileSetter('setHttpCacheMaximumSize', default=0,
+                             converter=lambda val:
+                             qtutils.check_overflow(val, 'int', fatal=False)),
     'content.xss_auditing':
         Attribute(QWebEngineSettings.XSSAuditingEnabled),
     'content.default_encoding':
