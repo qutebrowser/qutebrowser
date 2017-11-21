@@ -1407,6 +1407,7 @@ This setting is only available with the QtWebKit backend.
 [[content.cache.size]]
 === content.cache.size
 Size of the HTTP network cache. Null to use the default value.
+With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
 
 Type: <<types,Int>>
 
