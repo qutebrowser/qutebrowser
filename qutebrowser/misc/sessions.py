@@ -21,8 +21,7 @@
 
 import os
 import os.path
-
-from itertools import chain, dropwhile, takewhile
+import itertools
 
 import sip
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
@@ -207,7 +206,7 @@ class SessionManager(QObject):
         for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
-            if item.url().url().startswith('qute://back'):
+            if item.url().scheme() == 'qute' and item.url().host() == 'back':
                 # don't add qute://back to the session file
                 if item_data.get('active', False) and data['history']:
                     # mark entry before qute://back as active
@@ -335,10 +334,12 @@ class SessionManager(QObject):
         # use len(data['history'])
         # -> dropwhile empty if not session.lazy_session
         lazy_index = len(data['history'])
-        gen = chain(
-            takewhile(lambda _: not lazy_load, enumerate(data['history'])),
-            enumerate(lazy_load),
-            dropwhile(lambda i: i[0] < lazy_index, enumerate(data['history'])))
+        gen = itertools.chain(
+                itertools.takewhile(lambda _: not lazy_load,
+                                    enumerate(data['history'])),
+                enumerate(lazy_load),
+                itertools.dropwhile(lambda i: i[0] < lazy_index,
+                                    enumerate(data['history'])))
 
         for i, histentry in gen:
             user_data = {}
