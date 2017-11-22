@@ -118,8 +118,8 @@ Feature: Various utility commands.
         And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
-        When I run :jseval --file nonexistentfile
-        Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
+        When I run :jseval --file /nonexistentfile
+        Then the error "[Errno 2] No such file or directory: '/nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
     # :debug-webaction

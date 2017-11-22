@@ -639,7 +639,10 @@ Evaluate a JavaScript string.
 * +'js-code'+: The string/file to evaluate.
 
 ==== optional arguments
-* +*-f*+, +*--file*+: Interpret js-code as a path to a file.
+* +*-f*+, +*--file*+: Interpret js-code as a path to a file. If the path is relative, the file is searched in a js/ subdir
+ in qutebrowser's data dir, e.g.
+ `~/.local/share/qutebrowser/js`.
+
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 

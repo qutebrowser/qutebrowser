@@ -85,6 +85,8 @@ Changed
   again to navigate through completion items when a text was entered.
 - `:debug-pyeval` now has a `--file` arguemnt so it takes a filename instead of
   a line of code.
+- `:jseval --file` now searches relative paths in a js/ subdir in qutebrowser's
+  data dir, e.g. `~/.local/share/qutebrowser/js`.
 
 Fixed
 ~~~~~
