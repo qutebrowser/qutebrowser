@@ -234,13 +234,10 @@ class CompletionView(QTreeView):
             which: 'next', 'prev', 'next-category', or 'prev-category'.
             history: Navigate through command history if no text was typed.
         """
-        if not self._active:
-            return
-
         if history:
             status = objreg.get('status-command', scope='window',
                                 window=self._win_id)
-            if status.text() == ':' or status.history.is_browsing():
+            if status.text() == ':' or status.history.is_browsing() or not self._active:
                 if which == 'next':
                     status.command_history_next()
                     return
@@ -251,8 +248,10 @@ class CompletionView(QTreeView):
                     raise cmdexc.CommandError("Can't combine --history with "
                                               "{}!".format(which))
 
-        selmodel = self.selectionModel()
+        if not self._active:
+            return
 
+        selmodel = self.selectionModel()
         indices = {
             'next': self._next_idx(upwards=False),
             'prev': self._next_idx(upwards=True),
