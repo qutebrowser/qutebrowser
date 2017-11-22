@@ -676,20 +676,26 @@ class QuteProc(testprocess.Process):
             else:
                 timeout = 5000
 
-        # We really need the same representation that the webview uses in its
-        # __repr__
         qurl = QUrl(url)
         if not qurl.isValid():
             raise ValueError("Invalid URL {}: {}".format(url,
                                                          qurl.errorString()))
-        url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
-        assert url
 
-        pattern = re.compile(
-            r"(load status for <qutebrowser\.browser\..* "
-            r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
-            r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
-                load_status=re.escape(load_status), url=re.escape(url)))
+        if qurl == QUrl('about:blank'):
+            # For some reason, we don't get a LoadStatus.success for about:blank
+            # sometimes.
+            pattern = "Changing title for idx * to 'about:blank'"
+        else:
+            # We really need the same representation that the webview uses in its
+            # __repr__
+            url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
+            assert url
+
+            pattern = re.compile(
+                r"(load status for <qutebrowser\.browser\..* "
+                r"tab_id=\d+ url='{url}/?'>: LoadStatus\.{load_status}|fetch: "
+                r"PyQt5\.QtCore\.QUrl\('{url}'\) -> .*)".format(
+                    load_status=re.escape(load_status), url=re.escape(url)))
 
         try:
             self.wait_for(message=pattern, timeout=timeout)
