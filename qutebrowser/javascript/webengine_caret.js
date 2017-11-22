@@ -1690,6 +1690,14 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.move('forward', 'documentboundary');
     }
 
+    funcs.dropSelection = () => {
+        window.getSelection().removeAllRanges();
+    }
+
+    funcs.getSelection = () => {
+        return window.getSelection().toString();
+    }
+
     funcs.toggleSelection = () => {
         CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
     }

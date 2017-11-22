@@ -335,10 +335,10 @@ class WebKitCaret(browsertab.AbstractCaret):
     def has_selection(self):
         return self._widget.hasSelection()
 
-    def selection(self, html=False):
+    def selection(self, html=False, callback=False):
         if html:
-            return self._widget.selectedHtml()
-        return self._widget.selectedText()
+            callback(self._widget.selectedHtml())
+        callback(self._widget.selectedText())
 
     def follow_selected(self, *, tab=False):
         if not self.has_selection():

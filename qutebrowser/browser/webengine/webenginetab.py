@@ -231,20 +231,24 @@ class WebEngineCaret(browsertab.AbstractCaret):
                 javascript.assemble('caret', 'moveToEndOfLine'))
 
     def move_to_start_of_next_block(self, count=1):
-        self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToStartOfNextBlock'))
+        for _ in range(count):
+            self._tab.run_js_async(
+                    javascript.assemble('caret', 'moveToStartOfNextBlock'))
 
     def move_to_start_of_prev_block(self, count=1):
-        self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToStartOfPrevBlock'))
+        for _ in range(count):
+            self._tab.run_js_async(
+                    javascript.assemble('caret', 'moveToStartOfPrevBlock'))
 
     def move_to_end_of_next_block(self, count=1):
-        self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToEndOfNextBlock'))
+        for _ in range(count):
+            self._tab.run_js_async(
+                    javascript.assemble('caret', 'moveToEndOfNextBlock'))
 
     def move_to_end_of_prev_block(self, count=1):
-        self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToEndOfPrevBlock'))
+        for _ in range(count):
+            self._tab.run_js_async(
+                    javascript.assemble('caret', 'moveToEndOfPrevBlock'))
 
     def move_to_start_of_document(self):
         self._tab.run_js_async(
@@ -259,15 +263,28 @@ class WebEngineCaret(browsertab.AbstractCaret):
                 javascript.assemble('caret', 'toggleSelection'))
 
     def drop_selection(self):
-        log.stub()
+        self._tab.run_js_async(
+                javascript.assemble('caret', 'dropSelection'))
 
     def has_selection(self):
-        return self._widget.hasSelection()
+        if qtutils.version_check('5.10'):
+            return self._widget.hasSelection()
+        else:
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            return True
 
-    def selection(self, html=False):
+    def selection(self, html=False, callback=None):
         if html:
             raise browsertab.UnsupportedOperationError
-        return self._widget.selectedText()
+        if qtutils.version_check('5.10'):
+            callback(self._widget.selectedText())
+        else:
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            self._tab.run_js_async(
+                    'window.getSelection().toString()', callback)
+            self.drop_selection()
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.

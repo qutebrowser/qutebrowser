@@ -838,6 +838,11 @@ class CommandDispatcher:
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
         """
+        self.yank_object = {
+                'sel': sel,
+                'what': what,
+                'keep': keep
+        }
         if what == 'title':
             s = self._tabbed_browser.page_title(self._current_index())
         elif what == 'domain':
@@ -850,28 +855,36 @@ class CommandDispatcher:
             what = 'URL'  # For printing
         elif what == 'selection':
             caret = self._current_widget().caret
-            s = caret.selection()
-            if not caret.has_selection() or not s:
-                message.info("Nothing to yank")
-                return
+            caret.selection(False, self._yank_callback)
+            return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
-        if sel and utils.supports_selection():
+        self._yank_to_target(s)
+
+    def _yank_callback(self, s):
+        if not self._current_widget().caret.has_selection() or not s:
+            message.info("Nothing to yank")
+            return
+        self._yank_to_target(s)
+
+    def _yank_to_target(self, s):
+        if self.yank_object['sel'] and utils.supports_selection():
             target = "primary selection"
         else:
-            sel = False
+            self.yank_object['sel'] = False
             target = "clipboard"
 
-        utils.set_clipboard(s, selection=sel)
-        if what != 'selection':
-            message.info("Yanked {} to {}: {}".format(what, target, s))
+        utils.set_clipboard(s, selection=self.yank_object['sel'])
+        if self.yank_object['what'] != 'selection':
+            message.info("Yanked {} to {}: {}".format(self.yank_object['what'], target, s))
         else:
             message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
-            if not keep:
+            if not self.yank_object['keep']:
                 modeman.leave(self._win_id, KeyMode.caret, "yank selected",
                               maybe=True)
+        self.yank_object = None
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
