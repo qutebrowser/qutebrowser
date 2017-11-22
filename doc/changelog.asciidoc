@@ -49,6 +49,8 @@ Added
 - New `content.windowed_fullscreen` setting to show e.g. a fullscreened video in
   the window without fullscreening that window.
 - New `:edit-command` command to edit the commandline in an editor.
+- New `tabs.persist_mode_on_change` setting to keep the current mode when
+  switching tabs.
 
 Changed
 ~~~~~~~
