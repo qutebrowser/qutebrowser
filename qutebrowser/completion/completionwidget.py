@@ -237,7 +237,8 @@ class CompletionView(QTreeView):
         if history:
             status = objreg.get('status-command', scope='window',
                                 window=self._win_id)
-            if status.text() == ':' or status.history.is_browsing() or not self._active:
+            if (status.text() == ':' or status.history.is_browsing() or
+                    not self._active):
                 if which == 'next':
                     status.command_history_next()
                     return
