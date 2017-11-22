@@ -1238,7 +1238,7 @@ tabs.padding:
 tabs.persist_mode_on_change:
   default: false
   type: Bool
-  desc: When switching tabs, stay in insert/passthrough mode.
+  desc: Stay in insert/passthrough mode when switching tabs.
 
 tabs.position:
   default: top

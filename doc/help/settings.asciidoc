@@ -239,7 +239,7 @@
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
-|<<tabs.persist_mode_on_change,tabs.persist_mode_on_change>>|When switching tabs, stay in insert/passthrough mode.
+|<<tabs.persist_mode_on_change,tabs.persist_mode_on_change>>|Stay in insert/passthrough mode when switching tabs.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
@@ -2802,7 +2802,7 @@ Default:
 
 [[tabs.persist_mode_on_change]]
 === tabs.persist_mode_on_change
-When switching tabs, stay in insert/passthrough mode.
+Stay in insert/passthrough mode when switching tabs.
 
 Type: <<types,Bool>>
 
