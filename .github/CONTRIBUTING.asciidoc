@@ -4,6 +4,9 @@
 - Either run the testsuite locally, or keep an eye on Travis CI / AppVeyor
   after pushing changes.
 
-See the full contribution docs for details:
+- If you are stuck somewhere or have questions,
+  https://github.com/qutebrowser/qutebrowser#getting-help[please ask]!
+
+See the full contribution documentation for details and other useful hints:
 
 include::../doc/contributing.asciidoc[]
