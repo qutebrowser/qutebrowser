@@ -76,7 +76,7 @@ Feature: Special qute:// pages
     Scenario: Opening a link with qute://help/img/
         When the documentation is up to date
         And I open qute://help/img/ without waiting
-        Then "OSError while handling qute://* URL" should be logged
+        Then "*Error while * qute://*" should be logged
         And "* url='qute://help/img'* LoadStatus.error" should be logged
 
     # :history
