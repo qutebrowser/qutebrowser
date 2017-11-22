@@ -1616,19 +1616,19 @@ class TestDict:
             else:
                 d.to_py(val)
 
-    @hypothesis.given(val=strategies.dictionaries(strategies.text(min_size=1),
-                                                  strategies.booleans()))
+    @hypothesis.given(val=strategies.dictionaries(
+        strategies.text(min_size=1, alphabet=strategies.characters(
+            # No control characters, surrogates, or codepoints encoded as
+            # surrogate
+            blacklist_categories=['Cc', 'Cs'], max_codepoint=0xFFFF)),
+        strategies.booleans()))
     def test_hypothesis(self, klass, val):
         d = klass(keytype=configtypes.String(),
                   valtype=configtypes.Bool(),
                   none_ok=True)
-        try:
-            converted = d.to_py(val)
-            expected = converted if converted else None
-            assert d.from_str(d.to_str(converted)) == expected
-        except configexc.ValidationError:
-            # Invalid unicode in the string, etc...
-            hypothesis.assume(False)
+        converted = d.to_py(val)
+        expected = converted if converted else None
+        assert d.from_str(d.to_str(converted)) == expected
 
     @hypothesis.given(val=strategies.dictionaries(strategies.text(min_size=1),
                                                   strategies.booleans()))
