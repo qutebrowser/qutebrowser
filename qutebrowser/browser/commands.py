@@ -2062,7 +2062,7 @@ class CommandDispatcher:
         if file:
             path = os.path.expanduser(js_code)
             if not os.path.isabs(path):
-                path = os.path.join(standarddir.data(), 'js')
+                path = os.path.join(standarddir.data(), 'js', path)
 
             try:
                 with open(path, 'r', encoding='utf-8') as f:
