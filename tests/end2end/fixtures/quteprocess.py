@@ -682,12 +682,12 @@ class QuteProc(testprocess.Process):
                                                          qurl.errorString()))
 
         if qurl == QUrl('about:blank'):
-            # For some reason, we don't get a LoadStatus.success for about:blank
-            # sometimes.
+            # For some reason, we don't get a LoadStatus.success for
+            # about:blank sometimes.
             pattern = "Changing title for idx * to 'about:blank'"
         else:
-            # We really need the same representation that the webview uses in its
-            # __repr__
+            # We really need the same representation that the webview uses in
+            # its __repr__
             url = utils.elide(qurl.toDisplayString(QUrl.EncodeUnicode), 100)
             assert url
 
