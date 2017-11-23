@@ -1217,7 +1217,17 @@ class CommandDispatcher:
             cmd, args, userscript))
         if userscript:
             # ~ expansion is handled by the userscript module.
-            self._run_userscript(cmd, *args, verbose=verbose)
+            # dirty hack for async call because of:
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            # until it fixed or blocked async call implemented:
+            # https://github.com/qutebrowser/qutebrowser/issues/3327
+            self.userscript_object = {
+                    'cmd': cmd,
+                    'args': args,
+                    'verbose': verbose
+            }
+            caret = self._current_widget().caret
+            caret.selection(False, self._selection_callback)
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
@@ -1232,7 +1242,10 @@ class CommandDispatcher:
         """Open main startpage in current tab."""
         self.openurl(config.val.url.start_pages[0])
 
-    def _run_userscript(self, cmd, *args, verbose=False):
+    def _selection_callback(self, s):
+        self._run_userscript(s)
+
+    def _run_userscript(self, selection):
         """Run a userscript given as argument.
 
         Args:
@@ -1250,7 +1263,7 @@ class CommandDispatcher:
 
         tab = self._tabbed_browser.currentWidget()
         if tab is not None and tab.caret.has_selection():
-            env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
+            env['QUTE_SELECTED_TEXT'] = selection
             try:
                 env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
             except browsertab.UnsupportedOperationError:
@@ -1266,10 +1279,13 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         try:
-            userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
-                                  env=env, verbose=verbose)
+            userscripts.run_async(tab, self.userscript_object['cmd'], 
+                    *self.userscript_object['args'], win_id=self._win_id, 
+                    env=env, verbose=self.userscript_object['verbose'])
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
+        finally:
+            self.userscript_object = None
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
