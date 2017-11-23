@@ -58,3 +58,8 @@ def set_up_editor(quteproc, server, tmpdir, text):
     """.format(text=text)))
     editor = json.dumps([sys.executable, str(script), '{}'])
     quteproc.set_setting('editor.command', editor)
+
+@bdd.when(bdd.parsers.parse('I set up a fake editor returning empty text'))
+def set_up_editor_empty(quteproc, server, tmpdir):
+    """Set up editor.command to a small python script inserting empty text."""
+    set_up_editor(quteproc, server, tmpdir, "")

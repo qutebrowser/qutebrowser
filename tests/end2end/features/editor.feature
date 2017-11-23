@@ -150,3 +150,16 @@ Feature: Opening external editors
         And I run :edit-command --run
         Then the message "bar" should be shown
         And "Leaving mode KeyMode.command (reason: cmd accept)" should be logged
+
+    Scenario: Edit a command and omit the start char
+        When I set up a fake editor returning "message-info foo"
+        And I run :edit-command
+        Then the error "command must start with one of :/?" should be shown
+        And "Leaving mode KeyMode.command *" should not be logged
+
+    Scenario: Edit a command to be empty
+        When I run :set-cmd-text :
+        When I set up a fake editor returning empty text
+        And I run :edit-command
+        Then the error "command must start with one of :/?" should be shown
+        And "Leaving mode KeyMode.command *" should not be logged
