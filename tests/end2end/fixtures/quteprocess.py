@@ -141,6 +141,11 @@ def is_ignored_chromium_message(line):
         # channel message
         'Invalid node channel message',
 
+        # Qt 5.9.3
+        # [30217:30229:1124/141512.682110:ERROR:cert_verify_proc_openssl.cc(212)]
+        # X509 Verification error self signed certificate : 18 : 0 : 4
+        'X509 Verification error self signed certificate : 18 : 0 : 4',
+
         # Not reproducible anymore?
 
         'Running without the SUID sandbox! *',
