@@ -1078,6 +1078,7 @@ window._qutebrowser.caret = (function() {
         if (!CaretBrowsing.initiated) {
             CaretBrowsing.setInitialCursor();
         } else {
+            positionCaret();
             CaretBrowsing.toggle();
         }
     }
@@ -1092,14 +1093,7 @@ window._qutebrowser.caret = (function() {
             return;
         }
 
-        var start = new Cursor(document.body, 0, '');
-        var end = new Cursor(document.body, 0, '');
-        var nodesCrossed = [];
-        var result = TraverseUtil.getNextChar(start, end, nodesCrossed, true);
-        if (result == null) {
-            return;
-        }
-        CaretBrowsing.setAndValidateSelection(start, start);
+        positionCaret();
         CaretBrowsing.toggle();
         CaretBrowsing.initiated = true;
         CaretBrowsing.selectionEnabled = false;
@@ -2282,6 +2276,85 @@ window._qutebrowser.caret = (function() {
         }
 
     }, 0);
+
+    function isElementInViewport(node) {  // eslint-disable-line complexity
+        let i;
+        let boundingRect = (node.getClientRects()[0] ||
+                            node.getBoundingClientRect());
+
+        if (boundingRect.width <= 1 && boundingRect.height <= 1) {
+            const rects = node.getClientRects();
+            for (i = 0; i < rects.length; i++) {
+                if (rects[i].width > rects[0].height &&
+                        rects[i].height > rects[0].height) {
+                    boundingRect = rects[i];
+                }
+            }
+        }
+        if (boundingRect === undefined) {
+            return null;
+        }
+        if (boundingRect.top > innerHeight || boundingRect.left > innerWidth) {
+            return null;
+        }
+        if (boundingRect.width <= 1 || boundingRect.height <= 1) {
+            const children = node.children;
+            let visibleChildNode = false;
+            for (i = 0; i < children.length; ++i) {
+                boundingRect = (children[i].getClientRects()[0] ||
+                                children[i].getBoundingClientRect());
+                if (boundingRect.width > 1 && boundingRect.height > 1) {
+                    visibleChildNode = true;
+                    break;
+                }
+            }
+            if (visibleChildNode === false) {
+                return null;
+            }
+        }
+        if (boundingRect.top + boundingRect.height < 10 ||
+                boundingRect.left + boundingRect.width < -10) {
+            return null;
+        }
+        const computedStyle = window.getComputedStyle(node, null);
+        if (computedStyle.visibility !== "visible" ||
+                computedStyle.display === "none" ||
+                node.hasAttribute("disabled") ||
+                parseInt(computedStyle.width, 10) === 0 ||
+                parseInt(computedStyle.height, 10) === 0) {
+            return null;
+        }
+        return boundingRect.top >= -20;
+    }
+
+    function positionCaret() {
+        const walker = document.createTreeWalker(document.body, -1);
+        let node;
+        const textNodes = [];
+        let el;
+        while ((node = walker.nextNode())) {
+            if (node.nodeType === 3 && node.nodeValue.trim() !== "") {
+                textNodes.push(node);
+            }
+        }
+        for (let i = 0; i < textNodes.length; i++) {
+            const element = textNodes[i].parentElement;
+            if (isElementInViewport(element)) {
+                el = element;
+                break;
+            }
+        }
+        if (el !== undefined) {
+            var start = new Cursor(el, 0, '');
+            var end = new Cursor(el, 0, '');
+            var nodesCrossed = [];
+            var result = TraverseUtil.getNextChar(start, end, nodesCrossed, true);
+            if (result == null) {
+                return;
+            }
+            CaretBrowsing.setAndValidateSelection(start, start);
+        }
+    }
 
     return funcs;
 })();
