@@ -22,6 +22,7 @@
 import os
 import os.path
 import itertools
+import urllib
 
 import sip
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
@@ -372,7 +373,9 @@ class SessionManager(QObject):
                 lazy_index = i + 1
                 lazy_load.append({
                     'title': histentry['title'],
-                    'url': 'qute://back#' + histentry['title'],
+                    'url':
+                        'qute://back#' +
+                        urllib.parse.quote(histentry['title']),
                     'active': True
                 })
                 histentry['active'] = False

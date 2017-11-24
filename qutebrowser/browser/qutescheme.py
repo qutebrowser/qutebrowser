@@ -29,6 +29,7 @@ import os
 import time
 import textwrap
 import mimetypes
+import urllib
 
 import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
@@ -431,8 +432,9 @@ def qute_back(url):
 
     Simple page to free ram / lazy load a site, goes back on focusing the tab.
     """
-    html = jinja.render('back.html',
-                        title='Suspended: ' + url.fragment())
+    html = jinja.render(
+            'back.html',
+            title='Suspended: ' + urllib.parse.unquote(url.fragment()))
     return 'text/html', html
 
 
