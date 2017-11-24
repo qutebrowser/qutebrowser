@@ -257,7 +257,7 @@ class Config(QObject):
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
-                raise configexc.BackendError(objects.backend)
+                raise configexc.BackendError(opt.name, objects.backend)
 
         opt.typ.to_py(value)  # for validation
         self._values[opt.name] = opt.typ.from_obj(value)
