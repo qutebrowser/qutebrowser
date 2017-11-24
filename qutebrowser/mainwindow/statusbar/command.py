@@ -176,6 +176,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         ed = editor.ExternalEditor(parent=self)
 
         def callback(text):
+            """Set the commandline to the edited text."""
             if not text or text[0] not in modeparsers.STARTCHARS:
                 message.error('command must start with one of {}'
                               .format(modeparsers.STARTCHARS))
