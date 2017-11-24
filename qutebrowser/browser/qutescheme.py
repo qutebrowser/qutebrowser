@@ -91,7 +91,7 @@ class Redirect(Exception):
         self.url = url
 
 
-class add_handler:  # pylint: disable=invalid-name
+class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to register a qute://* URL handler.
 

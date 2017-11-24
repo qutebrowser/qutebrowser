@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=invalid-name,abstract-method
+# noqa: N801,N806 pylint: disable=invalid-name,abstract-method
 
 """Fake objects/stubs."""
 

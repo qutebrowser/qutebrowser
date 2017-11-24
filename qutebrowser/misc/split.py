@@ -55,7 +55,7 @@ class ShellLexer:
         self.token = ''
         self.state = ' '
 
-    def __iter__(self):  # pragma: no mccabe
+    def __iter__(self):  # noqa: C901 pragma: no mccabe
         """Read a raw token from the input stream."""
         self.reset()
         for nextchar in self.string:

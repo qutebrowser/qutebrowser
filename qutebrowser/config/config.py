@@ -38,7 +38,7 @@ key_instance = None
 change_filters = []
 
 
-class change_filter:  # pylint: disable=invalid-name
+class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to filter calls based on a config section/option matching.
 

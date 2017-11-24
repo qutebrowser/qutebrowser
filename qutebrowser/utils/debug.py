@@ -232,7 +232,7 @@ def format_call(func, args=None, kwargs=None, full=True):
     return '{}({})'.format(name, format_args(args, kwargs))
 
 
-class log_time:  # pylint: disable=invalid-name
+class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Log the time an operation takes.
 

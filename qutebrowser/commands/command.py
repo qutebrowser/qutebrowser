@@ -393,7 +393,7 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif type(typ) is type(typing.Union):  # flake8: disable=E721
+        elif type(typ) is type(typing.Union):  # noqa: E721
             # this is... slightly evil, I know
             # We also can't use isinstance here because typing.Union doesn't
             # support that.
