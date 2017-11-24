@@ -446,8 +446,17 @@ class HintManager(QObject):
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
         if needed > min_chars:
-            short_count = math.floor((len(chars) ** needed - len(elems)) /
-                                     len(chars))
+            total_space = len(chars) ** needed
+            # Calculate short_count naively, by finding the avaiable space and
+            # dividing by the number of spots we would loose by adding a
+            # short element
+            short_count = math.floor((total_space - len(elems)) /
+                                     (len(chars)))
+            # Check if we double counted above to warrant another short_count
+            # https://github.com/qutebrowser/qutebrowser/issues/3242
+            if total_space - (short_count * len(chars) +
+                              (len(elems) - short_count)) >= len(chars) - 1:
+                short_count += 1
         else:
             short_count = 0
 
