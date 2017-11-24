@@ -7,5 +7,5 @@ Categories=Network;WebBrowser;
 Exec=qutebrowser %u
 Terminal=false
 StartupNotify=false
-MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/qute;
 Keywords=Browser
