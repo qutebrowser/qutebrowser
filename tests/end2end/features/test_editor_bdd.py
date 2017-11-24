@@ -64,3 +64,21 @@ def set_up_editor(quteproc, server, tmpdir, text):
 def set_up_editor_empty(quteproc, server, tmpdir):
     """Set up editor.command to a small python script inserting empty text."""
     set_up_editor(quteproc, server, tmpdir, "")
+
+
+@bdd.when(bdd.parsers.parse(
+    'I set up a fake editor returning "{text}" after {t}s'))
+def set_up_editor_delay(quteproc, server, tmpdir, text, t):
+    """Set up editor.command to a small python script inserting a text."""
+    script = tmpdir / 'script.py'
+    script.write(textwrap.dedent("""
+        import sys
+        import time
+
+        time.sleep({t})
+
+        with open(sys.argv[1], 'w', encoding='utf-8') as f:
+            f.write({text!r})
+    """.format(text=text, t=t)))
+    editor = json.dumps([sys.executable, str(script), '{}'])
+    quteproc.set_setting('editor.command', editor)
