@@ -87,6 +87,7 @@ Changed
   a line of code.
 - `:jseval --file` now searches relative paths in a js/ subdir in qutebrowser's
   data dir, e.g. `~/.local/share/qutebrowser/js`.
+- The current/default bindings are now shown in the :bind completion.
 
 Fixed
 ~~~~~
