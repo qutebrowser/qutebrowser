@@ -29,12 +29,14 @@ exclude = .*,__pycache__,resources.py
 # D403: First word of the first line should be properly capitalized
 #       (false-positives)
 # D413: Missing blank line after last section (not in pep257?)
+# A003: Builtin name for class attribute (needed for attrs)
 ignore =
     E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
     N802,
     P101,P102,P103,
-    D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D413
+    D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D413,
+    A003
 min-version = 3.4.0
 max-complexity = 12
 per-file-ignores =
