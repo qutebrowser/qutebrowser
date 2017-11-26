@@ -129,14 +129,14 @@ def test_nextitem_previtem_chain(hist):
 
 
 def test_nextitem_index_error(hist):
-    """"Test nextitem() when _tmphist raises an IndexError."""
+    """Test nextitem() when _tmphist raises an IndexError."""
     hist.start('f')
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         hist.nextitem()
 
 
 def test_previtem_index_error(hist):
-    """"Test previtem() when _tmphist raises an IndexError."""
+    """Test previtem() when _tmphist raises an IndexError."""
     hist.start('f')
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         for _ in range(10):

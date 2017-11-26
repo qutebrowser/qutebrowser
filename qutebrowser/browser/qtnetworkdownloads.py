@@ -215,7 +215,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                               abort_on=[self.cancelled, self.error])
 
     def _set_fileobj(self, fileobj, *, autoclose=True):
-        """"Set the file object to write the download to.
+        """Set the file object to write the download to.
 
         Args:
             fileobj: A file-like object.

@@ -95,7 +95,6 @@ class CommandParser:
     """Parse qutebrowser commandline commands.
 
     Attributes:
-
         _partial_match: Whether to allow partial command matches.
     """
 

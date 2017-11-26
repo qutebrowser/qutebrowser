@@ -2,7 +2,7 @@ flake8
 flake8-copyright
 flake8-debugger
 flake8-deprecated
-flake8-docstrings<1.1.0
+flake8-docstrings
 flake8-future-import
 flake8-mock
 flake8-pep3101<1.1
@@ -11,10 +11,8 @@ flake8-string-format
 flake8-tidy-imports
 flake8-tuple
 pep8-naming
-pydocstyle<2.0.0
+pydocstyle
 pyflakes
 
 # Not upgraded yet because they introduce new errors
-#@ filter: pydocstyle < 2.0.0
-#@ filter: flake8-docstrings < 1.1.0
 #@ filter: flake8-pep3101 < 1.1

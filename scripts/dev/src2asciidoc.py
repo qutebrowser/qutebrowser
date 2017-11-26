@@ -386,7 +386,7 @@ def generate_commands(filename):
 
 
 def _generate_setting_backend_info(f, opt):
-    """"Generate backend information for the given option."""
+    """Generate backend information for the given option."""
     all_backends = [usertypes.Backend.QtWebKit, usertypes.Backend.QtWebEngine]
     if opt.raw_backends is not None:
         for name, conditional in sorted(opt.raw_backends.items()):
