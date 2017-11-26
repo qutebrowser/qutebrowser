@@ -221,7 +221,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         }
         relevant_classes = classes[self.tag_name()]
         for klass in self.classes():
-            if any([klass.strip().startswith(e) for e in relevant_classes]):
+            if any(klass.strip().startswith(e) for e in relevant_classes):
                 return True
         return False
 

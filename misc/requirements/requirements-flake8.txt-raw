@@ -1,5 +1,6 @@
 flake8
 flake8-builtins
+flake8-comprehensions
 flake8-copyright
 flake8-debugger
 flake8-deprecated

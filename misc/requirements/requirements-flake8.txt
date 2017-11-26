@@ -2,6 +2,7 @@
 
 flake8==3.5.0
 flake8-builtins==1.0
+flake8-comprehensions==1.4.1
 flake8-copyright==0.2.0
 flake8-debugger==3.0.0
 flake8-deprecated==1.3
