@@ -422,6 +422,9 @@ def qt_message_handler(msg_type, context, msg):
                 'with: -9805',  # flake8: disable=E131
         ]
 
+    if not msg:
+        msg = "Logged empty message!"
+
     if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:

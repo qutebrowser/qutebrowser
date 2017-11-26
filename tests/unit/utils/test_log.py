@@ -25,11 +25,14 @@ import itertools
 import sys
 import warnings
 
+import attr
 import pytest
 import pytest_catchlog
 
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
+
+from PyQt5 import QtCore
 
 
 @pytest.fixture(autouse=True)
@@ -252,3 +255,22 @@ def test_ignore_py_warnings(caplog):
     assert len(caplog.records) == 1
     msg = caplog.records[0].message.splitlines()[0]
     assert msg.endswith("UserWarning: not hidden")
+
+
+class TestQtMessageHandler:
+
+    @attr.s
+    class Context:
+
+        """Fake QMessageLogContext."""
+
+        function = attr.ib(default=None)
+        category = attr.ib(default=None)
+        file = attr.ib(default=None)
+        line = attr.ib(default=None)
+
+    def test_empty_message(self, caplog):
+        """Make sure there's no crash with an empty message."""
+        log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
+        assert len(caplog.records) == 1
+        assert caplog.records[0].msg == "Logged empty message!"
