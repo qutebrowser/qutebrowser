@@ -77,17 +77,26 @@ def bind(key, *, info):
         key: the key being bound.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
-    cmd_text = info.keyconf.get_command(key, 'normal')
+    data = []
 
+    cmd_text = info.keyconf.get_command(key, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         try:
             cmd = parser.parse(cmd_text).cmd
         except cmdexc.NoSuchCommandError:
-            data = [(cmd_text, 'Invalid command!', key)]
+            data.append((cmd_text, '(Current) Invalid command!', key))
         else:
-            data = [(cmd_text, cmd.desc, key)]
-        model.add_category(listcategory.ListCategory("Current", data))
+            data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
+
+    cmd_text = info.keyconf.get_command(key, 'normal', default=True)
+    if cmd_text:
+        parser = runners.CommandParser()
+        cmd = parser.parse(cmd_text).cmd
+        data.append((cmd_text, '(Default) {}'.format(cmd.desc), key))
+
+    if data:
+        model.add_category(listcategory.ListCategory("Current/Default", data))
 
     cmdlist = util.get_cmd_completions(info, include_hidden=True,
                                        include_aliases=True)

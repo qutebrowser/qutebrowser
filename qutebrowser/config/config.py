@@ -162,10 +162,13 @@ class KeyConfig:
                     cmd_to_keys[cmd].insert(0, key)
         return cmd_to_keys
 
-    def get_command(self, key, mode):
+    def get_command(self, key, mode, default=False):
         """Get the command for a given key (or None)."""
         key = self._prepare(key, mode)
-        bindings = self.get_bindings_for(mode)
+        if default:
+            bindings = dict(val.bindings.default[mode])
+        else:
+            bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
 
     def bind(self, key, command, *, mode, save_yaml=False):
