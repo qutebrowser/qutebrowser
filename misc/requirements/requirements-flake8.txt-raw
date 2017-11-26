@@ -14,7 +14,7 @@ pep8-naming
 pydocstyle<2.0.0
 pyflakes
 
-# Waiting until flake8-putty updated
+# Not upgraded yet because they introduce new errors
 #@ filter: pydocstyle < 2.0.0
 #@ filter: flake8-docstrings < 1.1.0
 #@ filter: flake8-pep3101 < 1.1
