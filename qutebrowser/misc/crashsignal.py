@@ -22,7 +22,7 @@
 import os
 import sys
 import bdb
-import pdb  # flake8: disable=T002
+import pdb  # noqa: T002
 import signal
 import functools
 import faulthandler

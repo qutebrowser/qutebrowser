@@ -584,7 +584,7 @@ def disabled_excepthook():
             sys.excepthook = old_excepthook
 
 
-class prevent_exceptions:  # pylint: disable=invalid-name
+class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to ignore and log exceptions.
 
