@@ -103,7 +103,7 @@ def whitelist_generator():  # noqa
     for attr in ['visit_call', 'process_module']:
         yield 'scripts.dev.pylint_checkers.modeline.' + attr
 
-    for name, member in inspect.getmembers(configtypes, inspect.isclass):
+    for name, _member in inspect.getmembers(configtypes, inspect.isclass):
         yield 'qutebrowser.config.configtypes.' + name
     yield 'qutebrowser.config.configexc.ConfigErrorDesc.traceback'
     yield 'qutebrowser.config.configfiles.ConfigAPI.load_autoconfig'

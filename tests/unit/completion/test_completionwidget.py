@@ -45,7 +45,7 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
 def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
     model = completionmodel.CompletionModel()
-    for i in range(3):
+    for _i in range(3):
         model.add_category(listcategory.ListCategory('', [('foo',)]))
     completionview.set_model(model)
     assert completionview.model() is model

@@ -1,5 +1,7 @@
 [flake8]
 exclude = .*,__pycache__,resources.py
+# B001: bare except
+# B305: .next() (false-positives)
 # E128: continuation line under-indented for visual indent
 # E226: missing whitespace around arithmetic operator
 # E265: Block comment should start with '#'
@@ -31,6 +33,7 @@ exclude = .*,__pycache__,resources.py
 # D413: Missing blank line after last section (not in pep257?)
 # A003: Builtin name for class attribute (needed for attrs)
 ignore =
+    B001,B305,
     E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
     N802,
