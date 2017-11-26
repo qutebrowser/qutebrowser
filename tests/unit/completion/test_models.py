@@ -73,6 +73,9 @@ def cmdutils_stub(monkeypatch, stubs):
             name='scroll',
             desc='Scroll the current tab in the given direction.',
             modes=()),
+        'tab-close': stubs.FakeCommand(
+            name='tab-close',
+            desc='Close the current tab.'),
     })
 
 
@@ -101,9 +104,10 @@ def configdata_stub(monkeypatch, configdata_init):
                 ),
             ),
             default={
-                'normal': {
-                    '<ctrl+q>': 'quit'
-                }
+                'normal': collections.OrderedDict([
+                    ('<ctrl+q>', 'quit'),
+                    ('d', 'tab-close'),
+                ])
             },
             backends=[],
             raw_backends=None)),
@@ -122,6 +126,7 @@ def configdata_stub(monkeypatch, configdata_init):
                     ('<ctrl+q>', 'quit'),
                     ('ZQ', 'quit'),
                     ('I', 'invalid'),
+                    ('d', 'scroll down'),
                 ])
             },
             backends=[],
@@ -209,6 +214,7 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
             ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('tab-close', 'Close the current tab.', ''),
         ]
     })
 
@@ -233,7 +239,8 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
         "Commands": [
             (':open', 'open a url', ''),
             (':quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
-            (':scroll', 'Scroll the current tab in the given direction.', '')
+            (':scroll', 'Scroll the current tab in the given direction.', ''),
+            (':tab-close', 'Close the current tab.', ''),
         ],
         "Settings": [
             ('aliases', 'Aliases for commands.', None),
@@ -566,9 +573,9 @@ def test_setting_option_completion(qtmodeltester, config_stub,
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
             ('bindings.commands', 'Default keybindings',
                 '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit", '
-                '"I": "invalid"}}'),
+                '"I": "invalid", "d": "scroll down"}}'),
             ('bindings.default', 'Default keybindings',
-                '{"normal": {"<ctrl+q>": "quit"}}'),
+                '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
         ]
     })
 
@@ -589,14 +596,15 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Current": [
-            ('quit', 'quit qutebrowser', 'ZQ'),
+        "Current/Default": [
+            ('quit', '(Current) quit qutebrowser', 'ZQ'),
         ],
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
             ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
-            ('scroll', 'Scroll the current tab in the given direction.', '')
+            ('scroll', 'Scroll the current tab in the given direction.', ''),
+            ('tab-close', 'Close the current tab.', ''),
         ],
     })
 
@@ -608,21 +616,22 @@ def test_bind_completion_invalid(cmdutils_stub, config_stub, key_config_stub,
     model.set_pattern('')
 
     _check_completions(model, {
-        "Current": [
-            ('invalid', 'Invalid command!', 'I'),
+        "Current/Default": [
+            ('invalid', '(Current) Invalid command!', 'I'),
         ],
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
             ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
-            ('scroll', 'Scroll the current tab in the given direction.', '')
+            ('scroll', 'Scroll the current tab in the given direction.', ''),
+            ('tab-close', 'Close the current tab.', ''),
         ],
     })
 
 
-def test_bind_completion_no_current(qtmodeltester, cmdutils_stub, config_stub,
+def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
                                     key_config_stub, configdata_stub, info):
-    """Test keybinding completion with no current binding."""
+    """Test keybinding completion with no current or default binding."""
     model = configmodel.bind('x', info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -633,7 +642,30 @@ def test_bind_completion_no_current(qtmodeltester, cmdutils_stub, config_stub,
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
             ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
-            ('scroll', 'Scroll the current tab in the given direction.', '')
+            ('scroll', 'Scroll the current tab in the given direction.', ''),
+            ('tab-close', 'Close the current tab.', ''),
+        ],
+    })
+
+
+def test_bind_completion_changed(cmdutils_stub, config_stub, key_config_stub,
+                                 configdata_stub, info):
+    """Test command completion with a non-default command bound."""
+    model = configmodel.bind('d', info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "Current/Default": [
+            ('scroll down',
+             '(Current) Scroll the current tab in the given direction.', 'd'),
+            ('tab-close', '(Default) Close the current tab.', 'd'),
+        ],
+        "Commands": [
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('scroll', 'Scroll the current tab in the given direction.', ''),
+            ('tab-close', 'Close the current tab.', ''),
         ],
     })
 
