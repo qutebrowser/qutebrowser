@@ -323,6 +323,8 @@ class BrowserPage(QWebPage):
             # also indicate a bug.
             log.greasemonkey.debug("Not running scripts for frame with no "
                                    "url: {}".format(frame))
+            assert not toload
+
         for script in toload:
             if frame is self.mainFrame() or script.runs_on_sub_frames:
                 log.webview.debug('Running GM script: {}'.format(script.name))
