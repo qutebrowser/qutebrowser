@@ -87,11 +87,11 @@ class BrowserPage(QWebPage):
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
         self.loadFinished.connect(
-            functools.partial(self.inject_userjs, self.mainFrame()))
-        self.frameCreated.connect(self.connect_userjs_signals)
+            functools.partial(self._inject_userjs, self.mainFrame()))
+        self.frameCreated.connect(self._connect_userjs_signals)
 
     @pyqtSlot('QWebFrame*')
-    def connect_userjs_signals(self, frame):
+    def _connect_userjs_signals(self, frame):
         """Connect userjs related signals to `frame`.
 
         Connect the signals used as triggers for injecting user
@@ -100,7 +100,7 @@ class BrowserPage(QWebPage):
         log.greasemonkey.debug("Connecting to frame {} ({})"
                                .format(frame, frame.url().toDisplayString()))
         frame.loadFinished.connect(
-            functools.partial(self.inject_userjs, frame))
+            functools.partial(self._inject_userjs, frame))
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
@@ -298,8 +298,7 @@ class BrowserPage(QWebPage):
         else:
             self.error_occurred = False
 
-    @pyqtSlot()
-    def inject_userjs(self, frame):
+    def _inject_userjs(self, frame):
         """Inject user javascripts into the page.
 
         Args:
@@ -309,7 +308,7 @@ class BrowserPage(QWebPage):
         if url.isEmpty():
             url = frame.requestedUrl()
 
-        log.greasemonkey.debug("inject_userjs called for {} ({})"
+        log.greasemonkey.debug("_inject_userjs called for {} ({})"
                                .format(frame, url.toDisplayString()))
 
         greasemonkey = objreg.get('greasemonkey')
