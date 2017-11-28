@@ -327,7 +327,8 @@ def change_console_formatter(level):
     console_handler.setFormatter(console_formatter)
 
 
-def qt_message_handler(msg_type, context, msg):
+def qt_message_handler(msg_type, context,  # pylint: disable=too-many-branches
+                       msg):
     """Qt message handler to redirect qWarning etc. to the logging system.
 
     Args:
