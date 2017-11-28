@@ -130,6 +130,7 @@ Fixed
 - Trying to bind an empty command now doesn't crash anymore.
 - Fixed crash when `:config-write-py` fails to write to the given path.
 - Fixed crash for some users when selecting a file with Qt 5.9.3
+- Improved handling for various SQL errors
 
 v1.0.3
 ------
