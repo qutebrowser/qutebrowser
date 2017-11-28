@@ -120,8 +120,8 @@ Removed
 - The `x[xtb]` default bindings got removed again as many users accidentally
   triggered them.
 
-v1.0.4 (unreleased)
--------------------
+v1.0.4
+------
 
 Fixed
 ~~~~~
@@ -131,6 +131,7 @@ Fixed
 - Fixed crash when `:config-write-py` fails to write to the given path.
 - Fixed crash for some users when selecting a file with Qt 5.9.3
 - Improved handling for various SQL errors
+- Fix crash when setting content.cache.size to a big value (> 2 GB)
 
 v1.0.3
 ------
@@ -153,7 +154,6 @@ Fixed
   window
 - Unbinding a default keybinding twice now doesn't bind it again
 - Completions are now sorted correctly again when filtered
-- Fix crash when setting content.cache.size to a big value (> 2 GB)
 
 v1.0.2
 ------
