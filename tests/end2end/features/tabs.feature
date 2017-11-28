@@ -761,6 +761,7 @@ Feature: Tab management
             - data/numbers/3.txt
             - data/numbers/2.txt
 
+    @flaky
     Scenario: Undo a tab closed after new tab opened
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
