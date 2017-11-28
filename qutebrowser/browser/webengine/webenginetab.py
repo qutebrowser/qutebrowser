@@ -540,6 +540,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._init_js()
         self._child_event_filter = None
         self._saved_zoom = None
+        self._added_to_history = False
 
     def _init_js(self):
         js_code = '\n'.join([
@@ -654,6 +655,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot()
     def _on_history_trigger(self):
+        if self._added_to_history:
+            return
+
         try:
             self._widget.page()
         except RuntimeError:
@@ -679,6 +683,7 @@ class WebEngineTab(browsertab.AbstractTab):
             return
 
         self.add_history_item.emit(url, requested_url, title)
+        self._added_to_history = True
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
     def _on_proxy_authentication_required(self, url, authenticator,
@@ -749,6 +754,14 @@ class WebEngineTab(browsertab.AbstractTab):
             # https://bugreports.qt.io/browse/QTBUG-61506
             self.search.clear()
         super()._on_load_started()
+
+    @pyqtSlot(int)
+    def _on_load_progress(self, perc):
+        if perc < 100:
+            self._added_to_history = False
+        elif perc == 100:
+            self._on_history_trigger()
+        super()._on_load_progress(perc)
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
