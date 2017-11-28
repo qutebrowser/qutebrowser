@@ -28,7 +28,7 @@ import warnings
 import sip
 import pytest
 import hypothesis
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt5.QtCore import qVersion, PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
@@ -149,6 +149,17 @@ def pytest_ignore_collect(path):
     skip_bdd = hasattr(sys, 'frozen')
     rel_path = path.relto(os.path.dirname(__file__))
     return rel_path == os.path.join('end2end', 'features') and skip_bdd
+
+
+@pytest.fixture(scope='session')
+def qapp_args():
+    """Make QtWebEngine unit tests run on Qt 5.7.1.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/3163
+    """
+    if qVersion() == '5.7.1':
+        return [sys.argv[0], '--disable-seccomp-filter-sandbox']
+    return []
 
 
 @pytest.fixture(scope='session')
