@@ -78,10 +78,17 @@ $ python3 scripts/asciidoc2html.py
 On Fedora
 ---------
 
-The Fedora packages are lagging behind a lot and are currently effectively
-unmaintained. It's recommended to <<tox,install qutebrowser via tox>> instead.
+NOTE: Fedora's packages used to be outdated for a long time, but are
+now (November 2017) maintained and up-to-date again.
 
-Related Fedora bug: https://bugzilla.redhat.com/show_bug.cgi?id=1467748[1467748]
+qutebrowser is available in the official repositories:
+
+-----
+# dnf install qutebrowser
+-----
+
+However, note that Fedora 25/26 won't be updated to qutebrowser v1.0, so you
+might want to <<tox,install qutebrowser via tox>> instead there.
 
 On Archlinux
 ------------
@@ -181,6 +188,10 @@ To use the QtWebEngine backend, install `libqt5-qtwebengine`.
 
 On OpenBSD
 ----------
+
+WARNING: OpenBSD only packages a legacy unmaintained version of QtWebKit (for
+which support was dropped in qutebrowser v1.0). It's advised to not use
+qutebrowser from OpenBSD ports for untrusted websites.
 
 qutebrowser is in http://cvsweb.openbsd.org/cgi-bin/cvsweb/ports/www/qutebrowser/[OpenBSD ports].
 
