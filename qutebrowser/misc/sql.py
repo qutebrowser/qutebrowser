@@ -70,6 +70,7 @@ class SqliteError(SqlError):
         environmental_errors = [
             '5',   # SQLITE_BUSY ("database is locked")
             '8',   # SQLITE_READONLY
+            '11',  # SQLITE_CORRUPT
             '13',  # SQLITE_FULL
         ]
         # At least in init(), we can get errors like this:
