@@ -104,6 +104,7 @@ Fixed
 - Fixed crash when opening `qute://help/img`
 - Fixed `gU` (`:navigate up`) on `qute://help` and webservers not handling `..`
   in a URL.
+- Using e.g. `-s backend webkit` to set the backend now works correctly.
 
 Deprecated
 ~~~~~~~~~~
