@@ -19,7 +19,8 @@ Feature: Using :navigate
         Then data/navigate should be loaded
 
     Scenario: Navigating up in qute://help/
-        When I open qute://help/commands.html
+        When the documentation is up to date
+        And I open qute://help/commands.html
         And I run :navigate up
         Then qute://help/ should be loaded
 
