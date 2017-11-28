@@ -1653,7 +1653,7 @@ class CommandDispatcher:
     def on_editor_orphaned(self, ed):
         ed.editing_finished.disconnect()
         ed.editing_finished.connect(
-            lambda: message.warning('Edited element was closed'))
+            lambda: message.warning('Edited element vanished'))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')
