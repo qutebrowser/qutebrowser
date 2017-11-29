@@ -1070,12 +1070,41 @@ window._qutebrowser.caret = (function() {
         return false;
     };
 
+    function addCaretStyle() {
+        var style = '.CaretBrowsing_Caret {' +
+            '  position: absolute;' +
+            '  z-index: 2147483647;' +
+            '  min-height: 10px;' +
+            '  background-color: #000;' +
+            '}' +
+            '.CaretBrowsing_AnimateCaret {' +
+            '  position: absolute;' +
+            '  z-index: 2147483647;' +
+            '  min-height: 10px;' +
+            '}' +
+            '.CaretBrowsing_FlashVert {' +
+            '  position: absolute;' +
+            '  z-index: 2147483647;' +
+            '  background: linear-gradient(' +
+            '      270deg,' +
+            '      rgba(128, 128, 255, 0) 0%,' +
+            '      rgba(128, 128, 255, 0.3) 45%,' +
+            '      rgba(128, 128, 255, 0.8) 50%,' +
+            '      rgba(128, 128, 255, 0.3) 65%,' +
+            '      rgba(128, 128, 255, 0) 100%);' +
+            '}';
+        var node = document.createElement('style');
+        node.innerHTML = style;
+        document.body.appendChild(node);
+    }
+
     /**
      * If there's no initial selection, set the cursor just before the
      * first text character in the document.
      */
     funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
+            addCaretStyle();
             CaretBrowsing.setInitialCursor();
         } else {
             positionCaret();
