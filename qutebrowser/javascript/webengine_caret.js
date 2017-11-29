@@ -1070,7 +1070,7 @@ window._qutebrowser.caret = (function() {
         return false;
     };
 
-    function addCaretStyle() {
+    function injectCaretStyles() {
         var style = '.CaretBrowsing_Caret {' +
             '  position: absolute;' +
             '  z-index: 2147483647;' +
@@ -1104,16 +1104,47 @@ window._qutebrowser.caret = (function() {
      */
     funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
-            addCaretStyle();
+            injectCaretStyles();
             CaretBrowsing.setInitialCursor();
         } else {
-            positionCaret();
+            if (!window.getSelection().toString()) {
+                positionCaret();
+            }
             CaretBrowsing.toggle();
         }
     }
 
     funcs.toggle = () => {
         CaretBrowsing.toggle();
+    }
+
+    function positionCaret() {
+        const walker = document.createTreeWalker(document.body, -1);
+        let node;
+        const textNodes = [];
+        let el;
+        while ((node = walker.nextNode())) {
+            if (node.nodeType === 3 && node.nodeValue.trim() !== "") {
+                textNodes.push(node);
+            }
+        }
+        for (let i = 0; i < textNodes.length; i++) {
+            const element = textNodes[i].parentElement;
+            if (isElementInViewport(element)) {
+                el = element;
+                break;
+            }
+        }
+        if (el !== undefined) {
+            var start = new Cursor(el, 0, '');
+            var end = new Cursor(el, 0, '');
+            var nodesCrossed = [];
+            var result = TraverseUtil.getNextChar(start, end, nodesCrossed, true);
+            if (result == null) {
+                return;
+            }
+            CaretBrowsing.setAndValidateSelection(start, start);
+        }
     }
 
     CaretBrowsing.setInitialCursor = function() {
@@ -2356,34 +2387,6 @@ window._qutebrowser.caret = (function() {
         return boundingRect.top >= -20;
     }
 
-    function positionCaret() {
-        const walker = document.createTreeWalker(document.body, -1);
-        let node;
-        const textNodes = [];
-        let el;
-        while ((node = walker.nextNode())) {
-            if (node.nodeType === 3 && node.nodeValue.trim() !== "") {
-                textNodes.push(node);
-            }
-        }
-        for (let i = 0; i < textNodes.length; i++) {
-            const element = textNodes[i].parentElement;
-            if (isElementInViewport(element)) {
-                el = element;
-                break;
-            }
-        }
-        if (el !== undefined) {
-            var start = new Cursor(el, 0, '');
-            var end = new Cursor(el, 0, '');
-            var nodesCrossed = [];
-            var result = TraverseUtil.getNextChar(start, end, nodesCrossed, true);
-            if (result == null) {
-                return;
-            }
-            CaretBrowsing.setAndValidateSelection(start, start);
-        }
-    }
 
     return funcs;
 })();
