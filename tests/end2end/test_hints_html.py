@@ -158,8 +158,14 @@ def test_word_hints_issue1393(quteproc, tmpdir):
 @pytest.mark.parametrize('num_elements', range(1, 26))
 def test_scattered_hints_count(win_registry, mode_manager, min_len,
                                num_chars, num_elements):
-    """Test scattered hints function."""
-    # pylint: disable=W0141
+    """Test scattered hints function.
+
+    Tests many properties from an invocation of _hint_scattered, including
+
+    1. Hints must be unique
+    2. There can only be two hint lengths, only 1 apart
+    3. There are no unique prefixes for long hints, such as 'la' with no 'l<x>'
+    """
     manager = qutebrowser.browser.hints.HintManager(0, 0)
     chars = string.ascii_lowercase[:num_chars]
 
@@ -170,11 +176,11 @@ def test_scattered_hints_count(win_registry, mode_manager, min_len,
     assert len(hints) == len(set(hints))
 
     # Check if any hints are shorter than min_len
-    assert not any([x for x in hints if len(x) < min_len])
+    assert not any(x for x in hints if len(x) < min_len)
 
     # Check we don't have more than 2 link lengths
     # Eg: 'a' 'bc' and 'def' cannot be in the same hint string
-    hint_lens = set(map(len, hints))
+    hint_lens = {len(h) for h in hints}
     assert len(hint_lens) <= 2
 
     if len(hint_lens) == 2:
@@ -183,7 +189,7 @@ def test_scattered_hints_count(win_registry, mode_manager, min_len,
         # 'ab' and 'c' can
         assert abs(functools.reduce(operator.sub, hint_lens)) <= 1
 
-    longest_hints = filter(lambda x: len(x) == max(hint_lens), hints)
+    longest_hints = [x for x in hints if len(x) == max(hint_lens)]
 
     if min_len < max(hint_lens) - 1:
         # Check if we have any unique prefixes. For example, 'la'
@@ -192,4 +198,4 @@ def test_scattered_hints_count(win_registry, mode_manager, min_len,
         for x in longest_hints:
             prefix = x[:-1]
             count_map[prefix] = count_map.get(prefix, 0) + 1
-        assert not any(filter(lambda x: x == 1, count_map.values()))
+        assert all(e != 1 for e in count_map.values())
