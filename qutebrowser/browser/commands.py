@@ -1621,9 +1621,6 @@ class CommandDispatcher:
         ed = editor.ExternalEditor(self._tabbed_browser)
         ed.editing_finished.connect(functools.partial(
             self.on_editing_finished, elem))
-        tab = self._current_widget()
-        tab.shutting_down.connect(functools.partial(
-            self.on_editor_orphaned, ed))
         ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1647,13 +1644,10 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
+        except webelem.OrphanedError as e:
+            message.warning('Edited element vanished')
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
-
-    def on_editor_orphaned(self, ed):
-        ed.editing_finished.disconnect()
-        ed.editing_finished.connect(
-            lambda: message.warning('Edited element vanished'))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')

@@ -22,6 +22,7 @@
 import enum
 import itertools
 
+import sip
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
@@ -864,3 +865,6 @@ class AbstractTab(QWidget):
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
+
+    def is_deleted(self):
+        return sip.isdeleted(self._widget)
