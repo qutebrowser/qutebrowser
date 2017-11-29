@@ -451,7 +451,7 @@ class HintManager(QObject):
             # dividing by the number of spots we would loose by adding a
             # short element
             short_count = math.floor((total_space - len(elems)) /
-                                     (len(chars)))
+                                     len(chars))
             # Check if we double counted above to warrant another short_count
             # https://github.com/qutebrowser/qutebrowser/issues/3242
             if total_space - (short_count * len(chars) +
