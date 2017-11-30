@@ -839,9 +839,9 @@ class CommandDispatcher:
             keep: Stay in visual mode after yanking the selection.
         """
         self.yank_object = {
-                'sel': sel,
-                'what': what,
-                'keep': keep
+            'sel': sel,
+            'what': what,
+            'keep': keep
         }
         if what == 'title':
             s = self._tabbed_browser.page_title(self._current_index())
@@ -877,7 +877,8 @@ class CommandDispatcher:
 
         utils.set_clipboard(s, selection=self.yank_object['sel'])
         if self.yank_object['what'] != 'selection':
-            message.info("Yanked {} to {}: {}".format(self.yank_object['what'], target, s))
+            message.info("Yanked {} to {}: {}".format(
+                self.yank_object['what'], target, s))
         else:
             message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
@@ -1222,9 +1223,9 @@ class CommandDispatcher:
             # until it fixed or blocked async call implemented:
             # https://github.com/qutebrowser/qutebrowser/issues/3327
             self.userscript_object = {
-                    'cmd': cmd,
-                    'args': args,
-                    'verbose': verbose
+                'cmd': cmd,
+                'args': args,
+                'verbose': verbose
             }
             caret = self._current_widget().caret
             caret.selection(False, self._selection_callback)
@@ -1279,9 +1280,9 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         try:
-            userscripts.run_async(tab, self.userscript_object['cmd'], 
-                    *self.userscript_object['args'], win_id=self._win_id, 
-                    env=env, verbose=self.userscript_object['verbose'])
+            userscripts.run_async(tab, self.userscript_object['cmd'],
+                *self.userscript_object['args'], win_id=self._win_id,
+                env=env, verbose=self.userscript_object['verbose'])
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
         finally:

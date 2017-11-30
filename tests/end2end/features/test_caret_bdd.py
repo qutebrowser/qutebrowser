@@ -23,9 +23,4 @@ import pytest_bdd as bdd
 # pylint: disable=unused-import
 from end2end.features.test_yankpaste_bdd import init_fake_clipboard
 
-
-pytestmark = pytest.mark.qtwebengine_todo("Caret mode is not implemented",
-                                          run=False)
-
-
 bdd.scenarios('caret.feature')

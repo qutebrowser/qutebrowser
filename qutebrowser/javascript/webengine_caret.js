@@ -1,8 +1,7 @@
 "use strict";
 
 window._qutebrowser.caret = (function() {
-
-    var axs = {};
+    const axs = {};
 
     axs.dom = {};
 
