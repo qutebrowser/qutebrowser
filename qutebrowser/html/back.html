@@ -8,13 +8,14 @@ function switch_state(new_state) {
 	history.replaceState(
 		new_state,
 		document.title,
-		location.pathname+location.hash);
+		location.pathname + location.hash);
 }
 
 function go_back() {
 	switch_state(STATE_FORWARD);
 	history.back();
 }
+
 function go_forward() {
 	switch_state(STATE_BACK);
 	history.forward();
@@ -49,5 +50,5 @@ switch (history.state) {
 
 {% block content %}
 <noscript><p>Javascript isn't enabled. So you need to manually go back in history to restore this tab.</p></noscript>
-<p>If you see this site something went wrong or you reached the end of the history or you disabled javascript.</p>
+<p>If you see this site something went wrong, or you reached the end of the history, or you disabled javascript.</p>
 {% endblock %}

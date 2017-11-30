@@ -433,8 +433,8 @@ def qute_back(url):
     Simple page to free ram / lazy load a site, goes back on focusing the tab.
     """
     html = jinja.render(
-            'back.html',
-            title='Suspended: ' + urllib.parse.unquote(url.fragment()))
+        'back.html',
+        title='Suspended: ' + urllib.parse.unquote(url.fragment()))
     return 'text/html', html
 
 

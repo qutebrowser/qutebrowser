@@ -336,11 +336,11 @@ class SessionManager(QObject):
         # -> dropwhile empty if not session.lazy_session
         lazy_index = len(data['history'])
         gen = itertools.chain(
-                itertools.takewhile(lambda _: not lazy_load,
-                                    enumerate(data['history'])),
-                enumerate(lazy_load),
-                itertools.dropwhile(lambda i: i[0] < lazy_index,
-                                    enumerate(data['history'])))
+            itertools.takewhile(lambda _: not lazy_load,
+                                enumerate(data['history'])),
+            enumerate(lazy_load),
+            itertools.dropwhile(lambda i: i[0] < lazy_index,
+                                enumerate(data['history'])))
 
         for i, histentry in gen:
             user_data = {}
