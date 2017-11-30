@@ -1,7 +1,135 @@
 "use strict";
 
 window._qutebrowser.caret = (function() {
-    const funcs = {};
+
+    var axs = {};
+
+    axs.dom = {};
+
+    axs.color = {};
+
+    axs.utils = {};
+
+    axs.dom.parentElement = function(a) {
+        if (!a) {
+            return null;
+        }
+        a = axs.dom.composedParentNode(a);
+        if (!a) {
+            return null;
+        }
+        switch(a.nodeType) {
+            case Node.ELEMENT_NODE:
+                return a;
+            default:
+                return axs.dom.parentElement(a);
+        }
+    };
+
+    axs.dom.shadowHost = function(a) {
+        return "host" in a ? a.host : null;
+    };
+
+    axs.dom.composedParentNode = function(a) {
+        if (!a) {
+            return null;
+        }
+        if (a.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+            return axs.dom.shadowHost(a);
+        }
+        var b = a.parentNode;
+        if (!b) {
+            return null;
+        }
+        if (b.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+            return axs.dom.shadowHost(b);
+        }
+        if (!b.shadowRoot) {
+            return b;
+        }
+        a = a.getDestinationInsertionPoints();
+        return 0 < a.length ? axs.dom.composedParentNode(a[a.length - 1]) : null;
+    };
+
+    axs.color.Color = function(a, b, c, d) {
+        this.red = a;
+        this.green = b;
+        this.blue = c;
+        this.alpha = d;
+    };
+
+    axs.color.parseColor = function(a) {
+        if ("transparent" === a) {
+            return new axs.color.Color(0, 0, 0, 0);
+        }
+        var b = a.match(/^rgb\((\d+), (\d+), (\d+)\)$/);
+        if (b) {
+            a = parseInt(b[1], 10);
+            var c = parseInt(b[2], 10), d = parseInt(b[3], 10);
+            return new axs.color.Color(a, c, d, 1);
+        }
+        return (b = a.match(/^rgba\((\d+), (\d+), (\d+), (\d*(\.\d+)?)\)/)) ? (a = parseInt(b[1], 10), c = parseInt(b[2], 10), d = parseInt(b[3], 10), b = parseFloat(b[4]), new axs.color.Color(a, c, d, b)) : null;
+    };
+
+    axs.color.flattenColors = function(a, b) {
+        var c = a.alpha;
+        return new axs.color.Color((1 - c) * b.red + c * a.red, (1 - c) * b.green + c * a.green, (1 - c) * b.blue + c * a.blue, a.alpha + b.alpha * (1 - a.alpha));
+    };
+
+    axs.utils.getParentBgColor = function(a) {
+        var b = a;
+        a = [];
+        for (var c = null;b = axs.dom.parentElement(b);) {
+            var d = window.getComputedStyle(b, null);
+            if (d) {
+                var e = axs.color.parseColor(d.backgroundColor);
+                if (e && (1 > d.opacity && (e.alpha *= d.opacity), 0 != e.alpha && (a.push(e), 1 == e.alpha))) {
+                    c = !0;
+                    break;
+                }
+            }
+        }
+        c || a.push(new axs.color.Color(255, 255, 255, 1));
+        for (b = a.pop();a.length;) {
+            c = a.pop(), b = axs.color.flattenColors(c, b);
+        }
+        return b;
+    };
+
+    axs.utils.getFgColor = function(a, b, c) {
+        var d = axs.color.parseColor(a.color);
+        if (!d) {
+            return null;
+        }
+        1 > d.alpha && (d = axs.color.flattenColors(d, c));
+        1 > a.opacity && (b = axs.utils.getParentBgColor(b), d.alpha *= a.opacity, d = axs.color.flattenColors(d, b));
+        return d;
+    };
+
+    axs.utils.getBgColor = function(a, b) {
+        var c = axs.color.parseColor(a.backgroundColor);
+        if (!c) {
+            return null;
+        }
+        1 > a.opacity && (c.alpha *= a.opacity);
+        if (1 > c.alpha) {
+            var d = axs.utils.getParentBgColor(b);
+            if (null == d) {
+                return null;
+            }
+            c = axs.color.flattenColors(c, d);
+        }
+        return c;
+    };
+
+    axs.color.colorChannelToString = function(a) {
+        a = Math.round(a);
+        return 15 >= a ? "0" + a.toString(16) : a.toString(16);
+    };
+
+    axs.color.colorToString = function(a) {
+        return 1 == a.alpha ? "#" + axs.color.colorChannelToString(a.red) + axs.color.colorChannelToString(a.green) + axs.color.colorChannelToString(a.blue) : "rgba(" + [a.red, a.green, a.blue, a.alpha].join() + ")";
+    };
 
     var Cursor = function(node, index, text) {
         this.node = node;
@@ -67,23 +195,6 @@ window._qutebrowser.caret = (function() {
      */
     TraverseUtil.isWhitespace = function(c) {
         return (c == ' ' || c == '\n' || c == '\r' || c == '\t');
-    };
-
-    /**
-     * Set the selection to the range between the given start and end cursors.
-     * @param {Cursor} start The desired start of the selection.
-     * @param {Cursor} end The desired end of the selection.
-     * @return {Selection} the selection object.
-     */
-    TraverseUtil.setSelection = function(start, end) {
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        var range = document.createRange();
-        range.setStart(start.node, start.index);
-        range.setEnd(end.node, end.index);
-        sel.addRange(range);
-
-        return sel;
     };
 
     /**
@@ -197,91 +308,6 @@ window._qutebrowser.caret = (function() {
     };
 
     /**
-     * Moves the cursor backwards until it has crossed exactly one character.
-     * @param {Cursor} cursor The cursor location where the search should start.
-     *     On exit, the cursor will be immediately to the left of the
-     *     character returned.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The previous character, or null if the top of the
-     *     document has been reached.
-     */
-    TraverseUtil.backwardsChar = function(cursor, nodesCrossed) {
-        while (true) {
-            // Move down until we get to a leaf node.
-            var childNode = null;
-            if (!TraverseUtil.treatAsLeafNode(cursor.node)) {
-                for (var i = cursor.index - 1; i >= 0; i--) {
-                    var node = cursor.node.childNodes[i];
-                    if (TraverseUtil.isSkipped(node)) {
-                        nodesCrossed.push(node);
-                        continue;
-                    }
-                    if (TraverseUtil.isVisible(node)) {
-                        childNode = node;
-                        break;
-                    }
-                }
-            }
-            if (childNode) {
-                cursor.node = childNode;
-                cursor.text = TraverseUtil.getNodeText(cursor.node);
-                if (cursor.text.length)
-                    cursor.index = cursor.text.length;
-                else
-                    cursor.index = cursor.node.childNodes.length;
-                if (cursor.node.constructor != Text)
-                    nodesCrossed.push(cursor.node);
-                continue;
-            }
-
-            // Return the previous character from this leaf node.
-            if (cursor.text.length > 0 && cursor.index > 0) {
-                return cursor.text[--cursor.index];
-            }
-
-            // Move to the previous sibling, going up the tree as necessary.
-            while (true) {
-                // Try to move to the previous sibling.
-                var siblingNode = null;
-                for (var node = cursor.node.previousSibling;
-                    node != null;
-                    node = node.previousSibling) {
-                    if (TraverseUtil.isSkipped(node)) {
-                        nodesCrossed.push(node);
-                        continue;
-                    }
-                    if (TraverseUtil.isVisible(node)) {
-                        siblingNode = node;
-                        break;
-                    }
-                }
-                if (siblingNode) {
-                    cursor.node = siblingNode;
-                    cursor.text = TraverseUtil.getNodeText(siblingNode);
-                    if (cursor.text.length)
-                        cursor.index = cursor.text.length;
-                    else
-                        cursor.index = cursor.node.childNodes.length;
-                    if (cursor.node.constructor != Text)
-                        nodesCrossed.push(cursor.node);
-                    break;
-                }
-
-                // Otherwise, move to the parent.
-                if (cursor.node.parentNode &&
-                    cursor.node.parentNode.constructor != HTMLBodyElement) {
-                    cursor.node = cursor.node.parentNode;
-                    cursor.text = null;
-                    cursor.index = 0;
-                } else {
-                    return null;
-                }
-            }
-        }
-    };
-
-    /**
      * Finds the next character, starting from endCursor.  Upon exit, startCursor
      * and endCursor will surround the next character. If skipWhitespace is
      * true, will skip until a real character is found. Otherwise, it will
@@ -340,538 +366,6 @@ window._qutebrowser.caret = (function() {
             return ' ';
         }
     };
-
-    /**
-     * Finds the previous character, starting from startCursor.  Upon exit,
-     * startCursor and endCursor will surround the previous character.
-     * If skipWhitespace is true, will skip until a real character is found.
-     * Otherwise, it will attempt to select all of the whitespace between
-     * the initial position of endCursor and the next non-whitespace character.
-     * @param {Cursor} startCursor The position to start searching for the
-     *     char. On exit, will point to the position before the char.
-     * @param {Cursor} endCursor The position to start searching for the next
-     *     char. On exit, will point to the position past the char.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {boolean} skipWhitespace If true, will keep scanning until a
-     *     non-whitespace character is found.
-     * @return {?string} The previous char, or null if the top of the
-     *     document has been reached.
-     */
-    TraverseUtil.getPreviousChar = function(
-        startCursor, endCursor, nodesCrossed, skipWhitespace) {
-
-        // Save the starting position and get the first character.
-        endCursor.copyFrom(startCursor);
-        var c = TraverseUtil.backwardsChar(startCursor, nodesCrossed);
-        if (c == null)
-        return null;
-
-        // Keep track of whether the first character was whitespace.
-        var initialWhitespace = TraverseUtil.isWhitespace(c);
-
-        // Keep scanning until we find a non-whitespace or non-skipped character.
-        while ((TraverseUtil.isWhitespace(c)) ||
-            (TraverseUtil.isSkipped(startCursor.node))) {
-            c = TraverseUtil.backwardsChar(startCursor, nodesCrossed);
-            if (c == null)
-            return null;
-        }
-        if (skipWhitespace || !initialWhitespace) {
-            // If skipWhitepace is true, or if the first character we encountered
-            // was not whitespace, return that non-whitespace character.
-            endCursor.copyFrom(startCursor);
-            endCursor.index++;
-            return c;
-        } else {
-            for (var i = 0; i < nodesCrossed.length; i++) {
-                if (TraverseUtil.isSkipped(nodesCrossed[i])) {
-                    startCursor.index++;
-                    endCursor.copyFrom(startCursor);
-                    endCursor.index++;
-                    return ' ';
-                }
-            }
-            // Otherwise, return all of the whitespace before that last character.
-            startCursor.index++;
-            return ' ';
-        }
-    };
-
-    /**
-     * Finds the next word, starting from endCursor.  Upon exit, startCursor
-     * and endCursor will surround the next word.  A word is defined to be
-     * a string of 1 or more non-whitespace characters in the same DOM node.
-     * @param {Cursor} startCursor On exit, will point to the beginning of the
-     *     word returned.
-     * @param {Cursor} endCursor The position to start searching for the next
-     *     word.  On exit, will point to the end of the word returned.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The next word, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getNextWord = function(startCursor, endCursor,
-        nodesCrossed) {
-
-        // Find the first non-whitespace or non-skipped character.
-        var cursor = endCursor.clone();
-        var c = TraverseUtil.forwardsChar(cursor, nodesCrossed);
-        if (c == null)
-        return null;
-        while ((TraverseUtil.isWhitespace(c)) ||
-            (TraverseUtil.isSkipped(cursor.node))) {
-            c = TraverseUtil.forwardsChar(cursor, nodesCrossed);
-            if (c == null)
-            return null;
-        }
-
-        // Set startCursor to the position immediately before the first
-        // character in our word. It's safe to decrement |index| because
-        // forwardsChar guarantees that the cursor will be immediately to the
-        // right of the returned character on exit.
-        startCursor.copyFrom(cursor);
-        startCursor.index--;
-
-        // Keep building up our word until we reach a whitespace character or
-        // would cross a tag.  Don't actually return any tags crossed, because this
-        // word goes up until the tag boundary but not past it.
-        endCursor.copyFrom(cursor);
-        var word = c;
-        var newNodesCrossed = [];
-        c = TraverseUtil.forwardsChar(cursor, newNodesCrossed);
-        if (c == null) {
-            return word;
-        }
-        while (!TraverseUtil.isWhitespace(c) &&
-            newNodesCrossed.length == 0) {
-            word += c;
-            endCursor.copyFrom(cursor);
-            c = TraverseUtil.forwardsChar(cursor, newNodesCrossed);
-            if (c == null) {
-                return word;
-            }
-        }
-        return word;
-    };
-
-    /**
-     * Finds the previous word, starting from startCursor.  Upon exit, startCursor
-     * and endCursor will surround the previous word.  A word is defined to be
-     * a string of 1 or more non-whitespace characters in the same DOM node.
-     * @param {Cursor} startCursor The position to start searching for the
-     *     previous word.  On exit, will point to the beginning of the
-     *     word returned.
-     * @param {Cursor} endCursor On exit, will point to the end of the
-     *     word returned.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The previous word, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getPreviousWord = function(startCursor, endCursor,
-        nodesCrossed) {
-        // Find the first non-whitespace or non-skipped character.
-        var cursor = startCursor.clone();
-        var c = TraverseUtil.backwardsChar(cursor, nodesCrossed);
-        if (c == null)
-        return null;
-        while ((TraverseUtil.isWhitespace(c) ||
-            (TraverseUtil.isSkipped(cursor.node)))) {
-            c = TraverseUtil.backwardsChar(cursor, nodesCrossed);
-            if (c == null)
-            return null;
-        }
-
-        // Set endCursor to the position immediately after the first
-        // character we've found (the last character of the word, since we're
-        // searching backwards).
-        endCursor.copyFrom(cursor);
-        endCursor.index++;
-
-        // Keep building up our word until we reach a whitespace character or
-        // would cross a tag.  Don't actually return any tags crossed, because this
-        // word goes up until the tag boundary but not past it.
-        startCursor.copyFrom(cursor);
-        var word = c;
-        var newNodesCrossed = [];
-        c = TraverseUtil.backwardsChar(cursor, newNodesCrossed);
-        if (c == null)
-        return word;
-        while (!TraverseUtil.isWhitespace(c) &&
-            newNodesCrossed.length == 0) {
-            word = c + word;
-            startCursor.copyFrom(cursor);
-            c = TraverseUtil.backwardsChar(cursor, newNodesCrossed);
-            if (c == null)
-            return word;
-        }
-
-        return word;
-    };
-
-    /**
-     * Finds the next sentence, starting from endCursor.  Upon exit,
-     * startCursor and endCursor will surround the next sentence.
-     *
-     * @param {Cursor} startCursor On exit, marks the beginning of the sentence.
-     * @param {Cursor} endCursor The position to start searching for the next
-     *     sentence.  On exit, will point to the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {Object} breakTags Associative array of tags that should break
-     *     the sentence.
-     * @return {?string} The next sentence, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getNextSentence = function(
-        startCursor, endCursor, nodesCrossed, breakTags) {
-        return TraverseUtil.getNextString(
-            startCursor, endCursor, nodesCrossed,
-            function(str, word, nodes) {
-                if (str.substr(-1) == '.')
-                    return true;
-                for (var i = 0; i < nodes.length; i++) {
-                    if (TraverseUtil.isSkipped(nodes[i])) {
-                        return true;
-                    }
-                    var style = window.getComputedStyle(nodes[i], null);
-                    if (style && (style.display != 'inline' ||
-                        breakTags[nodes[i].tagName])) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-    };
-
-    /**
-     * Finds the previous sentence, starting from startCursor.  Upon exit,
-     * startCursor and endCursor will surround the previous sentence.
-     *
-     * @param {Cursor} startCursor The position to start searching for the next
-     *     sentence.  On exit, will point to the start of the returned string.
-     * @param {Cursor} endCursor On exit, the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {Object} breakTags Associative array of tags that should break
-     *     the sentence.
-     * @return {?string} The previous sentence, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getPreviousSentence = function(
-        startCursor, endCursor, nodesCrossed, breakTags) {
-        return TraverseUtil.getPreviousString(
-            startCursor, endCursor, nodesCrossed,
-            function(str, word, nodes) {
-                if (word.substr(-1) == '.')
-                    return true;
-                for (var i = 0; i < nodes.length; i++) {
-                    if (TraverseUtil.isSkipped(nodes[i])) {
-                        return true;
-                    }
-                    var style = window.getComputedStyle(nodes[i], null);
-                    if (style && (style.display != 'inline' ||
-                        breakTags[nodes[i].tagName])) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-    };
-
-    /**
-     * Finds the next line, starting from endCursor.  Upon exit,
-     * startCursor and endCursor will surround the next line.
-     *
-     * @param {Cursor} startCursor On exit, marks the beginning of the line.
-     * @param {Cursor} endCursor The position to start searching for the next
-     *     line.  On exit, will point to the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {number} lineLength The maximum number of characters in a line.
-     * @param {Object} breakTags Associative array of tags that should break
-     *     the line.
-     * @return {?string} The next line, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getNextLine = function(
-        startCursor, endCursor, nodesCrossed, lineLength, breakTags) {
-        return TraverseUtil.getNextString(
-            startCursor, endCursor, nodesCrossed,
-            function(str, word, nodes) {
-                if (str.length + word.length + 1 > lineLength)
-                    return true;
-                for (var i = 0; i < nodes.length; i++) {
-                    if (TraverseUtil.isSkipped(nodes[i])) {
-                        return true;
-                    }
-                    var style = window.getComputedStyle(nodes[i], null);
-                    if (style && (style.display != 'inline' ||
-                        breakTags[nodes[i].tagName])) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-    };
-
-    /**
-     * Finds the previous line, starting from startCursor.  Upon exit,
-     * startCursor and endCursor will surround the previous line.
-     *
-     * @param {Cursor} startCursor The position to start searching for the next
-     *     line.  On exit, will point to the start of the returned string.
-     * @param {Cursor} endCursor On exit, the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {number} lineLength The maximum number of characters in a line.
-     * @param {Object} breakTags Associative array of tags that should break
-     *     the sentence.
-     *  @return {?string} The previous line, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getPreviousLine = function(
-        startCursor, endCursor, nodesCrossed, lineLength, breakTags) {
-        return TraverseUtil.getPreviousString(
-            startCursor, endCursor, nodesCrossed,
-            function(str, word, nodes) {
-                if (str.length + word.length + 1 > lineLength)
-                    return true;
-                for (var i = 0; i < nodes.length; i++) {
-                    if (TraverseUtil.isSkipped(nodes[i])) {
-                        return true;
-                    }
-                    var style = window.getComputedStyle(nodes[i], null);
-                    if (style && (style.display != 'inline' ||
-                        breakTags[nodes[i].tagName])) {
-                        return true;
-                    }
-                }
-                return false;
-            });
-    };
-
-    /**
-     * Finds the next paragraph, starting from endCursor.  Upon exit,
-     * startCursor and endCursor will surround the next paragraph.
-     *
-     * @param {Cursor} startCursor On exit, marks the beginning of the paragraph.
-     * @param {Cursor} endCursor The position to start searching for the next
-     *     paragraph.  On exit, will point to the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The next paragraph, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getNextParagraph = function(startCursor, endCursor,
-        nodesCrossed) {
-        return TraverseUtil.getNextString(
-            startCursor, endCursor, nodesCrossed,
-            function(str, word, nodes) {
-                for (var i = 0; i < nodes.length; i++) {
-                    if (TraverseUtil.isSkipped(nodes[i])) {
-                        return true;
-                    }
-                    var style = window.getComputedStyle(nodes[i], null);
-                    if (style && style.display != 'inline') {
-                        return true;
-                    }
-                }
-                return false;
-            });
-    };
-
-    /**
-     * Finds the previous paragraph, starting from startCursor.  Upon exit,
-     * startCursor and endCursor will surround the previous paragraph.
-     *
-     * @param {Cursor} startCursor The position to start searching for the next
-     *     paragraph.  On exit, will point to the start of the returned string.
-     * @param {Cursor} endCursor On exit, the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The previous paragraph, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getPreviousParagraph = function(
-        startCursor, endCursor, nodesCrossed) {
-        return TraverseUtil.getPreviousString(
-            startCursor, endCursor, nodesCrossed,
-            function(str, word, nodes) {
-                for (var i = 0; i < nodes.length; i++) {
-                    if (TraverseUtil.isSkipped(nodes[i])) {
-                        return true;
-                    }
-                    var style = window.getComputedStyle(nodes[i], null);
-                    if (style && style.display != 'inline') {
-                        return true;
-                    }
-                }
-                return false;
-            });
-    };
-
-    /**
-     * Customizable function to return the next string of words in the DOM, based
-     * on provided functions to decide when to break one string and start
-     * the next. This can be used to get the next sentence, line, paragraph,
-     * or potentially other granularities.
-     *
-     * Finds the next contiguous string, starting from endCursor.  Upon exit,
-     * startCursor and endCursor will surround the next string.
-     *
-     * The breakBefore function takes three parameters, and
-     * should return true if the string should be broken before the proposed
-     * next word:
-     *   str The string so far.
-     *   word The next word to be added.
-     *   nodesCrossed The nodes crossed in reaching this next word.
-     *
-     * @param {Cursor} startCursor On exit, will point to the beginning of the
-     *     next string.
-     * @param {Cursor} endCursor The position to start searching for the next
-     *     string.  On exit, will point to the end of the returned string.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {function(string, string, Array<string>)} breakBefore
-     *     Function that takes the string so far, next word to be added, and
-     *     nodes crossed, and returns true if the string should be ended before
-     *     adding this word.
-     * @return {?string} The next string, or null if the bottom of the
-     *     document has been reached.
-     */
-    TraverseUtil.getNextString = function(
-        startCursor, endCursor, nodesCrossed, breakBefore) {
-        // Get the first word and set the start cursor to the start of the
-        // first word.
-        var wordStartCursor = endCursor.clone();
-        var wordEndCursor = endCursor.clone();
-        var newNodesCrossed = [];
-        var str = '';
-        var word = TraverseUtil.getNextWord(
-            wordStartCursor, wordEndCursor, newNodesCrossed);
-        if (word == null)
-        return null;
-        startCursor.copyFrom(wordStartCursor);
-
-        // Always add the first word when the string is empty, and then keep
-        // adding more words as long as breakBefore returns false
-        while (!str || !breakBefore(str, word, newNodesCrossed)) {
-            // Append this word, set the end cursor to the end of this word, and
-            // update the returned list of nodes crossed to include ones we crossed
-            // in reaching this word.
-            if (str)
-                str += ' ';
-            str += word;
-            nodesCrossed = nodesCrossed.concat(newNodesCrossed);
-            endCursor.copyFrom(wordEndCursor);
-
-            // Get the next word and go back to the top of the loop.
-            newNodesCrossed = [];
-            word = TraverseUtil.getNextWord(
-                wordStartCursor, wordEndCursor, newNodesCrossed);
-            if (word == null)
-                return str;
-        }
-
-        return str;
-    };
-
-    /**
-     * Customizable function to return the previous string of words in the DOM,
-     * based on provided functions to decide when to break one string and start
-     * the next. See getNextString, above, for more details.
-     *
-     * Finds the previous contiguous string, starting from startCursor.  Upon exit,
-     * startCursor and endCursor will surround the next string.
-     *
-     * @param {Cursor} startCursor The position to start searching for the
-     *     previous string.  On exit, will point to the beginning of the
-     *     string returned.
-     * @param {Cursor} endCursor On exit, will point to the end of the
-     *     string returned.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @param {function(string, string, Array<string>)} breakBefore
-     *     Function that takes the string so far, the word to be added, and
-     *     nodes crossed, and returns true if the string should be ended before
-     *     adding this word.
-     * @return {?string} The next string, or null if the top of the
-     *     document has been reached.
-     */
-    TraverseUtil.getPreviousString = function(
-        startCursor, endCursor, nodesCrossed, breakBefore) {
-        // Get the first word and set the end cursor to the end of the
-        // first word.
-        var wordStartCursor = startCursor.clone();
-        var wordEndCursor = startCursor.clone();
-        var newNodesCrossed = [];
-        var str = '';
-        var word = TraverseUtil.getPreviousWord(
-            wordStartCursor, wordEndCursor, newNodesCrossed);
-        if (word == null)
-        return null;
-        endCursor.copyFrom(wordEndCursor);
-
-        // Always add the first word when the string is empty, and then keep
-        // adding more words as long as breakBefore returns false
-        while (!str || !breakBefore(str, word, newNodesCrossed)) {
-            // Prepend this word, set the start cursor to the start of this word, and
-            // update the returned list of nodes crossed to include ones we crossed
-            // in reaching this word.
-            if (str)
-                str = ' ' + str;
-            str = word + str;
-            nodesCrossed = nodesCrossed.concat(newNodesCrossed);
-            startCursor.copyFrom(wordStartCursor);
-            // Get the previous word and go back to the top of the loop.
-            newNodesCrossed = [];
-            word = TraverseUtil.getPreviousWord(
-                wordStartCursor, wordEndCursor, newNodesCrossed);
-            if (word == null)
-                return str;
-        }
-
-        return str;
-    };
-
-
-    function isFocusable(targetNode) {
-        if (!targetNode || typeof(targetNode.tabIndex) != 'number') {
-            return false;
-        }
-
-        if (targetNode.tabIndex >= 0) {
-            return true;
-        }
-
-        if (targetNode.hasAttribute &&
-            targetNode.hasAttribute('tabindex') &&
-            targetNode.getAttribute('tabindex') == '-1') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Determines whether or not a node is or is the descendant of another node.
-     *
-     * @param {Object} node The node to be checked.
-     * @param {Object} ancestor The node to see if it's a descendant of.
-     * @return {boolean} True if the node is ancestor or is a descendant of it.
-     */
-    function isDescendantOfNode(node, ancestor) {
-        while (node && ancestor) {
-            if (node.isSameNode(ancestor)) {
-                return true;
-            }
-            node = node.parentNode;
-        }
-        return false;
-    }
-
 
     var CaretBrowsing = function() {};
 
@@ -990,12 +484,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.blinkFlag = true;
 
     /**
-     * Whether or not we're on a Mac - affects modifier keys.
-     * @type {boolean}
-     */
-    CaretBrowsing.isMac = (navigator.appVersion.indexOf("Mac") != -1);
-
-    /**
      * Check if a node is a control that normally allows the user to interact
      * with it using arrow keys. We won't override the arrow keys when such a
      * control has focus, the user must press Escape to do caret browsing outside
@@ -1070,7 +558,7 @@ window._qutebrowser.caret = (function() {
         return false;
     };
 
-    function injectCaretStyles() {
+    CaretBrowsing.injectCaretStyles = function() {
         var style = '.CaretBrowsing_Caret {' +
             '  position: absolute;' +
             '  z-index: 2147483647;' +
@@ -1098,55 +586,6 @@ window._qutebrowser.caret = (function() {
         document.body.appendChild(node);
     }
 
-    /**
-     * If there's no initial selection, set the cursor just before the
-     * first text character in the document.
-     */
-    funcs.setInitialCursor = () => {
-        if (!CaretBrowsing.initiated) {
-            injectCaretStyles();
-            CaretBrowsing.setInitialCursor();
-        } else {
-            if (!window.getSelection().toString()) {
-                positionCaret();
-            }
-            CaretBrowsing.toggle();
-        }
-    }
-
-    funcs.toggle = () => {
-        CaretBrowsing.toggle();
-    }
-
-    function positionCaret() {
-        const walker = document.createTreeWalker(document.body, -1);
-        let node;
-        const textNodes = [];
-        let el;
-        while ((node = walker.nextNode())) {
-            if (node.nodeType === 3 && node.nodeValue.trim() !== "") {
-                textNodes.push(node);
-            }
-        }
-        for (let i = 0; i < textNodes.length; i++) {
-            const element = textNodes[i].parentElement;
-            if (isElementInViewport(element)) {
-                el = element;
-                break;
-            }
-        }
-        if (el !== undefined) {
-            var start = new Cursor(el, 0, '');
-            var end = new Cursor(el, 0, '');
-            var nodesCrossed = [];
-            var result = TraverseUtil.getNextChar(start, end, nodesCrossed, true);
-            if (result == null) {
-                return;
-            }
-            CaretBrowsing.setAndValidateSelection(start, start);
-        }
-    }
-
     CaretBrowsing.setInitialCursor = function() {
         var sel = window.getSelection();
         if (sel.rangeCount > 0) {
@@ -1154,6 +593,7 @@ window._qutebrowser.caret = (function() {
         }
 
         positionCaret();
+        CaretBrowsing.injectCaretStyles();
         CaretBrowsing.toggle();
         CaretBrowsing.initiated = true;
         CaretBrowsing.selectionEnabled = false;
@@ -1193,22 +633,6 @@ window._qutebrowser.caret = (function() {
             node = node.parentNode;
         }
 
-        return false;
-    };
-
-    /**
-     * Set focus to the first focusable node in the given list.
-     * select the text, otherwise it doesn't appear focused to the user.
-     * Every other control behaves normally if you just call focus() on it.
-     * @param {Array<Node>} nodeList An array of nodes to focus.
-     * @return {boolean} True if the node was focused.
-     */
-    CaretBrowsing.setFocusToFirstFocusable = function(nodeList) {
-        for (var i = 0; i < nodeList.length; i++) {
-            if (CaretBrowsing.setFocusToNode(nodeList[i])) {
-                return true;
-            }
-        }
         return false;
     };
 
@@ -1489,165 +913,6 @@ window._qutebrowser.caret = (function() {
         }
     };
 
-    /**
-     * Return true if the selection directionality is ambiguous, which happens
-     * if, for example, the user double-clicks in the middle of a word to select
-     * it. In that case, the selection should extend by the right edge if the
-     * user presses right, and by the left edge if the user presses left.
-     * @param {Selection} sel The selection.
-     * @return {boolean} True if the selection directionality is ambiguous.
-     */
-    CaretBrowsing.isAmbiguous = function(sel) {
-        return (sel.anchorNode != sel.baseNode ||
-            sel.anchorOffset != sel.baseOffset ||
-            sel.focusNode != sel.extentNode ||
-            sel.focusOffset != sel.extentOffset);
-    };
-
-    /**
-     * Create a Cursor from the anchor position of the selection, the
-     * part that doesn't normally move.
-     * @param {Selection} sel The selection.
-     * @return {Cursor} A cursor pointing to the selection's anchor location.
-     */
-    CaretBrowsing.makeAnchorCursor = function(sel) {
-        return new Cursor(sel.anchorNode, sel.anchorOffset,
-            TraverseUtil.getNodeText(sel.anchorNode));
-    };
-
-    /**
-     * Create a Cursor from the focus position of the selection.
-     * @param {Selection} sel The selection.
-     * @return {Cursor} A cursor pointing to the selection's focus location.
-     */
-    CaretBrowsing.makeFocusCursor = function(sel) {
-        return new Cursor(sel.focusNode, sel.focusOffset,
-            TraverseUtil.getNodeText(sel.focusNode));
-    };
-
-    /**
-     * Create a Cursor from the left boundary of the selection - the boundary
-     * closer to the start of the document.
-     * @param {Selection} sel The selection.
-     * @return {Cursor} A cursor pointing to the selection's left boundary.
-     */
-    CaretBrowsing.makeLeftCursor = function(sel) {
-        var range = sel.rangeCount == 1 ? sel.getRangeAt(0) : null;
-        if (range &&
-            range.endContainer == sel.anchorNode &&
-            range.endOffset == sel.anchorOffset) {
-            return CaretBrowsing.makeFocusCursor(sel);
-        } else {
-            return CaretBrowsing.makeAnchorCursor(sel);
-        }
-    };
-
-    /**
-     * Create a Cursor from the right boundary of the selection - the boundary
-     * closer to the end of the document.
-     * @param {Selection} sel The selection.
-     * @return {Cursor} A cursor pointing to the selection's right boundary.
-     */
-    CaretBrowsing.makeRightCursor = function(sel) {
-        var range = sel.rangeCount == 1 ? sel.getRangeAt(0) : null;
-        if (range &&
-            range.endContainer == sel.anchorNode &&
-            range.endOffset == sel.anchorOffset) {
-            return CaretBrowsing.makeAnchorCursor(sel);
-        } else {
-            return CaretBrowsing.makeFocusCursor(sel);
-        }
-    };
-
-    /**
-     * Try to set the window's selection to be between the given start and end
-     * cursors, and return whether or not it was successful.
-     * @param {Cursor} start The start position.
-     * @param {Cursor} end The end position.
-     * @return {boolean} True if the selection was successfully set.
-     */
-    CaretBrowsing.setAndValidateSelection = function(start, end) {
-        var sel = window.getSelection();
-        sel.setBaseAndExtent(start.node, start.index, end.node, end.index);
-
-        if (sel.rangeCount != 1) {
-            return false;
-        }
-
-        return (sel.anchorNode == start.node &&
-            sel.anchorOffset == start.index &&
-            sel.focusNode == end.node &&
-            sel.focusOffset == end.index);
-    };
-
-    /**
-     * Note: the built-in function by the same name is unreliable.
-     * @param {Selection} sel The selection.
-     * @return {boolean} True if the start and end positions are the same.
-     */
-    CaretBrowsing.isCollapsed = function(sel) {
-        return (sel.anchorOffset == sel.focusOffset &&
-            sel.anchorNode == sel.focusNode);
-    };
-
-    /**
-     * Determines if the modifier key is held down that should cause
-     * the cursor to move by word rather than by character.
-     * @param {Event} evt A keyboard event.
-     * @return {boolean} True if the cursor should move by word.
-     */
-    CaretBrowsing.isMoveByWordEvent = function(evt) {
-        return evt.ctrlKey;
-    };
-
-    /**
-     * Moves the cursor forwards to the next valid position.
-     * @param {Cursor} cursor The current cursor location.
-     *     On exit, the cursor will be at the next position.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The character reached, or null if the bottom of the
-     *     document has been reached.
-     */
-    CaretBrowsing.forwards = function(cursor, nodesCrossed) {
-        var previousCursor = cursor.clone();
-        var result = TraverseUtil.forwardsChar(cursor, nodesCrossed);
-
-        // Work around the fact that TraverseUtil.forwardsChar returns once per
-        // char in a block of text, rather than once per possible selection
-        // position in a block of text.
-        if (result && cursor.node != previousCursor.node && cursor.index > 0) {
-            cursor.index = 0;
-        }
-
-        return result;
-    };
-
-    /**
-     * Moves the cursor backwards to the previous valid position.
-     * @param {Cursor} cursor The current cursor location.
-     *     On exit, the cursor will be at the previous position.
-     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
-     *     initial and final cursor position will be pushed onto this array.
-     * @return {?string} The character reached, or null if the top of the
-     *     document has been reached.
-     */
-    CaretBrowsing.backwards = function(cursor, nodesCrossed) {
-        var previousCursor = cursor.clone();
-        var result = TraverseUtil.backwardsChar(cursor, nodesCrossed);
-
-        // Work around the fact that TraverseUtil.backwardsChar returns once per
-        // char in a block of text, rather than once per possible selection
-        // position in a block of text.
-        if (result &&
-            cursor.node != previousCursor.node &&
-            cursor.index < cursor.text.length) {
-            cursor.index = cursor.text.length;
-        }
-
-        return result;
-    };
-
     CaretBrowsing.move = function(direction, granularity) {
         window
             .getSelection()
@@ -1682,472 +947,6 @@ window._qutebrowser.caret = (function() {
 
     }
 
-    funcs.moveRight = () => {
-        CaretBrowsing.move('right', 'character');
-    }
-
-    funcs.moveLeft = () => {
-        CaretBrowsing.move('left', 'character');
-    }
-
-    funcs.moveDown = () => {
-        CaretBrowsing.move('forward', 'line');
-    }
-
-    funcs.moveUp = () => {
-        CaretBrowsing.move('backward', 'line');
-    }
-
-    funcs.moveToEndOfWord = () => {
-        funcs.moveToNextWord();
-        funcs.moveLeft();
-    }
-
-    funcs.moveToNextWord = () => {
-        CaretBrowsing.move('forward', 'word');
-        funcs.moveRight();
-    }
-
-    funcs.moveToPreviousWord = () => {
-        CaretBrowsing.move('backward', 'word');
-    }
-
-    funcs.moveToStartOfLine = () => {
-        CaretBrowsing.move('left', 'lineboundary');
-    }
-
-    funcs.moveToEndOfLine = () => {
-        CaretBrowsing.move('right', 'lineboundary');
-    }
-
-    funcs.moveToStartOfNextBlock = () => {
-        CaretBrowsing.moveToBlock('forward', 'backward');
-    }
-
-    funcs.moveToStartOfPrevBlock = () => {
-        CaretBrowsing.moveToBlock('backward', 'backward');
-    }
-
-    funcs.moveToEndOfNextBlock = () => {
-        CaretBrowsing.moveToBlock('forward', 'forward');
-    }
-
-    funcs.moveToEndOfPrevBlock = () => {
-        CaretBrowsing.moveToBlock('backward', 'forward');
-    }
-
-    funcs.moveToStartOfDocument = () => {
-        CaretBrowsing.move('backward', 'documentboundary');
-    }
-
-    funcs.moveToEndOfDocument = () => {
-        CaretBrowsing.move('forward', 'documentboundary');
-    }
-
-    funcs.dropSelection = () => {
-        window.getSelection().removeAllRanges();
-    }
-
-    funcs.getSelection = () => {
-        return window.getSelection().toString();
-    }
-
-    funcs.toggleSelection = () => {
-        CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
-    }
-
-    /**
-     * Called when the user presses the right arrow. If there's a selection,
-     * moves the cursor to the end of the selection range. If it's a cursor,
-     * moves past one character.
-     * @param {Event} evt The DOM event.
-     * @return {boolean} True if the default action should be performed.
-     */
-    CaretBrowsing.moveRight = function(evt) {
-        CaretBrowsing.targetX = null;
-
-        var sel = window.getSelection();
-        if (!evt.shiftKey && !CaretBrowsing.isCollapsed(sel)) {
-            var right = CaretBrowsing.makeRightCursor(sel);
-            CaretBrowsing.setAndValidateSelection(right, right);
-            return false;
-        }
-
-        var start = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeLeftCursor(sel) :
-            CaretBrowsing.makeAnchorCursor(sel);
-        var end = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeRightCursor(sel) :
-            CaretBrowsing.makeFocusCursor(sel);
-        var previousEnd = end.clone();
-        var nodesCrossed = [];
-        while (true) {
-            var result;
-            if (CaretBrowsing.isMoveByWordEvent(evt)) {
-                result = TraverseUtil.getNextWord(previousEnd, end, nodesCrossed);
-            } else {
-                previousEnd = end.clone();
-                result = CaretBrowsing.forwards(end, nodesCrossed);
-            }
-
-            if (result === null) {
-                return CaretBrowsing.moveLeft(evt);
-            }
-
-            if (CaretBrowsing.setAndValidateSelection(
-                evt.shiftKey ? start : end, end)) {
-                break;
-            }
-        }
-
-        if (!evt.shiftKey) {
-            nodesCrossed.push(end.node);
-            CaretBrowsing.setFocusToFirstFocusable(nodesCrossed);
-        }
-
-        return false;
-    };
-
-    /**
-     * Called when the user presses the left arrow. If there's a selection,
-     * moves the cursor to the start of the selection range. If it's a cursor,
-     * moves backwards past one character.
-     * @param {Event} evt The DOM event.
-     * @return {boolean} True if the default action should be performed.
-     */
-    CaretBrowsing.moveLeft = function(evt) {
-        CaretBrowsing.targetX = null;
-
-        var sel = window.getSelection();
-        if (!evt.shiftKey && !CaretBrowsing.isCollapsed(sel)) {
-            var left = CaretBrowsing.makeLeftCursor(sel);
-            CaretBrowsing.setAndValidateSelection(left, left);
-            return false;
-        }
-
-        var start = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeLeftCursor(sel) :
-            CaretBrowsing.makeFocusCursor(sel);
-        var end = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeRightCursor(sel) :
-            CaretBrowsing.makeAnchorCursor(sel);
-        var previousStart = start.clone();
-        var nodesCrossed = [];
-        while (true) {
-            var result;
-            if (CaretBrowsing.isMoveByWordEvent(evt)) {
-                result = TraverseUtil.getPreviousWord(
-                    start, previousStart, nodesCrossed);
-            } else {
-                previousStart = start.clone();
-                result = CaretBrowsing.backwards(start, nodesCrossed);
-            }
-
-            if (result === null) {
-                break;
-            }
-
-            if (CaretBrowsing.setAndValidateSelection(
-                evt.shiftKey ? end : start, start)) {
-                break;
-            }
-        }
-
-        if (!evt.shiftKey) {
-            nodesCrossed.push(start.node);
-            CaretBrowsing.setFocusToFirstFocusable(nodesCrossed);
-        }
-
-        return false;
-    };
-
-
-    /**
-     * Called when the user presses the down arrow. If there's a selection,
-     * moves the cursor to the end of the selection range. If it's a cursor,
-     * attempts to move to the equivalent horizontal pixel position in the
-     * subsequent line of text. If this is impossible, go to the first character
-     * of the next line.
-     * @param {Event} evt The DOM event.
-     * @return {boolean} True if the default action should be performed.
-     */
-    CaretBrowsing.moveDown = function(evt) {
-        var sel = window.getSelection();
-        if (!evt.shiftKey && !CaretBrowsing.isCollapsed(sel)) {
-            var right = CaretBrowsing.makeRightCursor(sel);
-            CaretBrowsing.setAndValidateSelection(right, right);
-            return false;
-        }
-
-        var start = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeLeftCursor(sel) :
-            CaretBrowsing.makeAnchorCursor(sel);
-        var end = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeRightCursor(sel) :
-            CaretBrowsing.makeFocusCursor(sel);
-        var endRect = CaretBrowsing.getCursorRect(end);
-        if (CaretBrowsing.targetX === null) {
-            CaretBrowsing.targetX = endRect.left;
-        }
-        var previousEnd = end.clone();
-        var leftPos = end.clone();
-        var rightPos = end.clone();
-        var bestPos = null;
-        var bestY = null;
-        var bestDelta = null;
-        var bestHeight = null;
-        var nodesCrossed = [];
-        var y = -1;
-        while (true) {
-            if (null === CaretBrowsing.forwards(rightPos, nodesCrossed)) {
-                if (CaretBrowsing.setAndValidateSelection(
-                    evt.shiftKey ? start : leftPos, leftPos)) {
-                    break;
-                } else {
-                    return CaretBrowsing.moveLeft(evt);
-                }
-                break;
-            }
-            var range = document.createRange();
-            range.setStart(leftPos.node, leftPos.index);
-            range.setEnd(rightPos.node, rightPos.index);
-            var rect = range.getBoundingClientRect();
-            if (rect && rect.width < rect.height) {
-                y = rect.top + window.pageYOffset;
-
-                // Return the best match so far if we get half a line past the best.
-                if (bestY != null && y > bestY + bestHeight / 2) {
-                    if (CaretBrowsing.setAndValidateSelection(
-                        evt.shiftKey ? start : bestPos, bestPos)) {
-                        break;
-                    } else {
-                        bestY = null;
-                    }
-                }
-
-                // Stop here if we're an entire line the wrong direction
-                // (for example, we reached the top of the next column).
-                if (y < endRect.top - endRect.height) {
-                    if (CaretBrowsing.setAndValidateSelection(
-                        evt.shiftKey ? start : leftPos, leftPos)) {
-                        break;
-                    }
-                }
-
-                // Otherwise look to see if this current position is on the
-                // next line and better than the previous best match, if any.
-                if (y >= endRect.top + endRect.height) {
-                    var deltaLeft = Math.abs(CaretBrowsing.targetX - rect.left);
-                    if ((bestDelta == null || deltaLeft < bestDelta) &&
-                        (leftPos.node != end.node || leftPos.index != end.index)) {
-                        bestPos = leftPos.clone();
-                        bestY = y;
-                        bestDelta = deltaLeft;
-                        bestHeight = rect.height;
-                    }
-                    var deltaRight = Math.abs(CaretBrowsing.targetX - rect.right);
-                    if (bestDelta == null || deltaRight < bestDelta) {
-                        bestPos = rightPos.clone();
-                        bestY = y;
-                        bestDelta = deltaRight;
-                        bestHeight = rect.height;
-                    }
-
-                    // Return the best match so far if the deltas are getting worse,
-                    // not better.
-                    if (bestDelta != null &&
-                        deltaLeft > bestDelta &&
-                        deltaRight > bestDelta) {
-                        if (CaretBrowsing.setAndValidateSelection(
-                            evt.shiftKey ? start : bestPos, bestPos)) {
-                            break;
-                        } else {
-                            bestY = null;
-                        }
-                    }
-                }
-            }
-            leftPos = rightPos.clone();
-        }
-
-        if (!evt.shiftKey) {
-            CaretBrowsing.setFocusToNode(leftPos.node);
-        }
-
-        return false;
-    };
-
-    /**
-     * Called when the user presses the up arrow. If there's a selection,
-     * moves the cursor to the start of the selection range. If it's a cursor,
-     * attempts to move to the equivalent horizontal pixel position in the
-     * previous line of text. If this is impossible, go to the last character
-     * of the previous line.
-     * @param {Event} evt The DOM event.
-     * @return {boolean} True if the default action should be performed.
-     */
-    CaretBrowsing.moveUp = function(evt) {
-        var sel = window.getSelection();
-        if (!evt.shiftKey && !CaretBrowsing.isCollapsed(sel)) {
-            var left = CaretBrowsing.makeLeftCursor(sel);
-            CaretBrowsing.setAndValidateSelection(left, left);
-            return false;
-        }
-
-        var start = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeLeftCursor(sel) :
-            CaretBrowsing.makeFocusCursor(sel);
-        var end = CaretBrowsing.isAmbiguous(sel) ?
-            CaretBrowsing.makeRightCursor(sel) :
-            CaretBrowsing.makeAnchorCursor(sel);
-        var startRect = CaretBrowsing.getCursorRect(start);
-        if (CaretBrowsing.targetX === null) {
-            CaretBrowsing.targetX = startRect.left;
-        }
-        var previousStart = start.clone();
-        var leftPos = start.clone();
-        var rightPos = start.clone();
-        var bestPos = null;
-        var bestY = null;
-        var bestDelta = null;
-        var bestHeight = null;
-        var nodesCrossed = [];
-        var y = 999999;
-        while (true) {
-            if (null === CaretBrowsing.backwards(leftPos, nodesCrossed)) {
-                CaretBrowsing.setAndValidateSelection(
-                    evt.shiftKey ? end : rightPos, rightPos);
-                break;
-            }
-            var range = document.createRange();
-            range.setStart(leftPos.node, leftPos.index);
-            range.setEnd(rightPos.node, rightPos.index);
-            var rect = range.getBoundingClientRect();
-            if (rect && rect.width < rect.height) {
-                y = rect.top + window.pageYOffset;
-
-                // Return the best match so far if we get half a line past the best.
-                if (bestY != null && y < bestY - bestHeight / 2) {
-                    if (CaretBrowsing.setAndValidateSelection(
-                        evt.shiftKey ? end : bestPos, bestPos)) {
-                        break;
-                    } else {
-                        bestY = null;
-                    }
-                }
-
-                // Exit if we're an entire line the wrong direction
-                // (for example, we reached the bottom of the previous column.)
-                if (y > startRect.top + startRect.height) {
-                    if (CaretBrowsing.setAndValidateSelection(
-                        evt.shiftKey ? end : rightPos, rightPos)) {
-                        break;
-                    }
-                }
-
-                // Otherwise look to see if this current position is on the
-                // next line and better than the previous best match, if any.
-                if (y <= startRect.top - startRect.height) {
-                    var deltaLeft = Math.abs(CaretBrowsing.targetX - rect.left);
-                    if (bestDelta == null || deltaLeft < bestDelta) {
-                        bestPos = leftPos.clone();
-                        bestY = y;
-                        bestDelta = deltaLeft;
-                        bestHeight = rect.height;
-                    }
-                    var deltaRight = Math.abs(CaretBrowsing.targetX - rect.right);
-                    if ((bestDelta == null || deltaRight < bestDelta) &&
-                        (rightPos.node != start.node || rightPos.index != start.index)) {
-                        bestPos = rightPos.clone();
-                        bestY = y;
-                        bestDelta = deltaRight;
-                        bestHeight = rect.height;
-                    }
-
-                    // Return the best match so far if the deltas are getting worse,
-                    // not better.
-                    if (bestDelta != null &&
-                        deltaLeft > bestDelta &&
-                        deltaRight > bestDelta) {
-                        if (CaretBrowsing.setAndValidateSelection(
-                            evt.shiftKey ? end : bestPos, bestPos)) {
-                            break;
-                        } else {
-                            bestY = null;
-                        }
-                    }
-                }
-            }
-            rightPos = leftPos.clone();
-        }
-
-        if (!evt.shiftKey) {
-            CaretBrowsing.setFocusToNode(rightPos.node);
-        }
-
-        return false;
-    };
-
-    /**
-     * Set the document's selection to surround a control, so that the next
-     * arrow key they press will allow them to explore the content before
-     * or after a given control.
-     * @param {Node} control The control to escape from.
-     */
-    CaretBrowsing.escapeFromControl = function(control) {
-        control.blur();
-
-        var start = new Cursor(control, 0, '');
-        var previousStart = start.clone();
-        var end = new Cursor(control, 0, '');
-        var previousEnd = end.clone();
-
-        var nodesCrossed = [];
-        while (true) {
-            if (null === CaretBrowsing.backwards(start, nodesCrossed)) {
-                break;
-            }
-
-            var r = document.createRange();
-            r.setStart(start.node, start.index);
-            r.setEnd(previousStart.node, previousStart.index);
-            if (r.getBoundingClientRect()) {
-                break;
-            }
-            previousStart = start.clone();
-        }
-        while (true) {
-            if (null === CaretBrowsing.forwards(end, nodesCrossed)) {
-                break;
-            }
-            if (isDescendantOfNode(end.node, control)) {
-                previousEnd = end.clone();
-                continue;
-            }
-
-            var r = document.createRange();
-            r.setStart(previousEnd.node, previousEnd.index);
-            r.setEnd(end.node, end.index);
-            if (r.getBoundingClientRect()) {
-                break;
-            }
-        }
-
-        if (!isDescendantOfNode(previousStart.node, control)) {
-            start = previousStart.clone();
-        }
-
-        if (!isDescendantOfNode(previousEnd.node, control)) {
-            end = previousEnd.clone();
-        }
-
-        CaretBrowsing.setAndValidateSelection(start, end);
-
-        window.setTimeout(function() {
-            CaretBrowsing.updateCaretOrSelection(true);
-        }, 0);
-    };
-
     /**
      * Toggle whether caret browsing is enabled or not.
      */
@@ -2161,70 +960,6 @@ window._qutebrowser.caret = (function() {
         var obj = {};
         obj['enabled'] = CaretBrowsing.isEnabled;
         CaretBrowsing.updateIsCaretVisible();
-    };
-
-    /**
-     * Event handler, called when a key is pressed.
-     * @param {Event} evt The DOM event.
-     * @return {boolean} True if the default action should be performed.
-     */
-    CaretBrowsing.onKeyDown = function(evt) {
-        if (!CaretBrowsing.isEnabled) {
-            return true;
-        }
-
-        evt.shiftKey = CaretBrowsing.selectionEnabled;
-        if (evt.target && CaretBrowsing.isControlThatNeedsArrowKeys(
-            /** @type (Node) */(evt.target))) {
-            if (evt.keyCode == 27) {
-                CaretBrowsing.escapeFromControl(/** @type {Node} */(evt.target));
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        // If the current selection doesn't have a range, try to escape out of
-        // the current control. If that fails, return so we don't fail whe
-        // trying to move the cursor or selection.
-        var sel = window.getSelection();
-        if (sel.rangeCount == 0) {
-            if (document.activeElement) {
-                CaretBrowsing.escapeFromControl(document.activeElement);
-                sel = window.getSelection();
-            }
-
-            if (sel.rangeCount == 0) {
-                return true;
-            }
-        }
-
-        if (CaretBrowsing.caretElement) {
-            CaretBrowsing.caretElement.style.visibility = 'visible';
-            CaretBrowsing.blinkFlag = true;
-        }
-
-        var result = true;
-        switch (evt.keyCode) {
-            case 37:
-                result = CaretBrowsing.moveLeft(evt);
-                break;
-            case 38:
-                result = CaretBrowsing.moveUp(evt);
-                break;
-            case 39:
-                result = CaretBrowsing.moveRight(evt);
-                break;
-            case 40:
-                result = CaretBrowsing.moveDown(evt);
-                break;
-        }
-
-        window.setTimeout(function() {
-            CaretBrowsing.updateCaretOrSelection(result == false);
-        }, 0);
-
-        return result;
     };
 
     /**
@@ -2314,7 +1049,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.init = function() {
         CaretBrowsing.isWindowFocused = document.hasFocus();
 
-        // document.addEventListener('keydown', CaretBrowsing.onKeyDown, false);
         document.addEventListener('click', CaretBrowsing.onClick, false);
         window.addEventListener('focus', CaretBrowsing.onWindowFocus, false);
         window.addEventListener('blur', CaretBrowsing.onWindowBlur, false);
@@ -2340,13 +1074,13 @@ window._qutebrowser.caret = (function() {
     function isElementInViewport(node) {  // eslint-disable-line complexity
         let i;
         let boundingRect = (node.getClientRects()[0] ||
-                            node.getBoundingClientRect());
+            node.getBoundingClientRect());
 
         if (boundingRect.width <= 1 && boundingRect.height <= 1) {
             const rects = node.getClientRects();
             for (i = 0; i < rects.length; i++) {
                 if (rects[i].width > rects[0].height &&
-                        rects[i].height > rects[0].height) {
+                    rects[i].height > rects[0].height) {
                     boundingRect = rects[i];
                 }
             }
@@ -2362,7 +1096,7 @@ window._qutebrowser.caret = (function() {
             let visibleChildNode = false;
             for (i = 0; i < children.length; ++i) {
                 boundingRect = (children[i].getClientRects()[0] ||
-                                children[i].getBoundingClientRect());
+                    children[i].getBoundingClientRect());
                 if (boundingRect.width > 1 && boundingRect.height > 1) {
                     visibleChildNode = true;
                     break;
@@ -2373,20 +1107,157 @@ window._qutebrowser.caret = (function() {
             }
         }
         if (boundingRect.top + boundingRect.height < 10 ||
-                boundingRect.left + boundingRect.width < -10) {
+            boundingRect.left + boundingRect.width < -10) {
             return null;
         }
         const computedStyle = window.getComputedStyle(node, null);
         if (computedStyle.visibility !== "visible" ||
-                computedStyle.display === "none" ||
-                node.hasAttribute("disabled") ||
-                parseInt(computedStyle.width, 10) === 0 ||
-                parseInt(computedStyle.height, 10) === 0) {
+            computedStyle.display === "none" ||
+            node.hasAttribute("disabled") ||
+            parseInt(computedStyle.width, 10) === 0 ||
+            parseInt(computedStyle.height, 10) === 0) {
             return null;
         }
         return boundingRect.top >= -20;
     }
 
+    function positionCaret() {
+        const walker = document.createTreeWalker(document.body, -1);
+        let node;
+        const textNodes = [];
+        let el;
+        while ((node = walker.nextNode())) {
+            if (node.nodeType === 3 && node.nodeValue.trim() !== "") {
+                textNodes.push(node);
+            }
+        }
+        for (let i = 0; i < textNodes.length; i++) {
+            const element = textNodes[i].parentElement;
+            if (isElementInViewport(element)) {
+                el = element;
+                break;
+            }
+        }
+        if (el !== undefined) {
+            var start = new Cursor(el, 0, '');
+            var end = new Cursor(el, 0, '');
+            var nodesCrossed = [];
+            var result = TraverseUtil.getNextChar(start, end, nodesCrossed, true);
+            if (result == null) {
+                return;
+            }
+            CaretBrowsing.setAndValidateSelection(start, start);
+        }
+    }
+
+    function isFocusable(targetNode) {
+        if (!targetNode || typeof(targetNode.tabIndex) != 'number') {
+            return false;
+        }
+
+        if (targetNode.tabIndex >= 0) {
+            return true;
+        }
+
+        if (targetNode.hasAttribute &&
+            targetNode.hasAttribute('tabindex') &&
+            targetNode.getAttribute('tabindex') == '-1') {
+            return true;
+        }
+
+        return false;
+    }
+
+    const funcs = {};
+
+    funcs.setInitialCursor = () => {
+        if (!CaretBrowsing.initiated) {
+            CaretBrowsing.setInitialCursor();
+        } else {
+            if (!window.getSelection().toString()) {
+                positionCaret();
+            }
+            CaretBrowsing.toggle();
+        }
+    }
+
+    funcs.toggle = () => {
+        CaretBrowsing.toggle();
+    }
+
+    funcs.moveRight = () => {
+        CaretBrowsing.move('right', 'character');
+    }
+
+    funcs.moveLeft = () => {
+        CaretBrowsing.move('left', 'character');
+    }
+
+    funcs.moveDown = () => {
+        CaretBrowsing.move('forward', 'line');
+    }
+
+    funcs.moveUp = () => {
+        CaretBrowsing.move('backward', 'line');
+    }
+
+    funcs.moveToEndOfWord = () => {
+        funcs.moveToNextWord();
+        funcs.moveLeft();
+    }
+
+    funcs.moveToNextWord = () => {
+        CaretBrowsing.move('forward', 'word');
+        funcs.moveRight();
+    }
+
+    funcs.moveToPreviousWord = () => {
+        CaretBrowsing.move('backward', 'word');
+    }
+
+    funcs.moveToStartOfLine = () => {
+        CaretBrowsing.move('left', 'lineboundary');
+    }
+
+    funcs.moveToEndOfLine = () => {
+        CaretBrowsing.move('right', 'lineboundary');
+    }
+
+    funcs.moveToStartOfNextBlock = () => {
+        CaretBrowsing.moveToBlock('forward', 'backward');
+    }
+
+    funcs.moveToStartOfPrevBlock = () => {
+        CaretBrowsing.moveToBlock('backward', 'backward');
+    }
+
+    funcs.moveToEndOfNextBlock = () => {
+        CaretBrowsing.moveToBlock('forward', 'forward');
+    }
+
+    funcs.moveToEndOfPrevBlock = () => {
+        CaretBrowsing.moveToBlock('backward', 'forward');
+    }
+
+    funcs.moveToStartOfDocument = () => {
+        CaretBrowsing.move('backward', 'documentboundary');
+    }
+
+    funcs.moveToEndOfDocument = () => {
+        CaretBrowsing.move('forward', 'documentboundary');
+    }
+
+    funcs.dropSelection = () => {
+        window.getSelection().removeAllRanges();
+    }
+
+    funcs.getSelection = () => {
+        return window.getSelection().toString();
+    }
+
+    funcs.toggleSelection = () => {
+        CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
+    }
 
     return funcs;
 })();
