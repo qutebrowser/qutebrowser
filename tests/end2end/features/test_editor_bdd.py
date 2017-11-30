@@ -82,9 +82,12 @@ def set_up_editor_wait(quteproc, server, tmpdir):
         with open(r'{pidfile}', 'w') as f:
             f.write(str(os.getpid()))
 
-        signal.signal(signal.SIGTERM, lambda s, f: sys.exit(0))
+        signal.signal(signal.SIGINT, lambda s, f: sys.exit(0))
 
-        time.sleep(100)
+        try:
+            time.sleep(100)
+        except InterruptedError:
+            pass
     """.format(pidfile=pidfile)))
     editor = json.dumps([sys.executable, str(script), '{}'])
     quteproc.set_setting('editor.command', editor)
@@ -95,4 +98,4 @@ def kill_editor_wait(quteproc, server, tmpdir):
     """Kill the waiting editor."""
     pidfile = tmpdir / 'editor_pid'
     pid = int(pidfile.read())
-    os.kill(pid, signal.SIGTERM)
+    os.kill(pid, signal.SIGINT)
