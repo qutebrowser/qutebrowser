@@ -22,7 +22,7 @@ matrix:
     - os: linux
       env: TESTENV=py36-pyqt59-cov
     - os: osx
-      env: TESTENV=py36 OSX=sierra
+      env: TESTENV=py36-pyqtlink OSX=sierra
       osx_image: xcode8.3
       language: generic
     # https://github.com/qutebrowser/qutebrowser/issues/2013
