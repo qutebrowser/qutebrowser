@@ -15,7 +15,7 @@ image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Sta
 image:https://ci.appveyor.com/api/projects/status/5pyauww2k68bbow2/branch/master?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/qutebrowser/qutebrowser"]
 image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]
 
-link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | link:https://github.com/qutebrowser/qutebrowser/releases[releases]
+link:https://www.qutebrowser.org[website] | link:https://blog.qutebrowser.org[blog] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/faq.asciidoc[FAQ] | https://www.qutebrowser.org/doc/contributing.html[contributing] | link:https://github.com/qutebrowser/qutebrowser/releases[releases] | https://github.com/qutebrowser/qutebrowser/blob/master/doc/install.asciidoc[installing]
 // QUTE_WEB_HIDE_END
 
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
