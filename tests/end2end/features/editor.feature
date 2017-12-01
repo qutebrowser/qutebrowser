@@ -115,6 +115,8 @@ Feature: Opening external editors
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
+    # Could not get signals working on Windows
+    @posix
     Scenario: Spawning an editor and closing the tab
         When I set up a fake editor that waits
         And I open data/editor.html
