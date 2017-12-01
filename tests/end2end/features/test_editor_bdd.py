@@ -94,4 +94,7 @@ def kill_editor_wait(quteproc, server, tmpdir):
     """Kill the waiting editor."""
     pidfile = tmpdir / 'editor_pid'
     pid = int(pidfile.read())
+    # windows has no SIGUSR1, but we don't run this on windows anyways
+    # for posix, there IS a member so we need to ignore useless-suppression
+    # pylint: disable=no-member,useless-suppression
     os.kill(pid, signal.SIGUSR1)
