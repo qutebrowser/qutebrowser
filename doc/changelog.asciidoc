@@ -106,6 +106,7 @@ Fixed
 - Fixed `gU` (`:navigate up`) on `qute://help` and webservers not handling `..`
   in a URL.
 - Using e.g. `-s backend webkit` to set the backend now works correctly.
+- Fixed crash when closing the tab an external editor was opened in.
 
 Deprecated
 ~~~~~~~~~~
