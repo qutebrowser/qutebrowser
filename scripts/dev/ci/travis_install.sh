@@ -27,17 +27,17 @@ travis_retry() {
     local count=1
     while (( count < 3 )); do
         if (( result != 0 )); then
-            echo -e "\n${ANSI_RED}The command \"$@\" failed. Retrying, $count of 3.${ANSI_RESET}\n" >&2
+            echo -e "\n${ANSI_RED}The command \"$*\" failed. Retrying, $count of 3.${ANSI_RESET}\n" >&2
         fi
         "$@"
         result=$?
         (( result == 0 )) && break
-        count=$(($count + 1))
+        count=$(( count + 1 ))
         sleep 1
     done
 
     if (( count > 3 )); then
-        echo -e "\n${ANSI_RED}The command \"$@\" failed 3 times.${ANSI_RESET}\n" >&2
+        echo -e "\n${ANSI_RED}The command \"$*\" failed 3 times.${ANSI_RESET}\n" >&2
     fi
 
     return $result
