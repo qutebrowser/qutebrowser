@@ -11,7 +11,7 @@ if [[ $# != 1 ]]; then
     exit 1
 fi
 
-cd "$tmpdir"
+cd "$tmpdir" || exit
 mkdir windows
 
 base="https://github.com/qutebrowser/qutebrowser/releases/download/v$1"
@@ -21,13 +21,13 @@ wget "$base/qutebrowser-$1.tar.gz.asc" || exit 1
 wget "$base/qutebrowser-$1.dmg" || exit 1
 wget "$base/qutebrowser_${1}-1_all.deb" || exit 1
 
-cd windows
+cd windows || exit
 wget "$base/qutebrowser-${1}-amd64.msi" || exit 1
 wget "$base/qutebrowser-${1}-win32.msi" || exit 1
 wget "$base/qutebrowser-${1}-windows-standalone-amd64.zip" || exit 1
 wget "$base/qutebrowser-${1}-windows-standalone-win32.zip" || exit 1
 
 dest="/srv/http/qutebrowser/releases/v$1"
-cd "$oldpwd"
+cd "$oldpwd" || exit
 sudo mv "$tmpdir" "$dest"
 sudo chown -R http:http "$dest"

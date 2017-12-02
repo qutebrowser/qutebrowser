@@ -6,7 +6,7 @@
 
 case $TESTENV in
     py3*-pyqt*)
-        exe=$(readlink -f .tox/$TESTENV/bin/python)
+        exe=$(readlink -f ".tox/$TESTENV/bin/python")
         full=
         ;;
     *)

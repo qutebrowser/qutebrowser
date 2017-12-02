@@ -35,12 +35,12 @@ FILE_SIZE=$(ls -s --block-size=1048576 "$QUTE_TEXT" | cut -d' ' -f1)
 
 # use pygments to pretty-up the json (syntax highlight) if file is less than 10MB
 if [ "$FILE_SIZE" -lt "10" ]; then
-    FORMATTED_JSON="$(echo "$FORMATTED_JSON" | pygmentize -l json -f html -O full,style=$STYLE)"
+    FORMATTED_JSON="$(echo "$FORMATTED_JSON" | pygmentize -l json -f html -O full,style="$STYLE")"
 fi
 
 # create a temp file and write the formatted json to that file
 TEMP_FILE="$(mktemp --suffix '.html')"
-echo "$FORMATTED_JSON" > $TEMP_FILE
+echo "$FORMATTED_JSON" > "$TEMP_FILE"
 
 
 # send the command to qutebrowser to open the new file containing the formatted json

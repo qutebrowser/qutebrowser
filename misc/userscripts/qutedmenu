@@ -39,6 +39,7 @@ get_selection() {
 
 [[ $font ]] && opts+=(-fn "$font")
 
+# shellcheck source=/dev/null
 [[ -s $optsfile ]] && source "$optsfile"
 
 url=$(get_selection)

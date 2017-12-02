@@ -92,7 +92,7 @@ if [ "${#entries[@]}" -eq 0 ] ; then
     die "Download directory »${DOWNLOAD_DIR}« empty"
 fi
 
-line=$(printf "%s\n" "${entries[@]}"  \
+line=$(printf '%s\n' "${entries[@]}"  \
        | crop-first-column 55 \
        | column -s $'\t' -t \
        | $ROFI_CMD "${rofi_default_args[@]}" "$ROFI_ARGS") || true
