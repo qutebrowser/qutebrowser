@@ -126,7 +126,7 @@ Feature: Opening external editors
         And I set tabs.last_close to blank
         And I run :tab-close
         And I kill the waiting editor
-        Then the warning "Edited element vanished" should be shown
+        Then the error "Edited element vanished" should be shown
 
     @qtwebengine_todo: Caret mode is not implemented yet
     Scenario: Spawning an editor in caret mode
