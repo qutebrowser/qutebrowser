@@ -100,6 +100,8 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def _js_call(self, name, *args, callback=None):
         """Wrapper to run stuff from webelem.js."""
+        if self._tab.is_deleted():
+            raise webelem.OrphanedError("Tab containing element vanished")
         js_code = javascript.assemble('webelem', name, self._id, *args)
         self._tab.run_js_async(js_code, callback=callback)
 

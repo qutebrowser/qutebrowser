@@ -1644,6 +1644,8 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
+        except webelem.OrphanedError as e:
+            message.warning('Edited element vanished')
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
 

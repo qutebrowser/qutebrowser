@@ -115,6 +115,19 @@ Feature: Opening external editors
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
+    # Could not get signals working on Windows
+    @posix
+    Scenario: Spawning an editor and closing the tab
+        When I set up a fake editor that waits
+        And I open data/editor.html
+        And I run :click-element id qute-textarea
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :open-editor
+        And I set tabs.last_close to blank
+        And I run :tab-close
+        And I kill the waiting editor
+        Then the warning "Edited element vanished" should be shown
+
     @qtwebengine_todo: Caret mode is not implemented yet
     Scenario: Spawning an editor in caret mode
         When I set up a fake editor returning "foobar"
