@@ -22,15 +22,14 @@
 # default style to monokai if none is provided
 STYLE=${1:-monokai}
 # format json using jq
-FORMATTED_JSON="$(cat "$QUTE_TEXT" | jq '.')"
-
-# if jq command failed or formatted json is empty, assume failure and terminate
-if [ $? -ne 0 ] || [ -z "$FORMATTED_JSON" ]; then
+if ! FORMATTED_JSON="$(jq . "$QUTE_TEXT")" ||  [ -z "$FORMATTED_JSON" ]; then
     echo "Invalid json, aborting..."
     exit 1
 fi
 
 # calculate the filesize of the json document
+# parsing the output of ls should be fine in this case since we set the block size
+# shellcheck disable=SC2012
 FILE_SIZE=$(ls -s --block-size=1048576 "$QUTE_TEXT" | cut -d' ' -f1)
 
 # use pygments to pretty-up the json (syntax highlight) if file is less than 10MB
