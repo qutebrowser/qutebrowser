@@ -177,7 +177,8 @@ class CompletionModel(QAbstractItemModel):
             pattern: The filter pattern to set.
         """
         log.completion.debug("Setting completion pattern '{}'".format(pattern))
-        # layoutChanged is broken in pyqt-5.7.1, so we must use metaObject
+        # WORKAROUND:
+        # layoutChanged is broken in PyQt 5.7.1, so we must use metaObject
         # https://www.riverbankcomputing.com/pipermail/pyqt/2017-January/038483.html
         self.metaObject().invokeMethod(self, "layoutAboutToBeChanged")
         for cat in self._categories:
