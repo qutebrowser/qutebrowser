@@ -518,7 +518,7 @@ class CommandDispatcher:
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', completion=miscmodels.buffer)
+    @cmdutils.argument('index', completion=miscmodels.other_buffer)
     def tab_take(self, index):
         """Take a tab from another window.
 
