@@ -52,7 +52,7 @@ class Completer(QObject):
         _last_completion_func: The completion function used for the last text.
     """
 
-    def __init__(self, cmd, win_id, parent=None):
+    def __init__(self, *, cmd, win_id, parent=None):
         super().__init__(parent)
         self._cmd = cmd
         self._win_id = win_id

@@ -96,6 +96,7 @@ def session(*, info=None):  # pylint: disable=unused-argument
 
 def _buffer(skip_win_id=None):
     """Helper to get the completion model for buffer/other_buffer.
+
     Args:
         skip_win_id: The id of the window to skip, or None to include all.
     """
