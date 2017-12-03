@@ -437,7 +437,7 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
 
     connected = socket.waitForConnected(CONNECT_TIMEOUT)
     if connected:
-        log.ipc.info("Opening in existing instance")
+        log.ipc.debug("Opening in existing instance")
         json_data = {'args': command, 'target_arg': target_arg,
                      'version': qutebrowser.__version__,
                      'protocol_version': PROTOCOL_VERSION}
