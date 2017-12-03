@@ -65,7 +65,7 @@ def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
     """Create the completer used for testing."""
     monkeypatch.setattr(completer, 'QTimer', stubs.InstaTimer)
     config_stub.val.completion.show = 'auto'
-    return completer.Completer(status_command_stub, completion_widget_stub)
+    return completer.Completer(status_command_stub, 0, completion_widget_stub)
 
 
 @pytest.fixture(autouse=True)

@@ -35,6 +35,7 @@ class CompletionInfo:
 
     config = attr.ib()
     keyconf = attr.ib()
+    win_id = attr.ib()
 
 
 class Completer(QObject):
@@ -43,6 +44,7 @@ class Completer(QObject):
 
     Attributes:
         _cmd: The statusbar Command object this completer belongs to.
+        _win_id: The id of the window that owns this object.
         _timer: The timer used to trigger the completion update.
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
@@ -50,9 +52,10 @@ class Completer(QObject):
         _last_completion_func: The completion function used for the last text.
     """
 
-    def __init__(self, cmd, parent=None):
+    def __init__(self, cmd, win_id, parent=None):
         super().__init__(parent)
         self._cmd = cmd
+        self._win_id = win_id
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -250,7 +253,8 @@ class Completer(QObject):
             with debug.log_time(log.completion,
                     'Starting {} completion'.format(func.__name__)):
                 info = CompletionInfo(config=config.instance,
-                                      keyconf=config.key_instance)
+                                      keyconf=config.key_instance,
+                                      win_id=self._win_id)
                 model = func(*args, info=info)
             with debug.log_time(log.completion, 'Set completion model'):
                 completion.set_model(model)

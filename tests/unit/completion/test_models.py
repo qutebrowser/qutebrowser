@@ -191,7 +191,8 @@ def web_history_populated(web_history):
 @pytest.fixture
 def info(config_stub, key_config_stub):
     return completer.CompletionInfo(config=config_stub,
-                                    keyconf=key_config_stub)
+                                    keyconf=key_config_stub,
+                                    win_id=0)
 
 
 def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
@@ -581,7 +582,33 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
+def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
+                                 win_registry, tabbed_browser_stubs, info):
+    tabbed_browser_stubs[0].tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    info.win_id = 1
+    model = miscmodels.other_buffer(info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        '0': [
+            ('0/1', 'https://github.com', 'GitHub'),
+            ('0/2', 'https://wikipedia.org', 'Wikipedia'),
+            ('0/3', 'https://duckduckgo.com', 'DuckDuckGo')
+        ],
+    })
+
+
+def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
+                           info):
     tabbed_browser_stubs[0].tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
@@ -591,7 +618,8 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
     ]
 
-    model = miscmodels.window()
+    info.win_id = 1
+    model = miscmodels.window(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -600,7 +628,6 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
         'Windows': [
             ('0', 'window title - qutebrowser',
                 'GitHub, Wikipedia, DuckDuckGo'),
-            ('1', 'window title - qutebrowser', 'ArchWiki')
         ]
     })
 
