@@ -50,6 +50,7 @@ class CovtestHelper:
     def run(self):
         """Run pytest with coverage for the given module.py."""
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
+        self._monkeypatch.delenv('PYTEST_ADDOPTS', raising=False)
         return self._testdir.runpytest('--cov=module',
                                        '--cov-config={}'.format(coveragerc),
                                        '--cov-report=xml',
