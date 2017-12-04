@@ -371,7 +371,7 @@ class Process(QObject):
         __tracebackhide__ = lambda e: e.errisinstance(WaitForTimeout)
         message = kwargs.get('message', None)
         if message is not None:
-            elided = quteutils.elide(repr(message), 50)
+            elided = quteutils.elide(repr(message), 100)
             self._log("\n----> Waiting for {} in the log".format(elided))
 
         spy = QSignalSpy(self.new_data)
