@@ -53,6 +53,7 @@ matrix:
       python: null
       node_js: "lts/*"
     - os: linux
+      language: generic
       env: TESTENV=shellcheck
       services: docker
   fast_finish: true

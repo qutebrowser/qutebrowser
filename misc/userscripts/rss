@@ -57,7 +57,7 @@ notice () {
 
 # Update a database of a feed and open new URLs
 read_items () {
-    cd read_urls || return
+    cd read_urls || return 1
     feed_file="$(echo "$1" | tr -d /)"
     feed_temp_file="$(mktemp "$feed_file.tmp.XXXXXXXXXX")"
     feed_new_items="$(mktemp "$feed_file.new.XXXXXXXXXX")"
@@ -85,7 +85,7 @@ if [ ! -d "$config_dir/read_urls" ]; then
     mkdir -p "$config_dir/read_urls"
 fi
 
-cd "$config_dir" || exit
+cd "$config_dir" || exit 1
 
 if [ $# != 0 ]; then
     for arg in "$@"; do

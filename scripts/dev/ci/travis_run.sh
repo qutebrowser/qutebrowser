@@ -22,7 +22,7 @@ elif [[ $TESTENV == shellcheck ]]; then
     IFS=" " read -r -a scripts <<< "$dev_scripts $userscripts"
     docker run \
            -v "$PWD:/outside" \
-	   -w /outside \
+           -w /outside \
            koalaman/shellcheck:latest "${scripts[@]}"
 else
     args=()
