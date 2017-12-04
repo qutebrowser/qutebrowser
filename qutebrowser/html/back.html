@@ -24,7 +24,7 @@ function go_forward() {
 function prepare_restore() {
 	if (!document.hidden) {
 		go_back();
-		break;
+		return;
 	}
 		
 	document.addEventListener("visibilitychange", go_back);
