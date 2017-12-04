@@ -18,6 +18,7 @@ Mako==1.0.7
 # MarkupSafe==1.0
 parse==1.8.2
 parse-type==0.4.2
+pluggy==0.6.0
 py==1.5.2
 py-cpuinfo==3.3.0
 pytest==3.3.0
