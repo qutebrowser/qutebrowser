@@ -15,11 +15,11 @@ elif [[ $TESTENV == eslint ]]; then
     cd qutebrowser/javascript || exit 1
     eslint --color --report-unused-disable-directives .
 elif [[ $TESTENV == shellcheck ]]; then
-    dev_scripts=$( find scripts/dev/ -name '*.sh' -print0 | xargs -0 )
-    # false positive: we are using 'find -exec +'
-    # shellcheck disable=SC2038
-    userscripts=$( find misc/userscripts/ -type f -exec grep -lE '[/ ][bd]ash$|[/ ]sh$|[/ ]ksh$' {} + | xargs )
-    IFS=" " read -r -a scripts <<< "$dev_scripts $userscripts"
+    SCRIPTS=$( mktemp )
+    find scripts/dev/ -name '*.sh' >"$SCRIPTS"
+    find misc/userscripts/ -type f -exec grep -lE '[/ ][bd]ash$|[/ ]sh$|[/ ]ksh$' {} + >>"$SCRIPTS"
+    mapfile -t scripts <"$SCRIPTS"
+    rm -f "$SCRIPTS"
     docker run \
            -v "$PWD:/outside" \
            -w /outside \
