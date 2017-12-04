@@ -2,7 +2,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2014-2017 Josefson Souza <josefson.br@gmail.com>
+# Copyright 2017 Josefson Souza <josefson.br@gmail.com>
 
 # This file is part of qutebrowser.
 #
@@ -32,17 +32,17 @@ import os
 def parse():
     """Parse command line arguments."""
     description = ("This program is meant to extract browser history from your"
-                   "previous browser and import them into qutebrowser.")
-    epilog = ("Databases:\n\tQutebrowser: Is named 'history.sqlite' and can be"
+                   " previous browser and import them into qutebrowser.")
+    epilog = ("Databases:\n\n\tqutebrowser: Is named 'history.sqlite' and can be"
               " found at your --basedir. In order to find where your basedir"
               " is you can run ':open qute:version' inside qutebrowser."
-              "\n\tFirerox: Is named 'places.sqlite', and can be found at your"
-              "system\"s profile folder. Check this link for where it is locat"
-              "ed: http://kb.mozillazine.org/Profile_folder"
-              "\n\tChrome: Is named 'History', and can be found at the respec"
-              "tive User Data Directory. Check this link for where it is locat"
-              "ed: https://chromium.googlesource.com/chromium/src/+/master/"
-              "docs/user_data_dir.md\n\n"
+              "\n\n\tFirefox: Is named 'places.sqlite', and can be found at your"
+              " system's profile folder. Check this link for where it is "
+              "located: http://kb.mozillazine.org/Profile_folder"
+              "\n\n\tChrome: Is named 'History', and can be found at the "
+              "respective User Data Directory. Check this link for where it is"
+              "located: https://chromium.googlesource.com/chromium/src/+/"
+              "master/docs/user_data_dir.md\n\n"
               "Example: hist_importer.py -b firefox -s /Firefox/Profile/"
               "places.sqlite -d /qutebrowser/data/history.sqlite")
     parser = argparse.ArgumentParser(
@@ -55,7 +55,7 @@ def parse():
                         type=str, help='Source: Full path to the sqlite data'
                         'base file from the source browser.')
     parser.add_argument('-d', '--dest', dest='dest', required=True, type=str,
-                        help='Destination: The full path to the qutebrowser '
+                        help='\nDestination: Full path to the qutebrowser '
                         'sqlite database')
     return parser.parse_args()
 
@@ -66,10 +66,9 @@ def open_db(data_base):
         conn = sqlite3.connect(data_base)
         return conn
     else:
-        raise sys.exit('\nDataBaseNotFound: There was some error trying to to'
+        raise sys.exit('DataBaseNotFound: There was some error trying to to'
                        ' connect with the [{}] database. Verify if the'
-                       ' filepath is correct or is being used.'
-                       .format(data_base))
+                       ' given file path is correct.'.format(data_base))
 
 
 def extract(source, query):
@@ -91,8 +90,7 @@ def extract(source, query):
         return history
     except sqlite3.OperationalError as op_e:
         print('\nCould not perform queries into the source database: {}'
-              '\nBrowser version is not supported as it have a different sql'
-              ' schema.'.format(op_e))
+              .format(op_e))
 
 
 def clean(history):
