@@ -1,8 +1,34 @@
 {% extends "base.html" %}
 
 {% block script %}
+// workaround functions for old webkit versions
+// workaround Array.prototype.find & lambdas
+Object.prototype.findPairIn = function(target) {
+        for (var i = 0, keys = Object.keys(this); i < keys.length; i++) {
+                if (keys[i] in target) {
+                        return [keys[i], this[keys[i]]];
+                }
+        }
+        
+        return [null, null];
+}
+
+// workaround destructive assignment
+Object.prototype.destruct = function(arr) {
+	for (var i = 0, keys = Object.keys(this); i < keys.length; i++) {
+		this[keys[i]] = arr[i];
+	}
+
+	return this;
+}
+
 const STATE_BACK = "back";
 const STATE_FORWARD = "forward";
+const HIDDEN = {state:null, event:null}.destruct({
+	"hidden": "visibilitychange",
+	"webkitHidden": "webkitvisibilitychange"
+	}
+	.findPairIn(document));
 
 function switch_state(new_state) {
 	history.replaceState(
@@ -19,6 +45,14 @@ function go_back() {
 function go_forward() {
 	switch_state(STATE_BACK);
 	history.forward();
+}
+
+if (!HIDDEN.state) {
+	document.write(
+		"Guess what time it is? " +
+		"It's time to update your javascript engine " +
+		"as we don't go anywhere with your current build.");
+	throw "unsupported";
 }
 
 // there are three states
@@ -38,12 +72,12 @@ switch (history.state) {
 		go_forward();
 		break;
 	default:
-		if (!document.hidden) {
+		if (!document[HIDDEN.state]) {
 			go_back();
 			break;
 		}
 		
-		document.addEventListener("visibilitychange", go_back);
+		document.addEventListener(HIDDEN.event, go_back);
 		break;
 }
 {% endblock %}
