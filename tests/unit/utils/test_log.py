@@ -27,7 +27,7 @@ import warnings
 
 import attr
 import pytest
-import pytest_catchlog
+import _pytest.logging
 
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
@@ -66,11 +66,11 @@ def restore_loggers():
     while root_logger.handlers:
         h = root_logger.handlers[0]
         root_logger.removeHandler(h)
-        if not isinstance(h, pytest_catchlog.LogCaptureHandler):
+        if not isinstance(h, _pytest.logging.LogCaptureHandler):
             h.close()
     root_logger.setLevel(original_logging_level)
     for h in root_handlers:
-        if not isinstance(h, pytest_catchlog.LogCaptureHandler):
+        if not isinstance(h, _pytest.logging.LogCaptureHandler):
             # https://github.com/qutebrowser/qutebrowser/issues/856
             root_logger.addHandler(h)
     logging._acquireLock()

@@ -7,7 +7,6 @@ hypothesis
 pytest
 pytest-bdd
 pytest-benchmark
-pytest-catchlog
 pytest-cov
 pytest-faulthandler
 pytest-instafail
