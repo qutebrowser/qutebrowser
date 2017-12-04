@@ -96,6 +96,8 @@ case $TESTENV in
     eslint)
         npm_install eslint
         ;;
+    shellcheck)
+        ;;
     *)
         pip_install pip
         pip_install -r misc/requirements/requirements-tox.txt
