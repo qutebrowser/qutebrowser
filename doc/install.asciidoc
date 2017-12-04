@@ -379,8 +379,8 @@ local Qt install instead of installing PyQt in the virtualenv. However, unless
 you have a new QtWebKit or QtWebEngine available, qutebrowser will not work. It
 also typically means you'll be using an older release of QtWebEngine.
 
-On Windows, run `tox -e 'mkvenv-win' instead, however make sure that ONLY
-Python3 is in your PATH before running tox.
+On Windows, run `set PYTHON=C:\path\to\python.exe` (CMD) or ``$Env:PYTHON =
+"..."` (Powershell) first.
 
 Creating a wrapper script
 ~~~~~~~~~~~~~~~~~~~~~~~~~
