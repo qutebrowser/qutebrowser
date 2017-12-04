@@ -13,7 +13,7 @@ glob2==0.6
 hunter==2.0.2
 hypothesis==3.40.1
 itsdangerous==0.24
-# Jinja2==2.9.6
+# Jinja2==2.10
 Mako==1.0.7
 # MarkupSafe==1.0
 parse==1.8.2
