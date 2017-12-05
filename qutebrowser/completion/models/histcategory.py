@@ -47,7 +47,7 @@ class HistoryCategory(QSqlQueryModel):
             "FROM CompletionHistory",
             # the incoming pattern will have literal % and _ escaped with '\'
             # we need to tell sql to treat '\' as an escape character
-            "WHERE (url LIKE :pat escape '\\' or title LIKE :pat escape '\\')",
+            "WHERE ((url || title) LIKE :pat escape '\\')",
             self._atime_expr(),
             "ORDER BY last_atime DESC",
         ]), forward_only=False)
