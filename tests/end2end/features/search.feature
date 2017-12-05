@@ -225,11 +225,15 @@ Feature: Searching on a page
         Then the following tabs should be open:
             - data/search.html (active)
 
+    # Following a link selected via JS doesn't work in Qt 5.10 anymore.
+    @qt!=5.10
     Scenario: Follow a manually selected link
         When I run :jseval --file (testdata)/search_select.js
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
+    # Following a link selected via JS doesn't work in Qt 5.10 anymore.
+    @qt!=5.10
     Scenario: Follow a manually selected link in a new tab
         When I run :window-only
         And I run :jseval --file (testdata)/search_select.js
