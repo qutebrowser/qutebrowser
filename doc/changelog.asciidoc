@@ -53,6 +53,7 @@ Added
   switching tabs.
 - New `session.lazy_restore` setting which allows to not load pages immediately
   when restoring a session.
+- New `hist_importer.py` script to import history from Firefox/Chromium.
 
 Changed
 ~~~~~~~
