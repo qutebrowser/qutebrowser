@@ -126,13 +126,19 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
+        self.num_of_searches = 0
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
         self.search_displayed = True
+        self.num_of_searches += 1
 
         def wrapped_callback(found):
             """Wrap the callback to do debug logging."""
+            self.num_of_searches -= 1
+            if self.num_of_searches > 0:
+                return
+
             found_text = 'found' if found else "didn't find"
             if flags:
                 flag_text = 'with flags {}'.format(debug.qflags_key(
