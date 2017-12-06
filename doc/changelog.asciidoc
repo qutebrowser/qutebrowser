@@ -91,6 +91,8 @@ Changed
   data dir, e.g. `~/.local/share/qutebrowser/js`.
 - The current/default bindings are now shown in the :bind completion.
 - Empty categories are now hidden in the `:open` completion.
+- Search terms for URLs and titles can now be mixed when filtering the
+  completion.
 
 Fixed
 ~~~~~
