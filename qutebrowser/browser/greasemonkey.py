@@ -29,7 +29,7 @@ import glob
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
-from qutebrowser.utils import log, standarddir, jinja
+from qutebrowser.utils import log, standarddir, jinja, objreg
 from qutebrowser.commands import cmdutils
 
 
@@ -209,3 +209,14 @@ class GreasemonkeyManager(QObject):
     def all_scripts(self):
         """Return all scripts found in the configured script directory."""
         return self._run_start + self._run_end + self._run_idle
+
+
+def init():
+    """Initialize Greasemonkey support."""
+    gm_manager = GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
+
+    try:
+        os.mkdir(_scripts_dir())
+    except FileExistsError:
+        pass

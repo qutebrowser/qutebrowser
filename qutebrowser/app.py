@@ -492,8 +492,7 @@ def _init_modules(args, crash_handler):
     objreg.register('cache', diskcache)
 
     log.init.debug("Initializing Greasemonkey...")
-    gm_manager = greasemonkey.GreasemonkeyManager()
-    objreg.register('greasemonkey', gm_manager)
+    greasemonkey.init()
 
     log.init.debug("Misc initialization...")
     macros.init()
