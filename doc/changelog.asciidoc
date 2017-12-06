@@ -21,6 +21,8 @@ v1.1.0 (unreleased)
 Added
 ~~~~~
 
+- Initial support for Greasemonkey scripts. There are still some rough edges,
+  but many scripts should already work.
 - There's now a `misc/Makefile` file in releases, which should help
   distributions which package qutebrowser, as they can run something like
   `make -f misc/Makefile DESTDIR="$pkgdir" install` now.
@@ -51,6 +53,9 @@ Added
 - New `:edit-command` command to edit the commandline in an editor.
 - New `tabs.persist_mode_on_change` setting to keep the current mode when
   switching tabs.
+- New `session.lazy_restore` setting which allows to not load pages immediately
+  when restoring a session.
+- New `hist_importer.py` script to import history from Firefox/Chromium.
 
 Changed
 ~~~~~~~
@@ -89,6 +94,8 @@ Changed
   data dir, e.g. `~/.local/share/qutebrowser/js`.
 - The current/default bindings are now shown in the :bind completion.
 - Empty categories are now hidden in the `:open` completion.
+- Search terms for URLs and titles can now be mixed when filtering the
+  completion.
 
 Fixed
 ~~~~~
@@ -107,6 +114,8 @@ Fixed
   in a URL.
 - Using e.g. `-s backend webkit` to set the backend now works correctly.
 - Fixed crash when closing the tab an external editor was opened in.
+- When using `:search-next` before a search is finished, no warning about no
+  results being found is shown anymore.
 
 Deprecated
 ~~~~~~~~~~

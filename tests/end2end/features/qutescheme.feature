@@ -113,6 +113,8 @@ Feature: Special qute:// pages
         And I wait for "Config option changed: ignore_case *" in the log
         Then the option ignore_case should be set to always
 
+    # Sometimes, an unrelated value gets set
+    @flaky
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen

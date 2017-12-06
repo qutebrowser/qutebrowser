@@ -35,7 +35,7 @@ Ubuntu 16.04 doesn't come with an up-to-date engine (a new enough QtWebKit, or
 QtWebEngine). However, it comes with Python 3.5, so you can
 <<tox,install qutebrowser via tox>>.
 
-Debian Stretch / Ubuntu 17.04 and newer
+Debian Stretch / Ubuntu 17.04 and 17.10
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Those versions come with QtWebEngine in the repositories. This makes it possible
@@ -54,7 +54,18 @@ Install the packages:
 # apt install ./qutebrowser_*_all.deb
 ----
 
-Some additional hints:
+Debian Testing / Ubuntu 18.04
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On Debian Testing, qutebrowser is in the official repositories, and you can
+install it with apt:
+
+----
+# apt install qutebrowser
+----
+
+Additional hints
+~~~~~~~~~~~~~~~~
 
 - Alternatively, you can <<tox,install qutebrowser via tox>> to get a newer
   QtWebEngine version.

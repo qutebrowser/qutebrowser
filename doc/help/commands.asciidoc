@@ -54,6 +54,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<follow-selected,follow-selected>>|Follow the selected text.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
+|<<greasemonkey-reload,greasemonkey-reload>>|Re-read Greasemonkey scripts from disk.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<history,history>>|Show browsing history.
@@ -490,6 +491,12 @@ Toggle fullscreen mode.
 
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
+
+[[greasemonkey-reload]]
+=== greasemonkey-reload
+Re-read Greasemonkey scripts from disk.
+
+The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
 
 [[help]]
 === help
@@ -1083,7 +1090,7 @@ Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-win
 Save a session.
 
 ==== positional arguments
-* +'name'+: The name of the session. If not given, the session configured in session_default_name is saved.
+* +'name'+: The name of the session. If not given, the session configured in session.default_name is saved.
 
 
 ==== optional arguments

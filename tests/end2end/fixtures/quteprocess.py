@@ -36,7 +36,7 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl, qVersion
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript
+from qutebrowser.utils import log, utils, javascript, qtutils
 from helpers import utils as testutils
 from end2end.fixtures import testprocess
 
@@ -527,6 +527,7 @@ class QuteProc(testprocess.Process):
         super().before_test()
         self.send_cmd(':config-clear')
         self._init_settings()
+        self.clear_data()
 
     def _init_settings(self):
         """Adjust some qutebrowser settings after starting."""
@@ -687,9 +688,12 @@ class QuteProc(testprocess.Process):
             raise ValueError("Invalid URL {}: {}".format(url,
                                                          qurl.errorString()))
 
-        if qurl == QUrl('about:blank'):
+        if (qurl == QUrl('about:blank') and
+                not qtutils.version_check('5.10', compiled=False)):
             # For some reason, we don't get a LoadStatus.success for
             # about:blank sometimes.
+            # However, if we do this for Qt 5.10, we get general testsuite
+            # instability as site loads get reported with about:blank...
             pattern = "Changing title for idx * to 'about:blank'"
         else:
             # We really need the same representation that the webview uses in

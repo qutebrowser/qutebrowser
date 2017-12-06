@@ -78,6 +78,10 @@ def hist(init_sql, config_stub):
     ("can't",
      [("can't touch this", ''), ('a', '')],
      [("can't touch this", '')]),
+
+    ("ample itle",
+     [('example.com', 'title'), ('example.com', 'nope')],
+     [('example.com', 'title')]),
 ])
 def test_set_pattern(pattern, before, after, model_validator, hist):
     """Validate the filtering and sorting results of set_pattern."""
