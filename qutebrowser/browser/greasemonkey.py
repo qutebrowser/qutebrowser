@@ -149,7 +149,11 @@ class GreasemonkeyManager(QObject):
     @cmdutils.register(name='greasemonkey-reload',
                        instance='greasemonkey')
     def load_scripts(self):
-        """Re-Read greasemonkey scripts from disk."""
+        """Re-read Greasemonkey scripts from disk.
+
+        The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's
+        data directory (see `:version`).
+        """
         self._run_start = []
         self._run_end = []
         self._run_idle = []
