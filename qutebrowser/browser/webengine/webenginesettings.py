@@ -257,6 +257,7 @@ def inject_userscripts():
     # ourselves so we need to remove all gm scripts, while not removing
     # any other stuff that might have been added. Like the one for
     # stylesheets.
+    greasemonkey = objreg.get('greasemonkey')
     for profile in [default_profile, private_profile]:
         scripts = profile.scripts()
         for script in scripts.toList():
@@ -265,9 +266,7 @@ def inject_userscripts():
                                        .format(script.name()))
                 scripts.remove(script)
 
-    for profile in [default_profile, private_profile]:
-        scripts = profile.scripts()
-        greasemonkey = objreg.get('greasemonkey')
+        # Then add the new scripts.
         for script in greasemonkey.all_scripts():
             new_script = QWebEngineScript()
             new_script.setWorldId(QWebEngineScript.MainWorld)
