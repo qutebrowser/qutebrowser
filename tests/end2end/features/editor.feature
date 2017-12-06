@@ -117,6 +117,8 @@ Feature: Opening external editors
 
     # Could not get signals working on Windows
     @posix
+    # There's no guarantee that the tab gets deleted...
+    @flaky
     Scenario: Spawning an editor and closing the tab
         When I set up a fake editor that waits
         And I open data/editor.html
