@@ -18,10 +18,10 @@
 
 """Tests for qutebrowser.browser.greasemonkey."""
 
-import os
 import logging
 
 import pytest
+import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import greasemonkey
@@ -41,20 +41,16 @@ console.log("Script is running.");
 pytestmark = pytest.mark.usefixtures('data_tmpdir')
 
 
-def save_script(script_text, filename):
-    script_path = greasemonkey._scripts_dir()
-    try:
-        os.mkdir(script_path)
-    except FileExistsError:
-        pass
-    file_path = os.path.join(script_path, filename)
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(script_text)
+def _save_script(script_text, filename):
+    # pylint: disable=no-member
+    file_path = py.path.local(greasemonkey._scripts_dir()) / filename
+    # pylint: enable=no-member
+    file_path.write_text(script_text, encoding='utf-8', ensure=True)
 
 
 def test_all():
     """Test that a script gets read from file, parsed and returned."""
-    save_script(test_gm_script, 'test.user.js')
+    _save_script(test_gm_script, 'test.user.js')
 
     gm_manager = greasemonkey.GreasemonkeyManager()
     assert (gm_manager.all_scripts()[0].name ==
@@ -71,7 +67,7 @@ def test_all():
 ])
 def test_get_scripts_by_url(url, expected_matches):
     """Check Greasemonkey include/exclude rules work."""
-    save_script(test_gm_script, 'test.user.js')
+    _save_script(test_gm_script, 'test.user.js')
     gm_manager = greasemonkey.GreasemonkeyManager()
 
     scripts = gm_manager.scripts_for(QUrl(url))
@@ -81,7 +77,7 @@ def test_get_scripts_by_url(url, expected_matches):
 
 def test_no_metadata(caplog):
     """Run on all sites at document-end is the default."""
-    save_script("var nothing = true;\n", 'nothing.user.js')
+    _save_script("var nothing = true;\n", 'nothing.user.js')
 
     with caplog.at_level(logging.WARNING):
         gm_manager = greasemonkey.GreasemonkeyManager()
@@ -93,7 +89,7 @@ def test_no_metadata(caplog):
 
 def test_bad_scheme(caplog):
     """qute:// isn't in the list of allowed schemes."""
-    save_script("var nothing = true;\n", 'nothing.user.js')
+    _save_script("var nothing = true;\n", 'nothing.user.js')
 
     with caplog.at_level(logging.WARNING):
         gm_manager = greasemonkey.GreasemonkeyManager()
