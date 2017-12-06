@@ -182,7 +182,7 @@ class TabWidget(QTabWidget):
             fields['current_url'] = ''
 
         try:
-            fields['protocol'] = self.tab_url(idx).url(options = QUrl.RemovePath)
+            fields['protocol'] = self.tab_url(idx).scheme()
         except qtutils.QtValueError:
             fields['protocol']= ''
 
