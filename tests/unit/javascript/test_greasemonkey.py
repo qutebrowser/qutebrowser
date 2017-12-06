@@ -28,7 +28,7 @@ from qutebrowser.browser import greasemonkey
 
 test_gm_script = """
 // ==UserScript==
-// @name Qutebrowser test userscript
+// @name qutebrowser test userscript
 // @namespace invalid.org
 // @include http://localhost:*/data/title.html
 // @match http://trolol*
@@ -58,7 +58,7 @@ def test_all():
 
     gm_manager = greasemonkey.GreasemonkeyManager()
     assert (gm_manager.all_scripts()[0].name ==
-            "Qutebrowser test userscript")
+            "qutebrowser test userscript")
 
 
 @pytest.mark.parametrize("url, expected_matches", [
@@ -70,7 +70,7 @@ def test_all():
     ('https://badhost.xxx/', 0),
 ])
 def test_get_scripts_by_url(url, expected_matches):
-    """Check greasemonkey include/exclude rules work."""
+    """Check Greasemonkey include/exclude rules work."""
     save_script(test_gm_script, 'test.user.js')
     gm_manager = greasemonkey.GreasemonkeyManager()
 

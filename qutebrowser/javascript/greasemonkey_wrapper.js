@@ -1,5 +1,5 @@
-(function () {
-    const _qute_script_id = "__gm_"+{{ scriptName | tojson }};
+(function() {
+    const _qute_script_id = "__gm_" + {{ scriptName | tojson }};
 
     function GM_log(text) {
         console.log(text);
@@ -10,7 +10,8 @@
         'scriptMetaStr': {{ scriptMeta | tojson }},
         'scriptWillUpdate': false,
         'version': "0.0.1",
-        'scriptHandler': 'Tampermonkey' // so scripts don't expect exportFunction
+        // so scripts don't expect exportFunction
+        'scriptHandler': 'Tampermonkey',
     };
 
     function checkKey(key, funcName) {
@@ -40,7 +41,7 @@
     }
 
     function GM_listValues() {
-        let keys = [];
+        const keys = [];
         for (let i = 0; i < localStorage.length; i++) {
             if (localStorage.key(i).startsWith(_qute_script_id)) {
                 keys.push(localStorage.key(i).slice(_qute_script_id.length));
@@ -59,28 +60,28 @@
         details.method = details.method ? details.method.toUpperCase() : "GET";
 
         if (!details.url) {
-            throw ("GM_xmlhttpRequest requires an URL.");
+            throw new Error("GM_xmlhttpRequest requires an URL.");
         }
 
         // build XMLHttpRequest object
-        let oXhr = new XMLHttpRequest();
+        const oXhr = new XMLHttpRequest();
         // run it
         if ("onreadystatechange" in details) {
-            oXhr.onreadystatechange = function () {
+            oXhr.onreadystatechange = function() {
                 details.onreadystatechange(oXhr);
             };
         }
         if ("onload" in details) {
-            oXhr.onload = function () { details.onload(oXhr) };
+            oXhr.onload = function() { details.onload(oXhr); };
         }
         if ("onerror" in details) {
-            oXhr.onerror = function () { details.onerror(oXhr) };
+            oXhr.onerror = function () { details.onerror(oXhr); };
         }
 
         oXhr.open(details.method, details.url, true);
 
         if ("headers" in details) {
-            for (let header in details.headers) {
+            for (const header in details.headers) {
                 oXhr.setRequestHeader(header, details.headers[header]);
             }
         }
@@ -93,26 +94,25 @@
     }
 
     function GM_addStyle(/* String */ styles) {
-        let oStyle = document.createElement("style");
+        const oStyle = document.createElement("style");
         oStyle.setAttribute("type", "text/css");
         oStyle.appendChild(document.createTextNode(styles));
 
-        let head = document.getElementsByTagName("head")[0];
+        const head = document.getElementsByTagName("head")[0];
         if (head === undefined) {
-            document.onreadystatechange = function () {
-                if (document.readyState == "interactive") {
+            document.onreadystatechange = function() {
+                if (document.readyState === "interactive") {
                     document.getElementsByTagName("head")[0].appendChild(oStyle);
                 }
-            }
-        }
-        else {
+            };
+        } else {
             head.appendChild(oStyle);
         }
     }
 
     const unsafeWindow = window;
 
-    //====== The actual user script source ======//
+    // ====== The actual user script source ====== //
 {{ scriptSource }}
-    //====== End User Script ======//
+    // ====== End User Script ====== //
 })();

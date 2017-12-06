@@ -124,8 +124,8 @@ Feature: Javascript stuff
         And I run :tab-next
         Then the window sizes should be the same
 
-    Scenario: Have a greasemonkey script run at page start
-        When I have a greasemonkey file saved for document-start with noframes unset
+    Scenario: Have a GreaseMonkey script run at page start
+        When I have a GreaseMonkey file saved for document-start with noframes unset
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
         # This second reload is required in webengine < 5.8 for scripts
@@ -133,15 +133,15 @@ Feature: Javascript stuff
         And I run :reload
         Then the javascript message "Script is running on /data/hints/iframe.html" should be logged
 
-    Scenario: Have a greasemonkey script running on frames
-        When I have a greasemonkey file saved for document-end with noframes unset
+    Scenario: Have a GreaseMonkey script running on frames
+        When I have a GreaseMonkey file saved for document-end with noframes unset
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
         Then the javascript message "Script is running on /data/hints/html/wrapped.html" should be logged
 
     @flaky
-    Scenario: Have a greasemonkey script running on noframes
-        When I have a greasemonkey file saved for document-end with noframes set
+    Scenario: Have a GreaseMonkey script running on noframes
+        When I have a GreaseMonkey file saved for document-end with noframes set
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
         Then the javascript message "Script is running on /data/hints/html/wrapped.html" should not be logged

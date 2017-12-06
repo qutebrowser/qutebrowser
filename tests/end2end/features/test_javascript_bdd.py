@@ -35,7 +35,7 @@ def check_window_sizes(quteproc):
 
 test_gm_script = r"""
 // ==UserScript==
-// @name Qutebrowser test userscript
+// @name qutebrowser test userscript
 // @namespace invalid.org
 // @include http://localhost:*/data/hints/iframe.html
 // @include http://localhost:*/data/hints/html/wrapped.html
@@ -47,7 +47,7 @@ console.log("Script is running on " + window.location.pathname);
 """
 
 
-@bdd.when(bdd.parsers.parse("I have a greasemonkey file saved for {stage} "
+@bdd.when(bdd.parsers.parse("I have a GreaseMonkey file saved for {stage} "
                             "with noframes {frameset}"))
 def create_greasemonkey_file(quteproc, stage, frameset):
     script_path = os.path.join(quteproc.basedir, 'data', 'greasemonkey')

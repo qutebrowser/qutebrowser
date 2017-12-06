@@ -308,7 +308,7 @@ class WebEnginePage(QWebEnginePage):
     def _inject_userjs(self, url):
         """Inject userscripts registered for `url` into the current page."""
         if qtutils.version_check('5.8'):
-            # Handled in webenginetab with the builtin greasemonkey
+            # Handled in webenginetab with the builtin Greasemonkey
             # support.
             return
 

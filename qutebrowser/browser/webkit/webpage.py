@@ -95,7 +95,7 @@ class BrowserPage(QWebPage):
         """Connect userjs related signals to `frame`.
 
         Connect the signals used as triggers for injecting user
-        javascripts into the passed QWebFrame.
+        JavaScripts into the passed QWebFrame.
         """
         log.greasemonkey.debug("Connecting to frame {} ({})"
                                .format(frame, frame.url().toDisplayString()))
@@ -299,7 +299,7 @@ class BrowserPage(QWebPage):
             self.error_occurred = False
 
     def _inject_userjs(self, frame):
-        """Inject user javascripts into the page.
+        """Inject user JavaScripts into the page.
 
         Args:
             frame: The QWebFrame to inject the user scripts into.

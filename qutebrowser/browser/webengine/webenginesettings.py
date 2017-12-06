@@ -245,10 +245,10 @@ def _init_profiles():
 
 
 def inject_userscripts():
-    """Register user javascript files with the global profiles."""
-    # The greasemonkey metadata block support in qtwebengine only starts at 5.8
-    # Otherwise have to handle injecting the scripts into the page at very
-    # early load, probs same place in view as the enableJS check.
+    """Register user JavaScript files with the global profiles."""
+    # The Greasemonkey metadata block support in QtWebEngine only starts at
+    # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in response
+    # to urlChanged.
     if not qtutils.version_check('5.8'):
         return
 
@@ -256,10 +256,7 @@ def inject_userscripts():
     # just get replaced by new gm scripts like if we were injecting them
     # ourselves so we need to remove all gm scripts, while not removing
     # any other stuff that might have been added. Like the one for
-    # stylsheets.
-    # Could either use a different world for gm scripts, check for gm metadata
-    # values (would mean no non-gm userscripts), or check the code for
-    # _qute_script_id
+    # stylesheets.
     for profile in [default_profile, private_profile]:
         scripts = profile.scripts()
         for script in scripts.toList():

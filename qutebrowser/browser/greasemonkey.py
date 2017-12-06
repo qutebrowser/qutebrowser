@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Load, parse and make avalaible greasemonkey scripts."""
+"""Load, parse and make available Greasemonkey scripts."""
 
 import re
 import os
@@ -39,6 +39,7 @@ def _scripts_dir():
 
 
 class GreasemonkeyScript:
+
     """Container class for userscripts, parses metadata blocks."""
 
     def __init__(self, properties, code):
@@ -72,15 +73,15 @@ class GreasemonkeyScript:
 
     @classmethod
     def parse(cls, source):
-        """GreaseMonkeyScript factory.
+        """GreasemonkeyScript factory.
 
-        Takes a userscript source and returns a GreaseMonkeyScript.
-        Parses the greasemonkey metadata block, if present, to fill out
+        Takes a userscript source and returns a GreasemonkeyScript.
+        Parses the Greasemonkey metadata block, if present, to fill out
         attributes.
         """
         matches = re.split(cls.HEADER_REGEX, source, maxsplit=2)
         try:
-            _, props, _code = matches
+            _head, props, _code = matches
         except ValueError:
             props = ""
         script = cls(re.findall(cls.PROPS_REGEX, props), source)
@@ -90,9 +91,9 @@ class GreasemonkeyScript:
         return script
 
     def code(self):
-        """Return the processed javascript code of this script.
+        """Return the processed JavaScript code of this script.
 
-        Adorns the source code with GM_* methods for greasemonkey
+        Adorns the source code with GM_* methods for Greasemonkey
         compatibility and wraps it in an IFFE to hide it within a
         lexical scope. Note that this means line numbers in your
         browser's debugger/inspector will not match up to the line
@@ -118,6 +119,7 @@ class GreasemonkeyScript:
 
 @attr.s
 class MatchingScripts(object):
+
     """All userscripts registered to run on a particular url."""
 
     url = attr.ib()
@@ -128,11 +130,11 @@ class MatchingScripts(object):
 
 class GreasemonkeyManager(QObject):
 
-    """Manager of userscripts and a greasemonkey compatible environment.
+    """Manager of userscripts and a Greasemonkey compatible environment.
 
     Signals:
         scripts_reloaded: Emitted when scripts are reloaded from disk.
-            Any any cached or already-injected scripts should be
+            Any cached or already-injected scripts should be
             considered obselete.
     """
 
@@ -151,8 +153,8 @@ class GreasemonkeyManager(QObject):
     def load_scripts(self):
         """Re-read Greasemonkey scripts from disk.
 
-        The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's
-        data directory (see `:version`).
+        The scripts are read from a 'greasemonkey' subdirectory in
+        qutebrowser's data directory (see `:version`).
         """
         self._run_start = []
         self._run_end = []
