@@ -262,9 +262,10 @@ def inject_userscripts():
         scripts = profile.scripts()
         for script in scripts.toList():
             if script.name().startswith("GM-"):
-                log.greasemonkey.debug('removing script: {}'
+                log.greasemonkey.debug('Removing script: {}'
                                        .format(script.name()))
-                scripts.remove(script)
+                removed = scripts.remove(script)
+                assert removed, script.name()
 
         # Then add the new scripts.
         for script in greasemonkey.all_scripts():

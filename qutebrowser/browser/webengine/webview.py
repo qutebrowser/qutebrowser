@@ -319,9 +319,10 @@ class WebEnginePage(QWebEnginePage):
         scripts = self.scripts()
         for script in scripts.toList():
             if script.name().startswith("GM-"):
-                really_removed = scripts.remove(script)
-                log.greasemonkey.debug("Removing ({}) script: {}"
-                                       .format(really_removed, script.name()))
+                log.greasemonkey.debug("Removing script: {}"
+                                       .format(script.name()))
+                removed = scripts.remove(script)
+                assert removed, script.name()
 
         def _add_script(script, injection_point):
             new_script = QWebEngineScript()
