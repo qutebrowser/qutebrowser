@@ -121,22 +121,33 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
 class WebEngineSearch(browsertab.AbstractSearch):
 
-    """QtWebEngine implementations related to searching on the page."""
+    """QtWebEngine implementations related to searching on the page.
+
+    Attributes:
+        _flags: The QWebEnginePage.FindFlags of the last search.
+        _pending_searches: How many searches have been started but not called
+                           back yet.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
-        self.num_of_searches = 0
+        self._pending_searches = 0
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
         self.search_displayed = True
-        self.num_of_searches += 1
+        self._pending_searches += 1
 
         def wrapped_callback(found):
             """Wrap the callback to do debug logging."""
-            self.num_of_searches -= 1
-            if self.num_of_searches > 0:
+            self._pending_searches -= 1
+            if self._pending_searches > 0:
+                # See https://github.com/qutebrowser/qutebrowser/issues/2442
+                # and https://github.com/qt/qtwebengine/blob/5.10/src/core/web_contents_adapter.cpp#L924-L934
+                log.webview.debug("Ignoring cancelled search callback with "
+                                  "{} pending searches".format(
+                                      self._pending_searches))
                 return
 
             found_text = 'found' if found else "didn't find"
