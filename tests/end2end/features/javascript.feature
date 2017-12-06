@@ -139,6 +139,7 @@ Feature: Javascript stuff
         And I open data/hints/iframe.html
         Then the javascript message "Script is running on /data/hints/html/wrapped.html" should be logged
 
+    @flaky
     Scenario: Have a greasemonkey script running on noframes
         When I have a greasemonkey file saved for document-end with noframes set
         And I run :greasemonkey-reload
