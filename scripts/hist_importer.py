@@ -66,9 +66,7 @@ def open_db(data_base):
         conn = sqlite3.connect(data_base)
         return conn
     else:
-        raise sys.exit('DataBaseNotFound: There was some error trying to to'
-                       ' connect with the [{}] database. Verify if the'
-                       ' given file path is correct.'.format(data_base))
+        sys.exit('The file {} does not exist.'.format(data_base))
 
 
 def extract(source, query):
@@ -89,8 +87,8 @@ def extract(source, query):
         conn.close()
         return history
     except sqlite3.OperationalError as op_e:
-        print('\nCould not perform queries into the source database: {}'
-              .format(op_e))
+        sys.exit('Could not perform queries on the source database: '
+                 '{}'.format(op_e))
 
 
 def clean(history):
