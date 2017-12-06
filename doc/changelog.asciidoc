@@ -51,6 +51,8 @@ Added
 - New `:edit-command` command to edit the commandline in an editor.
 - New `tabs.persist_mode_on_change` setting to keep the current mode when
   switching tabs.
+- New `session.lazy_restore` setting which allows to not load pages immediately
+  when restoring a session.
 
 Changed
 ~~~~~~~
