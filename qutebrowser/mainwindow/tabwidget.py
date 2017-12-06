@@ -181,6 +181,11 @@ class TabWidget(QTabWidget):
         except qtutils.QtValueError:
             fields['current_url'] = ''
 
+        try:
+            fields['protocol'] = self.tab_url(idx).url(options = QUrl.RemovePath)
+        except qtutils.QtValueError:
+            fields['protocol']= ''
+
         y = tab.scroller.pos_perc()[1]
         if y is None:
             scroll_pos = '???'

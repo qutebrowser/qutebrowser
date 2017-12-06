@@ -1292,6 +1292,7 @@ tabs.title.format:
       - host
       - private
       - current_url
+      - protocol
     none_ok: true
   desc: |
     Format to use for the tab title.
@@ -1308,6 +1309,7 @@ tabs.title.format:
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}` : Indicates when private mode is enabled.
     * `{current_url}` : URL of the current web page.
+    * `{protocol}` : Internet Protocol of the current web page.
 
 tabs.title.format_pinned:
   default: '{index}'
@@ -1324,6 +1326,7 @@ tabs.title.format_pinned:
       - host
       - private
       - current_url
+      - protocol
     none_ok: true
   desc: Format to use for the tab title for pinned tabs. The same placeholders
     like for `tabs.title.format` are defined.
@@ -1467,6 +1470,7 @@ window.title_format:
       - backend
       - private
       - current_url
+      - protocol
   default: '{perc}{title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title. The same placeholders like for
