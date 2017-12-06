@@ -193,8 +193,8 @@ class GreasemonkeyManager(QObject):
         match = functools.partial(fnmatch.fnmatch,
                                   url.toString(QUrl.FullyEncoded))
         tester = (lambda script:
-                  any([match(pat) for pat in script.includes]) and
-                  not any([match(pat) for pat in script.excludes]))
+                  any(match(pat) for pat in script.includes) and
+                  not any(match(pat) for pat in script.excludes))
         return MatchingScripts(
             url,
             [script for script in self._run_start if tester(script)],
