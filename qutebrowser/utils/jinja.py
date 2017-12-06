@@ -136,3 +136,4 @@ def render(template, **kwargs):
 
 
 environment = Environment()
+js_environment = jinja2.Environment(loader=Loader('javascript'))

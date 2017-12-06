@@ -69,6 +69,10 @@ def init():
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
+    greasemonkey = objreg.get('greasemonkey')
+    greasemonkey.scripts_reloaded.connect(webenginesettings.inject_userscripts)
+    webenginesettings.inject_userscripts()
+
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {

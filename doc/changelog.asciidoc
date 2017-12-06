@@ -21,6 +21,8 @@ v1.1.0 (unreleased)
 Added
 ~~~~~
 
+- Initial support for Greasemonkey scripts. There are still some rough edges,
+  but many scripts should already work.
 - There's now a `misc/Makefile` file in releases, which should help
   distributions which package qutebrowser, as they can run something like
   `make -f misc/Makefile DESTDIR="$pkgdir" install` now.
