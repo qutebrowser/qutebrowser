@@ -29,6 +29,7 @@ import os
 import time
 import textwrap
 import mimetypes
+import urllib
 
 import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
@@ -422,6 +423,18 @@ def qute_settings(url):
     html = jinja.render('settings.html', title='settings',
                         configdata=configdata,
                         confget=config.instance.get_str)
+    return 'text/html', html
+
+
+@add_handler('back')
+def qute_back(url):
+    """Handler for qute://back.
+
+    Simple page to free ram / lazy load a site, goes back on focusing the tab.
+    """
+    html = jinja.render(
+        'back.html',
+        title='Suspended: ' + urllib.parse.unquote(url.fragment()))
     return 'text/html', html
 
 

@@ -79,6 +79,9 @@ new_instance_open_target_window:
     When `new_instance_open_target` is not set to `window`, this is ignored.
 
 session_default_name:
+  renamed: session.default_name
+
+session.default_name:
   type:
     name: SessionName
     none_ok: true
@@ -87,6 +90,11 @@ session_default_name:
     Name of the session to save by default.
 
     If this is set to null, the session which was last loaded is saved.
+
+session.lazy_restore:
+  type: Bool
+  default: false
+  desc: Load a restored tab as soon as it takes focus.
 
 backend:
   type:

@@ -222,7 +222,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
-|<<session_default_name,session_default_name>>|Name of the session to save by default.
+|<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
 |<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
@@ -2556,8 +2556,8 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-[[session_default_name]]
-=== session_default_name
+[[session.default_name]]
+=== session.default_name
 Name of the session to save by default.
 If this is set to null, the session which was last loaded is saved.
 
