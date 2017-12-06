@@ -65,6 +65,8 @@ class CommandDispatcher:
     def __init__(self, win_id, tabbed_browser):
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
+        self.yank_object = {}
+        self.userscript_object = {}
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -883,6 +885,7 @@ class CommandDispatcher:
             message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
             if not self.yank_object['keep']:
+                log.procs.debug(self.yank_object['keep'])
                 modeman.leave(self._win_id, KeyMode.caret, "yank selected",
                               maybe=True)
         self.yank_object = None

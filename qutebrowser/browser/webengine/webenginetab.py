@@ -184,6 +184,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
+        self.drop_selection()
         self._tab.run_js_async(
             javascript.assemble('caret', 'toggle'))
 
@@ -284,7 +285,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # https://bugreports.qt.io/browse/QTBUG-53134
             self._tab.run_js_async(
                 'window.getSelection().toString()', callback)
-            self.drop_selection()
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.

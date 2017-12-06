@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=unused-import
 import pytest
 import pytest_bdd as bdd
 
-# pylint: disable=unused-import
 from end2end.features.test_yankpaste_bdd import init_fake_clipboard
 
 bdd.scenarios('caret.feature')
