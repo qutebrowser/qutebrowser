@@ -885,7 +885,6 @@ class CommandDispatcher:
             message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
             if not self.yank_object['keep']:
-                log.procs.debug(self.yank_object['keep'])
                 modeman.leave(self._win_id, KeyMode.caret, "yank selected",
                               maybe=True)
         self.yank_object = None

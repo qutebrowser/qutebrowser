@@ -1051,7 +1051,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
     funcs.moveToEndOfDocument = () => {
         CaretBrowsing.move("forward", "documentboundary");
-        window.scrollTo(0, document.body.scrollHeight);
+        funcs.moveLeft();
     };
 
     funcs.dropSelection = () => {

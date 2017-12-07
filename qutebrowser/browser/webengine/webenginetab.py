@@ -284,7 +284,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # WORKAROUND for
             # https://bugreports.qt.io/browse/QTBUG-53134
             self._tab.run_js_async(
-                'window.getSelection().toString()', callback)
+                javascript.assemble('caret', 'getSelection'), callback)
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.
