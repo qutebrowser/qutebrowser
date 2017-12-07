@@ -136,7 +136,7 @@ class FakeUrl:
         self.path = mock.Mock(return_value=path)
         self.isValid = mock.Mock(returl_value=valid)
         self.host = mock.Mock(returl_value=host)
-        self.url = mock.Mock(return_value=url)
+        self.toDisplayString = mock.Mock(return_value=url)
         self.scheme = mock.Mock(return_value=scheme)
 
 
