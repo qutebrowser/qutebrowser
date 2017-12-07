@@ -40,7 +40,7 @@ window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 
-    function serialize_elem(elem) {
+    function serialize_elem(elem, frame = null) {
         if (!elem) {
             return null;
         }
@@ -55,7 +55,7 @@ window._qutebrowser.webelem = (function() {
         try {
             caret_position = elem.selectionStart;
         } catch (err) {
-            if (err instanceof DOMException &&
+            if (err.constructor.name === "DOMException" &&
                     err.name === "InvalidStateError") {
                 // nothing to do, caret_position is already null
             } else {
@@ -102,15 +102,25 @@ window._qutebrowser.webelem = (function() {
         out.attributes = attributes;
 
         const client_rects = elem.getClientRects();
+
+        // Get location of frame and add it to element
+        // TODO How to generate a 0 object without this
+        let frame_offset_rect = null;
+        if (frame === null) {
+            frame_offset_rect = document.head.getBoundingClientRect();
+        } else {
+            frame_offset_rect = frame.getBoundingClientRect();
+        }
+
         for (let k = 0; k < client_rects.length; ++k) {
             const rect = client_rects[k];
             out.rects.push({
-                "top": rect.top,
-                "right": rect.right,
-                "bottom": rect.bottom,
-                "left": rect.left,
-                "height": rect.height,
-                "width": rect.width,
+                "top": rect.top + frame_offset_rect.top,
+                "right": rect.right + frame_offset_rect.right,
+                "bottom": rect.bottom + frame_offset_rect.bottom,
+                "left": rect.left + frame_offset_rect.left,
+                "height": rect.height + frame_offset_rect.height,
+                "width": rect.width + frame_offset_rect.width,
             });
         }
 
@@ -163,11 +173,31 @@ window._qutebrowser.webelem = (function() {
 
     funcs.find_css = (selector, only_visible) => {
         const elems = document.querySelectorAll(selector);
+        const subelem_frames = window.frames;
         const out = [];
 
         for (let i = 0; i < elems.length; ++i) {
             if (!only_visible || is_visible(elems[i])) {
                 out.push(serialize_elem(elems[i]));
+            }
+        }
+
+        // Recurse into frames and add them
+        for (let i = 0; i < subelem_frames.length; i++) {
+            try {
+                subelem_frames[i].document;
+            } catch (err) {
+                // If we have a cross-origin frame, skip it.
+                continue;
+            }
+
+            const subelems = subelem_frames[i].document.
+                querySelectorAll(selector);
+            const frame = subelem_frames[i].frameElement;
+            for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
+                if (!only_visible || is_visible(subelems[elem_num])) {
+                    out.push(serialize_elem(subelems[elem_num], frame));
+                }
             }
         }
 

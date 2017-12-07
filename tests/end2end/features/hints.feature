@@ -204,8 +204,6 @@ Feature: Using hints
         Then the javascript message "contents: existingnew" should be logged
 
     ### iframes
-
-    @qtwebengine_todo: Hinting in iframes is not implemented yet
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I hint with args "links normal" and follow a
