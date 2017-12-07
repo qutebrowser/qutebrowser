@@ -129,8 +129,8 @@ window._qutebrowser.webelem = (function() {
                 "right": rect.right + frame_offset_rect.right,
                 "bottom": rect.bottom + frame_offset_rect.bottom,
                 "left": rect.left + frame_offset_rect.left,
-                "height": rect.height + frame_offset_rect.height,
-                "width": rect.width + frame_offset_rect.width,
+                "height": rect.height,
+                "width": rect.width,
             });
         }
 
