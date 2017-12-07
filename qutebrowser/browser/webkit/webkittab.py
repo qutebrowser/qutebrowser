@@ -160,7 +160,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = bool(self.selection())
+        self.selection_enabled = bool(self._selection())
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -173,7 +173,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             #
             # Note: We can't use hasSelection() here, as that's always
             # true in caret mode.
-            if not self.selection():
+            if not self.selection_enabled:
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
@@ -336,10 +336,13 @@ class WebKitCaret(browsertab.AbstractCaret):
         return self._widget.hasSelection()
 
     def selection(self, html=False, callback=False):
+        callback(self._selection(html))
+
+    def _selection(self, html=False):
         if html:
-            callback(self._widget.selectedHtml())
+            return self._widget.selectedHtml()
         else:
-            callback(self._widget.selectedText())
+            return self._widget.selectedText()
 
     def follow_selected(self, *, tab=False):
         if not self.has_selection():
@@ -351,7 +354,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
-            selection = self.selection(html=True)
+            selection = self._selection(html=True)
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
