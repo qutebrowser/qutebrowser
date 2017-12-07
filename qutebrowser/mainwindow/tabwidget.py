@@ -165,8 +165,6 @@ class TabWidget(QTabWidget):
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.private else ''
-        
-        url = self.tab_url(idx)
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())
@@ -174,19 +172,15 @@ class TabWidget(QTabWidget):
             fields['perc'] = ''
 
         try:
-            fields['host'] = url.host()
+            url = self.tab_url(idx)
         except qtutils.QtValueError:
             fields['host'] = ''
-
-        try:
-            fields['current_url'] = url.url()
-        except qtutils.QtValueError:
             fields['current_url'] = ''
-
-        try:
-            fields['protocol'] = url.scheme()
-        except qtutils.QtValueError:
             fields['protocol'] = ''
+        else:
+            fields['host'] = url.host()
+            fields['current_url'] = url.toDisplayString()
+            fields['protocol'] = url.scheme()
 
         y = tab.scroller.pos_perc()[1]
         if y is None:
