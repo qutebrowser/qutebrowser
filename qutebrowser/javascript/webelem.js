@@ -181,6 +181,17 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
+    // Returns true if the iframe is accessible without
+    // cross domain errors, else false.
+    function iframe_same_domain(frame) {
+        try {
+            frame.document;
+            return true;
+        } catch (err) {
+            return false;
+        }
+    }
+
     funcs.find_css = (selector, only_visible) => {
         const elems = document.querySelectorAll(selector);
         const subelem_frames = window.frames;
@@ -194,19 +205,14 @@ window._qutebrowser.webelem = (function() {
 
         // Recurse into frames and add them
         for (let i = 0; i < subelem_frames.length; i++) {
-            try {
-                subelem_frames[i].document;
-            } catch (err) {
-                // If we have a cross-origin frame, skip it.
-                continue;
-            }
-
-            const subelems = subelem_frames[i].document.
-                querySelectorAll(selector);
-            const frame = subelem_frames[i];
-            for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
-                if (!only_visible || is_visible(subelems[elem_num])) {
-                    out.push(serialize_elem(subelems[elem_num], frame));
+            if (iframe_same_domain(subelem_frames[i])) {
+                const subelems = subelem_frames[i].document.
+                    querySelectorAll(selector);
+                const frame = subelem_frames[i];
+                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
+                    if (!only_visible || is_visible(subelems[elem_num])) {
+                        out.push(serialize_elem(subelems[elem_num], frame));
+                    }
                 }
             }
         }
@@ -219,6 +225,20 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
+    // Check if elem is an iframe, and if so, run func on it.
+    // If no iframes match, return null
+    function run_in_iframes(elem, func) {
+        for (let i = 0; i < window.frames.length; ++i) {
+            if (iframe_same_domain(window.frames[i])) {
+                const frame = window.frames[i];
+                if (frame.frameElement === elem) {
+                    return func(frame);
+                }
+            }
+        }
+        return null;
+    }
+
     funcs.find_focused = () => {
         const elem = document.activeElement;
 
@@ -228,17 +248,35 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
-        return serialize_elem(elem);
+        // Check if we got an iframe, and if so, recurse inside of it
+        const frame_elem = run_in_iframes(elem,
+            (frame) => serialize_elem(frame.document.activeElement, frame));
+
+        if (frame_elem === null) {
+            return serialize_elem(elem);
+        }
+        return frame_elem;
     };
 
     funcs.find_at_pos = (x, y) => {
-        // FIXME:qtwebengine
-        // If the element at the specified point belongs to another document
-        // (for example, an iframe's subdocument), the subdocument's parent
-        // element is returned (the iframe itself).
-
         const elem = document.elementFromPoint(x, y);
-        return serialize_elem(elem);
+
+
+        // Check if we got an iframe, and if so, recurse inside of it
+        const frame_elem = run_in_iframes(elem,
+            (frame) => {
+                // Subtract offsets due to being in an iframe
+                const frame_offset_rect =
+                      frame.frameElement.getBoundingClientRect();
+                return serialize_elem(frame.document.
+                    elementFromPoint(x - frame_offset_rect.left,
+                        y - frame_offset_rect.top), frame);
+            });
+
+        if (frame_elem === null) {
+            return serialize_elem(elem);
+        }
+        return frame_elem;
     };
 
     // Function for returning a selection to python (so we can click it)
