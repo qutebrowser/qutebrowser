@@ -269,6 +269,8 @@ def inject_userscripts():
 
         # Then add the new scripts.
         for script in greasemonkey.all_scripts():
+            # @run-at (and @include/@exclude/@match) is parsed by
+            # QWebEngineScript.
             new_script = QWebEngineScript()
             new_script.setWorldId(QWebEngineScript.MainWorld)
             new_script.setSourceCode(script.code())
