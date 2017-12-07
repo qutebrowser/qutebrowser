@@ -184,7 +184,7 @@ class TabWidget(QTabWidget):
         try:
             fields['protocol'] = self.tab_url(idx).scheme()
         except qtutils.QtValueError:
-            fields['protocol']= ''
+            fields['protocol'] = ''
 
         y = tab.scroller.pos_perc()[1]
         if y is None:
