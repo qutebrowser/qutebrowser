@@ -55,7 +55,9 @@ window._qutebrowser.webelem = (function() {
         try {
             caret_position = elem.selectionStart;
         } catch (err) {
-            if (err.constructor.name === "DOMException" &&
+            if ((err instanceof DOMException ||
+                 (frame !== null &&
+                  err instanceof frame.DOMException)) &&
                     err.name === "InvalidStateError") {
                 // nothing to do, caret_position is already null
             } else {
@@ -107,9 +109,17 @@ window._qutebrowser.webelem = (function() {
         // TODO How to generate a 0 object without this
         let frame_offset_rect = null;
         if (frame === null) {
-            frame_offset_rect = document.head.getBoundingClientRect();
+            // Dummy object with zero offset
+            frame_offset_rect = {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0,
+                "height": 0,
+                "width": 0,
+            };
         } else {
-            frame_offset_rect = frame.getBoundingClientRect();
+            frame_offset_rect = frame.frameElement.getBoundingClientRect();
         }
 
         for (let k = 0; k < client_rects.length; ++k) {
@@ -193,7 +203,7 @@ window._qutebrowser.webelem = (function() {
 
             const subelems = subelem_frames[i].document.
                 querySelectorAll(selector);
-            const frame = subelem_frames[i].frameElement;
+            const frame = subelem_frames[i];
             for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
                 if (!only_visible || is_visible(subelems[elem_num])) {
                     out.push(serialize_elem(subelems[elem_num], frame));
