@@ -220,9 +220,39 @@ window._qutebrowser.webelem = (function() {
         return out;
     };
 
+    // Runs a function in a frame until the result is not null, then return
+    function run_frames(func) {
+        for (let i = 0; i < window.frames.length; ++i) {
+            if (iframe_same_domain(window.frames[i])) {
+                const frame = window.frames[i];
+                const result = func(frame);
+                if (result) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
-        return serialize_elem(elem);
+        if (elem) {
+            return serialize_elem(elem);
+        }
+
+        const serialized_elem = run_frames((frame) => {
+            const element = frame.window.document.getElementById(id);
+            if (element) {
+                return serialize_elem(element, frame);
+            }
+            return null;
+        });
+
+        if (serialized_elem) {
+            return serialized_elem;
+        }
+
+        return null;
     };
 
     // Check if elem is an iframe, and if so, run func on it.
@@ -233,20 +263,6 @@ window._qutebrowser.webelem = (function() {
                 const frame = window.frames[i];
                 if (frame.frameElement === elem) {
                     return func(frame);
-                }
-            }
-        }
-        return null;
-    }
-
-    // Runs a function in a frame until the result is not null, then return
-    function run_frames(func) {
-        for (let i = 0; i < window.frames.length; ++i) {
-            if (iframe_same_domain(window.frames[i])) {
-                const frame = window.frames[i];
-                const result = func(frame);
-                if (result) {
-                    return result;
                 }
             }
         }
