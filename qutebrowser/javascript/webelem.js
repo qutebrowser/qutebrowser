@@ -227,12 +227,26 @@ window._qutebrowser.webelem = (function() {
 
     // Check if elem is an iframe, and if so, run func on it.
     // If no iframes match, return null
-    function run_in_iframes(elem, func) {
+    function replace_elem_frame(elem, func) {
         for (let i = 0; i < window.frames.length; ++i) {
             if (iframe_same_domain(window.frames[i])) {
                 const frame = window.frames[i];
                 if (frame.frameElement === elem) {
                     return func(frame);
+                }
+            }
+        }
+        return null;
+    }
+
+    // Runs a function in a frame until the result is not null, then return
+    function run_frames(func) {
+        for (let i = 0; i < window.frames.length; ++i) {
+            if (iframe_same_domain(window.frames[i])) {
+                const frame = window.frames[i];
+                const result = func(frame);
+                if (result) {
+                    return result;
                 }
             }
         }
@@ -249,7 +263,7 @@ window._qutebrowser.webelem = (function() {
         }
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = run_in_iframes(elem,
+        const frame_elem = replace_elem_frame(elem,
             (frame) => serialize_elem(frame.document.activeElement, frame));
 
         if (frame_elem === null) {
@@ -263,7 +277,7 @@ window._qutebrowser.webelem = (function() {
 
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = run_in_iframes(elem,
+        const frame_elem = replace_elem_frame(elem,
             (frame) => {
                 // Subtract offsets due to being in an iframe
                 const frame_offset_rect =
@@ -282,10 +296,22 @@ window._qutebrowser.webelem = (function() {
     // Function for returning a selection to python (so we can click it)
     funcs.find_selected_link = () => {
         const elem = window.getSelection().anchorNode;
-        if (!elem) {
-            return null;
+        if (elem) {
+            return serialize_elem(elem.parentNode);
         }
-        return serialize_elem(elem.parentNode);
+
+        const serialized_frame_elem = run_frames((frame) => {
+            const node = frame.window.getSelection().anchorNode;
+            if (node) {
+                return serialize_elem(node.parentNode, frame);
+            }
+            return null;
+        });
+
+        if (serialized_frame_elem) {
+            return serialized_frame_elem;
+        }
+        return null;
     };
 
     funcs.set_value = (id, value) => {
