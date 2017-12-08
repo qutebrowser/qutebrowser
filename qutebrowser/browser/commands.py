@@ -1177,7 +1177,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
-    def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
+    def spawn(self, cmdline, userscript=False, verbose=False,
+            output_to_tab=False, detach=False):
         """Spawn a command in a shell.
 
         Args:
@@ -1208,7 +1209,8 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
-                                         parent=self._tabbed_browser)
+                                         parent=self._tabbed_browser,
+                                         output_to_tab=output_to_tab)
             if detach:
                 proc.start_detached(cmd, args)
             else:

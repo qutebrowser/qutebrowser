@@ -42,6 +42,7 @@ from qutebrowser.misc import objects
 
 
 pyeval_output = ":pyeval was never called"
+spawn_output = ":spawn was never called"
 
 
 _HANDLERS = {}
@@ -265,6 +266,13 @@ def qute_javascript(url):
 def qute_pyeval(_url):
     """Handler for qute://pyeval."""
     html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
+    return 'text/html', html
+
+
+@add_handler('spawn_output')
+def qute_spawn_output(_url):
+    """Handler for qute://spawn_output."""
+    html = jinja.render('pre.html', title='spawn output', content=spawn_output)
     return 'text/html', html
 
 

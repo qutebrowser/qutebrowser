@@ -22,9 +22,11 @@
 import shlex
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
-                          QProcessEnvironment)
+                          QProcessEnvironment, QUrl)
 
-from qutebrowser.utils import message, log
+from qutebrowser.utils import message, log, objreg
+
+from qutebrowser.browser import qutescheme
 
 # A mapping of QProcess::ErrorCode's to human-readable strings.
 
@@ -62,10 +64,11 @@ class GUIProcess(QObject):
     started = pyqtSignal()
 
     def __init__(self, what, *, verbose=False, additional_env=None,
-                 parent=None):
+                 parent=None, output_to_tab=False):
         super().__init__(parent)
         self._what = what
         self.verbose = verbose
+        self.output_to_tab = output_to_tab
         self._started = False
         self.cmd = None
         self.args = None
@@ -96,6 +99,30 @@ class GUIProcess(QObject):
         self._started = False
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
+
+        stdout = None
+        stderr = None
+
+        if self.output_to_tab:
+            stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
+            stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
+
+            spawn_log = ""
+
+            spawn_log += "Process finished with code {},status {}.".format(
+                code, status)
+
+            if stdout:
+                spawn_log += "\nProcess stdout:\n" + stdout.strip()
+            if stderr:
+                spawn_log += "\nProcess stderr:\n" + stderr.strip()
+
+            qutescheme.spawn_output = spawn_log
+
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='last-focused')
+            tabbed_browser.openurl(QUrl('qute://spawn_output'), newtab=True)
+
         if status == QProcess.CrashExit:
             message.error("{} crashed!".format(self._what.capitalize()))
         elif status == QProcess.NormalExit and code == 0:
