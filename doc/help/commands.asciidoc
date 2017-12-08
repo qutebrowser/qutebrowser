@@ -1148,7 +1148,7 @@ Set a mark at the current scroll position in the current tab.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output-to-tab*] [*--detach*] 'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
@@ -1163,7 +1163,7 @@ Spawn a command in a shell.
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
-* +*-v*+, +*--output-to-tab*+: Show stderr, stdout, and exit status in a new tab.
+* +*-o*+, +*--output*+: Whether the output should be shown in a new tab.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
 ==== note

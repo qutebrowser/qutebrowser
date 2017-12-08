@@ -25,7 +25,6 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment, QUrl)
 
 from qutebrowser.utils import message, log, objreg
-
 from qutebrowser.browser import qutescheme
 
 # A mapping of QProcess::ErrorCode's to human-readable strings.
@@ -50,6 +49,7 @@ class GUIProcess(QObject):
         cmd: The command which was started.
         args: A list of arguments which gets passed.
         verbose: Whether to show more messages.
+        _output: Whether to show the output in a new tab.
         _started: Whether the underlying process is started.
         _proc: The underlying QProcess.
         _what: What kind of thing is spawned (process/editor/userscript/...).
@@ -64,11 +64,11 @@ class GUIProcess(QObject):
     started = pyqtSignal()
 
     def __init__(self, what, *, verbose=False, additional_env=None,
-                 parent=None, output_to_tab=False):
+                 parent=None, output=False):
         super().__init__(parent)
         self._what = what
         self.verbose = verbose
-        self.output_to_tab = output_to_tab
+        self._output = output
         self._started = False
         self.cmd = None
         self.args = None
@@ -100,28 +100,24 @@ class GUIProcess(QObject):
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
-        stdout = None
-        stderr = None
-
-        if self.output_to_tab:
+        if self._output:
             stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
             stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
 
-            spawn_log = ""
+            stderr = stderr or "(No output)"
+            stdout = stdout or "(No output)"
 
-            spawn_log += "Process finished with code {},status {}.".format(
+            spawn_log = "Process finished with code {}, status {}.".format(
                 code, status)
 
-            if stdout:
-                spawn_log += "\nProcess stdout:\n" + stdout.strip()
-            if stderr:
-                spawn_log += "\nProcess stderr:\n" + stderr.strip()
+            spawn_log += "\nProcess stdout:\n" + stdout.strip()
+            spawn_log += "\nProcess stderr:\n" + stderr.strip()
 
             qutescheme.spawn_output = spawn_log
 
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-            tabbed_browser.openurl(QUrl('qute://spawn_output'), newtab=True)
+            tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
 
         if status == QProcess.CrashExit:
             message.error("{} crashed!".format(self._what.capitalize()))

@@ -269,9 +269,9 @@ def qute_pyeval(_url):
     return 'text/html', html
 
 
-@add_handler('spawn_output')
+@add_handler('spawn-output')
 def qute_spawn_output(_url):
-    """Handler for qute://spawn_output."""
+    """Handler for qute://spawn-output."""
     html = jinja.render('pre.html', title='spawn output', content=spawn_output)
     return 'text/html', html
 

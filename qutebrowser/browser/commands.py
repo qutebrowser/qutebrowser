@@ -1178,7 +1178,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     def spawn(self, cmdline, userscript=False, verbose=False,
-            output_to_tab=False, detach=False):
+            output=False, detach=False):
         """Spawn a command in a shell.
 
         Args:
@@ -1189,6 +1189,7 @@ class CommandDispatcher:
                               (or `$XDG_DATA_DIR`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
+            output: Whether the output should be shown in a new tab.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
         """
@@ -1210,7 +1211,7 @@ class CommandDispatcher:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
                                          parent=self._tabbed_browser,
-                                         output_to_tab=output_to_tab)
+                                         output=output)
             if detach:
                 proc.start_detached(cmd, args)
             else:
