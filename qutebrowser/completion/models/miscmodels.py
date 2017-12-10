@@ -58,7 +58,6 @@ def suggest(*args, **kwargs):
         sep_col = args[3]
         model = completionmodel.CompletionModel(
             column_widths=tuple(col_size for i in range(cols)))
-        # column_widths=tuple(col_size if i < cols else 0 for i in range(3)))
         raw = (args[4][1:-1]
                if any(args[4].startswith(i) for i in ('"', "'"))
                else args[4])

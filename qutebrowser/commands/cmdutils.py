@@ -32,7 +32,7 @@ cmd_dict = {}
 
 
 def quote(s):
-    """Quote s if it needs quoting for the commandline.
+    """Quotes if it needs quoting for the commandline.
 
     Note we don't use shlex.quote because that quotes a lot of shell
     metachars we don't need to have quoted.

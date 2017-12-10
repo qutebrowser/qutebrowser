@@ -3,9 +3,9 @@
 
 Userscript examples:
     :spawn --userscript /path/to/vid choose
-    :spawn --userscript /path/to/vid choose -p -w {WIN_ID}
-    :spawn --userscript /path/to/vid play -p -w {WIN_ID}
-    :spawn --userscript /path/to/vid play -p -w {WIN_ID} "https://some.com/url"
+    :spawn --userscript /path/to/vid choose -p -o
+    :spawn --userscript /path/to/vid play -p -o
+    :spawn --userscript /path/to/vid play -p -o "https://some.com/url"
 
 Alias examples:
     c.aliases.update({
@@ -94,12 +94,17 @@ def qexec(*cmds):
 
 
 def info(text):
+    """Displays an info text in qutebrowser"""
     qexec('message-info "{}"'.format(text))
 
+
 def jseval(text):
+    """Executes javascript code on the associated site"""
     qexec('jseval {}'.format(text))
 
+
 def error(text):
+    """Displays an error text in qutebrowser"""
     qexec('message-error "{}"'.format(text))
 
 
@@ -148,7 +153,7 @@ def play():
         player_args.append('--x11-name')
         player_args.append('picture-in-picture')
 
-    jseval("""for (var i of document.getElementsByTagName("video")) i.pause();""")
+    jseval('for (var i of document.getElementsByTagName("video")) i.pause();')
 
     for url in urls:
         info("Opening '{}' with mpv".format(url))
@@ -167,7 +172,8 @@ def play():
             fallback = url.replace('youtube', 'hooktube') \
                 .replace('watch?v=', '/embed/')
         if (not subprocess.call(player_args + [url]) or
-                not subprocess.call(player_args + [fallback])):
+                (fallback and
+                    not subprocess.call(player_args + [fallback]))):
             break
         error("Failed to play '{}'".format(url))
     else:
