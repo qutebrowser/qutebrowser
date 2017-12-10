@@ -1175,6 +1175,25 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('choice', completion=miscmodels.suggest)
+    def suggest(self, command: str, columns: int,
+                sep_suggestions: str, sep_columns: str,
+                suggestions: str, choice: str):
+        """Allows userscripts to let a user choose between extracted information.
+
+        Args:
+            command: Qutebrowser command to run with the choice
+            columns: self-explanatory
+            sep_suggestions: charsequence which separates suggestions
+            sep_columns: charsequence which separates columns
+            suggestions: self-explanatory
+            choice: element of the first column or
+                    something else written by the user
+        """
+        runners.CommandRunner(self._win_id).run_safely(
+                command + ' ' + cmdutils.quote(choice))
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
@@ -1230,6 +1249,12 @@ class CommandDispatcher:
         env = {
             'QUTE_MODE': 'command',
         }
+
+        try:
+            # not sure if int(winId()) is safe to call on every os.
+            env['QUTE_WID'] = str(int(self._tabbed_browser.winId()))
+        except Exception:
+            pass
 
         idx = self._current_index()
         if idx != -1:

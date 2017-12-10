@@ -101,6 +101,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<set-mark,set-mark>>|Set a mark at the current scroll position in the current tab.
 |<<spawn,spawn>>|Spawn a command in a shell.
 |<<stop,stop>>|Stop loading in the current/[count]th tab.
+|<<suggest,suggest>>|Allows userscripts to let a user choose between extracted information.
 |<<tab-clone,tab-clone>>|Duplicate the current tab.
 |<<tab-close,tab-close>>|Close the current/[count]th tab.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
@@ -1154,6 +1155,22 @@ Stop loading in the current/[count]th tab.
 
 ==== count
 The tab index to stop.
+
+[[suggest]]
+=== suggest
+Syntax: +:suggest 'command' 'columns' 'sep-suggestions' 'sep-columns' 'suggestions'
+        'choice'+
+
+Allows userscripts to let a user choose between extracted information.
+
+==== positional arguments
+* +'command'+: Qutebrowser command to run with the choice
+* +'columns'+: self-explanatory
+* +'sep-suggestions'+: charsequence which separates suggestions
+* +'sep-columns'+: charsequence which separates columns
+* +'suggestions'+: self-explanatory
+* +'choice'+: element of the first column or something else written by the user
+
 
 [[tab-clone]]
 === tab-clone

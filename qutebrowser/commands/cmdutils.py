@@ -31,6 +31,22 @@ from qutebrowser.commands import command, cmdexc
 cmd_dict = {}
 
 
+def quote(s):
+    """Quote s if it needs quoting for the commandline.
+
+    Note we don't use shlex.quote because that quotes a lot of shell
+    metachars we don't need to have quoted.
+    """
+    if not s:
+        return "''"
+    elif any(c in s for c in ' "\'\t\n\\'):
+        # use single quotes, and put single quotes into double quotes
+        # the string $'b is then quoted as '$'"'"'b'
+        return "'" + s.replace("'", "'\"'\"'") + "'"
+    else:
+        return s
+
+
 def check_overflow(arg, ctype):
     """Check if the given argument is in bounds for the given type.
 

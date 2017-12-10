@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Usage: vid COMMAND [options] [URL ...]
+
+Userscript examples:
+    :spawn --userscript /path/to/vid choose
+    :spawn --userscript /path/to/vid choose -p -w {WIN_ID}
+    :spawn --userscript /path/to/vid play -p -w {WIN_ID}
+    :spawn --userscript /path/to/vid play -p -w {WIN_ID} "https://some.com/url"
+
+Alias examples:
+    c.aliases.update({
+        # plays a video in qutebrowsers window
+        'play': 'spawn --userscript ' +
+                '~/.local/share/qutebrowser/misc/vid play --overlay',
+        # plays a video in new window
+        'play-new': 'spawn --userscript ' +
+                    '~/.local/share/qutebrowser/misc/vid play',
+        # plays a video at the right bottom of the screen
+        'play-picture': 'spawn --userscript ' +
+                        '~/.local/share/qutebrowser/misc/vid play --picture',
+        # displays videos-, iframe-, ... -urls,
+        # tries to play the choosen video at the right bottom of the screen
+        'choose-video': 'spawn --userscript ' +
+                        '~/.local/share/qutebrowser/misc/vid choose --picture',
+        # and so on..
+    })
+
+Commands:
+    choose  List urls in qutebrowser, plays the choosen one
+    play    Play a video using the html code, stop after first success
+
+Options:
+    -p, --picture  X11 only: Picture-in-picture mode,
+                             instance will be changed to 'picture-in-picture'
+    -o, --overlay  X11 only: Use window to play the video
+    -s, --stay     Keep the window open after the video ended
+    -l, --loop     Repeat the video
+"""
+import os
+import sys
+import bs4
+import re
+import docopt
+import sys
+import itertools
+import subprocess
+
+
+class StaticGetAttrType(type):
+    """Metaclass which simply allows class to define
+    a __getstaticattr__ method.
+    __getstaticattr__ is the static equivalent of __getattr__.
+    """
+    def __getattr__(cls, name):
+        return cls.__getstaticattr__(name)
+
+
+class Env(metaclass=StaticGetAttrType):
+    """Helper class which allows to access environment variables"""
+    def __getstaticattr__(name):
+        return os.environ[name]
+
+
+class Args(metaclass=StaticGetAttrType):
+    """Helper class which allows to access passed arguments"""
+    __dict = None
+
+    def __setup():
+        if Args.__dict is None:
+            global __doc__
+            Args.__dict = docopt.docopt(__doc__)
+
+    def __getstaticattr__(name):
+        Args.__setup()
+        return Args.__dict[name if name in Args.__dict
+                           else '--' + name]
+
+
+def read(path):
+    """Reads every line of a file
+
+    Return:
+        content or None
+    """
+    with open(path) as f:
+        return '\n'.join(f.readlines())
+
+
+def qexec(*cmds):
+    """Executes qutebrowser commands"""
+    with open(Env.QUTE_FIFO, 'w') as f:
+        for c in cmds:
+            f.write(c + "\n")
+
+
+def info(text):
+    qexec('message-info "{}"'.format(text))
+
+def jseval(text):
+    qexec('jseval {}'.format(text))
+
+def error(text):
+    qexec('message-error "{}"'.format(text))
+
+
+def extract_videos():
+    """Extracts the urls from the source code
+
+    Return:
+        (url, tag-name)
+    """
+    soup = bs4.BeautifulSoup(read(Env.QUTE_HTML))
+    elems = soup.find_all(["video", "iframe", "source"],
+                          src=re.compile(r"(?!javascript).+"))
+    return itertools.chain(
+        ((Env.QUTE_URL, 'main-frame'),),
+        ((re.sub('^//', 'https://', e.attrs['src']), e.name)
+         for e in elems))
+
+
+def choose():
+    """List urls in qutebrowser, plays the choosen one"""
+    qexec((":set-cmd-text :suggest " +
+           "':spawn --userscript {} play {} ' 2 ; :: '{}' '")
+          .format(sys.argv[0], ' '.join(sys.argv[2:]),
+                  ";".join(url + '::' + tag
+                           for url, tag in extract_videos())))
+
+
+def play():
+    """Plays a video according to the command line arguments"""
+    urls = Args.URL or (url for url, tag in extract_videos())
+    player_args = ['mpv', '--force-window', '--no-terminal', '--ytdl']
+
+    if Args.loop:
+        player_args.append('--loop-file')
+    if Args.stay:
+        player_args.append('--keep-open=yes')
+    if Args.overlay:
+        player_args.append('--wid')
+        player_args.append(Env.QUTE_WID)
+    if Args.picture:
+        player_args.append('--ontop')
+        player_args.append('--on-all-workspaces')
+        player_args.append('--geometry={width}x{height}-+{x}-+{y}'.format(
+            width=400, height=200,
+            x=20, y=20))
+        player_args.append('--x11-name')
+        player_args.append('picture-in-picture')
+
+    jseval("""for (var i of document.getElementsByTagName("video")) i.pause();""")
+
+    for url in urls:
+        info("Opening '{}' with mpv".format(url))
+        fallback = None
+        if re.match("^https?://(www.)?youtube\.", url):
+            # fuck country based take downs
+            # note: youtube-dl supports hooktube in a wrong way,
+            #       it simply converts the url to a youtube url..
+            #       So it destroys the purpose of hooktube....
+            #       However luckily their regex pattern doesn't treat
+            #       urls with redundant slashes as it should:
+            #       in the same way as without them
+            #       So we can simply fix this behaviour by
+            #       converting https://youtube.com/watch?v=id
+            #       to https://hooktube.com//embed/id
+            fallback = url.replace('youtube', 'hooktube') \
+                .replace('watch?v=', '/embed/')
+        if (not subprocess.call(player_args + [url]) or
+                not subprocess.call(player_args + [fallback])):
+            break
+        error("Failed to play '{}'".format(url))
+    else:
+        error("Found no playable url, sorry")
+
+
+if __name__ == '__main__':
+    globals()[Args.COMMAND]()

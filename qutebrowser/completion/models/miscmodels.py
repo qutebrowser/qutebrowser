@@ -20,7 +20,7 @@
 """Functions that return miscellaneous completion models."""
 
 from qutebrowser.config import configdata
-from qutebrowser.utils import objreg, log
+from qutebrowser.utils import objreg, log, message
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
 
@@ -44,6 +44,32 @@ def helptopic(*, info):
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
     model.add_category(listcategory.ListCategory("Settings", settings))
+    return model
+
+
+def suggest(*args, **kwargs):
+    """A CompletionModel filled with already typed suggestions."""
+    model = None
+
+    try:
+        cols = int(args[1])
+        col_size = int(100 / cols)
+        sep_sug = args[2]
+        sep_col = args[3]
+        model = completionmodel.CompletionModel(
+            column_widths=tuple(col_size for i in range(cols)))
+        # column_widths=tuple(col_size if i < cols else 0 for i in range(3)))
+        raw = (args[4][1:-1]
+               if any(args[4].startswith(i) for i in ('"', "'"))
+               else args[4])
+        suggestions = (i.split(sep_col) for i in raw.split(sep_sug))
+
+        model.add_category(listcategory.ListCategory(
+            "Suggestions", suggestions))
+    except Exception as e:
+        message.error(
+            "Userscript likely passed invalid arguments: %s" % str(e))
+
     return model
 
 
@@ -120,7 +146,7 @@ def buffer(*, info=None):  # pylint: disable=unused-argument
                          tab.url().toDisplayString(),
                          tabbed_browser.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
-            delete_func=delete_buffer)
+                                        delete_func=delete_buffer)
         model.add_category(cat)
 
     return model
