@@ -63,15 +63,10 @@ class Env(metaclass=StaticGetAttrType):
 
 class Args(metaclass=StaticGetAttrType):
     """Helper class which allows to access passed arguments"""
-    __dict = None
-
-    def __setup():
-        if Args.__dict is None:
-            global __doc__
-            Args.__dict = docopt.docopt(__doc__)
+    # lambda needed to access the right docstring
+    __dict = docopt.docopt((lambda: __doc__)())
 
     def __getstaticattr__(name):
-        Args.__setup()
         return Args.__dict[name if name in Args.__dict
                            else '--' + name]
 
