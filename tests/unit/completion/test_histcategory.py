@@ -61,7 +61,7 @@ def hist(init_sql, config_stub):
 
     ('foo bar',
      [('foo', ''), ('bar foo', ''), ('xfooyybarz', '')],
-     [('xfooyybarz', '')]),
+     [('bar foo', ''), ('xfooyybarz', '')]),
 
     ('foo%bar',
      [('foo%bar', ''), ('foo bar', ''), ('foobar', '')],

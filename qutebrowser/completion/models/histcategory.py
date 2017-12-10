@@ -37,21 +37,6 @@ class HistoryCategory(QSqlQueryModel):
         super().__init__(parent=parent)
         self.name = "History"
 
-        # replace ' in timestamp-format to avoid breaking the query
-        timestamp_format = config.val.completion.timestamp_format
-        timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
-                   .format(timestamp_format.replace("'", "`")))
-
-        self._query = sql.Query(' '.join([
-            "SELECT url, title, {}".format(timefmt),
-            "FROM CompletionHistory",
-            # the incoming pattern will have literal % and _ escaped with '\'
-            # we need to tell sql to treat '\' as an escape character
-            "WHERE ((url || title) LIKE :pat escape '\\')",
-            self._atime_expr(),
-            "ORDER BY last_atime DESC",
-        ]), forward_only=False)
-
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
         self.delete_func = delete_func
@@ -86,11 +71,30 @@ class HistoryCategory(QSqlQueryModel):
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
         pattern = pattern.replace('_', '\\_')
-        # treat spaces as wildcards to match any of the typed words
-        pattern = re.sub(r' +', '%', pattern)
-        pattern = '%{}%'.format(pattern)
+        words = ['%{}%'.format(w) for w in pattern.split(' ')]
+
+        wheres = ' AND '.join([
+            "(url || title) LIKE :pat{} escape '\\'".format(i)
+            for i in range(len(words))])
+
+        # replace ' in timestamp-format to avoid breaking the query
+        timestamp_format = config.val.completion.timestamp_format
+        timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
+                   .format(timestamp_format.replace("'", "`")))
+
+        self._query = sql.Query(' '.join([
+            "SELECT url, title, {}".format(timefmt),
+            "FROM CompletionHistory",
+            # the incoming pattern will have literal % and _ escaped with '\'
+            # we need to tell sql to treat '\' as an escape character
+            'WHERE ({})'.format(wheres),
+            self._atime_expr(),
+            "ORDER BY last_atime DESC",
+        ]), forward_only=False)
+
         with debug.log_time('sql', 'Running completion query'):
-            self._query.run(pat=pattern)
+            self._query.run(**{
+                'pat{}'.format(i): w for i, w in enumerate(words)})
         self.setQuery(self._query)
 
     def removeRows(self, row, _count, _parent=None):
