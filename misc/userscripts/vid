@@ -32,7 +32,7 @@ Commands:
 Options:
     -p, --picture  X11 only: Picture-in-picture mode,
                              instance will be changed to 'picture-in-picture'
-    -o, --overlay  X11 only: Use window to play the video
+    -o, --overlay  X11 only: Use qutebrowsers window to play the video
     -s, --stay     Keep the window open after the video ended
     -l, --loop     Repeat the video
 """
