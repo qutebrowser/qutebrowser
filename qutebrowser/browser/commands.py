@@ -1210,12 +1210,16 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
-                                         parent=self._tabbed_browser,
-                                         output=output)
+                                         parent=self._tabbed_browser)
             if detach:
                 proc.start_detached(cmd, args)
             else:
                 proc.start(cmd, args)
+
+        if output:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='last-focused')
+            tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
