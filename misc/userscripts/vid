@@ -61,13 +61,13 @@ class Env(metaclass=StaticGetAttrType):
         return os.environ[name]
 
 
-class Args(metaclass=StaticGetAttrType):
+class Params(metaclass=StaticGetAttrType):
     """Helper class which allows to access passed arguments"""
     # lambda needed to access the right docstring
     __dict = docopt.docopt((lambda: __doc__)())
 
     def __getstaticattr__(name):
-        return Args.__dict[name if name in Args.__dict
+        return Params.__dict[name if name in Params.__dict
                            else '--' + name]
 
 
@@ -129,17 +129,17 @@ def choose():
 
 def play():
     """Plays a video according to the command line arguments"""
-    urls = Args.URL or (url for url, tag in extract_videos())
+    urls = Params.URL or (url for url, tag in extract_videos())
     player_args = ['mpv', '--force-window', '--no-terminal', '--ytdl']
 
-    if Args.loop:
+    if Params.loop:
         player_args.append('--loop-file')
-    if Args.stay:
+    if Params.stay:
         player_args.append('--keep-open=yes')
-    if Args.overlay:
+    if Params.overlay:
         player_args.append('--wid')
         player_args.append(Env.QUTE_WID)
-    if Args.picture:
+    if Params.picture:
         player_args.append('--ontop')
         player_args.append('--on-all-workspaces')
         player_args.append('--geometry={width}x{height}-+{x}-+{y}'.format(
@@ -176,4 +176,4 @@ def play():
 
 
 if __name__ == '__main__':
-    globals()[Args.COMMAND]()
+    globals()[Params.COMMAND]()
