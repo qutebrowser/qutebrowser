@@ -100,21 +100,18 @@ class GUIProcess(QObject):
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
+        stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
+        stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
+
+        spawn_log = "Process finished with code {}, status {}.".format(
+            code, status)
+
+        spawn_log += "\nProcess stdout:\n" + (stdout or "(No output)").strip()
+        spawn_log += "\nProcess stderr:\n" + (stderr or "(No output)").strip()
+
+        qutescheme.spawn_output = spawn_log
+
         if self._output:
-            stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
-            stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
-
-            stderr = stderr or "(No output)"
-            stdout = stdout or "(No output)"
-
-            spawn_log = "Process finished with code {}, status {}.".format(
-                code, status)
-
-            spawn_log += "\nProcess stdout:\n" + stdout.strip()
-            spawn_log += "\nProcess stderr:\n" + stderr.strip()
-
-            qutescheme.spawn_output = spawn_log
-
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
             tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
@@ -132,8 +129,6 @@ class GUIProcess(QObject):
             message.error("{} exited with status {}, see :messages for "
                           "details.".format(self._what.capitalize(), code))
 
-            stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
-            stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
             if stdout:
                 log.procs.error("Process stdout:\n" + stdout.strip())
             if stderr:
