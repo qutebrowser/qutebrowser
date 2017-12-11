@@ -963,7 +963,7 @@ class Font(BaseType):
     # Gets set when the config is initialized.
     monospace_fonts = None
     font_regex = re.compile(r"""
-        ^(
+        (
             (
                 # style
                 (?P<style>normal|italic|oblique) |
@@ -976,14 +976,14 @@ class Font(BaseType):
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
             )\           # size/weight/style are space-separated
         )*               # 0-inf size/weight/style tags
-        (?P<family>.+)$  # mandatory font family""", re.VERBOSE)
+        (?P<family>.+)  # mandatory font family""", re.VERBOSE)
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
 
-        if not self.font_regex.match(value):  # pragma: no cover
+        if not self.font_regex.fullmatch(value):  # pragma: no cover
             # This should never happen, as the regex always matches everything
             # as family.
             raise configexc.ValidationError(value, "must be a valid font")
@@ -1002,7 +1002,7 @@ class FontFamily(Font):
         if not value:
             return None
 
-        match = self.font_regex.match(value)
+        match = self.font_regex.fullmatch(value)
         if not match:  # pragma: no cover
             # This should never happen, as the regex always matches everything
             # as family.
@@ -1039,7 +1039,7 @@ class QtFont(Font):
         font.setStyle(QFont.StyleNormal)
         font.setWeight(QFont.Normal)
 
-        match = self.font_regex.match(value)
+        match = self.font_regex.fullmatch(value)
         if not match:  # pragma: no cover
             # This should never happen, as the regex always matches everything
             # as family.

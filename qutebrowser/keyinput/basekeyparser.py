@@ -150,7 +150,8 @@ class BaseKeyParser(QObject):
             A (count, command) tuple.
         """
         if self._supports_count:
-            (countstr, cmd_input) = re.match(r'^(\d*)(.*)', keystring).groups()
+            (countstr, cmd_input) = re.fullmatch(r'(\d*)(.*)',
+                                                 keystring).groups()
             count = int(countstr) if countstr else None
             if count == 0 and not cmd_input:
                 cmd_input = keystring

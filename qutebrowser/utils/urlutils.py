@@ -306,7 +306,7 @@ def qurl_from_user_input(urlstr):
     """
     # First we try very liberally to separate something like an IPv6 from the
     # rest (e.g. path info or parameters)
-    match = re.match(r'\[?([0-9a-fA-F:.]+)\]?(.*)', urlstr.strip())
+    match = re.fullmatch(r'\[?([0-9a-fA-F:.]+)\]?(.*)', urlstr.strip())
     if match:
         ipstr, rest = match.groups()
     else:
@@ -571,7 +571,7 @@ def incdec_number(url, incdec, count=1, segments=None):
             continue
 
         # Get the last number in a string
-        match = re.match(r'(.*\D|^)(0*)(\d+)(.*)', getter())
+        match = re.fullmatch(r'(.*\D|^)(0*)(\d+)(.*)', getter())
         if not match:
             continue
 

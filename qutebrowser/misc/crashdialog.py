@@ -62,7 +62,7 @@ def parse_fatal_stacktrace(text):
         r'(Current )?[Tt]hread [^ ]* \(most recent call first\): *',
         r'  File ".*", line \d+ in (?P<func>.*)',
     ]
-    m = re.match('\n'.join(lines), text)
+    m = re.search('\n'.join(lines), text)
     if m is None:
         # We got some invalid text.
         return ('', '')
