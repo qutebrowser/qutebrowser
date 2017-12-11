@@ -97,6 +97,7 @@ Changed
 - Empty categories are now hidden in the `:open` completion.
 - Search terms for URLs and titles can now be mixed when filtering the
   completion.
+- The default font size for the UI got bumped up from 8pt to 10pt.
 
 Fixed
 ~~~~~
