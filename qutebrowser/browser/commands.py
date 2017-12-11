@@ -1178,7 +1178,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     def spawn(self, cmdline, userscript=False, verbose=False,
-            output=False, detach=False):
+              output=False, detach=False):
         """Spawn a command in a shell.
 
         Args:
@@ -1218,7 +1218,7 @@ class CommandDispatcher:
 
         if output:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='last-focused')
+                                        window='last-focused')
             tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

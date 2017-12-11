@@ -101,7 +101,7 @@ class GUIProcess(QObject):
         stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
         stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
 
-        qutescheme.spawn_output = self.spawn_format(code, status,
+        qutescheme.spawn_output = self._spawn_format(code, status,
                                                     stdout, stderr)
 
         if status == QProcess.CrashExit:
@@ -122,7 +122,7 @@ class GUIProcess(QObject):
             if stderr:
                 log.procs.error("Process stderr:\n" + stderr.strip())
 
-    def spawn_format(self, code=0, status=0, stdout="", stderr=""):
+    def _spawn_format(self, code=0, status=0, stdout="", stderr=""):
         """Produce a formatted string for spawn output."""
         stdout = (stdout or "(No output)").strip()
         stderr = (stderr or "(No output)").strip()
@@ -130,7 +130,7 @@ class GUIProcess(QObject):
         spawn_string = ("Process finished with code {}, status {}\n"
                         "\nProcess stdout:\n {}"
                         "\nProcess stderr:\n {}").format(code, status,
-                                                       stdout, stderr)
+                                                         stdout, stderr)
         return spawn_string
 
     @pyqtSlot()

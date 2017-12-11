@@ -60,7 +60,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
         proc.start(*argv)
 
     assert not message_mock.messages
-    assert qutescheme.spawn_output == proc.spawn_format(0, 0, stdout="test")
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -77,24 +77,7 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
     assert msgs[1].level == usertypes.MessageLevel.info
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
-    assert qutescheme.spawn_output == proc.spawn_format(0, 0, stdout="test")
-
-
-def test_start_output(proc, qtbot, message_mock, py_proc):
-    """Test starting a process verbosely."""
-    proc.verbose = True
-
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
-                           order='strict'):
-        argv = py_proc("import sys; print('test'); sys.exit(0)")
-        proc.start(*argv)
-
-    msgs = message_mock.messages
-    assert msgs[0].level == usertypes.MessageLevel.info
-    assert msgs[1].level == usertypes.MessageLevel.info
-    assert msgs[0].text.startswith("Executing:")
-    assert msgs[1].text == "Testprocess exited successfully."
-    assert qutescheme.spawn_output == proc.spawn_format(0, 0, stdout="test")
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):
