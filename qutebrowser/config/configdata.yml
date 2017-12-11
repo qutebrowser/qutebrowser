@@ -1317,7 +1317,7 @@ tabs.title.format:
     * `{backend}`: Either ''webkit'' or ''webengine''
     * `{private}`: Indicates when private mode is enabled.
     * `{current_url}`: URL of the current web page.
-    * `{protocol}`: Protocol (http/https/...) of the current web page
+    * `{protocol}`: Protocol (http/https/...) of the current web page.
 
 tabs.title.format_pinned:
   default: '{index}'
