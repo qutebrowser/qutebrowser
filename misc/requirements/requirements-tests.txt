@@ -36,4 +36,4 @@ pytest-xvfb==1.0.0
 PyVirtualDisplay==0.2.1
 six==1.11.0
 vulture==0.26
-Werkzeug==0.12.2
+Werkzeug==0.13
