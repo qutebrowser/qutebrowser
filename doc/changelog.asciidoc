@@ -57,6 +57,7 @@ Added
   when restoring a session.
 - New `hist_importer.py` script to import history from Firefox/Chromium.
 - New `{protocol}` replacement for `tabs.title.format` and friends.
+- New `-o` flag for `:spawn` to show stdout/stderr in a new tab.
 
 Changed
 ~~~~~~~
