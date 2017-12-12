@@ -36,6 +36,7 @@ class HistoryCategory(QSqlQueryModel):
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self.name = "History"
+        self._query = None
 
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
@@ -82,15 +83,16 @@ class HistoryCategory(QSqlQueryModel):
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                    .format(timestamp_format.replace("'", "`")))
 
-        self._query = sql.Query(' '.join([
-            "SELECT url, title, {}".format(timefmt),
-            "FROM CompletionHistory",
-            # the incoming pattern will have literal % and _ escaped with '\'
-            # we need to tell sql to treat '\' as an escape character
-            'WHERE ({})'.format(wheres),
-            self._atime_expr(),
-            "ORDER BY last_atime DESC",
-        ]), forward_only=False)
+        if not self._query or len(wheres) != len(self._query.boundValues()):
+            self._query = sql.Query(' '.join([
+                "SELECT url, title, {}".format(timefmt),
+                "FROM CompletionHistory",
+                # the incoming pattern will have literal % and _ escaped
+                # we need to tell sql to treat '\' as an escape character
+                'WHERE ({})'.format(wheres),
+                self._atime_expr(),
+                "ORDER BY last_atime DESC",
+            ]), forward_only=False)
 
         with debug.log_time('sql', 'Running completion query'):
             self._query.run(**{
