@@ -19,7 +19,6 @@
 
 """Tests for qutebrowser.misc.guiprocess."""
 
-import json
 import logging
 
 import pytest
@@ -27,6 +26,7 @@ from PyQt5.QtCore import QProcess, QIODevice
 
 from qutebrowser.misc import guiprocess
 from qutebrowser.utils import usertypes
+from qutebrowser.browser import qutescheme
 
 
 @pytest.fixture()
@@ -60,7 +60,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
         proc.start(*argv)
 
     assert not message_mock.messages
-    assert bytes(proc._proc.readAll()).rstrip() == b'test'
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -77,7 +77,7 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
     assert msgs[1].level == usertypes.MessageLevel.info
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
-    assert bytes(proc._proc.readAll()).rstrip() == b'test'
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):
@@ -99,10 +99,9 @@ def test_start_env(monkeypatch, qtbot, py_proc):
                            order='strict'):
         proc.start(*argv)
 
-    data = bytes(proc._proc.readAll()).decode('utf-8')
-    ret_env = json.loads(data)
-    assert 'QUTEBROWSER_TEST_1' in ret_env
-    assert 'QUTEBROWSER_TEST_2' in ret_env
+    data = qutescheme.spawn_output
+    assert 'QUTEBROWSER_TEST_1' in data
+    assert 'QUTEBROWSER_TEST_2' in data
 
 
 @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')

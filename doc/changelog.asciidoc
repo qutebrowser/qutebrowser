@@ -57,6 +57,7 @@ Added
   when restoring a session.
 - New `hist_importer.py` script to import history from Firefox/Chromium.
 - New `{protocol}` replacement for `tabs.title.format` and friends.
+- New `-o` flag for `:spawn` to show stdout/stderr in a new tab.
 
 Changed
 ~~~~~~~
@@ -118,6 +119,7 @@ Fixed
 - Fixed crash when closing the tab an external editor was opened in.
 - When using `:search-next` before a search is finished, no warning about no
   results being found is shown anymore.
+- Fix :click-element with an ID containing non-alphanumeric characters.
 
 Deprecated
 ~~~~~~~~~~

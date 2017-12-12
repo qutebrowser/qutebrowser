@@ -300,8 +300,16 @@ class Process(QObject):
 
     def terminate(self):
         """Clean up and shut down the process."""
-        self.proc.terminate()
-        self.proc.waitForFinished()
+        if not self.is_running():
+            return
+
+        if quteutils.is_windows:
+            self.proc.kill()
+        else:
+            self.proc.terminate()
+
+        ok = self.proc.waitForFinished()
+        assert ok
 
     def is_running(self):
         """Check if the process is currently running."""
