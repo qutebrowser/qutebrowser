@@ -48,7 +48,7 @@ def is_ignored_qt_message(message):
     """Check if the message is listed in qt_log_ignore."""
     regexes = pytest.config.getini('qt_log_ignore')
     for regex in regexes:
-        if re.match(regex, message):
+        if re.search(regex, message):
             return True
     return False
 

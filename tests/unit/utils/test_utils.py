@@ -863,7 +863,7 @@ class TestOpenFile:
         cmdline = '{} -c pass'.format(executable)
         utils.open_file('/foo/bar', cmdline)
         result = caplog.records[0].message
-        assert re.match(
+        assert re.fullmatch(
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
     @pytest.mark.not_frozen
@@ -872,7 +872,7 @@ class TestOpenFile:
         cmdline = '{} -c pass {{}} raboof'.format(executable)
         utils.open_file('/foo/bar', cmdline)
         result = caplog.records[0].message
-        assert re.match(
+        assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
     @pytest.mark.not_frozen
@@ -882,7 +882,7 @@ class TestOpenFile:
         config_stub.val.downloads.open_dispatcher = cmdline
         utils.open_file('/foo/bar')
         result = caplog.records[1].message
-        assert re.match(
+        assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
     def test_system_default_application(self, caplog, config_stub, mocker):
@@ -890,7 +890,7 @@ class TestOpenFile:
                          new_callable=mocker.Mock)
         utils.open_file('/foo/bar')
         result = caplog.records[0].message
-        assert re.match(
+        assert re.fullmatch(
             r"Opening /foo/bar with the system application", result)
         m.assert_called_with(QUrl('file:///foo/bar'))
 

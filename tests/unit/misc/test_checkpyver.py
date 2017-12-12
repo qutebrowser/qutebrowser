@@ -44,7 +44,7 @@ def test_python2():
         pytest.skip("python2 not found")
     assert not proc.stdout
     stderr = proc.stderr.decode('utf-8')
-    assert re.match(TEXT, stderr), stderr
+    assert re.fullmatch(TEXT, stderr), stderr
     assert proc.returncode == 1
 
 
@@ -64,7 +64,7 @@ def test_patched_no_errwindow(capfd, monkeypatch):
     checkpyver.check_python_version()
     stdout, stderr = capfd.readouterr()
     assert not stdout
-    assert re.match(TEXT, stderr), stderr
+    assert re.fullmatch(TEXT, stderr), stderr
 
 
 def test_patched_errwindow(capfd, mocker, monkeypatch):
