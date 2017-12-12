@@ -98,8 +98,10 @@ class GUIProcess(QObject):
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
-        stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
-        stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
+        stderr = bytes(self._proc.readAllStandardError()).decode('utf-8',
+                                                                 'replace')
+        stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8',
+                                                                  'replace')
 
         qutescheme.spawn_output = self._spawn_format(code, status,
                                                      stdout, stderr)
