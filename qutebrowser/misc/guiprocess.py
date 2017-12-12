@@ -102,7 +102,7 @@ class GUIProcess(QObject):
         stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
 
         qutescheme.spawn_output = self._spawn_format(code, status,
-                                                    stdout, stderr)
+                                                     stdout, stderr)
 
         if status == QProcess.CrashExit:
             message.error("{} crashed!".format(self._what.capitalize()))
