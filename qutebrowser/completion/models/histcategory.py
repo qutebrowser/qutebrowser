@@ -74,9 +74,12 @@ class HistoryCategory(QSqlQueryModel):
         pattern = pattern.replace('_', '\\_')
         words = ['%{}%'.format(w) for w in pattern.split(' ')]
 
-        wheres = ' AND '.join([
-            "(url || title) LIKE :pat{} escape '\\'".format(i)
-            for i in range(len(words))])
+        # build a where clause to match all of the words in any order
+        # given the search term "a b", the WHERE clause would be:
+        # ((url || title) like '%a%') AND ((url || title) LIKE '%b')
+        wheres = ' AND '.join(
+            "(url || title) LIKE :{} escape '\\'".format(i)
+            for i in range(len(words)))
 
         # replace ' in timestamp-format to avoid breaking the query
         timestamp_format = config.val.completion.timestamp_format
@@ -84,6 +87,8 @@ class HistoryCategory(QSqlQueryModel):
                    .format(timestamp_format.replace("'", "`")))
 
         if not self._query or len(wheres) != len(self._query.boundValues()):
+            # if the number of words changed, we need to generate a new query
+            # otherwise, we can reuse the prepared query for performance
             self._query = sql.Query(' '.join([
                 "SELECT url, title, {}".format(timefmt),
                 "FROM CompletionHistory",
@@ -96,7 +101,7 @@ class HistoryCategory(QSqlQueryModel):
 
         with debug.log_time('sql', 'Running completion query'):
             self._query.run(**{
-                'pat{}'.format(i): w for i, w in enumerate(words)})
+                str(i): w for i, w in enumerate(words)})
         self.setQuery(self._query)
 
     def removeRows(self, row, _count, _parent=None):
