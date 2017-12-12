@@ -101,6 +101,18 @@ qutebrowser is available in the official repositories:
 However, note that Fedora 25/26 won't be updated to qutebrowser v1.0, so you
 might want to <<tox,install qutebrowser via tox>> instead there.
 
+Additional hints
+~~~~~~~~~~~~~~~~
+
+Fedora only ships free software in the repositories.
+To be able to play videos with proprietary codecs with QtWebEngine, you will
+need to install an additional package from the RPM Fusion Free repository.
+For more information see https://rpmfusion.org/Configuration.
+
+-----
+# dnf install qt5-qtwebengine-freeworld
+-----
+
 On Archlinux
 ------------
 
