@@ -119,6 +119,7 @@ Fixed
 - Fixed crash when closing the tab an external editor was opened in.
 - When using `:search-next` before a search is finished, no warning about no
   results being found is shown anymore.
+- Fix :click-element with an ID containing non-alphanumeric characters.
 
 Deprecated
 ~~~~~~~~~~

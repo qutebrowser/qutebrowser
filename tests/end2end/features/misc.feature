@@ -449,6 +449,11 @@ Feature: Various utility commands.
         And I run :click-element id qute-input
         Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
 
+    Scenario: Clicking an element by ID with dot
+        When I open data/click_element.html
+        And I run :click-element id foo.bar
+        Then the javascript message "id with dot" should be logged
+
     Scenario: Clicking an element with tab target
         When I open data/click_element.html
         And I run :tab-only
