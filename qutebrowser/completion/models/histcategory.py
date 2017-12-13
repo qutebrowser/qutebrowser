@@ -75,7 +75,7 @@ class HistoryCategory(QSqlQueryModel):
         # build a where clause to match all of the words in any order
         # given the search term "a b", the WHERE clause would be:
         # ((url || title) LIKE '%a%') AND ((url || title) LIKE '%b%')
-        wheres = ' AND '.join(
+        where_clause = ' AND '.join(
             "(url || title) LIKE :{} escape '\\'".format(i)
             for i in range(len(words)))
 
@@ -84,7 +84,7 @@ class HistoryCategory(QSqlQueryModel):
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                    .format(timestamp_format.replace("'", "`")))
 
-        if not self._query or len(wheres) != len(self._query.boundValues()):
+        if not self._query or len(words) != len(self._query.boundValues()):
             # if the number of words changed, we need to generate a new query
             # otherwise, we can reuse the prepared query for performance
             self._query = sql.Query(' '.join([
@@ -92,7 +92,7 @@ class HistoryCategory(QSqlQueryModel):
                 "FROM CompletionHistory",
                 # the incoming pattern will have literal % and _ escaped
                 # we need to tell sql to treat '\' as an escape character
-                'WHERE ({})'.format(wheres),
+                'WHERE ({})'.format(where_clause),
                 self._atime_expr(),
                 "ORDER BY last_atime DESC",
             ]), forward_only=False)

@@ -93,6 +93,38 @@ def test_set_pattern(pattern, before, after, model_validator, hist):
     model_validator.validate(after)
 
 
+def test_set_pattern_repeated(model_validator, hist):
+    """Validate multiple subsequent calls to set_pattern."""
+    hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
+    hist.insert({'url': 'example.com/bar', 'title': 'title2', 'last_atime': 1})
+    hist.insert({'url': 'example.com/baz', 'title': 'title3', 'last_atime': 1})
+    cat = histcategory.HistoryCategory()
+    model_validator.set_model(cat)
+
+    cat.set_pattern('b')
+    model_validator.validate([
+        ('example.com/bar', 'title2'),
+        ('example.com/baz', 'title3'),
+    ])
+
+    cat.set_pattern('ba')
+    model_validator.validate([
+        ('example.com/bar', 'title2'),
+        ('example.com/baz', 'title3'),
+    ])
+
+    cat.set_pattern('ba ')
+    model_validator.validate([
+        ('example.com/bar', 'title2'),
+        ('example.com/baz', 'title3'),
+    ])
+
+    cat.set_pattern('ba z')
+    model_validator.validate([
+        ('example.com/baz', 'title3'),
+    ])
+
+
 @pytest.mark.parametrize('max_items, before, after', [
     (-1, [
         ('a', 'a', '2017-04-16'),
