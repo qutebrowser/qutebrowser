@@ -2307,6 +2307,7 @@ bindings.default:
       <Ctrl-C>: completion-item-yank
       <Ctrl-Shift-C>: completion-item-yank --sel
       <Return>: command-accept
+      <Ctrl-Return>: command-accept --rapid
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
       <Alt-B>: rl-backward-word

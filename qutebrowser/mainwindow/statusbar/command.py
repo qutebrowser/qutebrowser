@@ -156,8 +156,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
-    def command_accept(self):
-        """Execute the command currently in the commandline."""
+    def command_accept(self, rapid=False):
+        """Execute the command currently in the commandline.
+
+        Args:
+            rapid: Run the command without closing or clearing the command bar.
+        """
         prefixes = {
             ':': '',
             '/': 'search -- ',
@@ -165,7 +169,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
+        if not rapid:
+            modeman.leave(self._win_id, usertypes.KeyMode.command,
+                          'cmd accept')
         self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
 
     @cmdutils.register(instance='status-command', scope='window')
