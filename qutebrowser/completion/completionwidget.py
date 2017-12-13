@@ -162,6 +162,10 @@ class CompletionView(QTreeView):
             assert w >= 0, i
             self.setColumnWidth(i, w)
 
+    def scrollContentsBy(self, x, y):
+        # prevent horizontal panning of completion view (issue #3359)
+        super().scrollContentsBy(0, y)
+
     def _next_idx(self, upwards):
         """Get the previous/next QModelIndex displayed in the view.
 
