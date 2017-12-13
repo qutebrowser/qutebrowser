@@ -519,7 +519,9 @@ class SessionManager(QObject):
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))
         else:
-            if not quiet:
+            if quiet:
+                log.sessions.debug("Saved session {}.".format(name))
+            else:
                 message.info("Saved session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
