@@ -1175,7 +1175,8 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       debug=True)
     @cmdutils.argument('choice', completion=miscmodels.suggest)
     def suggest(self, command: str,
                 suggestions: str, choice: str):
@@ -1257,7 +1258,8 @@ class CommandDispatcher:
         """
         env = {
             'QUTE_MODE': 'command',
-            'QUTE_NATIVE_WID': str(int(self._tabbed_browser.winId()))
+            'QUTE_NATIVE_WID': str(int(
+                self._tabbed_browser.nativeParentWidget().winId())),
         }
 
         idx = self._current_index()
