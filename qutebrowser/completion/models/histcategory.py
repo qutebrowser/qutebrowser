@@ -19,8 +19,6 @@
 
 """A completion category that queries the SQL History store."""
 
-import re
-
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
