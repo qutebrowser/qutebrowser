@@ -34,7 +34,7 @@ def test_init(config_stub):
     # configdata.init() is called by config_stub
     config_stub.val.aliases = {}
     assert isinstance(configdata.DATA, dict)
-    assert 'ignore_case' in configdata.DATA
+    assert 'search.ignore_case' in configdata.DATA
 
 
 def test_data(config_stub):

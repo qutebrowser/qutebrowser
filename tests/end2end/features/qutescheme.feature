@@ -99,19 +99,19 @@ Feature: Special qute:// pages
     # qute://settings
 
     Scenario: Focusing input fields in qute://settings and entering valid value
-        When I set ignore_case to never
+        When I set search.ignore_case to never
         And I open qute://settings
         # scroll to the right - the table does not fit in the default screen
         And I run :scroll-to-perc -x 100
-        And I run :jseval document.getElementById('input-ignore_case').value = ''
-        And I run :click-element id input-ignore_case
+        And I run :jseval document.getElementById('input-search.ignore_case').value = ''
+        And I run :click-element id input-search.ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
         And I press the keys "always"
         And I press the key "<Escape>"
         # an explicit Tab to unfocus the input field seems to stabilize the tests
         And I press the key "<Tab>"
-        And I wait for "Config option changed: ignore_case *" in the log
-        Then the option ignore_case should be set to always
+        And I wait for "Config option changed: search.ignore_case *" in the log
+        Then the option search.ignore_case should be set to always
 
     # Sometimes, an unrelated value gets set
     @flaky
@@ -119,8 +119,8 @@ Feature: Special qute:// pages
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen
         And I run :scroll-to-perc -x 100
-        And I run :jseval document.getElementById('input-ignore_case').value = ''
-        And I run :click-element id input-ignore_case
+        And I run :jseval document.getElementById('input-search.ignore_case').value = ''
+        And I run :click-element id input-search.ignore_case
         And I wait for "Entering mode KeyMode.insert *" in the log
         And I press the keys "foo"
         And I press the key "<Escape>"

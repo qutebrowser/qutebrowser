@@ -34,6 +34,9 @@ history_gap_interval:
     `:history`. Use -1 to disable separation.
 
 ignore_case:
+  renamed: search.ignore_case
+
+search.ignore_case:
   type:
     name: String
     valid_values:
@@ -42,6 +45,11 @@ ignore_case:
       - smart: Search case-sensitively if there are capital characters.
   default: smart
   desc: When to find text on a page case-insensitively.
+
+search.incremental:
+  type: Bool
+  default: True
+  desc: Find text on a page incrementally, renewing the search for each typed character.
 
 new_instance_open_target:
   type:

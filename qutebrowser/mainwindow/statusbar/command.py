@@ -27,6 +27,7 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg, message
+from qutebrowser.config import config
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -66,6 +67,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
+        self.textChanged.connect(self._incremental_search)
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -238,3 +240,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text = 'x'
         width = self.fontMetrics().width(text)
         return QSize(width, height)
+
+    @pyqtSlot(str)
+    def _incremental_search(self, text):
+        if not config.val.search.incremental:
+            return
+
+        search_prefixes = {
+            '/': 'search -- ',
+            '?': 'search -r -- ',
+        }
+
+        if self.prefix() in ['/', '?']:
+            self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])

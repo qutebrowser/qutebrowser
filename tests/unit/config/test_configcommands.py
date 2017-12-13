@@ -281,7 +281,7 @@ class TestSource:
     def test_config_source(self, tmpdir, commands, config_stub, config_tmpdir,
                            use_default_dir, clear):
         assert config_stub.val.content.javascript.enabled
-        config_stub.val.ignore_case = 'always'
+        config_stub.val.search.ignore_case = 'always'
 
         if use_default_dir:
             pyfile = config_tmpdir / 'config.py'
@@ -295,7 +295,8 @@ class TestSource:
         commands.config_source(arg, clear=clear)
 
         assert not config_stub.val.content.javascript.enabled
-        assert config_stub.val.ignore_case == ('smart' if clear else 'always')
+        ignore_case = config_stub.val.search.ignore_case
+        assert ignore_case == ('smart' if clear else 'always')
 
     def test_errors(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
