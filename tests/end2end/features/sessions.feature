@@ -277,6 +277,11 @@ Feature: Saving and loading sessions
     Then the message "Saved session session_name." should be shown
     And the session session_name should exist
 
+  Scenario: Saving session with --quiet
+    When I run :session-save --quiet quiet_session
+    Then "Saved session quiet_session." should not be logged
+    And the session quiet_session should exist
+
   Scenario: Saving session with --only-active-window
     When I open data/numbers/1.txt
     And I open data/numbers/2.txt in a new tab
