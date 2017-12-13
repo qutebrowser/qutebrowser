@@ -199,7 +199,6 @@
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
-|<<ignore_case,ignore_case>>|When to find text on a page case-insensitively.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
@@ -222,6 +221,8 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
+|<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
+|<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
@@ -2326,20 +2327,6 @@ Type: <<types,Int>>
 
 Default: +pass:[30]+
 
-[[ignore_case]]
-=== ignore_case
-When to find text on a page case-insensitively.
-
-Type: <<types,String>>
-
-Valid values:
-
- * +always+: Search case-insensitively.
- * +never+: Search case-sensitively.
- * +smart+: Search case-sensitively if there are capital characters.
-
-Default: +pass:[smart]+
-
 [[input.forward_unbound_keys]]
 === input.forward_unbound_keys
 Which unbound keys to forward to the webview in normal mode.
@@ -2556,6 +2543,28 @@ Note smooth scrolling does not work with the `:scroll-px` command.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[search.ignore_case]]
+=== search.ignore_case
+When to find text on a page case-insensitively.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Search case-insensitively.
+ * +never+: Search case-sensitively.
+ * +smart+: Search case-sensitively if there are capital characters.
+
+Default: +pass:[smart]+
+
+[[search.incremental]]
+=== search.incremental
+Find text on a page incrementally, renewing the search for each typed character.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[session.default_name]]
 === session.default_name
