@@ -23,7 +23,7 @@ Userscript examples:
     :spawn --userscript /path/to/iframe
 
 Arguments:
-    OPTIONS  argument to append after ':open ',
+    OPTIONS  arguments to append after ':open ',
              e.g. "-t" to open the iframe in a new tab
 """
 import os
