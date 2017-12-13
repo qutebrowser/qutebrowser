@@ -69,7 +69,8 @@ def test_stdout_malformed_utf8(proc, qtbot, message_mock, py_proc):
                            order='strict'):
         argv = py_proc(r"""
             import sys
-            sys.stdout.buffer.write(b"A\x80B")
+            # Using \x81 because it's invalid in UTF-8 and CP1252
+            sys.stdout.buffer.write(b"A\x81B")
             sys.exit(0)
             """)
         proc.start(*argv)
