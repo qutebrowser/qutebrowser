@@ -58,14 +58,17 @@ Added
 - New `hist_importer.py` script to import history from Firefox/Chromium.
 - New `{protocol}` replacement for `tabs.title.format` and friends.
 - New `-o` flag for `:spawn` to show stdout/stderr in a new tab.
+- Support for incremental search, with a new `search.incremental` setting.
 
 Changed
 ~~~~~~~
 
-- Some tabs settings got renamed:
+- Some settings got renamed:
   * `tabs.width.bar` -> `tabs.width`
   * `tabs.width.indicator` -> `tabs.indicator.width`
   * `tabs.indicator_padding` -> `tabs.indicator.padding`
+  * `session_default_name` -> `session.default_name`
+  * `ignore_case` -> `search.ignore_case`
 - High-DPI favicons are now used when available.
 - The `asciidoc2html.py` script now uses Pygments (which is already a dependency
   of qutebrowser) instead of `source-highlight` for syntax highlighting.
