@@ -64,7 +64,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
 
 
 def test_stdout_malformed_utf8(proc, qtbot, message_mock, py_proc):
-    """Test simply starting a process."""
+    """Test handling malformed utf-8 in stdout."""
     with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc(r"""
