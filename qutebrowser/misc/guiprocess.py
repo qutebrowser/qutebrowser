@@ -19,6 +19,7 @@
 
 """A QProcess which shows notifications in the GUI."""
 
+import locale
 import shlex
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
@@ -98,10 +99,11 @@ class GUIProcess(QObject):
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
 
-        stderr = bytes(self._proc.readAllStandardError()).decode('utf-8',
-                                                                 'replace')
-        stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8',
-                                                                  'replace')
+        encoding = locale.getpreferredencoding(do_setlocale=False)
+        stderr = bytes(self._proc.readAllStandardError()).decode(
+            encoding, 'replace')
+        stdout = bytes(self._proc.readAllStandardOutput()).decode(
+            encoding, 'replace')
 
         qutescheme.spawn_output = self._spawn_format(code, status,
                                                      stdout, stderr)
