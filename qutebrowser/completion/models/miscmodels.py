@@ -19,6 +19,9 @@
 
 """Functions that return miscellaneous completion models."""
 
+import re
+import itertools
+
 from qutebrowser.config import configdata
 from qutebrowser.utils import objreg, log, message
 from qutebrowser.completion.models import completionmodel, listcategory, util
@@ -51,23 +54,54 @@ def suggest(*args, **kwargs):
     """A CompletionModel filled with already typed suggestions."""
     model = None
 
-    try:
-        cols = int(args[1])
-        col_size = int(100 / cols)
-        sep_sug = args[2]
-        sep_col = args[3]
-        model = completionmodel.CompletionModel(
-            column_widths=tuple(col_size for i in range(cols)))
-        raw = (args[4][1:-1]
-               if any(args[4].startswith(i) for i in ('"', "'"))
-               else args[4])
-        suggestions = (i.split(sep_col) for i in raw.split(sep_sug))
+    # if len(args) < 2:
+    #    message.error("Convert to test, shouldn't be possible;
+    #            first = command second = suggestions")
 
-        model.add_category(listcategory.ListCategory(
-            "Suggestions", suggestions))
-    except Exception as e:
-        message.error(
-            "Userscript likely passed invalid arguments: %s" % str(e))
+    cols = 1
+    suggestions = []
+    raw = (args[1][1:-1]
+           if any(args[1].startswith(i) for i in ('"', "'"))
+           else args[1])
+
+    # { \^n; | n mod 2 == 0 } -> ; isn't escaped
+    # the implementation is a little weird,
+    # so here's a little explaination:
+    # match r'(?!\\)(\\\\)*;' has to be written as
+    # r'(.*?(?<!\\)(?:\\{2})*);', because
+    # split keeps groups as additional elements
+    # of the resulting list
+    # and it also removes passive groups completely
+    # so we can't simply write
+    # r'(?!\\)(?:\\\\)*;'
+    # lookbehinds with dynamic size are also not supported
+    # so to split it correctly we match
+    # the string before our seperator in a group
+    # -> list: ['', 'match without ;', ...]
+    # result contains a few empty strings in a irregular sequence
+    # so we need to sort them out
+    for row in re.split(r'(.*?(?<!\\)(?:\\{2})*);', raw):
+        if not row:
+            continue
+
+        # { \^n, | n mod 2 == 0 } -> , isn't escaped
+        suggestions.append([
+            col.replace('\\\\', '\\')
+            .replace('\\,', ',')
+            .replace('\\;', ';')
+            for col in re.split(r'(.*?(?<!\\)(?:\\{2})*),', row)
+            if col
+        ])
+        cols = max(cols, len(suggestions[-1]))
+
+    col_size = int(100 / cols)
+    model = completionmodel.CompletionModel(
+        column_widths=tuple(itertools.chain(
+            (col_size + 100 - cols * col_size,),
+            (col_size if i + 1 < cols else 0
+             for i in range(2)))))
+    model.add_category(listcategory.ListCategory(
+        "Suggestions", suggestions))
 
     return model
 

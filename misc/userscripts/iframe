@@ -1,4 +1,31 @@
 #!/usr/bin/env python3
+# iframe is a userscript for qutebrowser,
+# it's an example / proof of work script for the suggest command
+# iframe searches every iframe of the current website
+# and offers to navigate to it
+# Copyright (C) 2017  Nico Baeurer
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""Usage: iframe [OPTIONS ...]
+
+Userscript examples:
+    :spawn --userscript /path/to/iframe
+
+Arguments:
+    OPTIONS  argument to append after ':open ',
+             e.g. "-t" to open the iframe in a new tab
+"""
 import os
 import sys
 import bs4
@@ -14,10 +41,11 @@ class StaticGetAttrType(type):
         return cls.__getstaticattr__(name)
 
 
-class Env(metaclass=StaticGetAttrType):
-    """Helper class which allows to access environment variables"""
+class Qenv(metaclass=StaticGetAttrType):
+    """Helper class which allows to
+    access qutebrowsers environment variables"""
     def __getstaticattr__(name):
-        return os.environ[name]
+        return os.environ['QUTE_' + name.upper()]
 
 
 def read(path):
@@ -30,17 +58,39 @@ def read(path):
         return '\n'.join(f.readlines())
 
 
-def qexec(*cmds):
+def qexec(cmd, *fmt_args, **fmt_kwargs):
     """Executes qutebrowser commands"""
-    with open(Env.QUTE_FIFO, 'w') as f:
-        for c in cmds:
-            f.write("{}\n".format(c))
+    with open(Qenv.fifo, 'w') as f:
+        f.write(cmd.format(*fmt_args, **fmt_kwargs) +
+                "\n")
+
+
+def escape(text):
+    """Escapes suggestions"""
+    for k, v in (('\\', '\\\\'), (',', '\\,'), (';', '\\;')):
+        text = text.replace(k, v)
+    return text
+
+
+def suggest(cmd, choices, **fmt_kwargs):
+    """Displays suggestions in qutebrowser
+
+    Args:
+        cmd (str):    Qutebrowser command
+        choices ((str, ...), ...):
+                      Suggestions as iterables
+        **fmt_kwargs: cmd's format kwargs
+    """
+    qexec(":set-cmd-text :suggest '{scmd}' '{choices}' '",
+          scmd=cmd.format(**fmt_kwargs),
+          choices=';'.join(','.join(escape(col) for col in row)
+                           for row in choices))
 
 
 if __name__ == '__main__':
-    soup = bs4.BeautifulSoup(read(Env.QUTE_HTML))
+    soup = bs4.BeautifulSoup(read(Qenv.html))
     elems = soup.find_all(["iframe"], src=re.compile(r"(?!javascript).+"))
 
-    qexec(":set-cmd-text :suggest :open 1 ; :: '{}' '".format(
-        ";".join(re.sub('^//', 'https://', e.attrs['src'])
-                 for e in elems)))
+    suggest(":open {options}",
+            ((re.sub('^//', 'https://', e.attrs['src']),) for e in elems),
+            options=" ".join(sys.argv[1:]))

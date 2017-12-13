@@ -135,6 +135,7 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         'bind': command.Command(name='bind', handler=bind),
         'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
     })
+    cmd_utils.quote = cmdutils.quote
     monkeypatch.setattr(completer, 'cmdutils', cmd_utils)
 
 

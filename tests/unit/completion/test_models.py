@@ -243,6 +243,40 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
     })
 
 
+@pytest.mark.parametrize('suggestions, expected', [
+    ('one;two;three', 
+        [('one', None, None),
+            ('three', None, None),
+            ('two', None, None),]),
+    ('one,eins;two,zwei;three,drei', 
+        [('one', 'eins', None),
+            ('three', 'drei', None),
+            ('two', 'zwei', None),]),
+    (r'one\,eins;two,zwei;three,drei', 
+        [('one,eins', None, None),
+            ('three', 'drei', None),
+            ('two', 'zwei', None),]),
+    (r'one\\,eins;two,zwei;three,drei', 
+        [('one\\', 'eins', None),
+            ('three', 'drei', None),
+            ('two', 'zwei', None),]),
+    (r'one\\\,eins;two,zwei;three,drei',
+        [('one\\,eins', None, None),
+            ('three', 'drei', None),
+            ('two', 'zwei', None),]),
+])
+def test_suggest_completion(qtmodeltester, suggestions, expected):
+    """Test the results of quickmark completion."""
+    model = miscmodels.suggest(*[':42', suggestions])
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        'Suggestions': expected
+    })
+
+
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
     model = miscmodels.quickmark()

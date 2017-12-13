@@ -1177,18 +1177,27 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('choice', completion=miscmodels.suggest)
-    def suggest(self, command: str, columns: int,
-                sep_suggestions: str, sep_columns: str,
+    def suggest(self, command: str,
                 suggestions: str, choice: str):
-        """Allows userscripts to let a user choose between extracted information.
+        """Offers userscripts the possibility to
+        let a user choose between information.
+        E.g.
+        - information extracted from the source code of the website
+        - more specific example: iframe urls
 
         Args:
             command: Qutebrowser command to run with the choice
-            columns: self-explanatory
-            sep_suggestions: charsequence which separates suggestions
-            sep_columns: charsequence which separates columns
-            suggestions: self-explanatory
-            choice: element of the first column or
+            suggestions: suggestions as table:
+                         - one suggestion per row
+                         - the first column will be used as suggested argument
+                         - additional columns can be used to
+                           deliver more information
+                         - columns are seperated by commas
+                         - rows / suggestions are seperated by semicolons
+                         - it's possible to escape backslashes,
+                           commas and semicolons with a backslash
+                         e.g. "1,eins;2,zwei;3,drei\, und etwas Text"
+            choice: first column of the selected row or
                     something else written by the user
         """
         runners.CommandRunner(self._win_id).run_safely(
@@ -1248,13 +1257,8 @@ class CommandDispatcher:
         """
         env = {
             'QUTE_MODE': 'command',
+            'QUTE_NATIVE_WID': str(int(self._tabbed_browser.winId()))
         }
-
-        try:
-            # not sure if int(winId()) is safe to call on every os.
-            env['QUTE_WID'] = str(int(self._tabbed_browser.winId()))
-        except Exception:
-            pass
 
         idx = self._current_index()
         if idx != -1:
