@@ -63,21 +63,6 @@ def test_start(proc, qtbot, message_mock, py_proc):
     assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
-def test_stdout_malformed_utf8(proc, qtbot, message_mock, py_proc):
-    """Test handling malformed utf-8 in stdout."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
-                           order='strict'):
-        argv = py_proc(r"""
-            import sys
-            # Using \x81 because it's invalid in UTF-8 and CP1252
-            sys.stdout.buffer.write(b"A\x81B")
-            sys.exit(0)
-            """)
-        proc.start(*argv)
-    assert not message_mock.messages
-    assert qutescheme.spawn_output == proc._spawn_format(stdout="A\ufffdB")
-
-
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
     """Test starting a process verbosely."""
     proc.verbose = True
@@ -239,3 +224,18 @@ def test_exit_successful_output(qtbot, proc, py_proc, stream):
             print("test", file=sys.{})
             sys.exit(0)
         """.format(stream)))
+
+
+def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
+    """Test handling malformed utf-8 in stdout."""
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
+        argv = py_proc(r"""
+            import sys
+            # Using \x81 because it's invalid in UTF-8 and CP1252
+            sys.stdout.buffer.write(b"A\x81B")
+            sys.exit(0)
+            """)
+        proc.start(*argv)
+    assert not message_mock.messages
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="A\ufffdB")
