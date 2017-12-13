@@ -74,7 +74,7 @@ class HistoryCategory(QSqlQueryModel):
 
         # build a where clause to match all of the words in any order
         # given the search term "a b", the WHERE clause would be:
-        # ((url || title) LIKE '%a%') AND ((url || title) LIKE '%b')
+        # ((url || title) LIKE '%a%') AND ((url || title) LIKE '%b%')
         wheres = ' AND '.join(
             "(url || title) LIKE :{} escape '\\'".format(i)
             for i in range(len(words)))
