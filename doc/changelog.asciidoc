@@ -102,6 +102,8 @@ Changed
 - Search terms for URLs and titles can now be mixed when filtering the
   completion.
 - The default font size for the UI got bumped up from 8pt to 10pt.
+- Improved matching in the completion: The words entered are now matched in any
+  order, and mixed matches on URL/tite are possible.
 
 Fixed
 ~~~~~
