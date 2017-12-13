@@ -90,8 +90,8 @@ class TestLogTime:
 
             assert len(caplog.records) == 1
 
-            pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-            match = pattern.match(caplog.records[0].msg)
+            pattern = re.compile(r'Foobar took ([\d.]*) seconds\.')
+            match = pattern.fullmatch(caplog.records[0].msg)
             assert match
 
             duration = float(match.group(1))

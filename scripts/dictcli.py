@@ -142,7 +142,7 @@ def parse_entry(entry):
     dict_re = re.compile(r"""
         (?P<filename>(?P<code>[a-z]{2}(-[A-Z]{2})?).*)\.bdic
     """, re.VERBOSE)
-    match = dict_re.match(entry['name'])
+    match = dict_re.fullmatch(entry['name'])
     if match is not None:
         return match.group('code'), match.group('filename')
     else:

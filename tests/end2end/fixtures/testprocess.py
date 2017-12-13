@@ -335,7 +335,7 @@ class Process(QObject):
         if expected is None:
             return True
         elif isinstance(expected, regex_type):
-            return expected.match(value)
+            return expected.search(value)
         elif isinstance(value, (bytes, str)):
             return utils.pattern_match(pattern=expected, value=value)
         else:

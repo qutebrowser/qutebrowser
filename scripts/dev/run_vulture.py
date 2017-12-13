@@ -133,7 +133,7 @@ def filter_func(item):
         True if the missing function should be filtered/ignored, False
         otherwise.
     """
-    return bool(re.match(r'[a-z]+[A-Z][a-zA-Z]+', item.name))
+    return bool(re.fullmatch(r'[a-z]+[A-Z][a-zA-Z]+', item.name))
 
 
 def report(items):

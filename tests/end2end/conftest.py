@@ -74,7 +74,7 @@ def _get_version_tag(tag):
         (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
 
-    match = version_re.match(tag)
+    match = version_re.fullmatch(tag)
     if not match:
         return None
 
@@ -125,7 +125,7 @@ def _get_dictionary_tag(tag):
         (?P<event>must_have_dict|cannot_have_dict)=(?P<dict>[a-z]{2}-[A-Z]{2})
     """, re.VERBOSE)
 
-    match = dict_re.match(tag)
+    match = dict_re.fullmatch(tag)
     if not match:
         return None
 

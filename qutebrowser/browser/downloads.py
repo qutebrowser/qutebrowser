@@ -180,7 +180,7 @@ def transform_path(path):
     path = utils.expand_windows_drive(path)
     # Drive dependent working directories are not supported, e.g.
     # E:filename is invalid
-    if re.match(r'[A-Z]:[^\\]', path, re.IGNORECASE):
+    if re.search(r'^[A-Z]:[^\\]', path, re.IGNORECASE):
         return None
     # Paths like COM1, ...
     # See https://github.com/qutebrowser/qutebrowser/issues/82

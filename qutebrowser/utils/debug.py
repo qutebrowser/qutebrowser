@@ -184,7 +184,7 @@ def signal_name(sig):
     Return:
         The cleaned up signal name.
     """
-    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
+    m = re.fullmatch(r'[0-9]+(.*)\(.*\)', sig.signal)
     return m.group(1)
 
 

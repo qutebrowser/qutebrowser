@@ -154,17 +154,17 @@ class AsciiDoc:
                     hidden = False
                 elif line == "The Compiler <mail@qutebrowser.org>\n":
                     continue
-                elif re.match(r'^:\w+:.*', line):
+                elif re.fullmatch(r':\w+:.*', line):
                     # asciidoc field
                     continue
 
                 if not found_title:
-                    if re.match(r'^=+$', line):
+                    if re.fullmatch(r'=+', line):
                         line = line.replace('=', '-')
                         found_title = True
                         title = last_line.rstrip('\n') + " | qutebrowser\n"
                         title += "=" * (len(title) - 1)
-                    elif re.match(r'^= .+', line):
+                    elif re.fullmatch(r'= .+', line):
                         line = '==' + line[1:]
                         found_title = True
                         title = last_line.rstrip('\n') + " | qutebrowser\n"
