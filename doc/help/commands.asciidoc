@@ -334,11 +334,9 @@ Write the current configuration to a config.py file.
 
 [[download]]
 === download
-Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url'] ['dest-old']+
+Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url']+
 
 Download a given URL, or current page if no URL given.
-
-The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [url]` instead.
 
 ==== positional arguments
 * +'url'+: The URL to download. If not given, download the current page.

@@ -142,6 +142,8 @@ Removed
 
 - The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
   commands have been removed.
+- The invocation `:download <url> <dest>` which was deprecated in v0.5.0 was
+  removed, use `:download --dest <dest> <url>` instead.
 - The `messages.unfocused` option which wasn't used anymore was removed.
 - The `x[xtb]` default bindings got removed again as many users accidentally
   triggered them.

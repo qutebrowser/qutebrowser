@@ -242,15 +242,6 @@ Feature: Downloading things from a website.
 
     ## Wrong invocations
 
-    Scenario: :download with deprecated dest-old argument
-        When I run :download http://localhost:(port)/ deprecated-argument
-        Then the warning ":download [url] [dest] is deprecated - use :download --dest [dest] [url]" should be shown
-
-    Scenario: Two destinations given
-        When I run :download --dest destination2 http://localhost:(port)/ destination1
-        Then the warning ":download [url] [dest] is deprecated - use :download --dest [dest] [url]" should be shown
-        And the error "Can't give two destinations for the download." should be shown
-
     Scenario: :download --mhtml with a URL given
         When I run :download --mhtml http://foobar/
         Then the error "Can only download the current page as mhtml." should be shown
