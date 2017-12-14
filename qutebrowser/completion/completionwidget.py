@@ -300,9 +300,7 @@ class CompletionView(QTreeView):
 
         model.setParent(self)
         self._active = True
-        self._maybe_show()
 
-        self._resize_columns()
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
@@ -381,6 +379,7 @@ class CompletionView(QTreeView):
         scrollbar = self.verticalScrollBar()
         if scrollbar is not None:
             scrollbar.setValue(scrollbar.minimum())
+        self._resize_columns()
         super().showEvent(e)
 
     @cmdutils.register(instance='completion',
