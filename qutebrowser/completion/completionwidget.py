@@ -23,7 +23,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
+from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config
@@ -152,7 +152,7 @@ class CompletionView(QTreeView):
         column_widths = self.model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
-        delta = self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
+        delta = self.verticalScrollBar().sizeHint().width()
         if pixel_widths[-1] > delta:
             pixel_widths[-1] -= delta
         else:
