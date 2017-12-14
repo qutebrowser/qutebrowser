@@ -427,6 +427,7 @@ Default:
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
 * +pass:[&lt;Ctrl-N&gt;]+: +pass:[command-history-next]+
 * +pass:[&lt;Ctrl-P&gt;]+: +pass:[command-history-prev]+
+* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[command-accept --rapid]+
 * +pass:[&lt;Ctrl-Shift-C&gt;]+: +pass:[completion-item-yank --sel]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+

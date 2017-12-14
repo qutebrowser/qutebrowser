@@ -59,6 +59,8 @@ Added
 - New `{protocol}` replacement for `tabs.title.format` and friends.
 - New `-o` flag for `:spawn` to show stdout/stderr in a new tab.
 - Support for incremental search, with a new `search.incremental` setting.
+- New `--rapid` flag for `:command-accept` (bound to `Ctrl-Enter` by default),
+  which allows executing a command in the completion without closing it.
 
 Changed
 ~~~~~~~

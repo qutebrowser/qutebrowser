@@ -1423,7 +1423,12 @@ How many steps to zoom out.
 |==============
 [[command-accept]]
 === command-accept
+Syntax: +:command-accept [*--rapid*]+
+
 Execute the command currently in the commandline.
+
+==== optional arguments
+* +*-r*+, +*--rapid*+: Run the command without closing or clearing the command bar.
 
 [[command-history-next]]
 === command-history-next
