@@ -21,7 +21,7 @@ Those distributions only have Python 3.4 and a too old Qt version available,
 while qutebrowser requires Python 3.5 and Qt 5.7.1 or newer.
 
 It should be possible to install Python 3.5 e.g. from the
-https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or via_ipca
+https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or via
 https://github.com/pyenv/pyenv[pyenv], but nobody tried that yet.
 
 If you get qutebrowser running on those distributions, please
@@ -78,8 +78,7 @@ $ python3 scripts/asciidoc2html.py
 ----
 
 - If you prefer using QtWebKit, there's an up-to-date version available in
-  Debian experimental, or from http://repo.paretje.be/unstable/[this repository]
-  for Debian Stretch.
+  https://packages.debian.org/buster/libqt5webkit5[Debian Testing].
 - If video or sound don't work with QtWebKit, try installing the gstreamer plugins:
 +
 ----
