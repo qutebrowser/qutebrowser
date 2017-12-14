@@ -60,7 +60,7 @@ class Error(Exception):
     pass
 
 
-class OrphanedError(Exception):
+class OrphanedError(Error):
 
     """Raised when a webelement's parent has vanished."""
 
