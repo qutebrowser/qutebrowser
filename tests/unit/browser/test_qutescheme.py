@@ -118,7 +118,7 @@ class TestHistoryHandler:
         (72*60*60, 0)
     ])
     def test_qutehistory_data(self, start_time_offset, expected_item_count,
-            now):
+                              now):
         """Ensure qute://history/data returns correct items."""
         start_time = now - start_time_offset
         url = QUrl("qute://history/data?start_time=" + str(start_time))

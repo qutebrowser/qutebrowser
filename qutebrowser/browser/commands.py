@@ -673,7 +673,7 @@ class CommandDispatcher:
                 self._open(new_url, tab, bg, window, related=True)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
-                                "`where'.".format(where))
+                                 "`where'.".format(where))
         except navigate.Error as e:
             raise cmdexc.CommandError(e)
 
@@ -1738,7 +1738,7 @@ class CommandDispatcher:
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
             message.warning("Text '{}' not found on page!".format(text),
-                replace=True)
+                            replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)

@@ -160,7 +160,7 @@ def _set_cmd_prompt(cmd, txt):
     (':set general editor |', 'value', '', ['general', 'editor']),
     (':set general editor gv|', 'value', 'gv', ['general', 'editor']),
     (':set general editor "gvim -f"|', 'value', 'gvim -f',
-        ['general', 'editor']),
+     ['general', 'editor']),
     (':set general editor "gvim |', 'value', 'gvim', ['general', 'editor']),
     (':set general huh |', 'value', '', ['general', 'huh']),
     (':help |', 'helptopic', '', []),

@@ -627,7 +627,7 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
     _check_completions(model, {
         'Windows': [
             ('0', 'window title - qutebrowser',
-                'GitHub, Wikipedia, DuckDuckGo'),
+             'GitHub, Wikipedia, DuckDuckGo'),
         ]
     })
 
@@ -642,11 +642,11 @@ def test_setting_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings',
+            ('bindings.commands', 'Default keybindings', (
                 '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit", '
-                '"I": "invalid", "d": "scroll down"}}'),
+                '"I": "invalid", "d": "scroll down"}}')),
             ('bindings.default', 'Default keybindings',
-                '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
+             '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
         ]
     })
 

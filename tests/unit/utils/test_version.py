@@ -467,12 +467,12 @@ def test_path_info(monkeypatch, equal):
         equal: Whether system data / data and system config / config are equal.
     """
     patches = {
-        'config': lambda auto=False:
+        'config': lambda auto=False: (
             'AUTO CONFIG PATH' if auto and not equal
-            else 'CONFIG PATH',
-        'data': lambda system=False:
+            else 'CONFIG PATH'),
+        'data': lambda system=False: (
             'SYSTEM DATA PATH' if system and not equal
-            else 'DATA PATH',
+            else 'DATA PATH'),
         'cache': lambda: 'CACHE PATH',
         'runtime': lambda: 'RUNTIME PATH',
     }

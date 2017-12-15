@@ -376,7 +376,7 @@ class TestKeyEventToString:
     ('<Control-x>', utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')),
     ('<Meta-x>', utils.KeyInfo(Qt.Key_X, Qt.MetaModifier, '')),
     ('<Ctrl-Alt-y>',
-        utils.KeyInfo(Qt.Key_Y, Qt.ControlModifier | Qt.AltModifier, '')),
+     utils.KeyInfo(Qt.Key_Y, Qt.ControlModifier | Qt.AltModifier, '')),
     ('x', utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')),
     ('X', utils.KeyInfo(Qt.Key_X, Qt.ShiftModifier, 'X')),
     ('<Escape>', utils.KeyInfo(Qt.Key_Escape, Qt.NoModifier, '')),

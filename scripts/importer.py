@@ -246,29 +246,29 @@ def import_netscape_bookmarks(bookmarks_file, bookmark_types, output_format):
 def import_moz_places(profile, bookmark_types, output_format):
     """Import bookmarks from a Mozilla profile's places.sqlite database."""
     place_query = {
-        'bookmark':
-        ("SELECT DISTINCT moz_bookmarks.title,moz_places.url "
-         "FROM moz_bookmarks,moz_places "
-         "WHERE moz_places.id=moz_bookmarks.fk "
-         "AND moz_places.id NOT IN (SELECT place_id FROM moz_keywords) "
-         "AND moz_places.url NOT LIKE 'place:%';"
-         ),  # Bookmarks with no keywords assigned
-        'keyword':
-        ("SELECT moz_keywords.keyword,moz_places.url "
-         "FROM moz_keywords,moz_places,moz_bookmarks "
-         "WHERE moz_places.id=moz_bookmarks.fk "
-         "AND moz_places.id=moz_keywords.place_id "
-         "AND moz_places.url NOT LIKE '%!%s%' ESCAPE '!';"
-         ),  # Bookmarks with keywords assigned but no %s substitution
-        'search':
-        ("SELECT moz_keywords.keyword, "
-         "    moz_bookmarks.title, "
-         "    search_conv(moz_places.url) AS url "
-         "FROM moz_keywords,moz_places,moz_bookmarks "
-         "WHERE moz_places.id=moz_bookmarks.fk "
-         "AND moz_places.id=moz_keywords.place_id "
-         "AND moz_places.url LIKE '%!%s%' ESCAPE '!';"
-         )  # bookmarks with keyword and %s substitution
+        'bookmark': (
+            "SELECT DISTINCT moz_bookmarks.title,moz_places.url "
+            "FROM moz_bookmarks,moz_places "
+            "WHERE moz_places.id=moz_bookmarks.fk "
+            "AND moz_places.id NOT IN (SELECT place_id FROM moz_keywords) "
+            "AND moz_places.url NOT LIKE 'place:%';"
+        ),  # Bookmarks with no keywords assigned
+        'keyword': (
+            "SELECT moz_keywords.keyword,moz_places.url "
+            "FROM moz_keywords,moz_places,moz_bookmarks "
+            "WHERE moz_places.id=moz_bookmarks.fk "
+            "AND moz_places.id=moz_keywords.place_id "
+            "AND moz_places.url NOT LIKE '%!%s%' ESCAPE '!';"
+        ),  # Bookmarks with keywords assigned but no %s substitution
+        'search': (
+            "SELECT moz_keywords.keyword, "
+            "    moz_bookmarks.title, "
+            "    search_conv(moz_places.url) AS url "
+            "FROM moz_keywords,moz_places,moz_bookmarks "
+            "WHERE moz_places.id=moz_bookmarks.fk "
+            "AND moz_places.id=moz_keywords.place_id "
+            "AND moz_places.url LIKE '%!%s%' ESCAPE '!';"
+        )  # bookmarks with keyword and %s substitution
     }
     out_template = {
         'bookmark': {

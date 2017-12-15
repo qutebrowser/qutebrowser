@@ -31,7 +31,8 @@ from qutebrowser.utils import qtutils
 from qutebrowser.commands import cmdexc
 
 
-@hypothesis.given(strategies.lists(min_size=0, max_size=3,
+@hypothesis.given(strategies.lists(
+    min_size=0, max_size=3,
     elements=strategies.integers(min_value=0, max_value=2**31)))
 def test_first_last_item(counts):
     """Test that first() and last() index to the first and last items."""

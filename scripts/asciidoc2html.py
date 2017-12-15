@@ -86,9 +86,9 @@ class AsciiDoc:
         # patch image links to use local copy
         replacements = [
             ("https://qutebrowser.org/img/cheatsheet-big.png",
-                "qute://help/img/cheatsheet-big.png"),
+             "qute://help/img/cheatsheet-big.png"),
             ("https://qutebrowser.org/img/cheatsheet-small.png",
-                "qute://help/img/cheatsheet-small.png")
+             "qute://help/img/cheatsheet-small.png")
         ]
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 
@@ -211,9 +211,8 @@ class AsciiDoc:
             shutil.copytree(src, full_dest)
 
         for dst, link_name in [
-            ('README.html', 'index.html'),
-            (os.path.join('doc', 'quickstart.html'), 'quickstart.html'),
-        ]:
+                ('README.html', 'index.html'),
+                (os.path.join('doc', 'quickstart.html'), 'quickstart.html')]:
             try:
                 os.symlink(dst, os.path.join(outdir, link_name))
             except FileExistsError:

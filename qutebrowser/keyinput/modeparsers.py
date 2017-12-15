@@ -71,7 +71,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
-                "currently inhibited.".format(txt))
+                            "currently inhibited.".format(txt))
             return self.Match.none
         match = super()._handle_single_key(e)
         if match == self.Match.partial:

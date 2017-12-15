@@ -564,8 +564,8 @@ class Quitter:
             cwd = os.path.abspath(os.path.dirname(sys.executable))
         else:
             args = [sys.executable, '-m', 'qutebrowser']
-            cwd = os.path.join(os.path.abspath(os.path.dirname(
-                               qutebrowser.__file__)), '..')
+            cwd = os.path.join(
+                os.path.abspath(os.path.dirname(qutebrowser.__file__)), '..')
             if not os.path.isdir(cwd):
                 # Probably running from a python egg. Let's fallback to
                 # cwd=None and see if that works out.

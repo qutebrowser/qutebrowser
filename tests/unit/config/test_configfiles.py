@@ -213,7 +213,7 @@ class TestYaml:
         ('%', 'While parsing', 'while scanning a directive'),
         ('global: 42', 'While loading data', "'global' object is not a dict"),
         ('foo: 42', 'While loading data',
-        "Toplevel object does not contain 'global' key"),
+         "Toplevel object does not contain 'global' key"),
         ('42', 'While loading data', "Toplevel object is not a dict"),
     ])
     def test_invalid(self, yaml, config_tmpdir, line, text, exception):
@@ -318,8 +318,9 @@ class TestConfigPyModules:
         sys.path = old_path
 
     def test_bind_in_module(self, confpy, qbmodulepy, tmpdir):
-        qbmodulepy.write('def run(config):',
-        '    config.bind(",a", "message-info foo", mode="normal")')
+        qbmodulepy.write(
+            'def run(config):',
+            '    config.bind(",a", "message-info foo", mode="normal")')
         confpy.write_qbmodule()
         confpy.read()
         expected = {'normal': {',a': 'message-info foo'}}

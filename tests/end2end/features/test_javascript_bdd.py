@@ -65,4 +65,4 @@ def create_greasemonkey_file(quteproc, stage, frameset):
                          "not {}".format(frameset))
     with open(file_path, 'w', encoding='utf-8') as f:
         f.write(test_gm_script.format(stage=stage,
-                                     frames=frames))
+                                      frames=frames))

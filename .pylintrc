@@ -16,7 +16,6 @@ enable=all
 disable=fixme,
         no-self-use,
         cyclic-import,
-        bad-continuation,
         blacklisted-name,
         logging-format-interpolation,
         broad-except,

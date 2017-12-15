@@ -206,7 +206,7 @@ class Completer(QObject):
             log.completion.debug("Ignoring update because the length of "
                                  "the text is less than completion.min_chars.")
         elif (self._cmd.cursorPosition() == self._last_cursor_pos and
-                self._cmd.text() == self._last_text):
+              self._cmd.text() == self._last_text):
             log.completion.debug("Ignoring update because there were no "
                                  "changes.")
         else:
@@ -247,8 +247,8 @@ class Completer(QObject):
         if func != self._last_completion_func:
             self._last_completion_func = func
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
-            with debug.log_time(log.completion,
-                    'Starting {} completion'.format(func.__name__)):
+            with debug.log_time(log.completion, 'Starting {} completion'
+                                .format(func.__name__)):
                 info = CompletionInfo(config=config.instance,
                                       keyconf=config.key_instance,
                                       win_id=self._win_id)

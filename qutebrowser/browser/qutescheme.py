@@ -139,7 +139,7 @@ def data_for_url(url):
         A (mimetype, data) tuple.
     """
     norm_url = url.adjusted(QUrl.NormalizePathSegments |
-            QUrl.StripTrailingSlash)
+                            QUrl.StripTrailingSlash)
     if norm_url != url:
         raise Redirect(norm_url)
 
@@ -455,7 +455,7 @@ def qute_configdiff(url):
             return 'text/html', configdiff.get_diff()
         except OSError as e:
             error = (b'Failed to read old config: ' +
-                    str(e.strerror).encode('utf-8'))
+                     str(e.strerror).encode('utf-8'))
             return 'text/plain', error
     else:
         data = config.instance.dump_userconfig().encode('utf-8')

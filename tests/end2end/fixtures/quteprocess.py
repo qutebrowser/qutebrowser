@@ -154,7 +154,7 @@ def is_ignored_chromium_message(line):
         'Invalid node channel message *',
         # Makes tests fail on Quantumcross' machine
         ('CreatePlatformSocket() returned an error, errno=97: Address family'
-            'not supported by protocol'),
+         'not supported by protocol'),
 
         # Qt 5.9 with debug Chromium
 
@@ -169,7 +169,7 @@ def is_ignored_chromium_message(line):
         # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/
         # downloads/download.bin: Operation not supported
         ('Could not set extended attribute user.xdg.* on file *: '
-            'Operation not supported'),
+         'Operation not supported'),
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
@@ -357,9 +357,10 @@ class QuteProc(testprocess.Process):
             if not self._load_ready:
                 log_line.waited_for = True
             self._is_ready('load')
-        elif log_line.category == 'misc' and any(testutils.pattern_match(
-                pattern=pattern, value=log_line.message) for pattern in
-                start_okay_messages_focus):
+        elif (log_line.category == 'misc' and any(
+                testutils.pattern_match(pattern=pattern,
+                                        value=log_line.message)
+                for pattern in start_okay_messages_focus)):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and

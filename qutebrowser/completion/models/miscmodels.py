@@ -123,7 +123,7 @@ def _buffer(skip_win_id=None):
                          tab.url().toDisplayString(),
                          tabbed_browser.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
-            delete_func=delete_buffer)
+                                        delete_func=delete_buffer)
         model.add_category(cat)
 
     return model

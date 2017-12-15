@@ -340,13 +340,13 @@ class TestBaseType:
     @pytest.mark.parametrize('valid_values, completions', [
         # Without description
         (['foo', 'bar'],
-            [('foo', ''), ('bar', '')]),
+         [('foo', ''), ('bar', '')]),
         # With description
         ([('foo', "foo desc"), ('bar', "bar desc")],
-            [('foo', "foo desc"), ('bar', "bar desc")]),
+         [('foo', "foo desc"), ('bar', "bar desc")]),
         # With mixed description
         ([('foo', "foo desc"), 'bar'],
-            [('foo', "foo desc"), ('bar', "")]),
+         [('foo', "foo desc"), ('bar', "")]),
     ])
     def test_complete_without_desc(self, klass, valid_values, completions):
         """Test complete with valid_values set without description."""
@@ -489,9 +489,9 @@ class TestString:
 
     @pytest.mark.parametrize('valid_values, expected', [
         (configtypes.ValidValues('one', 'two'),
-            [('one', ''), ('two', '')]),
+         [('one', ''), ('two', '')]),
         (configtypes.ValidValues(('1', 'one'), ('2', 'two')),
-            [('1', 'one'), ('2', 'two')]),
+         [('1', 'one'), ('2', 'two')]),
     ])
     def test_complete_valid_values(self, klass, valid_values, expected):
         assert klass(valid_values=valid_values).complete() == expected
@@ -1853,14 +1853,14 @@ class TestProxy:
         ('system', configtypes.SYSTEM_PROXY),
         ('none', QNetworkProxy(QNetworkProxy.NoProxy)),
         ('socks://example.com/',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
         ('socks5://foo:bar@example.com:2323',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
-                          'foo', 'bar')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                       'foo', 'bar')),
         ('pac+http://example.com/proxy.pac',
-            pac.PACFetcher(QUrl('pac+http://example.com/proxy.pac'))),
+         pac.PACFetcher(QUrl('pac+http://example.com/proxy.pac'))),
         ('pac+file:///tmp/proxy.pac',
-            pac.PACFetcher(QUrl('pac+file:///tmp/proxy.pac'))),
+         pac.PACFetcher(QUrl('pac+file:///tmp/proxy.pac'))),
     ])
     def test_to_py_valid(self, klass, val, expected):
         actual = klass().to_py(val)

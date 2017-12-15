@@ -192,7 +192,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         log.url.debug("URL is a fuzzy address")
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
-                  urlstr, url.toDisplayString()))
+        urlstr, url.toDisplayString()))
     if do_search and config.val.url.auto_search != 'never' and urlstr:
         qtutils.ensure_valid(url)
     else:
@@ -241,7 +241,7 @@ def is_url(urlstr):
     autosearch = config.val.url.auto_search
 
     log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
-                  urlstr, autosearch))
+        urlstr, autosearch))
 
     urlstr = urlstr.strip()
     qurl = QUrl(urlstr)

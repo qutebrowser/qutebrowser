@@ -143,11 +143,11 @@ class TestEarlyInit:
             suffix = ' (autoconfig.yml)' if config_py else ''
             if invalid_yaml == '42':
                 error = ("While loading data{}: Toplevel object is not a dict"
-                        .format(suffix))
+                         .format(suffix))
                 expected_errors.append(error)
             elif invalid_yaml == 'wrong-type':
                 error = ("Error{}: Invalid value 'True' - expected a value of "
-                        "type str but got bool.".format(suffix))
+                         "type str but got bool.".format(suffix))
                 expected_errors.append(error)
             elif invalid_yaml == 'unknown':
                 error = ("While loading options{}: Unknown option "

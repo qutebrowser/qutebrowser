@@ -992,7 +992,7 @@ class DownloadModel(QAbstractListModel):
                 if not count:
                     count = len(self)
                 raise cmdexc.CommandError("Download {} is already done!"
-                                        .format(count))
+                                          .format(count))
             download.cancel()
 
     @cmdutils.register(instance='download-model', scope='window')

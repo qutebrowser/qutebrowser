@@ -60,7 +60,8 @@ def value(optname, *_values, info):
 
     opt = info.config.get_opt(optname)
     default = opt.typ.to_str(opt.default)
-    cur_cat = listcategory.ListCategory("Current/Default",
+    cur_cat = listcategory.ListCategory(
+        "Current/Default",
         [(current, "Current value"), (default, "Default value")])
     model.add_category(cur_cat)
 

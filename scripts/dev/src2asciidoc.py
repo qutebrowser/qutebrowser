@@ -257,7 +257,7 @@ def _get_command_doc_count(cmd, parser):
                 yield parser.arg_descs[param.name]
             except KeyError as e:
                 raise KeyError("No description for count arg {!r} of command "
-                              "{!r}!".format(param.name, cmd.name)) from e
+                               "{!r}!".format(param.name, cmd.name)) from e
 
 
 def _get_command_doc_notes(cmd):

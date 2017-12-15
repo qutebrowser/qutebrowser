@@ -241,8 +241,8 @@ def test_log_line_parse(data, attrs):
     pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
-         'message': 'quux', 'traceback': 'Traceback (most recent call '
-         'last):\n here be dragons'},
+         'message': 'quux', 'traceback': ('Traceback (most recent call '
+                                          'last):\n here be dragons')},
         False, False,
         '{timestamp} DEBUG    foo        bar:qux:10 quux\n'
         'Traceback (most recent call last):\n'

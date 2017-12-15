@@ -254,7 +254,7 @@ def register(name, obj, update=False, scope=None, registry=None, window=None,
         reg = _get_registry(scope, window, tab)
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
-                       name, repr(reg[name])))
+            name, repr(reg[name])))
     reg[name] = obj
 
 
