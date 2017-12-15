@@ -341,7 +341,7 @@ class WebHistory(sql.SqlTable):
                 f.write('\n'.join(lines))
             message.info("Dumped history to {}".format(dest))
         except OSError as e:
-            raise cmdexc.CommandError('Could not write history: {}', e)
+            raise cmdexc.CommandError('Could not write history: {}'.format(e))
 
 
 def init(parent=None):
