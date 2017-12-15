@@ -103,6 +103,8 @@ def immediate_download_path(prompt_download_directory=None):
     if not prompt_download_directory:
         return download_dir()
 
+    return None
+
 
 def _path_suggestion(filename):
     """Get the suggested file path.

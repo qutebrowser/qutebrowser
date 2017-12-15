@@ -190,6 +190,7 @@ class Command:
             return True
         elif arg_info.win_id:
             return True
+        return False
 
     def _inspect_func(self):
         """Inspect the function to get useful informations from it.

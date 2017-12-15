@@ -107,12 +107,14 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
                 """Call the underlying function."""
                 if self._check_match(option):
                     return func()
+                return None
         else:
             @functools.wraps(func)
             def wrapper(wrapper_self, option=None):
                 """Call the underlying function."""
                 if self._check_match(option):
                     return func(wrapper_self)
+                return None
 
         return wrapper
 
@@ -463,7 +465,8 @@ class ConfigContainer:
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
         if attr.startswith('_'):
-            return super().__setattr__(attr, value)
+            super().__setattr__(attr, value)
+            return
 
         name = self._join(attr)
         with self._handle_error('setting', name):

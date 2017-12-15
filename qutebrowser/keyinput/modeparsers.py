@@ -218,7 +218,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             self._last_press = LastPress.none
             return True
         elif match == self.Match.other:
-            pass
+            return None
         elif match == self.Match.none:
             # We couldn't find a keychain so we check if it's a special key.
             return self._handle_special_key(e)

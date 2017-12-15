@@ -270,6 +270,7 @@ class _ContentDisposition:
         elif 'filename' in self.assocs:
             # XXX Reject non-ascii (parsed via qdtext) here?
             return self.assocs['filename']
+        return None
 
     def is_inline(self):
         """Return if the file should be handled inline.

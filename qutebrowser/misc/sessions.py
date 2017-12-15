@@ -291,7 +291,7 @@ class SessionManager(QObject):
             data = self._last_window_session
             if data is None:
                 log.sessions.error("last_window_session is None while saving!")
-                return
+                return None
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)

@@ -303,8 +303,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """Handle QNetworkReply errors."""
         if code == QNetworkReply.OperationCanceledError:
             return
-        else:
-            self._die(self._reply.errorString())
+        self._die(self._reply.errorString())
 
     @pyqtSlot()
     def _on_read_timer_timeout(self):
@@ -399,7 +398,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         """
         if not url.isValid():
             urlutils.invalid_url_error(url, "start download")
-            return
+            return None
         req = QNetworkRequest(url)
         if user_agent is not None:
             req.setHeader(QNetworkRequest.UserAgentHeader, user_agent)
