@@ -216,6 +216,7 @@ class GlobalMessageBridge(QObject):
         self.ask_question.emit(question, blocking)
 
     def show(self, level, text, replace=False):
+        """Show the given message."""
         if self._connected:
             self.show_message.emit(level, text, replace)
         else:

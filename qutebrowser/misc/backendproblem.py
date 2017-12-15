@@ -364,6 +364,7 @@ def _check_backend_modules():
 
 
 def init():
+    """Check for various issues related to QtWebKit/QtWebEngine."""
     _check_backend_modules()
     if objects.backend == usertypes.Backend.QtWebEngine:
         _handle_ssl_support()

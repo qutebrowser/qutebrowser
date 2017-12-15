@@ -818,6 +818,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 point, url = self._global_marks[key]
 
                 def callback(ok):
+                    """Scroll once loading finished."""
                     if ok:
                         self.cur_load_finished.disconnect(callback)
                         tab.scroller.to_point(point)

@@ -631,6 +631,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            """Call the original function."""
             try:
                 return func(*args, **kwargs)
             except BaseException:

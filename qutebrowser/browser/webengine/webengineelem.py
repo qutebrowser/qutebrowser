@@ -226,6 +226,7 @@ class WebEngineElement(webelem.AbstractWebElement):
                            QEventLoop.ExcludeUserInputEvents)
 
         def reset_setting(_arg):
+            """Set the JavascriptCanOpenWindows setting to its old value."""
             try:
                 view.settings().setAttribute(attribute, could_open_windows)
             except RuntimeError:

@@ -268,6 +268,7 @@ class WebHistory(sql.SqlTable):
             return
 
         def action():
+            """Actually run the import."""
             with debug.log_time(log.init, 'Import old history file to sqlite'):
                 try:
                     self._read(path)

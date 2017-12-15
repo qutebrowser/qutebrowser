@@ -233,6 +233,7 @@ def install(languages):
 
 
 def update(languages):
+    """Update the given languages."""
     installed = [lang for lang in languages if lang.local_version is not None]
     for lang in installed:
         if lang.local_version < lang.remote_version:
@@ -244,6 +245,7 @@ def update(languages):
 
 
 def remove_old(languages):
+    """Remove old versions of languages."""
     installed = [lang for lang in languages if lang.local_version is not None]
     for lang in installed:
         local_files = spell.local_files(lang.code)

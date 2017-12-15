@@ -261,6 +261,7 @@ def init_log(args):
 
 
 def check_optimize_flag():
+    """Check whether qutebrowser is running with -OO."""
     from qutebrowser.utils import log
     if sys.flags.optimize >= 2:
         log.init.warning("Running on optimize level higher than 1, "

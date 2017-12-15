@@ -266,6 +266,7 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
     def __call__(self, func):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
+            """Call the original function."""
             with self:
                 func(*args, **kwargs)
 

@@ -113,6 +113,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         return function
 
     def wrapper(self, *args, **kwargs):
+        """Call the underlying function."""
         if self._backend is not None and objects.backend != self._backend:
             return self.wrong_backend_handler(*args, **kwargs)
         else:

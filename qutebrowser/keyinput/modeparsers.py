@@ -83,6 +83,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         return match
 
     def set_inhibited_timeout(self, timeout):
+        """Ignore keypresses for the given duration."""
         if timeout != 0:
             self._debug_log("Inhibiting the normal mode for {}ms.".format(
                 timeout))

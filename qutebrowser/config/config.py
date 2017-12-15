@@ -104,11 +104,13 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         if self._function:
             @functools.wraps(func)
             def wrapper(option=None):
+                """Call the underlying function."""
                 if self._check_match(option):
                     return func()
         else:
             @functools.wraps(func)
             def wrapper(wrapper_self, option=None):
+                """Call the underlying function."""
                 if self._check_match(option):
                     return func(wrapper_self)
 

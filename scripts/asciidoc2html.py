@@ -66,6 +66,7 @@ class AsciiDoc:
             shutil.rmtree(self._homedir)
 
     def build(self):
+        """Build either the website or the docs."""
         if self._args.website:
             self._build_website()
         else:

@@ -1522,6 +1522,7 @@ class CommandDispatcher:
         dest = os.path.expanduser(dest)
 
         def callback(data):
+            """Write the data to disk."""
             try:
                 with open(dest, 'w', encoding='utf-8') as f:
                     f.write(data)
@@ -2040,6 +2041,7 @@ class CommandDispatcher:
             jseval_cb = None
         else:
             def jseval_cb(out):
+                """Show the data returned from JS."""
                 if out is None:
                     # Getting the actual error (if any) seems to be difficult.
                     # The error does end up in

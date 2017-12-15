@@ -542,6 +542,7 @@ class WebKitElements(browsertab.AbstractElements):
 
     def find_id(self, elem_id, callback):
         def find_id_cb(elems):
+            """Call the real callback with the found elements."""
             if not elems:
                 callback(None)
             else:
