@@ -153,8 +153,7 @@ class Completer(QObject):
                     "partitioned: {} '{}' {}".format(prefix, center, postfix))
                 return prefix, center, postfix
 
-        # We should always return above
-        assert False, parts
+        raise utils.Unreachable("Not all parts consumed: {}".format(parts))
 
     @pyqtSlot(str)
     def on_selection_changed(self, text):

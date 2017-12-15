@@ -795,7 +795,7 @@ class FakeQSslSocket:
     def sslLibraryVersionString(self):
         """Fake for QSslSocket::sslLibraryVersionString()."""
         if self._version is None:
-            raise AssertionError("Got called with version None!")
+            raise utils.Unreachable("Got called with version None!")
         return self._version
 
 

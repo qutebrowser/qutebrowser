@@ -20,6 +20,7 @@
 import pytest
 
 from qutebrowser.browser import browsertab
+from qutebrowser.utils import utils
 
 pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 
@@ -54,7 +55,7 @@ def tab(request, qtbot, tab_registry, cookiejar_and_cache, mode_manager):
             'qutebrowser.browser.webengine.webenginetab')
         tab_class = webenginetab.WebEngineTab
     else:
-        assert False
+        raise utils.Unreachable
 
     t = tab_class(win_id=0, mode_manager=mode_manager)
     qtbot.add_widget(t)
@@ -67,7 +68,7 @@ class Zoom(browsertab.AbstractZoom):
         pass
 
     def factor(self):
-        assert False
+        raise utils.Unreachable
 
 
 class Tab(browsertab.AbstractTab):

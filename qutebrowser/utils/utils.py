@@ -60,6 +60,11 @@ is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
 
 
+class Unreachable(Exception):
+
+    """Raised when there was unreachable code."""
+
+
 class ClipboardError(Exception):
 
     """Raised if the clipboard contents are unavailable for some reason."""

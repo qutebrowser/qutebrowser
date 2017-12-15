@@ -152,7 +152,7 @@ def _show_dialog(*args, **kwargs):
     elif status == _Result.restart:
         quitter.restart()
     else:
-        assert False, status
+        raise utils.Unreachable(status)
 
     sys.exit(usertypes.Exit.err_init)
 
@@ -199,8 +199,7 @@ def _handle_nouveau_graphics():
         buttons=[button],
     )
 
-    # Should never be reached
-    assert False
+    raise utils.Unreachable
 
 
 def _handle_wayland():
@@ -239,8 +238,7 @@ def _handle_wayland():
                  "(based on Chromium). "
         )
 
-    # Should never be reached
-    assert False
+    raise utils.Unreachable
 
 
 @attr.s
@@ -359,8 +357,7 @@ def _check_backend_modules():
                 html.escape(imports.webengine_error))
         )
 
-    # Should never be reached
-    assert False
+    raise utils.Unreachable
 
 
 def init():

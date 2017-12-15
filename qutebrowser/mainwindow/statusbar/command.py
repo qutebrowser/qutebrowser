@@ -26,7 +26,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg, message
+from qutebrowser.utils import usertypes, log, objreg, message, utils
 from qutebrowser.config import config
 
 
@@ -221,8 +221,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         elif text[0] in modeparsers.STARTCHARS:
             super().set_prompt(text[0])
         else:
-            raise AssertionError("setText got called with invalid text "
-                                 "'{}'!".format(text))
+            raise utils.Unreachable("setText got called with invalid text "
+                                    "'{}'!".format(text))
         super().setText(text)
 
     def keyPressEvent(self, e):

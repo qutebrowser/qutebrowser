@@ -214,7 +214,7 @@ class BaseKeyParser(QObject):
         elif match == self.Match.other:
             pass
         else:
-            raise AssertionError("Invalid match value {!r}".format(match))
+            raise utils.Unreachable("Invalid match value {!r}".format(match))
         return match
 
     def _match_key(self, cmd_input):

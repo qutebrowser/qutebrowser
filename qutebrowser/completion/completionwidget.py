@@ -180,6 +180,7 @@ class CompletionView(QTreeView):
                 return self.model().last_item()
             else:
                 return self.model().first_item()
+
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
@@ -192,6 +193,8 @@ class CompletionView(QTreeView):
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
+
+        raise utils.Unreachable
 
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
@@ -221,6 +224,8 @@ class CompletionView(QTreeView):
                 # scroll to ensure the category is visible
                 self.scrollTo(idx)
                 return idx.child(0, 0)
+
+        raise utils.Unreachable
 
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')

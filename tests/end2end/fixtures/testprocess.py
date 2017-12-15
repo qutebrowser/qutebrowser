@@ -404,6 +404,8 @@ class Process(QObject):
                     self._log("----> found it")
                 return match
 
+        raise quteutils.Unreachable
+
     def _wait_for_match(self, spy, kwargs):
         """Try matching the kwargs with the given QSignalSpy."""
         for args in spy:

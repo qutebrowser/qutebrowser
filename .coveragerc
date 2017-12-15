@@ -12,6 +12,7 @@ exclude_lines =
     def __repr__
     raise AssertionError
     raise NotImplementedError
+    raise utils\.Unreachable
     if __name__ == ["']__main__["']:
 
 [xml]
