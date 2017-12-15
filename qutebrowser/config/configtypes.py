@@ -499,7 +499,7 @@ class ListOrValue(BaseType):
 
     _show_valtype = True
 
-    def __init__(self, valtype, none_ok=False, *args, **kwargs):
+    def __init__(self, valtype, *args, none_ok=False, **kwargs):
         super().__init__(none_ok)
         assert not isinstance(valtype, (List, ListOrValue)), valtype
         self.listtype = List(valtype, none_ok=none_ok, *args, **kwargs)
