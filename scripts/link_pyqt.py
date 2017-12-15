@@ -21,9 +21,9 @@
 """Symlink PyQt into a given virtualenv."""
 
 import os
+import os.path
 import argparse
 import shutil
-import os.path
 import sys
 import subprocess
 import tempfile

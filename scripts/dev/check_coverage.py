@@ -21,9 +21,9 @@
 """Enforce perfect coverage on some files."""
 
 import os
+import os.path
 import sys
 import enum
-import os.path
 import subprocess
 from xml.etree import ElementTree
 

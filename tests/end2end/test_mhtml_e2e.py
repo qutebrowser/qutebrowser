@@ -20,8 +20,8 @@
 """Test mhtml downloads based on sample files."""
 
 import os
-import re
 import os.path
+import re
 import collections
 
 import pytest

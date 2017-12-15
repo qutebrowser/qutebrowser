@@ -20,10 +20,10 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import os
+import os.path
 import re
 import sys
 import time
-import os.path
 import datetime
 import logging
 import tempfile

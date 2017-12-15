@@ -20,12 +20,12 @@
 """Other utilities which don't fit anywhere else."""
 
 import os
+import os.path
 import io
 import re
 import sys
 import enum
 import json
-import os.path
 import collections
 import datetime
 import traceback

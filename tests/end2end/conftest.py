@@ -23,10 +23,10 @@
 
 import re
 import os
+import os.path
 import sys
 import shutil
 import pstats
-import os.path
 import operator
 
 import pytest

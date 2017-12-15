@@ -25,8 +25,8 @@ https://bitbucket.org/logilab/pylint/issue/512/
 """
 
 import os
-import sys
 import os.path
+import sys
 import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
