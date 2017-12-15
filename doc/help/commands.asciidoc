@@ -516,7 +516,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--rapid*] [*--mode* 'mode'] [*--add-history*]
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*]
      ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
@@ -570,11 +570,6 @@ Start hinting.
 
 
 ==== optional arguments
-* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
- open multiple links. This is only possible with targets
- `tab` (with `tabs.background_tabs=true`), `tab-bg`,
- `window`, `run`, `hover`, `userscript` and `spawn`.
-
 * +*-m*+, +*--mode*+: The hinting mode to use. 
 
  - `number`: Use numeric hints.
@@ -585,6 +580,11 @@ Start hinting.
 
 
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
+
+* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
+ open multiple links. This is only possible with targets
+ `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+ `window`, `run`, `hover`, `userscript` and `spawn`.
 
 
 ==== note
