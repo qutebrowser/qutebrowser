@@ -29,6 +29,11 @@ import sys
 import os
 
 
+class Error(Exception):
+
+    pass
+
+
 def parse():
     """Parse command line arguments."""
     description = ("This program is meant to extract browser history from your"
@@ -63,10 +68,8 @@ def parse():
 def open_db(data_base):
     """Open connection with database."""
     if os.path.isfile(data_base):
-        conn = sqlite3.connect(data_base)
-        return conn
-    else:
-        sys.exit('The file {} does not exist.'.format(data_base))
+        return sqlite3.connect(data_base)
+    raise Error('The file {} does not exist.'.format(data_base))
 
 
 def extract(source, query):
@@ -87,8 +90,8 @@ def extract(source, query):
         conn.close()
         return history
     except sqlite3.OperationalError as op_e:
-        sys.exit('Could not perform queries on the source database: '
-                 '{}'.format(op_e))
+        raise Error('Could not perform queries on the source database: '
+                    '{}'.format(op_e))
 
 
 def clean(history):
@@ -130,7 +133,7 @@ def insert_qb(history, dest):
     conn.close()
 
 
-def main():
+def run():
     """Main control flux of the script."""
     args = parse()
     browser = args.browser.lower()
@@ -142,12 +145,19 @@ def main():
                   'from urls',
     }
     if browser not in query:
-        sys.exit('Sorry, the selected browser: "{}" is not supported.'.format(
-            browser))
+        raise Error('Sorry, the selected browser: "{}" is not '
+                    'supported.'.format(browser))
     else:
         history = extract(source, query[browser])
         history = clean(history)
         insert_qb(history, dest)
+
+
+def main():
+    try:
+        run()
+    except Error as e:
+        sys.exit(str(e))
 
 
 if __name__ == "__main__":
