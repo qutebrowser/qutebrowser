@@ -28,11 +28,10 @@ import warnings
 import attr
 import pytest
 import _pytest.logging
+from PyQt5 import QtCore
 
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
-
-from PyQt5 import QtCore
 
 
 @pytest.fixture(autouse=True)

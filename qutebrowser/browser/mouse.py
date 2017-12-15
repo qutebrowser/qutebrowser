@@ -19,13 +19,11 @@
 
 """Mouse handling for a browser tab."""
 
+from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes
 from qutebrowser.keyinput import modeman
-
-
-from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 
 class ChildEventFilter(QObject):

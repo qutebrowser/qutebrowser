@@ -35,6 +35,10 @@ import types
 import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
+from PyQt5.QtCore import QEvent, QSize, Qt
+from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
+from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import helpers.utils
@@ -43,11 +47,6 @@ from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
-
-from PyQt5.QtCore import QEvent, QSize, Qt
-from PyQt5.QtGui import QKeyEvent
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtNetwork import QNetworkCookieJar
 
 
 class WinRegistryHelper:

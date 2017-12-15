@@ -24,12 +24,11 @@ import unittest.mock
 import textwrap
 
 import pytest
+from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
 from qutebrowser.utils import utils, usertypes
-
-from PyQt5.QtCore import QSettings
 
 
 @pytest.fixture(autouse=True)

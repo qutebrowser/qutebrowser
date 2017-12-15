@@ -22,10 +22,10 @@
 
 import os.path
 
+from PyQt5.QtNetwork import QNetworkRequest
+
 from qutebrowser.utils import log
 from qutebrowser.browser.webkit import rfc6266
-
-from PyQt5.QtNetwork import QNetworkRequest
 
 
 def parse_content_disposition(reply):

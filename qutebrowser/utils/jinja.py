@@ -28,10 +28,10 @@ import html
 
 import jinja2
 import jinja2.exceptions
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, urlutils, log
 
-from PyQt5.QtCore import QUrl
 
 html_fallback = """
 <!DOCTYPE html>

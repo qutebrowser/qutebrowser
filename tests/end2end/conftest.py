@@ -29,8 +29,6 @@ import pstats
 import os.path
 import operator
 
-from qutebrowser.browser.webengine import spell
-
 import pytest
 from PyQt5.QtCore import PYQT_VERSION
 
@@ -41,6 +39,7 @@ from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
 from qutebrowser.utils import qtutils, utils
+from qutebrowser.browser.webengine import spell
 
 
 def pytest_configure(config):
