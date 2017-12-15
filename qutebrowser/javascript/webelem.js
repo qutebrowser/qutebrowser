@@ -105,8 +105,7 @@ window._qutebrowser.webelem = (function() {
 
         const client_rects = elem.getClientRects();
 
-        // Get location of frame and add it to element
-        // TODO How to generate a 0 object without this
+        // Get location of frame if it exists and add it to element
         let frame_offset_rect = null;
         if (frame === null) {
             // Dummy object with zero offset
@@ -206,9 +205,9 @@ window._qutebrowser.webelem = (function() {
         // Recurse into frames and add them
         for (let i = 0; i < subelem_frames.length; i++) {
             if (iframe_same_domain(subelem_frames[i])) {
-                const subelems = subelem_frames[i].document.
-                    querySelectorAll(selector);
                 const frame = subelem_frames[i];
+                const subelems = frame.document.
+                    querySelectorAll(selector);
                 for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
                     if (!only_visible || is_visible(subelems[elem_num])) {
                         out.push(serialize_elem(subelems[elem_num], frame));
@@ -223,8 +222,8 @@ window._qutebrowser.webelem = (function() {
     // Runs a function in a frame until the result is not null, then return
     function run_frames(func) {
         for (let i = 0; i < window.frames.length; ++i) {
-            if (iframe_same_domain(window.frames[i])) {
-                const frame = window.frames[i];
+            const frame = window.frames[i];
+            if (iframe_same_domain(frame)) {
                 const result = func(frame);
                 if (result) {
                     return result;
@@ -242,10 +241,7 @@ window._qutebrowser.webelem = (function() {
 
         const serialized_elem = run_frames((frame) => {
             const element = frame.window.document.getElementById(id);
-            if (element) {
-                return serialize_elem(element, frame);
-            }
-            return null;
+            return serialize_elem(element, frame);
         });
 
         if (serialized_elem) {
@@ -255,12 +251,12 @@ window._qutebrowser.webelem = (function() {
         return null;
     };
 
-    // Check if elem is an iframe, and if so, run func on it.
+    // Check if elem is an iframe, and if so, return the result of func on it.
     // If no iframes match, return null
-    function replace_elem_frame(elem, func) {
+    function call_if_frame(elem, func) {
         for (let i = 0; i < window.frames.length; ++i) {
-            if (iframe_same_domain(window.frames[i])) {
-                const frame = window.frames[i];
+            const frame = window.frames[i];
+            if (iframe_same_domain(frame)) {
                 if (frame.frameElement === elem) {
                     return func(frame);
                 }
@@ -279,7 +275,7 @@ window._qutebrowser.webelem = (function() {
         }
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = replace_elem_frame(elem,
+        const frame_elem = call_if_frame(elem,
             (frame) => serialize_elem(frame.document.activeElement, frame));
 
         if (frame_elem === null) {
@@ -293,7 +289,7 @@ window._qutebrowser.webelem = (function() {
 
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = replace_elem_frame(elem,
+        const frame_elem = call_if_frame(elem,
             (frame) => {
                 // Subtract offsets due to being in an iframe
                 const frame_offset_rect =
@@ -323,11 +319,7 @@ window._qutebrowser.webelem = (function() {
             }
             return null;
         });
-
-        if (serialized_frame_elem) {
-            return serialized_frame_elem;
-        }
-        return null;
+        return serialized_frame_elem;
     };
 
     funcs.set_value = (id, value) => {
