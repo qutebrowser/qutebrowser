@@ -137,8 +137,8 @@ def ask_async(title, mode, handler, **kwargs):
     global_bridge.ask(question, blocking=False)
 
 
-def confirm_async(yes_action, no_action=None, cancel_action=None,
-                  *args, **kwargs):
+def confirm_async(*, yes_action, no_action=None, cancel_action=None,
+                  **kwargs):
     """Ask a yes/no question to the user and execute the given actions.
 
     Args:
@@ -154,7 +154,7 @@ def confirm_async(yes_action, no_action=None, cancel_action=None,
         The question object.
     """
     kwargs['mode'] = usertypes.PromptMode.yesno
-    question = _build_question(*args, **kwargs)  # pylint: disable=missing-kwoa
+    question = _build_question(**kwargs)  # pylint: disable=missing-kwoa
     question.answered_yes.connect(yes_action)
     if no_action is not None:
         question.answered_no.connect(no_action)
