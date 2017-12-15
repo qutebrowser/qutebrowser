@@ -68,10 +68,10 @@ valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
 ignored-modules=PyQt5,PyQt5.QtWebKit
-ignored-classes=_CountingAttr
 
 [IMPORTS]
 # WORKAROUND
 # For some reason, pylint doesn't know about some Python 3 modules on
 # AppVeyor...
 known-standard-library=faulthandler,http,enum,tokenize,posixpath,importlib,types
+known-third-party=sip
