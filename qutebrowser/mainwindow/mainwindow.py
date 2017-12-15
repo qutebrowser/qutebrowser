@@ -103,7 +103,8 @@ def raise_window(window):
     QApplication.instance().alert(window)
 
 
-def get_target_window():
+# WORKAROUND for https://github.com/PyCQA/pylint/issues/1770
+def get_target_window():  # pylint: disable=inconsistent-return-statements
     """Get the target window for new tabs, or None if none exist."""
     try:
         win_mode = config.val.new_instance_open_target_window
