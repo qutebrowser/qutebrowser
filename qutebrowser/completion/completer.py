@@ -134,9 +134,7 @@ class Completer(QObject):
             return [], '', []
         parser = runners.CommandParser()
         result = parser.parse(text, fallback=True, keep=True)
-        # pylint: disable=not-an-iterable
         parts = [x for x in result.cmdline if x]
-        # pylint: enable=not-an-iterable
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
         log.completion.debug('partitioning {} around position {}'.format(parts,
