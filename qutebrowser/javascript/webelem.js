@@ -40,6 +40,41 @@ window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 
+    function get_frame_offset(frame) {
+        if (frame === null) {
+            // Dummy object with zero offset
+            return {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0,
+                "height": 0,
+                "width": 0,
+            };
+        }
+        return frame.frameElement.getBoundingClientRect();
+    }
+
+    function get_caret_position(elem, frame) {
+        // With older Chromium versions (and QtWebKit), InvalidStateError will
+        // be thrown if elem doesn't have selectionStart.
+        // With newer Chromium versions (>= Qt 5.10), we get null.
+        try {
+            return elem.selectionStart;
+        } catch (err) {
+            if (err instanceof (frame
+                ? frame.DOMException
+                : DOMException) &&
+                err.name === "InvalidStateError") {
+                // nothing to do, caret_position is already null
+            } else {
+                // not the droid we're looking for
+                throw err;
+            }
+        }
+        return null;
+    }
+
     function serialize_elem(elem, frame = null) {
         if (!elem) {
             return null;
@@ -48,23 +83,7 @@ window._qutebrowser.webelem = (function() {
         const id = elements.length;
         elements[id] = elem;
 
-        // With older Chromium versions (and QtWebKit), InvalidStateError will
-        // be thrown if elem doesn't have selectionStart.
-        // With newer Chromium versions (>= Qt 5.10), we get null.
-        let caret_position = null;
-        try {
-            caret_position = elem.selectionStart;
-        } catch (err) {
-            if ((err instanceof DOMException ||
-                 (frame !== null &&
-                  err instanceof frame.DOMException)) &&
-                    err.name === "InvalidStateError") {
-                // nothing to do, caret_position is already null
-            } else {
-                // not the droid we're looking for
-                throw err;
-            }
-        }
+        const caret_position = get_caret_position(elem, frame);
 
         const out = {
             "id": id,
@@ -73,7 +92,6 @@ window._qutebrowser.webelem = (function() {
             "rects": [],  // Gets filled up later
             "caret_position": caret_position,
         };
-
         // https://github.com/qutebrowser/qutebrowser/issues/2569
         if (typeof elem.tagName === "string") {
             out.tag_name = elem.tagName;
@@ -104,22 +122,7 @@ window._qutebrowser.webelem = (function() {
         out.attributes = attributes;
 
         const client_rects = elem.getClientRects();
-
-        // Get location of frame if it exists and add it to element
-        let frame_offset_rect = null;
-        if (frame === null) {
-            // Dummy object with zero offset
-            frame_offset_rect = {
-                "top": 0,
-                "right": 0,
-                "bottom": 0,
-                "left": 0,
-                "height": 0,
-                "width": 0,
-            };
-        } else {
-            frame_offset_rect = frame.frameElement.getBoundingClientRect();
-        }
+        const frame_offset_rect = get_frame_offset(frame);
 
         for (let k = 0; k < client_rects.length; ++k) {
             const rect = client_rects[k];
@@ -184,7 +187,7 @@ window._qutebrowser.webelem = (function() {
     // cross domain errors, else false.
     function iframe_same_domain(frame) {
         try {
-            frame.document;
+            frame.document; // eslint-disable-line no-unused-expressions
             return true;
         } catch (err) {
             return false;
