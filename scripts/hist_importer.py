@@ -31,6 +31,8 @@ import os
 
 class Error(Exception):
 
+    """Exception for errors in this module."""
+
     pass
 
 
