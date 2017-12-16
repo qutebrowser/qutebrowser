@@ -1175,8 +1175,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       debug=True)
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('choice', completion=miscmodels.suggest)
     def suggest(self, command: str,
                 suggestions: str, choice: str):
@@ -1197,7 +1196,7 @@ class CommandDispatcher:
                          - rows / suggestions are seperated by semicolons
                          - it's possible to escape backslashes,
                            commas and semicolons with a backslash
-                         e.g. "1,eins;2,zwei;3,drei\, und etwas Text"
+                         e.g. "1,eins;2,zwei;3,drei\\, und etwas Text"
             choice: first column of the selected row or
                     something else written by the user
         """
