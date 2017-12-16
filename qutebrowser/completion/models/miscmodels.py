@@ -72,7 +72,7 @@ def suggest(*args, info):
     # r'(?!\\)(?:\\\\)*;'
     # lookbehinds with dynamic size are also not supported
     # so to split it correctly we match
-    # the string before our seperator in a group
+    # the string before our separator in a group
     # -> list: ['', 'match without ;', ...]
     # result contains a few empty strings in a irregular sequence
     # so we need to sort them out
