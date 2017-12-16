@@ -53,7 +53,6 @@ def helptopic(*, info):
 def suggest(*args, **kwargs):
     """A CompletionModel filled with already typed suggestions."""
     model = None
-
     cols = 1
     suggestions = []
     raw = (args[1][1:-1]
