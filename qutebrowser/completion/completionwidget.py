@@ -23,7 +23,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
+from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config
@@ -160,6 +160,7 @@ class CompletionView(QTreeView):
                 pixel_widths[-2] -= delta
             else:
                 pixel_widths[-3] -= delta
+                
         for i, w in enumerate(pixel_widths):
             assert w >= 0, i
             self.setColumnWidth(i, w)
@@ -182,6 +183,7 @@ class CompletionView(QTreeView):
                 return self.model().last_item()
             else:
                 return self.model().first_item()
+
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
@@ -194,6 +196,8 @@ class CompletionView(QTreeView):
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
+
+        raise utils.Unreachable
 
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
@@ -224,30 +228,46 @@ class CompletionView(QTreeView):
                 self.scrollTo(idx)
                 return idx.child(0, 0)
 
+        raise utils.Unreachable
+
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
     @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
                                          'prev-category'])
-    def completion_item_focus(self, which):
+    @cmdutils.argument('history', flag='H')
+    def completion_item_focus(self, which, history=False):
         """Shift the focus of the completion menu to another item.
 
         Args:
             which: 'next', 'prev', 'next-category', or 'prev-category'.
+            history: Navigate through command history if no text was typed.
         """
+        if history:
+            status = objreg.get('status-command', scope='window',
+                                window=self._win_id)
+            if (status.text() == ':' or status.history.is_browsing() or
+                    not self._active):
+                if which == 'next':
+                    status.command_history_next()
+                    return
+                elif which == 'prev':
+                    status.command_history_prev()
+                    return
+                else:
+                    raise cmdexc.CommandError("Can't combine --history with "
+                                              "{}!".format(which))
+
         if not self._active:
             return
-        selmodel = self.selectionModel()
 
-        if which == 'next':
-            idx = self._next_idx(upwards=False)
-        elif which == 'prev':
-            idx = self._next_idx(upwards=True)
-        elif which == 'next-category':
-            idx = self._next_category_idx(upwards=False)
-        elif which == 'prev-category':
-            idx = self._next_category_idx(upwards=True)
-        else:  # pragma: no cover
-            raise ValueError("Invalid 'which' value {!r}".format(which))
+        selmodel = self.selectionModel()
+        indices = {
+            'next': self._next_idx(upwards=False),
+            'prev': self._next_idx(upwards=True),
+            'next-category': self._next_category_idx(upwards=False),
+            'prev-category': self._next_category_idx(upwards=True),
+        }
+        idx = indices[which]
 
         if not idx.isValid():
             return

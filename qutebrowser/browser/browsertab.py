@@ -22,6 +22,7 @@
 import enum
 import itertools
 
+import sip
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
@@ -486,6 +487,7 @@ class AbstractHistory:
         raise NotImplementedError
 
     def back(self, count=1):
+        """Go back in the tab's history."""
         idx = self.current_idx() - count
         if idx >= 0:
             self._go_to_item(self._item_at(idx))
@@ -494,6 +496,7 @@ class AbstractHistory:
             raise WebTabError("At beginning of history.")
 
     def forward(self, count=1):
+        """Go forward in the tab's history."""
         idx = self.current_idx() + count
         if idx < len(self):
             self._go_to_item(self._item_at(idx))
@@ -703,8 +706,8 @@ class AbstractTab(QWidget):
         # This only gives us some mild protection against re-using events, but
         # it's certainly better than a segfault.
         if getattr(evt, 'posted', False):
-            raise AssertionError("Can't re-use an event which was already "
-                                 "posted!")
+            raise utils.Unreachable("Can't re-use an event which was already "
+                                    "posted!")
         recipient = self.event_target()
         evt.posted = True
         QApplication.postEvent(recipient, evt)
@@ -864,3 +867,6 @@ class AbstractTab(QWidget):
         except (AttributeError, RuntimeError) as exc:
             url = '<{}>'.format(exc.__class__.__name__)
         return utils.get_repr(self, tab_id=self.tab_id, url=url)
+
+    def is_deleted(self):
+        return sip.isdeleted(self._widget)

@@ -65,9 +65,9 @@ class CaretTester:
 
 
 @pytest.fixture
-def caret_tester(js_tester):
+def caret_tester(js_tester_webkit):
     """Helper fixture to test caret browsing positions."""
-    caret_tester = CaretTester(js_tester)
+    caret_tester = CaretTester(js_tester_webkit)
     # Showing webview here is necessary for test_scrolled_down_img to
     # succeed in some cases, see #1988
     caret_tester.js.webview.show()

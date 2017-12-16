@@ -69,6 +69,10 @@ def init():
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
+    greasemonkey = objreg.get('greasemonkey')
+    greasemonkey.scripts_reloaded.connect(webenginesettings.inject_userscripts)
+    webenginesettings.inject_userscripts()
+
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
@@ -121,18 +125,35 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
 class WebEngineSearch(browsertab.AbstractSearch):
 
-    """QtWebEngine implementations related to searching on the page."""
+    """QtWebEngine implementations related to searching on the page.
+
+    Attributes:
+        _flags: The QWebEnginePage.FindFlags of the last search.
+        _pending_searches: How many searches have been started but not called
+                           back yet.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
+        self._pending_searches = 0
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
         self.search_displayed = True
+        self._pending_searches += 1
 
         def wrapped_callback(found):
             """Wrap the callback to do debug logging."""
+            self._pending_searches -= 1
+            if self._pending_searches > 0:
+                # See https://github.com/qutebrowser/qutebrowser/issues/2442
+                # and https://github.com/qt/qtwebengine/blob/5.10/src/core/web_contents_adapter.cpp#L924-L934
+                log.webview.debug("Ignoring cancelled search callback with "
+                                  "{} pending searches".format(
+                                      self._pending_searches))
+                return
+
             found_text = 'found' if found else "didn't find"
             if flags:
                 flag_text = 'with flags {}'.format(debug.qflags_key(
@@ -544,7 +565,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _init_js(self):
         js_code = '\n'.join([
             '"use strict";',
-            'window._qutebrowser = {};',
+            'window._qutebrowser = window._qutebrowser || {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
         ])

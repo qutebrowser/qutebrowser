@@ -22,9 +22,9 @@
 
 
 import os
+import os.path
 import sys
 import glob
-import os.path
 import shutil
 import plistlib
 import subprocess

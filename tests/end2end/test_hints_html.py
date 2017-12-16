@@ -71,8 +71,8 @@ def _parse_file(test_name):
     allowed_keys = {'target', 'qtwebengine_todo'}
     if not set(data.keys()).issubset(allowed_keys):
         raise InvalidFile(test_name, "expected keys {} but found {}".format(
-                          ', '.join(allowed_keys),
-                          ', '.join(set(data.keys()))))
+            ', '.join(allowed_keys),
+            ', '.join(set(data.keys()))))
 
     if 'target' not in data:
         raise InvalidFile(test_name, "'target' key not found")

@@ -199,7 +199,6 @@
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
-|<<ignore_case,ignore_case>>|When to find text on a page case-insensitively.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
@@ -222,6 +221,8 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
+|<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
+|<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
@@ -240,6 +241,7 @@
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
+|<<tabs.persist_mode_on_change,tabs.persist_mode_on_change>>|Stay in insert/passthrough mode when switching tabs.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
@@ -425,19 +427,20 @@ Default:
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
 * +pass:[&lt;Ctrl-N&gt;]+: +pass:[command-history-next]+
 * +pass:[&lt;Ctrl-P&gt;]+: +pass:[command-history-prev]+
+* +pass:[&lt;Ctrl-Return&gt;]+: +pass:[command-accept --rapid]+
 * +pass:[&lt;Ctrl-Shift-C&gt;]+: +pass:[completion-item-yank --sel]+
 * +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[completion-item-focus prev-category]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[completion-item-focus next-category]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
-* +pass:[&lt;Down&gt;]+: +pass:[command-history-next]+
+* +pass:[&lt;Down&gt;]+: +pass:[completion-item-focus --history next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Return&gt;]+: +pass:[command-accept]+
 * +pass:[&lt;Shift-Delete&gt;]+: +pass:[completion-item-del]+
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[completion-item-focus prev]+
 * +pass:[&lt;Tab&gt;]+: +pass:[completion-item-focus next]+
-* +pass:[&lt;Up&gt;]+: +pass:[command-history-prev]+
+* +pass:[&lt;Up&gt;]+: +pass:[completion-item-focus --history prev]+
 - +pass:[hint]+:
 
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[hint all tab-bg]+
@@ -1456,6 +1459,7 @@ This setting is only available with the QtWebKit backend.
 [[content.cache.size]]
 === content.cache.size
 Size (in bytes) of the HTTP network cache. Null to use the default value.
+With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
 
 Type: <<types,Int>>
 
@@ -2324,20 +2328,6 @@ Type: <<types,Int>>
 
 Default: +pass:[30]+
 
-[[ignore_case]]
-=== ignore_case
-When to find text on a page case-insensitively.
-
-Type: <<types,String>>
-
-Valid values:
-
- * +always+: Search case-insensitively.
- * +never+: Search case-sensitively.
- * +smart+: Search case-sensitively if there are capital characters.
-
-Default: +pass:[smart]+
-
 [[input.forward_unbound_keys]]
 === input.forward_unbound_keys
 Which unbound keys to forward to the webview in normal mode.
@@ -2554,6 +2544,28 @@ Note smooth scrolling does not work with the `:scroll-px` command.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[search.ignore_case]]
+=== search.ignore_case
+When to find text on a page case-insensitively.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Search case-insensitively.
+ * +never+: Search case-sensitively.
+ * +smart+: Search case-sensitively if there are capital characters.
+
+Default: +pass:[smart]+
+
+[[search.incremental]]
+=== search.incremental
+Find text on a page incrementally, renewing the search for each typed character.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[session.default_name]]
 === session.default_name
@@ -2807,6 +2819,14 @@ Default:
 - +pass:[right]+: +pass:[5]+
 - +pass:[top]+: +pass:[0]+
 
+[[tabs.persist_mode_on_change]]
+=== tabs.persist_mode_on_change
+Stay in insert/passthrough mode when switching tabs.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[tabs.pinned.shrink]]
 === tabs.pinned.shrink
 Shrink pinned tabs down to their contents.
@@ -2903,8 +2923,9 @@ The following placeholders are defined:
 * `{scroll_pos}`: Page scroll position.
 * `{host}`: Host of the current web page.
 * `{backend}`: Either ''webkit'' or ''webengine''
-* `{private}` : Indicates when private mode is enabled.
-* `{current_url}` : URL of the current web page.
+* `{private}`: Indicates when private mode is enabled.
+* `{current_url}`: URL of the current web page.
+* `{protocol}`: Protocol (http/https/...) of the current web page.
 
 
 Type: <<types,FormatString>>

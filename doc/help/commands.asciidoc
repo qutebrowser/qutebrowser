@@ -47,12 +47,14 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<download-open,download-open>>|Open the last/[count]th download.
 |<<download-remove,download-remove>>|Remove the last/[count]th download from the list.
 |<<download-retry,download-retry>>|Retry the first failed/[count]th download.
+|<<edit-command,edit-command>>|Open an editor to modify the current command.
 |<<edit-url,edit-url>>|Navigate to a url formed in an external editor.
 |<<enter-mode,enter-mode>>|Enter a key mode.
 |<<fake-key,fake-key>>|Send a fake keypress or key string to the website or qutebrowser.
 |<<follow-selected,follow-selected>>|Follow the selected text.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
+|<<greasemonkey-reload,greasemonkey-reload>>|Re-read Greasemonkey scripts from disk.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<history,history>>|Show browsing history.
@@ -333,11 +335,9 @@ Write the current configuration to a config.py file.
 
 [[download]]
 === download
-Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url'] ['dest-old']+
+Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url']+
 
 Download a given URL, or current page if no URL given.
-
-The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [url]` instead.
 
 ==== positional arguments
 * +'url'+: The URL to download. If not given, download the current page.
@@ -407,6 +407,15 @@ Retry the first failed/[count]th download.
 
 ==== count
 The index of the download to retry.
+
+[[edit-command]]
+=== edit-command
+Syntax: +:edit-command [*--run*]+
+
+Open an editor to modify the current command.
+
+==== optional arguments
+* +*-r*+, +*--run*+: Run the command if the editor exits successfully.
 
 [[edit-url]]
 === edit-url
@@ -482,6 +491,12 @@ Toggle fullscreen mode.
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
 
+[[greasemonkey-reload]]
+=== greasemonkey-reload
+Re-read Greasemonkey scripts from disk.
+
+The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
+
 [[help]]
 === help
 Syntax: +:help [*--tab*] [*--bg*] [*--window*] ['topic']+
@@ -502,7 +517,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--rapid*] [*--mode* 'mode'] [*--add-history*]
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*]
      ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
@@ -556,11 +571,6 @@ Start hinting.
 
 
 ==== optional arguments
-* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
- open multiple links. This is only possible with targets
- `tab` (with `tabs.background_tabs=true`), `tab-bg`,
- `window`, `run`, `hover`, `userscript` and `spawn`.
-
 * +*-m*+, +*--mode*+: The hinting mode to use. 
 
  - `number`: Use numeric hints.
@@ -571,6 +581,11 @@ Start hinting.
 
 
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
+
+* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
+ open multiple links. This is only possible with targets
+ `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+ `window`, `run`, `hover`, `userscript` and `spawn`.
 
 
 ==== note
@@ -630,7 +645,10 @@ Evaluate a JavaScript string.
 * +'js-code'+: The string/file to evaluate.
 
 ==== optional arguments
-* +*-f*+, +*--file*+: Interpret js-code as a path to a file.
+* +*-f*+, +*--file*+: Interpret js-code as a path to a file. If the path is relative, the file is searched in a js/ subdir
+ in qutebrowser's data dir, e.g.
+ `~/.local/share/qutebrowser/js`.
+
 * +*-q*+, +*--quiet*+: Don't show resulting JS object.
 * +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
 
@@ -1129,7 +1147,7 @@ Set a mark at the current scroll position in the current tab.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
@@ -1144,6 +1162,7 @@ Spawn a command in a shell.
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
+* +*-o*+, +*--output*+: Whether the output should be shown in a new tab.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
 ==== note
@@ -1419,7 +1438,12 @@ How many steps to zoom out.
 |==============
 [[command-accept]]
 === command-accept
+Syntax: +:command-accept [*--rapid*]+
+
 Execute the command currently in the commandline.
+
+==== optional arguments
+* +*-r*+, +*--rapid*+: Run the command without closing or clearing the command bar.
 
 [[command-history-next]]
 === command-history-next
@@ -1435,12 +1459,15 @@ Delete the current completion item.
 
 [[completion-item-focus]]
 === completion-item-focus
-Syntax: +:completion-item-focus 'which'+
+Syntax: +:completion-item-focus [*--history*] 'which'+
 
 Shift the focus of the completion menu to another item.
 
 ==== positional arguments
 * +'which'+: 'next', 'prev', 'next-category', or 'prev-category'.
+
+==== optional arguments
+* +*-H*+, +*--history*+: Navigate through command history if no text was typed.
 
 [[completion-item-yank]]
 === completion-item-yank
@@ -1790,7 +1817,7 @@ Change the log level for console logging.
 
 [[debug-pyeval]]
 === debug-pyeval
-Syntax: +:debug-pyeval [*--quiet*] 's'+
+Syntax: +:debug-pyeval [*--file*] [*--quiet*] 's'+
 
 Evaluate a python string and display the results as a web page.
 
@@ -1798,6 +1825,7 @@ Evaluate a python string and display the results as a web page.
 * +'s'+: The string to evaluate.
 
 ==== optional arguments
+* +*-f*+, +*--file*+: Interpret s as a path to file, also implies --quiet.
 * +*-q*+, +*--quiet*+: Don't show the output in a new tab.
 
 ==== note

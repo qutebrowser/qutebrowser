@@ -289,4 +289,7 @@ class ConfigCommands:
 
         writer = configfiles.ConfigPyWriter(options, bindings,
                                             commented=commented)
-        writer.write(filename)
+        try:
+            writer.write(filename)
+        except OSError as e:
+            raise cmdexc.CommandError(str(e))

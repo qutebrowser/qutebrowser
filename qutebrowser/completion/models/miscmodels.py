@@ -153,10 +153,11 @@ def session(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def buffer(*, info=None):  # pylint: disable=unused-argument
-    """A model to complete on open tabs across all windows.
+def _buffer(skip_win_id=None):
+    """Helper to get the completion model for buffer/other_buffer.
 
-    Used for switching the buffer command.
+    Args:
+        skip_win_id: The id of the window to skip, or None to include all.
     """
     def delete_buffer(data):
         """Close the selected tab."""
@@ -168,6 +169,8 @@ def buffer(*, info=None):  # pylint: disable=unused-argument
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
     for win_id in objreg.window_registry:
+        if skip_win_id and win_id == skip_win_id:
+            continue
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
         if tabbed_browser.shutting_down:
@@ -185,13 +188,31 @@ def buffer(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
-def window(*, info=None):  # pylint: disable=unused-argument
+def buffer(*, info=None):  # pylint: disable=unused-argument
+    """A model to complete on open tabs across all windows.
+
+    Used for switching the buffer command.
+    """
+    return _buffer()
+
+
+def other_buffer(*, info):
+    """A model to complete on open tabs across all windows except the current.
+
+    Used for the tab-take command.
+    """
+    return _buffer(skip_win_id=info.win_id)
+
+
+def window(*, info):
     """A model to complete on all open windows."""
     model = completionmodel.CompletionModel(column_widths=(6, 30, 64))
 
     windows = []
 
     for win_id in objreg.window_registry:
+        if win_id == info.win_id:
+            continue
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
         tab_titles = (tab.title() for tab in tabbed_browser.widgets())

@@ -2,7 +2,7 @@
 
 attrs==17.3.0
 beautifulsoup4==4.6.0
-cheroot==5.8.3
+cheroot==6.0.0
 click==6.7
 # colorama==0.3.9
 coverage==4.4.2
@@ -10,30 +10,30 @@ EasyProcess==0.2.3
 fields==5.0.0
 Flask==0.12.2
 glob2==0.6
-hunter==2.0.1
-hypothesis==3.37.0
+hunter==2.0.2
+hypothesis==3.42.1
 itsdangerous==0.24
-# Jinja2==2.9.6
+# Jinja2==2.10
 Mako==1.0.7
 # MarkupSafe==1.0
 parse==1.8.2
 parse-type==0.4.2
-py==1.4.34
+pluggy==0.6.0
+py==1.5.2
 py-cpuinfo==3.3.0
-pytest==3.2.3
+pytest==3.3.1
 pytest-bdd==2.19.0
 pytest-benchmark==3.1.1
-pytest-catchlog==1.2.2
 pytest-cov==2.5.1
 pytest-faulthandler==1.3.1
 pytest-instafail==0.3.0
 pytest-mock==1.6.3
-pytest-qt==2.2.1
+pytest-qt==2.3.0
 pytest-repeat==0.4.1
 pytest-rerunfailures==3.1
-pytest-travis-fold==1.2.0
+pytest-travis-fold==1.3.0
 pytest-xvfb==1.0.0
 PyVirtualDisplay==0.2.1
 six==1.11.0
 vulture==0.26
-Werkzeug==0.12.2
+Werkzeug==0.13

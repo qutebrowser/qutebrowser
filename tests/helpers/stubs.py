@@ -24,7 +24,7 @@
 from unittest import mock
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
+from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
@@ -127,17 +127,6 @@ class FakeQApplication:
         self.activeWindow = lambda: active_window
 
 
-class FakeUrl:
-
-    """QUrl stub which provides .path(), isValid() and host()."""
-
-    def __init__(self, path=None, valid=True, host=None, url=None):
-        self.path = mock.Mock(return_value=path)
-        self.isValid = mock.Mock(returl_value=valid)
-        self.host = mock.Mock(returl_value=host)
-        self.url = mock.Mock(return_value=url)
-
-
 class FakeNetworkReply:
 
     """QNetworkReply stub which provides a Content-Disposition header."""
@@ -148,7 +137,7 @@ class FakeNetworkReply:
 
     def __init__(self, headers=None, url=None):
         if url is None:
-            url = FakeUrl()
+            url = QUrl()
         if headers is None:
             self.headers = {}
         else:
@@ -244,7 +233,7 @@ class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
 
-    def __init__(self, url=FakeUrl(), title='', tab_id=0, *,
+    def __init__(self, url=QUrl(), title='', tab_id=0, *,
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0, can_go_back=None, can_go_forward=None):

@@ -59,6 +59,7 @@ def _js_slot(*args):
     def _decorator(method):
         @functools.wraps(method)
         def new_method(self, *args, **kwargs):
+            """Call the underlying function."""
             try:
                 return method(self, *args, **kwargs)
             except:

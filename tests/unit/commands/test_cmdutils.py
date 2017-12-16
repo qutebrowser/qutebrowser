@@ -103,7 +103,7 @@ class TestRegister:
     def test_lowercasing(self):
         """Make sure the function name is normalized correctly (uppercase)."""
         @cmdutils.register()
-        def Test():  # pylint: disable=invalid-name
+        def Test():  # noqa: N801,N806 pylint: disable=invalid-name
             """Blah."""
             pass
 

@@ -23,12 +23,14 @@ import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
+                                      QWebEngineScript)
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, jinja, urlutils, message
+from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
+                               objreg, qtutils)
 
 
 class WebEngineView(QWebEngineView):
@@ -135,6 +137,7 @@ class WebEnginePage(QWebEnginePage):
         self._theme_color = theme_color
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
+        self.urlChanged.connect(self._inject_userjs)
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
@@ -300,3 +303,43 @@ class WebEnginePage(QWebEnginePage):
             message.error(msg)
             return False
         return True
+
+    @pyqtSlot('QUrl')
+    def _inject_userjs(self, url):
+        """Inject userscripts registered for `url` into the current page."""
+        if qtutils.version_check('5.8'):
+            # Handled in webenginetab with the builtin Greasemonkey
+            # support.
+            return
+
+        # Using QWebEnginePage.scripts() to hold the user scripts means
+        # we don't have to worry ourselves about where to inject the
+        # page but also means scripts hang around for the tab lifecycle.
+        # So clear them here.
+        scripts = self.scripts()
+        for script in scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug("Removing script: {}"
+                                       .format(script.name()))
+                removed = scripts.remove(script)
+                assert removed, script.name()
+
+        def _add_script(script, injection_point):
+            new_script = QWebEngineScript()
+            new_script.setInjectionPoint(injection_point)
+            new_script.setWorldId(QWebEngineScript.MainWorld)
+            new_script.setSourceCode(script.code())
+            new_script.setName("GM-{}".format(script.name))
+            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            log.greasemonkey.debug("Adding script: {}"
+                                   .format(new_script.name()))
+            scripts.insert(new_script)
+
+        greasemonkey = objreg.get('greasemonkey')
+        matching_scripts = greasemonkey.scripts_for(url)
+        for script in matching_scripts.start:
+            _add_script(script, QWebEngineScript.DocumentCreation)
+        for script in matching_scripts.end:
+            _add_script(script, QWebEngineScript.DocumentReady)
+        for script in matching_scripts.idle:
+            _add_script(script, QWebEngineScript.Deferred)

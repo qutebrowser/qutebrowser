@@ -591,7 +591,7 @@ class StyleObj(QObject):
     def __init__(self, stylesheet=None, parent=None):
         super().__init__(parent)
         if stylesheet is not None:
-            self.STYLESHEET = stylesheet  # pylint: disable=invalid-name
+            self.STYLESHEET = stylesheet  # noqa: N801,N806 pylint: disable=invalid-name
         self.rendered_stylesheet = None
 
     def setStyleSheet(self, stylesheet):

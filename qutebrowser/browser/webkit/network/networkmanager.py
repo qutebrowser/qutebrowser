@@ -206,7 +206,7 @@ class NetworkManager(QNetworkAccessManager):
 
     # No @pyqtSlot here, see
     # https://github.com/qutebrowser/qutebrowser/issues/2213
-    def on_ssl_errors(self, reply, errors):  # pragma: no mccabe
+    def on_ssl_errors(self, reply, errors):  # noqa: C901 pragma: no mccabe
         """Decide if SSL errors should be ignored or not.
 
         This slot is called on SSL/TLS errors by the self.sslErrors signal.

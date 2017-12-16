@@ -190,6 +190,7 @@ class Command:
             return True
         elif arg_info.win_id:
             return True
+        return False
 
     def _inspect_func(self):
         """Inspect the function to get useful informations from it.
@@ -393,7 +394,7 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif type(typ) is type(typing.Union):  # flake8: disable=E721
+        elif type(typ) is type(typing.Union):  # noqa: E721
             # this is... slightly evil, I know
             # We also can't use isinstance here because typing.Union doesn't
             # support that.

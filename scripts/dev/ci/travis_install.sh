@@ -21,23 +21,23 @@
 # Stolen from https://github.com/travis-ci/travis-build/blob/master/lib/travis/build/templates/header.sh
 # and adjusted to use ((...))
 travis_retry() {
-    local ANSI_RED="\033[31;1m"
-    local ANSI_RESET="\033[0m"
+    local ANSI_RED='\033[31;1m'
+    local ANSI_RESET='\033[0m'
     local result=0
     local count=1
     while (( count < 3 )); do
         if (( result != 0 )); then
-            echo -e "\n${ANSI_RED}The command \"$@\" failed. Retrying, $count of 3.${ANSI_RESET}\n" >&2
+            echo -e "\\n${ANSI_RED}The command \"$*\" failed. Retrying, $count of 3.${ANSI_RESET}\\n" >&2
         fi
         "$@"
         result=$?
         (( result == 0 )) && break
-        count=$(($count + 1))
+        count=$(( count + 1 ))
         sleep 1
     done
 
     if (( count > 3 )); then
-        echo -e "\n${ANSI_RED}The command \"$@\" failed 3 times.${ANSI_RESET}\n" >&2
+        echo -e "\\n${ANSI_RED}The command \"$*\" failed 3 times.${ANSI_RESET}\\n" >&2
     fi
 
     return $result
@@ -95,6 +95,8 @@ fi
 case $TESTENV in
     eslint)
         npm_install eslint
+        ;;
+    shellcheck)
         ;;
     *)
         pip_install pip

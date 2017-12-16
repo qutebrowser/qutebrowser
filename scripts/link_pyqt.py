@@ -21,9 +21,9 @@
 """Symlink PyQt into a given virtualenv."""
 
 import os
+import os.path
 import argparse
 import shutil
-import os.path
 import sys
 import subprocess
 import tempfile
@@ -205,6 +205,10 @@ def main():
     args = parser.parse_args()
 
     if args.tox:
+        # Workaround for the lack of negative factors in tox.ini
+        if 'LINK_PYQT_SKIP' in os.environ:
+            print('LINK_PYQT_SKIP set, exiting...')
+            sys.exit(0)
         executable = get_tox_syspython(args.path)
     else:
         executable = sys.executable

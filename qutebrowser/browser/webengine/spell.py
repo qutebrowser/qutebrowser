@@ -30,7 +30,7 @@ from qutebrowser.utils import log
 def version(filename):
     """Extract the version number from the dictionary file name."""
     version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
-    match = version_re.match(filename)
+    match = version_re.fullmatch(filename)
     if match is None:
         raise ValueError('the given dictionary file name is malformed: {}'
                          .format(filename))

@@ -22,16 +22,7 @@
 import logging
 
 import pytest
-
-try:
-    import pytest_catchlog as catchlog_mod
-except ImportError:
-    # When using pytest for pyflakes/pep8/..., the plugin won't be available
-    # but conftest.py will still be loaded.
-    #
-    # However, LogFailHandler.emit will never be used in that case, so we just
-    # ignore the ImportError.
-    pass
+import _pytest.logging
 
 
 class LogFailHandler(logging.Handler):
@@ -50,8 +41,8 @@ class LogFailHandler(logging.Handler):
             return
 
         for h in root_logger.handlers:
-            if isinstance(h, catchlog_mod.LogCaptureHandler):
-                catchlog_handler = h
+            if isinstance(h, _pytest.logging.LogCaptureHandler):
+                capture_handler = h
                 break
         else:
             # The LogCaptureHandler is not available anymore during fixture
@@ -59,7 +50,7 @@ class LogFailHandler(logging.Handler):
             return
 
         if (logger.level == record.levelno or
-                catchlog_handler.level == record.levelno):
+                capture_handler.level == record.levelno):
             # caplog.at_level(...) was used with the level of this message,
             # i.e.  it was expected.
             return

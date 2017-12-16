@@ -22,7 +22,7 @@
 import html
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, message, log, objreg, jinja
+from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -182,7 +182,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         return False
     else:
         raise ValueError("Invalid ssl_strict value {!r}".format(ssl_strict))
-    raise AssertionError("Not reached")
+    raise utils.Unreachable
 
 
 def feature_permission(url, option, msg, yes_action, no_action, abort_on):

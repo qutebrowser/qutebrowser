@@ -34,6 +34,9 @@ history_gap_interval:
     `:history`. Use -1 to disable separation.
 
 ignore_case:
+  renamed: search.ignore_case
+
+search.ignore_case:
   type:
     name: String
     valid_values:
@@ -42,6 +45,11 @@ ignore_case:
       - smart: Search case-sensitively if there are capital characters.
   default: smart
   desc: When to find text on a page case-insensitively.
+
+search.incremental:
+  type: Bool
+  default: True
+  desc: Find text on a page incrementally, renewing the search for each typed character.
 
 new_instance_open_target:
   type:
@@ -203,8 +211,10 @@ content.cache.size:
     none_ok: true
     minval: 0
     maxval: maxint64
-  desc: Size (in bytes) of the HTTP network cache. Null to use the default
-    value.
+  desc: >-
+    Size (in bytes) of the HTTP network cache. Null to use the default value.
+
+    With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
 
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
@@ -1241,6 +1251,11 @@ tabs.padding:
   type: Padding
   desc: Padding (in pixels) around text for tabs.
 
+tabs.persist_mode_on_change:
+  default: false
+  type: Bool
+  desc: Stay in insert/passthrough mode when switching tabs.
+
 tabs.position:
   default: top
   type: Position
@@ -1293,6 +1308,7 @@ tabs.title.format:
       - host
       - private
       - current_url
+      - protocol
     none_ok: true
   desc: |
     Format to use for the tab title.
@@ -1307,8 +1323,9 @@ tabs.title.format:
     * `{scroll_pos}`: Page scroll position.
     * `{host}`: Host of the current web page.
     * `{backend}`: Either ''webkit'' or ''webengine''
-    * `{private}` : Indicates when private mode is enabled.
-    * `{current_url}` : URL of the current web page.
+    * `{private}`: Indicates when private mode is enabled.
+    * `{current_url}`: URL of the current web page.
+    * `{protocol}`: Protocol (http/https/...) of the current web page.
 
 tabs.title.format_pinned:
   default: '{index}'
@@ -1325,6 +1342,7 @@ tabs.title.format_pinned:
       - host
       - private
       - current_url
+      - protocol
     none_ok: true
   desc: Format to use for the tab title for pinned tabs. The same placeholders
     like for `tabs.title.format` are defined.
@@ -1468,6 +1486,7 @@ window.title_format:
       - backend
       - private
       - current_url
+      - protocol
   default: '{perc}{title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title. The same placeholders like for
@@ -2277,8 +2296,8 @@ bindings.default:
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next
-      <Up>: command-history-prev
-      <Down>: command-history-next
+      <Up>: completion-item-focus --history prev
+      <Down>: completion-item-focus --history next
       <Shift-Tab>: completion-item-focus prev
       <Tab>: completion-item-focus next
       <Ctrl-Tab>: completion-item-focus next-category
@@ -2288,6 +2307,7 @@ bindings.default:
       <Ctrl-C>: completion-item-yank
       <Ctrl-Shift-C>: completion-item-yank --sel
       <Return>: command-accept
+      <Ctrl-Return>: command-accept --rapid
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
       <Alt-B>: rl-backward-word

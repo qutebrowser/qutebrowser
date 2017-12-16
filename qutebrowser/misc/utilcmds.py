@@ -229,18 +229,33 @@ def debug_trace(expr=""):
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
-def debug_pyeval(s, quiet=False):
+def debug_pyeval(s, file=False, quiet=False):
     """Evaluate a python string and display the results as a web page.
 
     Args:
         s: The string to evaluate.
+        file: Interpret s as a path to file, also implies --quiet.
         quiet: Don't show the output in a new tab.
     """
-    try:
-        r = eval(s)
-        out = repr(r)
-    except Exception:
-        out = traceback.format_exc()
+    if file:
+        quiet = True
+        path = os.path.expanduser(s)
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                s = f.read()
+        except OSError as e:
+            raise cmdexc.CommandError(str(e))
+        try:
+            exec(s)
+            out = "No error"
+        except Exception:
+            out = traceback.format_exc()
+    else:
+        try:
+            r = eval(s)
+            out = repr(r)
+        except Exception:
+            out = traceback.format_exc()
 
     qutescheme.pyeval_output = out
     if quiet:

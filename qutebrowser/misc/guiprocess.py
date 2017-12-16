@@ -19,12 +19,14 @@
 
 """A QProcess which shows notifications in the GUI."""
 
+import locale
 import shlex
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
                           QProcessEnvironment)
 
 from qutebrowser.utils import message, log
+from qutebrowser.browser import qutescheme
 
 # A mapping of QProcess::ErrorCode's to human-readable strings.
 
@@ -96,6 +98,16 @@ class GUIProcess(QObject):
         self._started = False
         log.procs.debug("Process finished with code {}, status {}.".format(
             code, status))
+
+        encoding = locale.getpreferredencoding(do_setlocale=False)
+        stderr = bytes(self._proc.readAllStandardError()).decode(
+            encoding, 'replace')
+        stdout = bytes(self._proc.readAllStandardOutput()).decode(
+            encoding, 'replace')
+
+        qutescheme.spawn_output = self._spawn_format(code, status,
+                                                     stdout, stderr)
+
         if status == QProcess.CrashExit:
             message.error("{} crashed!".format(self._what.capitalize()))
         elif status == QProcess.NormalExit and code == 0:
@@ -109,12 +121,21 @@ class GUIProcess(QObject):
             message.error("{} exited with status {}, see :messages for "
                           "details.".format(self._what.capitalize(), code))
 
-            stderr = bytes(self._proc.readAllStandardError()).decode('utf-8')
-            stdout = bytes(self._proc.readAllStandardOutput()).decode('utf-8')
             if stdout:
                 log.procs.error("Process stdout:\n" + stdout.strip())
             if stderr:
                 log.procs.error("Process stderr:\n" + stderr.strip())
+
+    def _spawn_format(self, code=0, status=0, stdout="", stderr=""):
+        """Produce a formatted string for spawn output."""
+        stdout = (stdout or "(No output)").strip()
+        stderr = (stderr or "(No output)").strip()
+
+        spawn_string = ("Process finished with code {}, status {}\n"
+                        "\nProcess stdout:\n {}"
+                        "\nProcess stderr:\n {}").format(code, status,
+                                                         stdout, stderr)
+        return spawn_string
 
     @pyqtSlot()
     def on_started(self):

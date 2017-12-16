@@ -172,14 +172,15 @@ class TabWidget(QTabWidget):
             fields['perc'] = ''
 
         try:
-            fields['host'] = self.tab_url(idx).host()
+            url = self.tab_url(idx)
         except qtutils.QtValueError:
             fields['host'] = ''
-
-        try:
-            fields['current_url'] = self.tab_url(idx).url()
-        except qtutils.QtValueError:
             fields['current_url'] = ''
+            fields['protocol'] = ''
+        else:
+            fields['host'] = url.host()
+            fields['current_url'] = url.toDisplayString()
+            fields['protocol'] = url.scheme()
 
         y = tab.scroller.pos_perc()[1]
         if y is None:
