@@ -50,9 +50,9 @@ def helptopic(*, info):
     return model
 
 
-def suggest(*args, info):
+def suggest(*args, **kwargs):
     """A CompletionModel filled with already typed suggestions."""
-    del info
+    del kwargs
     model = None
     cols = 1
     suggestions = []
