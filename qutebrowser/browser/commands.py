@@ -1201,7 +1201,7 @@ class CommandDispatcher:
                     something else written by the user
         """
         runners.CommandRunner(self._win_id).run_safely(
-                command + ' ' + cmdutils.quote(choice))
+            command + ' ' + cmdutils.quote(choice))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)

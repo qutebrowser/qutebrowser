@@ -23,7 +23,7 @@ import re
 import itertools
 
 from qutebrowser.config import configdata
-from qutebrowser.utils import objreg, log, message
+from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
 
