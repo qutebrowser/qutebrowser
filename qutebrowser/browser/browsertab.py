@@ -749,23 +749,15 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
-        sess_manager = objreg.get('session-manager')
-        sess_manager.save_autosave()
-
-        if ok and not self._has_ssl_errors:
-            if self.url().scheme() == 'https':
-                self._set_load_status(usertypes.LoadStatus.success_https)
-            else:
-                self._set_load_status(usertypes.LoadStatus.success)
-        elif ok:
-            self._set_load_status(usertypes.LoadStatus.warn)
-        else:
+        if not ok:
+            sess_manager = objreg.get('session-manager')
+            sess_manager.save_autosave()
             self._set_load_status(usertypes.LoadStatus.error)
-        self.load_finished.emit(ok)
-        if not self.title():
-            self.title_changed.emit(self.url().toDisplayString())
+            self.load_finished.emit(ok)
+            if not self.title():
+                self.title_changed.emit(self.url().toDisplayString())
 
-        self.zoom.set_current()
+            self.zoom.set_current()
 
     @pyqtSlot()
     def _on_history_trigger(self):
@@ -776,6 +768,22 @@ class AbstractTab(QWidget):
     def _on_load_progress(self, perc):
         self._progress = perc
         self.load_progress.emit(perc)
+        if perc == 100 and self.load_status() != usertypes.LoadStatus.error:
+            sess_manager = objreg.get('session-manager')
+            sess_manager.save_autosave()
+
+            if not self._has_ssl_errors:
+                if self.url().scheme() == 'https':
+                    self._set_load_status(usertypes.LoadStatus.success_https)
+                else:
+                    self._set_load_status(usertypes.LoadStatus.success)
+            else:
+                self._set_load_status(usertypes.LoadStatus.warn)
+            self.load_finished.emit(True)
+            if not self.title():
+                self.title_changed.emit(self.url().toDisplayString())
+
+            self.zoom.set_current()
 
     @pyqtSlot()
     def _on_ssl_errors(self):
