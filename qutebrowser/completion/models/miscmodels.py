@@ -54,17 +54,13 @@ def suggest(*args, **kwargs):
     """A CompletionModel filled with already typed suggestions."""
     model = None
 
-    # if len(args) < 2:
-    #    message.error("Convert to test, shouldn't be possible;
-    #            first = command second = suggestions")
-
     cols = 1
     suggestions = []
     raw = (args[1][1:-1]
            if any(args[1].startswith(i) for i in ('"', "'"))
            else args[1])
 
-    # { \^n; | n mod 2 == 0 } -> ; isn't escaped
+    # { a\^n; | n mod 2 == 0, a != \ } -> ; isn't escaped
     # the implementation is a little weird,
     # so here's a little explaination:
     # match r'(?!\\)(\\\\)*;' has to be written as
@@ -84,7 +80,7 @@ def suggest(*args, **kwargs):
         if not row:
             continue
 
-        # { \^n, | n mod 2 == 0 } -> , isn't escaped
+        # { a\^n, | n mod 2 == 0, a != \ } -> , isn't escaped
         suggestions.append([
             col.replace('\\\\', '\\')
             .replace('\\,', ',')
