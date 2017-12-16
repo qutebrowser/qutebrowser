@@ -156,7 +156,7 @@ class CompletionView(QTreeView):
             delta = self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
             if pixel_widths[-1] > delta:
                 pixel_widths[-1] -= delta
-            if pixel_widths[-2] > delta:
+            elif pixel_widths[-2] > delta:
                 pixel_widths[-2] -= delta
             else:
                 pixel_widths[-3] -= delta
