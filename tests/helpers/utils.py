@@ -27,6 +27,8 @@ import contextlib
 
 import pytest
 
+from PyQt5.QtCore import QObject, pyqtSignal
+
 from qutebrowser.utils import qtutils
 
 
@@ -176,3 +178,28 @@ def abs_datapath():
 @contextlib.contextmanager
 def nop_contextmanager():
     yield
+
+
+class CallbackChecker(QObject):
+
+    """Check if a value provided by a callback is the expected one."""
+
+    got_result = pyqtSignal(object)
+    UNSET = object()
+
+    def __init__(self, qtbot, parent=None):
+        super().__init__(parent)
+        self._qtbot = qtbot
+        self._result = self.UNSET
+
+    def callback(self, result):
+        """Callback which can be passed to runJavaScript."""
+        self._result = result
+        self.got_result.emit(result)
+
+    def check(self, expected):
+        """Wait until the JS result arrived and compare it."""
+        if self._result is self.UNSET:
+            with self._qtbot.waitSignal(self.got_result, timeout=2000):
+                pass
+        assert self._result == expected

@@ -66,13 +66,13 @@ def early_init(args):
 
     configfiles.init()
 
-    objects.backend = get_backend(args)
-
     for opt, val in args.temp_settings:
         try:
             config.instance.set_str(opt, val)
         except configexc.Error as e:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
+
+    objects.backend = get_backend(args)
 
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
     config.instance.changed.connect(_update_monospace_fonts)

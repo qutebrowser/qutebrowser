@@ -115,6 +115,20 @@ Feature: Opening external editors
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
+    # Could not get signals working on Windows
+    # There's no guarantee that the tab gets deleted...
+    @posix @flaky
+    Scenario: Spawning an editor and closing the tab
+        When I set up a fake editor that waits
+        And I open data/editor.html
+        And I run :click-element id qute-textarea
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :open-editor
+        And I set tabs.last_close to blank
+        And I run :tab-close
+        And I kill the waiting editor
+        Then the error "Edited element vanished" should be shown
+
     @qtwebengine_todo: Caret mode is not implemented yet
     Scenario: Spawning an editor in caret mode
         When I set up a fake editor returning "foobar"
@@ -141,3 +155,25 @@ Feature: Opening external editors
         And I wait for "Read back: bar" in the log
         And I run :click-element id qute-button
         Then the javascript message "text: bar" should be logged
+
+    ## :edit-command
+
+    Scenario: Edit a command and run it
+        When I run :set-cmd-text :message-info foo
+        And I set up a fake editor replacing "foo" by "bar"
+        And I run :edit-command --run
+        Then the message "bar" should be shown
+        And "Leaving mode KeyMode.command (reason: cmd accept)" should be logged
+
+    Scenario: Edit a command and omit the start char
+        When I set up a fake editor returning "message-info foo"
+        And I run :edit-command
+        Then the error "command must start with one of :/?" should be shown
+        And "Leaving mode KeyMode.command *" should not be logged
+
+    Scenario: Edit a command to be empty
+        When I run :set-cmd-text :
+        When I set up a fake editor returning empty text
+        And I run :edit-command
+        Then the error "command must start with one of :/?" should be shown
+        And "Leaving mode KeyMode.command *" should not be logged

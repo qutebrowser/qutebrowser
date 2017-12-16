@@ -113,7 +113,7 @@ def _generate_stylesheet():
                 color: {{ conf.colors.%s }};
                 background-color: {{ conf.colors.%s }};
             }
-        """ % (flag, flag, flag,  # flake8: disable=S001
+        """ % (flag, flag, flag,  # noqa: S001
                option + '.fg', option + '.bg')
     return stylesheet
 

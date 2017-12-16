@@ -16,11 +16,11 @@ Content-Location: http://localhost:(port)/data/downloads/mhtml/simple/simple.htm
 t/html; charset=3DUTF-8">
        =20
         <title>Simple MHTML test</title>
-    <style type=3D"text/css">
-html > ::-webkit-scrollbar { width: 0px; height: 0px; }</style></head>
+    </head>
     <body>
         <a href=3D"http://localhost:(port)/">normal link to another page</a>
    =20
 
-</body></html>
+</body><style>
+html > ::-webkit-scrollbar { width: 0px; height: 0px; }</style></html>
 -----=_qute-UUID

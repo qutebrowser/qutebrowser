@@ -172,11 +172,6 @@ class WebserverProcess(testprocess.Process):
     def _default_args(self):
         return [str(self.port)]
 
-    def cleanup(self):
-        """Clean up and shut down the process."""
-        self.proc.terminate()
-        self.proc.waitForFinished()
-
 
 @pytest.fixture(scope='session', autouse=True)
 def server(qapp):
@@ -184,7 +179,7 @@ def server(qapp):
     server = WebserverProcess('webserver_sub')
     server.start()
     yield server
-    server.cleanup()
+    server.terminate()
 
 
 @pytest.fixture(autouse=True)
@@ -208,4 +203,4 @@ def ssl_server(request, qapp):
     server.start()
     yield server
     server.after_test()
-    server.cleanup()
+    server.terminate()

@@ -42,6 +42,7 @@ from qutebrowser.misc import objects
 
 
 pyeval_output = ":pyeval was never called"
+spawn_output = ":spawn was never called"
 
 
 _HANDLERS = {}
@@ -92,7 +93,7 @@ class Redirect(Exception):
         self.url = url
 
 
-class add_handler:  # pylint: disable=invalid-name
+class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to register a qute://* URL handler.
 
@@ -112,6 +113,7 @@ class add_handler:  # pylint: disable=invalid-name
         return function
 
     def wrapper(self, *args, **kwargs):
+        """Call the underlying function."""
         if self._backend is not None and objects.backend != self._backend:
             return self.wrong_backend_handler(*args, **kwargs)
         else:
@@ -137,7 +139,7 @@ def data_for_url(url):
         A (mimetype, data) tuple.
     """
     norm_url = url.adjusted(QUrl.NormalizePathSegments |
-            QUrl.StripTrailingSlash)
+                            QUrl.StripTrailingSlash)
     if norm_url != url:
         raise Redirect(norm_url)
 
@@ -265,6 +267,13 @@ def qute_javascript(url):
 def qute_pyeval(_url):
     """Handler for qute://pyeval."""
     html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
+    return 'text/html', html
+
+
+@add_handler('spawn-output')
+def qute_spawn_output(_url):
+    """Handler for qute://spawn-output."""
+    html = jinja.render('pre.html', title='spawn output', content=spawn_output)
     return 'text/html', html
 
 
@@ -446,7 +455,7 @@ def qute_configdiff(url):
             return 'text/html', configdiff.get_diff()
         except OSError as e:
             error = (b'Failed to read old config: ' +
-                    str(e.strerror).encode('utf-8'))
+                     str(e.strerror).encode('utf-8'))
             return 'text/plain', error
     else:
         data = config.instance.dump_userconfig().encode('utf-8')

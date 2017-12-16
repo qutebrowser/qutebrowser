@@ -241,7 +241,7 @@ class WrapperLayout(QLayout):
         self._widget = None
 
     def addItem(self, _widget):
-        raise AssertionError("Should never be called!")
+        raise utils.Unreachable
 
     def sizeHint(self):
         return self._widget.sizeHint()
@@ -250,7 +250,7 @@ class WrapperLayout(QLayout):
         return None
 
     def takeAt(self, _index):
-        raise AssertionError("Should never be called!")
+        raise utils.Unreachable
 
     def setGeometry(self, rect):
         self._widget.setGeometry(rect)

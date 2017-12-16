@@ -628,7 +628,8 @@ Feature: Tab management
 
     @qtwebkit_skip @qt<5.9
     Scenario: Cloning a tab with a view-source URL
-        When I open view-source:http://localhost:(port)
+        When I open /
+        And I open view-source:http://localhost:(port)
         And I run :tab-clone
         Then the error "Can't serialize special URL!" should be shown
 
@@ -760,6 +761,7 @@ Feature: Tab management
             - data/numbers/3.txt
             - data/numbers/2.txt
 
+    @flaky
     Scenario: Undo a tab closed after new tab opened
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab

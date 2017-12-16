@@ -23,7 +23,7 @@ matrix:
       env: TESTENV=py36-pyqt59-cov
     - os: osx
       env: TESTENV=py36 OSX=sierra
-      osx_image: xcode8.3
+      osx_image: xcode9.2
       language: generic
     # https://github.com/qutebrowser/qutebrowser/issues/2013
     # - os: osx
@@ -52,6 +52,10 @@ matrix:
       language: node_js
       python: null
       node_js: "lts/*"
+    - os: linux
+      language: generic
+      env: TESTENV=shellcheck
+      services: docker
   fast_finish: true
 
 cache:

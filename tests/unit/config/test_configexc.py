@@ -49,8 +49,9 @@ def test_no_option_error_clash():
 
 
 def test_backend_error():
-    e = configexc.BackendError(usertypes.Backend.QtWebKit)
-    assert str(e) == "This setting is not available with the QtWebKit backend!"
+    e = configexc.BackendError('foo', usertypes.Backend.QtWebKit)
+    expected = "The foo setting is not available with the QtWebKit backend!"
+    assert str(e) == expected
 
 
 def test_desc_with_text():

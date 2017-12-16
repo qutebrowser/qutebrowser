@@ -89,9 +89,9 @@ Feature: quickmarks and bookmarks
         Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt "
 
     Scenario: Deleting the current page's bookmark if it doesn't exist
-        When I open about:blank
+        When I open data/hello.txt
         And I run :bookmark-del
-        Then the error "Bookmark 'about:blank' not found!" should be shown
+        Then the error "Bookmark 'http://localhost:(port)/data/hello.txt' not found!" should be shown
 
     Scenario: Deleting the current page's bookmark
         When I open data/numbers/6.txt
@@ -212,9 +212,9 @@ Feature: quickmarks and bookmarks
         Then the quickmark file should not contain "eighteen http://localhost:*/data/numbers/18.txt "
 
     Scenario: Deleting the current page's quickmark if it has none
-        When I open about:blank
+        When I open data/hello.txt
         And I run :quickmark-del
-        Then the error "Quickmark for 'about:blank' not found!" should be shown
+        Then the error "Quickmark for 'http://localhost:(port)/data/hello.txt' not found!" should be shown
 
     Scenario: Deleting the current page's quickmark
         When I open data/numbers/19.txt

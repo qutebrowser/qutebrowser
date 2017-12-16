@@ -61,7 +61,7 @@ def main():
 
     for root, _dirs, _files in os.walk(os.getcwd()):
         path = os.path.basename(root)
-        if any([fnmatch.fnmatch(path, e) for e in recursive_lint]):
+        if any(fnmatch.fnmatch(path, e) for e in recursive_lint):
             remove(root)
 
 

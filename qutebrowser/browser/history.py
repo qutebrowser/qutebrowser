@@ -21,6 +21,7 @@
 
 import os
 import time
+import contextlib
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
 
@@ -87,6 +88,16 @@ class WebHistory(sql.SqlTable):
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
 
+    @contextlib.contextmanager
+    def _handle_sql_errors(self):
+        try:
+            yield
+        except sql.SqlError as e:
+            if e.environmental:
+                message.error("Failed to write history: {}".format(e.text()))
+            else:
+                raise
+
     def _rebuild_completion(self):
         data = {'url': [], 'title': [], 'last_atime': []}
         # select the latest entry for each url
@@ -138,12 +149,13 @@ class WebHistory(sql.SqlTable):
         if force:
             self._do_clear()
         else:
-            message.confirm_async(self._do_clear, title="Clear all browsing "
-                                  "history?")
+            message.confirm_async(yes_action=self._do_clear,
+                                  title="Clear all browsing history?")
 
     def _do_clear(self):
-        self.delete_all()
-        self.completion.delete_all()
+        with self._handle_sql_errors():
+            self.delete_all()
+            self.completion.delete_all()
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -191,7 +203,7 @@ class WebHistory(sql.SqlTable):
 
         atime = int(atime) if (atime is not None) else int(time.time())
 
-        try:
+        with self._handle_sql_errors():
             self.insert({'url': self._format_url(url),
                          'title': title,
                          'atime': atime,
@@ -202,11 +214,6 @@ class WebHistory(sql.SqlTable):
                     'title': title,
                     'last_atime': atime
                 }, replace=True)
-        except sql.SqlError as e:
-            if e.environmental:
-                message.error("Failed to write history: {}".format(e.text()))
-            else:
-                raise
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
@@ -261,6 +268,7 @@ class WebHistory(sql.SqlTable):
             return
 
         def action():
+            """Actually run the import."""
             with debug.log_time(log.init, 'Import old history file to sqlite'):
                 try:
                     self._read(path)
@@ -333,7 +341,7 @@ class WebHistory(sql.SqlTable):
                 f.write('\n'.join(lines))
             message.info("Dumped history to {}".format(dest))
         except OSError as e:
-            raise cmdexc.CommandError('Could not write history: {}', e)
+            raise cmdexc.CommandError('Could not write history: {}'.format(e))
 
 
 def init(parent=None):

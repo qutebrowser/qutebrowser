@@ -57,17 +57,22 @@ def parse_fatal_stacktrace(text):
         element being the first stacktrace frame.
     """
     lines = [
-        r'Fatal Python error: (.*)',
+        r'(?P<type>Fatal Python error|Windows fatal exception): (?P<msg>.*)',
         r' *',
         r'(Current )?[Tt]hread [^ ]* \(most recent call first\): *',
-        r'  File ".*", line \d+ in (.*)',
+        r'  File ".*", line \d+ in (?P<func>.*)',
     ]
-    m = re.match('\n'.join(lines), text)
+    m = re.search('\n'.join(lines), text)
     if m is None:
         # We got some invalid text.
         return ('', '')
     else:
-        return (m.group(1), m.group(3))
+        msg = m.group('msg')
+        typ = m.group('type')
+        func = m.group('func')
+        if typ == 'Windows fatal exception':
+            msg = 'Windows ' + msg
+        return msg, func
 
 
 def _get_environment_vars():
@@ -343,7 +348,6 @@ class _CrashDialog(QDialog):
                          "but you're currently running v{} - please "
                          "update!".format(newest, qutebrowser.__version__))
         text = '<br/><br/>'.join(lines)
-        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
@@ -360,7 +364,6 @@ class _CrashDialog(QDialog):
                      "<a href=https://www.qutebrowser.org/>qutebrowser.org</a> "
                      "by yourself.".format(msg))
         text = '<br/><br/>'.join(lines)
-        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
@@ -474,7 +477,8 @@ class FatalCrashDialog(_CrashDialog):
         self._type, self._func = parse_fatal_stacktrace(self._log)
 
     def _get_error_type(self):
-        if self._type == 'Segmentation fault':
+        if self._type in ['Segmentation fault',
+                          'Windows access violation']:
             return 'segv'
         else:
             return self._type
@@ -522,7 +526,7 @@ class FatalCrashDialog(_CrashDialog):
         """Prevent empty reports."""
         if (not self._info.toPlainText().strip() and
                 not self._contact.toPlainText().strip() and
-                self._type == 'Segmentation fault' and
+                self._get_error_type() == 'segv' and
                 self._func == 'qt_mainloop'):
             msgbox.msgbox(parent=self, title='Empty crash info',
                           text="Empty reports for fatal crashes are useless "

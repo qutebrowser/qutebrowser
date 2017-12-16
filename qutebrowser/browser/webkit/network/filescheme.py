@@ -132,5 +132,6 @@ class FileSchemeHandler(schemehandler.SchemeHandler):
                 data = dirbrowser_html(path)
                 return networkreply.FixedDataNetworkReply(
                     request, data, 'text/html', self.parent())
+            return None
         except UnicodeEncodeError:
             return None

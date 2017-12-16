@@ -174,6 +174,7 @@ def _parse_yaml_backends(name, node):
     elif isinstance(node, dict):
         return _parse_yaml_backends_dict(name, node)
     _raise_invalid_node(name, 'backends', node)
+    raise utils.Unreachable
 
 
 def _read_yaml(yaml_data):

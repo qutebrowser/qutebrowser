@@ -40,6 +40,7 @@ def print_header():
 
 
 def print_paths():
+    """Print all QStandardPaths.StandardLocation members."""
     for name, obj in vars(QStandardPaths).items():
         if isinstance(obj, QStandardPaths.StandardLocation):
             location = QStandardPaths.writableLocation(obj)

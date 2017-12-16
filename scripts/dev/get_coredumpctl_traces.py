@@ -21,10 +21,10 @@
 """Get qutebrowser crash information and stacktraces from coredumpctl."""
 
 import os
+import os.path
 import sys
 import argparse
 import subprocess
-import os.path
 import tempfile
 
 import attr

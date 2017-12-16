@@ -56,14 +56,17 @@ def url(*, info):
     """
     model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
 
-    quickmarks = ((url, name) for (name, url)
-                  in objreg.get('quickmark-manager').marks.items())
+    quickmarks = [(url, name) for (name, url)
+                  in objreg.get('quickmark-manager').marks.items()]
     bookmarks = objreg.get('bookmark-manager').marks.items()
 
-    model.add_category(listcategory.ListCategory(
-        'Quickmarks', quickmarks, delete_func=_delete_quickmark, sort=False))
-    model.add_category(listcategory.ListCategory(
-        'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
+    if quickmarks:
+        model.add_category(listcategory.ListCategory(
+            'Quickmarks', quickmarks, delete_func=_delete_quickmark,
+            sort=False))
+    if bookmarks:
+        model.add_category(listcategory.ListCategory(
+            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
 
     if info.config.get('completion.web_history_max_items') != 0:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)

@@ -21,9 +21,9 @@
 """Various small code checkers."""
 
 import os
+import os.path
 import re
 import sys
-import os.path
 import argparse
 import subprocess
 import tokenize

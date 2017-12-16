@@ -9,6 +9,13 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
+    Scenario: :set-cmd-text and :command-accept --rapid
+        When I run :set-cmd-text :message-info "Hello World"
+        And I run :command-accept --rapid
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+        And the message "Hello World" should be shown
+
     Scenario: :set-cmd-text with two commands
         When I run :set-cmd-text :message-info test ;; message-error error
         And I run :command-accept
@@ -118,8 +125,8 @@ Feature: Various utility commands.
         And "No output or error" should be logged
 
     Scenario: :jseval --file using a file that doesn't exist as js-code
-        When I run :jseval --file nonexistentfile
-        Then the error "[Errno 2] No such file or directory: 'nonexistentfile'" should be shown
+        When I run :jseval --file /nonexistentfile
+        Then the error "[Errno 2] No such file or directory: '/nonexistentfile'" should be shown
         And "No output or error" should not be logged
 
     # :debug-webaction
@@ -449,6 +456,11 @@ Feature: Various utility commands.
         And I run :click-element id qute-input
         Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
 
+    Scenario: Clicking an element by ID with dot
+        When I open data/click_element.html
+        And I run :click-element id foo.bar
+        Then the javascript message "id with dot" should be logged
+
     Scenario: Clicking an element with tab target
         When I open data/click_element.html
         And I run :tab-only
@@ -466,6 +478,17 @@ Feature: Various utility commands.
         And I wait for "blah" in the log
         And I run :set-cmd-text :
         And I run :command-history-prev
+        And I run :command-accept
+        Then the message "blah" should be shown
+
+    Scenario: Calling previous command with :completion-item-focus
+        When I run :set-cmd-text :message-info blah
+        And I wait for "Entering mode KeyMode.command (reason: *)" in the log
+        And I run :command-accept
+        And I wait for "blah" in the log
+        And I run :set-cmd-text :
+        And I wait for "Entering mode KeyMode.command (reason: *)" in the log
+        And I run :completion-item-focus prev --history
         And I run :command-accept
         Then the message "blah" should be shown
 

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+
 """Tests for qutebrowser.utils.qtutils."""
 
 import io
@@ -40,6 +41,7 @@ from qutebrowser.utils import qtutils, utils
 import overflow_test_cases
 
 
+# pylint: disable=bad-continuation
 @pytest.mark.parametrize(['qversion', 'compiled', 'pyqt', 'version', 'exact',
                           'expected'], [
     # equal versions
@@ -61,6 +63,7 @@ import overflow_test_cases
     # all up-to-date
     ('5.4.0', '5.4.0', '5.4.0', '5.4.0', False, True),
 ])
+# pylint: enable=bad-continuation
 def test_version_check(monkeypatch, qversion, compiled, pyqt, version, exact,
                        expected):
     """Test for version_check().

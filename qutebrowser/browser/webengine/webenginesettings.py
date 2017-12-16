@@ -29,6 +29,7 @@ Module attributes:
 
 import os
 
+import sip
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEngineScript)
@@ -37,7 +38,7 @@ from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
 from qutebrowser.utils import (utils, standarddir, javascript, qtutils,
-                               message, log)
+                               message, log, objreg)
 
 # The default QWebEngineProfile
 default_profile = None
@@ -93,9 +94,10 @@ class DefaultProfileSetter(websettings.Base):
 
     """A setting set on the QWebEngineProfile."""
 
-    def __init__(self, setter, default=websettings.UNSET):
+    def __init__(self, setter, converter=None, default=websettings.UNSET):
         super().__init__(default)
         self._setter = setter
+        self._converter = converter
 
     def __repr__(self):
         return utils.get_repr(self, setter=self._setter, constructor=True)
@@ -104,7 +106,11 @@ class DefaultProfileSetter(websettings.Base):
         if settings is not None:
             raise ValueError("'settings' may not be set with "
                              "DefaultProfileSetters!")
+
         setter = getattr(default_profile, self._setter)
+        if self._converter is not None:
+            value = self._converter(value)
+
         setter(value)
 
 
@@ -153,31 +159,42 @@ class DictionaryLanguageSetter(DefaultProfileSetter):
 def _init_stylesheet(profile):
     """Initialize custom stylesheets.
 
-    Mostly inspired by QupZilla:
+    Partially inspired by QupZilla:
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
-    https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/tools/scripts.cpp#L119-L132
     """
     old_script = profile.scripts().findScript('_qute_stylesheet')
     if not old_script.isNull():
         profile.scripts().remove(old_script)
 
     css = shared.get_user_stylesheet()
-    source = """
-        (function() {{
-            var css = document.createElement('style');
-            css.setAttribute('type', 'text/css');
-            css.appendChild(document.createTextNode('{}'));
-            document.getElementsByTagName('head')[0].appendChild(css);
-        }})()
-    """.format(javascript.string_escape(css))
+    source = '\n'.join([
+        '"use strict";',
+        'window._qutebrowser = window._qutebrowser || {};',
+        utils.read_file('javascript/stylesheet.js'),
+        javascript.assemble('stylesheet', 'set_css', css),
+    ])
 
     script = QWebEngineScript()
     script.setName('_qute_stylesheet')
-    script.setInjectionPoint(QWebEngineScript.DocumentReady)
+    script.setInjectionPoint(QWebEngineScript.DocumentCreation)
     script.setWorldId(QWebEngineScript.ApplicationWorld)
     script.setRunsOnSubFrames(True)
     script.setSourceCode(source)
     profile.scripts().insert(script)
+
+
+def _update_stylesheet():
+    """Update the custom stylesheet in existing tabs."""
+    css = shared.get_user_stylesheet()
+    code = javascript.assemble('stylesheet', 'set_css', css)
+    for win_id, window in objreg.window_registry.items():
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(window):
+            continue
+        tab_registry = objreg.get('tab-registry', scope='window',
+                                  window=win_id)
+        for tab in tab_registry.values():
+            tab.run_js_async(code)
 
 
 def _set_http_headers(profile):
@@ -199,6 +216,7 @@ def _update_settings(option):
     if option in ['scrolling.bar', 'content.user_stylesheets']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
+        _update_stylesheet()
     elif option in ['content.headers.user_agent',
                     'content.headers.accept_language']:
         _set_http_headers(default_profile)
@@ -224,6 +242,43 @@ def _init_profiles():
     if qtutils.version_check('5.8'):
         default_profile.setSpellCheckEnabled(True)
         private_profile.setSpellCheckEnabled(True)
+
+
+def inject_userscripts():
+    """Register user JavaScript files with the global profiles."""
+    # The Greasemonkey metadata block support in QtWebEngine only starts at
+    # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in response
+    # to urlChanged.
+    if not qtutils.version_check('5.8'):
+        return
+
+    # Since we are inserting scripts into profile.scripts they won't
+    # just get replaced by new gm scripts like if we were injecting them
+    # ourselves so we need to remove all gm scripts, while not removing
+    # any other stuff that might have been added. Like the one for
+    # stylesheets.
+    greasemonkey = objreg.get('greasemonkey')
+    for profile in [default_profile, private_profile]:
+        scripts = profile.scripts()
+        for script in scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = scripts.remove(script)
+                assert removed, script.name()
+
+        # Then add the new scripts.
+        for script in greasemonkey.all_scripts():
+            # @run-at (and @include/@exclude/@match) is parsed by
+            # QWebEngineScript.
+            new_script = QWebEngineScript()
+            new_script.setWorldId(QWebEngineScript.MainWorld)
+            new_script.setSourceCode(script.code())
+            new_script.setName("GM-{}".format(script.name))
+            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            log.greasemonkey.debug('adding script: {}'
+                                   .format(new_script.name()))
+            scripts.insert(new_script)
 
 
 def init(args):
@@ -283,7 +338,9 @@ MAPPINGS = {
         Attribute(QWebEngineSettings.LocalStorageEnabled),
     'content.cache.size':
         # 0: automatically managed by QtWebEngine
-        DefaultProfileSetter('setHttpCacheMaximumSize', default=0),
+        DefaultProfileSetter('setHttpCacheMaximumSize', default=0,
+                             converter=lambda val:
+                             qtutils.check_overflow(val, 'int', fatal=False)),
     'content.xss_auditing':
         Attribute(QWebEngineSettings.XSSAuditingEnabled),
     'content.default_encoding':

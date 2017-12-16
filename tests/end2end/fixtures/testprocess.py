@@ -300,8 +300,16 @@ class Process(QObject):
 
     def terminate(self):
         """Clean up and shut down the process."""
-        self.proc.terminate()
-        self.proc.waitForFinished()
+        if not self.is_running():
+            return
+
+        if quteutils.is_windows:
+            self.proc.kill()
+        else:
+            self.proc.terminate()
+
+        ok = self.proc.waitForFinished()
+        assert ok
 
     def is_running(self):
         """Check if the process is currently running."""
@@ -327,13 +335,13 @@ class Process(QObject):
         if expected is None:
             return True
         elif isinstance(expected, regex_type):
-            return expected.match(value)
+            return expected.search(value)
         elif isinstance(value, (bytes, str)):
             return utils.pattern_match(pattern=expected, value=value)
         else:
             return value == expected
 
-    def _wait_for_existing(self, override_waited_for, **kwargs):
+    def _wait_for_existing(self, override_waited_for, after, **kwargs):
         """Check if there are any line in the history for wait_for.
 
         Return: either the found line or None.
@@ -345,7 +353,15 @@ class Process(QObject):
                 value = getattr(line, key)
                 matches.append(self._match_data(value, expected))
 
-            if all(matches) and (not line.waited_for or override_waited_for):
+            if after is None:
+                too_early = False
+            else:
+                too_early = ((line.timestamp, line.msecs) <
+                             (after.timestamp, after.msecs))
+
+            if (all(matches) and
+                    (not line.waited_for or override_waited_for) and
+                    not too_early):
                 # If we waited for this line, chances are we don't mean the
                 # same thing the next time we use wait_for and it matches
                 # this line again.
@@ -363,7 +379,7 @@ class Process(QObject):
         __tracebackhide__ = lambda e: e.errisinstance(WaitForTimeout)
         message = kwargs.get('message', None)
         if message is not None:
-            elided = quteutils.elide(repr(message), 50)
+            elided = quteutils.elide(repr(message), 100)
             self._log("\n----> Waiting for {} in the log".format(elided))
 
         spy = QSignalSpy(self.new_data)
@@ -387,6 +403,8 @@ class Process(QObject):
                 if message is not None:
                     self._log("----> found it")
                 return match
+
+        raise quteutils.Unreachable
 
     def _wait_for_match(self, spy, kwargs):
         """Try matching the kwargs with the given QSignalSpy."""
@@ -422,7 +440,7 @@ class Process(QObject):
         pass
 
     def wait_for(self, timeout=None, *, override_waited_for=False,
-                 do_skip=False, divisor=1, **kwargs):
+                 do_skip=False, divisor=1, after=None, **kwargs):
         """Wait until a given value is found in the data.
 
         Keyword arguments to this function get interpreted as attributes of the
@@ -435,6 +453,7 @@ class Process(QObject):
                                  again.
             do_skip: If set, call pytest.skip on a timeout.
             divisor: A factor to decrease the timeout by.
+            after: If it's an existing line, ensure it's after the given one.
 
         Return:
             The matched line.
@@ -456,7 +475,8 @@ class Process(QObject):
         for key in kwargs:
             assert key in self.KEYS
 
-        existing = self._wait_for_existing(override_waited_for, **kwargs)
+        existing = self._wait_for_existing(override_waited_for, after,
+                                           **kwargs)
         if existing is not None:
             return existing
         else:

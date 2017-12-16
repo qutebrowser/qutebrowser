@@ -20,9 +20,9 @@
 """Utilities to get and initialize data/config paths."""
 
 import os
+import os.path
 import sys
 import shutil
-import os.path
 import contextlib
 import enum
 

@@ -291,7 +291,7 @@ class SessionManager(QObject):
             data = self._last_window_session
             if data is None:
                 log.sessions.error("last_window_session is None while saving!")
-                return
+                return None
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
@@ -519,7 +519,9 @@ class SessionManager(QObject):
             raise cmdexc.CommandError("Error while saving session: {}"
                                       .format(e))
         else:
-            if not quiet:
+            if quiet:
+                log.sessions.debug("Saved session {}.".format(name))
+            else:
                 message.info("Saved session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')

@@ -502,8 +502,8 @@ class _Downloader:
         This is needed if a download finishes before attaching its
         finished signal.
         """
-        items = set((url, item) for url, item in self.pending_downloads
-                    if item.done)
+        items = {(url, item) for url, item in self.pending_downloads
+                 if item.done}
         log.downloads.debug("Zombie downloads: {}".format(items))
         for url, item in items:
             self._finished(url, item)

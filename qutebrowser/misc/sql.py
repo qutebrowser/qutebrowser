@@ -70,9 +70,21 @@ class SqliteError(SqlError):
         environmental_errors = [
             '5',   # SQLITE_BUSY ("database is locked")
             '8',   # SQLITE_READONLY
+            '11',  # SQLITE_CORRUPT
             '13',  # SQLITE_FULL
         ]
-        self.environmental = error.nativeErrorCode() in environmental_errors
+        # At least in init(), we can get errors like this:
+        # type: ConnectionError
+        # database text: out of memory
+        # driver text: Error opening database
+        # error code: -1
+        environmental_strings = [
+            "out of memory",
+        ]
+        errcode = error.nativeErrorCode()
+        self.environmental = (
+            errcode in environmental_errors or
+            (errcode == -1 and error.databaseText() in environmental_strings))
 
     def text(self):
         return self.error.databaseText()

@@ -156,7 +156,7 @@ class DocstringParser:
     def _parse_arg_inside(self, line):
         """Parse subsequent argument lines."""
         argname = self._cur_arg_name
-        if re.match(r'^[A-Z][a-z]+:$', line):
+        if re.fullmatch(r'[A-Z][a-z]+:', line):
             if not self.arg_descs[argname][-1].strip():
                 self.arg_descs[argname] = self.arg_descs[argname][:-1]
                 return True

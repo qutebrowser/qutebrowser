@@ -31,7 +31,8 @@ from qutebrowser.utils import qtutils
 from qutebrowser.commands import cmdexc
 
 
-@hypothesis.given(strategies.lists(min_size=0, max_size=3,
+@hypothesis.given(strategies.lists(
+    min_size=0, max_size=3,
     elements=strategies.integers(min_value=0, max_value=2**31)))
 def test_first_last_item(counts):
     """Test that first() and last() index to the first and last items."""
@@ -68,17 +69,17 @@ def test_count(counts):
     assert model.count() == sum(counts)
 
 
-@hypothesis.given(strategies.text())
-def test_set_pattern(pat):
+@hypothesis.given(pat=strategies.text())
+def test_set_pattern(pat, qtbot):
     """Validate the filtering and sorting results of set_pattern."""
     model = completionmodel.CompletionModel()
-    cats = [mock.Mock(spec=['set_pattern', 'layoutChanged',
-                            'layoutAboutToBeChanged'])
-            for _ in range(3)]
+    cats = [mock.Mock(spec=['set_pattern']) for _ in range(3)]
     for c in cats:
         c.set_pattern = mock.Mock(spec=[])
         model.add_category(c)
-    model.set_pattern(pat)
+    with qtbot.waitSignals([model.layoutAboutToBeChanged, model.layoutChanged],
+                           order='strict'):
+        model.set_pattern(pat)
     for c in cats:
         c.set_pattern.assert_called_with(pat)
 

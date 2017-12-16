@@ -20,9 +20,9 @@
 """Tests for qutebrowser.utils.standarddir."""
 
 import os
+import os.path
 import sys
 import json
-import os.path
 import types
 import textwrap
 import logging

@@ -27,7 +27,7 @@ import re
 
 import pytest
 
-from PyQt5.QtCore import QProcess
+from PyQt5.QtCore import QProcess, qVersion
 
 
 def _base_args(config):
@@ -37,6 +37,9 @@ def _base_args(config):
         args += ['--backend', 'webengine']
     else:
         args += ['--backend', 'webkit']
+    if qVersion() == '5.7.1':
+        # https://github.com/qutebrowser/qutebrowser/issues/3163
+        args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
     args.append('about:blank')
     return args
 
@@ -356,14 +359,14 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
     args = _base_args(request.config) + ['--basedir', str(short_tmpdir)]
     quteproc_new.start(args)
     quteproc_new.open_path(
-        'qute://settings/set?option=ignore_case&value=always')
-    assert quteproc_new.get_setting('ignore_case') == 'always'
+        'qute://settings/set?option=search.ignore_case&value=always')
+    assert quteproc_new.get_setting('search.ignore_case') == 'always'
 
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()
 
     quteproc_new.start(args)
-    assert quteproc_new.get_setting('ignore_case') == 'always'
+    assert quteproc_new.get_setting('search.ignore_case') == 'always'
 
 
 @pytest.mark.no_xvfb

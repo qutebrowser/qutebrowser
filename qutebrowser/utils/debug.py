@@ -184,7 +184,7 @@ def signal_name(sig):
     Return:
         The cleaned up signal name.
     """
-    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
+    m = re.fullmatch(r'[0-9]+(.*)\(.*\)', sig.signal)
     return m.group(1)
 
 
@@ -232,7 +232,7 @@ def format_call(func, args=None, kwargs=None, full=True):
     return '{}({})'.format(name, format_args(args, kwargs))
 
 
-class log_time:  # pylint: disable=invalid-name
+class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Log the time an operation takes.
 
@@ -266,6 +266,7 @@ class log_time:  # pylint: disable=invalid-name
     def __call__(self, func):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
+            """Call the original function."""
             with self:
                 func(*args, **kwargs)
 

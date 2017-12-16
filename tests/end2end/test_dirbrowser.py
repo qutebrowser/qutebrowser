@@ -195,7 +195,6 @@ def test_enter_folder_smoke(dir_layout, quteproc):
 
 @pytest.mark.parametrize('folder', DirLayout.layout_folders())
 def test_enter_folder(dir_layout, quteproc, folder):
-    # pylint: disable=not-an-iterable
     quteproc.open_url(dir_layout.file_url())
     quteproc.click_element_by_text(text=folder)
     expected_url = urlutils.file_url(dir_layout.path(folder))
@@ -208,4 +207,3 @@ def test_enter_folder(dir_layout, quteproc, folder):
     assert foldernames == folders
     filenames = [item.text for item in page.files]
     assert filenames == files
-    # pylint: enable=not-an-iterable
