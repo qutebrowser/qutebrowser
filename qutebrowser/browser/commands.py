@@ -1175,6 +1175,34 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
         self._tabbed_browser.tabBar().moveTab(cur_idx, new_idx)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('choice', completion=miscmodels.suggest)
+    def suggest(self, command: str,
+                suggestions: str, choice: str):
+        """Offers userscripts the possibility to
+        let a user choose between information.
+        E.g.
+        - information extracted from the source code of the website
+        - more specific example: iframe urls
+
+        Args:
+            command: Qutebrowser command to run with the choice
+            suggestions: suggestions as table:
+                         - one suggestion per row
+                         - the first column will be used as suggested argument
+                         - additional columns can be used to
+                           deliver more information
+                         - columns are seperated by commas
+                         - rows / suggestions are seperated by semicolons
+                         - it's possible to escape backslashes,
+                           commas and semicolons with a backslash
+                         e.g. "1,eins;2,zwei;3,drei\\, und etwas Text"
+            choice: first column of the selected row or
+                    something else written by the user
+        """
+        runners.CommandRunner(self._win_id).run_safely(
+                command + ' ' + cmdutils.quote(choice))
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     def spawn(self, cmdline, userscript=False, verbose=False,
@@ -1236,6 +1264,8 @@ class CommandDispatcher:
         """
         env = {
             'QUTE_MODE': 'command',
+            'QUTE_NATIVE_WID': str(int(
+                self._tabbed_browser.nativeParentWidget().winId())),
         }
 
         idx = self._current_index()

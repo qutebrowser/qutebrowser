@@ -176,6 +176,9 @@ class WebHistory(sql.SqlTable):
         if url.isEmpty():
             # things set via setHtml
             return
+        if any(('qute', 'back') == (url.scheme(), url.host())
+                for url in (url, requested_url)):
+            return
 
         no_formatting = QUrl.UrlFormattingOption(0)
         if (requested_url.isValid() and
