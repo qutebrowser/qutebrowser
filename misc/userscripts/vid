@@ -42,6 +42,7 @@ Alias examples:
     })
 
 Commands:
+    copy    List urls in qutebrowser, copies the choosen one
     choose  List urls in qutebrowser, plays the choosen one
     play    Play a video using the html code, stop after first success
 
@@ -173,6 +174,24 @@ def choose():
             extract_videos(),
             path=sys.argv[0],
             args=' '.join(sys.argv[2:]))
+
+
+def copy():
+    """List urls in qutebrowser, copies the choosen one"""
+    if not Params.URL:
+        suggest(':spawn --userscript {path} copy {args}',
+                extract_videos(),
+                path=sys.argv[0],
+                args=' '.join(sys.argv[2:]))
+        return
+
+    info('Copying ' + Params.URL[0])
+
+    try:
+        import pyperclip
+        pyperclip.copy(Params.URL[0])
+    except ModuleNotFoundError:
+        error('Failure: pyperclip required')
 
 
 def play():

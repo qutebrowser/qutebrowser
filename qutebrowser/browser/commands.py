@@ -1200,6 +1200,7 @@ class CommandDispatcher:
             choice: first column of the selected row or
                     something else written by the user
         """
+        del suggestions
         runners.CommandRunner(self._win_id).run_safely(
             command + ' ' + cmdutils.quote(choice))
 
