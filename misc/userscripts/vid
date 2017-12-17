@@ -15,7 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-"""Usage: vid COMMAND [options] [URL ...]
+"""Usage:
+    vid COMMAND [|-p [-m s][-w s][-h s][(-t|-b)] [(-k|-r)]] [options] [URL ...]
 
 Userscript examples:
     :spawn --userscript /path/to/vid choose
@@ -47,8 +48,23 @@ Commands:
     play    Play a video using the html code, stop after first success
 
 Options:
-    -p, --picture  X11 only: Picture-in-picture mode,
+    -p, --picture  X11 only: (PIP) Picture-in-picture mode,
                              instance will be changed to 'picture-in-picture'
+    -k, --left     PIP: align against the left side of the screen
+                   [default: False]
+    -r, --right    PIP: align against the right side of the screen
+                   [default: True]
+    -t, --top      PIP: align against the top of the screen
+                   [default: False]
+    -b, --bottom   PIP: align against the bottom of the screen
+                   [default: True]
+    -w <size>, --width <size>
+                   PIP: [default: 400]
+    -h <size>, --height <size>
+                   PIP: [default: 200]
+    -m <size>, --margin <size>
+                   PIP: distance to the screen edges
+                   [default: 20]
     -o, --overlay  X11 only: Use qutebrowsers window to play the video
     -s, --stay     Keep the window open after the video ended
     -l, --loop     Repeat the video
@@ -209,8 +225,11 @@ def play():
         player_args += [
             '--ontop',
             '--on-all-workspaces',
-            '--geometry={width}x{height}-+{x}-+{y}'.format(
-                width=400, height=200, x=20, y=20),
+            '--geometry={width}x{height}{align_hor}{x}{align_ver}{y}'.format(
+                width=Params.width, height=Params.height,
+                x=Params.margin, y=Params.margin,
+                align_hor='+' if Params.left else '-+',
+                align_ver='+' if Params.top else '-+'),
             '--x11-name', 'picture-in-picture'
         ]
 
