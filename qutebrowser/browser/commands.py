@@ -1179,7 +1179,9 @@ class CommandDispatcher:
     @cmdutils.argument('choice', completion=miscmodels.suggest)
     def suggest(self, command: str,
                 suggestions: str, choice: str):
-        """Offers userscripts the possibility to
+        r"""Shows a completionview based on the second argument.
+
+        Offers userscripts the possibility to
         let a user choose between information.
         E.g.
         - information extracted from the source code of the website
@@ -1196,7 +1198,7 @@ class CommandDispatcher:
                          - rows / suggestions are seperated by semicolons
                          - it's possible to escape backslashes,
                            commas and semicolons with a backslash
-                         e.g. "1,eins;2,zwei;3,drei\\, und etwas Text"
+                         e.g. "1,eins;2,zwei;3,drei\, und etwas Text"
             choice: first column of the selected row or
                     something else written by the user
         """
