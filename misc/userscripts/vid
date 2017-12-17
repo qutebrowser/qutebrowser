@@ -16,13 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """Usage:
-    vid COMMAND [|-p [-m s][-w s][-h s][(-t|-b)] [(-k|-r)]] [options] [URL ...]
+    vid COMMAND [|-o|-p [-m s][-w s][-h s](-t|-b)(-k|-r)] [options] [URL ...]
 
 Userscript examples:
     :spawn --userscript /path/to/vid choose
-    :spawn --userscript /path/to/vid choose -p -o
-    :spawn --userscript /path/to/vid play -p -o
-    :spawn --userscript /path/to/vid play -p -o "https://some.com/url"
+    :spawn --userscript /path/to/vid choose -p -b -r
+    :spawn --userscript /path/to/vid choose -o -s
+    :spawn --userscript /path/to/vid play -p -b -r
+    :spawn --userscript /path/to/vid play -o "https://some.com/url"
 
 Alias examples:
     c.aliases.update({
@@ -51,13 +52,9 @@ Options:
     -p, --picture  X11 only: (PIP) Picture-in-picture mode,
                              instance will be changed to 'picture-in-picture'
     -k, --left     PIP: align against the left side of the screen
-                   [default: False]
     -r, --right    PIP: align against the right side of the screen
-                   [default: True]
     -t, --top      PIP: align against the top of the screen
-                   [default: False]
     -b, --bottom   PIP: align against the bottom of the screen
-                   [default: True]
     -w <size>, --width <size>
                    PIP: [default: 400]
     -h <size>, --height <size>
