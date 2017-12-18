@@ -119,7 +119,7 @@ Feature: Opening external editors
     # There's no guarantee that the tab gets deleted...
     @posix @flaky
     Scenario: Spawning an editor and closing the tab
-        When I set up a fake editor that waits
+        When I set up a fake editor that writes "foobar" on save
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -128,6 +128,18 @@ Feature: Opening external editors
         And I run :tab-close
         And I kill the waiting editor
         Then the error "Edited element vanished" should be shown
+
+    # Could not get signals working on Windows
+    @posix
+    Scenario: Spawning an editor and saving
+        When I set up a fake editor that writes "foobar" on save
+        And I open data/editor.html
+        And I run :click-element id qute-textarea
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :open-editor
+        And I save without exiting the editor
+        And I run :click-element id qute-button
+        Then the javascript message "text: foobar" should be logged
 
     Scenario: Spawning an editor in caret mode
         When I set up a fake editor returning "foobar"
