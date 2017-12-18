@@ -61,6 +61,8 @@ Added
 - Support for incremental search, with a new `search.incremental` setting.
 - New `--rapid` flag for `:command-accept` (bound to `Ctrl-Enter` by default),
   which allows executing a command in the completion without closing it.
+- The `colors.completion.fg` setting can now be a list, allowing to specify
+  different colors for the three completion columns.
 
 Changed
 ~~~~~~~

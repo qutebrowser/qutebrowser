@@ -701,10 +701,15 @@ Default: +pass:[#333333]+
 [[colors.completion.fg]]
 === colors.completion.fg
 Text color of the completion widget.
+May be a single color to use for all columns or a list of three colors, one for each column.
 
-Type: <<types,QtColor>>
+Type: <<types,List of QtColor&#44; or QtColor>>
 
-Default: +pass:[white]+
+Default: 
+
+- +pass:[white]+
+- +pass:[white]+
+- +pass:[white]+
 
 [[colors.completion.item.selected.bg]]
 === colors.completion.item.selected.bg
