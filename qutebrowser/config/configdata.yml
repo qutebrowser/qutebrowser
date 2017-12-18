@@ -1540,15 +1540,15 @@ zoom.text_only:
 ## colors
 
 colors.completion.fg:
-  default: white
+  default: ["white", "white", "white"]
   type:
     name: ListOrValue
     valtype: QtColor
   desc: >-
     Text color of the completion widget.
 
-    May be a single value to specify the color for all columns, or a list
-    specifying a different color for each column.
+    May be a single color to use for all columns or a list of three colors,
+    one for each column.
 
 colors.completion.odd.bg:
   default: '#444444'

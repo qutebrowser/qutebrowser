@@ -400,7 +400,7 @@ class TestConfig:
         assert not conf._mutables
 
     def test_get_obj_simple(self, conf):
-        assert conf.get_obj('colors.completion.fg') == 'white'
+        assert conf.get_obj('colors.completion.category.fg') == 'white'
 
     @pytest.mark.parametrize('option', ['content.headers.custom',
                                         'keyhint.blacklist',
