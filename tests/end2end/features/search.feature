@@ -238,3 +238,22 @@ Feature: Searching on a page
         Then the following tabs should be open:
             - data/search.html
             - data/hello.txt (active)
+
+    Scenario: Follow a searched link in an iframe
+        When I open data/iframe_search.html
+        And I run :tab-only
+        And I run :search follow
+        And I wait for "search found follow" in the log
+        And I run :follow-selected
+        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, is_main_frame False" should be logged
+
+    Scenario: Follow a tabbed searched link in an iframe
+        When I open data/iframe_search.html
+        And I run :tab-only
+        And I run :search follow
+        And I wait for "search found follow" in the log
+        And I run :follow-selected -t
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/iframe_search.html
+            - data/hello.txt (active)
