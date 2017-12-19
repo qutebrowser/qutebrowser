@@ -129,7 +129,7 @@ class Process(QObject):
         _started: Whether the process was ever started.
         proc: The QProcess for the underlying process.
         exit_expected: Whether the process is expected to quit.
-        pytestconfig: The pytestconfig fixture.
+        request: The request object for the current test.
 
     Signals:
         ready: Emitted when the server finished starting up.
@@ -140,9 +140,9 @@ class Process(QObject):
     new_data = pyqtSignal(object)
     KEYS = ['data']
 
-    def __init__(self, pytestconfig, parent=None):
+    def __init__(self, request, parent=None):
         super().__init__(parent)
-        self._pytestconfig = pytestconfig
+        self.request = request
         self.captured_log = []
         self._started = False
         self._invalid = []
@@ -153,7 +153,7 @@ class Process(QObject):
 
     def _log(self, line):
         """Add the given line to the captured log output."""
-        if self._pytestconfig.getoption('--capture') == 'no':
+        if self.request.config.getoption('--capture') == 'no':
             print(line)
         self.captured_log.append(line)
 
@@ -228,7 +228,7 @@ class Process(QObject):
         """Start the process and wait until it started."""
         self._start(args, env=env)
         self._started = True
-        verbose = self._pytestconfig.getoption('--verbose')
+        verbose = self.request.config.getoption('--verbose')
 
         timeout = 60 if 'CI' in os.environ else 20
         for _ in range(timeout):

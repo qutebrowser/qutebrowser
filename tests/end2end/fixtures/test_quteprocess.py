@@ -45,6 +45,10 @@ class FakeConfig:
         '--qute-delay': 0,
         '--color': True,
         '--verbose': False,
+        '--capture': None,
+    }
+    INI = {
+        'qt_log_ignore': [],
     }
 
     def __init__(self):
@@ -52,6 +56,9 @@ class FakeConfig:
 
     def getoption(self, name):
         return self.ARGS[name]
+
+    def getini(self, name):
+        return self.INI[name]
 
 
 class FakeNode:

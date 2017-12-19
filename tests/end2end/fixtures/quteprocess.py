@@ -299,14 +299,13 @@ class QuteProc(testprocess.Process):
             'message']
 
     def __init__(self, request, *, parent=None):
-        super().__init__(request.config, parent)
+        super().__init__(request, parent)
         self._ipc_socket = None
         self.basedir = None
         self._focus_ready = False
         self._load_ready = False
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
-        self.request = request
 
     def _is_ready(self, what):
         """Called by _parse_line if loading/focusing is done.
@@ -372,11 +371,11 @@ class QuteProc(testprocess.Process):
 
     def _parse_line(self, line):
         try:
-            log_line = LogLine(self._pytestconfig, line)
+            log_line = LogLine(self.request.config, line)
         except testprocess.InvalidLine:
             if not line.strip():
                 return None
-            elif (is_ignored_qt_message(self._pytestconfig, line) or
+            elif (is_ignored_qt_message(self.request.config, line) or
                   is_ignored_lowlevel_message(line) or
                   is_ignored_chromium_message(line) or
                   self.request.node.get_marker('no_invalid_lines')):

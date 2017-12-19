@@ -51,8 +51,8 @@ class PythonProcess(testprocess.Process):
 
     """A testprocess which runs the given Python code."""
 
-    def __init__(self, pytestconfig):
-        super().__init__(pytestconfig)
+    def __init__(self, request):
+        super().__init__(request)
         self.proc.setReadChannel(QProcess.StandardOutput)
         self.code = None
 
@@ -103,22 +103,22 @@ class NoReadyPythonProcess(PythonProcess):
 
 
 @pytest.fixture
-def pyproc(pytestconfig):
-    proc = PythonProcess(pytestconfig)
+def pyproc(request):
+    proc = PythonProcess(request)
     yield proc
     proc.terminate()
 
 
 @pytest.fixture
-def quit_pyproc(pytestconfig):
-    proc = QuitPythonProcess(pytestconfig)
+def quit_pyproc(request):
+    proc = QuitPythonProcess(request)
     yield proc
     proc.terminate()
 
 
 @pytest.fixture
-def noready_pyproc(pytestconfig):
-    proc = NoReadyPythonProcess(pytestconfig)
+def noready_pyproc(request):
+    proc = NoReadyPythonProcess(request)
     yield proc
     proc.terminate()
 
@@ -149,9 +149,9 @@ def test_process_never_started(qtbot, quit_pyproc):
     quit_pyproc.after_test()
 
 
-def test_wait_signal_raising(qtbot):
+def test_wait_signal_raising(request, qtbot):
     """testprocess._wait_signal should raise by default."""
-    proc = testprocess.Process()
+    proc = testprocess.Process(request)
     with pytest.raises(qtbot.TimeoutError):
         with proc._wait_signal(proc.proc.started, timeout=0):
             pass

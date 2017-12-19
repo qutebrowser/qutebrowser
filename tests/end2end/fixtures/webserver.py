@@ -137,8 +137,8 @@ class WebserverProcess(testprocess.Process):
 
     KEYS = ['verb', 'path']
 
-    def __init__(self, pytestconfig, script, parent=None):
-        super().__init__(pytestconfig, parent)
+    def __init__(self, request, script, parent=None):
+        super().__init__(request, parent)
         self._script = script
         self.port = utils.random_port()
         self.new_data.connect(self.new_request)
@@ -174,9 +174,9 @@ class WebserverProcess(testprocess.Process):
 
 
 @pytest.fixture(scope='session', autouse=True)
-def server(qapp, pytestconfig):
+def server(qapp, request):
     """Fixture for an server object which ensures clean setup/teardown."""
-    server = WebserverProcess(pytestconfig, 'webserver_sub')
+    server = WebserverProcess(request, 'webserver_sub')
     server.start()
     yield server
     server.terminate()
@@ -198,7 +198,7 @@ def ssl_server(request, qapp):
     This needs to be explicitly used in a test, and overwrites the server log
     used in that test.
     """
-    server = WebserverProcess(request.config, 'webserver_sub_ssl')
+    server = WebserverProcess(request, 'webserver_sub_ssl')
     request.node._server_log = server.captured_log
     server.start()
     yield server
