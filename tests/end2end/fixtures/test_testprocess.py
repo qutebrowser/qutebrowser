@@ -51,8 +51,8 @@ class PythonProcess(testprocess.Process):
 
     """A testprocess which runs the given Python code."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, pytestconfig):
+        super().__init__(pytestconfig)
         self.proc.setReadChannel(QProcess.StandardOutput)
         self.code = None
 
@@ -103,22 +103,22 @@ class NoReadyPythonProcess(PythonProcess):
 
 
 @pytest.fixture
-def pyproc():
-    proc = PythonProcess()
+def pyproc(pytestconfig):
+    proc = PythonProcess(pytestconfig)
     yield proc
     proc.terminate()
 
 
 @pytest.fixture
-def quit_pyproc():
-    proc = QuitPythonProcess()
+def quit_pyproc(pytestconfig):
+    proc = QuitPythonProcess(pytestconfig)
     yield proc
     proc.terminate()
 
 
 @pytest.fixture
-def noready_pyproc():
-    proc = NoReadyPythonProcess()
+def noready_pyproc(pytestconfig):
+    proc = NoReadyPythonProcess(pytestconfig)
     yield proc
     proc.terminate()
 

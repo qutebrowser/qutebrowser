@@ -44,9 +44,9 @@ from end2end.fixtures import testprocess
 instance_counter = itertools.count()
 
 
-def is_ignored_qt_message(message):
+def is_ignored_qt_message(pytestconfig, message):
     """Check if the message is listed in qt_log_ignore."""
-    regexes = pytest.config.getini('qt_log_ignore')
+    regexes = pytestconfig.getini('qt_log_ignore')
     for regex in regexes:
         if re.search(regex, message):
             return True
@@ -207,7 +207,7 @@ class LogLine(testprocess.Line):
         expected: Whether the message was expected or not.
     """
 
-    def __init__(self, data):
+    def __init__(self, pytestconfig, data):
         super().__init__(data)
         try:
             line = json.loads(data)
@@ -229,7 +229,7 @@ class LogLine(testprocess.Line):
         self.traceback = line.get('traceback')
         self.message = line['message']
 
-        self.expected = is_ignored_qt_message(self.message)
+        self.expected = is_ignored_qt_message(pytestconfig, self.message)
         self.use_color = False
 
     def __str__(self):
@@ -299,7 +299,7 @@ class QuteProc(testprocess.Process):
             'message']
 
     def __init__(self, request, *, parent=None):
-        super().__init__(parent)
+        super().__init__(request.config, parent)
         self._ipc_socket = None
         self.basedir = None
         self._focus_ready = False
@@ -372,11 +372,11 @@ class QuteProc(testprocess.Process):
 
     def _parse_line(self, line):
         try:
-            log_line = LogLine(line)
+            log_line = LogLine(self._pytestconfig, line)
         except testprocess.InvalidLine:
             if not line.strip():
                 return None
-            elif (is_ignored_qt_message(line) or
+            elif (is_ignored_qt_message(self._pytestconfig, line) or
                   is_ignored_lowlevel_message(line) or
                   is_ignored_chromium_message(line) or
                   self.request.node.get_marker('no_invalid_lines')):

@@ -73,12 +73,11 @@ class Line:
     waited_for = attr.ib(False)
 
 
-def _render_log(data, threshold=100):
+def _render_log(data, *, verbose, threshold=100):
     """Shorten the given log without -v and convert to a string."""
     data = [str(d) for d in data]
     is_exception = any('Traceback (most recent call last):' in line or
                        'Uncaught exception' in line for line in data)
-    verbose = pytest.config.getoption('--verbose')
     if len(data) > threshold and not verbose and not is_exception:
         msg = '[{} lines suppressed, use -v to show]'.format(
             len(data) - threshold)
@@ -105,15 +104,17 @@ def pytest_runtest_makereport(item, call):
         # is actually a tuple. This is handled similarily in pytest-qt too.
         return
 
-    if pytest.config.getoption('--capture') == 'no':
+    if item.config.getoption('--capture') == 'no':
         # Already printed live
         return
 
+    verbose = item.config.getoption('--verbose')
     if quteproc_log is not None:
         report.longrepr.addsection("qutebrowser output",
-                                   _render_log(quteproc_log))
+                                   _render_log(quteproc_log, verbose=verbose))
     if server_log is not None:
-        report.longrepr.addsection("server output", _render_log(server_log))
+        report.longrepr.addsection("server output",
+                                   _render_log(server_log, verbose=verbose))
 
 
 class Process(QObject):
@@ -128,6 +129,7 @@ class Process(QObject):
         _started: Whether the process was ever started.
         proc: The QProcess for the underlying process.
         exit_expected: Whether the process is expected to quit.
+        pytestconfig: The pytestconfig fixture.
 
     Signals:
         ready: Emitted when the server finished starting up.
@@ -138,8 +140,9 @@ class Process(QObject):
     new_data = pyqtSignal(object)
     KEYS = ['data']
 
-    def __init__(self, parent=None):
+    def __init__(self, pytestconfig, parent=None):
         super().__init__(parent)
+        self._pytestconfig = pytestconfig
         self.captured_log = []
         self._started = False
         self._invalid = []
@@ -150,7 +153,7 @@ class Process(QObject):
 
     def _log(self, line):
         """Add the given line to the captured log output."""
-        if pytest.config.getoption('--capture') == 'no':
+        if self._pytestconfig.getoption('--capture') == 'no':
             print(line)
         self.captured_log.append(line)
 
@@ -225,6 +228,8 @@ class Process(QObject):
         """Start the process and wait until it started."""
         self._start(args, env=env)
         self._started = True
+        verbose = self._pytestconfig.getoption('--verbose')
+
         timeout = 60 if 'CI' in os.environ else 20
         for _ in range(timeout):
             with self._wait_signal(self.ready, timeout=1000,
@@ -236,14 +241,15 @@ class Process(QObject):
                     return
                 # _start ensures it actually started, but it might quit shortly
                 # afterwards
-                raise ProcessExited('\n' + _render_log(self.captured_log))
+                raise ProcessExited('\n' + _render_log(self.captured_log,
+                                                       verbose=verbose))
 
             if blocker.signal_triggered:
                 self._after_start()
                 return
 
         raise WaitForTimeout("Timed out while waiting for process start.\n" +
-                             _render_log(self.captured_log))
+                             _render_log(self.captured_log, verbose=verbose))
 
     def _start(self, args, env):
         """Actually start the process."""
