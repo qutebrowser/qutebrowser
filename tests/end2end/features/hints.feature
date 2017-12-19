@@ -212,7 +212,7 @@ Feature: Using hints
     Scenario: Using :follow-hint inside an iframe button
         When I open data/hints/iframe_button.html
         And I hint with args "all normal" and follow s
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
 
     Scenario: Hinting inputs in an iframe without type
         When I open data/hints/iframe_input.html
@@ -241,6 +241,7 @@ Feature: Using hints
         And I run :tab-only
         And I hint with args "links tab" and follow a
         And I wait until data/hello.txt is loaded
+        And I wait 0.5s
         Then the following tabs should be open:
             - data/hints/iframe_target.html
             - data/hello.txt (active)

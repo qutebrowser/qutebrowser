@@ -239,6 +239,7 @@ Feature: Searching on a page
             - data/search.html
             - data/hello.txt (active)
 
+    @qtwebkit_skip: Not supported in qtwebkit
     Scenario: Follow a searched link in an iframe
         When I open data/iframe_search.html
         And I run :tab-only
@@ -247,6 +248,7 @@ Feature: Searching on a page
         And I run :follow-selected
         Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, is_main_frame False" should be logged
 
+    @qtwebkit_skip: Not supported in qtwebkit
     Scenario: Follow a tabbed searched link in an iframe
         When I open data/iframe_search.html
         And I run :tab-only
