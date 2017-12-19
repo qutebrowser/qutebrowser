@@ -51,8 +51,12 @@ class Qenv(metaclass=StaticGetAttrType):
 def read(path):
     """Reads every line of a file
 
-    Return:
-        content or None
+    Returns:
+        content
+
+    Raises:
+        IOError: any Exception raised by open e.g.
+                 FileNotFoundError, PermissionError, ...
     """
     with open(path) as f:
         return '\n'.join(f.readlines())
