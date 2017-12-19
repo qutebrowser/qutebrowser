@@ -171,7 +171,9 @@ class WebHistory(sql.SqlTable):
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
-        if url.scheme() == 'data' or requested_url.scheme() == 'data':
+        if any(url.scheme() == 'data' or
+               ('qute', 'back') == (url.scheme(), url.host())
+                for url in (url, requested_url)):
             return
         if url.isEmpty():
             # things set via setHtml
