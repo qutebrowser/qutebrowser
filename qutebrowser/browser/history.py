@@ -173,7 +173,7 @@ class WebHistory(sql.SqlTable):
         """Add a new history entry as slot, called from a BrowserTab."""
         if any(url.scheme() == 'data' or
                ('qute', 'back') == (url.scheme(), url.host())
-                for url in (url, requested_url)):
+               for url in (url, requested_url)):
             return
         if url.isEmpty():
             # things set via setHtml
