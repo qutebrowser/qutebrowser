@@ -147,13 +147,14 @@ class AsciiDoc:
             last_line = ""
 
             for line in infp:
-                if line.strip() == '// QUTE_WEB_HIDE':
+                line = line.rstrip()
+                if line == '// QUTE_WEB_HIDE':
                     assert not hidden
                     hidden = True
-                elif line.strip() == '// QUTE_WEB_HIDE_END':
+                elif line == '// QUTE_WEB_HIDE_END':
                     assert hidden
                     hidden = False
-                elif line == "The Compiler <mail@qutebrowser.org>\n":
+                elif line == "The Compiler <mail@qutebrowser.org>":
                     continue
                 elif re.fullmatch(r':\w+:.*', line):
                     # asciidoc field
@@ -163,16 +164,16 @@ class AsciiDoc:
                     if re.fullmatch(r'=+', line):
                         line = line.replace('=', '-')
                         found_title = True
-                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title = last_line + " | qutebrowser\n"
                         title += "=" * (len(title) - 1)
                     elif re.fullmatch(r'= .+', line):
                         line = '==' + line[1:]
                         found_title = True
-                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title = last_line + " | qutebrowser\n"
                         title += "=" * (len(title) - 1)
 
                 if not hidden:
-                    outfp.write(line.replace(".asciidoc[", ".html["))
+                    outfp.write(line.replace(".asciidoc[", ".html[") + '\n')
                     last_line = line
 
         current_lines = outfp.getvalue()
