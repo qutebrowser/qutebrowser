@@ -1171,6 +1171,25 @@ statusbar.position:
   default: bottom
   desc: Position of the status bar.
 
+statusbar.widgets:
+  default: '{scroll}{history}{tabs}'
+  type:
+    name: FormatString
+    fields:
+      - scroll
+      - scroll_raw
+      - history
+      - tabs
+    none_ok: true
+  desc: |
+    Format to use for the statusbar widgets
+    The following placeholders are defined:
+
+    * `{scroll}`: Percentage of the current page position like `[10%]`.
+    * `{scroll_raw}`: Raw percentage of the current page position like `[10]`.
+    * `{history}`: Display an arrow when possible to go back/forward in history.
+    * `{tabs}`: Current active tab, e.g. `[2]`.
+
 ## tabs
 
 tabs.background:

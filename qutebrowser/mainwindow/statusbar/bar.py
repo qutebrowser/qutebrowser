@@ -20,6 +20,7 @@
 """The main statusbar widget."""
 
 import enum
+import re
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
@@ -189,13 +190,10 @@ class StatusBar(QWidget):
         self._hbox.addWidget(self.url)
 
         self.percentage = percentage.Percentage()
-        self._hbox.addWidget(self.percentage)
-
         self.backforward = backforward.Backforward()
-        self._hbox.addWidget(self.backforward)
-
         self.tabindex = tabindex.TabIndex()
-        self._hbox.addWidget(self.tabindex)
+        self.text_widgets = []
+        self._draw_widgets()
 
         # We add a parent to Progress here because it calls self.show() based
         # on some signals, and if that happens before it's added to the layout,
@@ -215,6 +213,46 @@ class StatusBar(QWidget):
             self.maybe_hide()
         elif option == 'statusbar.padding':
             self._set_hbox_padding()
+        elif option == 'statusbar.widgets':
+            self._draw_widgets()
+
+    def _draw_widgets(self):
+        """Draw statusbar widgets"""
+        # Start with widgets hidden and show them when needed
+        for widget in [self.percentage, self.backforward, self.tabindex]:
+            self._hbox.removeWidget(widget)
+            widget.hide()
+        # Remove previous text widgets if any
+        for text in self.text_widgets:
+            self._hbox.removeWidget(text)
+            text.hide()
+            text.deleteLater()
+        self.text_widgets = []
+
+        if not config.val.statusbar.widgets:
+            return
+
+        # Read the format string and set widgets accordingly
+        for segment in re.split('{|}', config.val.statusbar.widgets):
+            if segment == 'scroll':
+                self._hbox.addWidget(self.percentage)
+                self.percentage.show()
+            if segment == 'scroll_raw':
+                self._hbox.addWidget(self.percentage)
+                self.percentage.raw = True
+                self.percentage.show()
+            elif segment == 'history':
+                self._hbox.addWidget(self.backforward)
+                self.backforward.show()
+            elif segment == 'tabs':
+                self._hbox.addWidget(self.tabindex)
+                self.tabindex.show()
+            elif segment != '':
+                # Add segment as text
+                text = textwidget.Text()
+                text.setText(segment)
+                self.text_widgets.append(text)
+                self._hbox.addWidget(text)
 
     @pyqtSlot()
     def maybe_hide(self):
