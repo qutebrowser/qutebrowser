@@ -42,7 +42,5 @@ class Backforward(textbase.TextBase):
             text += '<'
         if tab.history.can_go_forward():
             text += '>'
-        if text:
-            text = '[' + text + ']'
         self.setText(text)
         self.setVisible(bool(text))
