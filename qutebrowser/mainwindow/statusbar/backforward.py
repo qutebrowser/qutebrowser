@@ -23,6 +23,9 @@ from qutebrowser.mainwindow.statusbar import textbase
 
 
 class Backforward(textbase.TextBase):
+    def __init__(self):
+        super().__init__()
+        self.enabled = False
 
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
@@ -45,4 +48,4 @@ class Backforward(textbase.TextBase):
         if text:
             text = '[' + text + ']'
         self.setText(text)
-        self.setVisible(bool(text))
+        self.setVisible(bool(text) and self.enabled)
