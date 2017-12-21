@@ -186,16 +186,10 @@ class StatusBar(QWidget):
         self._hbox.addWidget(self.keystring)
 
         self.url = url.UrlText()
-        self._hbox.addWidget(self.url)
-
         self.percentage = percentage.Percentage()
-        self._hbox.addWidget(self.percentage)
-
         self.backforward = backforward.Backforward()
-        self._hbox.addWidget(self.backforward)
-
         self.tabindex = tabindex.TabIndex()
-        self._hbox.addWidget(self.tabindex)
+        self._draw_widgets()
 
         # We add a parent to Progress here because it calls self.show() based
         # on some signals, and if that happens before it's added to the layout,
@@ -215,6 +209,35 @@ class StatusBar(QWidget):
             self.maybe_hide()
         elif option == 'statusbar.padding':
             self._set_hbox_padding()
+        elif option == 'statusbar.widgets':
+            self._draw_widgets()
+
+    def _draw_widgets(self):
+        """Draw statusbar widgets."""
+        # Start with widgets hidden and show them when needed
+        for widget in [self.url, self.percentage,
+                       self.backforward, self.tabindex]:
+            self._hbox.removeWidget(widget)
+            widget.hide()
+
+        # Read the list and set widgets accordingly
+        for segment in config.val.statusbar.widgets:
+            if segment == 'url':
+                self._hbox.addWidget(self.url)
+                self.url.show()
+            elif segment == 'scroll':
+                self._hbox.addWidget(self.percentage)
+                self.percentage.show()
+            elif segment == 'scroll_raw':
+                self._hbox.addWidget(self.percentage)
+                self.percentage.raw = True
+                self.percentage.show()
+            elif segment == 'history':
+                self._hbox.addWidget(self.backforward)
+                self.backforward.show()
+            elif segment == 'tabs':
+                self._hbox.addWidget(self.tabindex)
+                self.tabindex.show()
 
     @pyqtSlot()
     def maybe_hide(self):

@@ -37,6 +37,8 @@ class Backforward(textbase.TextBase):
 
     def on_tab_changed(self, tab):
         """Update the text based on the given tab."""
+        if self.isHidden():
+            return
         text = ''
         if tab.history.can_go_back():
             text += '<'

@@ -1171,6 +1171,22 @@ statusbar.position:
   default: bottom
   desc: Position of the status bar.
 
+statusbar.widgets:
+  default: ['url', 'scroll', 'history', 'tabs']
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  desc: |
+    List of widgets displayed in the statusbar
+    The following widgets are available:
+
+    * `url`: Current page URL.
+    * `scroll`: Percentage of the current page position like `10%`.
+    * `scroll_raw`: Raw percentage of the current page position like `10`.
+    * `history`: Display an arrow when possible to go back/forward in history.
+    * `tabs`: Current active tab, e.g. `2`.
+
 ## tabs
 
 tabs.background:
