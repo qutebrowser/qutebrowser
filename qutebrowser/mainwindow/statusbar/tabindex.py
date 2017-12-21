@@ -31,4 +31,4 @@ class TabIndex(textbase.TextBase):
     @pyqtSlot(int, int)
     def on_tab_index_changed(self, current, count):
         """Update tab index when tab changed."""
-        self.setText('[{}/{}]'.format(current + 1, count))
+        self.setText('{}/{}'.format(current + 1, count))
