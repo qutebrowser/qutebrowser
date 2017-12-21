@@ -24,7 +24,8 @@ import functools
 import html as html_utils
 
 import sip
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF, QUrl, QTimer
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
+                          QUrl, QTimer)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
