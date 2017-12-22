@@ -854,7 +854,6 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             #for older Qt versions which break with the above
             page.loadProgress.connect(self._on_load_progress)
-            page.loadStarted.connect(self._on_load_started)
             page.loadFinished.connect(self._on_history_trigger)
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
