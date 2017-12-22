@@ -546,6 +546,7 @@ class WebEngineTab(browsertab.AbstractTab):
         _load_finished_fake:
             Used in place of unreliable loadFinished
     """
+
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
     _load_finished_fake = pyqtSignal(bool)
 
