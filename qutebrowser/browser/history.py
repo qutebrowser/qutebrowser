@@ -32,7 +32,7 @@ from qutebrowser.misc import objects, sql
 
 
 # increment to indicate that HistoryCompletion must be regenerated
-_USER_VERSION = 1
+_USER_VERSION = 2
 
 
 class CompletionHistory(sql.SqlTable):
@@ -102,7 +102,8 @@ class WebHistory(sql.SqlTable):
         data = {'url': [], 'title': [], 'last_atime': []}
         # select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
-                      'WHERE NOT redirect GROUP BY url ORDER BY atime asc')
+                      'WHERE NOT redirect and url NOT LIKE "qute://back%" '
+                      'GROUP BY url ORDER BY atime asc')
         for entry in q.run():
             data['url'].append(self._format_completion_url(QUrl(entry.url)))
             data['title'].append(entry.title)
@@ -172,7 +173,7 @@ class WebHistory(sql.SqlTable):
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
         if any(url.scheme() == 'data' or
-               ('qute', 'back') == (url.scheme(), url.host())
+               (url.scheme(), url.host()) == ('qute', 'back')
                for url in (url, requested_url)):
             return
         if url.isEmpty():
