@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """Usage:
-    vid COMMAND [|-o|-p [-m s][-w s][-h s](-t|-b)(-k|-r)] [options] [URL ...]
+    vid COMMAND [|-o|-p [-m s][-w s][-h s](-t|-b)(-l|-r)] [options] [URL ...]
 
 Userscript examples:
     :spawn --userscript /path/to/vid choose
@@ -35,11 +35,11 @@ Alias examples:
                     '~/.local/share/qutebrowser/misc/vid play',
         # plays a video at the right bottom of the screen
         'play-picture': 'spawn --userscript ' +
-                        '~/.local/share/qutebrowser/misc/vid play --picture',
+                        '~/.local/share/qutebrowser/misc/vid play -p -l -b',
         # displays videos-, iframe-, ... -urls,
         # tries to play the choosen video at the right bottom of the screen
         'choose-video': 'spawn --userscript ' +
-                        '~/.local/share/qutebrowser/misc/vid choose --picture',
+                        '~/.local/share/qutebrowser/misc/vid choose -p -r -b',
         # and so on..
     })
 
@@ -51,7 +51,7 @@ Commands:
 Options:
     -p, --picture  X11 only: (PIP) Picture-in-picture mode,
                              instance will be changed to 'picture-in-picture'
-    -k, --left     PIP: align against the left side of the screen
+    -l, --left     PIP: align against the left side of the screen
     -r, --right    PIP: align against the right side of the screen
     -t, --top      PIP: align against the top of the screen
     -b, --bottom   PIP: align against the bottom of the screen
@@ -64,7 +64,7 @@ Options:
                    [default: 20]
     -o, --overlay  X11 only: Use qutebrowsers window to play the video
     -s, --stay     Keep the window open after the video ended
-    -l, --loop     Repeat the video
+    -L, --loop     Repeat the video
 
 License:
     vid  Copyright (C) 2017  Nico Baeurer
@@ -80,46 +80,6 @@ import docopt
 import sys
 import itertools
 import subprocess
-
-
-class StaticGetAttrType(type):
-    """Metaclass which simply allows class to define
-    a __getstaticattr__ method.
-    __getstaticattr__ is the static equivalent of __getattr__.
-    """
-    def __getattr__(cls, name):
-        return cls.__getstaticattr__(name)
-
-
-class Qenv(metaclass=StaticGetAttrType):
-    """Helper class which allows to
-    access qutebrowsers environment variables"""
-    def __getstaticattr__(name):
-        return os.environ['QUTE_' + name.upper()]
-
-
-class Params(metaclass=StaticGetAttrType):
-    """Helper class which allows to access passed arguments"""
-    # lambda needed to access the right docstring
-    __dict = docopt.docopt((lambda: __doc__)())
-
-    def __getstaticattr__(name):
-        return Params.__dict[name if name in Params.__dict
-                             else '--' + name]
-
-
-def read(path):
-    """Reads every line of a file
-
-    Returns:
-        content
-
-    Raises:
-        IOError: any Exception raised by open e.g.
-                 FileNotFoundError, PermissionError, ...
-    """
-    with open(path) as f:
-        return '\n'.join(f.readlines())
 
 
 def qexec(cmd, *fmt_args, **fmt_kwargs):
@@ -164,6 +124,50 @@ def suggest(cmd, choices, **fmt_kwargs):
           scmd=cmd.format(**fmt_kwargs),
           choices=';'.join(','.join(escape(col) for col in row)
                            for row in choices))
+
+
+class StaticGetAttrType(type):
+    """Metaclass which simply allows class to define
+    a __getstaticattr__ method.
+    __getstaticattr__ is the static equivalent of __getattr__.
+    """
+    def __getattr__(cls, name):
+        return cls.__getstaticattr__(name)
+
+
+class Qenv(metaclass=StaticGetAttrType):
+    """Helper class which allows to
+    access qutebrowsers environment variables"""
+    def __getstaticattr__(name):
+        return os.environ['QUTE_' + name.upper()]
+
+
+class Params(metaclass=StaticGetAttrType):
+    """Helper class which allows to access passed arguments"""
+    try:
+        # lambda needed to access the right docstring
+        __dict = docopt.docopt((lambda: __doc__)())
+    except SystemExit as e:
+        error(str(e).replace('\n', ''))
+        raise e
+
+    def __getstaticattr__(name):
+        return Params.__dict[name if name in Params.__dict
+                             else '--' + name]
+
+
+def read(path):
+    """Reads every line of a file
+
+    Returns:
+        content
+
+    Raises:
+        IOError: any Exception raised by open e.g.
+                 FileNotFoundError, PermissionError, ...
+    """
+    with open(path) as f:
+        return '\n'.join(f.readlines())
 
 
 def extract_videos():
