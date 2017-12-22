@@ -852,6 +852,7 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadProgress.connect(self._on_load_progress)
             page.loadFinished.connect(self._on_history_trigger)
             page.loadFinished.connect(self._restore_zoom)
+            page.loadFinished.connect(self._on_load_finished)
 
     def event_target(self):
         return self._widget.focusProxy()
