@@ -843,7 +843,6 @@ class WebEngineTab(browsertab.AbstractTab):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         if qtutils.version_check('5.10', compiled=False):
             page.loadProgress.connect(self._on_load_progress_workaround)
-            self._load_progress_fake.connect(self._on_load_progress)
             self._load_finished_fake.connect(self._on_history_trigger)
             self._load_finished_fake.connect(self._restore_zoom)
             self._load_finished_fake.connect(self._on_load_finished)
