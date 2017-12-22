@@ -25,7 +25,7 @@ import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer, QT_VERSION_STR)
+                          QUrl, QTimer)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -543,15 +543,11 @@ class WebEngineTab(browsertab.AbstractTab):
     """A QtWebEngine tab in the browser.
 
     Signals:
-        loadFinishedFake:
+        _load_finished_fake:
             Used in place of unreliable loadFinished
-        loadProgressFake:
-            Used in place of loadProgress
     """
-
-    #WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-    loadFinishedFake = pyqtSignal(bool)
-    loadProgressFake = pyqtSignal(int)
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+    _load_finished_fake = pyqtSignal(bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
@@ -806,23 +802,22 @@ class WebEngineTab(browsertab.AbstractTab):
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
     @pyqtSlot(int)
-    def _on_load_progress_fake(self, perc):
+    def _on_load_progress_workaround(self, perc):
         """Use loadProgress(100) to emit loadFinished(True).
 
         See https://bugreports.qt.io/browse/QTBUG-65223
         """
-        self.loadProgressFake.emit(perc)
         if perc == 100 and self.load_status() != usertypes.LoadStatus.error:
-            self.loadFinishedFake.emit(True)
+            self._load_finished_fake.emit(True)
 
     @pyqtSlot(bool)
-    def _on_load_finished_fake(self, ok):
+    def _on_load_finished_workaround(self, ok):
         """Use only loadFinished(False).
 
         See https://bugreports.qt.io/browse/QTBUG-65223
         """
         if not ok:
-            self.loadFinishedFake.emit(False)
+            self._load_finished_fake.emit(False)
 
     def _connect_signals(self):
         view = self._widget
@@ -830,6 +825,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
+        page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
@@ -843,20 +839,19 @@ class WebEngineTab(browsertab.AbstractTab):
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)
-        #WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if QT_VERSION_STR.startswith('5.10'):
-            page.loadProgress.connect(self._on_load_progress_fake)
-            self.loadProgressFake.connect(self._on_load_progress)
-            self.loadFinishedFake.connect(self._on_history_trigger)
-            self.loadFinishedFake.connect(self._restore_zoom)
-            self.loadFinishedFake.connect(self._on_load_finished)
-            page.loadFinished.connect(self._on_load_finished_fake)
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10',compiled=False):
+            page.loadProgress.connect(self._on_load_progress_workaround)
+            self._load_progress_fake.connect(self._on_load_progress)
+            self._load_finished_fake.connect(self._on_history_trigger)
+            self._load_finished_fake.connect(self._restore_zoom)
+            self._load_finished_fake.connect(self._on_load_finished)
+            page.loadFinished.connect(self._on_load_finished_workaround)
         else:
-            #for older Qt versions which break with the above
+            # for older Qt versions which break with the above
             page.loadProgress.connect(self._on_load_progress)
             page.loadFinished.connect(self._on_history_trigger)
             page.loadFinished.connect(self._restore_zoom)
-            page.loadFinished.connect(self._on_load_finished)
 
     def event_target(self):
         return self._widget.focusProxy()
