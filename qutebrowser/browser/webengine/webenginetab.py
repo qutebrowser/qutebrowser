@@ -25,7 +25,7 @@ import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer)
+                          QUrl, QTimer, QT_VERSION_STR)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -830,6 +830,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         page.windowCloseRequested.connect(self.window_close_requested)
         page.linkHovered.connect(self.link_hovered)
+        page.loadStarted.connect(self._on_load_started)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
         page.proxyAuthenticationRequired.connect(
@@ -843,13 +844,20 @@ class WebEngineTab(browsertab.AbstractTab):
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)
         #WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        page.loadProgress.connect(self._on_load_progress_fake)
-        self.loadProgressFake.connect(self._on_load_progress)
-        page.loadStarted.connect(self._on_load_started)
-        self.loadFinishedFake.connect(self._on_history_trigger)
-        self.loadFinishedFake.connect(self._restore_zoom)
-        self.loadFinishedFake.connect(self._on_load_finished)
-        page.loadFinished.connect(self._on_load_finished_fake)
+        if QT_VERSION_STR.startswith('5.10'):
+            page.loadProgress.connect(self._on_load_progress_fake)
+            self.loadProgressFake.connect(self._on_load_progress)
+            self.loadFinishedFake.connect(self._on_history_trigger)
+            self.loadFinishedFake.connect(self._restore_zoom)
+            self.loadFinishedFake.connect(self._on_load_finished)
+            page.loadFinished.connect(self._on_load_finished_fake)
+        else:
+            #for older Qt versions which break with the above
+            page.loadProgress.connect(self._on_load_progress)
+            page.loadStarted.connect(self._on_load_started)
+            page.loadFinished.connect(self._on_history_trigger)
+            page.loadFinished.connect(self._restore_zoom)
+            page.loadFinished.connect(self._on_load_finished)
 
     def event_target(self):
         return self._widget.focusProxy()
