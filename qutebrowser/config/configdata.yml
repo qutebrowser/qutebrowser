@@ -1012,6 +1012,24 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
+input.blur_on_load.enabled:
+  default: true
+  type: Bool
+  desc: >-
+    Clear focus on page during page load.
+
+    This prevents the page from stealing focus on page load, similar to how
+    js vim plugins preserve their own focus.
+
+input.blur_on_load.delay:
+  default: 0
+  type: Int
+  desc: >-
+    Number of milliseconds to wait after load finished before sending a second blur event.
+
+    Only useful if input.blur_on_load.enabled is true.
+
+
 ## keyhint
 
 keyhint.blacklist:

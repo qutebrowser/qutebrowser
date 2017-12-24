@@ -197,6 +197,34 @@ def _update_stylesheet():
             tab.run_js_async(code)
 
 
+def _init_focustools(profile):
+    """Initialize focus tools.
+
+    """
+    old_script = profile.scripts().findScript('_qute_focustools')
+    if not old_script.isNull():
+        profile.scripts().remove(old_script)
+
+    if config.val.input.blur_on_load:
+        source = '\n'.join([
+            '"use strict";',
+            'window._qutebrowser = window._qutebrowser || {};',
+            utils.read_file('javascript/focustools.js'),
+            javascript.assemble('focustools', 'load',
+                                config.val.input.blur_on_load.enabled,
+                                config.val.input.blur_on_load.delay),
+            'document.activeElement.blur()',
+        ])
+
+        script = QWebEngineScript()
+        script.setName('_qute_focustools')
+        script.setInjectionPoint(QWebEngineScript.DocumentReady)
+        script.setWorldId(QWebEngineScript.ApplicationWorld)
+        script.setRunsOnSubFrames(True)
+        script.setSourceCode(source)
+        profile.scripts().insert(script)
+
+
 def _set_http_headers(profile):
     """Set the user agent and accept-language for the given profile.
 
@@ -221,6 +249,10 @@ def _update_settings(option):
                     'content.headers.accept_language']:
         _set_http_headers(default_profile)
         _set_http_headers(private_profile)
+    elif option in ['input.blur_on_load.enabled',
+                    'input.blur_on_load.delay']:
+        _init_focustools(default_profile)
+        _init_focustools(private_profile)
 
 
 def _init_profiles():
@@ -233,11 +265,13 @@ def _init_profiles():
         os.path.join(standarddir.data(), 'webengine'))
     _init_stylesheet(default_profile)
     _set_http_headers(default_profile)
+    _init_focustools(default_profile)
 
     private_profile = QWebEngineProfile()
     assert private_profile.isOffTheRecord()
     _init_stylesheet(private_profile)
     _set_http_headers(private_profile)
+    _init_focustools(private_profile)
 
     if qtutils.version_check('5.8'):
         default_profile.setSpellCheckEnabled(True)
