@@ -1639,6 +1639,7 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
+            mainwindow.raise_window(objreg.last_focused_window())
         except webelem.OrphanedError as e:
             message.error('Edited element vanished')
         except webelem.Error as e:
