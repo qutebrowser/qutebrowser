@@ -213,7 +213,6 @@ def _init_focustools(profile):
             javascript.assemble('focustools', 'load',
                                 config.val.input.blur_on_load.enabled,
                                 config.val.input.blur_on_load.delay),
-            'document.activeElement.blur()',
         ])
 
         script = QWebEngineScript()
