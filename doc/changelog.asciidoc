@@ -133,6 +133,7 @@ Fixed
 - Fix :click-element with an ID containing non-alphanumeric characters.
 - Fix crash when a subprocess outputs data which is not decodable as UTF-8.
 - Fix crash when closing a tab immediately after hinting.
+- Worked around issues in Qt 5.10 with loading progress never being finished.
 
 Deprecated
 ~~~~~~~~~~
