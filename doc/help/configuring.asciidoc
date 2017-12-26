@@ -264,7 +264,7 @@ get a string:
 .config.py:
 [source,python]
 ----
-print(str(config.configdir / 'config.py')
+print(str(config.configdir / 'config.py'))
 ----
 
 Handling errors
