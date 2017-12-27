@@ -1639,11 +1639,12 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
-            mainwindow.raise_window(objreg.last_focused_window())
         except webelem.OrphanedError as e:
             message.error('Edited element vanished')
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
+
+        mainwindow.raise_window(objreg.last_focused_window(), alert=False)
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')
