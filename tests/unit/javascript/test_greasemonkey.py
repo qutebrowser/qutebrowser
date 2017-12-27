@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import greasemonkey
 
-test_gm_script = """
+test_gm_script = r"""
 // ==UserScript==
 // @name qutebrowser test userscript
 // @namespace invalid.org
@@ -68,6 +68,30 @@ def test_all():
 def test_get_scripts_by_url(url, expected_matches):
     """Check Greasemonkey include/exclude rules work."""
     _save_script(test_gm_script, 'test.user.js')
+    gm_manager = greasemonkey.GreasemonkeyManager()
+
+    scripts = gm_manager.scripts_for(QUrl(url))
+    assert (len(scripts.start + scripts.end + scripts.idle) ==
+            expected_matches)
+
+
+@pytest.mark.parametrize("url, expected_matches", [
+    # included
+    ('https://github.com/qutebrowser/qutebrowser/', 1),
+    # neither included nor excluded
+    ('http://aaaaaaaaaa.com/', 0),
+    # excluded takes priority
+    ('http://github.com/foo', 0),
+])
+def test_regex_includes_scripts_for(url, expected_matches):
+    """Ensure our GM @*clude support supports regular expressions."""
+    gh_dark_example = r"""// ==UserScript==
+// @include     /^https?://((gist|guides|help|raw|status|developer)\.)?github\.com/((?!generated_pages\/preview).)*$/
+// @exclude     /https?://github\.com/foo/
+// @run-at document-start
+// ==/UserScript==
+    """
+    _save_script(gh_dark_example, 'test.user.js')
     gm_manager = greasemonkey.GreasemonkeyManager()
 
     scripts = gm_manager.scripts_for(QUrl(url))
