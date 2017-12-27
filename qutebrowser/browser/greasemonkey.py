@@ -23,7 +23,6 @@ import re
 import os
 import json
 import fnmatch
-import functools
 import glob
 
 import attr
@@ -196,11 +195,21 @@ class GreasemonkeyManager(QObject):
         """
         if url.scheme() not in self.greaseable_schemes:
             return MatchingScripts(url, [], [], [])
-        match = functools.partial(fnmatch.fnmatch,
-                                  url.toString(QUrl.FullyEncoded))
+
+        def _match(pattern):
+            # For include and exclude rules if they start and end with '/' they
+            # should be treated as a (ecma syntax) regular expression.
+            string_url = url.toString(QUrl.FullyEncoded)
+            if pattern.startswith('/') and pattern.endswith('/'):
+                return re.search(pattern[1:-1], string_url) is not None
+
+            # Otherwise they are glob expressions.
+            return fnmatch.fnmatch(string_url, pattern)
+
         tester = (lambda script:
-                  any(match(pat) for pat in script.includes) and
-                  not any(match(pat) for pat in script.excludes))
+                  any(_match(pat) for pat in script.includes) and
+                  not any(_match(pat) for pat in script.excludes))
+
         return MatchingScripts(
             url,
             [script for script in self._run_start if tester(script)],
