@@ -94,7 +94,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
     return window.win_id
 
 
-def raise_window(window, alert=False):
+def raise_window(window, alert=True):
     """Raise the given MainWindow object."""
     window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
     window.setWindowState(window.windowState() | Qt.WindowActive)
