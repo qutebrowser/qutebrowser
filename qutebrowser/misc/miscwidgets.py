@@ -293,8 +293,6 @@ class FullscreenNotification(QLabel):
         bindings = all_bindings.get('fullscreen --leave')
         if bindings:
             key = bindings[0]
-            if utils.is_special_key(key):
-                key = key.strip('<>').capitalize()
             self.setText("Press {} to exit fullscreen.".format(key))
         else:
             self.setText("Page is now fullscreen.")

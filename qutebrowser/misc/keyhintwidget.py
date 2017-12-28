@@ -106,7 +106,6 @@ class KeyHintView(QLabel):
         bindings_dict = config.key_instance.get_bindings_for(modename)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
                     if k.startswith(prefix) and
-                    not utils.is_special_key(k) and
                     not blacklisted(k) and
                     (takes_count(v) or not countstr)]
 

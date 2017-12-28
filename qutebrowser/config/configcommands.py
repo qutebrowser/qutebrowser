@@ -117,10 +117,10 @@ class ConfigCommands:
                 return
 
             # No --default -> print binding
-            if utils.is_special_key(key):
-                # self._keyconfig.get_command does this, but we also need it
-                # normalized for the output below
-                key = utils.normalize_keystr(key)
+            #if utils.is_special_key(key):
+            #    # self._keyconfig.get_command does this, but we also need it
+            #    # normalized for the output below
+            #    key = utils.normalize_keystr(key)
             with self._handle_config_error():
                 cmd = self._keyconfig.get_command(key, mode)
             if cmd is None:

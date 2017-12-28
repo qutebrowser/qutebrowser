@@ -33,6 +33,7 @@ import functools
 import contextlib
 import socket
 import shlex
+import unicodedata
 
 import attr
 from PyQt5.QtCore import Qt, QUrl
@@ -418,10 +419,22 @@ def keyevent_to_string(e):
         return None
     mod = e.modifiers()
     parts = []
+
     for (mask, s) in modmask2str.items():
         if mod & mask and s not in parts:
             parts.append(s)
-    parts.append(key_to_string(e.key()))
+
+    key_string = key_to_string(e.key())
+    if len(key_string) == 1:
+        category = unicodedata.category(key_string)
+        is_control_char = (category == 'Cc')
+    else:
+        is_control_char = False
+
+    if e.modifiers() == Qt.ShiftModifier and not is_control_char:
+        parts = []
+
+    parts.append(key_string)
     return normalize_keystr('+'.join(parts))
 
 
@@ -466,6 +479,8 @@ def is_special_key(keystr):
 
 def _parse_single_key(keystr):
     """Convert a single key string to a (Qt.Key, Qt.Modifiers, text) tuple."""
+    # FIXME remove
+
     if is_special_key(keystr):
         # Special key
         keystr = keystr[1:-1]

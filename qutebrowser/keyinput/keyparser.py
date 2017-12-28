@@ -56,7 +56,8 @@ class PassthroughKeyParser(CommandKeyParser):
         _mode: The mode this keyparser is for.
     """
 
-    do_log = False
+    # FIXME
+    # do_log = False
     passthrough = True
 
     def __init__(self, win_id, mode, parent=None, warn=True):

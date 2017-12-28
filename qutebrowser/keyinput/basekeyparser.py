@@ -173,19 +173,23 @@ class BaseKeyParser(QObject):
         Return:
             A self.Match member.
         """
-        txt = e.text()
         key = e.key()
+        txt = utils.keyevent_to_string(e)
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        if len(txt) == 1:
-            category = unicodedata.category(txt)
-            is_control_char = (category == 'Cc')
-        else:
-            is_control_char = False
-
-        if (not txt) or is_control_char:
+        if txt is None:
             self._debug_log("Ignoring, no text char")
             return QKeySequence.NoMatch
+
+        # if len(txt) == 1:
+        #     category = unicodedata.category(txt)
+        #     is_control_char = (category == 'Cc')
+        # else:
+        #     is_control_char = False
+
+        # if (not txt) or is_control_char:
+        #     self._debug_log("Ignoring, no text char")
+        #     return QKeySequence.NoMatch
 
         count, cmd_input = self._split_count(self._keystring + txt)
         match, binding = self._match_key(cmd_input)
@@ -233,7 +237,7 @@ class BaseKeyParser(QObject):
             return (None, None)
 
         for seq, cmd in self.bindings.items():
-            match = seq.matches(utils.parse_keystring(cmd_input))
+            match = seq.matches(cmd_input)
             if match != QKeySequence.NoMatch:
                 return (match, cmd)
 

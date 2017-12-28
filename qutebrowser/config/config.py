@@ -136,9 +136,10 @@ class KeyConfig:
         """Make sure the given mode exists and normalize the key."""
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        if utils.is_special_key(key):
-            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            return utils.normalize_keystr(key)
+        # FIXME needed?
+        # if utils.is_special_key(key):
+        #     # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
+        #     return utils.normalize_keystr(key)
         return key
 
     def get_bindings_for(self, mode):
@@ -160,10 +161,11 @@ class KeyConfig:
                 cmd = cmd.strip()
                 cmd_to_keys.setdefault(cmd, [])
                 # put special bindings last
-                if utils.is_special_key(key):
-                    cmd_to_keys[cmd].append(key)
-                else:
-                    cmd_to_keys[cmd].insert(0, key)
+                # FIXME update
+                # if utils.is_special_key(key):
+                #     cmd_to_keys[cmd].append(key)
+                # else:
+                cmd_to_keys[cmd].insert(0, key.toString())
         return cmd_to_keys
 
     def get_command(self, key, mode, default=False):
