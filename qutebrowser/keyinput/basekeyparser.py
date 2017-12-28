@@ -106,40 +106,6 @@ class BaseKeyParser(QObject):
         if self.do_log:
             log.keyboard.debug(message)
 
-    def _handle_special_key(self, e):
-        """Handle a new keypress with special keys (<Foo>).
-
-        Return True if the keypress has been handled, and False if not.
-
-        Args:
-            e: the KeyPressEvent from Qt.
-
-        Return:
-            True if event has been handled, False otherwise.
-        """
-        # FIXME remove?
-        binding = utils.keyevent_to_string(e)
-        if binding is None:
-            self._debug_log("Ignoring only-modifier keyeevent.")
-            return False
-
-        if binding not in self.special_bindings:
-            key_mappings = config.val.bindings.key_mappings
-            try:
-                binding = key_mappings['<{}>'.format(binding)][1:-1]
-            except KeyError:
-                pass
-
-        try:
-            cmdstr = self.special_bindings[binding]
-        except KeyError:
-            self._debug_log("No special binding found for {}.".format(binding))
-            return False
-        count, _command = self._split_count(self._keystring)
-        self.execute(cmdstr, self.Type.special, count)
-        self.clear_keystring()
-        return True
-
     def _handle_key(self, e):
         """Handle a new keypress.
 
