@@ -94,6 +94,7 @@ class AbstractWebInspector(QWidget):
         raise NotImplementedError
 
     def toggle(self, page):
+        """Show/hide the inspector."""
         if self._widget.isVisible():
             self.hide()
         else:

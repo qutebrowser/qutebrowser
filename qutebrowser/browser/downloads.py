@@ -103,6 +103,8 @@ def immediate_download_path(prompt_download_directory=None):
     if not prompt_download_directory:
         return download_dir()
 
+    return None
+
 
 def _path_suggestion(filename):
     """Get the suggested file path.
@@ -180,7 +182,7 @@ def transform_path(path):
     path = utils.expand_windows_drive(path)
     # Drive dependent working directories are not supported, e.g.
     # E:filename is invalid
-    if re.match(r'[A-Z]:[^\\]', path, re.IGNORECASE):
+    if re.search(r'^[A-Z]:[^\\]', path, re.IGNORECASE):
         return None
     # Paths like COM1, ...
     # See https://github.com/qutebrowser/qutebrowser/issues/82
@@ -990,7 +992,7 @@ class DownloadModel(QAbstractListModel):
                 if not count:
                     count = len(self)
                 raise cmdexc.CommandError("Download {} is already done!"
-                                        .format(count))
+                                          .format(count))
             download.cancel()
 
     @cmdutils.register(instance='download-model', scope='window')

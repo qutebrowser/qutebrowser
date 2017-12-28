@@ -17,20 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Insert login information using pass and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...). A short
+demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
+"""
 
-# Insert login information using pass and a dmenu-provider (e.g. dmenu, rofi -dmenu, ...).
-# A short demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
-#
-# The domain of the site has to appear as a segment in the pass path, for example: "github.com/cryzed" or
-# "websites/github.com". How the username and password are determined is freely configurable using the CLI arguments.
-# The login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
-# [USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
-#
-# Dependencies: tldextract (Python 3 module), pass
-# For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
-#
-# WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
-# you decide to submit a crash report!
+USAGE = """The domain of the site has to appear as a segment in the pass path, for example: "github.com/cryzed" or
+"websites/github.com". How the username and password are determined is freely configurable using the CLI arguments. The
+login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
+[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms."""
+
+EPILOG = """Dependencies: tldextract (Python 3 module), pass.
+For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
+
+WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
+you decide to submit a crash report!"""
 
 import argparse
 import enum
@@ -44,8 +45,8 @@ import sys
 
 import tldextract
 
-argument_parser = argparse.ArgumentParser()
-argument_parser.add_argument('url', nargs='?', default=os.environ['QUTE_URL'])
+argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
+argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
 argument_parser.add_argument('--password-store', '-p', default=os.path.expanduser('~/.password-store'),
                              help='Path to your pass password-store')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
@@ -71,6 +72,7 @@ stderr = functools.partial(print, file=sys.stderr)
 
 class ExitCodes(enum.IntEnum):
     SUCCESS = 0
+    FAILURE = 1
     # 1 is automatically used if Python throws an exception
     NO_PASS_CANDIDATES = 2
     COULD_NOT_MATCH_USERNAME = 3
@@ -108,6 +110,10 @@ def dmenu(items, invocation, encoding):
 
 
 def main(arguments):
+    if not arguments.url:
+        argument_parser.print_help()
+        return ExitCodes.FAILURE
+
     extract_result = tldextract.extract(arguments.url)
 
     # Expand potential ~ in paths, since this script won't be called from a shell that does it for us

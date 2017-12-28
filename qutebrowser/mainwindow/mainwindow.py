@@ -103,7 +103,8 @@ def raise_window(window):
     QApplication.instance().alert(window)
 
 
-def get_target_window():
+# WORKAROUND for https://github.com/PyCQA/pylint/issues/1770
+def get_target_window():  # pylint: disable=inconsistent-return-statements
     """Get the target window for new tabs, or None if none exist."""
     try:
         win_mode = config.val.new_instance_open_target_window
@@ -320,7 +321,8 @@ class MainWindow(QWidget):
     def _init_completion(self):
         self._completion = completionwidget.CompletionView(self.win_id, self)
         cmd = objreg.get('status-command', scope='window', window=self.win_id)
-        completer_obj = completer.Completer(cmd, self._completion)
+        completer_obj = completer.Completer(cmd=cmd, win_id=self.win_id,
+                                            parent=self._completion)
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',

@@ -39,7 +39,7 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, debug)
+                               objreg, utils, debug, standarddir)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import urlmodel, miscmodels
@@ -520,7 +520,7 @@ class CommandDispatcher:
         return newtab
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', completion=miscmodels.buffer)
+    @cmdutils.argument('index', completion=miscmodels.other_buffer)
     def tab_take(self, index):
         """Take a tab from another window.
 
@@ -675,7 +675,7 @@ class CommandDispatcher:
                 self._open(new_url, tab, bg, window, related=True)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
-                                "`where'.".format(where))
+                                 "`where'.".format(where))
         except navigate.Error as e:
             raise cmdexc.CommandError(e)
 
@@ -1194,7 +1194,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
-    def spawn(self, cmdline, userscript=False, verbose=False, detach=False):
+    def spawn(self, cmdline, userscript=False, verbose=False,
+              output=False, detach=False):
         """Spawn a command in a shell.
 
         Args:
@@ -1205,6 +1206,7 @@ class CommandDispatcher:
                               (or `$XDG_DATA_DIR`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
+            output: Whether the output should be shown in a new tab.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
         """
@@ -1240,6 +1242,11 @@ class CommandDispatcher:
                 proc.start_detached(cmd, args)
             else:
                 proc.start(cmd, args)
+
+        if output:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window='last-focused')
+            tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
@@ -1454,27 +1461,14 @@ class CommandDispatcher:
             raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('dest_old', hide=True)
-    def download(self, url=None, dest_old=None, *, mhtml_=False, dest=None):
+    def download(self, url=None, *, mhtml_=False, dest=None):
         """Download a given URL, or current page if no URL given.
-
-        The form `:download [url] [dest]` is deprecated, use `:download --dest
-        [dest] [url]` instead.
 
         Args:
             url: The URL to download. If not given, download the current page.
-            dest_old: (deprecated) Same as dest.
             dest: The file path to write the download to, or None to ask.
             mhtml_: Download the current page and all assets as mhtml file.
         """
-        if dest_old is not None:
-            message.warning(":download [url] [dest] is deprecated - use "
-                            ":download --dest [dest] [url]")
-            if dest is not None:
-                raise cmdexc.CommandError("Can't give two destinations for the"
-                                          " download.")
-            dest = dest_old
-
         # FIXME:qtwebengine do this with the QtWebEngine download manager?
         download_manager = objreg.get('qtnetwork-download-manager',
                                       scope='window', window=self._win_id)
@@ -1564,6 +1558,7 @@ class CommandDispatcher:
         dest = os.path.expanduser(dest)
 
         def callback(data):
+            """Write the data to disk."""
             try:
                 with open(dest, 'w', encoding='utf-8') as f:
                     f.write(data)
@@ -1680,6 +1675,8 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
+        except webelem.OrphanedError as e:
+            message.error('Edited element vanished')
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
 
@@ -1776,7 +1773,8 @@ class CommandDispatcher:
             elif going_up and tab.scroller.pos_px().y() > old_scroll_pos.y():
                 message.info("Search hit TOP, continuing at BOTTOM")
         else:
-            message.warning("Text '{}' not found on page!".format(text))
+            message.warning("Text '{}' not found on page!".format(text),
+                            replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
@@ -1796,7 +1794,7 @@ class CommandDispatcher:
             return
 
         options = {
-            'ignore_case': config.val.ignore_case,
+            'ignore_case': config.val.search.ignore_case,
             'reverse': reverse,
         }
 
@@ -2065,6 +2063,9 @@ class CommandDispatcher:
         Args:
             js_code: The string/file to evaluate.
             file: Interpret js-code as a path to a file.
+                  If the path is relative, the file is searched in a js/ subdir
+                  in qutebrowser's data dir, e.g.
+                  `~/.local/share/qutebrowser/js`.
             quiet: Don't show resulting JS object.
             world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
                    run the snippet in.
@@ -2076,6 +2077,7 @@ class CommandDispatcher:
             jseval_cb = None
         else:
             def jseval_cb(out):
+                """Show the data returned from JS."""
                 if out is None:
                     # Getting the actual error (if any) seems to be difficult.
                     # The error does end up in
@@ -2094,6 +2096,9 @@ class CommandDispatcher:
 
         if file:
             path = os.path.expanduser(js_code)
+            if not os.path.isabs(path):
+                path = os.path.join(standarddir.data(), 'js', path)
+
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     js_code = f.read()

@@ -40,21 +40,21 @@ Feature: :spawn
 
     @posix
     Scenario: Running :spawn with userscript
-        When I open about:blank
+        When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url
-        And I wait until about:blank is loaded
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
-            - about:blank
-            - about:blank (active)
+            - data/hello.txt
+            - data/hello.txt (active)
 
     @windows
     Scenario: Running :spawn with userscript on Windows
-        When I open about:blank
+        When I open data/hello.txt
         And I run :spawn -u (testdata)/userscripts/open_current_url.bat
-        And I wait until about:blank is loaded
+        And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
-            - about:blank
-            - about:blank (active)
+            - data/hello.txt
+            - data/hello.txt (active)
 
     @posix
     Scenario: Running :spawn with userscript that expects the stdin getting closed

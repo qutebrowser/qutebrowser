@@ -86,6 +86,21 @@ class BrowserPage(QWebPage):
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
+        self.loadFinished.connect(
+            functools.partial(self._inject_userjs, self.mainFrame()))
+        self.frameCreated.connect(self._connect_userjs_signals)
+
+    @pyqtSlot('QWebFrame*')
+    def _connect_userjs_signals(self, frame):
+        """Connect userjs related signals to `frame`.
+
+        Connect the signals used as triggers for injecting user
+        JavaScripts into the passed QWebFrame.
+        """
+        log.greasemonkey.debug("Connecting to frame {} ({})"
+                               .format(frame, frame.url().toDisplayString()))
+        frame.loadFinished.connect(
+            functools.partial(self._inject_userjs, frame))
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
@@ -282,6 +297,38 @@ class BrowserPage(QWebPage):
             self._ignore_load_started = False
         else:
             self.error_occurred = False
+
+    def _inject_userjs(self, frame):
+        """Inject user JavaScripts into the page.
+
+        Args:
+            frame: The QWebFrame to inject the user scripts into.
+        """
+        url = frame.url()
+        if url.isEmpty():
+            url = frame.requestedUrl()
+
+        log.greasemonkey.debug("_inject_userjs called for {} ({})"
+                               .format(frame, url.toDisplayString()))
+
+        greasemonkey = objreg.get('greasemonkey')
+        scripts = greasemonkey.scripts_for(url)
+        # QtWebKit has trouble providing us with signals representing
+        # page load progress at reasonable times, so we just load all
+        # scripts on the same event.
+        toload = scripts.start + scripts.end + scripts.idle
+
+        if url.isEmpty():
+            # This happens during normal usage like with view source but may
+            # also indicate a bug.
+            log.greasemonkey.debug("Not running scripts for frame with no "
+                                   "url: {}".format(frame))
+            assert not toload, toload
+
+        for script in toload:
+            if frame is self.mainFrame() or script.runs_on_sub_frames:
+                log.webview.debug('Running GM script: {}'.format(script.name))
+                frame.evaluateJavaScript(script.code())
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):

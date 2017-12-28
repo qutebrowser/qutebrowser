@@ -24,12 +24,11 @@ import unittest.mock
 import textwrap
 
 import pytest
+from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
 from qutebrowser.utils import utils, usertypes
-
-from PyQt5.QtCore import QSettings
 
 
 @pytest.fixture(autouse=True)
@@ -57,8 +56,7 @@ def test_state_config(fake_save_manager, data_tmpdir,
 
     if insert:
         state['general']['newval'] = '23'
-    # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
-    if 'foobar' in (old_data or ''):  # pylint: disable=superfluous-parens
+    if 'foobar' in (old_data or ''):
         assert state['general']['foobar'] == '42'
 
     state._save()
@@ -106,10 +104,7 @@ class TestYaml:
 
         print(lines)
 
-        # WORKAROUND for https://github.com/PyCQA/pylint/issues/574
-        # pylint: disable=superfluous-parens
         if 'magenta' in (old_config or ''):
-            # pylint: enable=superfluous-parens
             assert '  colors.hints.fg: magenta' in lines
         if insert:
             assert '  tabs.show: never' in lines
@@ -218,7 +213,7 @@ class TestYaml:
         ('%', 'While parsing', 'while scanning a directive'),
         ('global: 42', 'While loading data', "'global' object is not a dict"),
         ('foo: 42', 'While loading data',
-        "Toplevel object does not contain 'global' key"),
+         "Toplevel object does not contain 'global' key"),
         ('42', 'While loading data', "Toplevel object is not a dict"),
     ])
     def test_invalid(self, yaml, config_tmpdir, line, text, exception):
@@ -323,8 +318,9 @@ class TestConfigPyModules:
         sys.path = old_path
 
     def test_bind_in_module(self, confpy, qbmodulepy, tmpdir):
-        qbmodulepy.write('def run(config):',
-        '    config.bind(",a", "message-info foo", mode="normal")')
+        qbmodulepy.write(
+            'def run(config):',
+            '    config.bind(",a", "message-info foo", mode="normal")')
         confpy.write_qbmodule()
         confpy.read()
         expected = {'normal': {',a': 'message-info foo'}}

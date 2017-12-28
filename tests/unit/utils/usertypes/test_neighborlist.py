@@ -19,9 +19,9 @@
 
 """Tests for the NeighborList class."""
 
-from qutebrowser.utils import usertypes
-
 import pytest
+
+from qutebrowser.utils import usertypes
 
 
 class TestInit:

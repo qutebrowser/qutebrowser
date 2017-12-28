@@ -5,8 +5,7 @@ Feature: Page history
     Make sure the global page history is saved correctly.
 
     Background:
-        Given I open about:blank
-        And I run :history-clear --force
+        Given I run :history-clear --force
 
     Scenario: Simple history saving
         When I open data/numbers/1.txt

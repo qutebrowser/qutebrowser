@@ -27,28 +27,22 @@ _samples = 'tests/unit/scripts/importer_sample'
 
 def qm_expected(input_format):
     """Read expected quickmark-formatted output."""
-    with open(
-            os.path.join(_samples, input_format, 'quickmarks'),
-            'r',
-            encoding='utf-8') as f:
+    with open(os.path.join(_samples, input_format, 'quickmarks'),
+              'r', encoding='utf-8') as f:
         return f.read()
 
 
 def bm_expected(input_format):
     """Read expected bookmark-formatted output."""
-    with open(
-            os.path.join(_samples, input_format, 'bookmarks'),
-            'r',
-            encoding='utf-8') as f:
+    with open(os.path.join(_samples, input_format, 'bookmarks'),
+              'r', encoding='utf-8') as f:
         return f.read()
 
 
 def search_expected(input_format):
     """Read expected search-formatted (config.py) output."""
-    with open(
-            os.path.join(_samples, input_format, 'config_py'),
-            'r',
-            encoding='utf-8') as f:
+    with open(os.path.join(_samples, input_format, 'config_py'),
+              'r', encoding='utf-8') as f:
         return f.read()
 
 

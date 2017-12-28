@@ -82,6 +82,7 @@ def whitelist_generator():  # noqa
     yield 'qutebrowser.utils.jinja.Loader.get_source'
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
+    yield 'qutebrowser.misc.guiprocess.spawn_output'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py
     yield 'propagate'  # logging.getLogger('...).propagate = False
@@ -103,7 +104,7 @@ def whitelist_generator():  # noqa
     for attr in ['visit_call', 'process_module']:
         yield 'scripts.dev.pylint_checkers.modeline.' + attr
 
-    for name, member in inspect.getmembers(configtypes, inspect.isclass):
+    for name, _member in inspect.getmembers(configtypes, inspect.isclass):
         yield 'qutebrowser.config.configtypes.' + name
     yield 'qutebrowser.config.configexc.ConfigErrorDesc.traceback'
     yield 'qutebrowser.config.configfiles.ConfigAPI.load_autoconfig'
@@ -132,7 +133,7 @@ def filter_func(item):
         True if the missing function should be filtered/ignored, False
         otherwise.
     """
-    return bool(re.match(r'[a-z]+[A-Z][a-zA-Z]+', item.name))
+    return bool(re.fullmatch(r'[a-z]+[A-Z][a-zA-Z]+', item.name))
 
 
 def report(items):

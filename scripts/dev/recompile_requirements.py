@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                       '..', '..')  # /scripts/dev -> /scripts -> /
+                        '..', '..')  # /scripts/dev -> /scripts -> /
 REQ_DIR = os.path.join(REPO_DIR, 'misc', 'requirements')
 
 
@@ -118,9 +118,9 @@ def main():
             pip_bin = os.path.join(tmpdir, 'bin', 'pip')
             subprocess.run(['virtualenv', tmpdir], check=True)
             subprocess.run([pip_bin, 'install', '-r', filename], check=True)
-            reqs = subprocess.run([pip_bin, 'freeze'], check=True,
-                                  stdout=subprocess.PIPE
-                                  ).stdout.decode('utf-8')
+            proc = subprocess.run([pip_bin, 'freeze'], check=True,
+                                  stdout=subprocess.PIPE)
+            reqs = proc.stdout.decode('utf-8')
 
         with open(filename, 'r', encoding='utf-8') as f:
             comments = read_comments(f)

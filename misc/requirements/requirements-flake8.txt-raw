@@ -1,27 +1,17 @@
-flake8<3.0.0
+flake8
+flake8-bugbear
+flake8-builtins
+flake8-comprehensions
 flake8-copyright
 flake8-debugger
-flake8-deprecated<1.3
-flake8-docstrings<1.1.0
+flake8-deprecated
+flake8-docstrings
 flake8-future-import
 flake8-mock
-flake8-pep3101<1.1
-flake8-putty
+flake8-per-file-ignores
 flake8-string-format
 flake8-tidy-imports
 flake8-tuple
 pep8-naming
-pydocstyle<2.0.0
+pydocstyle
 pyflakes
-
-# Pinned to 2.0.0 otherwise
-pycodestyle==2.3.1
-# Pinned to 0.5.3 otherwise
-mccabe==0.6.1
-
-# Waiting until flake8-putty updated
-#@ filter: flake8 < 3.0.0
-#@ filter: pydocstyle < 2.0.0
-#@ filter: flake8-docstrings < 1.1.0
-#@ filter: flake8-pep3101 < 1.1
-#@ filter: flake8-deprecated < 1.3

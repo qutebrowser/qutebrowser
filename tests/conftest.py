@@ -25,16 +25,17 @@ import os
 import sys
 import warnings
 
+import sip
 import pytest
 import hypothesis
-from PyQt5.QtCore import PYQT_VERSION
+from PyQt5.QtCore import qVersion, PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
 from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
-from helpers.fixtures import *
+from helpers.fixtures import *  # noqa: F403
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils
 from qutebrowser.misc import objects
 
@@ -56,9 +57,9 @@ def _apply_platform_markers(config, item):
         ('mac', not utils.is_mac, "Requires macOS"),
         ('not_mac', utils.is_mac, "Skipped on macOS"),
         ('not_frozen', getattr(sys, 'frozen', False),
-            "Can't be run when frozen"),
+         "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
-            "Can only run when frozen"),
+         "Can only run when frozen"),
         ('ci', 'CI' not in os.environ, "Only runs on CI."),
         ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', utils.is_windows and config.webengine,
@@ -151,6 +152,17 @@ def pytest_ignore_collect(path):
 
 
 @pytest.fixture(scope='session')
+def qapp_args():
+    """Make QtWebEngine unit tests run on Qt 5.7.1.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/3163
+    """
+    if qVersion() == '5.7.1':
+        return [sys.argv[0], '--disable-seccomp-filter-sandbox']
+    return []
+
+
+@pytest.fixture(scope='session')
 def qapp(qapp):
     """Change the name of the QApplication instance."""
     qapp.setApplicationName('qute_test')
@@ -174,6 +186,12 @@ def pytest_configure(config):
     # pylint: disable=unused-variable
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
+
+    try:
+        # Added in sip 4.19.4
+        sip.enableoverflowchecking(True)
+    except AttributeError:
+        pass
 
 
 @pytest.fixture(scope='session', autouse=True)

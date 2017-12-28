@@ -64,7 +64,7 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, websettings, configfiles, configinit
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
-                                 downloads)
+                                 downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
@@ -491,6 +491,9 @@ def _init_modules(args, crash_handler):
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
 
+    log.init.debug("Initializing Greasemonkey...")
+    greasemonkey.init()
+
     log.init.debug("Misc initialization...")
     macros.init()
     # Init backend-specific stuff
@@ -561,8 +564,8 @@ class Quitter:
             cwd = os.path.abspath(os.path.dirname(sys.executable))
         else:
             args = [sys.executable, '-m', 'qutebrowser']
-            cwd = os.path.join(os.path.abspath(os.path.dirname(
-                               qutebrowser.__file__)), '..')
+            cwd = os.path.join(
+                os.path.abspath(os.path.dirname(qutebrowser.__file__)), '..')
             if not os.path.isdir(cwd):
                 # Probably running from a python egg. Let's fallback to
                 # cwd=None and see if that works out.

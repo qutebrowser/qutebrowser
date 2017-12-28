@@ -61,7 +61,7 @@ def check_exclusive(flags, names):
             argstr))
 
 
-class register:  # pylint: disable=invalid-name
+class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to register a new command handler.
 
@@ -114,7 +114,7 @@ class register:  # pylint: disable=invalid-name
         return func
 
 
-class argument:  # pylint: disable=invalid-name
+class argument:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to customize an argument for @cmdutils.register.
 

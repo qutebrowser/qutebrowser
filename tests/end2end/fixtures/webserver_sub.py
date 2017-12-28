@@ -62,7 +62,7 @@ def send_data(path):
         data_dir = os.path.join(basedir, 'data')
     print(basedir)
     if os.path.isdir(os.path.join(data_dir, path)):
-        path = path + '/index.html'
+        path += '/index.html'
     return flask.send_from_directory(data_dir, path)
 
 
@@ -215,7 +215,7 @@ def drip():
 
     def generate_bytes():
         for _ in range(numbytes):
-            yield u"*".encode('utf-8')
+            yield "*".encode('utf-8')
             time.sleep(pause)
 
     response = flask.Response(generate_bytes(), headers={

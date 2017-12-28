@@ -19,10 +19,10 @@
 
 """Tests for Timer."""
 
-from qutebrowser.utils import usertypes
-
 import pytest
 from PyQt5.QtCore import QObject
+
+from qutebrowser.utils import usertypes
 
 
 class Parent(QObject):

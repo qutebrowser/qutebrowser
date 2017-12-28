@@ -12,12 +12,6 @@ git+https://github.com/jenisys/parse_type.git
 hg+https://bitbucket.org/pytest-dev/py
 git+https://github.com/pytest-dev/pytest.git@features
 git+https://github.com/pytest-dev/pytest-bdd.git
-
-# This is broken at the moment because logfail tries to access
-# LogCaptureHandler
-# git+https://github.com/eisensheng/pytest-catchlog.git
-pytest-catchlog==1.2.2
-
 git+https://github.com/pytest-dev/pytest-cov.git
 git+https://github.com/pytest-dev/pytest-faulthandler.git
 git+https://github.com/pytest-dev/pytest-instafail.git

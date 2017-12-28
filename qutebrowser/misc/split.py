@@ -21,7 +21,7 @@
 
 import re
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class ShellLexer:
@@ -55,7 +55,7 @@ class ShellLexer:
         self.token = ''
         self.state = ' '
 
-    def __iter__(self):  # pragma: no mccabe
+    def __iter__(self):  # noqa: C901 pragma: no mccabe
         """Read a raw token from the input stream."""
         self.reset()
         for nextchar in self.string:
@@ -117,7 +117,8 @@ class ShellLexer:
                 else:
                     self.token += nextchar
             else:
-                raise AssertionError("Invalid state {!r}!".format(self.state))
+                raise utils.Unreachable(
+                    "Invalid state {!r}!".format(self.state))
         if self.state in self.escape and not self.keep:
             self.token += self.state
         if self.token or self.quoted:

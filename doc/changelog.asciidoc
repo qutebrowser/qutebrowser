@@ -21,6 +21,11 @@ v1.1.0 (unreleased)
 Added
 ~~~~~
 
+- Initial support for Greasemonkey scripts. There are still some rough edges,
+  but many scripts should already work.
+- There's now a `misc/Makefile` file in releases, which should help
+  distributions which package qutebrowser, as they can run something like
+  `make -f misc/Makefile DESTDIR="$pkgdir" install` now.
 - New `{current_url}` field for `window.title_format` and `tabs.title.format`.
 - New `colors.statusbar.passthrough.fg`/`.bg` settings.
 - New `completion.delay` and `completion.min_chars` settings to update the
@@ -43,16 +48,31 @@ Added
   completion item text.
 - New `tabs.pinned.shrink` setting to (`true` by default) to make it possible
   for pinned tabs and normal tabs to have the same size.
-_ New `content.windowed_fullscreen` setting to show e.g. a fullscreened video in
+- New `content.windowed_fullscreen` setting to show e.g. a fullscreened video in
   the window without fullscreening that window.
+- New `:edit-command` command to edit the commandline in an editor.
+- New `tabs.persist_mode_on_change` setting to keep the current mode when
+  switching tabs.
+- New `session.lazy_restore` setting which allows to not load pages immediately
+  when restoring a session.
+- New `hist_importer.py` script to import history from Firefox/Chromium.
+- New `{protocol}` replacement for `tabs.title.format` and friends.
+- New `-o` flag for `:spawn` to show stdout/stderr in a new tab.
+- Support for incremental search, with a new `search.incremental` setting.
+- New `--rapid` flag for `:command-accept` (bound to `Ctrl-Enter` by default),
+  which allows executing a command in the completion without closing it.
+- The `colors.completion.fg` setting can now be a list, allowing to specify
+  different colors for the three completion columns.
 
 Changed
 ~~~~~~~
 
-- Some tabs settings got renamed:
+- Some settings got renamed:
   * `tabs.width.bar` -> `tabs.width`
   * `tabs.width.indicator` -> `tabs.indicator.width`
   * `tabs.indicator_padding` -> `tabs.indicator.padding`
+  * `session_default_name` -> `session.default_name`
+  * `ignore_case` -> `search.ignore_case`
 - High-DPI favicons are now used when available.
 - The `asciidoc2html.py` script now uses Pygments (which is already a dependency
   of qutebrowser) instead of `source-highlight` for syntax highlighting.
@@ -71,6 +91,25 @@ Changed
 - The `qute://version` page now also shows the uptime of qutebrowser.
 - qutebrowser now prompts to create a non-existing directory when starting a
   download.
+- Much improved user stylesheet handling which reduces flickering
+  and updates immediately after setting a stylesheet.
+- `:completion-item-focus` now has a `--history` flag which causes it to go
+  through the command history when no text was entered. The default bindings for
+  cursor keys in the completion changed to use that, so that they can be used
+  again to navigate through completion items when a text was entered.
+- `:debug-pyeval` now has a `--file` argument so it takes a filename instead of
+  a line of code.
+- `:jseval --file` now searches relative paths in a js/ subdir in qutebrowser's
+  data dir, e.g. `~/.local/share/qutebrowser/js`.
+- The current/default bindings are now shown in the :bind completion.
+- Empty categories are now hidden in the `:open` completion.
+- Search terms for URLs and titles can now be mixed when filtering the
+  completion.
+- The default font size for the UI got bumped up from 8pt to 10pt.
+- Improved matching in the completion: The words entered are now matched in any
+  order, and mixed matches on URL/tite are possible.
+- The system's default encoding (rather than UTF-8) is now used to decode
+  subprocess output.
 
 Fixed
 ~~~~~
@@ -87,6 +126,14 @@ Fixed
 - Fixed crash when opening `qute://help/img`
 - Fixed `gU` (`:navigate up`) on `qute://help` and webservers not handling `..`
   in a URL.
+- Using e.g. `-s backend webkit` to set the backend now works correctly.
+- Fixed crash when closing the tab an external editor was opened in.
+- When using `:search-next` before a search is finished, no warning about no
+  results being found is shown anymore.
+- Fix :click-element with an ID containing non-alphanumeric characters.
+- Fix crash when a subprocess outputs data which is not decodable as UTF-8.
+- Fix crash when closing a tab immediately after hinting.
+- Worked around issues in Qt 5.10 with loading progress never being finished.
 
 Deprecated
 ~~~~~~~~~~
@@ -99,18 +146,24 @@ Removed
 
 - The long-deprecated `:prompt-yes`, `:prompt-no`, `:paste-primary` and `:paste`
   commands have been removed.
+- The invocation `:download <url> <dest>` which was deprecated in v0.5.0 was
+  removed, use `:download --dest <dest> <url>` instead.
 - The `messages.unfocused` option which wasn't used anymore was removed.
 - The `x[xtb]` default bindings got removed again as many users accidentally
   triggered them.
 
-v1.0.4 (unreleased)
--------------------
+v1.0.4
+------
 
 Fixed
 ~~~~~
 
 - The `qute://gpl` page now works correctly again.
 - Trying to bind an empty command now doesn't crash anymore.
+- Fixed crash when `:config-write-py` fails to write to the given path.
+- Fixed crash for some users when selecting a file with Qt 5.9.3
+- Improved handling for various SQL errors
+- Fix crash when setting content.cache.size to a big value (> 2 GB)
 
 v1.0.3
 ------

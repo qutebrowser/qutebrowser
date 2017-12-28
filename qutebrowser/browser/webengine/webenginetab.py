@@ -24,7 +24,8 @@ import functools
 import html as html_utils
 
 import sip
-from PyQt5.QtCore import pyqtSlot, Qt, QEvent, QPoint, QPointF, QUrl, QTimer
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
+                          QUrl, QTimer)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -68,6 +69,10 @@ def init():
     download_manager.install(webenginesettings.default_profile)
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
+
+    greasemonkey = objreg.get('greasemonkey')
+    greasemonkey.scripts_reloaded.connect(webenginesettings.inject_userscripts)
+    webenginesettings.inject_userscripts()
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -121,18 +126,35 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
 
 class WebEngineSearch(browsertab.AbstractSearch):
 
-    """QtWebEngine implementations related to searching on the page."""
+    """QtWebEngine implementations related to searching on the page.
+
+    Attributes:
+        _flags: The QWebEnginePage.FindFlags of the last search.
+        _pending_searches: How many searches have been started but not called
+                           back yet.
+    """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
+        self._pending_searches = 0
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
         self.search_displayed = True
+        self._pending_searches += 1
 
         def wrapped_callback(found):
             """Wrap the callback to do debug logging."""
+            self._pending_searches -= 1
+            if self._pending_searches > 0:
+                # See https://github.com/qutebrowser/qutebrowser/issues/2442
+                # and https://github.com/qt/qtwebengine/blob/5.10/src/core/web_contents_adapter.cpp#L924-L934
+                log.webview.debug("Ignoring cancelled search callback with "
+                                  "{} pending searches".format(
+                                      self._pending_searches))
+                return
+
             found_text = 'found' if found else "didn't find"
             if flags:
                 flag_text = 'with flags {}'.format(debug.qflags_key(
@@ -560,7 +582,15 @@ class WebEngineElements(browsertab.AbstractElements):
 
 class WebEngineTab(browsertab.AbstractTab):
 
-    """A QtWebEngine tab in the browser."""
+    """A QtWebEngine tab in the browser.
+
+    Signals:
+        _load_finished_fake:
+            Used in place of unreliable loadFinished
+    """
+
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+    _load_finished_fake = pyqtSignal(bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, mode_manager=mode_manager,
@@ -586,7 +616,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _init_js(self):
         js_code = '\n'.join([
             '"use strict";',
-            'window._qutebrowser = {};',
+            'window._qutebrowser = window._qutebrowser || {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/webengine_caret.js'),
@@ -815,6 +845,24 @@ class WebEngineTab(browsertab.AbstractTab):
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
+    @pyqtSlot(int)
+    def _on_load_progress_workaround(self, perc):
+        """Use loadProgress(100) to emit loadFinished(True).
+
+        See https://bugreports.qt.io/browse/QTBUG-65223
+        """
+        if perc == 100 and self.load_status() != usertypes.LoadStatus.error:
+            self._load_finished_fake.emit(True)
+
+    @pyqtSlot(bool)
+    def _on_load_finished_workaround(self, ok):
+        """Use only loadFinished(False).
+
+        See https://bugreports.qt.io/browse/QTBUG-65223
+        """
+        if not ok:
+            self._load_finished_fake.emit(False)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -823,9 +871,6 @@ class WebEngineTab(browsertab.AbstractTab):
         page.linkHovered.connect(self.link_hovered)
         page.loadProgress.connect(self._on_load_progress)
         page.loadStarted.connect(self._on_load_started)
-        page.loadFinished.connect(self._on_history_trigger)
-        page.loadFinished.connect(self._restore_zoom)
-        page.loadFinished.connect(self._on_load_finished)
         page.certificate_error.connect(self._on_ssl_errors)
         page.authenticationRequired.connect(self._on_authentication_required)
         page.proxyAuthenticationRequired.connect(
@@ -838,6 +883,19 @@ class WebEngineTab(browsertab.AbstractTab):
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            page.loadProgress.connect(self._on_load_progress_workaround)
+            self._load_finished_fake.connect(self._on_history_trigger)
+            self._load_finished_fake.connect(self._restore_zoom)
+            self._load_finished_fake.connect(self._on_load_finished)
+            page.loadFinished.connect(self._on_load_finished_workaround)
+        else:
+            # for older Qt versions which break with the above
+            page.loadProgress.connect(self._on_load_progress)
+            page.loadFinished.connect(self._on_history_trigger)
+            page.loadFinished.connect(self._restore_zoom)
+            page.loadFinished.connect(self._on_load_finished)
 
     def event_target(self):
         return self._widget.focusProxy()

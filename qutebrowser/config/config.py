@@ -38,7 +38,7 @@ key_instance = None
 change_filters = []
 
 
-class change_filter:  # pylint: disable=invalid-name
+class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to filter calls based on a config section/option matching.
 
@@ -104,13 +104,17 @@ class change_filter:  # pylint: disable=invalid-name
         if self._function:
             @functools.wraps(func)
             def wrapper(option=None):
+                """Call the underlying function."""
                 if self._check_match(option):
                     return func()
+                return None
         else:
             @functools.wraps(func)
             def wrapper(wrapper_self, option=None):
+                """Call the underlying function."""
                 if self._check_match(option):
                     return func(wrapper_self)
+                return None
 
         return wrapper
 
@@ -162,10 +166,13 @@ class KeyConfig:
                     cmd_to_keys[cmd].insert(0, key)
         return cmd_to_keys
 
-    def get_command(self, key, mode):
+    def get_command(self, key, mode, default=False):
         """Get the command for a given key (or None)."""
         key = self._prepare(key, mode)
-        bindings = self.get_bindings_for(mode)
+        if default:
+            bindings = dict(val.bindings.default[mode])
+        else:
+            bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
 
     def bind(self, key, command, *, mode, save_yaml=False):
@@ -257,7 +264,7 @@ class Config(QObject):
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
-                raise configexc.BackendError(objects.backend)
+                raise configexc.BackendError(opt.name, objects.backend)
 
         opt.typ.to_py(value)  # for validation
         self._values[opt.name] = opt.typ.from_obj(value)
@@ -458,7 +465,8 @@ class ConfigContainer:
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
         if attr.startswith('_'):
-            return super().__setattr__(attr, value)
+            super().__setattr__(attr, value)
+            return
 
         name = self._join(attr)
         with self._handle_error('setting', name):

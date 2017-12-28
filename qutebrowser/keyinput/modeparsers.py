@@ -71,7 +71,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
-                "currently inhibited.".format(txt))
+                            "currently inhibited.".format(txt))
             return self.Match.none
         match = super()._handle_single_key(e)
         if match == self.Match.partial:
@@ -83,6 +83,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         return match
 
     def set_inhibited_timeout(self, timeout):
+        """Ignore keypresses for the given duration."""
         if timeout != 0:
             self._debug_log("Inhibiting the normal mode for {}ms.".format(
                 timeout))
@@ -217,7 +218,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             self._last_press = LastPress.none
             return True
         elif match == self.Match.other:
-            pass
+            return None
         elif match == self.Match.none:
             # We couldn't find a keychain so we check if it's a special key.
             return self._handle_special_key(e)

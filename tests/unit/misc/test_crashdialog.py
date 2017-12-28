@@ -47,6 +47,14 @@ Thread 0x00007fa135ac7700 (most recent call first):
   File "", line 1 in testfunc
 """
 
+WINDOWS_CRASH_TEXT = r"""
+Windows fatal exception: access violation
+_
+Current thread 0x000014bc (most recent call first):
+  File "qutebrowser\mainwindow\tabbedbrowser.py", line 468 in tabopen
+  File "qutebrowser\browser\shared.py", line 247 in get_tab
+"""
+
 INVALID_CRASH_TEXT = """
 Hello world!
 """
@@ -56,6 +64,7 @@ Hello world!
     (VALID_CRASH_TEXT, 'Segmentation fault', 'testfunc'),
     (VALID_CRASH_TEXT_THREAD, 'Segmentation fault', 'testfunc'),
     (VALID_CRASH_TEXT_EMPTY, 'Aborted', ''),
+    (WINDOWS_CRASH_TEXT, 'Windows access violation', 'tabopen'),
     (INVALID_CRASH_TEXT, '', ''),
 ])
 def test_parse_fatal_stacktrace(text, typ, func):

@@ -279,7 +279,7 @@ Feature: Saving and loading sessions
 
   Scenario: Saving session with --quiet
     When I run :session-save --quiet quiet_session
-    Then "Saved session quiet_session." should not be logged
+    Then "Saved session quiet_session." should be logged with level debug
     And the session quiet_session should exist
 
   Scenario: Saving session with --only-active-window

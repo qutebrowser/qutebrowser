@@ -100,16 +100,10 @@ Currently, the following tox environments are available:
   - `py35`, `py36`: Run pytest for python 3.5/3.6 with the system-wide PyQt.
   - `py36-pyqt57`, ..., `py36-pyqt59`: Run pytest with the given PyQt version (`py35-*` also works).
   - `py36-pyqt59-cov`: Run with coverage support (other Python/PyQt versions work too).
-* `flake8`: Run https://pypi.python.org/pypi/flake8[flake8] checks:
-                https://pypi.python.org/pypi/pyflakes[pyflakes],
-                https://pypi.python.org/pypi/pep8[pep8],
-                https://pypi.python.org/pypi/mccabe[mccabe].
+* `flake8`: Run various linting checks via https://pypi.python.org/pypi/flake8[flake8].
 * `vulture`: Run https://pypi.python.org/pypi/vulture[vulture] to find
   unused code portions.
 * `pylint`: Run http://pylint.org/[pylint] static code analysis.
-* `pydocstyle`: Check
-  https://www.python.org/dev/peps/pep-0257/[PEP257] compliance with
-  https://github.com/PyCQA/pydocstyle[pydocstyle].
 * `pyroma`: Check packaging practices with
   https://pypi.python.org/pypi/pyroma/[pyroma].
 * `eslint`: Run http://eslint.org/[ESLint] javascript checker.

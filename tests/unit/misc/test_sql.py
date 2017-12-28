@@ -20,9 +20,10 @@
 """Test the SQL API."""
 
 import pytest
-from qutebrowser.misc import sql
 
 from PyQt5.QtSql import QSqlError
+
+from qutebrowser.misc import sql
 
 
 pytestmark = pytest.mark.usefixtures('init_sql')
@@ -156,13 +157,13 @@ def test_iter():
 
 @pytest.mark.parametrize('rows, sort_by, sort_order, limit, result', [
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', 5,
-        [(1, 6), (2, 5), (3, 4)]),
+     [(1, 6), (2, 5), (3, 4)]),
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'desc', 3,
-        [(3, 4), (2, 5), (1, 6)]),
+     [(3, 4), (2, 5), (1, 6)]),
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'b', 'desc', 2,
-        [(1, 6), (2, 5)]),
+     [(1, 6), (2, 5)]),
     ([{"a": 2, "b": 5}, {"a": 1, "b": 6}, {"a": 3, "b": 4}], 'a', 'asc', -1,
-        [(1, 6), (2, 5), (3, 4)]),
+     [(1, 6), (2, 5), (3, 4)]),
 ])
 def test_select(rows, sort_by, sort_order, limit, result):
     table = sql.SqlTable('Foo', ['a', 'b'])

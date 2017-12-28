@@ -86,7 +86,7 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 10/10
         Then the page should be scrolled to 10 10
 
-    @qtwebengine_todo: Does not emit loaded signal for fragments?
+    @qtwebengine_skip: Does not emit loaded signal for fragments?
     Scenario: Jumping back after following a link
         When I hint with args "links normal" and follow s
         And I wait until data/marks.html#bottom is loaded

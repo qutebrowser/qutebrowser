@@ -153,13 +153,13 @@ def test_delete_url(hist, raw, escaped):
     'url, atime, title, redirect, history_url, completion_url', [
 
         ('http://www.example.com', 12346, 'the title', False,
-            'http://www.example.com', 'http://www.example.com'),
+         'http://www.example.com', 'http://www.example.com'),
         ('http://www.example.com', 12346, 'the title', True,
-            'http://www.example.com', None),
+         'http://www.example.com', None),
         ('http://www.example.com/sp ce', 12346, 'the title', False,
-            'http://www.example.com/sp%20ce', 'http://www.example.com/sp ce'),
+         'http://www.example.com/sp%20ce', 'http://www.example.com/sp ce'),
         ('https://user:pass@example.com', 12346, 'the title', False,
-            'https://user@example.com', 'https://user@example.com'),
+         'https://user@example.com', 'https://user@example.com'),
     ]
 )
 def test_add_url(qtbot, hist, url, atime, title, redirect, history_url,

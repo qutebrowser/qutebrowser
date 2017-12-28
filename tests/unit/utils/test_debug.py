@@ -90,8 +90,8 @@ class TestLogTime:
 
             assert len(caplog.records) == 1
 
-            pattern = re.compile(r'^Foobar took ([\d.]*) seconds\.$')
-            match = pattern.match(caplog.records[0].msg)
+            pattern = re.compile(r'Foobar took ([\d.]*) seconds\.')
+            match = pattern.fullmatch(caplog.records[0].msg)
             assert match
 
             duration = float(match.group(1))
@@ -252,8 +252,8 @@ class TestGetAllObjects:
 
         root = QObject()
         o1 = self.Object('Object 1', root)
-        o2 = self.Object('Object 2', o1)  # flake8: disable=F841
-        o3 = self.Object('Object 3', root)  # flake8: disable=F841
+        o2 = self.Object('Object 2', o1)  # noqa: F841
+        o3 = self.Object('Object 3', root)  # noqa: F841
 
         expected = textwrap.dedent("""
             Qt widgets - 2 objects:

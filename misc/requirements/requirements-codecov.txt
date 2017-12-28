@@ -2,7 +2,7 @@
 
 certifi==2017.11.5
 chardet==3.0.4
-codecov==2.0.9
+codecov==2.0.10
 coverage==4.4.2
 idna==2.6
 requests==2.18.4

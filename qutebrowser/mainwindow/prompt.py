@@ -171,7 +171,7 @@ class PromptQueue(QObject):
             # just queue it up for later.
             log.prompt.debug("Adding {} to queue.".format(question))
             self._queue.append(question)
-            return
+            return None
 
         if blocking:
             # If we're blocking we save the old question on the stack, so we
@@ -207,6 +207,7 @@ class PromptQueue(QObject):
             return question.answer
         else:
             question.completed.connect(self._pop_later)
+            return None
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):

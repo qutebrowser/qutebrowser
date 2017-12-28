@@ -652,9 +652,14 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
-        for mode in [usertypes.KeyMode.hint, usertypes.KeyMode.insert,
-                     usertypes.KeyMode.caret, usertypes.KeyMode.passthrough]:
+
+        modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
+        if not config.val.tabs.persist_mode_on_change:
+            modes_to_leave += [usertypes.KeyMode.insert,
+                               usertypes.KeyMode.passthrough]
+        for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
+
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
@@ -813,6 +818,7 @@ class TabbedBrowser(tabwidget.TabWidget):
                 point, url = self._global_marks[key]
 
                 def callback(ok):
+                    """Scroll once loading finished."""
                     if ok:
                         self.cur_load_finished.disconnect(callback)
                         tab.scroller.to_point(point)

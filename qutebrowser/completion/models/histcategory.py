@@ -19,8 +19,6 @@
 
 """A completion category that queries the SQL History store."""
 
-import re
-
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
@@ -36,21 +34,7 @@ class HistoryCategory(QSqlQueryModel):
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self.name = "History"
-
-        # replace ' in timestamp-format to avoid breaking the query
-        timestamp_format = config.val.completion.timestamp_format
-        timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
-                   .format(timestamp_format.replace("'", "`")))
-
-        self._query = sql.Query(' '.join([
-            "SELECT url, title, {}".format(timefmt),
-            "FROM CompletionHistory",
-            # the incoming pattern will have literal % and _ escaped with '\'
-            # we need to tell sql to treat '\' as an escape character
-            "WHERE (url LIKE :pat escape '\\' or title LIKE :pat escape '\\')",
-            self._atime_expr(),
-            "ORDER BY last_atime DESC",
-        ]), forward_only=False)
+        self._query = None
 
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
@@ -86,11 +70,36 @@ class HistoryCategory(QSqlQueryModel):
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
         pattern = pattern.replace('_', '\\_')
-        # treat spaces as wildcards to match any of the typed words
-        pattern = re.sub(r' +', '%', pattern)
-        pattern = '%{}%'.format(pattern)
+        words = ['%{}%'.format(w) for w in pattern.split(' ')]
+
+        # build a where clause to match all of the words in any order
+        # given the search term "a b", the WHERE clause would be:
+        # ((url || title) LIKE '%a%') AND ((url || title) LIKE '%b%')
+        where_clause = ' AND '.join(
+            "(url || title) LIKE :{} escape '\\'".format(i)
+            for i in range(len(words)))
+
+        # replace ' in timestamp-format to avoid breaking the query
+        timestamp_format = config.val.completion.timestamp_format
+        timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
+                   .format(timestamp_format.replace("'", "`")))
+
+        if not self._query or len(words) != len(self._query.boundValues()):
+            # if the number of words changed, we need to generate a new query
+            # otherwise, we can reuse the prepared query for performance
+            self._query = sql.Query(' '.join([
+                "SELECT url, title, {}".format(timefmt),
+                "FROM CompletionHistory",
+                # the incoming pattern will have literal % and _ escaped
+                # we need to tell sql to treat '\' as an escape character
+                'WHERE ({})'.format(where_clause),
+                self._atime_expr(),
+                "ORDER BY last_atime DESC",
+            ]), forward_only=False)
+
         with debug.log_time('sql', 'Running completion query'):
-            self._query.run(pat=pattern)
+            self._query.run(**{
+                str(i): w for i, w in enumerate(words)})
         self.setQuery(self._query)
 
     def removeRows(self, row, _count, _parent=None):

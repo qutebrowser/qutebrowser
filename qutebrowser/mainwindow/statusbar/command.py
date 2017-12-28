@@ -24,9 +24,10 @@ from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.misc import cmdhistory
+from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg
+from qutebrowser.utils import usertypes, log, objreg, message, utils
+from qutebrowser.config import config
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
@@ -66,6 +67,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.cursorPositionChanged.connect(self.update_completion)
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
+        self.textChanged.connect(self._incremental_search)
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -154,8 +156,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
-    def command_accept(self):
-        """Execute the command currently in the commandline."""
+    def command_accept(self, rapid=False):
+        """Execute the command currently in the commandline.
+
+        Args:
+            rapid: Run the command without closing or clearing the command bar.
+        """
         prefixes = {
             ':': '',
             '/': 'search -- ',
@@ -163,8 +169,32 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         }
         text = self.text()
         self.history.append(text)
-        modeman.leave(self._win_id, usertypes.KeyMode.command, 'cmd accept')
+        if not rapid:
+            modeman.leave(self._win_id, usertypes.KeyMode.command,
+                          'cmd accept')
         self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
+
+    @cmdutils.register(instance='status-command', scope='window')
+    def edit_command(self, run=False):
+        """Open an editor to modify the current command.
+
+        Args:
+            run: Run the command if the editor exits successfully.
+        """
+        ed = editor.ExternalEditor(parent=self)
+
+        def callback(text):
+            """Set the commandline to the edited text."""
+            if not text or text[0] not in modeparsers.STARTCHARS:
+                message.error('command must start with one of {}'
+                              .format(modeparsers.STARTCHARS))
+                return
+            self.set_cmd_text(text)
+            if run:
+                self.command_accept()
+
+        ed.editing_finished.connect(callback)
+        ed.edit(self.text())
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -191,8 +221,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         elif text[0] in modeparsers.STARTCHARS:
             super().set_prompt(text[0])
         else:
-            raise AssertionError("setText got called with invalid text "
-                                 "'{}'!".format(text))
+            raise utils.Unreachable("setText got called with invalid text "
+                                    "'{}'!".format(text))
         super().setText(text)
 
     def keyPressEvent(self, e):
@@ -216,3 +246,16 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text = 'x'
         width = self.fontMetrics().width(text)
         return QSize(width, height)
+
+    @pyqtSlot(str)
+    def _incremental_search(self, text):
+        if not config.val.search.incremental:
+            return
+
+        search_prefixes = {
+            '/': 'search -- ',
+            '?': 'search -r -- ',
+        }
+
+        if self.prefix() in ['/', '?']:
+            self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])

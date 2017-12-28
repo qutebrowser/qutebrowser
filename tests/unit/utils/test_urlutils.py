@@ -492,18 +492,14 @@ def test_filename_from_url(qurl, output):
     (QUrl('qute://'), None),
     (QUrl('qute://foobar'), None),
     (QUrl('mailto:nobody'), None),
-    (QUrl('ftp://example.com/'),
-        ('ftp', 'example.com', 21)),
-    (QUrl('ftp://example.com:2121/'),
-        ('ftp', 'example.com', 2121)),
+    (QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
+    (QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
     (QUrl('http://qutebrowser.org:8010/waterfall'),
-        ('http', 'qutebrowser.org', 8010)),
-    (QUrl('https://example.com/'),
-        ('https', 'example.com', 443)),
-    (QUrl('https://example.com:4343/'),
-        ('https', 'example.com', 4343)),
+     ('http', 'qutebrowser.org', 8010)),
+    (QUrl('https://example.com/'), ('https', 'example.com', 443)),
+    (QUrl('https://example.com:4343/'), ('https', 'example.com', 4343)),
     (QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
-        ('http', 'qutebrowser.org', 80)),
+     ('http', 'qutebrowser.org', 80)),
 ])
 def test_host_tuple(qurl, tpl):
     """Test host_tuple().
@@ -752,7 +748,7 @@ def test_data_url():
     (QUrl('http://www.example.com/ä'), 'http://www.example.com/ä'),
     # Unicode only in TLD (looks like Qt shows Punycode with рф...)
     (QUrl('http://www.example.xn--p1ai'),
-        '(www.example.xn--p1ai) http://www.example.рф'),
+     '(www.example.xn--p1ai) http://www.example.рф'),
     # https://bugreports.qt.io/browse/QTBUG-60364
     pytest.param(QUrl('http://www.xn--80ak6aa92e.com'),
                  '(unparseable URL!) http://www.аррӏе.com',
@@ -779,19 +775,19 @@ class TestProxyFromUrl:
 
     @pytest.mark.parametrize('url, expected', [
         ('socks://example.com/',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
         ('socks5://example.com',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com')),
         ('socks5://example.com:2342',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2342)),
         ('socks5://foo@example.com',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo')),
         ('socks5://foo:bar@example.com',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
-                          'bar')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 0, 'foo',
+                       'bar')),
         ('socks5://foo:bar@example.com:2323',
-            QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
-                          'foo', 'bar')),
+         QNetworkProxy(QNetworkProxy.Socks5Proxy, 'example.com', 2323,
+                       'foo', 'bar')),
         ('direct://', QNetworkProxy(QNetworkProxy.NoProxy)),
     ])
     def test_proxy_from_url_valid(self, url, expected):

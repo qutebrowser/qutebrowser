@@ -22,10 +22,10 @@
 
 import os.path
 
+from PyQt5.QtNetwork import QNetworkRequest
+
 from qutebrowser.utils import log
 from qutebrowser.browser.webkit import rfc6266
-
-from PyQt5.QtNetwork import QNetworkRequest
 
 
 def parse_content_disposition(reply):
@@ -57,9 +57,7 @@ def parse_content_disposition(reply):
             is_inline = content_disposition.is_inline()
     # Then try to get filename from url
     if not filename:
-        path = reply.url().path()
-        if path is not None:
-            filename = path.rstrip('/')
+        filename = reply.url().path().rstrip('/')
     # If that fails as well, use a fallback
     if not filename:
         filename = 'qutebrowser-download'
