@@ -28,6 +28,7 @@ from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.keyinput import sequence
 
 
 class BaseKeyParser(QObject):
@@ -83,7 +84,7 @@ class BaseKeyParser(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
-        self._sequence = QKeySequence()
+        self._sequence = sequence.KeySequence()
         self._count = ''
         if supports_count is None:
             supports_count = supports_chains
@@ -142,7 +143,7 @@ class BaseKeyParser(QObject):
             self._count += txt
             return None
 
-        sequence = QKeySequence(*self._sequence, e.modifiers() | e.key())
+        sequence = self._sequence.append_event(e)
         match, binding = self._match_key(sequence)
         if match == QKeySequence.NoMatch:
             mappings = config.val.bindings.key_mappings
@@ -151,22 +152,22 @@ class BaseKeyParser(QObject):
                 # FIXME
                 raise Exception
                 txt = mapped
-                sequence = QKeySequence(*self._sequence, e.modifiers() | e.key())
+                sequence = self._sequence.append_event(e)
                 match, binding = self._match_key(sequence)
 
-        self._sequence = QKeySequence(*self._sequence, e.modifiers() | e.key())
+        self._sequence = self._sequence.append_event(e)
         if match == QKeySequence.ExactMatch:
             self._debug_log("Definitive match for '{}'.".format(
-                self._sequence.toString()))
+                self._sequence))
             count = int(self._count) if self._count else None
             self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
         elif match == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
-                self._sequence.toString(), txt))
+                self._sequence, txt))
         elif match == QKeySequence.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
-                self._sequence.toString()))
+                self._sequence))
             self.clear_keystring()
         else:
             raise utils.Unreachable("Invalid match value {!r}".format(match))
@@ -210,7 +211,7 @@ class BaseKeyParser(QObject):
 
         # don't emit twice if the keystring was cleared in self.clear_keystring
         if self._sequence:
-            self.keystring_updated.emit(self._count + self._sequence.toString())
+            self.keystring_updated.emit(self._count + str(self._sequence))
 
         return match != QKeySequence.NoMatch
 
@@ -262,7 +263,7 @@ class BaseKeyParser(QObject):
         """Clear the currently entered key sequence."""
         if self._sequence:
             self._debug_log("discarding keystring '{}'.".format(
-                self._sequence.toString()))
-            self._sequence = QKeySequence()
+                self._sequence))
+            self._sequence = sequence.KeySequence()
             self._count = ''
             self.keystring_updated.emit('')

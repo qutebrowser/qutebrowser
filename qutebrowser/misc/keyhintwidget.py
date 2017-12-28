@@ -35,6 +35,7 @@ from PyQt5.QtGui import QKeySequence
 from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes
 from qutebrowser.commands import cmdutils
+from qutebrowser.keyinput import sequence
 
 
 class KeyHintView(QLabel):
@@ -106,7 +107,7 @@ class KeyHintView(QLabel):
 
         bindings_dict = config.key_instance.get_bindings_for(modename)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
-                    if k.matches(QKeySequence(prefix)) and  # FIXME
+                    if k.matches(sequence.KeySequence(prefix)) and  # FIXME
                     not blacklisted(k) and
                     (takes_count(v) or not countstr)]
 

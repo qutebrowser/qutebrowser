@@ -50,6 +50,7 @@ except ImportError:  # pragma: no cover
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log, debug
+from qutebrowser.keyinput import sequence
 
 
 fake_clipboard = None
@@ -491,7 +492,7 @@ def _parse_single_key(keystr):
         raise KeyParseError(keystr, "Expecting either a single key or a "
                             "<Ctrl-x> like keybinding.")
 
-    seq = QKeySequence(normalize_keystr(keystr), QKeySequence.PortableText)
+    seq = sequence.KeySequence(normalize_keystr(keystr), QKeySequence.PortableText)
     if len(seq) != 1:
         raise KeyParseError(keystr, "Got {} keys instead of 1.".format(
             len(seq)))
@@ -545,7 +546,7 @@ def _parse_keystring(keystr):
 def parse_keystring(keystr):
     """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
     s = ', '.join(_parse_keystring(keystr))
-    return QKeySequence(s)
+    return sequence.KeySequence(s)
 
 
 def normalize_keystr(keystr):
