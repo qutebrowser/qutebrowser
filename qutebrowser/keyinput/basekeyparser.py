@@ -57,7 +57,7 @@ class BaseKeyParser(QObject):
         _win_id: The window ID this keyparser is associated with.
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
-        _keystring: The currently entered key sequence
+        _sequence: The currently entered key sequence
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
         _supports_chains: Whether keychains are supported
@@ -83,7 +83,7 @@ class BaseKeyParser(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
-        self._keystring = ''
+        self._sequence = QKeySequence()
         self._count = ''
         if supports_count is None:
             supports_count = supports_chains
@@ -142,39 +142,41 @@ class BaseKeyParser(QObject):
             self._count += txt
             return None
 
-        cmd_input = self._keystring + txt
-        match, binding = self._match_key(cmd_input)
+        sequence = QKeySequence(*self._sequence, e.modifiers() | e.key())
+        match, binding = self._match_key(sequence)
         if match == QKeySequence.NoMatch:
             mappings = config.val.bindings.key_mappings
             mapped = mappings.get(txt, None)
             if mapped is not None:
+                # FIXME
+                raise Exception
                 txt = mapped
-                cmd_input = self._keystring + txt
-                match, binding = self._match_key(cmd_input)
+                sequence = QKeySequence(*self._sequence, e.modifiers() | e.key())
+                match, binding = self._match_key(sequence)
 
-        self._keystring += txt
+        self._sequence = QKeySequence(*self._sequence, e.modifiers() | e.key())
         if match == QKeySequence.ExactMatch:
             self._debug_log("Definitive match for '{}'.".format(
-                self._keystring))
-            self.clear_keystring()
+                self._sequence.toString()))
             count = int(self._count) if self._count else None
+            self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
         elif match == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
-                self._keystring, txt))
+                self._sequence.toString(), txt))
         elif match == QKeySequence.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
-                self._keystring))
+                self._sequence.toString()))
             self.clear_keystring()
         else:
             raise utils.Unreachable("Invalid match value {!r}".format(match))
         return match
 
-    def _match_key(self, cmd_input):
+    def _match_key(self, sequence):
         """Try to match a given keystring with any bound keychain.
 
         Args:
-            cmd_input: The command string to find.
+            sequence: The command string to find.
 
         Return:
             A tuple (matchtype, binding).
@@ -182,10 +184,10 @@ class BaseKeyParser(QObject):
                 binding: - None with Match.partial/Match.none.
                          - The found binding with Match.definitive.
         """
-        assert cmd_input
+        assert sequence
 
         for seq, cmd in self.bindings.items():
-            match = cmd_input.matches(seq)
+            match = sequence.matches(seq)
             if match != QKeySequence.NoMatch:
                 return (match, cmd)
 
@@ -207,8 +209,8 @@ class BaseKeyParser(QObject):
         #     return handled
 
         # don't emit twice if the keystring was cleared in self.clear_keystring
-        if self._keystring:
-            self.keystring_updated.emit(self._count + self._keystring)
+        if self._sequence:
+            self.keystring_updated.emit(self._count + self._sequence.toString())
 
         return match != QKeySequence.NoMatch
 
@@ -258,9 +260,9 @@ class BaseKeyParser(QObject):
 
     def clear_keystring(self):
         """Clear the currently entered key sequence."""
-        if self._keystring:
+        if self._sequence:
             self._debug_log("discarding keystring '{}'.".format(
-                self._keystring))
-            self._keystring = ''
+                self._sequence.toString()))
+            self._sequence = QKeySequence()
             self._count = ''
-            self.keystring_updated.emit(self._keystring)
+            self.keystring_updated.emit('')
