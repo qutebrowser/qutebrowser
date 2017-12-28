@@ -237,7 +237,7 @@ class BaseKeyParser(QObject):
             return (None, None)
 
         for seq, cmd in self.bindings.items():
-            match = seq.matches(cmd_input)
+            match = cmd_input.matches(seq)
             if match != QKeySequence.NoMatch:
                 return (match, cmd)
 
