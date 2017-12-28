@@ -1247,7 +1247,10 @@ class CommandDispatcher:
         self.openurl(config.val.url.start_pages[0])
 
     def _selection_callback(self, s):
-        self._run_userscript(s)
+        try:
+            self._run_userscript(s)
+        except cmdexc.CommandError as e:
+            message.error(str(e))
 
     def _run_userscript(self, selection):
         """Run a userscript given as argument.
