@@ -862,6 +862,7 @@ class CommandDispatcher:
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
+        self.yank_object['what'] = what
         self._yank_to_target(s)
 
     def _yank_callback(self, s):
