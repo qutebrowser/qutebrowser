@@ -115,7 +115,6 @@ Feature: Opening external editors
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
-    @qtwebengine_todo: Caret mode is not implemented yet
     Scenario: Spawning an editor in caret mode
         When I set up a fake editor returning "foobar"
         And I open data/editor.html
