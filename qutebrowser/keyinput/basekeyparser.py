@@ -84,6 +84,7 @@ class BaseKeyParser(QObject):
         self._win_id = win_id
         self._modename = None
         self._keystring = ''
+        self._count = ''
         if supports_count is None:
             supports_count = supports_chains
         self._supports_count = supports_count
@@ -139,27 +140,6 @@ class BaseKeyParser(QObject):
         self.clear_keystring()
         return True
 
-    def _split_count(self, keystring):
-        """Get count and command from the current keystring.
-
-        Args:
-            keystring: The key string to split.
-
-        Return:
-            A (count, command) tuple.
-        """
-        if self._supports_count:
-            (countstr, cmd_input) = re.fullmatch(r'(\d*)(.*)',
-                                                 keystring).groups()
-            count = int(countstr) if countstr else None
-            if count == 0 and not cmd_input:
-                cmd_input = keystring
-                count = None
-        else:
-            cmd_input = keystring
-            count = None
-        return count, cmd_input
-
     def _handle_key(self, e):
         """Handle a new keypress.
 
@@ -191,14 +171,19 @@ class BaseKeyParser(QObject):
         #     self._debug_log("Ignoring, no text char")
         #     return QKeySequence.NoMatch
 
-        count, cmd_input = self._split_count(self._keystring + txt)
+        if txt.isdigit():
+            assert len(txt) == 1, txt
+            self._count += txt
+            return None
+
+        cmd_input = self._keystring + txt
         match, binding = self._match_key(cmd_input)
         if match == QKeySequence.NoMatch:
             mappings = config.val.bindings.key_mappings
             mapped = mappings.get(txt, None)
             if mapped is not None:
                 txt = mapped
-                count, cmd_input = self._split_count(self._keystring + txt)
+                cmd_input = self._keystring + txt
                 match, binding = self._match_key(cmd_input)
 
         self._keystring += txt
@@ -206,6 +191,7 @@ class BaseKeyParser(QObject):
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
             self.clear_keystring()
+            count = int(self._count) if self._count else None
             self.execute(binding, self.Type.chain, count)
         elif match == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
@@ -214,8 +200,6 @@ class BaseKeyParser(QObject):
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self.clear_keystring()
-        elif match is None:
-            pass
         else:
             raise utils.Unreachable("Invalid match value {!r}".format(match))
         return match
@@ -232,9 +216,7 @@ class BaseKeyParser(QObject):
                 binding: - None with Match.partial/Match.none.
                          - The found binding with Match.definitive.
         """
-        if not cmd_input:
-            # Only a count, no command yet, but we handled it
-            return (None, None)
+        assert cmd_input
 
         for seq, cmd in self.bindings.items():
             match = cmd_input.matches(seq)
@@ -260,7 +242,7 @@ class BaseKeyParser(QObject):
 
         # don't emit twice if the keystring was cleared in self.clear_keystring
         if self._keystring:
-            self.keystring_updated.emit(self._keystring)
+            self.keystring_updated.emit(self._count + self._keystring)
 
         return match != QKeySequence.NoMatch
 
@@ -314,4 +296,5 @@ class BaseKeyParser(QObject):
             self._debug_log("discarding keystring '{}'.".format(
                 self._keystring))
             self._keystring = ''
+            self._count = ''
             self.keystring_updated.emit(self._keystring)
