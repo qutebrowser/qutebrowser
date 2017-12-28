@@ -965,7 +965,8 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
             window.caretBrowsingLoaded = true;
             CaretBrowsing.init();
 
-            if (document.body.getAttribute("caretbrowsing") === "on") {
+            if (document.body && 
+                document.body.getAttribute("caretbrowsing") === "on") {
                 CaretBrowsing.forceEnabled = true;
                 CaretBrowsing.isEnabled = true;
                 CaretBrowsing.updateIsCaretVisible();
