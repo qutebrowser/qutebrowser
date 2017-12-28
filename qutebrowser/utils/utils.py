@@ -511,12 +511,26 @@ def _parse_single_key(keystr):
     return KeyInfo(key, modifiers, text)
 
 
+def _parse_keystring(keystr):
+    key = ''
+    special = False
+    for c in keystr:
+        if c == '>':
+            yield normalize_keystr(key)
+            key = ''
+            special = False
+        elif c == '<':
+            special = True
+        elif special:
+            key += c
+        else:
+            yield 'Shift+' + c if c.isupper() else c
+
+
 def parse_keystring(keystr):
     """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
-    if is_special_key(keystr):
-        return [_parse_single_key(keystr)]
-    else:
-        return [_parse_single_key(char) for char in keystr]
+    s = ', '.join(_parse_keystring(keystr))
+    return QKeySequence(s)
 
 
 def normalize_keystr(keystr):

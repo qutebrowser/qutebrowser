@@ -24,6 +24,7 @@ import re
 import unicodedata
 
 from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
@@ -53,7 +54,6 @@ class BaseKeyParser(QObject):
 
     Attributes:
         bindings: Bound key bindings
-        special_bindings: Bound special bindings (<Foo>).
         _win_id: The window ID this keyparser is associated with.
         _warn_on_keychains: Whether a warning should be logged when binding
                             keychains in a section which does not support them.
@@ -76,7 +76,6 @@ class BaseKeyParser(QObject):
     do_log = True
     passthrough = False
 
-    Match = enum.Enum('Match', ['partial', 'definitive', 'other', 'none'])
     Type = enum.Enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
@@ -91,7 +90,6 @@ class BaseKeyParser(QObject):
         self._supports_chains = supports_chains
         self._warn_on_keychains = True
         self.bindings = {}
-        self.special_bindings = {}
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self):
@@ -118,6 +116,7 @@ class BaseKeyParser(QObject):
         Return:
             True if event has been handled, False otherwise.
         """
+        # FIXME remove?
         binding = utils.keyevent_to_string(e)
         if binding is None:
             self._debug_log("Ignoring only-modifier keyeevent.")
@@ -161,8 +160,8 @@ class BaseKeyParser(QObject):
             count = None
         return count, cmd_input
 
-    def _handle_single_key(self, e):
-        """Handle a new keypress with a single key (no modifiers).
+    def _handle_key(self, e):
+        """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches
         any possible command, and either run the command, ignore it, or
@@ -186,11 +185,11 @@ class BaseKeyParser(QObject):
 
         if (not txt) or is_control_char:
             self._debug_log("Ignoring, no text char")
-            return self.Match.none
+            return QKeySequence.NoMatch
 
         count, cmd_input = self._split_count(self._keystring + txt)
         match, binding = self._match_key(cmd_input)
-        if match == self.Match.none:
+        if match == QKeySequence.NoMatch:
             mappings = config.val.bindings.key_mappings
             mapped = mappings.get(txt, None)
             if mapped is not None:
@@ -199,19 +198,19 @@ class BaseKeyParser(QObject):
                 match, binding = self._match_key(cmd_input)
 
         self._keystring += txt
-        if match == self.Match.definitive:
+        if match == QKeySequence.ExactMatch:
             self._debug_log("Definitive match for '{}'.".format(
                 self._keystring))
             self.clear_keystring()
             self.execute(binding, self.Type.chain, count)
-        elif match == self.Match.partial:
+        elif match == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 self._keystring, txt))
-        elif match == self.Match.none:
+        elif match == QKeySequence.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 self._keystring))
             self.clear_keystring()
-        elif match == self.Match.other:
+        elif match is None:
             pass
         else:
             raise utils.Unreachable("Invalid match value {!r}".format(match))
@@ -231,29 +230,14 @@ class BaseKeyParser(QObject):
         """
         if not cmd_input:
             # Only a count, no command yet, but we handled it
-            return (self.Match.other, None)
-        # A (cmd_input, binding) tuple (k, v of bindings) or None.
-        definitive_match = None
-        partial_match = False
-        # Check definitive match
-        try:
-            definitive_match = (cmd_input, self.bindings[cmd_input])
-        except KeyError:
-            pass
-        # Check partial match
-        for binding in self.bindings:
-            if definitive_match is not None and binding == definitive_match[0]:
-                # We already matched that one
-                continue
-            elif binding.startswith(cmd_input):
-                partial_match = True
-                break
-        if definitive_match is not None:
-            return (self.Match.definitive, definitive_match[1])
-        elif partial_match:
-            return (self.Match.partial, None)
-        else:
-            return (self.Match.none, None)
+            return (None, None)
+
+        for seq, cmd in self.bindings.items():
+            match = seq.matches(utils.parse_keystring(cmd_input))
+            if match != QKeySequence.NoMatch:
+                return (match, cmd)
+
+        return (QKeySequence.NoMatch, None)
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
@@ -264,15 +248,17 @@ class BaseKeyParser(QObject):
         Return:
             True if the event was handled, False otherwise.
         """
-        handled = self._handle_special_key(e)
+        match = self._handle_key(e)
 
-        if handled or not self._supports_chains:
-            return handled
-        match = self._handle_single_key(e)
+        # FIXME
+        # if handled or not self._supports_chains:
+        #     return handled
+
         # don't emit twice if the keystring was cleared in self.clear_keystring
         if self._keystring:
             self.keystring_updated.emit(self._keystring)
-        return match != self.Match.none
+
+        return match != QKeySequence.NoMatch
 
     @config.change_filter('bindings')
     def _on_config_changed(self):
@@ -295,22 +281,18 @@ class BaseKeyParser(QObject):
         else:
             self._modename = modename
         self.bindings = {}
-        self.special_bindings = {}
 
         for key, cmd in config.key_instance.get_bindings_for(modename).items():
             assert cmd
-            self._parse_key_command(modename, key, cmd)
+            self.bindings[key] = cmd
 
     def _parse_key_command(self, modename, key, cmd):
         """Parse the keys and their command and store them in the object."""
-        if utils.is_special_key(key):
-            self.special_bindings[key[1:-1]] = cmd
-        elif self._supports_chains:
-            self.bindings[key] = cmd
-        elif self._warn_on_keychains:
-            log.keyboard.warning("Ignoring keychain '{}' in mode '{}' because "
-                                 "keychains are not supported there."
-                                 .format(key, modename))
+        # FIXME
+        # elif self._warn_on_keychains:
+        #     log.keyboard.warning("Ignoring keychain '{}' in mode '{}' because "
+        #                          "keychains are not supported there."
+        #                         .format(key, modename))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.

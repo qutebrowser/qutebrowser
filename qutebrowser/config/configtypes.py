@@ -1651,6 +1651,7 @@ class Key(BaseType):
         self._basic_py_validation(value, str)
         if not value:
             return None
-        if utils.is_special_key(value):
-            value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
-        return value
+        #if utils.is_special_key(value):
+        #    value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
+        #return value
+        return utils.parse_keystring(value)
