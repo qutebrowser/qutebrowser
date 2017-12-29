@@ -165,7 +165,7 @@ class KeyConfig:
                 # if utils.is_special_key(key):
                 #     cmd_to_keys[cmd].append(key)
                 # else:
-                cmd_to_keys[cmd].insert(0, key.toString())
+                cmd_to_keys[cmd].insert(0, str(key))
         return cmd_to_keys
 
     def get_command(self, key, mode, default=False):
