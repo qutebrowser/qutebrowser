@@ -127,10 +127,12 @@ def key_to_string(key):
 
 
 def keyevent_to_string(e):
-    """Convert a QKeyEvent to a meaningful name.
+    """Convert a QKeyEvent to a meaningful name."""
+    return key_with_modifiers_to_string(int(e.key()) | int(e.modifiers()))
 
-    Args:
-        e: A QKeyEvent.
+
+def key_with_modifiers_to_string(key):
+    """Convert a Qt.Key with modifiers to a meaningful name.
 
     Return:
         A name of the key (combination) as a string or
@@ -154,27 +156,27 @@ def keyevent_to_string(e):
             (Qt.MetaModifier, 'Meta'),
             (Qt.ShiftModifier, 'Shift'),
         ])
-    modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                 Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R, Qt.Key_Hyper_L,
-                 Qt.Key_Hyper_R, Qt.Key_Direction_L, Qt.Key_Direction_R)
-    if e.key() in modifiers:
+    modifiers = (Qt.Key_Control | Qt.Key_Alt | Qt.Key_Shift | Qt.Key_Meta |
+                 Qt.Key_AltGr | Qt.Key_Super_L | Qt.Key_Super_R |
+                 Qt.Key_Hyper_L | Qt.Key_Hyper_R | Qt.Key_Direction_L |
+                 Qt.Key_Direction_R)
+    if not (key & ~modifiers):
         # Only modifier pressed
         return None
-    mod = e.modifiers()
     parts = []
 
     for (mask, s) in modmask2str.items():
-        if mod & mask and s not in parts:
+        if key & mask and s not in parts:
             parts.append(s)
 
-    key_string = key_to_string(e.key())
+    key_string = key_to_string(key & ~modifiers)
     if len(key_string) == 1:
         category = unicodedata.category(key_string)
         is_control_char = (category == 'Cc')
     else:
         is_control_char = False
 
-    if e.modifiers() == Qt.ShiftModifier and not is_control_char:
+    if key & ~modifiers == Qt.ShiftModifier and not is_control_char:
         parts = []
 
     parts.append(key_string)
@@ -235,7 +237,8 @@ class KeySequence:
         # FIXME handle more than 4 keys
 
     def __str__(self):
-        return self._sequence.toString()
+        return ''.join(key_with_modifiers_to_string(key)
+                       for key in self._sequence)
 
     def __repr__(self):
         return utils.get_repr(self, keys=str(self))

@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from qutebrowser.config import configdata, configexc
 from qutebrowser.utils import utils, log, jinja
 from qutebrowser.misc import objects
+from qutebrowser.keyinput import keyutils
 
 # An easy way to access the config from other code via config.val.foo
 val = None
@@ -136,11 +137,7 @@ class KeyConfig:
         """Make sure the given mode exists and normalize the key."""
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        # FIXME needed?
-        # if utils.is_special_key(key):
-        #     # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-        #     return utils.normalize_keystr(key)
-        return key
+        return str(keyutils.KeySequence.parse(key))
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
