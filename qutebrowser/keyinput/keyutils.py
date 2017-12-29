@@ -183,7 +183,13 @@ def key_with_modifiers_to_string(key, modifiers):
         parts = []
 
     parts.append(key_string)
-    return normalize_keystr('+'.join(parts))
+    normalized = normalize_keystr('+'.join(parts))
+    if len(normalized) > 1:
+        # "special" binding
+        return '<{}>'.format(normalized)
+    else:
+        # "normal" binding
+        return normalized
 
 
 class KeyParseError(Exception):
