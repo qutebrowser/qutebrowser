@@ -128,10 +128,10 @@ def key_to_string(key):
 
 def keyevent_to_string(e):
     """Convert a QKeyEvent to a meaningful name."""
-    return key_with_modifiers_to_string(int(e.key()) | int(e.modifiers()))
+    return key_with_modifiers_to_string(e.key(), e.modifiers())
 
 
-def key_with_modifiers_to_string(key):
+def key_with_modifiers_to_string(key, modifiers):
     """Convert a Qt.Key with modifiers to a meaningful name.
 
     Return:
@@ -156,27 +156,30 @@ def key_with_modifiers_to_string(key):
             (Qt.MetaModifier, 'Meta'),
             (Qt.ShiftModifier, 'Shift'),
         ])
-    modifiers = (Qt.Key_Control | Qt.Key_Alt | Qt.Key_Shift | Qt.Key_Meta |
-                 Qt.Key_AltGr | Qt.Key_Super_L | Qt.Key_Super_R |
-                 Qt.Key_Hyper_L | Qt.Key_Hyper_R | Qt.Key_Direction_L |
-                 Qt.Key_Direction_R)
-    if not (key & ~modifiers):
+
+    modifier_keys = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
+                     Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
+                     Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
+                     Qt.Key_Direction_R)
+    if key in modifier_keys:
         # Only modifier pressed
         return None
     parts = []
 
     for (mask, s) in modmask2str.items():
-        if key & mask and s not in parts:
+        if modifiers & mask and s not in parts:
             parts.append(s)
 
-    key_string = key_to_string(key & ~modifiers)
+    key_string = key_to_string(key)
+
+    # FIXME needed?
     if len(key_string) == 1:
         category = unicodedata.category(key_string)
         is_control_char = (category == 'Cc')
     else:
         is_control_char = False
 
-    if key & ~modifiers == Qt.ShiftModifier and not is_control_char:
+    if modifiers == Qt.ShiftModifier and not is_control_char:
         parts = []
 
     parts.append(key_string)
@@ -237,8 +240,16 @@ class KeySequence:
         # FIXME handle more than 4 keys
 
     def __str__(self):
-        return ''.join(key_with_modifiers_to_string(key)
-                       for key in self._sequence)
+        modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
+                            Qt.AltModifier | Qt.MetaModifier |
+                            Qt.KeypadModifier | Qt.GroupSwitchModifier)
+        parts = []
+        for key in self._sequence:
+            part = key_with_modifiers_to_string(
+                key=int(key) & ~modifier_mask,
+                modifiers=int(key) & modifier_mask)
+            parts.append(part)
+        return ''.join(parts)
 
     def __repr__(self):
         return utils.get_repr(self, keys=str(self))
