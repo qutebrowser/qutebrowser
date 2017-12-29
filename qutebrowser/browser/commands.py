@@ -1293,9 +1293,11 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         try:
+            args = self.userscript_object['args']
+            verbose = self.userscript_object['verbose']
             userscripts.run_async(tab, self.userscript_object['cmd'],
-                *self.userscript_object['args'], win_id=self._win_id,
-                env=env, verbose=self.userscript_object['verbose'])
+                                  *args, win_id=self._win_id,
+                                  env=env, verbose=verbose)
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
         finally:
