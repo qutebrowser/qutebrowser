@@ -99,42 +99,25 @@ class TestKeyEventToString:
 
 
 @pytest.mark.parametrize('keystr, expected', [
-    ('<Control-x>', keyutils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')),
-    ('<Meta-x>', keyutils.KeyInfo(Qt.Key_X, Qt.MetaModifier, '')),
+    ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
+    ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
     ('<Ctrl-Alt-y>',
-     keyutils.KeyInfo(Qt.Key_Y, Qt.ControlModifier | Qt.AltModifier, '')),
-    ('x', keyutils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')),
-    ('X', keyutils.KeyInfo(Qt.Key_X, Qt.ShiftModifier, 'X')),
-    ('<Escape>', keyutils.KeyInfo(Qt.Key_Escape, Qt.NoModifier, '')),
-
-    ('foobar', keyutils.KeyParseError),
-    ('x, y', keyutils.KeyParseError),
-    ('xyz', keyutils.KeyParseError),
-    ('Escape', keyutils.KeyParseError),
-    ('<Ctrl-x>, <Ctrl-y>', keyutils.KeyParseError),
+     keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
+    ('x', keyutils.KeySequence(Qt.Key_X)),
+    ('X', keyutils.KeySequence(Qt.ShiftModifier | Qt.Key_X)),
+    ('<Escape>', keyutils.KeySequence(Qt.Key_Escape)),
+    ('xyz', keyutils.KeySequence(Qt.Key_X, Qt.Key_Y, Qt.Key_Z)),
+    ('<Control-x><Meta-y>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X,
+                                                 Qt.MetaModifier | Qt.Key_Y)),
+    # FIXME
+    # ('<Ctrl-x>, <Ctrl-y>', keyutils.KeyParseError),
 ])
-def test_parse_single_key(keystr, expected):
+def test_parse(keystr, expected):
     if expected is keyutils.KeyParseError:
         with pytest.raises(keyutils.KeyParseError):
             keyutils._parse_single_key(keystr)
     else:
         assert keyutils._parse_single_key(keystr) == expected
-
-
-@pytest.mark.parametrize('keystr, expected', [
-    ('<Control-x>', [keyutils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')]),
-    ('x', [keyutils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')]),
-    ('xy', [keyutils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x'),
-            keyutils.KeyInfo(Qt.Key_Y, Qt.NoModifier, 'y')]),
-
-    ('<Control-x><Meta-x>', keyutils.KeyParseError),
-])
-def test_parse_keystring(keystr, expected):
-    if expected is keyutils.KeyParseError:
-        with pytest.raises(keyutils.KeyParseError):
-            keyutils.parse_keystring(keystr)
-    else:
-        assert keyutils.parse_keystring(keystr) == expected
 
 
 @pytest.mark.parametrize('orig, repl', [

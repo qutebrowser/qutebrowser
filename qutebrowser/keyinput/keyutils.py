@@ -232,6 +232,7 @@ class KeySequence:
 
     def __init__(self, *args):
         self._sequence = QKeySequence(*args)
+        # FIXME handle more than 4 keys
 
     def __str__(self):
         return self._sequence.toString()
