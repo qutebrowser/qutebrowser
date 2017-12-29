@@ -29,7 +29,6 @@ from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.misc import objects
 
 
 @attr.s(frozen=True)
