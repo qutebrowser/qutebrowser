@@ -55,7 +55,7 @@ class ExternalEditor(QObject):
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
-        self._watcher.fileChanged.disconnect()
+        self._watcher.removePaths(self._watcher.files())
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
             return

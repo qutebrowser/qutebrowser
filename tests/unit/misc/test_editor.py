@@ -37,7 +37,7 @@ def patch_things(config_stub, monkeypatch, stubs):
 
 
 @pytest.fixture
-def editor(caplog):
+def editor(caplog, qtbot):
     ed = editormod.ExternalEditor()
     yield ed
     with caplog.at_level(logging.ERROR):
@@ -118,18 +118,21 @@ class TestFileHandling:
 
         os.remove(filename)
 
-    def test_unreadable(self, message_mock, editor, caplog):
+    def test_unreadable(self, message_mock, editor, caplog, qtbot):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
         filename = editor._filename
         assert os.path.exists(filename)
-        os.chmod(filename, 0o077)
+        os.chmod(filename, 0o277)
         if os.access(filename, os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
 
         with caplog.at_level(logging.ERROR):
-            editor._proc.finished.emit(0, QProcess.NormalExit)
+            with qtbot.wait_signal(editor._watcher.fileChanged):
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write('unreadable')
+        editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
@@ -170,11 +173,11 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     with open(editor._filename, 'r', encoding='utf-8') as f:
         assert f.read() == initial_text
 
-    with open(editor._filename, 'w', encoding='utf-8') as f:
-        f.write(edited_text)
-
     with qtbot.wait_signal(editor.editing_finished) as blocker:
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        with open(editor._filename, 'w', encoding='utf-8') as f:
+            f.write(edited_text)
+
+    editor._proc.finished.emit(0, QProcess.NormalExit)
 
     assert blocker.args == [edited_text]
 
