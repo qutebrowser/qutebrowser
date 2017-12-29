@@ -22,6 +22,7 @@
 from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
 from qutebrowser.commands import runners, cmdexc
+from qutebrowser.keyinput import keyutils
 
 
 def option(*, info):
@@ -79,8 +80,9 @@ def bind(key, *, info):
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     data = []
+    seq = keyutils.KeySequence.parse(key)
 
-    cmd_text = info.keyconf.get_command(key, 'normal')
+    cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         try:
@@ -90,7 +92,7 @@ def bind(key, *, info):
         else:
             data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
 
-    cmd_text = info.keyconf.get_command(key, 'normal', default=True)
+    cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
     if cmd_text:
         parser = runners.CommandParser()
         cmd = parser.parse(cmd_text).cmd

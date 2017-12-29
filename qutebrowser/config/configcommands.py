@@ -29,6 +29,7 @@ from qutebrowser.completion.models import configmodel
 from qutebrowser.utils import objreg, utils, message, standarddir
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
+from qutebrowser.keyinput import keyutils
 
 
 class ConfigCommands:
@@ -108,11 +109,12 @@ class ConfigCommands:
                   available modes.
             default: If given, restore a default binding.
         """
+        seq = keyutils.KeySequence(key)
         if command is None:
             if default:
                 # :bind --default: Restore default
                 with self._handle_config_error():
-                    self._keyconfig.bind_default(key, mode=mode,
+                    self._keyconfig.bind_default(seq, mode=mode,
                                                  save_yaml=True)
                 return
 
@@ -122,7 +124,7 @@ class ConfigCommands:
             #    # normalized for the output below
             #    key = utils.normalize_keystr(key)
             with self._handle_config_error():
-                cmd = self._keyconfig.get_command(key, mode)
+                cmd = self._keyconfig.get_command(seq, mode)
             if cmd is None:
                 message.info("{} is unbound in {} mode".format(key, mode))
             else:
@@ -131,7 +133,7 @@ class ConfigCommands:
             return
 
         with self._handle_config_error():
-            self._keyconfig.bind(key, command, mode=mode, save_yaml=True)
+            self._keyconfig.bind(seq, command, mode=mode, save_yaml=True)
 
     @cmdutils.register(instance='config-commands')
     def unbind(self, key, *, mode='normal'):
@@ -143,7 +145,8 @@ class ConfigCommands:
                   See `:help bindings.commands` for the available modes.
         """
         with self._handle_config_error():
-            self._keyconfig.unbind(key, mode=mode, save_yaml=True)
+            self._keyconfig.unbind(keyutils.KeySequence.parse(key), mode=mode,
+                                   save_yaml=True)
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)

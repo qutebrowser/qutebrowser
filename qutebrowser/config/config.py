@@ -135,9 +135,11 @@ class KeyConfig:
 
     def _prepare(self, key, mode):
         """Make sure the given mode exists and normalize the key."""
+        # Catch old usage of this code
+        assert isinstance(key, keyutils.KeySequence), key
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        return str(keyutils.KeySequence.parse(key))
+        return key
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
@@ -188,7 +190,7 @@ class KeyConfig:
         bindings = self._config.get_obj('bindings.commands')
         if mode not in bindings:
             bindings[mode] = {}
-        bindings[mode][key] = command
+        bindings[mode][str(key)] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
     def bind_default(self, key, *, mode='normal', save_yaml=False):
@@ -197,7 +199,7 @@ class KeyConfig:
 
         bindings_commands = self._config.get_obj('bindings.commands')
         try:
-            del bindings_commands[mode][key]
+            del bindings_commands[mode][str(key)]
         except KeyError:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
@@ -209,14 +211,14 @@ class KeyConfig:
 
         bindings_commands = self._config.get_obj('bindings.commands')
 
-        if val.bindings.commands[mode].get(key, None) is not None:
+        if str(key) in bindings_commands.get(mode, {}):
             # In custom bindings -> remove it
-            del bindings_commands[mode][key]
+            del bindings_commands[mode][str(key)]
         elif key in val.bindings.default[mode]:
             # In default bindings -> shadow it with None
             if mode not in bindings_commands:
                 bindings_commands[mode] = {}
-            bindings_commands[mode][key] = None
+            bindings_commands[mode][str(key)] = None
         else:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
