@@ -243,6 +243,8 @@ class KeySequence:
 
     def __init__(self, *args):
         self._sequence = QKeySequence(*args)
+        for key in self._sequence:
+            assert key != Qt.Key_unknown
         # FIXME handle more than 4 keys
 
     def __str__(self):
@@ -275,6 +277,9 @@ class KeySequence:
     def __hash__(self):
         return hash(self._sequence)
 
+    def __len__(self):
+        return len(self._sequence)
+
     def matches(self, other):
         # pylint: disable=protected-access
         return self._sequence.matches(other._sequence)
@@ -306,4 +311,6 @@ class KeySequence:
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
         s = ', '.join(_parse_keystring(keystr))
-        return cls(s)
+        new = cls(s)
+        assert len(new) > 0
+        return new
