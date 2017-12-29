@@ -134,12 +134,11 @@ class KeyConfig:
         self._config = config
 
     def _prepare(self, key, mode):
-        """Make sure the given mode exists and normalize the key."""
+        """Make sure the given mode exists."""
         # Catch old usage of this code
         assert isinstance(key, keyutils.KeySequence), key
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        return key
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
@@ -169,7 +168,7 @@ class KeyConfig:
 
     def get_command(self, key, mode, default=False):
         """Get the command for a given key (or None)."""
-        key = self._prepare(key, mode)
+        self._prepare(key, mode)
         if default:
             bindings = dict(val.bindings.default[mode])
         else:
@@ -183,7 +182,7 @@ class KeyConfig:
                 "Can't add binding '{}' with empty command in {} "
                 'mode'.format(key, mode))
 
-        key = self._prepare(key, mode)
+        self._prepare(key, mode)
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
 
@@ -195,7 +194,7 @@ class KeyConfig:
 
     def bind_default(self, key, *, mode='normal', save_yaml=False):
         """Restore a default keybinding."""
-        key = self._prepare(key, mode)
+        self._prepare(key, mode)
 
         bindings_commands = self._config.get_obj('bindings.commands')
         try:
@@ -207,7 +206,7 @@ class KeyConfig:
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
-        key = self._prepare(key, mode)
+        self._prepare(key, mode)
 
         bindings_commands = self._config.get_obj('bindings.commands')
 

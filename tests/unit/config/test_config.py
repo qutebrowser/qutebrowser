@@ -29,6 +29,7 @@ from PyQt5.QtGui import QColor
 from qutebrowser.config import config, configdata, configexc, configfiles
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
+from qutebrowser.keyinput import keyutils
 
 
 @pytest.fixture(autouse=True)
@@ -98,18 +99,16 @@ class TestKeyConfig:
         """Get a dict with no bindings."""
         return {'normal': {}}
 
-    @pytest.mark.parametrize('key, expected', [
-        ('A', 'A'),
-        ('<Ctrl-X>', '<ctrl+x>'),
-    ])
-    def test_prepare_valid(self, key_config_stub, key, expected):
-        """Make sure prepare normalizes the key."""
-        assert key_config_stub._prepare(key, 'normal') == expected
-
-    def test_prepare_invalid(self, key_config_stub):
+    def test_prepare_invalid_mode(self, key_config_stub):
         """Make sure prepare checks the mode."""
+        seq = keyutils.KeySequence('x')
         with pytest.raises(configexc.KeybindingError):
-            assert key_config_stub._prepare('x', 'abnormal')
+            assert key_config_stub._prepare(seq, 'abnormal')
+
+    def test_prepare_invalid_type(self, key_config_stub):
+        """Make sure prepare checks the type."""
+        with pytest.raises(AssertionError):
+            assert key_config_stub._prepare('x', 'normal')
 
     @pytest.mark.parametrize('commands, expected', [
         # Unbinding default key
