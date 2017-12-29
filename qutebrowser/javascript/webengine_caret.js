@@ -865,7 +865,8 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
         if (CaretBrowsing.isWindows &&
                 (direction === "forward" ||
-                    direction === "right")) {
+                    direction === "right") &&
+                granularity === "word") {
             CaretBrowsing.move("left", "character");
         } else {
             window.setTimeout(() => {
