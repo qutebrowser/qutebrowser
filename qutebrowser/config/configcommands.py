@@ -109,7 +109,7 @@ class ConfigCommands:
                   available modes.
             default: If given, restore a default binding.
         """
-        seq = keyutils.KeySequence(key)
+        seq = keyutils.KeySequence.parse(key)
         if command is None:
             if default:
                 # :bind --default: Restore default
