@@ -68,6 +68,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         Return:
             A self.Match member.
         """
+        # FIXME rewrite this
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
@@ -166,6 +167,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
+        # FIXME rewrite this
         log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
         hintmanager = objreg.get('hintmanager', scope='tab',
@@ -209,6 +211,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
+        # FIXME rewrite this
         match = self._handle_single_key(e)
         if match == self.Match.partial:
             self.keystring_updated.emit(self._keystring)
@@ -293,6 +296,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
+        # FIXME rewrite this
         if super().handle(e):
             return True
 
