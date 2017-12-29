@@ -260,7 +260,27 @@ class KeySequence:
         return self._sequence.matches(other._sequence)
 
     def append_event(self, ev):
-        return self.__class__(*self._sequence, ev.modifiers() | ev.key())
+        """Create a new KeySequence object with the given QKeyEvent added.
+
+        We need to do some sophisticated checking of modifiers here:
+
+        We don't care about a shift modifier with symbols (Shift-: should match
+        a : binding even though we typed it with a shift on an US-keyboard)
+
+        However, we *do* care about Shift being involved if we got an upper-case
+        letter, as Shift-A should match a Shift-A binding, but not an "a"
+        binding.
+
+        In addition, Shift also *is* relevant when other modifiers are involved.
+        Shift-Ctrl-X should not be equivalent to Ctrl-X.
+
+        FIXME: create test cases!
+        """
+        modifiers = ev.modifiers()
+        if (modifiers == Qt.ShiftModifier and
+                unicodedata.category(ev.text()) != 'Lu'):
+            modifiers = Qt.KeyboardModifiers()
+        return self.__class__(*self._sequence, modifiers | ev.key())
 
     @classmethod
     def parse(cls, keystr):
