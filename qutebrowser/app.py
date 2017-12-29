@@ -872,10 +872,6 @@ class EventFilter(QObject):
         super().__init__(parent)
         self._activated = True
         self._handlers = {
-            QEvent.MouseButtonDblClick: self._handle_mouse_event,
-            QEvent.MouseButtonPress: self._handle_mouse_event,
-            QEvent.MouseButtonRelease: self._handle_mouse_event,
-            QEvent.MouseMove: self._handle_mouse_event,
             QEvent.KeyPress: self._handle_key_event,
             QEvent.KeyRelease: self._handle_key_event,
         }
@@ -899,19 +895,6 @@ class EventFilter(QObject):
         except objreg.RegistryUnavailableError:
             # No window available yet, or not a MainWindow
             return False
-
-    def _handle_mouse_event(self, _event):
-        """Handle a mouse event.
-
-        Args:
-            _event: The QEvent which is about to be delivered.
-
-        Return:
-            True if the event should be filtered, False if it's passed through.
-        """
-        # Mouse cursor shown (overrideCursor None) -> don't filter event
-        # Mouse cursor hidden (overrideCursor not None) -> filter event
-        return qApp.overrideCursor() is not None
 
     def eventFilter(self, obj, event):
         """Handle an event.
