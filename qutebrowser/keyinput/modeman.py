@@ -322,10 +322,13 @@ class ModeManager(QObject):
         if self.mode is None:
             # We got events before mode is set, so just pass them through.
             return False
-        if event.type() == QEvent.KeyPress:
-            return self._eventFilter_keypress(event)
-        else:
-            return self._eventFilter_keyrelease(event)
+
+        handlers = {
+            QEvent.KeyPress: self._eventFilter_keypress,
+            QEvent.KeyRelease: self._eventFilter_keyrelease,
+        }
+        handler = handlers[event.type()]
+        return handler(event)
 
     @cmdutils.register(instance='mode-manager', scope='window')
     def clear_keychain(self):
