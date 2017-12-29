@@ -2084,6 +2084,7 @@ class CommandDispatcher:
             keystring: The keystring to send.
             global_: If given, the keys are sent to the qutebrowser UI.
         """
+        # FIXME: rewrite
         try:
             keyinfos = utils.parse_keystring(keystring)
         except utils.KeyParseError as e:
