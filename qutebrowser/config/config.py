@@ -141,11 +141,8 @@ class KeyConfig:
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
-        bindings = self._config.get_obj(
-            'bindings.default', mutable=False)[mode]
-        bindings_commands = self._config.get_obj(
-            'bindings.commands', mutable=False).get(mode, {})
-        for key, binding in bindings_commands.items():
+        bindings = dict(val.bindings.default[mode])
+        for key, binding in val.bindings.commands[mode].items():
             if binding is None:
                 bindings.pop(key, None)
             else:
@@ -172,8 +169,7 @@ class KeyConfig:
         """Get the command for a given key (or None)."""
         key = self._prepare(key, mode)
         if default:
-            bindings = self._config.get_obj(
-                'bindings.default', mutable=False)[mode]
+            bindings = dict(val.bindings.default[mode])
         else:
             bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
@@ -212,12 +208,11 @@ class KeyConfig:
         key = self._prepare(key, mode)
 
         bindings_commands = self._config.get_obj('bindings.commands')
-        bindings_default = self._config.get_obj('bindings.default')
 
-        if key in bindings_commands[mode]:
+        if val.bindings.commands[mode].get(key, None) is not None:
             # In custom bindings -> remove it
             del bindings_commands[mode][key]
-        elif key in bindings_default[mode]:
+        elif key in val.bindings.default[mode]:
             # In default bindings -> shadow it with None
             if mode not in bindings_commands:
                 bindings_commands[mode] = {}
