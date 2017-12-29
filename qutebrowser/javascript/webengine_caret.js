@@ -468,6 +468,9 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
     CaretBrowsing.blinkFlag = true;
 
+    CaretBrowsing.isWindows =
+        window.navigator.userAgent.indexOf("Windows") !== -1;
+
     CaretBrowsing.isControlThatNeedsArrowKeys = function(node) { // eslint-disable-line complexity,max-len
         if (!node) {
             return false;
@@ -860,9 +863,15 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
             getSelection().
             modify(action, direction, granularity);
 
-        window.setTimeout(() => {
-            CaretBrowsing.updateCaretOrSelection(true);
-        }, 0);
+        if (CaretBrowsing.isWindows &&
+                (direction === "forward" ||
+                    direction === "right")) {
+            CaretBrowsing.move("left", "character");
+        } else {
+            window.setTimeout(() => {
+                CaretBrowsing.updateCaretOrSelection(true);
+            }, 0);
+        }
     };
 
     CaretBrowsing.moveToBlock = function(paragraph, boundary) {
