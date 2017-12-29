@@ -28,7 +28,7 @@ from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
-from qutebrowser.keyinput import sequence
+from qutebrowser.keyinput import keyutils
 
 
 class BaseKeyParser(QObject):
@@ -84,7 +84,7 @@ class BaseKeyParser(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
-        self._sequence = sequence.KeySequence()
+        self._sequence = keyutils.KeySequence()
         self._count = ''
         if supports_count is None:
             supports_count = supports_chains
@@ -121,7 +121,7 @@ class BaseKeyParser(QObject):
             A self.Match member.
         """
         key = e.key()
-        txt = utils.keyevent_to_string(e)
+        txt = keyutils.keyevent_to_string(e)
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
         if txt is None:
@@ -264,6 +264,6 @@ class BaseKeyParser(QObject):
         if self._sequence:
             self._debug_log("discarding keystring '{}'.".format(
                 self._sequence))
-            self._sequence = sequence.KeySequence()
+            self._sequence = keyutils.KeySequence()
             self._count = ''
             self.keystring_updated.emit('')

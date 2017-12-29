@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
-from qutebrowser.keyinput import keyparser
+from qutebrowser.keyinput import keyparser, keyutils
 from qutebrowser.utils import usertypes, log, message, objreg, utils
 
 
@@ -298,7 +298,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
 
         key = e.text()
 
-        if key == '' or utils.keyevent_to_string(e) is None:
+        if key == '' or keyutils.keyevent_to_string(e) is None:
             # this is not a proper register key, let it pass and keep going
             return False
 

@@ -62,7 +62,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils
-from qutebrowser.keyinput import sequence
+from qutebrowser.keyinput import keyutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -1655,4 +1655,4 @@ class Key(BaseType):
         #if utils.is_special_key(value):
         #    value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
         #return value
-        return sequence.parse_keystring(value)
+        return keyutils.parse_keystring(value)
