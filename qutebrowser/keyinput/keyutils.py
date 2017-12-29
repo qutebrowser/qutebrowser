@@ -205,12 +205,6 @@ def _parse_keystring(keystr):
             yield 'Shift+' + c if c.isupper() else c
 
 
-def parse_keystring(keystr):
-    """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
-    s = ', '.join(_parse_keystring(keystr))
-    return KeySequence(s)
-
-
 def normalize_keystr(keystr):
     """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
@@ -266,3 +260,9 @@ class KeySequence:
 
     def append_event(self, ev):
         return self.__class__(*self._sequence, ev.modifiers() | ev.key())
+
+    @classmethod
+    def parse(cls, keystr):
+        """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
+        s = ', '.join(_parse_keystring(keystr))
+        return cls(s)

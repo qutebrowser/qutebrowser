@@ -1655,4 +1655,4 @@ class Key(BaseType):
         #if utils.is_special_key(value):
         #    value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
         #return value
-        return keyutils.parse_keystring(value)
+        return keyutils.KeySequence.parse(value)
