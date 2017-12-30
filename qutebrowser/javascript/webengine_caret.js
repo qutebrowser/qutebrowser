@@ -1,3 +1,4 @@
+// eslint-disable-line max-lines
 /**
  * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
@@ -23,7 +24,7 @@
  * change document selection model and div caret position.
  */
 
-"use strict"; // eslint-disable-line max-lines
+"use strict";
 
 window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,max-len
     function isElementInViewport(node) {  // eslint-disable-line complexity
