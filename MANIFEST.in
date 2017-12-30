@@ -23,7 +23,7 @@ include qutebrowser/config/configdata.yml
 
 prune www
 prune scripts/dev
-prune scripts/testbrowser_cpp
+prune scripts/testbrowser/cpp
 prune .github
 exclude scripts/asciidoc2html.py
 exclude doc/notes
