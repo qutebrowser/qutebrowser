@@ -20,6 +20,8 @@
 
 /**
  * Ported chrome-caretbrowsing extension.
+ * https://cs.chromium.org/chromium/src/ui/accessibility/extensions/caretbrowsing/
+ *
  * Create and control div caret, which listen commands from qutebrowser,
  * change document selection model and div caret position.
  */
