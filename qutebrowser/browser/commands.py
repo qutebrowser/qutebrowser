@@ -1622,8 +1622,8 @@ class CommandDispatcher:
         caret_position = elem.caret_position()
 
         ed = editor.ExternalEditor(self._tabbed_browser)
-        ed.editing_finished.connect(functools.partial(
-            self.on_editing_finished, elem))
+        ed.file_updated.connect(functools.partial(
+            self.on_file_updated, elem))
         ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1636,7 +1636,7 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.elements.find_focused(self._open_editor_cb)
 
-    def on_editing_finished(self, elem, text):
+    def on_file_updated(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for GUIProcess when the editor was closed.
@@ -2146,7 +2146,7 @@ class CommandDispatcher:
         ed = editor.ExternalEditor(self._tabbed_browser)
 
         # Passthrough for openurl args (e.g. -t, -b, -w)
-        ed.editing_finished.connect(functools.partial(
+        ed.file_updated.connect(functools.partial(
             self._open_if_changed, old_url=old_url, bg=bg, tab=tab,
             window=window, private=private, related=related))
 

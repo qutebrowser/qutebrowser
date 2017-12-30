@@ -173,7 +173,7 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     with open(editor._filename, 'r', encoding='utf-8') as f:
         assert f.read() == initial_text
 
-    with qtbot.wait_signal(editor.editing_finished) as blocker:
+    with qtbot.wait_signal(editor.file_updated) as blocker:
         with open(editor._filename, 'w', encoding='utf-8') as f:
             f.write(edited_text)
 

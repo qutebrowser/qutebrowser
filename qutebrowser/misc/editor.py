@@ -43,7 +43,7 @@ class ExternalEditor(QObject):
         _watcher: A QFileSystemWatcher to watch the edited file for changes.
     """
 
-    editing_finished = pyqtSignal(str)
+    file_updated = pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -128,7 +128,7 @@ class ExternalEditor(QObject):
             message.error("Failed to read back edited file: {}".format(e))
             return
         log.procs.debug("Read back: {}".format(text))
-        self.editing_finished.emit(text)
+        self.file_updated.emit(text)
 
     def edit_file(self, filename):
         """Edit the file with the given filename."""
