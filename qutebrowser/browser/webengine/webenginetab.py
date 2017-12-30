@@ -21,6 +21,7 @@
 
 import math
 import functools
+import platform
 import html as html_utils
 
 import sip
@@ -202,7 +203,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
         self._tab.run_js_async(
-            javascript.assemble('caret', 'setInitialCursor'))
+            javascript.assemble('caret', 'setInitialCursor', platform.platform()))
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):

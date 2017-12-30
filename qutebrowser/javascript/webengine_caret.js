@@ -494,9 +494,6 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
     CaretBrowsing.blinkFlag = true;
 
-    CaretBrowsing.isWindows =
-        window.navigator.userAgent.indexOf("Windows") !== -1;
-
     CaretBrowsing.isControlThatNeedsArrowKeys = function(node) { // eslint-disable-line complexity,max-len
         if (!node) {
             return false;
@@ -590,9 +587,9 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         document.body.appendChild(node);
     };
 
-    CaretBrowsing.setInitialCursor = function() {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0) {
+    CaretBrowsing.setInitialCursor = function(platform) {
+        CaretBrowsing.isWindows = platform === "Windows";
+        if (window.getSelection().rangeCount > 0) {
             return;
         }
 
@@ -960,7 +957,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         CaretBrowsing.isCaretVisible =
             (CaretBrowsing.isEnabled && CaretBrowsing.isWindowFocused);
         if (CaretBrowsing.isCaretVisible && !CaretBrowsing.caretElement) {
-            CaretBrowsing.setInitialCursor();
+            CaretBrowsing.setInitialCursor(CaretBrowsing.isWindows);
             CaretBrowsing.updateCaretOrSelection(true);
             if (CaretBrowsing.caretElement) {
                 CaretBrowsing.blinkFunctionId = window.setInterval(
@@ -1012,9 +1009,9 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
     const funcs = {};
 
-    funcs.setInitialCursor = () => {
+    funcs.setInitialCursor = (platform) => {
         if (!CaretBrowsing.initiated) {
-            CaretBrowsing.setInitialCursor();
+            CaretBrowsing.setInitialCursor(platform);
             return;
         }
 
