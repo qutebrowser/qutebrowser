@@ -1,6 +1,6 @@
 // eslint-disable-line max-lines
 /**
- * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
