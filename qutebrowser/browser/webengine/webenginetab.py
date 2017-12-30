@@ -208,87 +208,69 @@ class WebEngineCaret(browsertab.AbstractCaret):
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
         self.drop_selection()
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'toggle'))
+        self._js_call('toggle')
 
     def move_to_next_line(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveDown'))
+            self._js_call('moveDown')
 
     def move_to_prev_line(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveUp'))
+            self._js_call('moveUp')
 
     def move_to_next_char(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveRight'))
+            self._js_call('moveRight')
 
     def move_to_prev_char(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveLeft'))
+            self._js_call('moveLeft')
 
     def move_to_end_of_word(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToEndOfWord'))
+            self._js_call('moveToEndOfWord')
 
     def move_to_next_word(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToNextWord'))
+            self._js_call('moveToNextWord')
 
     def move_to_prev_word(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToPreviousWord'))
+            self._js_call('moveToPreviousWord')
 
     def move_to_start_of_line(self):
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'moveToStartOfLine'))
+        self._js_call('moveToStartOfLine')
 
     def move_to_end_of_line(self):
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'moveToEndOfLine'))
+        self._js_call('moveToEndOfLine')
 
     def move_to_start_of_next_block(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToStartOfNextBlock'))
+            self._js_call('moveToStartOfNextBlock')
 
     def move_to_start_of_prev_block(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToStartOfPrevBlock'))
+            self._js_call('moveToStartOfPrevBlock')
 
     def move_to_end_of_next_block(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToEndOfNextBlock'))
+            self._js_call('moveToEndOfNextBlock')
 
     def move_to_end_of_prev_block(self, count=1):
         for _ in range(count):
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'moveToEndOfPrevBlock'))
+            self._js_call('moveToEndOfPrevBlock')
 
     def move_to_start_of_document(self):
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'moveToStartOfDocument'))
+        self._js_call('moveToStartOfDocument')
 
     def move_to_end_of_document(self):
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'moveToEndOfDocument'))
+        self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'toggleSelection'))
+        self._js_call('toggleSelection')
 
     def drop_selection(self):
-        self._tab.run_js_async(
-            javascript.assemble('caret', 'dropSelection'))
+        self._js_call('dropSelection')
 
     def has_selection(self):
         if qtutils.version_check('5.10'):
@@ -350,6 +332,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
             js_code = javascript.assemble('webelem', 'find_selected_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
+
+    def _js_call(self, command):
+        self._tab.run_js_async(
+            javascript.assemble('caret', command))
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
