@@ -25,12 +25,14 @@ import json
 import fnmatch
 import functools
 import glob
+import base64
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import log, standarddir, jinja, objreg
 from qutebrowser.commands import cmdutils
+from qutebrowser.browser import downloads
 
 
 def _scripts_dir():
@@ -46,6 +48,7 @@ class GreasemonkeyScript:
         self._code = code
         self.includes = []
         self.excludes = []
+        self.requires = []
         self.description = None
         self.name = None
         self.namespace = None
@@ -67,6 +70,8 @@ class GreasemonkeyScript:
                 self.run_at = value
             elif name == 'noframes':
                 self.runs_on_sub_frames = False
+            elif name == 'require':
+                self.requires.append(value)
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
@@ -94,7 +99,7 @@ class GreasemonkeyScript:
         """Return the processed JavaScript code of this script.
 
         Adorns the source code with GM_* methods for Greasemonkey
-        compatibility and wraps it in an IFFE to hide it within a
+        compatibility and wraps it in an iife to hide it within a
         lexical scope. Note that this means line numbers in your
         browser's debugger/inspector will not match up to the line
         numbers in the source script directly.
@@ -115,6 +120,13 @@ class GreasemonkeyScript:
             'excludes': self.excludes,
             'run-at': self.run_at,
         })
+
+    def add_required_script(self, source):
+        """Add the source of a required script to this script."""
+        # NOTE: If source also contains a greasemonkey metadata block then
+        # QWebengineScript will parse that instead of the actual one.
+        # Adding an indent to source would stop that.
+        self._code = "\n".join([source, self._code])
 
 
 @attr.s
@@ -146,6 +158,11 @@ class GreasemonkeyManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._run_start = []
+        self._run_end = []
+        self._run_idle = []
+        self._in_progress_dls = []
+
         self.load_scripts()
 
     @cmdutils.register(name='greasemonkey-reload',
@@ -171,22 +188,97 @@ class GreasemonkeyManager(QObject):
                 if not script.name:
                     script.name = script_filename
 
-                if script.run_at == 'document-start':
-                    self._run_start.append(script)
-                elif script.run_at == 'document-end':
-                    self._run_end.append(script)
-                elif script.run_at == 'document-idle':
-                    self._run_idle.append(script)
+                if script.requires:
+                    log.greasemonkey.debug(("Deferring script until "
+                                            "requirements are "
+                                            "fullfilled: {}")
+                                           .format(script.name))
+                    self._get_required_scripts(script)
                 else:
-                    log.greasemonkey.warning("Script {} has invalid run-at "
-                                             "defined, defaulting to "
-                                             "document-end"
-                                             .format(script_path))
-                    # Default as per
-                    # https://wiki.greasespot.net/Metadata_Block#.40run-at
-                    self._run_end.append(script)
-                log.greasemonkey.debug("Loaded script: {}".format(script.name))
+                    self._add_script(script)
+
         self.scripts_reloaded.emit()
+
+    def _add_script(self, script):
+        if script.run_at == 'document-start':
+            self._run_start.append(script)
+        elif script.run_at == 'document-end':
+            self._run_end.append(script)
+        elif script.run_at == 'document-idle':
+            self._run_idle.append(script)
+        else:
+            log.greasemonkey.warning("Script {} has invalid run-at "
+                                     "defined, defaulting to "
+                                     "document-end"
+                                     .format(script.name))
+            # Default as per
+            # https://wiki.greasespot.net/Metadata_Block#.40run-at
+            self._run_end.append(script)
+        log.greasemonkey.debug("Loaded script: {}".format(script.name))
+
+    def _required_url_to_file_path(self, url):
+        # TODO: Save to a more readable name
+        # cf https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
+        name = str(base64.urlsafe_b64encode(bytes(url, 'utf8')), encoding='utf8')
+        requires_dir = os.path.join(_scripts_dir(), 'requires')
+        if not os.path.exists(requires_dir):
+            os.mkdir(requires_dir)
+        return os.path.join(requires_dir, name)
+
+    def _on_required_download_finished(self, script, download=None,
+                                       quiet=False):
+        if download:
+            self._in_progress_dls.remove(download)
+
+        # See if we are still waiting on any required scripts for this one
+        for dl in self._in_progress_dls:
+            if dl.requested_url in script.requires:
+                log.greasemonkey.debug(("got dl for script {} but some "
+                                        "requirements still pending")
+                                       .format(script.name))
+                return
+
+        # Need to add the required scripts to the iife now
+        for url in reversed(script.requires):
+            target_path = self._required_url_to_file_path(url)
+            log.greasemonkey.debug(("Adding required script for {} to iife: "
+                                    "{}").format(script.name, url))
+            with open(target_path, encoding='utf8') as f:
+                script.add_required_script(f.read())
+
+        self._add_script(script)
+        if not quiet:
+            self.scripts_reloaded.emit()
+
+    def _get_required_scripts(self, script):
+        try:
+            download_manager = objreg.get('qtnetwork-download-manager',
+                                          scope='window',
+                                          window='last-focused')
+        except objreg.RegistryUnavailableError:
+            # ??? Can we defer? Maybe on app.new_window
+            return
+        for url in script.requires:
+            target_path = self._required_url_to_file_path(url)
+            if os.path.exists(target_path):
+                # TODO: How to force reloading?
+                # Or we could download them fresh each time...
+                log.greasemonkey.debug(("Requirement already fullfilled "
+                                        "for script {}: {}")
+                                       .format(script.name, url))
+                continue
+            target = downloads.FileDownloadTarget(target_path)
+            download = download_manager.get(QUrl(url), target=target,
+                                            auto_remove=True)
+            download.requested_url = url
+            self._in_progress_dls.append(download)
+            download.finished.connect(
+                functools.partial(self._on_required_download_finished,
+                                 script, download))
+
+        # Trigger potentially adding the script in case all of the required
+        # scripts were already downloaded.
+        self._on_required_download_finished(script, None, quiet=True)
 
     def scripts_for(self, url):
         """Fetch scripts that are registered to run for url.
