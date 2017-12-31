@@ -1026,7 +1026,8 @@ input.blur_on_load.delay:
   default: 0
   type: Int
   desc: >-
-    Number of milliseconds to wait after load finished before sending a second blur event.
+    Delay (in milliseconds) after load finished before sending a second blur
+    event.
 
     Only useful if input.blur_on_load.enabled is true.
 
