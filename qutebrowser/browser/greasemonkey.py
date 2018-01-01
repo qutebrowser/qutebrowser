@@ -25,7 +25,6 @@ import json
 import fnmatch
 import functools
 import glob
-import base64
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
@@ -217,9 +216,11 @@ class GreasemonkeyManager(QObject):
         log.greasemonkey.debug("Loaded script: {}".format(script.name))
 
     def _required_url_to_file_path(self, url):
-        # TODO: Save to a more readable name
+        # Save to a more readable name
         # cf https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
-        name = str(base64.urlsafe_b64encode(bytes(url, 'utf8')), encoding='utf8')
+        # replace everything except hyphen, word characters, underscore and dot
+        # with and underscore.
+        name = re.sub(r'(?u)[^-\w.]', '_', url)
         requires_dir = os.path.join(_scripts_dir(), 'requires')
         if not os.path.exists(requires_dir):
             os.mkdir(requires_dir)
