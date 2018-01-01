@@ -634,9 +634,21 @@ class TabbedBrowser(tabwidget.TabWidget):
             widget = self.currentWidget()
             log.modes.debug("Left status-input mode, focusing {!r}".format(
                 widget))
-            if widget is None:
-                return
-            widget.setFocus()
+            if widget is not None:
+                widget.setFocus()
+
+        self._handle_clear_on_mode_leave(mode)
+
+    def _handle_clear_on_mode_leave(self, mode):
+        """Handle clearing page focus when leaving insert mode."""
+        if not config.val.input.blur_on_mode_leave or \
+           mode != usertypes.KeyMode.insert:
+            return
+        log.modes.debug("Left insert mode, clearing focused element.")
+        # Get currently focused tab
+        tab = self.currentWidget()
+        if tab:
+            tab.run_js_async("document.activeElement.blur();", None)
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):

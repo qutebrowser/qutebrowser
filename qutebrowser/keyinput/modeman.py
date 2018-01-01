@@ -295,15 +295,6 @@ class ModeManager(QObject):
         log.modes.debug("Leaving mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
 
-        if mode == usertypes.KeyMode.insert and \
-           config.val.input.blur_on_mode_leave:
-
-            command_dispatcher = objreg.get('command-dispatcher',
-                                            scope='window',
-                                            window=self._win_id)
-            command_dispatcher.jseval("document.activeElement.blur();",
-                                    quiet=True)
-
         # leaving a mode implies clearing keychain, see
         # https://github.com/qutebrowser/qutebrowser/issues/1805
         self.clear_keychain()
