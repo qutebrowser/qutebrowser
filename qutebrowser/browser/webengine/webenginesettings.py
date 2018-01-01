@@ -198,14 +198,12 @@ def _update_stylesheet():
 
 
 def _init_focustools(profile):
-    """Initialize focus tools.
-
-    """
+    """Initialize focus tools."""
     old_script = profile.scripts().findScript('_qute_focustools')
     if not old_script.isNull():
         profile.scripts().remove(old_script)
 
-    if config.val.input.blur_on_load:
+    if config.val.input.blur_on_load.enabled:
         source = '\n'.join([
             '"use strict";',
             'window._qutebrowser = window._qutebrowser || {};',
