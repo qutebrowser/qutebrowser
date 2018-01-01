@@ -25,12 +25,11 @@ import json
 import fnmatch
 import functools
 import glob
-import base64
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
-from qutebrowser.utils import log, standarddir, jinja, objreg
+from qutebrowser.utils import log, standarddir, jinja, objreg, utils
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
 
@@ -217,13 +216,10 @@ class GreasemonkeyManager(QObject):
         log.greasemonkey.debug("Loaded script: {}".format(script.name))
 
     def _required_url_to_file_path(self, url):
-        # TODO: Save to a more readable name
-        # cf https://stackoverflow.com/questions/295135/turn-a-string-into-a-valid-filename
-        name = str(base64.urlsafe_b64encode(bytes(url, 'utf8')), encoding='utf8')
         requires_dir = os.path.join(_scripts_dir(), 'requires')
         if not os.path.exists(requires_dir):
             os.mkdir(requires_dir)
-        return os.path.join(requires_dir, name)
+        return os.path.join(requires_dir, utils.sanitize_filename(url))
 
     def _on_required_download_finished(self, script, download):
         self._in_progress_dls.remove(download)
