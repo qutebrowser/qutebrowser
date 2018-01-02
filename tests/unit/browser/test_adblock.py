@@ -28,7 +28,7 @@ import pytest
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.browser import adblock
+from qutebrowser.browser import adblock, downloads
 from qutebrowser.utils import objreg
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
@@ -94,9 +94,13 @@ class FakeDownloadManager:
 
         The content is copied from the file the given url links to.
         """
+        if isinstance(target, downloads.FileDownloadTarget):
+            target.fileobj = open(target.filename, 'wb')
         download_item = FakeDownloadItem(target.fileobj, name=url.path())
         with (self._tmpdir / url.path()).open('rb') as fake_url_file:
             shutil.copyfileobj(fake_url_file, download_item.fileobj)
+        if isinstance(target, downloads.FileDownloadTarget):
+            target.fileobj.close()
         return download_item
 
 
