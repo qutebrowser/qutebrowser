@@ -23,12 +23,13 @@ import os.path
 import zipfile
 import shutil
 import logging
+import contextlib
 
 import pytest
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.browser import adblock
+from qutebrowser.browser import adblock, downloads
 from qutebrowser.utils import objreg
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
@@ -89,14 +90,27 @@ class FakeDownloadManager:
     def __init__(self, tmpdir):
         self._tmpdir = tmpdir
 
+    @contextlib.contextmanager
+    def _open_fileobj(self, target):
+        """Ensure a DownloadTarget's fileobj attribute is available."""
+        if isinstance(target, downloads.FileDownloadTarget):
+            target.fileobj = open(target.filename, 'wb')
+            try:
+                yield target.fileobj
+            finally:
+                target.fileobj.close()
+        else:
+            yield target.fileobj
+
     def get(self, url, target, **kwargs):
         """Return a FakeDownloadItem instance with a fileobj.
 
         The content is copied from the file the given url links to.
         """
-        download_item = FakeDownloadItem(target.fileobj, name=url.path())
-        with (self._tmpdir / url.path()).open('rb') as fake_url_file:
-            shutil.copyfileobj(fake_url_file, download_item.fileobj)
+        with self._open_fileobj(target):
+            download_item = FakeDownloadItem(target.fileobj, name=url.path())
+            with (self._tmpdir / url.path()).open('rb') as fake_url_file:
+                shutil.copyfileobj(fake_url_file, download_item.fileobj)
         return download_item
 
 
