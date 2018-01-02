@@ -169,11 +169,15 @@ class GreasemonkeyManager(QObject):
 
     @cmdutils.register(name='greasemonkey-reload',
                        instance='greasemonkey')
-    def load_scripts(self):
+    def load_scripts(self, force=False):
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
         qutebrowser's data directory (see `:version`).
+
+        Args:
+            force: For any scripts that have required dependencies,
+                   re-download them.
         """
         self._run_start = []
         self._run_end = []
@@ -195,7 +199,7 @@ class GreasemonkeyManager(QObject):
                                             "requirements are "
                                             "fullfilled: {}")
                                            .format(script.name))
-                    self._get_required_scripts(script)
+                    self._get_required_scripts(script, force)
                 else:
                     self._add_script(script)
 
@@ -261,15 +265,14 @@ class GreasemonkeyManager(QObject):
         # We could disconnect this slot here as downloads should only be
         # deferred at application start.
 
-    def _get_required_scripts(self, script):
+    def _get_required_scripts(self, script, force=False):
         required_dls = [(url, self._required_url_to_file_path(url))
                         for url in script.requires]
-        required_dls = [(url, path) for (url, path) in required_dls
-                        if not os.path.exists(path)]
+        if not force:
+            required_dls = [(url, path) for (url, path) in required_dls
+                            if not os.path.exists(path)]
         if not required_dls:
-            # All the files exist so we don't have to deal with
-            # potentially not having a download manager yet
-            # TODO: Consider supporting force reloading.
+            # All the required files exist already
             self._on_required_download_finished(script, None, quiet=True)
             return
 
@@ -287,7 +290,8 @@ class GreasemonkeyManager(QObject):
         for url, target_path in required_dls:
             target = downloads.FileDownloadTarget(target_path)
             download = download_manager.get(QUrl(url), target=target,
-                                            auto_remove=True)
+                                            auto_remove=True,
+                                            force_overwrite=True)
             download.requested_url = url
             self._in_progress_dls.append(download)
             download.finished.connect(
