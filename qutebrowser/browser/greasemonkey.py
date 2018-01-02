@@ -161,8 +161,11 @@ class GreasemonkeyManager(QObject):
         self._run_end = []
         self._run_idle = []
         self._in_progress_dls = []
+        self._pending_dls = []
 
         self.load_scripts()
+        app = objreg.get('app')
+        app.new_window.connect(self._start_pending_downloads)
 
     @cmdutils.register(name='greasemonkey-reload',
                        instance='greasemonkey')
@@ -251,23 +254,37 @@ class GreasemonkeyManager(QObject):
         if not quiet:
             self.scripts_reloaded.emit()
 
+    def _start_pending_downloads(self, _window):
+        for script in self._pending_dls:
+            self._get_required_scripts(script)
+        self._pending_dls = []
+        # We could disconnect this slot here as downloads should only be
+        # deferred at application start.
+
     def _get_required_scripts(self, script):
+        required_dls = [(url, self._required_url_to_file_path(url))
+                        for url in script.requires]
+        required_dls = [(url, path) for (url, path) in required_dls
+                        if not os.path.exists(path)]
+        if not required_dls:
+            # All the files exist so we don't have to deal with
+            # potentially not having a download manager yet
+            # TODO: Consider supporting force reloading.
+            self._on_required_download_finished(script, None, quiet=True)
+            return
+
         try:
             download_manager = objreg.get('qtnetwork-download-manager',
                                           scope='window',
                                           window='last-focused')
         except objreg.RegistryUnavailableError:
-            # ??? Can we defer? Maybe on app.new_window
+            # The download manager is per window but the greasemonkey
+            # manager is not. On first load no window may be initialized
+            # yet so we need to defer our downloads.
+            self._pending_dls.append(script)
             return
-        for url in script.requires:
-            target_path = self._required_url_to_file_path(url)
-            if os.path.exists(target_path):
-                # TODO: How to force reloading?
-                # Or we could download them fresh each time...
-                log.greasemonkey.debug(("Requirement already fullfilled "
-                                        "for script {}: {}")
-                                       .format(script.name, url))
-                continue
+
+        for url, target_path in required_dls:
             target = downloads.FileDownloadTarget(target_path)
             download = download_manager.get(QUrl(url), target=target,
                                             auto_remove=True)
@@ -275,11 +292,7 @@ class GreasemonkeyManager(QObject):
             self._in_progress_dls.append(download)
             download.finished.connect(
                 functools.partial(self._on_required_download_finished,
-                                 script, download))
-
-        # Trigger potentially adding the script in case all of the required
-        # scripts were already downloaded.
-        self._on_required_download_finished(script, None, quiet=True)
+                                  script, download))
 
     def scripts_for(self, url):
         """Fetch scripts that are registered to run for url.
