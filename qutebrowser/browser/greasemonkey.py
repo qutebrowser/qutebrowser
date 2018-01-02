@@ -166,11 +166,15 @@ class GreasemonkeyManager(QObject):
 
     @cmdutils.register(name='greasemonkey-reload',
                        instance='greasemonkey')
-    def load_scripts(self):
+    def load_scripts(self, force=False):
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
         qutebrowser's data directory (see `:version`).
+
+        Args:
+            force: For any scripts that have required dependencies,
+                   re-download them.
         """
         self._run_start = []
         self._run_end = []
@@ -191,7 +195,7 @@ class GreasemonkeyManager(QObject):
                     log.greasemonkey.debug(
                         "Deferring script until requirements are "
                         "fulfilled: {}".format(script.name))
-                    self._get_required_scripts(script)
+                    self._get_required_scripts(script, force)
                 else:
                     self._add_script(script)
 
@@ -261,15 +265,14 @@ class GreasemonkeyManager(QObject):
             self.scripts_reloaded.emit()
         return True
 
-    def _get_required_scripts(self, script):
+    def _get_required_scripts(self, script, force=False):
         required_dls = [(url, self._required_url_to_file_path(url))
                         for url in script.requires]
-        required_dls = [(url, path) for (url, path) in required_dls
-                        if not os.path.exists(path)]
+        if not force:
+            required_dls = [(url, path) for (url, path) in required_dls
+                            if not os.path.exists(path)]
         if not required_dls:
-            # All the files exist so we don't have to deal with
-            # potentially not having a download manager yet
-            # TODO: Consider supporting force reloading.
+            # All the required files exist already
             self._add_script_with_requires(script, quiet=True)
             return
 
