@@ -276,7 +276,8 @@ class GreasemonkeyManager(QObject):
         download_manager = objreg.get('qtnetwork-download-manager')
 
         for url, target_path in required_dls:
-            target = downloads.FileDownloadTarget(target_path)
+            target = downloads.FileDownloadTarget(target_path,
+                                                  force_overwrite=True)
             download = download_manager.get(QUrl(url), target=target,
                                             auto_remove=True)
             download.requested_url = url
