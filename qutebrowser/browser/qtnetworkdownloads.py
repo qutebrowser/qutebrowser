@@ -490,7 +490,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
 
     @pyqtSlot('QNetworkReply')
     def fetch(self, reply, *, target=None, auto_remove=False,
-              suggested_filename=None, prompt_download_directory=None):
+              suggested_filename=None, prompt_download_directory=None,
+              force_overwrite=False):
         """Download a QNetworkReply to disk.
 
         Args:
@@ -498,6 +499,8 @@ class DownloadManager(downloads.AbstractDownloadManager):
             target: Where to save the download as downloads.DownloadTarget.
             auto_remove: Whether to remove the download even if
                          downloads.remove_finished is set to -1.
+            force_overwrite: Whether to overwrite the target without
+                             prompting, for supported targets.
 
         Return:
             The created DownloadItem.
@@ -513,7 +516,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         self._init_item(download, auto_remove, suggested_filename)
 
         if target is not None:
-            download.set_target(target)
+            download.set_target(target, force_overwrite)
             return download
 
         # Neither filename nor fileobj were given
@@ -522,7 +525,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
         if filename is not None:
             # User doesn't want to be asked, so just use the download_dir
             target = downloads.FileDownloadTarget(filename)
-            download.set_target(target)
+            download.set_target(target, force_overwrite)
             return download
 
         # Ask the user for a filename
