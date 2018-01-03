@@ -146,7 +146,7 @@ class GreasemonkeyManager(QObject):
     Signals:
         scripts_reloaded: Emitted when scripts are reloaded from disk.
             Any cached or already-injected scripts should be
-            considered obselete.
+            considered obsolete.
     """
 
     scripts_reloaded = pyqtSignal()
