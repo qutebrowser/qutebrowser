@@ -102,7 +102,8 @@ def clean(history):
     Receives a list of record and sanityze them in order for them to be
     properly imported to qutebrowser. Sanitation requires addiing a 4th
     attribute 'redirect' which is filled with '0's, and also purging all
-    records that have a NULL/None datetime attribute.
+    records that have a NULL/None datetime attribute. Also, set record
+    title to record url when it's NULL/None.
 
     Args:
         history: List of records (datetime, url, title) from source database.
@@ -112,6 +113,9 @@ def clean(history):
         history.remove(null_datetime)
     history = [list(record) for record in history]
     for record in history:
+        if record[1] is None:
+            record[1] = record[0] 
+
         record.append('0')
     return history
 
