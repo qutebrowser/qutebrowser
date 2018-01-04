@@ -107,7 +107,7 @@ def clean(history):
     Args:
         history: List of records (datetime, url, title) from source database.
     """
-    nulls = [record for record in history if record[0] is None]
+    nulls = [record for record in history if record[2] is None]
     for null_datetime in nulls:
         history.remove(null_datetime)
     history = [list(record) for record in history]
