@@ -190,6 +190,7 @@ def _set_cmd_prompt(cmd, txt):
     (':gibberish nonesense |', None, '', []),
     ('/:help|', None, '', []),
     ('::bind|', 'command', ':bind', []),
+    (':-w open |', None, '', []),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub, config_stub,
