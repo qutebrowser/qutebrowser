@@ -123,7 +123,7 @@
     // Mock the greasemonkey 4.0 async API.
     const GM = {};
     GM.info = GM_info;
-    Object.entries({
+    const entries = {
         'log': GM_log,
         'addStyle': GM_addStyle,
         'deleteValue': GM_deleteValue,
@@ -132,7 +132,9 @@
         'openInTab': GM_openInTab,
         'setValue': GM_setValue,
         'xmlHttpRequest': GM_xmlhttpRequest,
-    }).forEach(([newKey, old]) => {
+    }
+    for (newKey in entries) {
+        let old = entries[newKey];
         if (old && (typeof GM[newKey] == 'undefined')) {
             GM[newKey] = function(...args) {
                 return new Promise((resolve, reject) => {
@@ -144,7 +146,7 @@
                 });
             };
         }
-    });
+    };
 
     const unsafeWindow = window;
 
