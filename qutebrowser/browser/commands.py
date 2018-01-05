@@ -953,22 +953,25 @@ class CommandDispatcher:
                         (prev and i < cur_idx) or
                         (next_ and i > cur_idx))
 
-        # Check to see if we are closing any pinned tabs
-        if not force:
-            for i, tab in enumerate(self._tabbed_browser.widgets()):
-                if _to_close(i) and tab.data.pinned:
-                    self._tabbed_browser.tab_close_prompt_if_pinned(
-                        tab,
-                        force,
-                        lambda: self.tab_only(
-                            prev=prev, next_=next_, force=True))
-                    return
-
+        # close as many tabs as we can
         first_tab = True
+        pinned_tabs_cleanup = False
         for i, tab in enumerate(self._tabbed_browser.widgets()):
             if _to_close(i):
-                self._tabbed_browser.close_tab(tab, new_undo=first_tab)
-                first_tab = False
+                if force or not tab.data.pinned:
+                    self._tabbed_browser.close_tab(tab, new_undo=first_tab)
+                    first_tab = False
+                else:
+                    pinned_tabs_cleanup = tab
+
+        # Check to see if we would like to close any pinned tabs
+        if pinned_tabs_cleanup:
+            self._tabbed_browser.tab_close_prompt_if_pinned(
+                pinned_tabs_cleanup,
+                force,
+                lambda: self.tab_only(
+                    prev=prev, next_=next_, force=True),
+                text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):

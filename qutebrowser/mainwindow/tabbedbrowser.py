@@ -256,7 +256,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         for tab in self.widgets():
             self._remove_tab(tab)
 
-    def tab_close_prompt_if_pinned(self, tab, force, yes_action):
+    def tab_close_prompt_if_pinned(
+            self, tab, force, yes_action,
+            text="Are you sure you want to close a pinned tab?"):
         """Helper method for tab_close.
 
         If tab is pinned, prompt. If not, run yes_action.
@@ -265,7 +267,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if tab.data.pinned and not force:
             message.confirm_async(
                 title='Pinned Tab',
-                text="Are you sure you want to close a pinned tab?",
+                text=text,
                 yes_action=yes_action, default=False, abort_on=[tab.destroyed])
         else:
             yes_action()
