@@ -65,8 +65,6 @@ class CommandDispatcher:
     def __init__(self, win_id, tabbed_browser):
         self._win_id = win_id
         self._tabbed_browser = tabbed_browser
-        self.yank_object = {}
-        self.userscript_object = {}
 
     def __repr__(self):
         return utils.get_repr(self)
@@ -840,11 +838,6 @@ class CommandDispatcher:
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
         """
-        self.yank_object = {
-            'sel': sel,
-            'what': what,
-            'keep': keep
-        }
         if what == 'title':
             s = self._tabbed_browser.page_title(self._current_index())
         elif what == 'domain':
@@ -856,39 +849,36 @@ class CommandDispatcher:
             s = self._yank_url(what)
             what = 'URL'  # For printing
         elif what == 'selection':
+            def yank_callback(s):
+                if not self._current_widget().caret.has_selection() or not s:
+                    message.info("Nothing to yank")
+                    return
+                self._yank_to_target(s, sel, what, keep)
+
             caret = self._current_widget().caret
-            caret.selection(False, self._yank_callback)
+            caret.selection(callback=yank_callback)
             return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
-        self.yank_object['what'] = what
-        self._yank_to_target(s)
+        self._yank_to_target(s, sel, what, keep)
 
-    def _yank_callback(self, s):
-        if not self._current_widget().caret.has_selection() or not s:
-            message.info("Nothing to yank")
-            return
-        self._yank_to_target(s)
-
-    def _yank_to_target(self, s):
-        if self.yank_object['sel'] and utils.supports_selection():
+    def _yank_to_target(self, s, sel, what, keep):
+        if sel and utils.supports_selection():
             target = "primary selection"
         else:
-            self.yank_object['sel'] = False
+            sel = False
             target = "clipboard"
 
-        utils.set_clipboard(s, selection=self.yank_object['sel'])
-        if self.yank_object['what'] != 'selection':
-            message.info("Yanked {} to {}: {}".format(
-                self.yank_object['what'], target, s))
+        utils.set_clipboard(s, selection=sel)
+        if what != 'selection':
+            message.info("Yanked {} to {}: {}".format(what, target, s))
         else:
             message.info("{} {} yanked to {}".format(
                 len(s), "char" if len(s) == 1 else "chars", target))
-            if not self.yank_object['keep']:
+            if not keep:
                 modeman.leave(self._win_id, KeyMode.caret, "yank selected",
                               maybe=True)
-        self.yank_object = None
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1222,18 +1212,19 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
+            def selection_callback(s):
+                try:
+                    self._run_userscript(s, cmd, args, verbose)
+                except cmdexc.CommandError as e:
+                    message.error(str(e))
+
             # ~ expansion is handled by the userscript module.
             # dirty hack for async call because of:
             # https://bugreports.qt.io/browse/QTBUG-53134
             # until it fixed or blocked async call implemented:
             # https://github.com/qutebrowser/qutebrowser/issues/3327
-            self.userscript_object = {
-                'cmd': cmd,
-                'args': args,
-                'verbose': verbose
-            }
             caret = self._current_widget().caret
-            caret.selection(False, self._selection_callback)
+            caret.selection(callback=selection_callback)
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
@@ -1253,13 +1244,7 @@ class CommandDispatcher:
         """Open main startpage in current tab."""
         self.openurl(config.val.url.start_pages[0])
 
-    def _selection_callback(self, s):
-        try:
-            self._run_userscript(s)
-        except cmdexc.CommandError as e:
-            message.error(str(e))
-
-    def _run_userscript(self, selection):
+    def _run_userscript(self, selection, cmd, args, verbose):
         """Run a userscript given as argument.
 
         Args:
@@ -1293,15 +1278,10 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         try:
-            args = self.userscript_object['args']
-            verbose = self.userscript_object['verbose']
-            userscripts.run_async(tab, self.userscript_object['cmd'],
-                                  *args, win_id=self._win_id,
+            userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
                                   env=env, verbose=verbose)
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
-        finally:
-            self.userscript_object = None
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
