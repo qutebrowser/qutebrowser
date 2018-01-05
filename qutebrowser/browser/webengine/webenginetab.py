@@ -203,12 +203,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
         self._tab.run_js_async(
-            javascript.assemble('caret', 'setInitialCursor', platform.platform()))
+            javascript.assemble('caret', 'setInitialCursor',
+                                platform.platform()))
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
         self.drop_selection()
-        self._js_call('toggle')
+        self._js_call('disableCaret')
 
     def move_to_next_line(self, count=1):
         for _ in range(count):

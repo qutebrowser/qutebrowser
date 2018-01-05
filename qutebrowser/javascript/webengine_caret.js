@@ -816,15 +816,15 @@ window._qutebrowser.caret = (function() {
      */
     CaretBrowsing.setInitialCursor = function(platform) {
         CaretBrowsing.isWindows = platform === "Windows";
-        if (window.getSelection().rangeCount > 0) {
-            return;
+        const selectionRange = window.getSelection().toString().length;
+        if (selectionRange === 0) {
+            positionCaret();
         }
 
-        positionCaret();
         CaretBrowsing.injectCaretStyles();
         CaretBrowsing.toggle();
         CaretBrowsing.initiated = true;
-        CaretBrowsing.selectionEnabled = false;
+        CaretBrowsing.selectionEnabled = selectionRange > 0;
     };
 
     /**
@@ -1193,15 +1193,17 @@ window._qutebrowser.caret = (function() {
         }, 0);
     };
 
-    CaretBrowsing.toggle = function() {
+    CaretBrowsing.toggle = function(value) {
         if (CaretBrowsing.forceEnabled) {
             CaretBrowsing.recreateCaretElement();
             return;
         }
 
-        CaretBrowsing.isEnabled = !CaretBrowsing.isEnabled;
-        const obj = {};
-        obj.enabled = CaretBrowsing.isEnabled;
+        if (value === undefined) {
+            CaretBrowsing.isEnabled = !CaretBrowsing.isEnabled;
+        } else {
+            CaretBrowsing.isEnabled = value;
+        }
         CaretBrowsing.updateIsCaretVisible();
     };
 
@@ -1306,10 +1308,14 @@ window._qutebrowser.caret = (function() {
             return;
         }
 
-        if (!window.getSelection().toString()) {
+        if (window.getSelection().toString().length === 0) {
             positionCaret();
         }
         CaretBrowsing.toggle();
+    };
+
+    funcs.disableCaret = () => {
+        CaretBrowsing.toggle(false);
     };
 
     funcs.toggle = () => {
