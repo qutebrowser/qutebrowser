@@ -1,4 +1,5 @@
-/* eslint-disable max-lines, max-len, max-statements, complexity, max-params, default-case */
+/* eslint-disable max-lines, max-len, max-statements, complexity,
+max-params, default-case, valid-jsdoc */
 /**
  * Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
@@ -111,6 +112,19 @@ window._qutebrowser.caret = (function() {
         }
     }
 
+    /**
+     * Return whether a node is focusable. This includes nodes whose tabindex
+     * attribute is set to "-1" explicitly - these nodes are not in the tab
+     * order, but they should still be focused if the user navigates to them
+     * using linear or smart DOM navigation.
+     *
+     * Note that when the tabIndex property of an Element is -1, that doesn't
+     * tell us whether the tabIndex attribute is missing or set to "-1" explicitly,
+     * so we have to check the attribute.
+     *
+     * @param {Object} targetNode The node to check if it's focusable.
+     * @return {boolean} True if the node is focusable.
+     */
     function isFocusable(targetNode) {
         if (!targetNode || typeof (targetNode.tabIndex) !== "number") {
             return false;
@@ -304,6 +318,21 @@ window._qutebrowser.caret = (function() {
         return `rgba(${arr})`;
     };
 
+    /**
+     * A class to represent a cursor location in the document,
+     * like the start position or end position of a selection range.
+     *
+     * Later this may be extended to support "virtual text" for an object,
+     * like the ALT text for an image.
+     *
+     * Note: we cache the text of a particular node at the time we
+     * traverse into it. Later we should add support for dynamically
+     * reloading it.
+     * @param {Node} node The DOM node.
+     * @param {number} index The index of the character within the node.
+     * @param {string} text The cached text contents of the node.
+     * @constructor
+     */
     // eslint-disable-next-line func-style
     const Cursor = function(node, index, text) {
         this.node = node;
@@ -311,18 +340,35 @@ window._qutebrowser.caret = (function() {
         this.text = text;
     };
 
+    /**
+     * @return {Cursor} A new cursor pointing to the same location.
+     */
     Cursor.prototype.clone = function() {
         return new Cursor(this.node, this.index, this.text);
     };
 
+    /**
+     * Modify this cursor to point to the location that another cursor points to.
+     * @param {Cursor} otherCursor The cursor to copy from.
+     */
     Cursor.prototype.copyFrom = function(otherCursor) {
         this.node = otherCursor.node;
         this.index = otherCursor.index;
         this.text = otherCursor.text;
     };
 
+    /**
+     * Utility functions for stateless DOM traversal.
+     * @constructor
+     */
     const TraverseUtil = {};
 
+    /**
+     * Gets the text representation of a node. This allows us to substitute
+     * alt text, names, or titles for html elements that provide them.
+     * @param {Node} node A DOM node.
+     * @return {string} A text string representation of the node.
+     */
     TraverseUtil.getNodeText = function(node) {
         if (node.constructor === Text) {
             return node.data;
@@ -330,16 +376,45 @@ window._qutebrowser.caret = (function() {
         return "";
     };
 
+    /**
+     * Return true if a node should be treated as a leaf node, because
+     * its children are properties of the object that shouldn't be traversed.
+     *
+     * TODO(dmazzoni): replace this with a predicate that detects nodes with
+     * ARIA roles and other objects that have their own description.
+     * For now we just detect a couple of common cases.
+     *
+     * @param {Node} node A DOM node.
+     * @return {boolean} True if the node should be treated as a leaf node.
+     */
     TraverseUtil.treatAsLeafNode = function(node) {
         return node.childNodes.length === 0 ||
             node.nodeName === "SELECT" ||
             node.nodeName === "OBJECT";
     };
 
+    /**
+     * Return true only if a single character is whitespace.
+     * From https://developer.mozilla.org/en/Whitespace_in_the_DOM,
+     * whitespace is defined as one of the characters
+     *  "\t" TAB \u0009
+     *  "\n" LF  \u000A
+     *  "\r" CR  \u000D
+     *  " "  SPC \u0020.
+     *
+     * @param {string} c A string containing a single character.
+     * @return {boolean} True if the character is whitespace, otherwise false.
+     */
     TraverseUtil.isWhitespace = function(ch) {
         return (ch === " " || ch === "\n" || ch === "\r" || ch === "\t");
     };
 
+    /**
+     * Use the computed CSS style to figure out if this DOM node is currently
+     * visible.
+     * @param {Node} node A HTML DOM node.
+     * @return {boolean} Whether or not the html node is visible.
+     */
     TraverseUtil.isVisible = function(node) {
         if (!node.style) {
             return true;
@@ -350,6 +425,11 @@ window._qutebrowser.caret = (function() {
             style.visibility !== "hidden");
     };
 
+    /**
+     * Use the class name to figure out if this DOM node should be traversed.
+     * @param {Node} node A HTML DOM node.
+     * @return {boolean} Whether or not the html node should be traversed.
+     */
     TraverseUtil.isSkipped = function(_node) {
         let node = _node;
         if (node.constructor === Text) {
@@ -362,6 +442,16 @@ window._qutebrowser.caret = (function() {
         return false;
     };
 
+    /**
+     * Moves the cursor forwards until it has crossed exactly one character.
+     * @param {Cursor} cursor The cursor location where the search should start.
+     *     On exit, the cursor will be immediately to the right of the
+     *     character returned.
+     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
+     *     initial and final cursor position will be pushed onto this array.
+     * @return {?string} The character found, or null if the bottom of the
+     *     document has been reached.
+     */
     TraverseUtil.forwardsChar = function(cursor, nodesCrossed) {
         for (;;) {
             let childNode = null;
@@ -386,11 +476,14 @@ window._qutebrowser.caret = (function() {
                     nodesCrossed.push(cursor.node);
                 }
             } else {
+                // Return the next character from this leaf node.
                 if (cursor.index < cursor.text.length) {
                     return cursor.text[cursor.index++];
                 }
 
+                // Move to the next sibling, going up the tree as necessary.
                 while (cursor.node !== null) {
+                    // Try to move to the next sibling.
                     let siblingNode = null;
                     for (let node = cursor.node.nextSibling;
                         node !== null;
@@ -414,6 +507,7 @@ window._qutebrowser.caret = (function() {
                         break;
                     }
 
+                    // Otherwise, move to the parent.
                     const parentNode = cursor.node.parentNode;
                     if (parentNode &&
                         parentNode.constructor !== HTMLBodyElement) {
@@ -428,16 +522,36 @@ window._qutebrowser.caret = (function() {
         }
     };
 
+    /**
+     * Finds the next character, starting from endCursor.  Upon exit, startCursor
+     * and endCursor will surround the next character. If skipWhitespace is
+     * true, will skip until a real character is found. Otherwise, it will
+     * attempt to select all of the whitespace between the initial position
+     * of endCursor and the next non-whitespace character.
+     * @param {Cursor} startCursor On exit, points to the position before
+     *     the char.
+     * @param {Cursor} endCursor The position to start searching for the next
+     *     char.  On exit, will point to the position past the char.
+     * @param {Array<Node>} nodesCrossed Any HTML nodes crossed between the
+     *     initial and final cursor position will be pushed onto this array.
+     * @param {boolean} skipWhitespace If true, will keep scanning until a
+     *     non-whitespace character is found.
+     * @return {?string} The next char, or null if the bottom of the
+     *     document has been reached.
+     */
     TraverseUtil.getNextChar = function(
         startCursor, endCursor, nodesCrossed, skipWhitespace) {
+        // Save the starting position and get the first character.
         startCursor.copyFrom(endCursor);
         let fChar = TraverseUtil.forwardsChar(endCursor, nodesCrossed);
         if (fChar === null) {
             return null;
         }
 
+        // Keep track of whether the first character was whitespace.
         const initialWhitespace = TraverseUtil.isWhitespace(fChar);
 
+        // Keep scanning until we find a non-whitespace or non-skipped character.
         while ((TraverseUtil.isWhitespace(fChar)) ||
             (TraverseUtil.isSkipped(endCursor.node))) {
             fChar = TraverseUtil.forwardsChar(endCursor, nodesCrossed);
@@ -446,6 +560,8 @@ window._qutebrowser.caret = (function() {
             }
         }
         if (skipWhitespace || !initialWhitespace) {
+            // If skipWhitepace is true, or if the first character we encountered
+            // was not whitespace, return that non-whitespace character.
             startCursor.copyFrom(endCursor);
             startCursor.index--;
             return fChar;
@@ -453,52 +569,153 @@ window._qutebrowser.caret = (function() {
 
         for (let i = 0; i < nodesCrossed.length; i++) {
             if (TraverseUtil.isSkipped(nodesCrossed[i])) {
+                // We need to make sure that startCursor and endCursor aren't
+                // surrounding a skippable node.
                 endCursor.index--;
                 startCursor.copyFrom(endCursor);
                 startCursor.index--;
                 return " ";
             }
         }
+        // Otherwise, return all of the whitespace before that last character.
         endCursor.index--;
         return " ";
     };
 
+    /**
+     * The class handling the Caret Browsing implementation in the page.
+     * Sets up communication with the background page, and then when caret
+     * browsing is enabled, response to various key events to move the caret
+     * or selection within the text content of the document. Uses the native
+     * Chrome selection wherever possible, but displays its own flashing
+     * caret using a DIV because there's no native caret available.
+     * @constructor
+     */
     const CaretBrowsing = {};
 
+    /**
+     * Is caret browsing enabled?
+     * @type {boolean}
+     */
     CaretBrowsing.isEnabled = false;
 
+    /**
+     * Keep it enabled even when flipped off (for the options page)?
+     * @type {boolean}
+     */
     CaretBrowsing.forceEnabled = false;
 
+    /**
+     * What to do when the caret appears?
+     * @type {string}
+     */
     CaretBrowsing.onEnable = undefined;
 
+    /**
+     * What to do when the caret jumps?
+     * @type {string}
+     */
     CaretBrowsing.onJump = undefined;
 
+    /**
+     * Is this window / iframe focused? We won't show the caret if not,
+     * especially so that carets aren't shown in two iframes of the same
+     * tab.
+     * @type {boolean}
+     */
     CaretBrowsing.isWindowFocused = false;
 
+    /**
+     * Is the caret actually visible? This is true only if isEnabled and
+     * isWindowFocused are both true.
+     * @type {boolean}
+     */
     CaretBrowsing.isCaretVisible = false;
 
+    /**
+     * The actual caret element, an absolute-positioned flashing line.
+     * @type {Element}
+     */
     CaretBrowsing.caretElement = undefined;
 
+    /**
+     * The x-position of the caret, in absolute pixels.
+     * @type {number}
+     */
     CaretBrowsing.caretX = 0;
 
+    /**
+     * The y-position of the caret, in absolute pixels.
+     * @type {number}
+     */
     CaretBrowsing.caretY = 0;
 
+    /**
+     * The width of the caret in pixels.
+     * @type {number}
+     */
     CaretBrowsing.caretWidth = 0;
 
+    /**
+     * The height of the caret in pixels.
+     * @type {number}
+     */
     CaretBrowsing.caretHeight = 0;
 
+    /**
+     * The foregroundc color.
+     * @type {string}
+     */
     CaretBrowsing.caretForeground = "#000";
 
+    /**
+     * The backgroundc color.
+     * @type {string}
+     */
     CaretBrowsing.caretBackground = "#fff";
 
+    /**
+     * Is the selection collapsed, i.e. are the start and end locations
+     * the same? If so, our blinking caret image is shown; otherwise
+     * the Chrome selection is shown.
+     * @type {boolean}
+     */
     CaretBrowsing.isSelectionCollapsed = false;
 
+    /**
+     * The id returned by window.setInterval for our blink function, so
+     * we can cancel it when caret browsing is disabled.
+     * @type {number?}
+     */
     CaretBrowsing.blinkFunctionId = null;
 
+    /**
+     * The desired x-coordinate to match when moving the caret up and down.
+     * To match the behavior as documented in Mozilla's caret browsing spec
+     * (http://www.mozilla.org/access/keyboard/proposal), we keep track of the
+     * initial x position when the user starts moving the caret up and down,
+     * so that the x position doesn't drift as you move throughout lines, but
+     * stays as close as possible to the initial position. This is reset when
+     * moving left or right or clicking.
+     * @type {number?}
+     */
     CaretBrowsing.targetX = null;
 
+    /**
+     * A flag that flips on or off as the caret blinks.
+     * @type {boolean}
+     */
     CaretBrowsing.blinkFlag = true;
 
+    /**
+     * Check if a node is a control that normally allows the user to interact
+     * with it using arrow keys. We won't override the arrow keys when such a
+     * control has focus, the user must press Escape to do caret browsing outside
+     * that control.
+     * @param {Node} node A node to check.
+     * @return {boolean} True if this node is a control that the user can
+     *     interact with using arrow keys.
+     */
     CaretBrowsing.isControlThatNeedsArrowKeys = function(node) {
         if (!node) {
             return false;
@@ -522,7 +739,7 @@ window._qutebrowser.caret = (function() {
             case "tel":
             case "url":
             case "":
-                return true;
+                return true;  // All of these are text boxes.
             case "datetime":
             case "datetime-local":
             case "date":
@@ -530,10 +747,11 @@ window._qutebrowser.caret = (function() {
             case "radio":
             case "range":
             case "week":
-                return true;
+                return true;  // These are other input elements that use arrows.
             }
         }
 
+        // Handle focusable ARIA controls.
         if (node.getAttribute && isFocusable(node)) {
             const role = node.getAttribute("role");
             switch (role) {
@@ -592,6 +810,10 @@ window._qutebrowser.caret = (function() {
         document.body.appendChild(node);
     };
 
+    /**
+     * If there's no initial selection, set the cursor just before the
+     * first text character in the document.
+     */
     CaretBrowsing.setInitialCursor = function(platform) {
         CaretBrowsing.isWindows = platform === "Windows";
         if (window.getSelection().rangeCount > 0) {
@@ -605,6 +827,13 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.selectionEnabled = false;
     };
 
+    /**
+     * Try to set the window's selection to be between the given start and end
+     * cursors, and return whether or not it was successful.
+     * @param {Cursor} start The start position.
+     * @param {Cursor} end The end position.
+     * @return {boolean} True if the selection was successfully set.
+     */
     CaretBrowsing.setAndValidateSelection = function(start, end) {
         const sel = window.getSelection();
         sel.setBaseAndExtent(start.node, start.index, end.node, end.index);
@@ -619,6 +848,13 @@ window._qutebrowser.caret = (function() {
             sel.focusOffset === end.index);
     };
 
+    /**
+     * Set focus to a node if it's focusable. If it's an input element,
+     * select the text, otherwise it doesn't appear focused to the user.
+     * Every other control behaves normally if you just call focus() on it.
+     * @param {Node} node The node to focus.
+     * @return {boolean} True if the node was focused.
+     */
     CaretBrowsing.setFocusToNode = function(nodeArg) {
         let node = nodeArg;
         while (node && node !== document.body) {
@@ -635,6 +871,9 @@ window._qutebrowser.caret = (function() {
         return false;
     };
 
+    /**
+     * Set the caret element's normal style, i.e. not when animating.
+     */
     CaretBrowsing.setCaretElementNormalStyle = function() {
         const element = CaretBrowsing.caretElement;
         element.className = "CaretBrowsing_Caret";
@@ -650,6 +889,9 @@ window._qutebrowser.caret = (function() {
         element.style.color = CaretBrowsing.caretForeground;
     };
 
+    /**
+     * Animate the caret element into the normal style.
+     */
     CaretBrowsing.animateCaretElement = function() {
         const element = CaretBrowsing.caretElement;
         element.style.left = `${CaretBrowsing.caretX - 50}px`;
@@ -658,6 +900,8 @@ window._qutebrowser.caret = (function() {
         element.style.height = `${CaretBrowsing.caretHeight + 200}px`;
         element.className = "CaretBrowsing_AnimateCaret";
 
+        // Start the animation. The setTimeout is so that the old values will get
+        // applied first, so we can animate to the new values.
         window.setTimeout(() => {
             if (!CaretBrowsing.caretElement) {
                 return;
@@ -674,6 +918,9 @@ window._qutebrowser.caret = (function() {
         }, 0);
     };
 
+    /**
+     * Quick flash and then show the normal caret style.
+     */
     CaretBrowsing.flashCaretElement = function() {
         const x = CaretBrowsing.caretX;
         const y = CaretBrowsing.caretY;
@@ -694,6 +941,11 @@ window._qutebrowser.caret = (function() {
         }, 250);
     };
 
+    /**
+     * Create the caret element. This assumes that caretX, caretY,
+     * caretWidth, and caretHeight have all been set. The caret is
+     * animated in so the user can find it when it first appears.
+     */
     CaretBrowsing.createCaretElement = function() {
         const element = document.createElement("div");
         element.className = "CaretBrowsing_Caret";
@@ -709,6 +961,9 @@ window._qutebrowser.caret = (function() {
         }
     };
 
+    /**
+     * Recreate the caret element, triggering any intro animation.
+     */
     CaretBrowsing.recreateCaretElement = function() {
         if (CaretBrowsing.caretElement) {
             window.clearInterval(CaretBrowsing.blinkFunctionId);
@@ -719,6 +974,15 @@ window._qutebrowser.caret = (function() {
         }
     };
 
+    /**
+     * Get the rectangle for a cursor position. This is tricky because
+     * you can't get the bounding rectangle of an empty range, so this function
+     * computes the rect by trying a range including one character earlier or
+     * later than the cursor position.
+     * @param {Cursor} cursor A single cursor position.
+     * @return {{left: number, top: number, width: number, height: number}}
+     *     The bounding rectangle of the cursor.
+     */
     CaretBrowsing.getCursorRect = function(cursor) {
         let node = cursor.node;
         const index = cursor.index;
@@ -772,6 +1036,12 @@ window._qutebrowser.caret = (function() {
         return rect;
     };
 
+    /**
+     * Compute the new location of the caret or selection and update
+     * the element as needed.
+     * @param {boolean} scrollToSelection If true, will also scroll the page
+     *     to the caret / selection location.
+     */
     CaretBrowsing.updateCaretOrSelection =
         function(scrollToSelection) {
             const previousX = CaretBrowsing.caretX;
@@ -857,6 +1127,8 @@ window._qutebrowser.caret = (function() {
             CaretBrowsing.caretForeground = axs.color.colorToString(fg);
 
             if (scrollToSelection) {
+                // Scroll just to the "focus" position of the selection,
+                // the part the user is manipulating.
                 const rect = CaretBrowsing.getCursorRect(
                     new Cursor(sel.focusNode, sel.focusOffset,
                         TraverseUtil.getNodeText(sel.focusNode)));
@@ -933,6 +1205,13 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.updateIsCaretVisible();
     };
 
+    /**
+     * Event handler, called when the mouse is clicked. Chrome already
+     * sets the selection when the mouse is clicked, all we need to do is
+     * update our cursor.
+     * @param {Event} evt The DOM event.
+     * @return {boolean} True if the default action should be performed.
+     */
     CaretBrowsing.onClick = function() {
         if (!CaretBrowsing.isEnabled) {
             return true;
@@ -944,6 +1223,9 @@ window._qutebrowser.caret = (function() {
         return true;
     };
 
+    /**
+     * Called at a regular interval. Blink the cursor by changing its visibility.
+     */
     CaretBrowsing.caretBlinkFunction = function() {
         if (CaretBrowsing.caretElement) {
             if (CaretBrowsing.blinkFlag) {
@@ -958,6 +1240,10 @@ window._qutebrowser.caret = (function() {
         }
     };
 
+    /**
+     * Update whether or not the caret is visible, based on whether caret browsing
+     * is enabled and whether this window / iframe has focus.
+     */
     CaretBrowsing.updateIsCaretVisible = function() {
         CaretBrowsing.isCaretVisible =
             (CaretBrowsing.isEnabled && CaretBrowsing.isWindowFocused);
