@@ -1,4 +1,4 @@
-// eslint-disable-line max-lines
+/* eslint-disable max-lines, max-len, max-statements, complexity, max-params, default-case */
 /**
  * Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
@@ -28,8 +28,8 @@
 
 "use strict";
 
-window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,max-len
-    function isElementInViewport(node) {  // eslint-disable-line complexity
+window._qutebrowser.caret = (function() {
+    function isElementInViewport(node) {
         let i;
         let boundingRect = (node.getClientRects()[0] ||
             node.getBoundingClientRect());
@@ -97,15 +97,17 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
             }
         }
         if (el !== undefined) {
-            const start = new Cursor(el, 0, ""); // eslint-disable-line no-use-before-define,max-len
-            const end = new Cursor(el, 0, ""); // eslint-disable-line no-use-before-define,max-len
+            /* eslint-disable no-use-before-define */
+            const start = new Cursor(el, 0, "");
+            const end = new Cursor(el, 0, "");
             const nodesCrossed = [];
-            const result = TraverseUtil.getNextChar( // eslint-disable-line no-use-before-define,max-len
+            const result = TraverseUtil.getNextChar(
                 start, end, nodesCrossed, true);
             if (result === null) {
                 return;
             }
-            CaretBrowsing.setAndValidateSelection(start, start); // eslint-disable-line no-use-before-define,max-len
+            CaretBrowsing.setAndValidateSelection(start, start);
+            /* eslint-enable no-use-before-define */
         }
     }
 
@@ -182,7 +184,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         return null;
     };
 
-    axs.color.Color = function(red, green, blue, alpha) { // eslint-disable-line max-params,max-len
+    axs.color.Color = function(red, green, blue, alpha) {
         this.red = red;
         this.green = green;
         this.blue = blue;
@@ -302,7 +304,8 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         return `rgba(${arr})`;
     };
 
-    const Cursor = function(node, index, text) { // eslint-disable-line func-style,max-len
+    // eslint-disable-next-line func-style
+    const Cursor = function(node, index, text) {
         this.node = node;
         this.index = index;
         this.text = text;
@@ -359,7 +362,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         return false;
     };
 
-    TraverseUtil.forwardsChar = function(cursor, nodesCrossed) { // eslint-disable-line max-statements,max-len
+    TraverseUtil.forwardsChar = function(cursor, nodesCrossed) {
         for (;;) {
             let childNode = null;
             if (!TraverseUtil.treatAsLeafNode(cursor.node)) {
@@ -425,7 +428,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         }
     };
 
-    TraverseUtil.getNextChar = function( // eslint-disable-line max-params
+    TraverseUtil.getNextChar = function(
         startCursor, endCursor, nodesCrossed, skipWhitespace) {
         startCursor.copyFrom(endCursor);
         let fChar = TraverseUtil.forwardsChar(endCursor, nodesCrossed);
@@ -496,7 +499,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
     CaretBrowsing.blinkFlag = true;
 
-    CaretBrowsing.isControlThatNeedsArrowKeys = function(node) { // eslint-disable-line complexity,max-len
+    CaretBrowsing.isControlThatNeedsArrowKeys = function(node) {
         if (!node) {
             return false;
         }
@@ -510,7 +513,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         }
 
         if (node.constructor === HTMLInputElement) {
-            switch (node.type) { // eslint-disable-line default-case
+            switch (node.type) {
             case "email":
             case "number":
             case "password":
@@ -533,7 +536,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
 
         if (node.getAttribute && isFocusable(node)) {
             const role = node.getAttribute("role");
-            switch (role) { // eslint-disable-line default-case
+            switch (role) {
             case "combobox":
             case "grid":
             case "gridcell":
@@ -716,7 +719,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
         }
     };
 
-    CaretBrowsing.getCursorRect = function(cursor) { // eslint-disable-line max-statements,max-len
+    CaretBrowsing.getCursorRect = function(cursor) {
         let node = cursor.node;
         const index = cursor.index;
         const rect = {
@@ -770,7 +773,7 @@ window._qutebrowser.caret = (function() { // eslint-disable-line max-statements,
     };
 
     CaretBrowsing.updateCaretOrSelection =
-        function(scrollToSelection) { // eslint-disable-line max-statements
+        function(scrollToSelection) {
             const previousX = CaretBrowsing.caretX;
             const previousY = CaretBrowsing.caretY;
 
