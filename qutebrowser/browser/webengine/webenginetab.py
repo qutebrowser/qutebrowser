@@ -202,6 +202,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
+        if mode != usertypes.KeyMode.caret:
+            return
+
         self._tab.run_js_async(
             javascript.assemble('caret', 'setInitialCursor',
                                 platform.platform()))
