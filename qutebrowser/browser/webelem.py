@@ -42,7 +42,7 @@ Group = enum.Enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
 SELECTORS = {
     Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
                 'frame, iframe, link, [onclick], [onmousedown], [role=link], '
-                '[role=option], [role=button], img'),
+                '[role=option], [role=button], img, [ng-click]'),
     Group.links: 'a[href], area[href], link[href], [role=link][href]',
     Group.images: 'img',
     Group.url: '[src], [href]',
