@@ -815,7 +815,9 @@ window._qutebrowser.caret = (function() {
      * first text character in the document.
      */
     CaretBrowsing.setInitialCursor = function(platform) {
-        CaretBrowsing.isWindows = platform === "Windows";
+        if (platform) {
+            CaretBrowsing.isWindows = platform.indexOf("Windows") !== -1;
+        }
         const selectionRange = window.getSelection().toString().length;
         if (selectionRange === 0) {
             positionCaret();
