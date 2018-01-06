@@ -131,5 +131,5 @@ def test_parse(keystr, expected):
     ('control+x', 'ctrl+x')
 ])
 def test_normalize_keystr(orig, repl):
-    assert keyutils.normalize_keystr(orig) == repl
+    assert keyutils.KeySequence(orig) == repl
 
