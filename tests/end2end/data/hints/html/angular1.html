@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+<body ng-app="myApp">
+
+<!-- target: hello.txt -->
+
+<div ng-controller="myCtrl">
+	<p>Click the button to run a function:</p>
+	<p ng-click="myFunc()">OK</p>
+	<p>The button has been clicked {{count}} times.</p>
+</div>
+
+<script>
+angular.module('myApp', [])
+	.controller('myCtrl', ['$scope', function($scope) {
+		$scope.count = 0;
+		$scope.myFunc = function() {
+			$scope.count++;
+			window.location = "hello.txt";
+		};
+	}]);
+</script>
+</body>
+</html>
