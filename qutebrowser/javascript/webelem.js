@@ -55,6 +55,18 @@ window._qutebrowser.webelem = (function() {
         return frame.frameElement.getBoundingClientRect();
     }
 
+    // Add an offset rect to a base rect, for use with frames
+    function add_offset_rect(base, offset) {
+        return {
+            "top": base.top + offset.top,
+            "left": base.left + offset.left,
+            "bottom": base.bottom + offset.top,
+            "right": base.right + offset.left,
+            "height": base.height,
+            "width": base.width,
+        };
+    }
+
     function get_caret_position(elem, frame) {
         // With older Chromium versions (and QtWebKit), InvalidStateError will
         // be thrown if elem doesn't have selectionStart.
@@ -126,14 +138,9 @@ window._qutebrowser.webelem = (function() {
 
         for (let k = 0; k < client_rects.length; ++k) {
             const rect = client_rects[k];
-            out.rects.push({
-                "top": rect.top + frame_offset_rect.top,
-                "right": rect.right + frame_offset_rect.right,
-                "bottom": rect.bottom + frame_offset_rect.bottom,
-                "left": rect.left + frame_offset_rect.left,
-                "height": rect.height,
-                "width": rect.width,
-            });
+            out.rects.push(
+                add_offset_rect(rect, frame_offset_rect)
+            );
         }
 
         // console.log(JSON.stringify(out));
@@ -141,9 +148,7 @@ window._qutebrowser.webelem = (function() {
         return out;
     }
 
-    function is_visible(elem) {
-        // FIXME:qtwebengine Handle frames and iframes
-
+    function is_visible(elem, frame = null) {
         // Adopted from vimperator:
         // https://github.com/vimperator/vimperator-labs/blob/vimperator-3.14.0/common/content/hints.js#L259-L285
         // FIXME:qtwebengine we might need something more sophisticated like
@@ -151,7 +156,8 @@ window._qutebrowser.webelem = (function() {
         // https://github.com/1995eaton/chromium-vim/blob/1.2.85/content_scripts/dom.js#L74-L134
 
         const win = elem.ownerDocument.defaultView;
-        let rect = elem.getBoundingClientRect();
+        const offset_rect = get_frame_offset(frame);
+        let rect = add_offset_rect(elem.getBoundingClientRect(), offset_rect);
 
         if (!rect ||
                 rect.top > window.innerHeight ||
@@ -212,7 +218,8 @@ window._qutebrowser.webelem = (function() {
                 const subelems = frame.document.
                     querySelectorAll(selector);
                 for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
-                    if (!only_visible || is_visible(subelems[elem_num])) {
+                    if (!only_visible ||
+                        is_visible(subelems[elem_num], frame)) {
                         out.push(serialize_elem(subelems[elem_num], frame));
                     }
                 }
