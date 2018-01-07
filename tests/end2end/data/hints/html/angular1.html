@@ -6,18 +6,14 @@
 	<body ng-app="myApp">
 
 		<div ng-controller="myCtrl">
-			<p>Click the button to run a function:</p>
 			<p id="link" ng-click="myFunc()">OK</p>
-			<p>The button has been clicked {{count}} times.</p>
 		</div>
 
 		<script src="../angular1/angular.min.js"></script>
 		<script>
 			angular.module('myApp', [])
 			.controller('myCtrl', ['$scope', function($scope) {
-				$scope.count = 0;
 				$scope.myFunc = function() {
-					$scope.count++;
 					window.location = "/data/hello.txt";
 				};
 			}]);
