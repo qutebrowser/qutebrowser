@@ -110,6 +110,7 @@ Changed
   order, and mixed matches on URL/tite are possible.
 - The system's default encoding (rather than UTF-8) is now used to decode
   subprocess output.
+- qutebrowser now ensures it's focused again after an external editor is closed.
 
 Fixed
 ~~~~~
