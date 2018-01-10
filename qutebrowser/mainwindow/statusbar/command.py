@@ -26,7 +26,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg, message, utils
+from qutebrowser.utils import usertypes, log, objreg, message
 from qutebrowser.config import config
 
 
