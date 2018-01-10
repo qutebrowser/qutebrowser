@@ -31,7 +31,6 @@ from qutebrowser.config import config
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
-
     """The commandline part of the statusbar.
 
     Attributes:
@@ -55,6 +54,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
+    prefixes = '/ : ?'
+
     def __init__(self, *, win_id, private, parent=None):
         misc.CommandLineEdit.__init__(self, parent=parent)
         misc.MinimalLineEditMixin.__init__(self)
@@ -68,6 +69,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
+        self.textChanged.connect(self._exit_prefix)
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -219,7 +221,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if not text:
             pass
         elif text[0] in modeparsers.STARTCHARS:
-            super().set_prompt(text[0])
+            if config.val.completion.exit_prefix:
+                super().set_prompt('')
+            else:
+                super().set_prompt(text[0])
         else:
             raise utils.Unreachable("setText got called with invalid text "
                                     "'{}'!".format(text))
@@ -259,3 +264,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
         if self.prefix() in ['/', '?']:
             self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
+
+    @pyqtSlot(str)
+    def _exit_prefix(self, text):
+        if config.val.completion.exit_prefix and
+        (not text or text[0] not in self.prefixes):
+            modeman.leave(self._win_id, usertypes.KeyMode.command,
+                          'prefix deleted', maybe=True)
