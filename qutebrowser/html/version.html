@@ -1,4 +1,17 @@
 {% extends "base.html" %}
+
+{% block script %}
+var paste_version = function(){
+  xhr = new XMLHttpRequest();
+  xhr.open("GET", "qute://pastebin-version");
+  xhr.send();
+}
+{% endblock %}
+
+{% block style %}
+#paste { margin: auto; display: block; }
+{% endblock %}
+
 {% block content %}
 {{ super() }}
 <h1>Version info</h1>
@@ -23,4 +36,5 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <a href="http://www.gnu.org/licenses/">
 http://www.gnu.org/licenses/</a> or open <a href="qute://gpl">qute://gpl</a>.
 </p>
+<button id="paste" onclick="paste_version()">Pastebin Version Info</button>
 {% endblock %}
