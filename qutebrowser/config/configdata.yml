@@ -2494,4 +2494,3 @@ bindings.commands:
 
     * register: Entered when qutebrowser is waiting for a register name/key for
       commands like `:set-mark`.
-
