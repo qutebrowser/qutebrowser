@@ -1644,6 +1644,8 @@ class CommandDispatcher:
         except webelem.Error as e:
             raise cmdexc.CommandError(str(e))
 
+        mainwindow.raise_window(objreg.last_focused_window(), alert=False)
+
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')
     def insert_text(self, text):
