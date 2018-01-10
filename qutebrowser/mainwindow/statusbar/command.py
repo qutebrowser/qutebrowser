@@ -267,7 +267,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def _exit_prefix(self, text):
-        if config.val.completion.exit_prefix and
-        (not text or text[0] not in self.prefixes):
+        if config.val.completion.exit_prefix and (not text or text[0] not in self.prefixes):
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'prefix deleted', maybe=True)
