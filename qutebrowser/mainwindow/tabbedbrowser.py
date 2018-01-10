@@ -649,6 +649,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
+        if self._now_focused is not None:
+            # save current input mode before switching tab
+            self._now_focused._input_mode = modeman.instance(self._win_id).mode
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
@@ -659,7 +662,8 @@ class TabbedBrowser(tabwidget.TabWidget):
                                usertypes.KeyMode.passthrough]
         for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
-
+            
+        modeman.enter(self._win_id, tab._input_mode, 'restore input mode for tab')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
