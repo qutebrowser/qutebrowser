@@ -740,11 +740,6 @@ completion.use_best_match:
   default: false
   desc: Execute the best-matching command on a partial match.
 
-completion.exit_prefix:
-  type: Bool
-  default: false
-  desc: Exit command mode if the prefix gets deleted.
-
 ## downloads
 
 downloads.location.directory:
@@ -2499,3 +2494,4 @@ bindings.commands:
 
     * register: Entered when qutebrowser is waiting for a register name/key for
       commands like `:set-mark`.
+

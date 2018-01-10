@@ -31,6 +31,7 @@ from qutebrowser.config import config
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
+
     """The commandline part of the statusbar.
 
     Attributes:
@@ -53,8 +54,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     update_completion = pyqtSignal()
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
-
-    prefixes = '/ : ?'
 
     def __init__(self, *, win_id, private, parent=None):
         misc.CommandLineEdit.__init__(self, parent=parent)
@@ -216,20 +215,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
 
-    def setText(self, text):
-        """Extend setText to set prefix and make sure the prompt is ok."""
-        if not text:
-            pass
-        elif text[0] in modeparsers.STARTCHARS:
-            if config.val.completion.exit_prefix:
-                super().set_prompt('')
-            else:
-                super().set_prompt(text[0])
-        else:
-            raise utils.Unreachable("setText got called with invalid text "
-                                    "'{}'!".format(text))
-        super().setText(text)
-
     def keyPressEvent(self, e):
         """Override keyPressEvent to ignore Return key presses.
 
@@ -267,6 +252,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def _exit_prefix(self, text):
-        if config.val.completion.exit_prefix and (not text or text[0] not in self.prefixes):
+        if not text:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'prefix deleted', maybe=True)
