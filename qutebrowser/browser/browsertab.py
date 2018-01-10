@@ -650,6 +650,7 @@ class AbstractTab(QWidget):
         # self.action = AbstractAction()
 
         self.data = TabData()
+        self._input_mode = usertypes.KeyMode.normal
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
         self._progress = 0
