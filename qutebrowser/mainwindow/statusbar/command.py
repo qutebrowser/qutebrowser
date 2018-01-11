@@ -68,7 +68,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
-        self.textChanged.connect(self._exit_prefix)
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -222,6 +221,17 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                                     "'{}'!".format(text))
         super().setText(text)
 
+    def setText(self, text):
+        """Extend setText to set prefix and make sure the prompt is ok."""
+        if not text:
+            pass
+        elif text[0] in modeparsers.STARTCHARS:
+            super().set_prompt(text[0])
+        else:
+            raise utils.Unreachable("setText got called with invalid text "
+                                    "'{}'!".format(text))
+        super().setText(text)
+
     def keyPressEvent(self, e):
         """Override keyPressEvent to ignore Return key presses.
 
@@ -229,6 +239,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
         without command_accept to be called.
         """
+        text = self.text()
+        if text in modeparsers.STARTCHARS and e.key() == Qt.Key_Backspace:
+            modeman.leave(self._win_id, usertypes.KeyMode.command,
+                          'prefix deleted')
+
         if e.key() == Qt.Key_Return:
             e.ignore()
             return
@@ -256,9 +271,3 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
         if self.prefix() in ['/', '?']:
             self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
-
-    @pyqtSlot(str)
-    def _exit_prefix(self, text):
-        if not text or text[0] not in modeparsers.STARTCHARS:
-            modeman.leave(self._win_id, usertypes.KeyMode.command,
-                          'prefix deleted', maybe=True)
