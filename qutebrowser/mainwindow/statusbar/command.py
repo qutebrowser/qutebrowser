@@ -213,14 +213,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.hide_cmd.emit()
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
-
-    def setText(self, text):
-        """Extend setText to make sure the prefix is valid."""
-        if text and text[0] not in modeparsers.STARTCHARS:
-            raise utils.Unreachable("setText got called with invalid text "
-                                    "'{}'!".format(text))
-        super().setText(text)
-
+       
     def setText(self, text):
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
