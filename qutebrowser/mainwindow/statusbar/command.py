@@ -213,7 +213,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.hide_cmd.emit()
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
-       
+
     def setText(self, text):
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
