@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+#
+# pstore.py
+# version: 1.3.1
+#
+# requires pass and gpg unix tools
+# author: Marc Jauvin <marcjauvin _at_ gmail _dot_ com>
+#
+# inspired from:
+#   password_fill by Thorsten Wißmann <edu _at_ thorsten-wissmann _dot_ de>
+#   qute-pass by Chris Braun (cryzed) <cryzed@googlemail.com>
+#
+
+import subprocess as sp
+import argparse, os, re, sys, urllib.parse, yaml
+
+from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QInputDialog, QFormLayout, QDialogButtonBox, QApplication, QVBoxLayout
+
+
+class InputDialog(QDialog):
+    def __init__(self):
+        self.app = QApplication(sys.argv)
+        super().__init__()
+
+    def choose_user(self, users):
+        qid = QInputDialog()
+        qid.setComboBoxItems(users)
+        qid.setWindowTitle("Choose Credential")
+        qid.setLabelText("Select Username")
+        if not qid.exec_():
+            return None
+        return qid.textValue()
+
+    def get_credentials(self):
+        self.username = QLineEdit()
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.Password)
+        self.setWindowTitle("Enter Credentials")
+        layout = QFormLayout()
+        layout.addRow(QLabel("Username:"), self.username)
+        layout.addRow(QLabel("Password:"), self.password)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
+        mainLayout = QVBoxLayout()
+        mainLayout.setSpacing(15)
+        mainLayout.addLayout(layout)
+        mainLayout.addWidget(buttonBox)
+        self.setLayout(mainLayout)
+        self.exec_()
+        return (self.username.text(), self.password.text())
+
+
+class PasswordStore(object):
+    fifo = sys.stderr
+    seperator = '\n'
+    def __init__(self):
+        if not 'QUTE_URL' in os.environ:
+            sys.stderr.write('QUTE_URL env var required')
+            sys.exit(1)
+        url = os.environ.get('QUTE_URL')
+        if not url.startswith('http'):
+            url = 'https://{}'.format(url)
+        self.site = urllib.parse.urlsplit(url).netloc.split(':')[0]
+        if 'QUTE_FIFO' in os.environ:
+            self.fifo = open(os.environ.get('QUTE_FIFO'), 'w')
+        self.load_credentials()
+
+    def shell(self, cmd, input=None):
+        obj = sp.Popen(cmd, shell=True, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
+        (out,err) = obj.communicate(input)
+        status = obj.wait()
+        return (out, err, status)
+
+    def send_cmd(self, data):
+        self.fifo.write(data + self.seperator)
+
+    def send_msg(self, msg, mtype='info'):
+        for line in msg.splitlines():
+            self.send_cmd('message-{} "pstore: {}"'.format(mtype, line))
+
+    def die(self, msg):
+        self.send_msg(msg, mtype='error')
+        sys.exit(0)
+
+    def load_credentials(self):
+        cmd = """pass show {}""".format(self.site)
+        data,err,status = self.shell(cmd)
+        self.credentials = {}
+        if not status:
+            self.credentials = yaml.load(data)
+        if not type(self.credentials) is dict:
+            self.credentials = {}
+
+    def save_credentials(self):
+        cmd = """pass insert -f -m {}""".format(self.site)
+        data = yaml.dump(self.credentials)
+        res,err,status = self.shell(cmd, input=data)
+        if status:
+            self.die(err)
+
+    def ask_credentials(self):
+        user,passwd = InputDialog().get_credentials()
+        if not (user or passwd):
+            self.die('no username/password was provided')
+        return (user,passwd)
+
+    def add_credentials(self):
+        user,passwd = self.ask_credentials()
+        self.credentials.update({user:passwd})
+        self.save_credentials()
+        return (user,passwd)
+
+    def choose_user(self):
+        users = sorted(self.credentials.keys())
+        user = InputDialog().choose_user(users)
+        if not user:
+            self.die('you must choose a user in the list')
+        return (user, self.credentials.get(user))
+
+    def get_credentials(self):
+        if opts.add or not self.credentials:
+            # no credentials exist yet or user requested to add more credentials for this site
+            self.send_msg('adding credentials for [{}]'.format(self.site))
+            user,passwd = self.add_credentials()
+        elif len(self.credentials) > 1:
+            # we already have multiple credentials for this site, ask user to choose
+            self.send_msg('found multiple credentials for [{}]'.format(self.site))
+            user,passwd = self.choose_user()
+        else:
+            # only one set of credentials exists
+            self.send_msg('found credentials for [{}]'.format(self.site))
+            user,passwd = self.credentials.popitem()
+        return (user,passwd)
+
+    def send_credentials(self, user, passwd):
+        self.send_cmd("enter-mode insert")
+        self.send_cmd("fake-key <ctrl-a>;; fake-key {};; fake-key <tab>".format(user))
+        self.send_cmd("fake-key {};; fake-key <return>".format(passwd))
+        self.send_cmd("leave-mode")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', '--add', action='store_true', help='ask credentials to add to existing site')
+    opts = parser.parse_args()
+
+    ps = PasswordStore()
+    user,passwd = ps.get_credentials()
+    ps.send_credentials(user,passwd)
+
