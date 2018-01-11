@@ -107,6 +107,8 @@ class TabData:
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
+    input_mode = usertypes.KeyMode.normal
+
 
 
 class AbstractAction:
@@ -650,7 +652,6 @@ class AbstractTab(QWidget):
         # self.action = AbstractAction()
 
         self.data = TabData()
-        self._input_mode = usertypes.KeyMode.normal
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
         self._progress = 0
