@@ -237,7 +237,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             e.accept()
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'prefix deleted')
-            return 
+            return
         if e.key() == Qt.Key_Return:
             e.ignore()
             return
