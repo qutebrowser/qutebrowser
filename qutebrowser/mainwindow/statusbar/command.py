@@ -26,7 +26,7 @@ from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg, message
+from qutebrowser.utils import usertypes, log, objreg, message, utils
 from qutebrowser.config import config
 
 
@@ -215,6 +215,13 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
 
+    def setText(self, text):
+        """Extend setText to make sure the prefix is valid."""
+        if text and text[0] not in modeparsers.STARTCHARS:
+            raise utils.Unreachable("setText got called with invalid text "
+                                    "'{}'!".format(text))
+        super().setText(text)
+
     def keyPressEvent(self, e):
         """Override keyPressEvent to ignore Return key presses.
 
@@ -252,6 +259,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @pyqtSlot(str)
     def _exit_prefix(self, text):
-        if not text:
+        if not text or text[0] not in modeparsers.STARTCHARS:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'prefix deleted', maybe=True)
