@@ -23,10 +23,12 @@ class InputDialog(QDialog):
         super().__init__()
 
     def choose_user(self, users):
-        item, ok = QInputDialog().getItem(self, "selection dialog", "select a username", users, 0, False)
-        if not ok:
+        qid = QInputDialog()
+        qid.setComboBoxItems(users)
+        qid.setLabelText("select a username")
+        if not qid.exec_():
             return None
-        return item
+        return qid.textValue()
 
     def get_credentials(self):
         self.username = QLineEdit()
