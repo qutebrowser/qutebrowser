@@ -37,7 +37,7 @@ from PyQt5.QtCore import QUrlQuery, QUrl
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils)
+                               objreg, urlutils, usertypes)
 from qutebrowser.misc import objects
 
 
@@ -421,6 +421,20 @@ def _qute_settings_set(url):
     except configexc.Error as e:
         message.error(str(e))
         return 'text/html', b'error: ' + str(e).encode('utf-8')
+
+
+@add_handler('bindings')
+def qute_bindings(url):
+    """Handler for qute://bindings View qute bindings."""
+
+    bindings = {}
+    html = ''
+    for mode in "normal hint command insert passthrough".split():
+        bindings[mode] = config.key_instance.get_bindings_for(mode)
+
+    html = jinja.render('bindings.html', title='bindings',
+                        bindings=bindings)
+    return 'text/html', html
 
 
 @add_handler('settings')
