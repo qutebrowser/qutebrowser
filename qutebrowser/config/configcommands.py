@@ -96,7 +96,8 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
-    def bind(self, key, command=None, *, mode='normal', default=False):
+    @cmdutils.argument('win_id', win_id=True)
+    def bind(self, win_id, key=None, command=None, *, mode='normal', default=False):
         """Bind a key to a command.
 
         Args:
@@ -108,6 +109,13 @@ class ConfigCommands:
                   available modes.
             default: If given, restore a default binding.
         """
+
+        if key is None:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.openurl(QUrl('qute://bindings'), newtab=True)
+            return
+
         if command is None:
             if default:
                 # :bind --default: Restore default
