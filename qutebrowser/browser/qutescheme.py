@@ -37,7 +37,7 @@ from PyQt5.QtCore import QUrlQuery, QUrl
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils, usertypes)
+                               objreg, urlutils)
 from qutebrowser.misc import objects
 
 
