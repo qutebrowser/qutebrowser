@@ -1251,10 +1251,15 @@ tabs.padding:
   type: Padding
   desc: Padding (in pixels) around text for tabs.
 
-tabs.persist_mode_on_change:
-  default: false
-  type: Bool
-  desc: Stay in insert/passthrough mode when switching tabs.
+tabs.mode_on_change:
+  default: normal
+  type:
+    name: String
+    valid_values:
+      - persist: "retain the current mode."
+      - restore: "restore previously saved mode"
+      - normal:  "always revert to normal mode"
+  desc: When switching tabs, what input mode is applied.
 
 tabs.position:
   default: top
