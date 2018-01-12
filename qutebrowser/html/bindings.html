@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block style %}
+html { margin:20px; }
+table { width:100%; border: 1px solid grey; border-collapse: collapse; margin:10px; }
+tr,td,p { margin:0; padding: 1px; }
+th, td { border: 1px solid grey; }
+th { background: lightgrey; }
+th pre { color: grey; text-align: left; }
+.key { width: 25%; }
+.command { width: 75% }
+{% endblock %}
+
+{% block content %}
+<header><h1>{{ title }}</h1></header>
+{% for mode, binding in bindings.items() %}
+<h2>Mode = {{ mode }}</h2>
+<table>
+    <tr>
+        <th>Key</th>
+        <th>Command</th>
+    </tr>
+  {% for key,command in binding.items() %}
+    <tr>
+      <td class="key">
+        <p>{{ key }}</p>
+      </td>
+      <td class="command">
+        <p>{{ command }}</p>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+
+{% endblock %}
