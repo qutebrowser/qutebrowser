@@ -107,6 +107,7 @@ class TabData:
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
+    input_mode = usertypes.KeyMode.normal
 
 
 class AbstractAction:
