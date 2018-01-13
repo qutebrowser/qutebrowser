@@ -110,6 +110,7 @@ Changed
   order, and mixed matches on URL/tite are possible.
 - The system's default encoding (rather than UTF-8) is now used to decode
   subprocess output.
+- qutebrowser now ensures it's focused again after an external editor is closed.
 
 Fixed
 ~~~~~
@@ -134,6 +135,7 @@ Fixed
 - Fix crash when a subprocess outputs data which is not decodable as UTF-8.
 - Fix crash when closing a tab immediately after hinting.
 - Worked around issues in Qt 5.10 with loading progress never being finished.
+- Fixed a crash when writing a flag before a command (e.g. `:-w open `).
 
 Deprecated
 ~~~~~~~~~~
