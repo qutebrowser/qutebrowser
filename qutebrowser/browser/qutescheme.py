@@ -423,20 +423,6 @@ def _qute_settings_set(url):
         return 'text/html', b'error: ' + str(e).encode('utf-8')
 
 
-@add_handler('bindings')
-def qute_bindings(url):
-    """Handler for qute://bindings View qute bindings."""
-
-    bindings = {}
-    html = ''
-    for mode in "normal hint command insert passthrough".split():
-        bindings[mode] = config.key_instance.get_bindings_for(mode)
-
-    html = jinja.render('bindings.html', title='Bindings',
-                        bindings=bindings)
-    return 'text/html', html
-
-
 @add_handler('settings')
 def qute_settings(url):
     """Handler for qute://settings. View/change qute configuration."""
@@ -446,6 +432,19 @@ def qute_settings(url):
     html = jinja.render('settings.html', title='settings',
                         configdata=configdata,
                         confget=config.instance.get_str)
+    return 'text/html', html
+
+
+@add_handler('bindings')
+def qute_bindings(url):
+    """Handler for qute://bindings View qute bindings."""
+
+    bindings = {}
+    for mode in "normal hint command insert passthrough".split():
+        bindings[mode] = config.key_instance.get_bindings_for(mode)
+
+    html = jinja.render('bindings.html', title='Bindings',
+                        bindings=bindings)
     return 'text/html', html
 
 
