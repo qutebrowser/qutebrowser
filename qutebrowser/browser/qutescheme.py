@@ -432,7 +432,7 @@ def qute_bindings(url):
     for mode in "normal hint command insert passthrough".split():
         bindings[mode] = config.key_instance.get_bindings_for(mode)
 
-    html = jinja.render('bindings.html', title='bindings',
+    html = jinja.render('bindings.html', title='Bindings',
                         bindings=bindings)
     return 'text/html', html
 
