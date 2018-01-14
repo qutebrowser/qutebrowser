@@ -651,6 +651,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         if self._now_focused and config.val.tabs.mode_on_change == 'restore':
             current_mode = modeman.instance(self._win_id).mode
+            # only save insert & passthrough mode. otherwise default to normal
             if not current_mode in (usertypes.KeyMode.insert,usertypes.KeyMode.passthrough):
                 current_mode = usertypes.KeyMode.normal
             self._now_focused.data.input_mode = current_mode
