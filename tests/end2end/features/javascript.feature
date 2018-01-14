@@ -90,6 +90,12 @@ Feature: Javascript stuff
         And I wait for "Sending fake click to *" in the log
         Then no crash should happen
 
+    Scenario: Clicking on form element with value child
+        When I open data/issue2569.html
+        And I run :click-element id valueform
+        And I wait for "Sending fake click to *" in the log
+        Then no crash should happen
+
     Scenario: Clicking on svg element
         When I open data/issue2569.html
         And I run :click-element id icon

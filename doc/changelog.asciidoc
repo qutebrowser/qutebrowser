@@ -136,6 +136,7 @@ Fixed
 - Fix crash when closing a tab immediately after hinting.
 - Worked around issues in Qt 5.10 with loading progress never being finished.
 - Fixed a crash when writing a flag before a command (e.g. `:-w open `).
+- Fixed a crash when clicking certain form elements with QtWebEngine.
 
 Deprecated
 ~~~~~~~~~~
