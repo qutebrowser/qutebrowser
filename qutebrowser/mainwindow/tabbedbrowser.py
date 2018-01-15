@@ -654,8 +654,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         if self._now_focused and config.val.tabs.mode_on_change == 'restore':
             current_mode = modeman.instance(self._win_id).mode
             # only save insert & passthrough mode. otherwise default to normal
-            input_modes = (usertypes.KeyMode.insert, usertypes.KeyMode.passthrough)
-            if current_mode not in input_modes:
+            modes = (usertypes.KeyMode.insert, usertypes.KeyMode.passthrough)
+            if current_mode not in modes:
                 current_mode = usertypes.KeyMode.normal
             self._now_focused.data.input_mode = current_mode
 
@@ -669,7 +669,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
         if config.val.tabs.mode_on_change == 'restore':
-            modeman.enter(self._win_id, tab.data.input_mode, 'restore input mode for tab')
+            modeman.enter(self._win_id, tab.data.input_mode,
+                          'restore input mode for tab')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
