@@ -1256,9 +1256,9 @@ tabs.mode_on_change:
   type:
     name: String
     valid_values:
-      - persist: "retain the current mode."
-      - restore: "restore previously saved mode"
-      - normal:  "always revert to normal mode"
+      - persist: "Retain the current mode."
+      - restore: "Restore previously saved mode."
+      - normal:  "Always revert to normal mode."
   desc: When switching tabs, what input mode is applied.
 
 tabs.position:
