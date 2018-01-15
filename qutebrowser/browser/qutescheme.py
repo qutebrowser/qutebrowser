@@ -438,8 +438,8 @@ def qute_settings(url):
 @add_handler('bindings')
 def qute_bindings(url):
     """Handler for qute://bindings View qute bindings."""
+    assert url
 
-    _url = url
     bindings = {}
     for mode in "normal hint command insert passthrough".split():
         bindings[mode] = config.key_instance.get_bindings_for(mode)
