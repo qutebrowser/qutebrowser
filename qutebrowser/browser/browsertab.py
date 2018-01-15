@@ -99,7 +99,7 @@ class TabData:
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
         fullscreen: Whether the tab has a video shown fullscreen currently.
-        input_mode: current input mode for the tab. (insert, passthrough, normal)
+        input_mode: current input mode for the tab.
     """
 
     keep_icon = attr.ib(False)
