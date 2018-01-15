@@ -97,7 +97,8 @@ class ConfigCommands:
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
     @cmdutils.argument('win_id', win_id=True)
-    def bind(self, win_id, key=None, command=None, *, mode='normal', default=False):
+    def bind(self, win_id, key=None, command=None, *, mode='normal',
+             default=False):
         """Bind a key to a command.
 
         Args:
