@@ -110,7 +110,6 @@ class ConfigCommands:
                   available modes.
             default: If given, restore a default binding.
         """
-
         if key is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
