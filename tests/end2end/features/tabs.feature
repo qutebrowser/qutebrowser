@@ -1183,7 +1183,7 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-next
         And I run :tab-only
-        And I wait for "*want to close a pinned tab*" in the log
+        And I wait for "*want to close pinned tabs*" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
@@ -1195,7 +1195,7 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-next
         And I run :tab-only
-        And I wait for "*want to close a pinned tab*" in the log
+        And I wait for "*want to close pinned tabs*" in the log
         And I run :prompt-accept no
         Then the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
