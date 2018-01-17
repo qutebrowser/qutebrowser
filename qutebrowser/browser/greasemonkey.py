@@ -201,7 +201,8 @@ class GreasemonkeyManager(QObject):
             # should be treated as a (ecma syntax) regular expression.
             string_url = url.toString(QUrl.FullyEncoded)
             if pattern.startswith('/') and pattern.endswith('/'):
-                return re.search(pattern[1:-1], string_url) is not None
+                matches = re.search(pattern[1:-1], string_url, flags=re.I)
+                return matches is not None
 
             # Otherwise they are glob expressions.
             return fnmatch.fnmatch(string_url, pattern)
