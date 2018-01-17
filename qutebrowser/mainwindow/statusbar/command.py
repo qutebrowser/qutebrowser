@@ -232,6 +232,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
         without command_accept to be called.
         """
+        text = self.text()
+        if text in modeparsers.STARTCHARS and e.key() == Qt.Key_Backspace:
+            e.accept()
+            modeman.leave(self._win_id, usertypes.KeyMode.command,
+                          'prefix deleted')
+            return
         if e.key() == Qt.Key_Return:
             e.ignore()
             return
