@@ -149,7 +149,8 @@ def run():
     source, dest = args.source, args.dest
     query = {
         'firefox': 'select url,title,last_visit_date/1000000 as date '
-                   'from moz_places',
+                   'from moz_places where url like "http%" or url '
+                   'like "ftp%" or url like "file://%"',
         'chrome': 'select url,title,last_visit_time/10000000 as date '
                   'from urls',
     }
