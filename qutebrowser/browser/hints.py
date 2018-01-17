@@ -390,10 +390,8 @@ class HintManager(QObject):
 
     def _cleanup(self):
         """Clean up after hinting."""
-        # pylint: disable=not-an-iterable
         for label in self._context.all_labels:
             label.cleanup()
-        # pylint: enable=not-an-iterable
 
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -621,8 +619,9 @@ class HintManager(QObject):
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
-    def start(self, rapid=False, group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None, add_history=False):
+    def start(self,  # pylint: disable=keyword-arg-before-vararg
+              group=webelem.Group.all, target=Target.normal,
+              *args, win_id, mode=None, add_history=False, rapid=False):
         """Start hinting.
 
         Args:
@@ -809,7 +808,6 @@ class HintManager(QObject):
         log.hints.debug("Filtering hints on {!r}".format(filterstr))
 
         visible = []
-        # pylint: disable=not-an-iterable
         for label in self._context.all_labels:
             try:
                 if self._filter_matches(filterstr, str(label.elem)):
@@ -821,7 +819,6 @@ class HintManager(QObject):
                     label.hide()
             except webelem.Error:
                 pass
-        # pylint: enable=not-an-iterable
 
         if not visible:
             # Whoops, filtered all hints

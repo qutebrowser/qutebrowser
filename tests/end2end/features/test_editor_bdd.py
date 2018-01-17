@@ -26,6 +26,8 @@ import signal
 import pytest_bdd as bdd
 bdd.scenarios('editor.feature')
 
+from qutebrowser.utils import utils
+
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor replacing "{text}" by '
                             '"{replacement}"'))
@@ -49,7 +51,7 @@ def set_up_editor_replacement(quteproc, server, tmpdir, text, replacement):
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor returning "{text}"'))
-def set_up_editor(quteproc, server, tmpdir, text):
+def set_up_editor(quteproc, tmpdir, text):
     """Set up editor.command to a small python script inserting a text."""
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
@@ -63,14 +65,15 @@ def set_up_editor(quteproc, server, tmpdir, text):
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor returning empty text'))
-def set_up_editor_empty(quteproc, server, tmpdir):
+def set_up_editor_empty(quteproc, tmpdir):
     """Set up editor.command to a small python script inserting empty text."""
-    set_up_editor(quteproc, server, tmpdir, "")
+    set_up_editor(quteproc, tmpdir, "")
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor that waits'))
-def set_up_editor_wait(quteproc, server, tmpdir):
+def set_up_editor_wait(quteproc, tmpdir):
     """Set up editor.command to a small python script inserting a text."""
+    assert not utils.is_windows
     pidfile = tmpdir / 'editor_pid'
     script = tmpdir / 'script.py'
     script.write(textwrap.dedent("""
@@ -90,7 +93,7 @@ def set_up_editor_wait(quteproc, server, tmpdir):
 
 
 @bdd.when(bdd.parsers.parse('I kill the waiting editor'))
-def kill_editor_wait(quteproc, server, tmpdir):
+def kill_editor_wait(tmpdir):
     """Kill the waiting editor."""
     pidfile = tmpdir / 'editor_pid'
     pid = int(pidfile.read())

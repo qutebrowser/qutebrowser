@@ -71,8 +71,8 @@ def _parse_file(test_name):
     allowed_keys = {'target', 'qtwebengine_todo'}
     if not set(data.keys()).issubset(allowed_keys):
         raise InvalidFile(test_name, "expected keys {} but found {}".format(
-                          ', '.join(allowed_keys),
-                          ', '.join(set(data.keys()))))
+            ', '.join(allowed_keys),
+            ', '.join(set(data.keys()))))
 
     if 'target' not in data:
         raise InvalidFile(test_name, "'target' key not found")
@@ -106,11 +106,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
         quteproc.set_setting('hints.find_implementation', find_implementation)
     quteproc.send_cmd(':zoom {}'.format(zoom_level))
     # follow hint
-    if 'button' in test_name:
-        # We are hinting buttons, link hinting will not work
-        quteproc.send_cmd(':hint all normal')
-    else:
-        quteproc.send_cmd(':hint links normal')
+    quteproc.send_cmd(':hint all normal')
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for_load_finished('data/' + parsed.target)

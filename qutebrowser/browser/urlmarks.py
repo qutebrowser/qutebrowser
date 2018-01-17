@@ -26,8 +26,8 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 """
 
 import os
-import html
 import os.path
+import html
 import functools
 import collections
 

@@ -95,7 +95,8 @@ LOGGER_NAMES = [
     'commands', 'signals', 'downloads',
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
-    'webelem', 'prompt', 'network', 'sql'
+    'webelem', 'prompt', 'network', 'sql',
+    'greasemonkey'
 ]
 
 
@@ -144,6 +145,7 @@ webelem = logging.getLogger('webelem')
 prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
 sql = logging.getLogger('sql')
+greasemonkey = logging.getLogger('greasemonkey')
 
 
 ram_handler = None
@@ -359,29 +361,29 @@ def qt_message_handler(msg_type, context, msg):
     suppressed_msgs = [
         # PNGs in Qt with broken color profile
         # https://bugreports.qt.io/browse/QTBUG-39788
-        'libpng warning: iCCP: Not recognizing known sRGB profile that has '
-            'been edited',  # noqa: E131
+        ('libpng warning: iCCP: Not recognizing known sRGB profile that has '
+         'been edited'),
         'libpng warning: iCCP: known incorrect sRGB profile',
         # Hopefully harmless warning
         'OpenType support missing for script ',
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
         # bug on some pages.
         # https://bugreports.qt.io/browse/QTBUG-30298
-        'QNetworkReplyImplPrivate::error: Internal problem, this method must '
-            'only be called once.',
+        ('QNetworkReplyImplPrivate::error: Internal problem, this method must '
+         'only be called once.'),
         # Sometimes indicates missing text, but most of the time harmless
         'load glyph failed ',
         # Harmless, see https://bugreports.qt.io/browse/QTBUG-42479
-        'content-type missing in HTTP POST, defaulting to '
-            'application/x-www-form-urlencoded. '
-            'Use QNetworkRequest::setHeader() to fix this problem.',
+        ('content-type missing in HTTP POST, defaulting to '
+         'application/x-www-form-urlencoded. '
+         'Use QNetworkRequest::setHeader() to fix this problem.'),
         # https://bugreports.qt.io/browse/QTBUG-43118
         'Using blocking call!',
         # Hopefully harmless
-        '"Method "GetAll" with signature "s" on interface '
-            '"org.freedesktop.DBus.Properties" doesn\'t exist',
-        '"Method \\"GetAll\\" with signature \\"s\\" on interface '
-            '\\"org.freedesktop.DBus.Properties\\" doesn\'t exist\\n"',
+        ('"Method "GetAll" with signature "s" on interface '
+         '"org.freedesktop.DBus.Properties" doesn\'t exist'),
+        ('"Method \\"GetAll\\" with signature \\"s\\" on interface '
+         '\\"org.freedesktop.DBus.Properties\\" doesn\'t exist\\n"'),
         'WOFF support requires QtWebKit to be built with zlib support.',
         # Weird Enlightment/GTK X extensions
         'QXcbWindow: Unhandled client message: "_E_',
@@ -390,21 +392,21 @@ def qt_message_handler(msg_type, context, msg):
         # Happens on AppVeyor CI
         'SetProcessDpiAwareness failed:',
         # https://bugreports.qt.io/browse/QTBUG-49174
-        'QObject::connect: Cannot connect (null)::stateChanged('
-            'QNetworkSession::State) to '
-            'QNetworkReplyHttpImpl::_q_networkSessionStateChanged('
-            'QNetworkSession::State)',
+        ('QObject::connect: Cannot connect (null)::stateChanged('
+         'QNetworkSession::State) to '
+         'QNetworkReplyHttpImpl::_q_networkSessionStateChanged('
+         'QNetworkSession::State)'),
         # https://bugreports.qt.io/browse/QTBUG-53989
-        "Image of format '' blocked because it is not considered safe. If you "
-            "are sure it is safe to do so, you can white-list the format by "
-            "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
+        ("Image of format '' blocked because it is not considered safe. If "
+         "you are sure it is safe to do so, you can white-list the format by "
+         "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST="),
         # Installing Qt from the installer may cause it looking for SSL3 or
         # OpenSSL 1.0 which may not be available on the system
         "QSslSocket: cannot resolve ",
         "QSslSocket: cannot call unresolved function ",
         # When enabling debugging with QtWebEngine
-        "Remote debugging server started successfully. Try pointing a "
-            "Chromium-based browser to ",
+        ("Remote debugging server started successfully. Try pointing a "
+         "Chromium-based browser to "),
         # https://github.com/qutebrowser/qutebrowser/issues/1287
         "QXcbClipboard: SelectionRequest too old",
         # https://github.com/qutebrowser/qutebrowser/issues/2071
@@ -418,8 +420,8 @@ def qt_message_handler(msg_type, context, msg):
         suppressed_msgs += [
             'libpng warning: iCCP: known incorrect sRGB profile',
             # https://bugreports.qt.io/browse/QTBUG-47154
-            'virtual void QSslSocketBackendPrivate::transmit() SSLRead failed '
-                'with: -9805',  # noqa: E131
+            ('virtual void QSslSocketBackendPrivate::transmit() SSLRead '
+             'failed with: -9805'),
         ]
 
     if not msg:

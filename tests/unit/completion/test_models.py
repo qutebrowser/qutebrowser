@@ -191,7 +191,8 @@ def web_history_populated(web_history):
 @pytest.fixture
 def info(config_stub, key_config_stub):
     return completer.CompletionInfo(config=config_stub,
-                                    keyconf=key_config_stub)
+                                    keyconf=key_config_stub,
+                                    win_id=0)
 
 
 def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
@@ -413,12 +414,12 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
     ('example.com', 'Site Title', 'am', 1),
     ('example.com', 'Site Title', 'com', 1),
     ('example.com', 'Site Title', 'ex com', 1),
-    ('example.com', 'Site Title', 'com ex', 0),
+    ('example.com', 'Site Title', 'com ex', 1),
     ('example.com', 'Site Title', 'ex foo', 0),
     ('example.com', 'Site Title', 'foo com', 0),
     ('example.com', 'Site Title', 'exm', 0),
     ('example.com', 'Site Title', 'Si Ti', 1),
-    ('example.com', 'Site Title', 'Ti Si', 0),
+    ('example.com', 'Site Title', 'Ti Si', 1),
     ('example.com', '', 'foo', 0),
     ('foo_bar', '', '_', 1),
     ('foobar', '', '_', 0),
@@ -581,7 +582,33 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
+def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
+                                 win_registry, tabbed_browser_stubs, info):
+    tabbed_browser_stubs[0].tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    info.win_id = 1
+    model = miscmodels.other_buffer(info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        '0': [
+            ('0/1', 'https://github.com', 'GitHub'),
+            ('0/2', 'https://wikipedia.org', 'Wikipedia'),
+            ('0/3', 'https://duckduckgo.com', 'DuckDuckGo')
+        ],
+    })
+
+
+def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
+                           info):
     tabbed_browser_stubs[0].tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
@@ -591,7 +618,8 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
     ]
 
-    model = miscmodels.window()
+    info.win_id = 1
+    model = miscmodels.window(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -599,8 +627,7 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs):
     _check_completions(model, {
         'Windows': [
             ('0', 'window title - qutebrowser',
-                'GitHub, Wikipedia, DuckDuckGo'),
-            ('1', 'window title - qutebrowser', 'ArchWiki')
+             'GitHub, Wikipedia, DuckDuckGo'),
         ]
     })
 
@@ -615,11 +642,11 @@ def test_setting_option_completion(qtmodeltester, config_stub,
     _check_completions(model, {
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
-            ('bindings.commands', 'Default keybindings',
+            ('bindings.commands', 'Default keybindings', (
                 '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit", '
-                '"I": "invalid", "d": "scroll down"}}'),
+                '"I": "invalid", "d": "scroll down"}}')),
             ('bindings.default', 'Default keybindings',
-                '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
+             '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
         ]
     })
 

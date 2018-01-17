@@ -138,10 +138,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
         self._painter.translate(text_rect.left(), text_rect.top())
         self._get_textdoc(index)
-        self._draw_textdoc(text_rect)
+        self._draw_textdoc(text_rect, index.column())
         self._painter.restore()
 
-    def _draw_textdoc(self, rect):
+    def _draw_textdoc(self, rect, col):
         """Draw the QTextDocument of an item.
 
         Args:
@@ -156,7 +156,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         elif not self._opt.state & QStyle.State_Enabled:
             color = config.val.colors.completion.category.fg
         else:
-            color = config.val.colors.completion.fg
+            colors = config.val.colors.completion.fg
+            # if multiple colors are set, use different colors per column
+            color = colors[col % len(colors)]
         self._painter.setPen(color)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()

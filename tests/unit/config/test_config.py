@@ -385,7 +385,7 @@ class TestConfig:
 
     def test_get(self, conf):
         """Test conf.get() with a QColor (where get/get_obj is different)."""
-        assert conf.get('colors.completion.fg') == QColor('white')
+        assert conf.get('colors.completion.category.fg') == QColor('white')
 
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
@@ -400,7 +400,7 @@ class TestConfig:
         assert not conf._mutables
 
     def test_get_obj_simple(self, conf):
-        assert conf.get_obj('colors.completion.fg') == 'white'
+        assert conf.get_obj('colors.completion.category.fg') == 'white'
 
     @pytest.mark.parametrize('option', ['content.headers.custom',
                                         'keyhint.blacklist',

@@ -99,12 +99,14 @@ window._qutebrowser.webelem = (function() {
 
         const out = {
             "id": id,
-            "value": elem.value,
-            "outer_xml": elem.outerHTML,
             "rects": [],  // Gets filled up later
             "caret_position": caret_position,
         };
+
+        // Deal with various fun things which can happen in form elements
         // https://github.com/qutebrowser/qutebrowser/issues/2569
+        // https://github.com/qutebrowser/qutebrowser/issues/2877
+        // https://stackoverflow.com/q/22942689/2085149
         if (typeof elem.tagName === "string") {
             out.tag_name = elem.tagName;
         } else if (typeof elem.nodeName === "string") {
@@ -118,6 +120,18 @@ window._qutebrowser.webelem = (function() {
         } else {
             // e.g. SVG elements
             out.class_name = "";
+        }
+
+        if (typeof elem.value === "string" || typeof elem.value === "number") {
+            out.value = elem.value;
+        } else {
+            out.value = "";
+        }
+
+        if (typeof elem.outerHTML === "string") {
+            out.outer_xml = elem.outerHTML;
+        } else {
+            out.outer_xml = "";
         }
 
         if (typeof elem.textContent === "string") {

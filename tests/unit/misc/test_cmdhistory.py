@@ -84,8 +84,7 @@ def test_start_no_items(hist):
 
 def test_getitem(hist):
     """Test __getitem__."""
-    for i in range(0, len(HISTORY)):
-        assert hist[i] == HISTORY[i]
+    assert hist[0] == HISTORY[0]
 
 
 def test_setitem(hist):

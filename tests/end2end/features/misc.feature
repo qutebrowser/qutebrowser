@@ -9,6 +9,13 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
+    Scenario: :set-cmd-text and :command-accept --rapid
+        When I run :set-cmd-text :message-info "Hello World"
+        And I run :command-accept --rapid
+        And I run :command-accept
+        Then the message "Hello World" should be shown
+        And the message "Hello World" should be shown
+
     Scenario: :set-cmd-text with two commands
         When I run :set-cmd-text :message-info test ;; message-error error
         And I run :command-accept
@@ -448,6 +455,11 @@ Feature: Various utility commands.
         When I open data/click_element.html
         And I run :click-element id qute-input
         Then "Entering mode KeyMode.insert (reason: clicking input)" should be logged
+
+    Scenario: Clicking an element by ID with dot
+        When I open data/click_element.html
+        And I run :click-element id foo.bar
+        Then the javascript message "id with dot" should be logged
 
     Scenario: Clicking an element with tab target
         When I open data/click_element.html

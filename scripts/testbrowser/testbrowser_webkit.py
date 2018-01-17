@@ -25,16 +25,8 @@ import argparse
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication
-
-try:
-    from PyQt5.QtWebKitWidgets import QWebView
-except ImportError:
-    QWebView = None
-
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
-except ImportError:
-    QWebEngineView = None
+from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebKitWidgets import QWebView
 
 
 def parse_args():
@@ -43,39 +35,19 @@ def parse_args():
     parser.add_argument('url', help='The URL to open')
     parser.add_argument('--plugins', '-p', help='Enable plugins',
                         default=False, action='store_true')
-    if QWebEngineView is not None:
-        parser.add_argument('--webengine', help='Use QtWebEngine',
-                            default=False, action='store_true')
     return parser.parse_known_args()[0]
 
 
 if __name__ == '__main__':
     args = parse_args()
     app = QApplication(sys.argv)
-
-    if QWebView is None and QWebEngineView is None:
-        print("Found no suitable backend to run with!")
-        sys.exit(1)
-    elif QWebView is None and not args.webengine:
-        print("Using QtWebEngine because QtWebKit is unavailable")
-        wv = QWebEngineView()
-        using_webengine = True
-    elif args.webengine:
-        if QWebEngineView is None:
-            print("Requested QtWebEngine, but it could not be imported!")
-            sys.exit(1)
-        wv = QWebEngineView()
-        using_webengine = True
-    else:
-        wv = QWebView()
-        using_webengine = False
+    wv = QWebView()
 
     wv.loadStarted.connect(lambda: print("Loading started"))
     wv.loadProgress.connect(lambda p: print("Loading progress: {}%".format(p)))
     wv.loadFinished.connect(lambda: print("Loading finished"))
 
-    if args.plugins and not using_webengine:
-        from PyQt5.QtWebKit import QWebSettings
+    if args.plugins:
         wv.settings().setAttribute(QWebSettings.PluginsEnabled, True)
 
     wv.load(QUrl.fromUserInput(args.url))

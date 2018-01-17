@@ -45,6 +45,10 @@ class FakeConfig:
         '--qute-delay': 0,
         '--color': True,
         '--verbose': False,
+        '--capture': None,
+    }
+    INI = {
+        'qt_log_ignore': [],
     }
 
     def __init__(self):
@@ -52,6 +56,9 @@ class FakeConfig:
 
     def getoption(self, name):
         return self.ARGS[name]
+
+    def getini(self, name):
+        return self.INI[name]
 
 
 class FakeNode:
@@ -222,8 +229,8 @@ def test_quteprocess_quitting(qtbot, quteproc_process):
         {'category': 'py.warnings'},
         id='resourcewarning'),
 ])
-def test_log_line_parse(data, attrs):
-    line = quteprocess.LogLine(data)
+def test_log_line_parse(pytestconfig, data, attrs):
+    line = quteprocess.LogLine(pytestconfig, data)
     for name, expected in attrs.items():
         actual = getattr(line, name)
         assert actual == expected, name
@@ -241,8 +248,8 @@ def test_log_line_parse(data, attrs):
     pytest.param(
         {'created': 86400, 'msecs': 0, 'levelname': 'DEBUG', 'name': 'foo',
          'module': 'bar', 'funcName': 'qux', 'lineno': 10, 'levelno': 10,
-         'message': 'quux', 'traceback': 'Traceback (most recent call '
-         'last):\n here be dragons'},
+         'message': 'quux', 'traceback': ('Traceback (most recent call '
+                                          'last):\n here be dragons')},
         False, False,
         '{timestamp} DEBUG    foo        bar:qux:10 quux\n'
         'Traceback (most recent call last):\n'
@@ -283,9 +290,10 @@ def test_log_line_parse(data, attrs):
         '\033[36mfoo        bar:qux:10\033[0m \033[37mquux\033[0m',
         id='expected error colorized'),
 ])
-def test_log_line_formatted(data, colorized, expect_error, expected):
+def test_log_line_formatted(pytestconfig,
+                            data, colorized, expect_error, expected):
     line = json.dumps(data)
-    record = quteprocess.LogLine(line)
+    record = quteprocess.LogLine(pytestconfig, line)
     record.expected = expect_error
     ts = datetime.datetime.fromtimestamp(data['created']).strftime('%H:%M:%S')
     ts += '.{:03.0f}'.format(data['msecs'])
@@ -293,9 +301,9 @@ def test_log_line_formatted(data, colorized, expect_error, expected):
     assert record.formatted_str(colorized=colorized) == expected
 
 
-def test_log_line_no_match():
+def test_log_line_no_match(pytestconfig):
     with pytest.raises(testprocess.InvalidLine):
-        quteprocess.LogLine("Hello World!")
+        quteprocess.LogLine(pytestconfig, "Hello World!")
 
 
 class TestClickElementByText:

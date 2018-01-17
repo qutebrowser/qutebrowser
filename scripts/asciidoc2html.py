@@ -66,6 +66,7 @@ class AsciiDoc:
             shutil.rmtree(self._homedir)
 
     def build(self):
+        """Build either the website or the docs."""
         if self._args.website:
             self._build_website()
         else:
@@ -85,9 +86,9 @@ class AsciiDoc:
         # patch image links to use local copy
         replacements = [
             ("https://qutebrowser.org/img/cheatsheet-big.png",
-                "qute://help/img/cheatsheet-big.png"),
+             "qute://help/img/cheatsheet-big.png"),
             ("https://qutebrowser.org/img/cheatsheet-small.png",
-                "qute://help/img/cheatsheet-small.png")
+             "qute://help/img/cheatsheet-small.png")
         ]
         asciidoc_args = ['-a', 'source-highlighter=pygments']
 
@@ -146,32 +147,33 @@ class AsciiDoc:
             last_line = ""
 
             for line in infp:
-                if line.strip() == '// QUTE_WEB_HIDE':
+                line = line.rstrip()
+                if line == '// QUTE_WEB_HIDE':
                     assert not hidden
                     hidden = True
-                elif line.strip() == '// QUTE_WEB_HIDE_END':
+                elif line == '// QUTE_WEB_HIDE_END':
                     assert hidden
                     hidden = False
-                elif line == "The Compiler <mail@qutebrowser.org>\n":
+                elif line == "The Compiler <mail@qutebrowser.org>":
                     continue
-                elif re.match(r'^:\w+:.*', line):
+                elif re.fullmatch(r':\w+:.*', line):
                     # asciidoc field
                     continue
 
                 if not found_title:
-                    if re.match(r'^=+$', line):
+                    if re.fullmatch(r'=+', line):
                         line = line.replace('=', '-')
                         found_title = True
-                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title = last_line + " | qutebrowser\n"
                         title += "=" * (len(title) - 1)
-                    elif re.match(r'^= .+', line):
+                    elif re.fullmatch(r'= .+', line):
                         line = '==' + line[1:]
                         found_title = True
-                        title = last_line.rstrip('\n') + " | qutebrowser\n"
+                        title = last_line + " | qutebrowser\n"
                         title += "=" * (len(title) - 1)
 
                 if not hidden:
-                    outfp.write(line.replace(".asciidoc[", ".html["))
+                    outfp.write(line.replace(".asciidoc[", ".html[") + '\n')
                     last_line = line
 
         current_lines = outfp.getvalue()
@@ -210,9 +212,8 @@ class AsciiDoc:
             shutil.copytree(src, full_dest)
 
         for dst, link_name in [
-            ('README.html', 'index.html'),
-            (os.path.join('doc', 'quickstart.html'), 'quickstart.html'),
-        ]:
+                ('README.html', 'index.html'),
+                (os.path.join('doc', 'quickstart.html'), 'quickstart.html')]:
             try:
                 os.symlink(dst, os.path.join(outdir, link_name))
             except FileExistsError:

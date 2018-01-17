@@ -54,6 +54,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<follow-selected,follow-selected>>|Follow the selected text.
 |<<forward,forward>>|Go forward in the history of the current tab.
 |<<fullscreen,fullscreen>>|Toggle fullscreen mode.
+|<<greasemonkey-reload,greasemonkey-reload>>|Re-read Greasemonkey scripts from disk.
 |<<help,help>>|Show help about a command or setting.
 |<<hint,hint>>|Start hinting.
 |<<history,history>>|Show browsing history.
@@ -333,11 +334,9 @@ Write the current configuration to a config.py file.
 
 [[download]]
 === download
-Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url'] ['dest-old']+
+Syntax: +:download [*--mhtml*] [*--dest* 'dest'] ['url']+
 
 Download a given URL, or current page if no URL given.
-
-The form `:download [url] [dest]` is deprecated, use `:download --dest [dest] [url]` instead.
 
 ==== positional arguments
 * +'url'+: The URL to download. If not given, download the current page.
@@ -491,6 +490,12 @@ Toggle fullscreen mode.
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
 
+[[greasemonkey-reload]]
+=== greasemonkey-reload
+Re-read Greasemonkey scripts from disk.
+
+The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
+
 [[help]]
 === help
 Syntax: +:help [*--tab*] [*--bg*] [*--window*] ['topic']+
@@ -511,7 +516,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--rapid*] [*--mode* 'mode'] [*--add-history*]
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*]
      ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
@@ -565,11 +570,6 @@ Start hinting.
 
 
 ==== optional arguments
-* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
- open multiple links. This is only possible with targets
- `tab` (with `tabs.background_tabs=true`), `tab-bg`,
- `window`, `run`, `hover`, `userscript` and `spawn`.
-
 * +*-m*+, +*--mode*+: The hinting mode to use. 
 
  - `number`: Use numeric hints.
@@ -580,6 +580,11 @@ Start hinting.
 
 
 * +*-a*+, +*--add-history*+: Whether to add the spawned or yanked link to the browsing history.
+
+* +*-r*+, +*--rapid*+: Whether to do rapid hinting. With rapid hinting, the hint mode isn't left after a hint is followed, so you can easily
+ open multiple links. This is only possible with targets
+ `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+ `window`, `run`, `hover`, `userscript` and `spawn`.
 
 
 ==== note
@@ -1083,7 +1088,7 @@ Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-win
 Save a session.
 
 ==== positional arguments
-* +'name'+: The name of the session. If not given, the session configured in session_default_name is saved.
+* +'name'+: The name of the session. If not given, the session configured in session.default_name is saved.
 
 
 ==== optional arguments
@@ -1141,7 +1146,7 @@ Set a mark at the current scroll position in the current tab.
 
 [[spawn]]
 === spawn
-Syntax: +:spawn [*--userscript*] [*--verbose*] [*--detach*] 'cmdline'+
+Syntax: +:spawn [*--userscript*] [*--verbose*] [*--output*] [*--detach*] 'cmdline'+
 
 Spawn a command in a shell.
 
@@ -1156,6 +1161,7 @@ Spawn a command in a shell.
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
+* +*-o*+, +*--output*+: Whether the output should be shown in a new tab.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
 ==== note
@@ -1415,7 +1421,12 @@ How many steps to zoom out.
 |==============
 [[command-accept]]
 === command-accept
+Syntax: +:command-accept [*--rapid*]+
+
 Execute the command currently in the commandline.
+
+==== optional arguments
+* +*-r*+, +*--rapid*+: Run the command without closing or clearing the command bar.
 
 [[command-history-next]]
 === command-history-next

@@ -35,6 +35,7 @@ class CompletionInfo:
 
     config = attr.ib()
     keyconf = attr.ib()
+    win_id = attr.ib()
 
 
 class Completer(QObject):
@@ -43,6 +44,7 @@ class Completer(QObject):
 
     Attributes:
         _cmd: The statusbar Command object this completer belongs to.
+        _win_id: The id of the window that owns this object.
         _timer: The timer used to trigger the completion update.
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
@@ -50,9 +52,10 @@ class Completer(QObject):
         _last_completion_func: The completion function used for the last text.
     """
 
-    def __init__(self, cmd, parent=None):
+    def __init__(self, *, cmd, win_id, parent=None):
         super().__init__(parent)
         self._cmd = cmd
+        self._win_id = win_id
         self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.setInterval(0)
@@ -84,8 +87,6 @@ class Completer(QObject):
             # cursor on a flag or after an explicit split (--)
             return None
         log.completion.debug("Before removing flags: {}".format(before_cursor))
-        before_cursor = [x for x in before_cursor if not x.startswith('-')]
-        log.completion.debug("After removing flags: {}".format(before_cursor))
         if not before_cursor:
             # '|' or 'set|'
             log.completion.debug('Starting command completion')
@@ -96,6 +97,9 @@ class Completer(QObject):
             log.completion.debug("No completion for unknown command: {}"
                                  .format(before_cursor[0]))
             return None
+
+        before_cursor = [x for x in before_cursor if not x.startswith('-')]
+        log.completion.debug("After removing flags: {}".format(before_cursor))
         argpos = len(before_cursor) - 1
         try:
             func = cmd.get_pos_arg_info(argpos).completion
@@ -131,9 +135,7 @@ class Completer(QObject):
             return [], '', []
         parser = runners.CommandParser()
         result = parser.parse(text, fallback=True, keep=True)
-        # pylint: disable=not-an-iterable
         parts = [x for x in result.cmdline if x]
-        # pylint: enable=not-an-iterable
         pos = self._cmd.cursorPosition() - len(self._cmd.prefix())
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
         log.completion.debug('partitioning {} around position {}'.format(parts,
@@ -152,8 +154,7 @@ class Completer(QObject):
                     "partitioned: {} '{}' {}".format(prefix, center, postfix))
                 return prefix, center, postfix
 
-        # We should always return above
-        assert False, parts
+        raise utils.Unreachable("Not all parts consumed: {}".format(parts))
 
     @pyqtSlot(str)
     def on_selection_changed(self, text):
@@ -206,7 +207,7 @@ class Completer(QObject):
             log.completion.debug("Ignoring update because the length of "
                                  "the text is less than completion.min_chars.")
         elif (self._cmd.cursorPosition() == self._last_cursor_pos and
-                self._cmd.text() == self._last_text):
+              self._cmd.text() == self._last_text):
             log.completion.debug("Ignoring update because there were no "
                                  "changes.")
         else:
@@ -247,10 +248,11 @@ class Completer(QObject):
         if func != self._last_completion_func:
             self._last_completion_func = func
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
-            with debug.log_time(log.completion,
-                    'Starting {} completion'.format(func.__name__)):
+            with debug.log_time(log.completion, 'Starting {} completion'
+                                .format(func.__name__)):
                 info = CompletionInfo(config=config.instance,
-                                      keyconf=config.key_instance)
+                                      keyconf=config.key_instance,
+                                      win_id=self._win_id)
                 model = func(*args, info=info)
             with debug.log_time(log.completion, 'Set completion model'):
                 completion.set_model(model)

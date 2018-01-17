@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 from qutebrowser.commands import runners, cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
-                               jinja, debug)
+                               jinja)
 from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
@@ -94,16 +94,19 @@ def get_window(via_ipc, force_window=False, force_tab=False,
     return window.win_id
 
 
-def raise_window(window):
+def raise_window(window, alert=True):
     """Raise the given MainWindow object."""
     window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
     window.activateWindow()
-    QApplication.instance().alert(window)
+
+    if alert:
+        QApplication.instance().alert(window)
 
 
-def get_target_window():
+# WORKAROUND for https://github.com/PyCQA/pylint/issues/1770
+def get_target_window():  # pylint: disable=inconsistent-return-statements
     """Get the target window for new tabs, or None if none exist."""
     try:
         win_mode = config.val.new_instance_open_target_window
@@ -131,7 +134,6 @@ class MainWindow(QWidget):
     Attributes:
         status: The StatusBar widget.
         tabbed_browser: The TabbedBrowser widget.
-        state_before_fullscreen: window state before activation of fullscreen.
         _downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
@@ -231,8 +233,6 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
 
-        self.state_before_fullscreen = self.windowState()
-
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
         if geometry is not None:
@@ -320,7 +320,8 @@ class MainWindow(QWidget):
     def _init_completion(self):
         self._completion = completionwidget.CompletionView(self.win_id, self)
         cmd = objreg.get('status-command', scope='window', window=self.win_id)
-        completer_obj = completer.Completer(cmd, self._completion)
+        completer_obj = completer.Completer(cmd=cmd, win_id=self.win_id,
+                                            parent=self._completion)
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
@@ -493,12 +494,9 @@ class MainWindow(QWidget):
     def _on_fullscreen_requested(self, on):
         if not config.val.content.windowed_fullscreen:
             if on:
-                self.state_before_fullscreen = self.windowState()
-                self.showFullScreen()
+                self.setWindowState(self.windowState() | Qt.WindowFullScreen)
             elif self.isFullScreen():
-                self.setWindowState(self.state_before_fullscreen)
-        log.misc.debug('on: {}, state before fullscreen: {}'.format(
-            on, debug.qflags_key(Qt, self.state_before_fullscreen)))
+                self.setWindowState(self.windowState() & ~Qt.WindowFullScreen)
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()

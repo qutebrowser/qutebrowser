@@ -65,7 +65,8 @@ def completer_obj(qtbot, status_command_stub, config_stub, monkeypatch, stubs,
     """Create the completer used for testing."""
     monkeypatch.setattr(completer, 'QTimer', stubs.InstaTimer)
     config_stub.val.completion.show = 'auto'
-    return completer.Completer(status_command_stub, completion_widget_stub)
+    return completer.Completer(cmd=status_command_stub, win_id=0,
+                               parent=completion_widget_stub)
 
 
 @pytest.fixture(autouse=True)
@@ -159,7 +160,7 @@ def _set_cmd_prompt(cmd, txt):
     (':set general editor |', 'value', '', ['general', 'editor']),
     (':set general editor gv|', 'value', 'gv', ['general', 'editor']),
     (':set general editor "gvim -f"|', 'value', 'gvim -f',
-        ['general', 'editor']),
+     ['general', 'editor']),
     (':set general editor "gvim |', 'value', 'gvim', ['general', 'editor']),
     (':set general huh |', 'value', '', ['general', 'huh']),
     (':help |', 'helptopic', '', []),
@@ -189,6 +190,7 @@ def _set_cmd_prompt(cmd, txt):
     (':gibberish nonesense |', None, '', []),
     ('/:help|', None, '', []),
     ('::bind|', 'command', ':bind', []),
+    (':-w open |', None, '', []),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub, config_stub,

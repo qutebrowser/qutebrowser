@@ -1,3 +1,15 @@
+# qutebrowser's way of using eslint is perhaps a bit untypical: We turn on *all*
+# the checks eslint has to offer, and then selectively disable/reconfigure the
+# ones which got in the way below.
+#
+# This makes eslint much stricter (which is good). However, it means you might
+# run into a case where you totally disagree with what it says, because some
+# check is not useful or desired for qutebrowser, but nobody did run into it
+# yet.
+#
+# In those cases, it's absolutely okay to modify this config as part of your PR.
+# See it as a way to fine-tune eslint rather than a rigid style guide.
+
 env:
     browser: true
 
@@ -21,7 +33,7 @@ rules:
      no-extra-parens: off
      id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
      object-shorthand: "off"
-     max-statements: ["error", {"max": 30}]
+     max-statements: ["error", {"max": 40}]
      quotes: ["error", "double", {"avoidEscape": true}]
      object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
      comma-dangle: ["error", "always-multiline"]

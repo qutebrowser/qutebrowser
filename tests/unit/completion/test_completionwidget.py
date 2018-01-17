@@ -82,9 +82,9 @@ def test_maybe_update_geometry(completionview, config_stub, qtbot):
     ('next', [['Aa'], ['Ba']], ['Aa', 'Ba', 'Aa']),
     ('prev', [['Aa'], ['Ba']], ['Ba', 'Aa', 'Ba']),
     ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
-        ['Aa', 'Ab', 'Ac', 'Ba', 'Bb', 'Ca', 'Aa']),
+     ['Aa', 'Ab', 'Ac', 'Ba', 'Bb', 'Ca', 'Aa']),
     ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
-        ['Ca', 'Bb', 'Ba', 'Ac', 'Ab', 'Aa', 'Ca']),
+     ['Ca', 'Bb', 'Ba', 'Ac', 'Ab', 'Aa', 'Ca']),
     ('next', [[], ['Ba', 'Bb']], ['Ba', 'Bb', 'Ba']),
     ('prev', [[], ['Ba', 'Bb']], ['Bb', 'Ba', 'Bb']),
     ('next', [[], [], ['Ca', 'Cb']], ['Ca', 'Cb', 'Ca']),
@@ -102,9 +102,9 @@ def test_maybe_update_geometry(completionview, config_stub, qtbot):
     ('next-category', [['Aa'], ['Ba']], ['Aa', 'Ba', 'Aa']),
     ('prev-category', [['Aa'], ['Ba']], ['Ba', 'Aa', 'Ba']),
     ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
-        ['Aa', 'Ba', 'Ca', 'Aa']),
+     ['Aa', 'Ba', 'Ca', 'Aa']),
     ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
-        ['Ca', 'Ba', 'Aa', 'Ca']),
+     ['Ca', 'Ba', 'Aa', 'Ca']),
     ('next-category', [[], ['Ba', 'Bb']], ['Ba', None, None]),
     ('prev-category', [[], ['Ba', 'Bb']], ['Ba', None, None]),
     ('next-category', [[], [], ['Ca', 'Cb']], ['Ca', None, None]),
@@ -170,8 +170,9 @@ def test_completion_item_focus_fetch(completionview, qtbot):
                   emitted.
     """
     model = completionmodel.CompletionModel()
-    cat = mock.Mock(spec=['layoutChanged', 'layoutAboutToBeChanged',
-        'canFetchMore', 'fetchMore', 'rowCount', 'index', 'data'])
+    cat = mock.Mock(spec=[
+        'layoutChanged', 'layoutAboutToBeChanged', 'canFetchMore',
+        'fetchMore', 'rowCount', 'index', 'data'])
     cat.canFetchMore = lambda *_: True
     cat.rowCount = lambda *_: 2
     cat.fetchMore = mock.Mock()

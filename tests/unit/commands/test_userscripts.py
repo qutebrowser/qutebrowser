@@ -64,6 +64,7 @@ def runner(request, runtime_tmpdir):
     if (not utils.is_posix and
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
+        raise utils.Unreachable
     else:
         return request.param()
 

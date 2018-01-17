@@ -136,7 +136,7 @@ class YamlConfig(QObject):
             with open(self._filename, 'r', encoding='utf-8') as f:
                 yaml_data = utils.yaml_load(f)
         except FileNotFoundError:
-            return {}
+            return
         except OSError as e:
             desc = configexc.ConfigErrorDesc("While reading", e)
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])

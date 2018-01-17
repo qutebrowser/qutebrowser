@@ -50,7 +50,7 @@ msg() {
 MPV_COMMAND=${MPV_COMMAND:-mpv}
 # Warning: spaces in single flags are not supported
 MPV_FLAGS=${MPV_FLAGS:- --force-window --no-terminal --keep-open=yes --ytdl --ytdl-raw-options=yes-playlist=}
-video_command=( "$MPV_COMMAND"  $MPV_FLAGS )
+IFS=" " read -r -a video_command <<< "$MPV_COMMAND $MPV_FLAGS"
 
 js() {
 cat <<EOF

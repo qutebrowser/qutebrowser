@@ -19,9 +19,9 @@
 
 import pytest
 
-from qutebrowser.utils import usertypes
-
 from PyQt5.QtCore import Qt, QObject, pyqtSignal
+
+from qutebrowser.utils import usertypes
 
 
 class FakeKeyparser(QObject):

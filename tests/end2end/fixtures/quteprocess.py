@@ -20,10 +20,10 @@
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
 import os
+import os.path
 import re
 import sys
 import time
-import os.path
 import datetime
 import logging
 import tempfile
@@ -36,7 +36,7 @@ import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl, qVersion
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript
+from qutebrowser.utils import log, utils, javascript, qtutils
 from helpers import utils as testutils
 from end2end.fixtures import testprocess
 
@@ -44,11 +44,11 @@ from end2end.fixtures import testprocess
 instance_counter = itertools.count()
 
 
-def is_ignored_qt_message(message):
+def is_ignored_qt_message(pytestconfig, message):
     """Check if the message is listed in qt_log_ignore."""
-    regexes = pytest.config.getini('qt_log_ignore')
+    regexes = pytestconfig.getini('qt_log_ignore')
     for regex in regexes:
-        if re.match(regex, message):
+        if re.search(regex, message):
             return True
     return False
 
@@ -154,7 +154,7 @@ def is_ignored_chromium_message(line):
         'Invalid node channel message *',
         # Makes tests fail on Quantumcross' machine
         ('CreatePlatformSocket() returned an error, errno=97: Address family'
-            'not supported by protocol'),
+         'not supported by protocol'),
 
         # Qt 5.9 with debug Chromium
 
@@ -169,7 +169,7 @@ def is_ignored_chromium_message(line):
         # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/
         # downloads/download.bin: Operation not supported
         ('Could not set extended attribute user.xdg.* on file *: '
-            'Operation not supported'),
+         'Operation not supported'),
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
@@ -207,7 +207,7 @@ class LogLine(testprocess.Line):
         expected: Whether the message was expected or not.
     """
 
-    def __init__(self, data):
+    def __init__(self, pytestconfig, data):
         super().__init__(data)
         try:
             line = json.loads(data)
@@ -229,7 +229,7 @@ class LogLine(testprocess.Line):
         self.traceback = line.get('traceback')
         self.message = line['message']
 
-        self.expected = is_ignored_qt_message(self.message)
+        self.expected = is_ignored_qt_message(pytestconfig, self.message)
         self.use_color = False
 
     def __str__(self):
@@ -299,14 +299,13 @@ class QuteProc(testprocess.Process):
             'message']
 
     def __init__(self, request, *, parent=None):
-        super().__init__(parent)
+        super().__init__(request, parent)
         self._ipc_socket = None
         self.basedir = None
         self._focus_ready = False
         self._load_ready = False
         self._instance_id = next(instance_counter)
         self._run_counter = itertools.count()
-        self.request = request
 
     def _is_ready(self, what):
         """Called by _parse_line if loading/focusing is done.
@@ -357,9 +356,10 @@ class QuteProc(testprocess.Process):
             if not self._load_ready:
                 log_line.waited_for = True
             self._is_ready('load')
-        elif log_line.category == 'misc' and any(testutils.pattern_match(
-                pattern=pattern, value=log_line.message) for pattern in
-                start_okay_messages_focus):
+        elif (log_line.category == 'misc' and any(
+                testutils.pattern_match(pattern=pattern,
+                                        value=log_line.message)
+                for pattern in start_okay_messages_focus)):
             self._is_ready('focus')
         elif (log_line.category == 'init' and
               log_line.module == 'standarddir' and
@@ -371,11 +371,11 @@ class QuteProc(testprocess.Process):
 
     def _parse_line(self, line):
         try:
-            log_line = LogLine(line)
+            log_line = LogLine(self.request.config, line)
         except testprocess.InvalidLine:
             if not line.strip():
                 return None
-            elif (is_ignored_qt_message(line) or
+            elif (is_ignored_qt_message(self.request.config, line) or
                   is_ignored_lowlevel_message(line) or
                   is_ignored_chromium_message(line) or
                   self.request.node.get_marker('no_invalid_lines')):
@@ -527,6 +527,7 @@ class QuteProc(testprocess.Process):
         super().before_test()
         self.send_cmd(':config-clear')
         self._init_settings()
+        self.clear_data()
 
     def _init_settings(self):
         """Adjust some qutebrowser settings after starting."""
@@ -687,9 +688,12 @@ class QuteProc(testprocess.Process):
             raise ValueError("Invalid URL {}: {}".format(url,
                                                          qurl.errorString()))
 
-        if qurl == QUrl('about:blank'):
+        if (qurl == QUrl('about:blank') and
+                not qtutils.version_check('5.10', compiled=False)):
             # For some reason, we don't get a LoadStatus.success for
             # about:blank sometimes.
+            # However, if we do this for Qt 5.10, we get general testsuite
+            # instability as site loads get reported with about:blank...
             pattern = "Changing title for idx * to 'about:blank'"
         else:
             # We really need the same representation that the webview uses in

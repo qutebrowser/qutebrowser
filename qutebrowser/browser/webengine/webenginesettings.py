@@ -244,6 +244,43 @@ def _init_profiles():
         private_profile.setSpellCheckEnabled(True)
 
 
+def inject_userscripts():
+    """Register user JavaScript files with the global profiles."""
+    # The Greasemonkey metadata block support in QtWebEngine only starts at
+    # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in response
+    # to urlChanged.
+    if not qtutils.version_check('5.8'):
+        return
+
+    # Since we are inserting scripts into profile.scripts they won't
+    # just get replaced by new gm scripts like if we were injecting them
+    # ourselves so we need to remove all gm scripts, while not removing
+    # any other stuff that might have been added. Like the one for
+    # stylesheets.
+    greasemonkey = objreg.get('greasemonkey')
+    for profile in [default_profile, private_profile]:
+        scripts = profile.scripts()
+        for script in scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = scripts.remove(script)
+                assert removed, script.name()
+
+        # Then add the new scripts.
+        for script in greasemonkey.all_scripts():
+            # @run-at (and @include/@exclude/@match) is parsed by
+            # QWebEngineScript.
+            new_script = QWebEngineScript()
+            new_script.setWorldId(QWebEngineScript.MainWorld)
+            new_script.setSourceCode(script.code())
+            new_script.setName("GM-{}".format(script.name))
+            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            log.greasemonkey.debug('adding script: {}'
+                                   .format(new_script.name()))
+            scripts.insert(new_script)
+
+
 def init(args):
     """Initialize the global QWebSettings."""
     if args.enable_webengine_inspector:

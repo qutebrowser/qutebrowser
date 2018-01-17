@@ -21,10 +21,10 @@
 """Tester for Qt segfaults with different harfbuzz engines."""
 
 import os
+import os.path
 import signal
 import sys
 import subprocess
-import os.path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))

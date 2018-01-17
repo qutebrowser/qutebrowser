@@ -20,12 +20,12 @@
 """Other utilities which don't fit anywhere else."""
 
 import os
+import os.path
 import io
 import re
 import sys
 import enum
 import json
-import os.path
 import collections
 import datetime
 import traceback
@@ -58,6 +58,11 @@ is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
 is_windows = sys.platform.startswith('win')
 is_posix = os.name == 'posix'
+
+
+class Unreachable(Exception):
+
+    """Raised when there was unreachable code."""
 
 
 class ClipboardError(Exception):
@@ -631,6 +636,7 @@ class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            """Call the original function."""
             try:
                 return func(*args, **kwargs)
             except BaseException:
@@ -869,7 +875,7 @@ def expand_windows_drive(path):
     # E:\. The correct way to specifify drive E: is "E:\", but most users
     # probably don't use the "multiple working directories" feature and expect
     # "E:" and "E:\" to be equal.
-    if re.match(r'[A-Z]:$', path, re.IGNORECASE):
+    if re.fullmatch(r'[A-Z]:', path, re.IGNORECASE):
         return path + "\\"
     else:
         return path

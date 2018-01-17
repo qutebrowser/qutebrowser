@@ -25,8 +25,8 @@ https://bitbucket.org/logilab/pylint/issue/512/
 """
 
 import os
-import sys
 import os.path
+import sys
 import subprocess
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
@@ -49,12 +49,12 @@ def main():
                 files.append(os.path.join(dirpath, fn))
 
     disabled = [
+        # pytest fixtures
         'redefined-outer-name',
         'unused-argument',
+        # things which are okay in tests
         'missing-docstring',
         'protected-access',
-        # https://bitbucket.org/logilab/pylint/issue/511/
-        #'undefined-variable',
         'len-as-condition',
         # directories without __init__.py...
         'import-error',
@@ -65,9 +65,7 @@ def main():
         toxinidir,
     ]
 
-    no_docstring_rgx = ['^__.*__$', '^setup$']
     args = (['--disable={}'.format(','.join(disabled)),
-             '--no-docstring-rgx=({})'.format('|'.join(no_docstring_rgx)),
              '--ignored-modules=helpers,pytest,PyQt5'] +
             sys.argv[2:] + files)
     env = os.environ.copy()

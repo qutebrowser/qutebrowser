@@ -4,10 +4,9 @@ coverage
 Flask
 hunter
 hypothesis
-pytest
+pytest==3.3.1
 pytest-bdd
 pytest-benchmark
-pytest-catchlog
 pytest-cov
 pytest-faulthandler
 pytest-instafail
@@ -20,3 +19,4 @@ pytest-xvfb
 vulture
 
 #@ ignore: Jinja2, MarkupSafe, colorama
+#@ filter: pytest != 3.3.2

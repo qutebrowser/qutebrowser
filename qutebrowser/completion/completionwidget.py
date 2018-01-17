@@ -23,7 +23,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QStyle, QTreeView, QSizePolicy, QStyleFactory
+from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config
@@ -152,12 +152,12 @@ class CompletionView(QTreeView):
         column_widths = self.model().column_widths
         pixel_widths = [(width * perc // 100) for perc in column_widths]
 
-        if self.verticalScrollBar().isVisible():
-            delta = self.style().pixelMetric(QStyle.PM_ScrollBarExtent) + 5
-            if pixel_widths[-1] > delta:
-                pixel_widths[-1] -= delta
-            else:
-                pixel_widths[-2] -= delta
+        delta = self.verticalScrollBar().sizeHint().width()
+        if pixel_widths[-1] > delta:
+            pixel_widths[-1] -= delta
+        else:
+            pixel_widths[-2] -= delta
+
         for i, w in enumerate(pixel_widths):
             assert w >= 0, i
             self.setColumnWidth(i, w)
@@ -180,6 +180,7 @@ class CompletionView(QTreeView):
                 return self.model().last_item()
             else:
                 return self.model().first_item()
+
         while True:
             idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
@@ -192,6 +193,8 @@ class CompletionView(QTreeView):
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
+
+        raise utils.Unreachable
 
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
@@ -221,6 +224,8 @@ class CompletionView(QTreeView):
                 # scroll to ensure the category is visible
                 self.scrollTo(idx)
                 return idx.child(0, 0)
+
+        raise utils.Unreachable
 
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')

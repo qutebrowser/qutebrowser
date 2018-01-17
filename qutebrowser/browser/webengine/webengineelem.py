@@ -211,11 +211,11 @@ class WebEngineElement(webelem.AbstractWebElement):
     def _click_js(self, _click_target):
         # FIXME:qtwebengine Have a proper API for this
         # pylint: disable=protected-access
-        settings = self._tab._widget.settings()
+        view = self._tab._widget
         # pylint: enable=protected-access
         attribute = QWebEngineSettings.JavascriptCanOpenWindows
-        could_open_windows = settings.testAttribute(attribute)
-        settings.setAttribute(attribute, True)
+        could_open_windows = view.settings().testAttribute(attribute)
+        view.settings().setAttribute(attribute, True)
 
         # Get QtWebEngine do apply the settings
         # (it does so with a 0ms QTimer...)
@@ -226,6 +226,12 @@ class WebEngineElement(webelem.AbstractWebElement):
                            QEventLoop.ExcludeUserInputEvents)
 
         def reset_setting(_arg):
-            settings.setAttribute(attribute, could_open_windows)
+            """Set the JavascriptCanOpenWindows setting to its old value."""
+            try:
+                view.settings().setAttribute(attribute, could_open_windows)
+            except RuntimeError:
+                # Happens if this callback gets called during QWebEnginePage
+                # destruction, i.e. if the tab was closed in the meantime.
+                pass
 
         self._js_call('click', callback=reset_setting)

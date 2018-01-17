@@ -19,6 +19,7 @@
 
 """Wrapper over our (QtWebKit) WebView."""
 
+import re
 import functools
 import xml.etree.ElementTree
 
@@ -541,10 +542,15 @@ class WebKitElements(browsertab.AbstractElements):
 
     def find_id(self, elem_id, callback):
         def find_id_cb(elems):
+            """Call the real callback with the found elements."""
             if not elems:
                 callback(None)
             else:
                 callback(elems[0])
+
+        # Escape non-alphanumeric characters in the selector
+        # https://www.w3.org/TR/CSS2/syndata.html#value-def-identifier
+        elem_id = re.sub(r'[^a-zA-Z0-9_-]', r'\\\g<0>', elem_id)
         self.find_css('#' + elem_id, find_id_cb)
 
     def find_focused(self, callback):

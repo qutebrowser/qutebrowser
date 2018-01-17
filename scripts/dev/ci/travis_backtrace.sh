@@ -6,7 +6,7 @@
 
 case $TESTENV in
     py3*-pyqt*)
-        exe=$(readlink -f .tox/$TESTENV/bin/python)
+        exe=$(readlink -f ".tox/$TESTENV/bin/python")
         full=
         ;;
     *)
@@ -15,4 +15,4 @@ case $TESTENV in
         ;;
 esac
 
-find . -name *.core -o -name core -exec gdb --batch --quiet -ex "thread apply all bt $full" "$exe" {} \;
+find . \( -name "*.core" -o -name core \) -exec gdb --batch --quiet -ex "thread apply all bt $full" "$exe" {} \;

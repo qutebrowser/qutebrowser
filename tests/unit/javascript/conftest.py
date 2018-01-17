@@ -27,11 +27,6 @@ import pytest
 import jinja2
 
 from PyQt5.QtCore import QUrl
-
-import helpers.utils
-import qutebrowser.utils.debug
-from qutebrowser.utils import utils
-
 try:
     from PyQt5.QtWebKit import QWebSettings
     from PyQt5.QtWebKitWidgets import QWebPage
@@ -48,6 +43,10 @@ except ImportError:
     QWebEnginePage = None
     QWebEngineSettings = None
     QWebEngineScript = None
+
+import helpers.utils
+import qutebrowser.utils.debug
+from qutebrowser.utils import utils
 
 
 if QWebPage is None:
