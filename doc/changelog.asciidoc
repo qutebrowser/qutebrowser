@@ -27,6 +27,11 @@ Changed
 - Angular 1 elements now get hints assigned.
 - `:tab-only` with pinned tabs now still closes unpinned tabs.
 
+Fixed
+~~~~~
+
+- Improved fullscreen handling with Qt 5.10.
+
 v1.1.1 (unreleased)
 -------------------
 
