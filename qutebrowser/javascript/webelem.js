@@ -285,10 +285,10 @@ window._qutebrowser.webelem = (function() {
         const frame_elem = call_if_frame(elem,
             (frame) => serialize_elem(frame.document.activeElement, frame));
 
-        if (frame_elem === null) {
-            return serialize_elem(elem);
+        if (frame_elem !== null) {
+            return frame_elem;
         }
-        return frame_elem;
+        return serialize_elem(elem);
     };
 
     funcs.find_at_pos = (x, y) => {
@@ -306,10 +306,10 @@ window._qutebrowser.webelem = (function() {
                         y - frame_offset_rect.top), frame);
             });
 
-        if (frame_elem === null) {
-            return serialize_elem(elem);
+        if (frame_elem !== null) {
+            return frame_elem;
         }
-        return frame_elem;
+        return serialize_elem(elem);
     };
 
     // Function for returning a selection to python (so we can click it)
