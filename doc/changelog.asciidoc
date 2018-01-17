@@ -23,6 +23,7 @@ Changed
 
 - The `hist_importer.py` script now only imports URL schemes qutebrowser can
   handle.
+- Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
 
 v1.1.1 (unreleased)
 -------------------
