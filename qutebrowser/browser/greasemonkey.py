@@ -199,7 +199,8 @@ class GreasemonkeyManager(QObject):
         def _match(pattern):
             display_url = url.toString(QUrl.FullyEncoded)
             if pattern.startswith('/') and pattern.endswith('/'):
-                return re.search(pattern[1:-1], display_url) is not None
+                matches = re.search(pattern[1:-1], display_url, flags=re.I)
+                return matches is not None
             return fnmatch.fnmatch(display_url, pattern)
 
         tester = (lambda script:
