@@ -14,18 +14,18 @@ var inputs = document.getElementsByTagName("input");
 var types = /text|password|date|email|month|number|range|search|tel|time|url|week/;
 var hidden = /hidden/;
 var found = false;
-var ii = 0;
-var jj = 0;
+var i = 0;
+var k = 0;
 
 function ishidden(el) {
     return hidden.test(el.attributes.value) || el.offsetParent === null;
 }
 
-for (ii = 0; ii < inputs.length; ii++) {
-    if (inputs[ii] === document.activeElement) {
-        for (jj = ii + 1; jj < inputs.length; jj++) {
-            if (!ishidden(inputs[jj]) && types.test(inputs[jj].type)) {
-                inputs[jj].focus();
+for (i = 0; i < inputs.length; i++) {
+    if (inputs[i] === document.activeElement) {
+        for (k = i + 1; k < inputs.length; k++) {
+            if (!ishidden(inputs[k]) && types.test(inputs[k].type)) {
+                inputs[k].focus();
                 found = true;
                 break;
             }
@@ -35,9 +35,9 @@ for (ii = 0; ii < inputs.length; ii++) {
 }
 
 if (!found) {
-    for (ii = 0; ii < inputs.length; ii++) {
-        if (!ishidden(inputs[ii]) && types.test(inputs[ii].type)) {
-            inputs[ii].focus();
+    for (i = 0; i < inputs.length; i++) {
+        if (!ishidden(inputs[i]) && types.test(inputs[i].type)) {
+            inputs[i].focus();
             break;
         }
     }
