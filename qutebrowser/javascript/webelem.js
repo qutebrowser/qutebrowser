@@ -264,13 +264,10 @@ window._qutebrowser.webelem = (function() {
     // Check if elem is an iframe, and if so, return the result of func on it.
     // If no iframes match, return null
     function call_if_frame(elem, func) {
-        for (let i = 0; i < window.frames.length; ++i) {
-            const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
-                if (frame.frameElement === elem) {
-                    return func(frame);
-                }
-            }
+        const frame = elem.contentWindow;
+        // Check if elem is a frame, and if so, call func on the window
+        if (frame && iframe_same_domain(frame) && frame.frameElement) {
+            return func(frame);
         }
         return null;
     }
