@@ -436,12 +436,12 @@ def qute_settings(url):
 
 
 @add_handler('bindings')
-def qute_bindings(url):
-    """Handler for qute://bindings View qute bindings."""
-    assert url
-
+def qute_bindings(_url):
+    """Handler for qute://bindings. View keybindings."""
     bindings = {}
-    for mode in "normal hint command insert passthrough".split():
+    defaults = config.val.bindings.default
+    modes = set(defaults.keys()).union(config.val.bindings.commands)
+    for mode in modes:
         bindings[mode] = config.key_instance.get_bindings_for(mode)
 
     html = jinja.render('bindings.html', title='Bindings',
