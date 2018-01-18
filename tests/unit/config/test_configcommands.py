@@ -429,6 +429,16 @@ class TestBind:
         """Get a dict with no bindings."""
         return {'normal': {}}
 
+    def test_bind_no_args(self, commands, config_stub, no_bindings,
+                          tabbed_browser_stubs):
+        """Run ':bind'.
+
+        Should open qute://bindings."""
+        config_stub.val.bindings.default = no_bindings
+        config_stub.val.bindings.commands = no_bindings
+        commands.bind(win_id=0)
+        assert tabbed_browser_stubs[0].opened_url == QUrl('qute://bindings')
+
     @pytest.mark.parametrize('command', ['nop', 'nope'])
     def test_bind(self, commands, config_stub, no_bindings, key_config_stub,
                   command):
@@ -437,7 +447,7 @@ class TestBind:
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
 
-        commands.bind('a', command)
+        commands.bind(0, 'a', command)
         assert key_config_stub.get_command('a', 'normal') == command
         yaml_bindings = config_stub._yaml['bindings.commands']['normal']
         assert yaml_bindings['a'] == command
@@ -474,7 +484,7 @@ class TestBind:
             'normal': {'c': 'message-info c'}
         }
 
-        commands.bind(key, mode=mode)
+        commands.bind(0, key, mode=mode)
 
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == expected
@@ -486,7 +496,7 @@ class TestBind:
         """
         with pytest.raises(cmdexc.CommandError,
                            match='Invalid mode wrongmode!'):
-            commands.bind('a', 'nop', mode='wrongmode')
+            commands.bind(0, 'a', 'nop', mode='wrongmode')
 
     def test_bind_print_invalid_mode(self, commands):
         """Run ':bind --mode=wrongmode a'.
@@ -495,7 +505,7 @@ class TestBind:
         """
         with pytest.raises(cmdexc.CommandError,
                            match='Invalid mode wrongmode!'):
-            commands.bind('a', mode='wrongmode')
+            commands.bind(0, 'a', mode='wrongmode')
 
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
     def test_bind_duplicate(self, commands, config_stub, key_config_stub, key):
@@ -510,12 +520,12 @@ class TestBind:
             'normal': {'b': 'nop'},
         }
 
-        commands.bind(key, 'message-info foo', mode='normal')
+        commands.bind(0, key, 'message-info foo', mode='normal')
         assert key_config_stub.get_command(key, 'normal') == 'message-info foo'
 
     def test_bind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
-        commands.bind(',x', 'nop')
+        commands.bind(0, ',x', 'nop')
 
     def test_bind_default(self, commands, key_config_stub, config_stub):
         """Bind a key to its default."""
@@ -525,7 +535,7 @@ class TestBind:
         config_stub.val.bindings.commands = {'normal': {'a': bound_cmd}}
         assert key_config_stub.get_command('a', mode='normal') == bound_cmd
 
-        commands.bind('a', mode='normal', default=True)
+        commands.bind(0, 'a', mode='normal', default=True)
 
         assert key_config_stub.get_command('a', mode='normal') == default_cmd
 
@@ -539,7 +549,7 @@ class TestBind:
         Should show an error.
         """
         with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.bind(key, mode=mode, default=True)
+            commands.bind(0, key, mode=mode, default=True)
 
     def test_unbind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -563,7 +573,7 @@ class TestBind:
         }
         if key == 'c':
             # Test :bind and :unbind
-            commands.bind(key, 'nop')
+            commands.bind(0, key, 'nop')
 
         commands.unbind(key)
         assert key_config_stub.get_command(key, 'normal') is None

@@ -435,6 +435,22 @@ def qute_settings(url):
     return 'text/html', html
 
 
+@add_handler('bindings')
+def qute_bindings(_url):
+    """Handler for qute://bindings. View keybindings."""
+    bindings = {}
+    defaults = config.val.bindings.default
+    modes = set(defaults.keys()).union(config.val.bindings.commands)
+    modes.remove('normal')
+    modes = ['normal'] + sorted(list(modes))
+    for mode in modes:
+        bindings[mode] = config.key_instance.get_bindings_for(mode)
+
+    html = jinja.render('bindings.html', title='Bindings',
+                        bindings=bindings)
+    return 'text/html', html
+
+
 @add_handler('back')
 def qute_back(url):
     """Handler for qute://back.
