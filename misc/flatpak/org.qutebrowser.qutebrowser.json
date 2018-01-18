@@ -6,11 +6,17 @@
     "sdk": "org.kde.Sdk",
     "command": "qutebrowser",
     "finish-args": [
+        /* Allow direct rendering to use OpenGL */
         "--device=dri",
+        /* Allow to read all files from the home directory */
         "--filesystem=home:ro",
+        /* Allow to save downloads */
         "--filesystem=xdg-download",
+        /* Allow network access */
         "--share=network",
+        /* Allow to play sounds using pulseaudio */
         "--socket=pulseaudio",
+        /* Allow to provide a graphical UI */
         "--socket=wayland",
         "--socket=x11"
     ],
@@ -152,6 +158,7 @@
                 "python3 setup.py install --prefix=/app"
             ],
             "post-install": [
+                /* We currently only need the desktop and icon files */
                 "install -Dm644 misc/qutebrowser.desktop /app/share/applications/qutebrowser.desktop",
                 "install -Dm644 icons/qutebrowser.svg /app/share/icons/hicolor/scalable/apps/qutebrowser.svg",
                 "for SIZE in 16 24 32 48 64 128 256 512; do install -Dm644 icons/qutebrowser-${SIZE}x${SIZE}.png /app/share/icons/hicolor/${SIZE}x${SIZE}/apps/qutebrowser.png; done"
