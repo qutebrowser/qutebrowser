@@ -1,0 +1,30 @@
+Flatpak
+=======
+
+The flatpak is based on the org.kde.Platform version 5.9 and ships all
+additional dependecies of qutebrowser. The platform includes QT 5.9.
+
+To build the flatpak run the following command:
+
+ flatpak-builer --force-clean app-dir org.qutebrowser.qutebrowser
+
+To run the flatpak from current build:
+
+ flatpak-builder --run app-dir org.qutebrowser.qutebrowser.org qutebrowser
+
+Sandbox
+-------
+
+Your configuration gets read from 
+$HOME/.var/app/org.qutebrowser.qutebrowser/config/qutebrowser/
+
+The sandboxed qutebrowser can read all files from your system, but only write
+to your XDG downloads folder.
+
+Direct rendering and sound using pulseaudio are allowed.
+
+Known Limitations
+-----------------
+
+* It is not possible to call external commands. This includes applications to 
+  open downloaded files.
