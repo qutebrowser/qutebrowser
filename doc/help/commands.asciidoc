@@ -145,14 +145,15 @@ How many pages to go back.
 
 [[bind]]
 === bind
-Syntax: +:bind [*--mode* 'mode'] [*--default*] 'key' ['command']+
+Syntax: +:bind [*--mode* 'mode'] [*--default*] ['key'] ['command']+
 
 Bind a key to a command.
 
+If no command is given, show the current binding for the given key. Using :bind without any arguments opens a page showing all keybindings.
+
 ==== positional arguments
 * +'key'+: The keychain or special key (inside `<...>`) to bind.
-* +'command'+: The command to execute, with optional args, or not given to print the current binding.
-
+* +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
 * +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`). See `:help bindings.commands` for the
@@ -1104,7 +1105,7 @@ Syntax: +:set [*--temp*] [*--print*] ['option'] ['value']+
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead.
+If the option name ends with '?', the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
 
 ==== positional arguments
 * +'option'+: The name of the option.

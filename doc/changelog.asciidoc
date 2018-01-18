@@ -18,6 +18,11 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.2.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
+
 Changed
 ~~~~~~~
 
