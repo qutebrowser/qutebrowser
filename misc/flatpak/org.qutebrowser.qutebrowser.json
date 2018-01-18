@@ -169,7 +169,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/qutebrowser/qutebrowser.git",
-                    "tag": "v1.1.0"
+                    "tag": "v1.1.0",
+                    "commit": "fbbb9ae9408d2e4bdabd0b90e3275af387c383d8"
                 }
              ]
          }
