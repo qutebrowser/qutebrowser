@@ -19,6 +19,7 @@
 
 """Wrapper over a QWebEngineView."""
 
+import os
 import math
 import functools
 import html as html_utils
@@ -739,11 +740,15 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
-        # FIXME:qtwebengine support .netrc
-        answer = shared.authentication_required(
-            url, authenticator, abort_on=[self.shutting_down,
-                                          self.load_started])
-        if answer is None:
+        netrc = None
+        if not self.data.netrc_used and 'HOME' in os.environ:
+            self.data.netrc_used = True
+            netrc = shared.netrc_authentication(url, authenticator)
+        if not netrc:
+            abort_on = [self.shutting_down, self.load_started]
+            answer = shared.authentication_required(url, authenticator,
+                                                    abort_on)
+        if not netrc and answer is None:
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())

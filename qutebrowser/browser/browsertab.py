@@ -99,6 +99,7 @@ class TabData:
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
         fullscreen: Whether the tab has a video shown fullscreen currently.
+        netrc_used: flag to avoid endless loop when using netrc
     """
 
     keep_icon = attr.ib(False)
@@ -107,6 +108,7 @@ class TabData:
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
+    netrc_used = False
 
 
 class AbstractAction:
@@ -724,6 +726,7 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self.data.viewing_source = False
+        self.data.netrc_used = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
@@ -764,7 +767,6 @@ class AbstractTab(QWidget):
         self.load_finished.emit(ok)
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
-
         self.zoom.set_current()
 
     @pyqtSlot()

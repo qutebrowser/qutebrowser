@@ -19,9 +19,7 @@
 
 """Our own QNetworkAccessManager."""
 
-import os
 import collections
-import netrc
 import html
 
 import attr
@@ -270,28 +268,11 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
-        user, password = None, None
-        if not hasattr(reply, "netrc_used") and 'HOME' in os.environ:
-            # We'll get an OSError by netrc if 'HOME' isn't available in
-            # os.environ. We don't want to log that, so we prevent it
-            # altogether.
-            reply.netrc_used = True
-            try:
-                net = netrc.netrc(config.val.content.netrc_file)
-                authenticators = net.authenticators(reply.url().host())
-                if authenticators is not None:
-                    (user, _account, password) = authenticators
-            except FileNotFoundError:
-                log.misc.debug("No .netrc file found")
-            except OSError:
-                log.misc.exception("Unable to read the netrc file")
-            except netrc.NetrcParseError:
-                log.misc.exception("Error when parsing the netrc file")
-
-        if user is not None:
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
-        else:
+        netrc = False
+        if not hasattr(reply, "netrc_used"):
+            setattr(reply, "netrc_used", True)
+            netrc = shared.netrc_authentication(reply.url(), authenticator)
+        if not netrc:
             abort_on = self._get_abort_signals(reply)
             shared.authentication_required(reply.url(), authenticator,
                                            abort_on=abort_on)
