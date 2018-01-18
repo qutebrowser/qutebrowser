@@ -158,7 +158,8 @@
                 "python3 setup.py install --prefix=/app"
             ],
             "post-install": [
-                /* We currently only need the desktop and icon files */
+                /* We currently only need the desktop, appstream and icon files */
+                "install -Dm644 misc/qutebrowser.appdata.xml /app/share/appdata/qutebrowser.appdata.xml",
                 "install -Dm644 misc/qutebrowser.desktop /app/share/applications/qutebrowser.desktop",
                 "install -Dm644 icons/qutebrowser.svg /app/share/icons/hicolor/scalable/apps/qutebrowser.svg",
                 "for SIZE in 16 24 32 48 64 128 256 512; do install -Dm644 icons/qutebrowser-${SIZE}x${SIZE}.png /app/share/icons/hicolor/${SIZE}x${SIZE}/apps/qutebrowser.png; done"
