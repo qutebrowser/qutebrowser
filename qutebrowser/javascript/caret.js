@@ -52,8 +52,56 @@ max-params, default-case, valid-jsdoc */
  * Ported chrome-caretbrowsing extension.
  * https://cs.chromium.org/chromium/src/ui/accessibility/extensions/caretbrowsing/
  *
- * Create and control div caret, which listen commands from qutebrowser,
- * change document selection model and div caret position.
+ * The behavior is based on Mozilla's spec whenever possible:
+ *   http://www.mozilla.org/access/keyboard/proposal
+ *
+ * The one exception is that Esc is used to escape out of a form control,
+ * rather than their proposed key (which doesn't seem to work in the
+ * latest Firefox anyway).
+ *
+ * Some details about how Chrome selection works, which will help in
+ * understanding the code:
+ *
+ * The Selection object (window.getSelection()) has four components that
+ * completely describe the state of the caret or selection:
+ *
+ * base and anchor: this is the start of the selection, the fixed point.
+ * extent and focus: this is the end of the selection, the part that
+ *     moves when you hold down shift and press the left or right arrows.
+ *
+ * When the selection is a cursor, the base, anchor, extent, and focus are
+ * all the same.
+ *
+ * There's only one time when the base and anchor are not the same, or the
+ * extent and focus are not the same, and that's when the selection is in
+ * an ambiguous state - i.e. it's not clear which edge is the focus and which
+ * is the anchor. As an example, if you double-click to select a word, then
+ * the behavior is dependent on your next action. If you press Shift+Right,
+ * the right edge becomes the focus. But if you press Shift+Left, the left
+ * edge becomes the focus.
+ *
+ * When the selection is in an ambiguous state, the base and extent are set
+ * to the position where the mouse clicked, and the anchor and focus are set
+ * to the boundaries of the selection.
+ *
+ * The only way to set the selection and give it direction is to use
+ * the non-standard Selection.setBaseAndExtent method. If you try to use
+ * Selection.addRange(), the anchor will always be on the left and the focus
+ * will always be on the right, making it impossible to manipulate
+ * selections that move from right to left.
+ *
+ * Finally, Chrome will throw an exception if you try to set an invalid
+ * selection - a selection where the left and right edges are not the same,
+ * but it doesn't span any visible characters. A common example is that
+ * there are often many whitespace characters in the DOM that are not
+ * visible on the page; trying to select them will fail. Another example is
+ * any node that's invisible or not displayed.
+ *
+ * While there are probably many possible methods to determine what is
+ * selectable, this code uses the method of determining if there's a valid
+ * bounding box for the range or not - keep moving the cursor forwards until
+ * the range from the previous position and candidate next position has a
+ * valid bounding box.
  */
 
 "use strict";
