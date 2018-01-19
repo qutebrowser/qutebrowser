@@ -25,6 +25,11 @@
     "rename-desktop-file": "qutebrowser.desktop",
     "rename-appdata-file": "qutebrowser.appdata.xml",
     "rename-icon": "qutebrowser",
+    "cleanup": [
+        "/include",
+        "/bin/sip",
+        "/lib/debug"
+    ],
     "modules": [
         {
             "name": "MarkupSafe",
@@ -57,6 +62,7 @@
             "buildsystem": "simple",
             "build-commands": ["python3 setup.py install --prefix=/app"],
             "ensure-writable": ["easy-install.pth"],
+            "cleanup": [ "/bin" ],
             "sources": [
                 {
                     "type": "archive",
@@ -83,6 +89,7 @@
             "buildsystem": "simple",
             "build-commands": ["python3 setup.py install --prefix=/app"],
             "ensure-writable": ["easy-install.pth"],
+            "cleanup": [ "/bin" ],
             "sources": [
                 {
                     "type": "archive",
