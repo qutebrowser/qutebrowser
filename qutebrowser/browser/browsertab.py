@@ -99,7 +99,6 @@ class TabData:
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
         fullscreen: Whether the tab has a video shown fullscreen currently.
-        netrc_used: flag to avoid endless loop when using netrc
     """
 
     keep_icon = attr.ib(False)
@@ -108,7 +107,6 @@ class TabData:
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
-    netrc_used = False
 
 
 class AbstractAction:
@@ -726,7 +724,12 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self.data.viewing_source = False
-        self.data.netrc_used = False
+        if self.backend == usertypes.Backend.QtWebKit:
+            obj = self.networkaccessmanager()
+        else:
+            obj = self
+        if hasattr(obj, 'netrc_used'):
+            delattr(obj, 'netrc_used')
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 

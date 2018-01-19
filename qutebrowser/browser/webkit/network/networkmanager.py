@@ -269,8 +269,8 @@ class NetworkManager(QNetworkAccessManager):
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         netrc = False
-        if not self.data.netrc_used:
-            self.data.netrc_used = True
+        if not hasattr(self, 'netrc_used'):
+            setattr(self, 'netrc_used', True)
             netrc = shared.netrc_authentication(reply.url(), authenticator)
         if not netrc:
             abort_on = self._get_abort_signals(reply)
