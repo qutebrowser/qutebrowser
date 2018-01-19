@@ -475,8 +475,6 @@ class SessionManager(QObject):
         old_windows = list(objreg.window_registry.values())
         try:
             self.load(name, temp=temp)
-            if delete:
-                self.session_delete(name)
         except SessionNotFoundError:
             raise cmdexc.CommandError("Session {} not found!".format(name))
         except SessionError as e:
@@ -486,6 +484,17 @@ class SessionManager(QObject):
             if clear:
                 for win in old_windows:
                     win.close()
+            if delete:
+                try:
+                    self.delete(name)
+                except SessionError as e:
+                    log.sessions.exception("Error while deleting session!")
+                    raise cmdexc.CommandError(
+                        "Error while deleting session: {}"
+                        .format(e))
+                else:
+                    log.sessions.debug(
+                        "Loaded & deleted session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
