@@ -586,9 +586,7 @@ window._qutebrowser.caret = (function() {
      * The class handling the Caret Browsing implementation in the page.
      * Sets up communication with the background page, and then when caret
      * browsing is enabled, response to various key events to move the caret
-     * or selection within the text content of the document. Uses the native
-     * Chrome selection wherever possible, but displays its own flashing
-     * caret using a DIV because there's no native caret available.
+     * or selection within the text content of the document.
      * @constructor
      */
     const CaretBrowsing = {};
