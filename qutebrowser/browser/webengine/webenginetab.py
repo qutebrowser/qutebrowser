@@ -741,7 +741,7 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
         netrc = None
-        if not self.data.netrc_used and 'HOME' in os.environ:
+        if not self.data.netrc_used:
             self.data.netrc_used = True
             netrc = shared.netrc_authentication(url, authenticator)
         if not netrc:
