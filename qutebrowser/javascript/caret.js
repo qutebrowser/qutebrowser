@@ -512,8 +512,7 @@ window._qutebrowser.caret = (function() {
         if (node.constructor === Text) {
             node = node.parentElement;
         }
-        if (node.className === "CaretBrowsing_Caret" ||
-            node.className === "CaretBrowsing_AnimateCaret") {
+        if (node.className === "CaretBrowsing_Caret") {
             return true;
         }
         return false;
@@ -869,22 +868,6 @@ window._qutebrowser.caret = (function() {
             "  z-index: 2147483647;" +
             "  min-height: 10px;" +
             "  background-color: #000;" +
-            "}" +
-            ".CaretBrowsing_AnimateCaret {" +
-            "  position: absolute;" +
-            "  z-index: 2147483647;" +
-            "  min-height: 10px;" +
-            "}" +
-            ".CaretBrowsing_FlashVert {" +
-            "  position: absolute;" +
-            "  z-index: 2147483647;" +
-            "  background: linear-gradient(" +
-            "      270deg," +
-            "      rgba(128, 128, 255, 0) 0%," +
-            "      rgba(128, 128, 255, 0.3) 45%," +
-            "      rgba(128, 128, 255, 0.8) 50%," +
-            "      rgba(128, 128, 255, 0.3) 65%," +
-            "      rgba(128, 128, 255, 0) 100%);" +
             "}";
         const node = document.createElement("style");
         node.innerHTML = style;
@@ -973,58 +956,6 @@ window._qutebrowser.caret = (function() {
     };
 
     /**
-     * Animate the caret element into the normal style.
-     */
-    CaretBrowsing.animateCaretElement = function() {
-        const element = CaretBrowsing.caretElement;
-        element.style.left = `${CaretBrowsing.caretX - 50}px`;
-        element.style.top = `${CaretBrowsing.caretY - 100}px`;
-        element.style.width = `${CaretBrowsing.caretWidth + 100}px`;
-        element.style.height = `${CaretBrowsing.caretHeight + 200}px`;
-        element.className = "CaretBrowsing_AnimateCaret";
-
-        // Start the animation. The setTimeout is so that the old values will get
-        // applied first, so we can animate to the new values.
-        window.setTimeout(() => {
-            if (!CaretBrowsing.caretElement) {
-                return;
-            }
-            CaretBrowsing.setCaretElementNormalStyle();
-            element.style.transition = "all 0.8s ease-in";
-            function listener() {
-                element.removeEventListener(
-                    "transitionend", listener, false);
-                element.style.transition = "none";
-            }
-            element.addEventListener(
-                "transitionend", listener, false);
-        }, 0);
-    };
-
-    /**
-     * Quick flash and then show the normal caret style.
-     */
-    CaretBrowsing.flashCaretElement = function() {
-        const x = CaretBrowsing.caretX;
-        const y = CaretBrowsing.caretY;
-
-        const vert = document.createElement("div");
-        vert.className = "CaretBrowsing_FlashVert";
-        vert.style.left = `${x - 6}px`;
-        vert.style.top = `${y - 100}px`;
-        vert.style.width = "11px";
-        vert.style.height = `${200}px`;
-        document.body.appendChild(vert);
-
-        window.setTimeout(() => {
-            document.body.removeChild(vert);
-            if (CaretBrowsing.caretElement) {
-                CaretBrowsing.setCaretElementNormalStyle();
-            }
-        }, 250);
-    };
-
-    /**
      * Create the caret element. This assumes that caretX, caretY,
      * caretWidth, and caretHeight have all been set. The caret is
      * animated in so the user can find it when it first appears.
@@ -1034,14 +965,7 @@ window._qutebrowser.caret = (function() {
         element.className = "CaretBrowsing_Caret";
         document.body.appendChild(element);
         CaretBrowsing.caretElement = element;
-
-        if (CaretBrowsing.onEnable === "anim") {
-            CaretBrowsing.animateCaretElement();
-        } else if (CaretBrowsing.onEnable === "flash") {
-            CaretBrowsing.flashCaretElement();
-        } else {
-            CaretBrowsing.setCaretElementNormalStyle();
-        }
+        CaretBrowsing.setCaretElementNormalStyle();
     };
 
     /**
@@ -1226,15 +1150,6 @@ window._qutebrowser.caret = (function() {
                     window.scroll(0, (caretY - 100));
                 }
             }
-
-            if (Math.abs(previousX - CaretBrowsing.caretX) > 500 ||
-                Math.abs(previousY - CaretBrowsing.caretY) > 100) {
-                if (CaretBrowsing.onJump === "anim") {
-                    CaretBrowsing.animateCaretElement();
-                } else if (CaretBrowsing.onJump === "flash") {
-                    CaretBrowsing.flashCaretElement();
-                }
-            }
         };
 
     CaretBrowsing.move = function(direction, granularity) {
@@ -1309,23 +1224,6 @@ window._qutebrowser.caret = (function() {
     };
 
     /**
-     * Called at a regular interval. Blink the cursor by changing its visibility.
-     */
-    CaretBrowsing.caretBlinkFunction = function() {
-        if (CaretBrowsing.caretElement) {
-            if (CaretBrowsing.blinkFlag) {
-                CaretBrowsing.caretElement.style.backgroundColor =
-                    CaretBrowsing.caretForeground;
-                CaretBrowsing.blinkFlag = false;
-            } else {
-                CaretBrowsing.caretElement.style.backgroundColor =
-                    CaretBrowsing.caretBackground;
-                CaretBrowsing.blinkFlag = true;
-            }
-        }
-    };
-
-    /**
      * Update whether or not the caret is visible, based on whether caret browsing
      * is enabled and whether this window / iframe has focus.
      */
@@ -1335,10 +1233,6 @@ window._qutebrowser.caret = (function() {
         if (CaretBrowsing.isCaretVisible && !CaretBrowsing.caretElement) {
             CaretBrowsing.setInitialCursor();
             CaretBrowsing.updateCaretOrSelection(true);
-            if (CaretBrowsing.caretElement) {
-                CaretBrowsing.blinkFunctionId = window.setInterval(
-                    CaretBrowsing.caretBlinkFunction, 500);
-            }
         } else if (!CaretBrowsing.isCaretVisible &&
             CaretBrowsing.caretElement) {
             window.clearInterval(CaretBrowsing.blinkFunctionId);

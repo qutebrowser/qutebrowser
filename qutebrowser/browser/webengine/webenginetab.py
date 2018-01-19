@@ -610,7 +610,7 @@ class WebEngineTab(browsertab.AbstractTab):
             'window._qutebrowser = window._qutebrowser || {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
-            utils.read_file('javascript/webengine_caret.js'),
+            utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
         script.setInjectionPoint(QWebEngineScript.DocumentCreation)
