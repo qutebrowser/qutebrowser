@@ -708,6 +708,12 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.blinkFlag = true;
 
     /**
+     * The os that user is using.
+     * @type {boolean}
+     */
+    CaretBrowsing.platform = null;
+
+    /**
      * Check if a node is a control that normally allows the user to interact
      * with it using arrow keys. We won't override the arrow keys when such a
      * control has focus, the user must press Escape to do caret browsing outside
@@ -814,9 +820,9 @@ window._qutebrowser.caret = (function() {
      * If there's no initial selection, set the cursor just before the
      * first text character in the document.
      */
-    CaretBrowsing.setInitialCursor = function(platform) {
-        if (platform) {
-            CaretBrowsing.isWindows = platform.indexOf("Windows") !== -1;
+    CaretBrowsing.setInitialCursor = function() {
+        if (CaretBrowsing.platform) {
+            CaretBrowsing.isWindows = CaretBrowsing.platform.startsWith("win");
         }
         const selectionRange = window.getSelection().toString().length;
         if (selectionRange === 0) {
@@ -1252,7 +1258,7 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.isCaretVisible =
             (CaretBrowsing.isEnabled && CaretBrowsing.isWindowFocused);
         if (CaretBrowsing.isCaretVisible && !CaretBrowsing.caretElement) {
-            CaretBrowsing.setInitialCursor(CaretBrowsing.isWindows);
+            CaretBrowsing.setInitialCursor();
             CaretBrowsing.updateCaretOrSelection(true);
             if (CaretBrowsing.caretElement) {
                 CaretBrowsing.blinkFunctionId = window.setInterval(
@@ -1304,9 +1310,9 @@ window._qutebrowser.caret = (function() {
 
     const funcs = {};
 
-    funcs.setInitialCursor = (platform) => {
+    funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
-            CaretBrowsing.setInitialCursor(platform);
+            CaretBrowsing.setInitialCursor();
             return;
         }
 
@@ -1315,6 +1321,10 @@ window._qutebrowser.caret = (function() {
         }
         CaretBrowsing.toggle();
     };
+
+    funcs.setPlatform = (platform) => {
+        CaretBrowsing.platform = platform;
+    }
 
     funcs.disableCaret = () => {
         CaretBrowsing.toggle(false);
