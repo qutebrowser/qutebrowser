@@ -1051,9 +1051,6 @@ window._qutebrowser.caret = (function() {
      */
     CaretBrowsing.updateCaretOrSelection =
         function(scrollToSelection) {
-            const previousX = CaretBrowsing.caretX;
-            const previousY = CaretBrowsing.caretY;
-
             const sel = window.getSelection();
             if (sel.rangeCount === 0) {
                 if (CaretBrowsing.caretElement) {
@@ -1293,7 +1290,7 @@ window._qutebrowser.caret = (function() {
 
     funcs.setPlatform = (platform) => {
         CaretBrowsing.platform = platform;
-    }
+    };
 
     funcs.disableCaret = () => {
         CaretBrowsing.toggle(false);
