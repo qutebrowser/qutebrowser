@@ -21,6 +21,7 @@
 
 import math
 import functools
+import sys
 import html as html_utils
 
 import sip
@@ -201,70 +202,98 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
-        pass
+        if mode != usertypes.KeyMode.caret:
+            return
+
+        self._tab.run_js_async(
+            javascript.assemble('caret', 'setPlatform', sys.platform))
+        self._js_call('setInitialCursor')
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
-        pass
+        self.drop_selection()
+        self._js_call('disableCaret')
 
     def move_to_next_line(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveDown')
 
     def move_to_prev_line(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveUp')
 
     def move_to_next_char(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveRight')
 
     def move_to_prev_char(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveLeft')
 
     def move_to_end_of_word(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToEndOfWord')
 
     def move_to_next_word(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToNextWord')
 
     def move_to_prev_word(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToPreviousWord')
 
     def move_to_start_of_line(self):
-        log.stub()
+        self._js_call('moveToStartOfLine')
 
     def move_to_end_of_line(self):
-        log.stub()
+        self._js_call('moveToEndOfLine')
 
     def move_to_start_of_next_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToStartOfNextBlock')
 
     def move_to_start_of_prev_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToStartOfPrevBlock')
 
     def move_to_end_of_next_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToEndOfNextBlock')
 
     def move_to_end_of_prev_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToEndOfPrevBlock')
 
     def move_to_start_of_document(self):
-        log.stub()
+        self._js_call('moveToStartOfDocument')
 
     def move_to_end_of_document(self):
-        log.stub()
+        self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        log.stub()
+        self._js_call('toggleSelection')
 
     def drop_selection(self):
-        log.stub()
+        self._js_call('dropSelection')
 
     def has_selection(self):
-        return self._widget.hasSelection()
+        if qtutils.version_check('5.10'):
+            return self._widget.hasSelection()
+        else:
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            return True
 
-    def selection(self, html=False):
+    def selection(self, html=False, callback=None):
         if html:
             raise browsertab.UnsupportedOperationError
-        return self._widget.selectedText()
+        if qtutils.version_check('5.10'):
+            callback(self._widget.selectedText())
+        else:
+            # WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            self._tab.run_js_async(
+                javascript.assemble('caret', 'getSelection'), callback)
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.
@@ -307,6 +336,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
             js_code = javascript.assemble('webelem', 'find_selected_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
+
+    def _js_call(self, command):
+        self._tab.run_js_async(
+            javascript.assemble('caret', command))
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -577,6 +610,7 @@ class WebEngineTab(browsertab.AbstractTab):
             'window._qutebrowser = window._qutebrowser || {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
         script.setInjectionPoint(QWebEngineScript.DocumentCreation)
