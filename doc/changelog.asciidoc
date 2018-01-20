@@ -21,6 +21,7 @@ v1.2.0 (unreleased)
 Added
 ~~~~~
 
+- Caret/visual mode is now supported for QtWebEngine.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
 
 Changed
