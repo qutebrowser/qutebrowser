@@ -177,10 +177,10 @@ class GreasemonkeyManager(QObject):
                 elif script.run_at == 'document-idle':
                     self._run_idle.append(script)
                 else:
-                    log.greasemonkey.warning("Script {} has invalid run-at "
-                                             "defined, defaulting to "
-                                             "document-end"
-                                             .format(script_path))
+                    if script.run_at:
+                        log.greasemonkey.warning(
+                            "Script {} has invalid run-at defined, "
+                            "defaulting to document-end".format(script_path))
                     # Default as per
                     # https://wiki.greasespot.net/Metadata_Block#.40run-at
                     self._run_end.append(script)
