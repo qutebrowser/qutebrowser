@@ -782,12 +782,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.blinkFlag = true;
 
     /**
-     * The os that user is using.
-     * @type {boolean}
-     */
-    CaretBrowsing.platform = null;
-
-    /**
      * Check if a node is a control that normally allows the user to interact
      * with it using arrow keys. We won't override the arrow keys when such a
      * control has focus, the user must press Escape to do caret browsing outside
@@ -879,9 +873,6 @@ window._qutebrowser.caret = (function() {
      * first text character in the document.
      */
     CaretBrowsing.setInitialCursor = function() {
-        if (CaretBrowsing.platform) {
-            CaretBrowsing.isWindows = CaretBrowsing.platform.startsWith("win");
-        }
         const selectionRange = window.getSelection().toString().length;
         if (selectionRange === 0) {
             positionCaret();
@@ -1289,7 +1280,7 @@ window._qutebrowser.caret = (function() {
     };
 
     funcs.setPlatform = (platform) => {
-        CaretBrowsing.platform = platform;
+        CaretBrowsing.isWindows = platform.startsWith("win");
     };
 
     funcs.disableCaret = () => {
