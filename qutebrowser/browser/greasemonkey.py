@@ -25,6 +25,7 @@ import json
 import fnmatch
 import functools
 import glob
+import textwrap
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
@@ -122,10 +123,11 @@ class GreasemonkeyScript:
 
     def add_required_script(self, source):
         """Add the source of a required script to this script."""
-        # NOTE: If source also contains a greasemonkey metadata block then
-        # QWebengineScript will parse that instead of the actual one.
-        # Adding an indent to source would stop that.
-        self._code = "\n".join([source, self._code])
+        # The additional source is indented in case it also contains a
+        # metadata block. Because we pass everything at once to
+        # QWebEngineScript and that would parse the first metadata block
+        # found as the valid one.
+        self._code = "\n".join([textwrap.indent(source, "    "), self._code])
 
 
 @attr.s
