@@ -196,10 +196,11 @@ class GreasemonkeyManager(QObject):
         if url.scheme() not in self.greaseable_schemes:
             return MatchingScripts(url, [], [], [])
 
+        string_url = url.toString(QUrl.FullyEncoded)
+
         def _match(pattern):
             # For include and exclude rules if they start and end with '/' they
             # should be treated as a (ecma syntax) regular expression.
-            string_url = url.toString(QUrl.FullyEncoded)
             if pattern.startswith('/') and pattern.endswith('/'):
                 matches = re.search(pattern[1:-1], string_url, flags=re.I)
                 return matches is not None
