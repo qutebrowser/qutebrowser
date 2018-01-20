@@ -45,6 +45,7 @@ Fixed
 ~~~~~
 
 - The Makefile now actually works.
+- Fixed crashes with Qt 5.10 when closing a tab before it finished loading.
 
 v1.1.0
 ------
