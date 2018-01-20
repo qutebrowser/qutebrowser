@@ -749,6 +749,10 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3498
+            return
+
         sess_manager = objreg.get('session-manager')
         sess_manager.save_autosave()
 
