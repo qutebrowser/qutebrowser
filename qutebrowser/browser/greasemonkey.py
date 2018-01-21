@@ -287,9 +287,12 @@ class GreasemonkeyManager(QObject):
                                             auto_remove=True)
             download.requested_url = url
             self._in_progress_dls.append(download)
-            download.finished.connect(
-                functools.partial(self._on_required_download_finished,
-                                  script, download))
+            if download.successful:
+                self._on_required_download_finished(script, download)
+            else:
+                download.finished.connect(
+                    functools.partial(self._on_required_download_finished,
+                                      script, download))
 
     def scripts_for(self, url):
         """Fetch scripts that are registered to run for url.

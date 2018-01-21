@@ -572,7 +572,7 @@ class FakeDownloadItem(QObject):
         super().__init__(parent)
         self.fileobj = fileobj
         self.name = name
-        self.successful = True
+        self.successful = False
 
 
 class FakeDownloadManager:
@@ -581,6 +581,7 @@ class FakeDownloadManager:
 
     def __init__(self, tmpdir):
         self._tmpdir = tmpdir
+        self.downloads = []
 
     @contextlib.contextmanager
     def _open_fileobj(self, target):
@@ -603,4 +604,5 @@ class FakeDownloadManager:
             download_item = FakeDownloadItem(target.fileobj, name=url.path())
             with (self._tmpdir / url.path()).open('rb') as fake_url_file:
                 shutil.copyfileobj(fake_url_file, download_item.fileobj)
+        self.downloads.append(download_item)
         return download_item

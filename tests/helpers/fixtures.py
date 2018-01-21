@@ -530,5 +530,5 @@ def download_stub(win_registry, tmpdir, stubs):
     """Register a FakeDownloadManager."""
     stub = stubs.FakeDownloadManager(tmpdir)
     objreg.register('qtnetwork-download-manager', stub)
-    yield
+    yield stub
     objreg.delete('qtnetwork-download-manager')
