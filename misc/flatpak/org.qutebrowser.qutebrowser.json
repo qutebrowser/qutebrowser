@@ -128,7 +128,7 @@
             "name": "PyQT5",
             "buildsystem": "simple",
             "build-commands": [
-                "python3 configure.py --confirm-license --assume-shared --verbose --sip=/app/bin/sip --sip-incdir=/app/include/python3.5 --destdir /app/lib/python3.5/site-packages --bindir /app/bin --qml-plugindir=/app/lib/plugins/PyQt5 --no-sip-files --no-stubs --no-tools",
+                "python3 configure.py --confirm-license --assume-shared --verbose --sip=/app/bin/sip --sip-incdir=/app/include/python3.5 --destdir /app/lib/python3.5/site-packages --bindir /app/bin --qml-plugindir=/app/lib/plugins/PyQt5 --no-sip-files --no-stubs --no-tools --no-qml-plugin",
                 "make",
                 "make install"
             ],
