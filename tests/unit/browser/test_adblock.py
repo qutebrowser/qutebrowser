@@ -79,7 +79,7 @@ class FakeDownloadItem(QObject):
         super().__init__(parent)
         self.fileobj = fileobj
         self.name = name
-        self.successful = True
+        self.successful = False
 
 
 class FakeDownloadManager:
@@ -88,6 +88,7 @@ class FakeDownloadManager:
 
     def __init__(self, tmpdir):
         self._tmpdir = tmpdir
+        self.downloads = []
 
     def get(self, url, target, **kwargs):
         """Return a FakeDownloadItem instance with a fileobj.
@@ -101,6 +102,7 @@ class FakeDownloadManager:
             shutil.copyfileobj(fake_url_file, download_item.fileobj)
         if isinstance(target, downloads.FileDownloadTarget):
             target.fileobj.close()
+        self.downloads.append(download_item)
         return download_item
 
 
@@ -109,7 +111,7 @@ def download_stub(win_registry, tmpdir):
     """Register a FakeDownloadManager."""
     stub = FakeDownloadManager(tmpdir)
     objreg.register('qtnetwork-download-manager', stub)
-    yield
+    yield stub
     objreg.delete('qtnetwork-download-manager')
 
 
@@ -252,6 +254,7 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
         with caplog.at_level(logging.ERROR):
+            current_download.successful = True
             current_download.finished.emit()
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
@@ -267,6 +270,8 @@ def test_no_blocklist_update(config_stub, download_stub,
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update()
     host_blocker.read_hosts()
+    for dl in download_stub.downloads:
+        dl.successful = True
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
 
@@ -284,6 +289,7 @@ def test_successful_update(config_stub, basedir, download_stub,
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
         with caplog.at_level(logging.ERROR):
+            current_download.successful = True
             current_download.finished.emit()
     host_blocker.read_hosts()
     assert_urls(host_blocker, whitelisted=[])
@@ -311,6 +317,8 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
         # if current download is the file we want to fail, make it fail
         if current_download.name == dl_fail_blocklist.path():
             current_download.successful = False
+        else:
+            current_download.successful = True
         with caplog.at_level(logging.ERROR):
             current_download.finished.emit()
     host_blocker.read_hosts()
@@ -340,16 +348,18 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, data_tmpdir,
 
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update()
-    finished_signal = host_blocker._in_progress[0].finished
+    current_download = host_blocker._in_progress[0]
 
     if location == 'content':
         with caplog.at_level(logging.ERROR):
-            finished_signal.emit()
+            current_download.successful = True
+            current_download.finished.emit()
         expected = (r"Failed to decode: "
                     r"b'https://www.example.org/\xa0localhost")
         assert caplog.records[-2].message.startswith(expected)
     else:
-        finished_signal.emit()
+        current_download.successful = True
+        current_download.finished.emit()
 
     host_blocker.read_hosts()
     assert_urls(host_blocker, whitelisted=[])
