@@ -203,10 +203,6 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
-def _tab_fields_to_tabs_page_info(fields):
-    return (fields['title'], fields['current_url'])
-
-
 @add_handler('tabs')
 def qute_tabs(_url):
     """Handler for qute://tabs. Display information about all open tabs."""
@@ -219,9 +215,9 @@ def qute_tabs(_url):
                                     scope='window',
                                     window=win_id)
         for tab_idx in range(tabbed_browser.count()):
+            tab_fields = tabbed_browser.get_tab_fields(tab_idx)
             tabs[win_id_str].append(
-                _tab_fields_to_tabs_page_info(
-                    tabbed_browser.get_tab_fields(tab_idx)))
+                (tab_fields['title'], tab_fields['current_url']))
 
     html = jinja.render('tabs.html',
                         title='Tabs',
