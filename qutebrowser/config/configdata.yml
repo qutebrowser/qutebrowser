@@ -1418,7 +1418,7 @@ url.default_page:
 url.incdec_segments:
   type:
     name: FlagList
-    valid_values: [host, path, query, anchor]
+    valid_values: [host, port, path, query, anchor]
   default: [path, query]
   desc: URL segments where `:navigate increment/decrement` will search for
     a number.

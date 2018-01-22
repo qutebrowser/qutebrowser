@@ -622,6 +622,17 @@ class TestIncDecNumber:
             base_url, incdec, segments={'host', 'path', 'query', 'anchor'})
         assert new_url == expected_url
 
+    def test_incdec_port(self):
+        """Test incdec_number with port."""
+
+        base_url = QUrl('http://localhost:8000')
+        new_url = urlutils.incdec_number(
+            base_url, 'increment', segments={'port'})
+        assert new_url == QUrl('http://localhost:8001')
+        new_url = urlutils.incdec_number(
+            base_url, 'decrement', segments={'port'})
+        assert new_url == QUrl('http://localhost:7999')
+
     @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
     @pytest.mark.parametrize('value', [
         '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
