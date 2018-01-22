@@ -561,7 +561,7 @@ def incdec_number(url, incdec, count=1, segments=None):
     # Order as they appear in a URL
     segment_modifiers = [
         ('host', url.host, url.setHost),
-        ('port', lambda: str(url.port()), lambda x: url.setPort(int(x))),
+        ('port', lambda: str(url.port()) if url.port() > 0 else '', lambda x: url.setPort(int(x))),
         ('path', url.path, url.setPath),
         ('query', url.query, url.setQuery),
         ('anchor', url.fragment, url.setFragment),

@@ -633,6 +633,12 @@ class TestIncDecNumber:
             base_url, 'decrement', segments={'port'})
         assert new_url == QUrl('http://localhost:7999')
 
+    def test_incdec_port_default(self):
+        """Test that a default port (with url.port() == -1) is not touched."""
+        base_url = QUrl('http://localhost')
+        with pytest.raises(urlutils.IncDecError):
+            urlutils.incdec_number(base_url, 'increment', segments={'port'})
+
     @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
     @pytest.mark.parametrize('value', [
         '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
