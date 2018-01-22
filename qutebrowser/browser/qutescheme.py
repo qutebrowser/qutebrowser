@@ -30,6 +30,7 @@ import time
 import textwrap
 import mimetypes
 import urllib
+import collections
 
 import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
@@ -208,10 +209,9 @@ def _tab_fields_to_tabs_page_info(fields):
 @add_handler('tabs')
 def qute_tabs(_url):
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs = {}
+    tabs = collections.defaultdict(list)
     for win_id in objreg.window_registry:
         win_id_str = str(win_id)
-        tabs[win_id_str] = []
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window',
                                     window=win_id)
