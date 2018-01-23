@@ -613,7 +613,7 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
-        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setSourceCode(js_code)
 
         page = self._widget.page()

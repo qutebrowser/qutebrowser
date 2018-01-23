@@ -758,7 +758,6 @@ class CommandDispatcher:
         else:
             x = None
             y = perc
-
         self._current_widget().scroller.to_perc(x, y)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1513,6 +1512,14 @@ class CommandDispatcher:
             message.error(str(e))
             return
 
+        if tab.backend == usertypes.Backend.QtWebEngine:
+            # use view-source: scheme to show page source for webengine
+            url = QUrl('view-source:{}'.format(current_url.toString()))
+            new_tab = self._tabbed_browser.tabopen(url, background=True,
+                related=True)
+            new_tab.data.viewing_source = True
+            return
+
         def show_source_cb(source):
             """Show source as soon as it's ready."""
             # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
@@ -1527,6 +1534,8 @@ class CommandDispatcher:
             new_tab = self._tabbed_browser.tabopen()
             new_tab.set_html(highlighted)
             new_tab.data.viewing_source = True
+            new_tab.url = lambda requested=False: QUrl(
+                'Source: {}'.format(current_url.toDisplayString()))
 
         tab.dump_async(show_source_cb)
 
