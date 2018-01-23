@@ -408,7 +408,6 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def to_perc(self, x=None, y=None):
         pos_x = 0
         pos_y = 0
-        page = self._widget.page()
         contents_size = self._widget.page().contentsSize()
         scrollable_x = contents_size.width() - self._widget.width()
         scrollable_y = contents_size.height() - self._widget.height()
@@ -416,7 +415,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
             pos_x = x / 100.0 * scrollable_x
         if y:
             pos_y = y / 100.0 * scrollable_y
-        self._tab.run_js_async('window.scrollTo({}, {})'.format(str(pos_x), str(pos_y)))
+        js_code = 'window.scrollTo({}, {})'.format(str(pos_x), str(pos_y))
+        self._tab.run_js_async(js_code)
 
     def to_point(self, point):
         js_code = javascript.assemble('window', 'scroll', point.x(), point.y())
