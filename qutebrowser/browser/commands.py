@@ -733,7 +733,6 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
-
     def scroll_to_perc(self, perc: float = None, horizontal=False, count=None):
         """Scroll to a specific percentage of the page.
 
@@ -1516,7 +1515,9 @@ class CommandDispatcher:
 
         if tab.backend == usertypes.Backend.QtWebEngine:
             url = QUrl('view-source:{}'.format(current_url.toString()))
-            self._tabbed_browser.tabopen(url, background=True)
+            new_tab = self._tabbed_browser.tabopen(url, background=True,
+                related=True)
+            new_tab.data.viewing_source = True
             return
 
         def show_source_cb(source):

@@ -415,7 +415,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
             pos_x = x / 100.0 * scrollable_x
         if y:
             pos_y = y / 100.0 * scrollable_y
-        js_code = 'window.scrollTo({}, {})'.format(str(pos_x), str(pos_y))
+        js_code = javascript.assemble('window', 'scrollTo', pos_x, pos_y)
         self._tab.run_js_async(js_code)
 
     def to_point(self, point):
