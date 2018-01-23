@@ -17,10 +17,12 @@ matrix:
     - os: linux
       env: TESTENV=py36-pyqt58
     - os: linux
-      python: 3.5
       env: TESTENV=py35-pyqt59
     - os: linux
-      env: TESTENV=py36-pyqt59-cov
+      python: 3.5
+      env: TESTENV=py35-pyqt510
+    - os: linux
+      env: TESTENV=py36-pyqt510-cov
     - os: osx
       env: TESTENV=py36 OSX=sierra
       osx_image: xcode9.2
