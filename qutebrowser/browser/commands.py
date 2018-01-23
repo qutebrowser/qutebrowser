@@ -1515,8 +1515,8 @@ class CommandDispatcher:
         if tab.backend == usertypes.Backend.QtWebEngine:
             # use view-source: scheme to show page source for webengine
             url = QUrl('view-source:{}'.format(current_url.toString()))
-            new_tab = self._tabbed_browser.tabopen(url, background=True,
-                related=True)
+            new_tab = self._tabbed_browser.tabopen(
+                url, background=True, related=True)
             new_tab.data.viewing_source = True
             return
 
