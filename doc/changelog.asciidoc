@@ -44,6 +44,8 @@ Fixed
 ~~~~~
 
 - Improved fullscreen handling with Qt 5.10.
+- URLs containing ampersands and other special chars are now shown
+  correctly when filtering them in the completion.
 
 v1.1.1
 ------
