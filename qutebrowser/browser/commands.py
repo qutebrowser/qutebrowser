@@ -21,6 +21,7 @@
 
 import os
 import os.path
+import re
 import shlex
 import functools
 import typing
@@ -822,7 +823,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain'])
+                                        'title', 'domain', 'prompt'])
     def yank(self, what='url', sel=False, keep=False):
         """Yank something to the clipboard or primary selection.
 
@@ -858,6 +859,24 @@ class CommandDispatcher:
             caret = self._current_widget().caret
             caret.selection(callback=_selection_callback)
             return
+        elif what == 'prompt':
+            s = ''
+            try:
+                prompt_queue = objreg.get('prompt-queue')
+            except KeyError:
+                message.info("No message queue found.")
+                return
+            if prompt_queue and hasattr(prompt_queue, '_question'):
+                q = getattr(prompt_queue, '_question')
+                m = re.search(r'(((ht|f)tps?|file)://[-\d\w./+_]+)', q.text)
+                if m:
+                    s = m.group(1)
+                else:
+                    message.info("No URL found in the prompt text.")
+            else:
+                # defaults to copying URL
+                s = self._yank_url('url')
+                what = 'URL'
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
