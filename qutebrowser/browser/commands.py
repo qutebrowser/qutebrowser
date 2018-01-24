@@ -1511,33 +1511,7 @@ class CommandDispatcher:
         except cmdexc.CommandError as e:
             message.error(str(e))
             return
-
-        if tab.backend == usertypes.Backend.QtWebEngine:
-            # use view-source: scheme to show page source for webengine
-            url = QUrl('view-source:{}'.format(current_url.toString()))
-            new_tab = self._tabbed_browser.tabopen(
-                url, background=True, related=True)
-            new_tab.data.viewing_source = True
-            return
-
-        def show_source_cb(source):
-            """Show source as soon as it's ready."""
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
-            # pylint: disable=no-member
-            lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table',
-                title='Source for {}'.format(current_url.toDisplayString()))
-            # pylint: enable=no-member
-            highlighted = pygments.highlight(source, lexer, formatter)
-
-            new_tab = self._tabbed_browser.tabopen()
-            new_tab.set_html(highlighted)
-            new_tab.data.viewing_source = True
-            new_tab.url = lambda requested=False: QUrl(
-                'Source: {}'.format(current_url.toDisplayString()))
-
-        tab.dump_async(show_source_cb)
+        tab.action.show_source(self, current_url)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

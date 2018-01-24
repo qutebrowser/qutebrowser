@@ -139,6 +139,10 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
+    def show_source(self, dispatcher, url):
+        """Show the source of the current page in a new tab."""
+        raise NotImplementedError
+
 
 class AbstractPrinting:
 

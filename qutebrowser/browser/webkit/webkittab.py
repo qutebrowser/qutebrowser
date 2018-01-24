@@ -23,6 +23,10 @@ import re
 import functools
 import xml.etree.ElementTree
 
+import pygments
+import pygments.lexers
+import pygments.formatters
+
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
@@ -49,6 +53,25 @@ class WebKitAction(browsertab.AbstractAction):
     def save_page(self):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
+
+    def show_source(self, dispatcher, url):
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table',
+                title='view-source:{}'.format(url.toDisplayString()))
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            new_tab = dispatcher._tabbed_browser.tabopen()
+            new_tab.set_html(highlighted)
+            new_tab.data.viewing_source = True
+            new_tab.url = lambda requested=False: QUrl(
+                'view-source:' + url.toDisplayString())
+        dispatcher._current_widget().dump_async(show_source_cb)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):

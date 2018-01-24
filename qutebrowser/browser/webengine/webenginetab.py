@@ -99,6 +99,13 @@ class WebEngineAction(browsertab.AbstractAction):
         """Save the current page."""
         self._widget.triggerPageAction(QWebEnginePage.SavePage)
 
+    def show_source(self, dispatcher, url):
+        # use view-source: scheme to show page source for webengine
+        url = QUrl('view-source:{}'.format(url.toString()))
+        new_tab = dispatcher._tabbed_browser.tabopen(
+            url, background=True, related=True)
+        new_tab.data.viewing_source = True
+
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
 
