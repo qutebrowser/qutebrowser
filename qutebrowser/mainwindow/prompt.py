@@ -422,6 +422,18 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
+    @cmdutils.register(instance='prompt-container', scope='window',
+                       modes=[usertypes.KeyMode.prompt])
+    def prompt_yank(self):
+        """Yank URLs or other data in prompts."""
+        question = self._prompt.question
+        s = None
+        if question and hasattr(question, 'yank_text'):
+            s = question.yank_text
+        utils.set_clipboard(s)
+        message.info("Yanked download URL to clipboard: {}".format(s))
+
+
 
 class LineEdit(QLineEdit):
 
@@ -721,6 +733,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-accept', 'Accept'),
             ('leave-mode', 'Abort'),
             ('prompt-open-download', "Open download"),
+            ('prompt-yank', "Yank URLs in prompts"),
         ]
         return cmds
 
