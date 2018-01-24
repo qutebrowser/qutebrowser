@@ -624,7 +624,6 @@ class TestIncDecNumber:
 
     def test_incdec_port(self):
         """Test incdec_number with port."""
-
         base_url = QUrl('http://localhost:8000')
         new_url = urlutils.incdec_number(
             base_url, 'increment', segments={'port'})
