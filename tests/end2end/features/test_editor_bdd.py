@@ -22,6 +22,7 @@ import json
 import textwrap
 import os
 import signal
+import time
 
 import pytest_bdd as bdd
 bdd.scenarios('editor.feature')
@@ -115,6 +116,11 @@ def kill_editor_wait(tmpdir):
 def save_editor_wait(tmpdir):
     """Trigger the waiting editor to write without exiting."""
     pidfile = tmpdir / 'editor_pid'
+    # give the "editor" process time to write its pid
+    for _ in range(10):
+        if pidfile.check():
+            break
+        time.sleep(1)
     pid = int(pidfile.read())
     # windows has no SIGUSR2, but we don't run this on windows anyways
     # for posix, there IS a member so we need to ignore useless-suppression
