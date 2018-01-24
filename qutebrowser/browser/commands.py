@@ -29,9 +29,6 @@ from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
 from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-import pygments
-import pygments.lexers
-import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
@@ -758,6 +755,7 @@ class CommandDispatcher:
         else:
             x = None
             y = perc
+
         self._current_widget().scroller.to_perc(x, y)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1503,15 +1501,15 @@ class CommandDispatcher:
     def view_source(self):
         """Show the source of the current page in a new tab."""
         tab = self._current_widget()
-        if tab.data.viewing_source:
-            raise cmdexc.CommandError("Already viewing source!")
-
         try:
             current_url = self._current_url()
         except cmdexc.CommandError as e:
             message.error(str(e))
             return
-        tab.action.show_source(self, current_url)
+        if current_url.scheme() == 'view-source':
+            raise cmdexc.CommandError("Already viewing source!")
+
+        tab.action.show_source(self._win_id, current_url)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
