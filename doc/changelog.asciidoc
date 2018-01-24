@@ -37,6 +37,8 @@ Changed
 - On Qt 5.7.1, GreaseMonkey `@include` and `@exclude` now support
   regex matches. With Qt 5.8 and newer, Qt handles the matching, but
   similar functionality will likely land in Qt 5.11.
+- The sqlite history now uses write-ahead logging which should be
+  a performance and stability improvement.
 
 Fixed
 ~~~~~
