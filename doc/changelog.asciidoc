@@ -23,6 +23,8 @@ Added
 
 - Caret/visual mode is now supported for QtWebEngine.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
+- `:session-load` has a new `--delete` flag which deletes the
+  session after loading it.
 
 Changed
 ~~~~~~~

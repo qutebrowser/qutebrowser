@@ -1068,7 +1068,7 @@ Delete a session.
 
 [[session-load]]
 === session-load
-Syntax: +:session-load [*--clear*] [*--temp*] [*--force*] 'name'+
+Syntax: +:session-load [*--clear*] [*--temp*] [*--force*] [*--delete*] 'name'+
 
 Load a session.
 
@@ -1080,6 +1080,7 @@ Load a session.
 * +*-t*+, +*--temp*+: Don't set the current session for :session-save.
 * +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
 
+* +*-d*+, +*--delete*+: Delete the saved session once it has loaded.
 
 [[session-save]]
 === session-save
