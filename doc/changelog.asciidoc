@@ -32,6 +32,9 @@ Changed
 - Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
 - Angular 1 elements now get hints assigned.
 - `:tab-only` with pinned tabs now still closes unpinned tabs.
+- On Qt 5.7.1, GreaseMonkey `@include` and `@exclude` now support
+  regex matches. With Qt 5.8 and newer, Qt handles the matching, but
+  similar functionality will likely land in Qt 5.11.
 
 Fixed
 ~~~~~
