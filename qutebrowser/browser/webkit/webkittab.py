@@ -54,14 +54,7 @@ class WebKitAction(browsertab.AbstractAction):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
 
-    def show_source(self, win_id, url):
-
-        def format_url(url):
-            """emulate what WebEnginePage::ViewSource does."""
-            s = url.toString()
-            s = s.split('//')[-1]  # strip scheme
-            s = s.split('@')[-1]   # strip userinfo
-            return s
+    def show_source(self):
 
         def show_source_cb(source):
             """Show source as soon as it's ready."""
@@ -70,17 +63,18 @@ class WebKitAction(browsertab.AbstractAction):
             lexer = pygments.lexers.HtmlLexer()
             formatter = pygments.formatters.HtmlFormatter(
                 full=True, linenos='table',
-                title='view-source:' + format_url(url))
+                title='Source for {}'.format(url_str))
             # pylint: enable=no-member
             highlighted = pygments.highlight(source, lexer, formatter)
 
-            base_url = QUrl('view-source:' + url.toString())
-            new_tab = tabbed_browser.tabopen(background=False, related=True)
+            base_url = QUrl('view-source:' + url_str)
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._win_id)
+            new_tab = tb.tabopen(background=False, related=True)
             new_tab.set_html(highlighted, base_url)
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
-        tabbed_browser.currentWidget().dump_async(show_source_cb)
+        url_str = self._tab.url().toString(QUrl.RemoveUserInfo)
+        self._tab.dump_async(show_source_cb)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -657,7 +651,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(self)
-        self.action = WebKitAction()
+        self.action = WebKitAction(self, win_id)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit

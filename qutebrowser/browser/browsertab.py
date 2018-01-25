@@ -119,8 +119,10 @@ class AbstractAction:
     action_class = None
     action_base = None
 
-    def __init__(self):
+    def __init__(self, tab, win_id):
         self._widget = None
+        self._tab = tab
+        self._win_id = win_id
 
     def exit_fullscreen(self):
         """Exit the fullscreen mode."""
@@ -137,7 +139,7 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(self, win_id, url):
+    def show_source(self):
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
 

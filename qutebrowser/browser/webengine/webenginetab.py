@@ -99,18 +99,16 @@ class WebEngineAction(browsertab.AbstractAction):
         """Save the current page."""
         self._widget.triggerPageAction(QWebEnginePage.SavePage)
 
-    def show_source(self, win_id, url):
+    def show_source(self):
         try:
             self._widget.triggerPageAction(QWebEnginePage.ViewSource)
         except AttributeError:
             # Qt < 5.8
-            # note: it's not possible to build the QUrl object by setting the
-            # scheme using setScheme('view-source').
-            # QUrl does the right thing when URL prefix is "view-source:".
-            new_url = QUrl('view-source:' + url.toString())
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            tabbed_browser.tabopen(new_url, background=False, related=True)
+            url_str = self._tab.url().toString(QUrl.RemoveUserInfo)
+            new_url = QUrl('view-source:' + url_str)
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._win_id)
+            tb.tabopen(new_url, background=False, related=True)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -609,7 +607,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(self)
-        self.action = WebEngineAction()
+        self.action = WebEngineAction(self, win_id)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine

@@ -1509,7 +1509,7 @@ class CommandDispatcher:
         if current_url.scheme() == 'view-source':
             raise cmdexc.CommandError("Already viewing source!")
 
-        tab.action.show_source(self._win_id, current_url)
+        tab.action.show_source()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
