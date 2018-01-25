@@ -4,16 +4,23 @@ Flatpak
 The flatpak is based on the org.kde.Platform version 5.9 and ships all
 additional dependecies of qutebrowser. The platform includes QT 5.9.
 
-To build the flatpak run the following command:
+To install the SDK system wide run:
 
- flatpak-builer --force-clean app-dir org.qutebrowser.qutebrowser
+ sudo flatpak install org.kde.Sdk/x86_64/5.9
+
+To actually build the flatpak run the following command:
+
+ flatpak-builder --force-clean app-dir org.qutebrowser.qutebrowser.json
 
 To run the flatpak from current build:
 
- flatpak-builder --run app-dir org.qutebrowser.qutebrowser.org qutebrowser
+ flatpak-builder --run app-dir org.qutebrowser.qutebrowser.json qutebrowser
 
 Installing from a local repository
 ----------------------------------
+
+You need at least version 0.9.1 of flatpak to build the system, e.g. from
+Debian backports.
 
 Export the flatpak application to a local repository:
 
