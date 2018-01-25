@@ -81,6 +81,7 @@ def bind(key, *, info):
     data = []
 
     cmd_text = info.keyconf.get_command(key, 'normal')
+    cmd_text = cmd_text and cmd_text.lstrip(':')
     if cmd_text:
         parser = runners.CommandParser()
         try:

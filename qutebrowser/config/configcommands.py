@@ -143,8 +143,6 @@ class ConfigCommands:
                     key, cmd, mode))
             return
 
-        command = command.lstrip(':')
-
         with self._handle_config_error():
             self._keyconfig.bind(key, command, mode=mode, save_yaml=True)
 
