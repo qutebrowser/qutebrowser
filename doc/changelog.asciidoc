@@ -39,6 +39,7 @@ Changed
   similar functionality will likely land in Qt 5.11.
 - The sqlite history now uses write-ahead logging which should be
   a performance and stability improvement.
+- The `url.incdec_segments` option now also can take `port` as possible segment.
 
 Fixed
 ~~~~~
