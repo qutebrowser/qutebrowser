@@ -2994,6 +2994,7 @@ Type: <<types,FlagList>>
 Valid values:
 
  * +host+
+ * +port+
  * +path+
  * +query+
  * +anchor+

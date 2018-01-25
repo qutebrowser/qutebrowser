@@ -638,7 +638,9 @@ class CommandDispatcher:
                 - `next`: Open a _next_ link.
                 - `up`: Go up a level in the current URL.
                 - `increment`: Increment the last number in the URL.
+                  Uses the link:settings.html#url.incdec_segments[url.incdec_segments] config option.
                 - `decrement`: Decrement the last number in the URL.
+                  Uses the link:settings.html#url.incdec_segments[url.incdec_segments] config option.
 
             tab: Open in a new tab.
             bg: Open in a background tab.
