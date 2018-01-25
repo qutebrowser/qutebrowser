@@ -21,13 +21,14 @@
 
 import html
 
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
 from qutebrowser.mainwindow import mainwindow
 
 
 class CallSuper(Exception):
-
     """Raised when the caller should call the superclass instead."""
 
 
@@ -61,9 +62,10 @@ def authentication_required(url, authenticator, abort_on):
     else:
         msg = '<b>{}</b> needs authentication'.format(
             html.escape(url.toDisplayString()))
+    urlstr = url.toString(QUrl.RemoveUserInfo)
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
-                         abort_on=abort_on)
+                         abort_on=abort_on, url=urlstr)
     if answer is not None:
         authenticator.setUser(answer.user)
         authenticator.setPassword(answer.password)
@@ -78,9 +80,10 @@ def javascript_confirm(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           html.escape(js_msg))
+    urlstr = url.toString(QUrl.RemoveUserInfo)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
-                      abort_on=abort_on)
+                      abort_on=abort_on, url=urlstr)
     return bool(ans)
 
 
@@ -94,10 +97,11 @@ def javascript_prompt(url, js_msg, default, abort_on):
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           html.escape(js_msg))
+    urlstr = url.toString(QUrl.RemoveUserInfo)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
                          default=default,
-                         abort_on=abort_on)
+                         abort_on=abort_on, url=urlstr)
 
     if answer is None:
         return (False, "")
@@ -116,8 +120,9 @@ def javascript_alert(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           html.escape(js_msg))
+    urlstr = url.toString(QUrl.RemoveUserInfo)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
-                abort_on=abort_on)
+                abort_on=abort_on, url=urlstr)
 
 
 def javascript_log_message(level, source, line, msg):
@@ -164,9 +169,10 @@ def ignore_certificate_errors(url, errors, abort_on):
         """.strip())
         msg = err_template.render(url=url, errors=errors)
 
+        urlstr = url.toString(QUrl.RemoveUserInfo)
         ignore = message.ask(title="Certificate errors - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on)
+                             abort_on=abort_on, url=urlstr)
         if ignore is None:
             # prompt aborted
             ignore = False
@@ -202,15 +208,17 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
     config_val = config.instance.get(option)
     if config_val == 'ask':
         if url.isValid():
+            urlstr = url.toString(QUrl.RemoveUserInfo)
             text = "Allow the website at <b>{}</b> to {}?".format(
                 html.escape(url.toDisplayString()), msg)
         else:
+            urlstr = None
             text = "Allow the website to {}?".format(msg)
 
         return message.confirm_async(
             yes_action=yes_action, no_action=no_action,
             cancel_action=no_action, abort_on=abort_on,
-            title='Permission request', text=text)
+            title='Permission request', text=text, url=urlstr)
     elif config_val:
         yes_action()
         return None

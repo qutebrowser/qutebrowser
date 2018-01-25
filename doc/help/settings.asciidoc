@@ -627,6 +627,7 @@ Default:
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
 * +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
+* +pass:[&lt;Ctrl-y&gt;]+: +pass:[prompt-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+

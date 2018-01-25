@@ -422,16 +422,18 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
-    @cmdutils.register(instance='prompt-container', scope='window',
-                       modes=[usertypes.KeyMode.prompt])
+    @cmdutils.register(
+        instance='prompt-container', scope='window',
+        modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
     def prompt_yank(self):
-        """Yank URLs or other data in prompts."""
+        """Yank URL."""
         question = self._prompt.question
-        s = None
-        if question and hasattr(question, 'yank_text'):
-            s = question.yank_text
+        if not question.url:
+            message.error('No URL found.')
+            return
+        s = question.url
         utils.set_clipboard(s)
-        message.info("Yanked download URL to clipboard: {}".format(s))
+        message.info("Yanked to clipboard: {}".format(s))
 
 
 class LineEdit(QLineEdit):
@@ -732,7 +734,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-accept', 'Accept'),
             ('leave-mode', 'Abort'),
             ('prompt-open-download', "Open download"),
-            ('prompt-yank', "Yank URLs in prompts"),
+            ('prompt-yank', "Yank URL"),
         ]
         return cmds
 
@@ -823,6 +825,7 @@ class YesNoPrompt(_BasePrompt):
         cmds = [
             ('prompt-accept yes', "Yes"),
             ('prompt-accept no', "No"),
+            ('prompt-yank', "Yank URL"),
         ]
 
         if self.question.default is not None:

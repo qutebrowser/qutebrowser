@@ -266,7 +266,7 @@ class Question(QObject):
                  For user_pwd, a default username as string.
         title: The question title to show.
         text: The prompt text to display to the user.
-        yank_text: The prompt text available to prompt-yank command.
+        url: Any URL referenced in prompts.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
         interrupted: Whether the question was interrupted by another one.
@@ -297,7 +297,7 @@ class Question(QObject):
         self.default = None
         self.title = None
         self.text = None
-        self.yank_text = None
+        self.url = None
         self.answer = None
         self.is_aborted = False
         self.interrupted = False

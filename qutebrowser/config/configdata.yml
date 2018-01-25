@@ -2350,6 +2350,7 @@ bindings.default:
       <Ctrl-W>: rl-unix-word-rubout
       <Alt-Backspace>: rl-backward-kill-word
       <Ctrl-Y>: rl-yank
+      <Ctrl-y>: prompt-yank
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Escape>: leave-mode

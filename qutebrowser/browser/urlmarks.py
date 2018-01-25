@@ -161,7 +161,7 @@ class QuickmarkManager(UrlMarkManager):
             "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, urlstr),
             text="Please enter a quickmark name for<br/><b>{}</b>".format(
-                html.escape(url.toDisplayString())))
+                html.escape(url.toDisplayString())), url=urlstr)
 
     @cmdutils.register(instance='quickmark-manager')
     def quickmark_add(self, url, name):
@@ -189,10 +189,11 @@ class QuickmarkManager(UrlMarkManager):
             self.changed.emit()
             log.misc.debug("Added quickmark {} for {}".format(name, url))
 
+        urlstr = url.toString(QUrl.RemoveUserInfo)
         if name in self.marks:
             message.confirm_async(
                 title="Override existing quickmark?",
-                yes_action=set_mark, default=True)
+                yes_action=set_mark, default=True, url=urlstr)
         else:
             set_mark()
 
