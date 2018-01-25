@@ -106,10 +106,10 @@ class WebEngineAction(browsertab.AbstractAction):
             # Qt < 5.8
             tb = objreg.get('tabbed-browser', scope='window',
                             window=self._win_id)
-            url_str = self._tab.url().toString(QUrl.RemoveUserInfo)
+            urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
             # The original URL becomes the path of a view-source: URL
             # (without a host), but query/fragment should stay.
-            url = QUrl('view-source:' + url_str)
+            url = QUrl('view-source:' + urlstr)
             tb.tabopen(url, background=False, related=True)
 
 

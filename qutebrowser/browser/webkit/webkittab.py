@@ -71,10 +71,10 @@ class WebKitAction(browsertab.AbstractAction):
             new_tab = tb.tabopen(background=False, related=True)
             # The original URL becomes the path of a view-source: URL
             # (without a host), but query/fragment should stay.
-            url = QUrl('view-source:' + url_str)
+            url = QUrl('view-source:' + urlstr)
             new_tab.set_html(highlighted, url)
 
-        url_str = self._tab.url().toString(QUrl.RemoveUserInfo)
+        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
         self._tab.dump_async(show_source_cb)
 
 
