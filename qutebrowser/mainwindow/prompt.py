@@ -434,7 +434,6 @@ class PromptContainer(QWidget):
         message.info("Yanked download URL to clipboard: {}".format(s))
 
 
-
 class LineEdit(QLineEdit):
 
     """A line edit used in prompts."""
