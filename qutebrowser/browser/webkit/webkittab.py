@@ -62,16 +62,17 @@ class WebKitAction(browsertab.AbstractAction):
             # pylint: disable=no-member
             lexer = pygments.lexers.HtmlLexer()
             formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table',
-                title='Source for {}'.format(url_str))
+                full=True, linenos='table')
             # pylint: enable=no-member
             highlighted = pygments.highlight(source, lexer, formatter)
 
-            base_url = QUrl('view-source:' + url_str)
             tb = objreg.get('tabbed-browser', scope='window',
                             window=self._win_id)
             new_tab = tb.tabopen(background=False, related=True)
-            new_tab.set_html(highlighted, base_url)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + url_str)
+            new_tab.set_html(highlighted, url)
 
         url_str = self._tab.url().toString(QUrl.RemoveUserInfo)
         self._tab.dump_async(show_source_cb)

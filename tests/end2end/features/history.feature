@@ -69,7 +69,7 @@ Feature: Page history
     Scenario: History with view-source URL
         When I open data/title.html
         And I run :view-source
-        And I wait for regex "Changing title for idx \d+ to '(Source for |view-source:)(http://)?localhost:\d+/data/title.html'" in the log
+        And I wait for regex "Changing title for idx \d+ to 'view-source:(http://)?localhost:\d+/data/title.html'" in the log
         Then the history should contain:
             http://localhost:(port)/data/title.html Test title
 
