@@ -638,7 +638,13 @@ class CommandDispatcher:
                 - `next`: Open a _next_ link.
                 - `up`: Go up a level in the current URL.
                 - `increment`: Increment the last number in the URL.
+                  Uses the
+                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  config option.
                 - `decrement`: Decrement the last number in the URL.
+                  Uses the
+                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  config option.
 
             tab: Open in a new tab.
             bg: Open in a background tab.
@@ -849,14 +855,21 @@ class CommandDispatcher:
             s = self._yank_url(what)
             what = 'URL'  # For printing
         elif what == 'selection':
+            def _selection_callback(s):
+                if not self._current_widget().caret.has_selection() or not s:
+                    message.info("Nothing to yank")
+                    return
+                self._yank_to_target(s, sel, what, keep)
+
             caret = self._current_widget().caret
-            s = caret.selection()
-            if not caret.has_selection() or not s:
-                message.info("Nothing to yank")
-                return
+            caret.selection(callback=_selection_callback)
+            return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
+        self._yank_to_target(s, sel, what, keep)
+
+    def _yank_to_target(self, s, sel, what, keep):
         if sel and utils.supports_selection():
             target = "primary selection"
         else:
@@ -1208,8 +1221,19 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
         if userscript:
+            def _selection_callback(s):
+                try:
+                    self._run_userscript(s, cmd, args, verbose)
+                except cmdexc.CommandError as e:
+                    message.error(str(e))
+
             # ~ expansion is handled by the userscript module.
-            self._run_userscript(cmd, *args, verbose=verbose)
+            # dirty hack for async call because of:
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            # until it fixed or blocked async call implemented:
+            # https://github.com/qutebrowser/qutebrowser/issues/3327
+            caret = self._current_widget().caret
+            caret.selection(callback=_selection_callback)
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
@@ -1229,7 +1253,7 @@ class CommandDispatcher:
         """Open main startpage in current tab."""
         self.openurl(config.val.url.start_pages[0])
 
-    def _run_userscript(self, cmd, *args, verbose=False):
+    def _run_userscript(self, selection, cmd, args, verbose):
         """Run a userscript given as argument.
 
         Args:
@@ -1247,7 +1271,7 @@ class CommandDispatcher:
 
         tab = self._tabbed_browser.currentWidget()
         if tab is not None and tab.caret.has_selection():
-            env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
+            env['QUTE_SELECTED_TEXT'] = selection
             try:
                 env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
             except browsertab.UnsupportedOperationError:

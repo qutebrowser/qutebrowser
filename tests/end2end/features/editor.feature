@@ -129,7 +129,6 @@ Feature: Opening external editors
         And I kill the waiting editor
         Then the error "Edited element vanished" should be shown
 
-    @qtwebengine_todo: Caret mode is not implemented yet
     Scenario: Spawning an editor in caret mode
         When I set up a fake editor returning "foobar"
         And I open data/editor.html

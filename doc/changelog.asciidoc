@@ -21,7 +21,10 @@ v1.2.0 (unreleased)
 Added
 ~~~~~
 
+- Caret/visual mode is now supported for QtWebEngine.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
+- `:session-load` has a new `--delete` flag which deletes the
+  session after loading it.
 
 Changed
 ~~~~~~~
@@ -31,19 +34,28 @@ Changed
 - Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
 - Angular 1 elements now get hints assigned.
 - `:tab-only` with pinned tabs now still closes unpinned tabs.
+- On Qt 5.7.1, GreaseMonkey `@include` and `@exclude` now support
+  regex matches. With Qt 5.8 and newer, Qt handles the matching, but
+  similar functionality will likely land in Qt 5.11.
+- The sqlite history now uses write-ahead logging which should be
+  a performance and stability improvement.
+- The `url.incdec_segments` option now also can take `port` as possible segment.
 
 Fixed
 ~~~~~
 
 - Improved fullscreen handling with Qt 5.10.
+- URLs containing ampersands and other special chars are now shown
+  correctly when filtering them in the completion.
 
-v1.1.1 (unreleased)
--------------------
+v1.1.1
+------
 
 Fixed
 ~~~~~
 
 - The Makefile now actually works.
+- Fixed crashes with Qt 5.10 when closing a tab before it finished loading.
 
 v1.1.0
 ------

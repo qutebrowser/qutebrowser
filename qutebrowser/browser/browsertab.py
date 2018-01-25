@@ -393,7 +393,7 @@ class AbstractCaret(QObject):
     def has_selection(self):
         raise NotImplementedError
 
-    def selection(self, html=False):
+    def selection(self, html=False, callback=None):
         raise NotImplementedError
 
     def follow_selected(self, *, tab=False):
@@ -749,6 +749,10 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3498
+            return
+
         sess_manager = objreg.get('session-manager')
         sess_manager.save_autosave()
 
