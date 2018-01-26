@@ -21,7 +21,7 @@ v1.2.0 (unreleased)
 Added
 ~~~~~
 
-- Caret/visual mode is now supported for QtWebEngine.
+- QtWebEngine: Caret/visual mode is now supported.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
 - `:session-load` has a new `--delete` flag which deletes the
   session after loading it.
@@ -34,22 +34,23 @@ Changed
 - Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
 - Angular 1 elements now get hints assigned.
 - `:tab-only` with pinned tabs now still closes unpinned tabs.
-- On Qt 5.7.1, GreaseMonkey `@include` and `@exclude` now support
-  regex matches. With Qt 5.8 and newer, Qt handles the matching, but
-  similar functionality will likely land in Qt 5.11.
+- GreaseMonkey `@include` and `@exclude` now support
+  regex matches. With QtWebEngine and Qt 5.8 and newer, Qt handles the matching,
+  but similar functionality will likely land in Qt 5.11.
 - The sqlite history now uses write-ahead logging which should be
   a performance and stability improvement.
 - The `url.incdec_segments` option now also can take `port` as possible segment.
-- `:view-source` now uses Chromium's `view-source:` scheme with QtWebEngine.
+- QtWebEngine: `:view-source` now uses Chromium's `view-source:` scheme.
 
 Fixed
 ~~~~~
 
-- Improved fullscreen handling with Qt 5.10.
+- QtWebEngine: Improved fullscreen handling with Qt 5.10.
+- QtWebEngine: Hinting and scrolling now works properly on special
+  `view-source:` pages.
+- QtWebKit: `:view-source` now displays a valid URL.
 - URLs containing ampersands and other special chars are now shown
   correctly when filtering them in the completion.
-- Hinting and scrolling now works properly on special `view-source:` pages.
-- `:view-source` now displays a valid URL with QtWebKit.
 
 v1.1.1
 ------
