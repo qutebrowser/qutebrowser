@@ -67,7 +67,7 @@ class WebKitAction(browsertab.AbstractAction):
             highlighted = pygments.highlight(source, lexer, formatter)
 
             tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._win_id)
+                            window=self._tab.win_id)
             new_tab = tb.tabopen(background=False, related=True)
             # The original URL becomes the path of a view-source: URL
             # (without a host), but query/fragment should stay.
@@ -354,7 +354,7 @@ class WebKitCaret(browsertab.AbstractCaret):
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
         mainwindow = objreg.get('main-window', scope='window',
-                                window=self._win_id)
+                                window=self._tab.win_id)
         mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
 
     def drop_selection(self):
@@ -646,13 +646,13 @@ class WebKitTab(browsertab.AbstractTab):
             self._make_private(widget)
         self.history = WebKitHistory(self)
         self.scroller = WebKitScroller(self, parent=self)
-        self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
+        self.caret = WebKitCaret(mode_manager=mode_manager,
                                  tab=self, parent=self)
-        self.zoom = WebKitZoom(win_id=win_id, parent=self)
+        self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
-        self.elements = WebKitElements(self)
-        self.action = WebKitAction(self, win_id)
+        self.elements = WebKitElements(tab=self)
+        self.action = WebKitAction(tab=self)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit

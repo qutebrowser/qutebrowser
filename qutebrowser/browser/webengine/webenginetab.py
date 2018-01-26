@@ -105,7 +105,7 @@ class WebEngineAction(browsertab.AbstractAction):
         except AttributeError:
             # Qt < 5.8
             tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._win_id)
+                            window=self._tab.win_id)
             urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
             # The original URL becomes the path of a view-source: URL
             # (without a host), but query/fragment should stay.
@@ -603,13 +603,13 @@ class WebEngineTab(browsertab.AbstractTab):
                                        private=private)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
-        self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
+        self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
-        self.zoom = WebEngineZoom(win_id=win_id, parent=self)
+        self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
-        self.elements = WebEngineElements(self)
-        self.action = WebEngineAction(self, win_id)
+        self.elements = WebEngineElements(tab=self)
+        self.action = WebEngineAction(tab=self)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine

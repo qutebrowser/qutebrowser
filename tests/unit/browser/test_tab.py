@@ -80,10 +80,9 @@ class Tab(browsertab.AbstractTab):
                          parent=parent)
         self.history = browsertab.AbstractHistory(self)
         self.scroller = browsertab.AbstractScroller(self, parent=self)
-        self.caret = browsertab.AbstractCaret(win_id=self.win_id,
-                                              mode_manager=mode_manager,
+        self.caret = browsertab.AbstractCaret(mode_manager=mode_manager,
                                               tab=self, parent=self)
-        self.zoom = Zoom(win_id=self.win_id)
+        self.zoom = Zoom(tab=self)
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
         self.elements = browsertab.AbstractElements(self)

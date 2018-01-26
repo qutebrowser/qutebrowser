@@ -119,10 +119,9 @@ class AbstractAction:
     action_class = None
     action_base = None
 
-    def __init__(self, tab, win_id):
+    def __init__(self, tab):
         self._widget = None
         self._tab = tab
-        self._win_id = win_id
 
     def exit_fullscreen(self):
         """Exit the fullscreen mode."""
@@ -249,10 +248,10 @@ class AbstractZoom(QObject):
         _default_zoom_changed: Whether the zoom was changed from the default.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
+        self._tab = tab
         self._widget = None
-        self._win_id = win_id
         self._default_zoom_changed = False
         self._init_neighborlist()
         config.instance.changed.connect(self._on_config_changed)
@@ -328,10 +327,9 @@ class AbstractCaret(QObject):
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id, tab, mode_manager, parent=None):
+    def __init__(self, tab, mode_manager, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._win_id = win_id
         self._widget = None
         self.selection_enabled = False
         mode_manager.entered.connect(self._on_mode_entered)
@@ -642,16 +640,6 @@ class AbstractTab(QWidget):
                                   window=win_id)
         tab_registry[self.tab_id] = self
         objreg.register('tab', self, registry=self.registry)
-
-        # self.history = AbstractHistory(self)
-        # self.scroller = AbstractScroller(self, parent=self)
-        # self.caret = AbstractCaret(win_id=win_id, tab=self,
-        #                            mode_manager=mode_manager, parent=self)
-        # self.zoom = AbstractZoom(win_id=win_id)
-        # self.search = AbstractSearch(parent=self)
-        # self.printing = AbstractPrinting()
-        # self.elements = AbstractElements(self)
-        # self.action = AbstractAction()
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
