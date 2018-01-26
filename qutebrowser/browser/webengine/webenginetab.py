@@ -626,6 +626,8 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
+        # We can't use DocumentCreation here as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-66011
         script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setSourceCode(js_code)
 

@@ -40,6 +40,7 @@ Changed
 - The sqlite history now uses write-ahead logging which should be
   a performance and stability improvement.
 - The `url.incdec_segments` option now also can take `port` as possible segment.
+- `:view-source` now uses Chromium's `view-source:` scheme with QtWebEngine.
 
 Fixed
 ~~~~~
@@ -47,6 +48,8 @@ Fixed
 - Improved fullscreen handling with Qt 5.10.
 - URLs containing ampersands and other special chars are now shown
   correctly when filtering them in the completion.
+- Hinting and scrolling now works properly on special `view-source:` pages.
+- `:view-source` now displays a valid URL with QtWebKit.
 
 v1.1.1
 ------
